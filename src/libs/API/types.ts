@@ -42,6 +42,7 @@ const WRITE_COMMANDS = {
     UPDATE_LEGAL_NAME: 'UpdateLegalName',
     UPDATE_DATE_OF_BIRTH: 'UpdateDateOfBirth',
     UPDATE_HOME_ADDRESS: 'UpdateHomeAddress',
+    UPDATE_POLICY_ADDRESS: 'SetPolicyAddress',
     UPDATE_AUTOMATIC_TIMEZONE: 'UpdateAutomaticTimezone',
     UPDATE_SELECTED_TIMEZONE: 'UpdateSelectedTimezone',
     UPDATE_USER_AVATAR: 'UpdateUserAvatar',
@@ -112,6 +113,7 @@ const WRITE_COMMANDS = {
     FLAG_COMMENT: 'FlagComment',
     UPDATE_REPORT_PRIVATE_NOTE: 'UpdateReportPrivateNote',
     RESOLVE_ACTIONABLE_MENTION_WHISPER: 'ResolveActionableMentionWhisper',
+    RESOLVE_ACTIONABLE_REPORT_MENTION_WHISPER: 'ResolveActionableReportMentionWhisper',
     DELETE_WORKSPACE: 'DeleteWorkspace',
     DELETE_MEMBERS_FROM_WORKSPACE: 'DeleteMembersFromWorkspace',
     ADD_MEMBERS_TO_WORKSPACE: 'AddMembersToWorkspace',
@@ -212,6 +214,8 @@ const WRITE_COMMANDS = {
     CATEGORIZE_TRACKED_EXPENSE: 'CategorizeTrackedExpense',
     SHARE_TRACKED_EXPENSE: 'ShareTrackedExpense',
     LEAVE_POLICY: 'LeavePolicy',
+    ACCEPT_SPOTNANA_TERMS: 'AcceptSpotnanaTerms',
+    SEND_INVOICE: 'SendInvoice',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -242,6 +246,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_DISPLAY_NAME]: Parameters.UpdateDisplayNameParams;
     [WRITE_COMMANDS.UPDATE_LEGAL_NAME]: Parameters.UpdateLegalNameParams;
     [WRITE_COMMANDS.UPDATE_DATE_OF_BIRTH]: Parameters.UpdateDateOfBirthParams;
+    [WRITE_COMMANDS.UPDATE_POLICY_ADDRESS]: Parameters.UpdatePolicyAddressParams;
     [WRITE_COMMANDS.UPDATE_HOME_ADDRESS]: Parameters.UpdateHomeAddressParams;
     [WRITE_COMMANDS.UPDATE_AUTOMATIC_TIMEZONE]: Parameters.UpdateAutomaticTimezoneParams;
     [WRITE_COMMANDS.UPDATE_SELECTED_TIMEZONE]: Parameters.UpdateSelectedTimezoneParams;
@@ -313,6 +318,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.FLAG_COMMENT]: Parameters.FlagCommentParams;
     [WRITE_COMMANDS.UPDATE_REPORT_PRIVATE_NOTE]: Parameters.UpdateReportPrivateNoteParams;
     [WRITE_COMMANDS.RESOLVE_ACTIONABLE_MENTION_WHISPER]: Parameters.ResolveActionableMentionWhisperParams;
+    [WRITE_COMMANDS.RESOLVE_ACTIONABLE_REPORT_MENTION_WHISPER]: Parameters.ResolveActionableReportMentionWhisperParams;
     [WRITE_COMMANDS.CHRONOS_REMOVE_OOO_EVENT]: Parameters.ChronosRemoveOOOEventParams;
     [WRITE_COMMANDS.TRANSFER_WALLET_BALANCE]: Parameters.TransferWalletBalanceParams;
     [WRITE_COMMANDS.DELETE_WORKSPACE]: Parameters.DeleteWorkspaceParams;
@@ -424,10 +430,13 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.CATEGORIZE_TRACKED_EXPENSE]: Parameters.CategorizeTrackedExpenseParams;
     [WRITE_COMMANDS.SHARE_TRACKED_EXPENSE]: Parameters.ShareTrackedExpenseParams;
     [WRITE_COMMANDS.LEAVE_POLICY]: Parameters.LeavePolicyParams;
+    [WRITE_COMMANDS.ACCEPT_SPOTNANA_TERMS]: EmptyObject;
+    [WRITE_COMMANDS.SEND_INVOICE]: Parameters.SendInvoiceParams;
 };
 
 const READ_COMMANDS = {
     CONNECT_POLICY_TO_QUICKBOOKS_ONLINE: 'ConnectPolicyToQuickbooksOnline',
+    CONNECT_POLICY_TO_XERO: 'ConnectPolicyToXero',
     SYNC_POLICY_TO_QUICKBOOKS_ONLINE: 'SyncPolicyToQuickbooksOnline',
     OPEN_REIMBURSEMENT_ACCOUNT_PAGE: 'OpenReimbursementAccountPage',
     OPEN_WORKSPACE_VIEW: 'OpenWorkspaceView',
@@ -472,7 +481,8 @@ const READ_COMMANDS = {
 type ReadCommand = ValueOf<typeof READ_COMMANDS>;
 
 type ReadCommandParameters = {
-    [READ_COMMANDS.CONNECT_POLICY_TO_QUICKBOOKS_ONLINE]: Parameters.ConnectPolicyToQuickbooksOnlineParams;
+    [READ_COMMANDS.CONNECT_POLICY_TO_QUICKBOOKS_ONLINE]: Parameters.ConnectPolicyToAccountingIntegrationParams;
+    [READ_COMMANDS.CONNECT_POLICY_TO_XERO]: Parameters.ConnectPolicyToAccountingIntegrationParams;
     [READ_COMMANDS.SYNC_POLICY_TO_QUICKBOOKS_ONLINE]: Parameters.SyncPolicyToQuickbooksOnlineParams;
     [READ_COMMANDS.OPEN_REIMBURSEMENT_ACCOUNT_PAGE]: Parameters.OpenReimbursementAccountPageParams;
     [READ_COMMANDS.OPEN_WORKSPACE_VIEW]: Parameters.OpenWorkspaceViewParams;

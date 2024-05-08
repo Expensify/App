@@ -67,6 +67,11 @@ const DotLottieAnimations = {
         w: 200,
         h: 120,
     },
+    Plane: {
+        file: require('@assets/animations/Plane.lottie'),
+        w: 180,
+        h: 200,
+    },
 } satisfies Record<string, DotLottieAnimation>;
 
 export default DotLottieAnimations;

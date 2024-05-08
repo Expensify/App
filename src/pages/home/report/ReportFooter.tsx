@@ -12,6 +12,7 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as UserUtils from '@libs/UserUtils';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
 import * as Task from '@userActions/Task';
@@ -83,6 +84,7 @@ function ReportFooter({
     const isSmallSizeLayout = windowWidth - (isSmallScreenWidth ? 0 : variables.sideBarWidth) < variables.anonymousReportFooterBreakpoint;
     const hideComposer = !ReportUtils.canUserPerformWriteAction(report);
     const canWriteInReport = ReportUtils.canWriteInReport(report);
+    const isSystemChat = ReportUtils.isSystemChat(report);
 
     const allPersonalDetails = usePersonalDetails();
 
@@ -109,10 +111,17 @@ function ReportFooter({
             const mentionWithDomain = ReportUtils.addDomainToShortMention(mention ?? '') ?? mention;
 
             let assignee: OnyxTypes.PersonalDetails | EmptyObject = {};
+            let assigneeChatReport;
             if (mentionWithDomain) {
                 assignee = Object.values(allPersonalDetails).find((value) => value?.login === mentionWithDomain) ?? {};
+                if (!Object.keys(assignee).length) {
+                    const assigneeAccountID = UserUtils.generateAccountID(mentionWithDomain);
+                    const optimisticDataForNewAssignee = Task.setNewOptimisticAssignee(mentionWithDomain, assigneeAccountID);
+                    assignee = optimisticDataForNewAssignee.assignee;
+                    assigneeChatReport = optimisticDataForNewAssignee.assigneeReport;
+                }
             }
-            Task.createTaskAndNavigate(report.reportID, title, '', assignee?.login ?? '', assignee.accountID, undefined, report.policyID);
+            Task.createTaskAndNavigate(report.reportID, title, '', assignee?.login ?? '', assignee.accountID, assigneeChatReport, report.policyID);
             return true;
         },
         [allPersonalDetails, report.policyID, report.reportID],
@@ -141,7 +150,7 @@ function ReportFooter({
                         />
                     )}
                     {isArchivedRoom && <ArchivedReportFooter report={report} />}
-                    {!canWriteInReport && <SystemChatReportFooterMessage />}
+                    {!isAnonymousUser && !canWriteInReport && isSystemChat && <SystemChatReportFooterMessage />}
                     {!isSmallScreenWidth && <View style={styles.offlineIndicatorRow}>{hideComposer && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}</View>}
                 </View>
             )}
