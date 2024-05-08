@@ -304,7 +304,6 @@ function MenuItem(
         description,
         helperText,
         helperTextStyle,
-        error,
         errorText,
         hintText,
         success = false,
