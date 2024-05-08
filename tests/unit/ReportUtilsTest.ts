@@ -833,7 +833,7 @@ describe('ReportUtils', () => {
         describe('When participantAccountIDs is passed to getGroupChatName', () => {
             it('Should show all participants name if count <= 5 and shouldApplyLimit is false', async () => {
                 const report = {
-                    ...LHNTestUtils.getFakeReport([1, 2, 3, 4]),
+                    ...LHNTestUtils.getFakeReport([1, 2, 3, 4], 0, false, true),
                     chatType: CONST.REPORT.CHAT_TYPE.GROUP,
                 };
 
@@ -843,7 +843,7 @@ describe('ReportUtils', () => {
 
             it('Should show all participants name if count <= 5 and shouldApplyLimit is true', async () => {
                 const report = {
-                    ...LHNTestUtils.getFakeReport([1, 2, 3, 4]),
+                    ...LHNTestUtils.getFakeReport([1, 2, 3, 4], 0, false, true),
                     chatType: CONST.REPORT.CHAT_TYPE.GROUP,
                 };
 
@@ -853,7 +853,7 @@ describe('ReportUtils', () => {
 
             it('Should show 5 participants name if count > 5 and shouldApplyLimit is true', async () => {
                 const report = {
-                    ...LHNTestUtils.getFakeReport([1, 2, 3, 4, 5, 6, 7, 8]),
+                    ...LHNTestUtils.getFakeReport([1, 2, 3, 4, 5, 6, 7, 8], 0, false, true),
                     chatType: CONST.REPORT.CHAT_TYPE.GROUP,
                 };
 
@@ -863,7 +863,7 @@ describe('ReportUtils', () => {
 
             it('Should show all participants name if count > 5 and shouldApplyLimit is false', async () => {
                 const report = {
-                    ...LHNTestUtils.getFakeReport([1, 2, 3, 4, 5, 6, 7, 8]),
+                    ...LHNTestUtils.getFakeReport([1, 2, 3, 4, 5, 6, 7, 8], 0, false, true),
                     chatType: CONST.REPORT.CHAT_TYPE.GROUP,
                 };
 
@@ -873,7 +873,7 @@ describe('ReportUtils', () => {
 
             it('Should use correct display name for participants', async () => {
                 const report = {
-                    ...LHNTestUtils.getFakeReport([1, 2, 3, 4]),
+                    ...LHNTestUtils.getFakeReport([1, 2, 3, 4], 0, false, true),
                     chatType: CONST.REPORT.CHAT_TYPE.GROUP,
                 };
 
@@ -885,7 +885,7 @@ describe('ReportUtils', () => {
         describe('When participantAccountIDs is not passed to getGroupChatName and report ID is passed', () => {
             it('Should show report name if count <= 5 and shouldApplyLimit is false', async () => {
                 const report = {
-                    ...LHNTestUtils.getFakeReport([1, 2, 3, 4]),
+                    ...LHNTestUtils.getFakeReport([1, 2, 3, 4], 0, false, true),
                     chatType: CONST.REPORT.CHAT_TYPE.GROUP,
                     reportID: `1`,
                     reportName: "Let's talk",
@@ -897,7 +897,7 @@ describe('ReportUtils', () => {
 
             it('Should show report name if count <= 5 and shouldApplyLimit is true', async () => {
                 const report = {
-                    ...LHNTestUtils.getFakeReport([1, 2, 3, 4]),
+                    ...LHNTestUtils.getFakeReport([1, 2, 3, 4], 0, false, true),
                     chatType: CONST.REPORT.CHAT_TYPE.GROUP,
                     reportID: `1`,
                     reportName: "Let's talk",
@@ -909,7 +909,7 @@ describe('ReportUtils', () => {
 
             it('Should show report name if count > 5 and shouldApplyLimit is true', async () => {
                 const report = {
-                    ...LHNTestUtils.getFakeReport([1, 2, 3, 4, 5, 6, 7, 8]),
+                    ...LHNTestUtils.getFakeReport([1, 2, 3, 4, 5, 6, 7, 8], 0, false, true),
                     chatType: CONST.REPORT.CHAT_TYPE.GROUP,
                     reportID: `1`,
                     reportName: "Let's talk",
@@ -921,7 +921,7 @@ describe('ReportUtils', () => {
 
             it('Should show report name if count > 5 and shouldApplyLimit is false', async () => {
                 const report = {
-                    ...LHNTestUtils.getFakeReport([1, 2, 3, 4, 5, 6, 7, 8]),
+                    ...LHNTestUtils.getFakeReport([1, 2, 3, 4, 5, 6, 7, 8], 0, false, true),
                     chatType: CONST.REPORT.CHAT_TYPE.GROUP,
                     reportID: `1`,
                     reportName: "Let's talk",
@@ -933,7 +933,7 @@ describe('ReportUtils', () => {
 
             it('Should show participant names if report name is not available', async () => {
                 const report = {
-                    ...LHNTestUtils.getFakeReport([1, 2, 3, 4, 5, 6, 7, 8]),
+                    ...LHNTestUtils.getFakeReport([1, 2, 3, 4, 5, 6, 7, 8], 0, false, true),
                     chatType: CONST.REPORT.CHAT_TYPE.GROUP,
                     reportID: `1`,
                     reportName: '',

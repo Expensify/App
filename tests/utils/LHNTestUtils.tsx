@@ -127,7 +127,7 @@ let lastFakeReportActionID = 0;
 /**
  * @param millisecondsInThePast the number of milliseconds in the past for the last message timestamp (to order reports by most recent messages)
  */
-function getFakeReport(participantAccountIDs = [1, 2], millisecondsInThePast = 0, isUnread = false): Report {
+function getFakeReport(participantAccountIDs = [1, 2], millisecondsInThePast = 0, isUnread = false, shouldAddParticipantRole: boolean = false): Report {
     const lastVisibleActionCreated = DateUtils.getDBTime(Date.now() - millisecondsInThePast);
 
     const participants: Record<number, Participant> = {};
@@ -135,7 +135,7 @@ function getFakeReport(participantAccountIDs = [1, 2], millisecondsInThePast = 0
     participantAccountIDs.forEach((id) => {
         participants[id] = {
             hidden: false,
-            role: id === 1 ? 'admin' : 'member',
+            role: shouldAddParticipantRole ? (id === 1 ? 'admin' : 'member') : null,
         } as Participant;
     });
 
