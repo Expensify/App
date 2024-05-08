@@ -18,6 +18,7 @@ type VideoDimensions = {
 };
 
 type VideoPlayerPreviewProps = {
+    fsClass: string;
     /** Url to a video. */
     videoUrl: string;
 
@@ -70,7 +71,9 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     }, [currentlyPlayingURL, currentlyPlayingURLReportID, updateCurrentlyPlayingURL, videoUrl, reportID]);
 
     return (
-        <View style={[styles.webViewStyles.tagStyles.video, thumbnailDimensionsStyles]}>
+        <View
+            fsClass="fs-exclude"
+            style={[styles.webViewStyles.tagStyles.video, thumbnailDimensionsStyles]}>
             {isSmallScreenWidth || isThumbnail ? (
                 <VideoPlayerThumbnail
                     thumbnailUrl={thumbnailUrl}
@@ -80,13 +83,16 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
             ) : (
                 <>
                     <VideoPlayer
+                        fsClass="fs-exclude"
                         url={videoUrl}
                         onVideoLoaded={onVideoLoaded as (event: VideoReadyForDisplayEvent) => void}
                         videoDuration={videoDuration}
                         shouldUseSmallVideoControls
                         style={[styles.w100, styles.h100]}
                     />
-                    <View style={[styles.pAbsolute, styles.w100]}>
+                    <View
+                        fsClass="fs-exclude"
+                        style={[styles.pAbsolute, styles.w100]}>
                         <IconButton
                             src={Expensicons.Expand}
                             style={[styles.videoExpandButton]}

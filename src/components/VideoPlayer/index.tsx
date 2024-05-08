@@ -5,6 +5,7 @@ import type {VideoPlayerProps} from './types';
 function VideoPlayer(props: VideoPlayerProps) {
     return (
         <BaseVideoPlayer
+            fsClass="fs-exclude"
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         />

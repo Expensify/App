@@ -416,6 +416,7 @@
 				F6E16E41F88F567A8CDD037C /* [CP] Copy Pods Resources */,
 				04A2B3BE14CFE4961BE987E8 /* [CP-User] [RNFB] Core Configuration */,
 				2D8F47B51A8E72FBA2BA4874 /* [CP-User] [RNFB] Crashlytics Configuration */,
+				498A08C52BDA6A4C003A0F83 /* Run FullStory Asset Uploader */,
 			);
 			buildRules = (
 			);
@@ -616,6 +617,24 @@
 			shellPath = /bin/sh;
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
+		};
+		498A08C52BDA6A4C003A0F83 /* Run FullStory Asset Uploader */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Run FullStory Asset Uploader";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/FullStory/tools/FullStoryCommandLine\" \"${CONFIGURATION_BUILD_DIR}/${WRAPPER_NAME}\"\n";
 		};
 		5CC6761AF98472E1C710DB80 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;

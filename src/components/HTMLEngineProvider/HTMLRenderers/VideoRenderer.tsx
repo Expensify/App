@@ -27,6 +27,7 @@ function VideoRenderer({tnode, key}: VideoRendererProps) {
         <ShowContextMenuContext.Consumer>
             {({report}) => (
                 <VideoPlayerPreview
+                    fsClass="fs-exclude"
                     key={key}
                     videoUrl={sourceURL}
                     reportID={report?.reportID ?? ''}

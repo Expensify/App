@@ -14,6 +14,7 @@ apply from: project(':react-native-config').projectDir.getPath() + "/dotenv.grad
 fullstory {
     org 'o-1WN56P-na1'
     enabledVariants 'all'
+    logcatLevel 'debug'
 }
 
 react {

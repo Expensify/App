@@ -72,6 +72,7 @@
     "@formatjs/intl-locale": "^3.3.0",
     "@formatjs/intl-numberformat": "^8.5.0",
     "@formatjs/intl-pluralrules": "^5.2.2",
+    "@fullstory/babel-plugin-react-native": "^1.2.1",
     "@fullstory/browser": "^2.0.3",
     "@fullstory/react-native": "^1.4.0",
     "@gorhom/portal": "^1.0.14",

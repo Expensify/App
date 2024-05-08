@@ -8,6 +8,8 @@ type AttachmentViewVideoProps = Pick<AttachmentViewProps, 'duration' | 'isHovere
     /** Video file source URL */
     source: string;
 
+    fsClass: string;
+
     shouldUseSharedVideoElement?: boolean;
 };
 

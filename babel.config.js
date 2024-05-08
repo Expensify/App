@@ -15,14 +15,8 @@ const defaultPlugins = [
     'transform-class-properties',
 
     /* Fullstory */
-    [
-        '@fullstory/react-native',
-        {
-            version: '1.4.0',
-            org: 'o-1WN56P-na1',
-            enabledVariants: 'all',
-        },
-    ],
+   '@fullstory/react-native',
+
     [
         '@fullstory/babel-plugin-annotate-react',
         {

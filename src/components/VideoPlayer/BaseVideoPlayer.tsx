@@ -38,6 +38,7 @@ function BaseVideoPlayer({
     onPlaybackStatusUpdate,
     onFullscreenUpdate,
     shouldPlay,
+    fsClass,
     // TODO: investigate what is the root cause of the bug with unexpected video switching
     // isVideoHovered caused a bug with unexpected video switching. We are investigating the root cause of the issue,
     // but current workaround is just not to use it here for now. This causes not displaying the video controls when
@@ -287,7 +288,9 @@ function BaseVideoPlayer({
             >
                 <Hoverable>
                     {(isHovered) => (
-                        <View style={[styles.w100, styles.h100]}>
+                        <View
+                            fsClass="fs-exclude"
+                            style={[styles.w100, styles.h100]}>
                             <PressableWithoutFeedback
                                 accessibilityRole="button"
                                 accessible={false}
@@ -302,16 +305,18 @@ function BaseVideoPlayer({
                                 {shouldUseSharedVideoElement ? (
                                     <>
                                         <View
+                                            fsClass="fs-exclude"
                                             ref={sharedVideoPlayerParentRef as MutableRefObject<View | null>}
                                             style={[styles.flex1]}
                                         />
                                         {/* We are adding transparent absolute View between appended video component and control buttons to enable
                                     catching onMouse events from Attachment Carousel. Due to late appending React doesn't handle
                                     element's events properly. */}
-                                        <View style={[styles.w100, styles.h100, styles.pAbsolute]} />
+                                        <View  fsClass="fs-exclude" style={[styles.w100, styles.h100, styles.pAbsolute]} />
                                     </>
                                 ) : (
                                     <View
+                                        fsClass="fs-exclude"
                                         style={styles.flex1}
                                         ref={(el) => {
                                             if (!el) {
@@ -325,6 +330,7 @@ function BaseVideoPlayer({
                                         }}
                                     >
                                         <Video
+                                            fsClass="fs-exclude"
                                             ref={videoPlayerRef}
                                             style={[styles.w100, styles.h100, videoPlayerStyle]}
                                             videoStyle={[styles.w100, styles.h100, videoStyle]}
@@ -350,10 +356,11 @@ function BaseVideoPlayer({
                                 )}
                             </PressableWithoutFeedback>
 
-                            {(isLoading || isBuffering) && <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
+                            {(isLoading || isBuffering) && <FullScreenLoadingIndicator fsClass="fs-exclude" style={[styles.opacity1, styles.bgTransparent]} />}
 
                             {controlsStatus !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE && !isLoading && (isPopoverVisible || isHovered || canUseTouchScreen) && (
                                 <VideoPlayerControls
+                                    fsClass="fs-exclude"
                                     duration={duration}
                                     position={position}
                                     url={url}
@@ -371,6 +378,7 @@ function BaseVideoPlayer({
                 </Hoverable>
             </PressableWithoutFeedback>
             <VideoPopoverMenu
+                fsClass="fs-exclude"
                 isPopoverVisible={isPopoverVisible}
                 hidePopover={hidePopoverMenu}
                 anchorPosition={popoverAnchorPosition}

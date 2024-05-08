@@ -8,6 +8,7 @@ import type CONST from '@src/CONST';
 type VideoWithOnFullScreenUpdate = Video & {_onFullscreenUpdate: (event: VideoFullscreenUpdateEvent) => void};
 
 type VideoPlayerProps = {
+    fsClass: string;
     url: string;
     onVideoLoaded?: (event: VideoReadyForDisplayEvent) => void;
     resizeMode?: string;
