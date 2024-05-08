@@ -22,6 +22,7 @@ function dismissModal(navigationRef: NavigationContainerRef<RootStackParamList>)
         case NAVIGATORS.LEFT_MODAL_NAVIGATOR:
         case NAVIGATORS.RIGHT_MODAL_NAVIGATOR:
         case NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR:
+        case NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR:
         case SCREENS.NOT_FOUND:
         case SCREENS.REPORT_ATTACHMENTS:
         case SCREENS.TRANSACTION_RECEIPT:

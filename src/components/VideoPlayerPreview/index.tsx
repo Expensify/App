@@ -81,7 +81,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
                     accessibilityLabel={fileName}
                 />
             ) : (
-                <>
+                <View style={styles.flex1}>
                     <VideoPlayer
                         fsClass="fs-exclude"
                         url={videoUrl}
@@ -89,6 +89,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
                         videoDuration={videoDuration}
                         shouldUseSmallVideoControls
                         style={[styles.w100, styles.h100]}
+                        videoPlayerStyle={styles.videoPlayerPreview}
                     />
                     <View
                         fsClass="fs-exclude"
@@ -101,7 +102,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
                             small
                         />
                     </View>
-                </>
+                </View>
             )}
         </View>
     );
