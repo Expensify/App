@@ -190,29 +190,6 @@ function ReportActionsList({
     const hasFooterRendered = useRef(false);
     const lastVisibleActionCreatedRef = useRef(report.lastVisibleActionCreated);
     const lastReadTimeRef = useRef(report.lastReadTime);
-    // Single MoneyRequest
-    // eslint-disable-next-line rulesdir/prefer-actions-set-data
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}6196867412357270168`, {cardID: 1, merchant: 'single MoneyRequest test'});
-    // eslint-disable-next-line rulesdir/prefer-actions-set-data
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}6196867412357270168`, [{type: 'test', name: CONST.VIOLATIONS.RTER, data: {pendingPattern: true}}]);
-    // Multiple MoneyRequests test
-    // eslint-disable-next-line rulesdir/prefer-actions-set-data
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}1304796714991934480`, {cardID: 1, merchant: 'multiple MoneyRequests test 1'});
-    // eslint-disable-next-line rulesdir/prefer-actions-set-data
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}1304796714991934480`, [{type: 'test', name: CONST.VIOLATIONS.RTER, data: {pendingPattern: true}}]);
-    // eslint-disable-next-line rulesdir/prefer-actions-set-data
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}6286508495235425496`, {cardID: 1, merchant: 'multiple MoneyRequests test 2'});
-    // eslint-disable-next-line rulesdir/prefer-actions-set-data
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}6286508495235425496`, [{type: 'test', name: CONST.VIOLATIONS.RTER, data: {pendingPattern: true}}]);
-    // eslint-disable-next-line rulesdir/prefer-actions-set-data
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}2150079702326626524`, {cardID: 1, merchant: 'multiple MoneyRequests test 3'});
-    // eslint-disable-next-line rulesdir/prefer-actions-set-data
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}2150079702326626524`, [{type: 'test', name: CONST.VIOLATIONS.RTER, data: {pendingPattern: true}}]);
-    // One-Expense Chat test
-    // eslint-disable-next-line rulesdir/prefer-actions-set-data
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}2438117170083649063`, {cardID: 1, merchant: 'One-Expense Chat test'});
-    // eslint-disable-next-line rulesdir/prefer-actions-set-data
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}2438117170083649063`, [{type: 'test', name: CONST.VIOLATIONS.RTER, data: {pendingPattern: true}}]);
 
     const sortedVisibleReportActions = useMemo(
         () =>
