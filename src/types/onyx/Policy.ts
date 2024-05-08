@@ -208,11 +208,6 @@ type Tenant = {
     value: string;
 };
 
-type XeroTrackingCategory = {
-    id: string;
-    name: string;
-};
-
 type XeroConnectionData = {
     bankAccounts: Account[];
     countryCode: string;
@@ -222,13 +217,7 @@ type XeroConnectionData = {
         name: string;
     }>;
     tenants: Tenant[];
-    trackingCategories: XeroTrackingCategory[];
-};
-
-type XeroMappingType = {
-    customer: string;
-} & {
-    [key in `trackingCategory_${string}`]: string;
+    trackingCategories: unknown[];
 };
 
 /**
@@ -256,7 +245,9 @@ type XeroConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     importTaxRates: boolean;
     importTrackingCategories: boolean;
     isConfigured: boolean;
-    mappings: XeroMappingType;
+    mappings: {
+        customer: string;
+    };
     sync: {
         hasChosenAutoSyncOption: boolean;
         hasChosenSyncReimbursedReportsOption: boolean;
@@ -573,5 +564,4 @@ export type {
     QBONonReimbursableExportAccountType,
     QBOReimbursableExportAccountType,
     QBOConnectionConfig,
-    XeroTrackingCategory,
 };

@@ -5,7 +5,7 @@ import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {removePolicyConnection} from '@libs/actions/connections';
-import {getXeroSetupLink} from '@libs/actions/connections/ConnectToXero';
+import getXeroSetupLink from '@libs/actions/connections/ConnectToXero';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import type {ConnectToXeroButtonProps} from './types';

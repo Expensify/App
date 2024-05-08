@@ -1301,17 +1301,6 @@ const CONST = {
         SYNC: 'sync',
         IMPORT_CUSTOMERS: 'importCustomers',
         IMPORT_TAX_RATES: 'importTaxRates',
-        IMPORT_TRACKING_CATEGORIES: 'importTrackingCategories',
-        MAPPINGS: 'mappings',
-        TRACKING_CATEGORY_PREFIX: 'trackingCategory_',
-        TRACKING_CATEGORY_FIELDS: {
-            COST_CENTERS: 'cost centers',
-            REGION: 'region',
-        },
-        TRACKING_CATEGORY_OPTIONS: {
-            DEFAULT: 'DEFAULT',
-            TAG: 'TAG',
-        },
     },
 
     QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE: {
