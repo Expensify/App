@@ -5,6 +5,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
+import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {CentralPaneNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
@@ -15,6 +16,7 @@ import type {SearchQuery} from '@src/types/onyx/SearchResults';
 type SearchPageProps = StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.SEARCH.CENTRAL_PANE>;
 
 function SearchPage({route}: SearchPageProps) {
+    const {translate} = useLocalize();
     const currentQuery = route?.params && 'query' in route.params ? route?.params?.query : '';
     const query = currentQuery as SearchQuery;
     const isValidQuery = Object.values(CONST.TAB_SEARCH).includes(query);
@@ -30,7 +32,7 @@ function SearchPage({route}: SearchPageProps) {
                 shouldShowLink={false}
             >
                 <HeaderWithBackButton
-                    title="All"
+                    title={translate('common.expenses')}
                     icon={Illustrations.MoneyReceipts}
                     shouldShowBackButton={false}
                 />
