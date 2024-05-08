@@ -1,30 +1,18 @@
-name: ProposalPolice™ - Issue Comment Workflow
-on:
-  issue_comment:
-    types: [created]
-
-jobs:
-  process-issue-comment:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: "20"
-
-      - name: Install dependencies
-        run: npm install
-        working-directory: ../../../
-
-      # Checks if the comment is created and follows the template
-      - name: Run issue new comment script
-        if: github.event.action == 'created'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          OPENAI_ASSISTANT_ID: ${{ secrets.OPENAI_ASSISTANT_ID }}
-          ISSUE: ${{ toJson(github.event.issue) }}
-          COMMENT: ${{ toJson(github.event.comment) }}
-        run: ./index.js
+name: 'ProposalPolice™ Comment Check'
+description: 'Verifies whether a proposal comment follows the template'
+inputs:
+  GITHUB_TOKEN:
+    description: 'Auth token for New Expensify Github'
+    required: true
+  OPENAI_API_KEY:
+    description: 'OpenAI API key for accessing AI services'
+    required: true
+  OPENAI_ASSISTANT_ID:
+    description: 'OpenAI Assistant ID for personalized AI assistant'
+    required: true
+runs:
+  using: 'node20'
+  main: './index.js'
+  env:
+    ISSUE: '${{ toJson(github.event.issue) }}'
+    COMMENT: '${{ toJson(github.event.comment) }}'

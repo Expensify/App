@@ -1,0 +1,37 @@
+name: ProposalPolice™ - Issue Comment Workflow
+on:
+  issue_comment:
+    types: [created, edited]
+
+jobs:
+  proposal-police-workflow:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup node version
+        uses: actions/setup-node@v2
+        with:
+          node-version: "20"
+
+      # Check comment created and if it's a proposal make sure it follows the template
+      - name: ProposalPolice™ Comment Check
+        if: github.event.action == 'created'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_ASSISTANT_ID: ${{ secrets.OPENAI_ASSISTANT_ID }}
+          ISSUE: ${{ toJson(github.event.issue) }}
+          COMMENT: ${{ toJson(github.event.comment) }}
+        run: node .github/actions/javascript/proposalPoliceComment/index.js
+
+      # Checks if the comment is edited and if proposal template is followed
+      - name: ProposalPolice™ Edited Comment Check
+        if: github.event.action == 'edited'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_ASSISTANT_ID: ${{ secrets.OPENAI_ASSISTANT_ID }}
+          ISSUE: ${{ toJson(github.event.issue) }}
+          COMMENT: ${{ toJson(github.event.comment) }}
+        run: node .github/actions/javascript/proposalPoliceCommentEdit/index.js
