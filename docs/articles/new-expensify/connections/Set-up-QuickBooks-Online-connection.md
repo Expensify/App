@@ -38,7 +38,7 @@ Log in to QuickBooks Online and ensure all of your employees are setup as either
 <ol type="a">
    <li>Click your profile image or icon in the bottom left menu.</li>
    <li>Scroll down and click <b>Workspaces</b> in the left menu.</li>
-   <li>Select the workspace you want to book the travel under.</li>
+   <li>Select the workspace you want to connect to QuickBooks Online.</li>
    <li>Click <b>More features</b> in the left menu.</li>
    <li>Scroll down to the Integrate section and enable the Accounting toggle.</li>
    <li>Click <b>Accounting</b> in the left menu.</li>
