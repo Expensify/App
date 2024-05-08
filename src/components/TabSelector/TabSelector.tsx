@@ -38,7 +38,7 @@ function getIconAndTitle(route: string, translate: LocaleContextProps['translate
     }
 }
 
-function getOpacity(position: Animated.AnimatedInterpolation<number | string>, routesLength: number, tabIndex: number, active: boolean, affectedTabs: number[]) {
+function getOpacity(position: Animated.AnimatedInterpolation<number>, routesLength: number, tabIndex: number, active: boolean, affectedTabs: number[]) {
     const activeValue = active ? 1 : 0;
     const inactiveValue = active ? 0 : 1;
 
@@ -68,7 +68,7 @@ function TabSelector({state, navigation, onTabPress = () => {}, position}: TabSe
                 return position.interpolate({
                     inputRange,
                     outputRange: inputRange.map((i) => (affectedTabs.includes(tabIndex) && i === tabIndex ? theme.border : theme.appBG)),
-                });
+                }) as unknown as Animated.AnimatedInterpolation<string>;
             }
             return theme.border;
         },
@@ -118,9 +118,9 @@ function TabSelector({state, navigation, onTabPress = () => {}, position}: TabSe
                         icon={icon}
                         title={title}
                         onPress={onPress}
-                        activeOpacity={activeOpacity as number}
-                        inactiveOpacity={inactiveOpacity as number}
-                        backgroundColor={backgroundColor as string}
+                        activeOpacity={activeOpacity}
+                        inactiveOpacity={inactiveOpacity}
+                        backgroundColor={backgroundColor}
                         isActive={isActive}
                     />
                 );
