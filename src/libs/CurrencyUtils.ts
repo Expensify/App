@@ -141,7 +141,7 @@ function convertAmountToDisplayString(amount = 0, currency: string = CONST.CURRE
  * Acts the same as `convertAmountToDisplayString` but the result string does not contain currency
  */
 function convertToDisplayStringWithoutCurrency(amountInCents: number, currency: string = CONST.CURRENCY.USD) {
-    const convertedAmount = convertToFrontendAmount(amountInCents);
+    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents);
     return NumberFormatUtils.formatToParts(BaseLocaleListener.getPreferredLocale(), convertedAmount, {
         style: 'currency',
         currency,
