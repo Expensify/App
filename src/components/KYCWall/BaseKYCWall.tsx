@@ -55,8 +55,9 @@ function KYCWall({
     source,
     userWallet,
     walletTerms,
-}: BaseKYCWallProps): JSX.Element {
-    const anchorRef = useRef<HTMLDivElement | View | null>(null);
+    shouldShowPersonalBankAccountOption = false,
+}: BaseKYCWallProps) {
+    const anchorRef = useRef<HTMLDivElement | View>(null);
     const transferBalanceButtonRef = useRef<HTMLDivElement | View | null>(null);
 
     const selectPaymentMethod = useCallback(
