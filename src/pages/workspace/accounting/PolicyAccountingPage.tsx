@@ -92,7 +92,7 @@ function accountingIntegrationData(
                     />
                 ),
                 onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_IMPORT.getRoute(policyID)),
-                onExportPagePress: () => {},
+                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID)),
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID)),
             };
         default:
@@ -167,7 +167,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                 interactive: false,
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
                 shouldShowRightComponent: true,
-                title: 'integrationData?.title',
+                title: integrationData?.title,
 
                 description: isSyncInProgress
                     ? translate('workspace.accounting.connections.syncStageName', connectionSyncProgress.stageInProgress)
@@ -357,7 +357,9 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                     title={translate('workspace.accounting.disconnectTitle', connectedIntegration)}
                     isVisible={isDisconnectModalOpen}
                     onConfirm={() => {
-                        removePolicyConnection(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO);
+                        if (connectedIntegration) {
+                            removePolicyConnection(policyID, connectedIntegration);
+                        }
                         setIsDisconnectModalOpen(false);
                     }}
                     onCancel={() => setIsDisconnectModalOpen(false)}
