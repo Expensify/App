@@ -81,7 +81,9 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
                     accessibilityLabel={fileName}
                 />
             ) : (
-                <View style={styles.flex1}>
+                <View
+                    fsClass="fs-exclude"
+                    style={styles.flex1}>
                     <VideoPlayer
                         fsClass="fs-exclude"
                         url={videoUrl}

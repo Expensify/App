@@ -292,7 +292,6 @@ function BaseVideoPlayer({
                 <Hoverable>
                     {(isHovered) => (
                         <View
-                            fsClass="fs-exclude"
                             style={[styles.w100, styles.h100]}>
                             <PressableWithoutFeedback
                                 accessibilityRole="button"
@@ -308,14 +307,13 @@ function BaseVideoPlayer({
                                 {shouldUseSharedVideoElement ? (
                                     <>
                                         <View
-                                            fsClass="fs-exclude"
                                             ref={sharedVideoPlayerParentRef as MutableRefObject<View | null>}
                                             style={[styles.flex1]}
                                         />
                                         {/* We are adding transparent absolute View between appended video component and control buttons to enable
                                     catching onMouse events from Attachment Carousel. Due to late appending React doesn't handle
                                     element's events properly. */}
-                                        <View  fsClass="fs-exclude" style={[styles.w100, styles.h100, styles.pAbsolute]} />
+                                        <View style={[styles.w100, styles.h100, styles.pAbsolute]} />
                                     </>
                                 ) : (
                                     <View
@@ -333,7 +331,6 @@ function BaseVideoPlayer({
                                         }}
                                     >
                                         <Video
-                                            fsClass="fs-exclude"
                                             ref={videoPlayerRef}
                                             style={[styles.w100, styles.h100, videoPlayerStyle]}
                                             videoStyle={[styles.w100, styles.h100, videoStyle]}

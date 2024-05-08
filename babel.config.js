@@ -14,17 +14,6 @@ const defaultPlugins = [
     // source code transformation as we do not use class property assignment.
     'transform-class-properties',
 
-    /* Fullstory */
-   '@fullstory/react-native',
-
-    [
-        '@fullstory/babel-plugin-annotate-react',
-        {
-            native: true,
-            setFSTagName: true,
-        },
-    ],
-
     // Keep it last
     'react-native-reanimated/plugin',
 ];
@@ -46,6 +35,17 @@ const metro = {
         ['@babel/plugin-proposal-private-property-in-object', {loose: true}],
         // The reanimated babel plugin needs to be last, as stated here: https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/installation
         'react-native-reanimated/plugin',
+
+        /* Fullstory */
+        '@fullstory/react-native',
+        [
+            '@fullstory/babel-plugin-annotate-react',
+            {
+                native: true,
+                setFSTagName: true,
+            },
+        ],
+
         // Import alias for native devices
         [
             'module-resolver',

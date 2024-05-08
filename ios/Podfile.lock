@@ -2214,7 +2214,6 @@ SPEC REPOS:
     - FirebasePerformance
     - FirebaseRemoteConfig
     - fmt
-    - FullStory
     - GoogleAppMeasurement
     - GoogleDataTransport
     - GoogleSignIn
@@ -2487,7 +2486,7 @@ SPEC CHECKSUMS:
   FirebaseRemoteConfig: 2d6e2cfdb49af79535c8af8a80a4a5009038ec2b
   fmt: ff9d55029c625d3757ed641535fd4a75fedc7ce9
   FullStory: c1233361b8e3c599e14609b4c516c5a8d323c0ea
-  fullstory_react-native: a56e2bb52753b69f01aab3ae876087db08488034
+  fullstory_react-native: 6cba8a2c054374a24a44dc4310407d9435459cae
   glog: c5d68082e772fa1c511173d6b30a9de2c05a69a2
   GoogleAppMeasurement: 5ba1164e3c844ba84272555e916d0a6d3d977e91
   GoogleDataTransport: 6c09b596d841063d76d4288cc2d2f42cc36e1e2a
@@ -2607,8 +2606,8 @@ SPEC CHECKSUMS:
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Turf: 13d1a92d969ca0311bbc26e8356cca178ce95da2
   VisionCamera: 1394a316c7add37e619c48d7aa40b38b954bf055
-  Yoga: 1b901a6d6eeba4e8a2e8f308f708691cdb5db312
+  Yoga: 64cd2a583ead952b0315d5135bf39e053ae9be70
 
-PODFILE CHECKSUM: a25a81f2b50270f0c0bd0aff2e2ebe4d0b4ec06d
+PODFILE CHECKSUM: abcf5707e90d79fab2fdfe8879a819e9f1108c9a
 
 COCOAPODS: 1.13.0
