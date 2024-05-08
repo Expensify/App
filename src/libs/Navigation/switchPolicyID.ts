@@ -79,7 +79,10 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
 
     const rootState = navigation.getRootState() as NavigationState<RootStackParamList>;
     let newPath = route ?? getPathFromState({routes: rootState.routes} as State, linkingConfig.config);
-    const shouldOpenSearchPage = newPath.startsWith('/Search_Bottom_Tab');
+
+    // Currently, the search page displayed in the bottom tab has the same URL as the page in the central pane, but under the hood this page has its own URL.
+    // So when we change the policyID on the search page, we need to open the page with the correct URL.
+    const shouldOpenSearchPage = newPath.startsWith(CONST.SEARCH_BOTTOM_TAB_URL);
     if (shouldOpenSearchPage) {
         newPath = ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.ALL);
     }
