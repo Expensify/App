@@ -192,9 +192,9 @@ function ReportActionsList({
     const lastReadTimeRef = useRef(report.lastReadTime);
     // Single MoneyRequest
     // eslint-disable-next-line rulesdir/prefer-actions-set-data
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}6196867412357270168`, {cardID: 1, merchant: 'single MoneyRequest test'});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}2827781559349986119`, {cardID: 1, merchant: 'single MoneyRequest test'});
     // eslint-disable-next-line rulesdir/prefer-actions-set-data
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}6196867412357270168`, [{type: 'test', name: CONST.VIOLATIONS.RTER, data: {pendingPattern: true}}]);
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}2827781559349986119`, [{type: 'test', name: CONST.VIOLATIONS.RTER, data: {pendingPattern: true}}]);
     // Multiple MoneyRequests test
     // eslint-disable-next-line rulesdir/prefer-actions-set-data
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}1304796714991934480`, {cardID: 1, merchant: 'multiple MoneyRequests test 1'});

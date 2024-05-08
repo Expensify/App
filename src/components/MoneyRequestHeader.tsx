@@ -234,7 +234,7 @@ function MoneyRequestHeader({
                             )
                         }
                         description={pendingDescription}
-                        shouldShowBorderBottom={!isOnHold}
+                        shouldShowBorderBottom={!isOnHold && !hasAllPendingRTERViolations}
                         additionalViewStyle={[styles.mr2]}
                     />
                 )}
