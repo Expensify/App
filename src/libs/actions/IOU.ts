@@ -6423,9 +6423,8 @@ function setSplitShares(transaction: OnyxEntry<OnyxTypes.Transaction>, amount: n
         }
 
         const isPayer = accountID === userAccountID;
-
-        // This function expects the length of participants without current user
-        const splitAmount = IOUUtils.calculateAmount(accountIDs.length - 1, amount, currency, isPayer);
+        const participantsLength = newAccountIDs.includes(userAccountID) ? newAccountIDs.length - 1 : newAccountIDs.length;
+        const splitAmount = IOUUtils.calculateAmount(participantsLength, amount, currency, isPayer);
         return {
             ...result,
             [accountID]: {
