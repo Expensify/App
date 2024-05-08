@@ -35,4 +35,4 @@ type ReportCommentPushNotificationData = ReportActionPushNotificationData & {
  * types of push notifications sent by our API.
  */
 export default NotificationType;
-export type {NotificationDataMap, PushNotificationData, ReportCommentPushNotificationData};
+export type {NotificationDataMap, PushNotificationData, ReportActionPushNotificationData, ReportCommentPushNotificationData};
