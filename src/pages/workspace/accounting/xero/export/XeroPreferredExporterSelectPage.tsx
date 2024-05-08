@@ -1,8 +1,12 @@
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
+import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
 import {getAdminEmployees} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
@@ -17,6 +21,8 @@ type CardListItem = ListItem & {
 
 function XeroPreferredExporterSelectPage({policy}: WithPolicyConnectionsProps) {
     const {export: exportConfiguration} = policy?.connections?.xero?.config ?? {};
+    const {translate} = useLocalize();
+    const styles = useThemeStyles();
     const policyOwner = policy?.owner ?? '';
     const exporters = getAdminEmployees(policy);
 
@@ -55,6 +61,16 @@ function XeroPreferredExporterSelectPage({policy}: WithPolicyConnectionsProps) {
         [policyID, exportConfiguration],
     );
 
+    const headerContent = useMemo(
+        () => (
+            <View style={[styles.pb2, styles.ph5]}>
+                <Text style={[styles.pb2, styles.textNormal]}>{translate('workspace.xero.exportPreferredExporterNote')}</Text>
+                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.xero.exportPreferredExporterSubNote')}</Text>
+            </View>
+        ),
+        [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal],
+    );
+
     return (
         <SelectionScreen
             policyID={policyID}
@@ -63,9 +79,10 @@ function XeroPreferredExporterSelectPage({policy}: WithPolicyConnectionsProps) {
             displayName={XeroPreferredExporterSelectPage.displayName}
             sections={[{data}]}
             listItem={RadioListItem}
+            headerContent={headerContent}
             onSelectRow={selectExporter}
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_PREFERRED_EXPORTER_CONFIGURATION.getRoute(policyID))}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID))}
             title="workspace.xero.preferredExporter"
         />
     );

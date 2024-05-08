@@ -796,10 +796,6 @@ const ROUTES = {
         route: '/settings/workspaces/:policyID/connections/xero/export/preferred-exporter/select',
         getRoute: (policyID: string) => `/settings/workspaces/${policyID}/connections/xero/export/preferred-exporter/select` as const,
     },
-    POLICY_ACCOUNTING_XERO_PREFERRED_EXPORTER_CONFIGURATION: {
-        route: '/settings/workspaces/:policyID/connections/xero/export/preferred-exporter',
-        getRoute: (policyID: string) => `/settings/workspaces/${policyID}/connections/xero/export/preferred-exporter` as const,
-    },
     POLICY_ACCOUNTING_XERO_ADVANCED: {
         route: 'settings/workspaces/:policyID/accounting/xero/advanced',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/advanced` as const,
