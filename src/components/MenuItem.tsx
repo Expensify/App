@@ -144,9 +144,6 @@ type MenuItemBaseProps = {
     /** Should the description be shown above the title (instead of the other way around) */
     shouldShowDescriptionOnTop?: boolean;
 
-    /** Error to display below the title */
-    error?: string;
-
     /** Error to display at the bottom of the component */
     errorText?: MaybePhraseKey;
 
@@ -299,7 +296,6 @@ function MenuItem(
         furtherDetailsIcon,
         furtherDetails,
         description,
-        error,
         errorText,
         hintText,
         success = false,
@@ -596,11 +592,6 @@ function MenuItem(
                                                     >
                                                         {description}
                                                     </Text>
-                                                )}
-                                                {!!error && (
-                                                    <View style={[styles.mt1]}>
-                                                        <Text style={[styles.textLabelError]}>{error}</Text>
-                                                    </View>
                                                 )}
                                                 {!!furtherDetails && (
                                                     <View style={[styles.flexRow, styles.mt1, styles.alignItemsCenter]}>
