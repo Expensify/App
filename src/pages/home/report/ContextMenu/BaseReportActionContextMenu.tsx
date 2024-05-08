@@ -164,6 +164,7 @@ function BaseReportActionContextMenu({
         disabledIndexes,
         maxIndex: filteredContextMenuActions.length - 1,
         isActive: shouldEnableArrowNavigation,
+        disableCyclicTraversal: true,
     });
 
     /**
@@ -285,6 +286,7 @@ function BaseReportActionContextMenu({
                                 isFocused={focusedIndex === index}
                                 shouldPreventDefaultFocusOnPress={contextAction.shouldPreventDefaultFocusOnPress}
                                 onFocus={() => setFocusedIndex(index)}
+                                onBlur={() => (index === filteredContextMenuActions.length - 1 || index === 1) && setFocusedIndex(-1)}
                             />
                         );
                     })}

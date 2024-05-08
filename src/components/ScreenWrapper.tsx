@@ -100,7 +100,9 @@ type ScreenWrapperProps = {
     shouldShowOfflineIndicatorInWideScreen?: boolean;
 };
 
-const ScreenWrapperStatusContext = createContext({didScreenTransitionEnd: false});
+type ScreenWrapperStatusContextType = {didScreenTransitionEnd: boolean};
+
+const ScreenWrapperStatusContext = createContext<ScreenWrapperStatusContextType | undefined>(undefined);
 
 function ScreenWrapper(
     {
@@ -257,24 +259,23 @@ function ScreenWrapper(
                                         <TestToolsModal />
                                         {isDevelopment && <CustomDevMenu />}
                                         <ScreenWrapperStatusContext.Provider value={contextValue}>
-                                            
-                                        {
-                                            // If props.children is a function, call it to provide the insets to the children.
-                                            typeof children === 'function'
-                                                ? children({
-                                                      insets,
-                                                      safeAreaPaddingBottomStyle,
-                                                      didScreenTransitionEnd,
-                                                  })
-                                                : children
-                                        }
-                                        {isSmallScreenWidth && shouldShowOfflineIndicator && <OfflineIndicator style={offlineIndicatorStyle} />}
-                                        {!isSmallScreenWidth && shouldShowOfflineIndicatorInWideScreen && (
-                                            <OfflineIndicator
-                                                containerStyles={[]}
-                                                style={[styles.pl5, styles.offlineIndicatorRow, offlineIndicatorStyle]}
-                                            />
-                                        )}
+                                            {
+                                                // If props.children is a function, call it to provide the insets to the children.
+                                                typeof children === 'function'
+                                                    ? children({
+                                                          insets,
+                                                          safeAreaPaddingBottomStyle,
+                                                          didScreenTransitionEnd,
+                                                      })
+                                                    : children
+                                            }
+                                            {isSmallScreenWidth && shouldShowOfflineIndicator && <OfflineIndicator style={offlineIndicatorStyle} />}
+                                            {!isSmallScreenWidth && shouldShowOfflineIndicatorInWideScreen && (
+                                                <OfflineIndicator
+                                                    containerStyles={[]}
+                                                    style={[styles.pl5, styles.offlineIndicatorRow, offlineIndicatorStyle]}
+                                                />
+                                            )}
                                         </ScreenWrapperStatusContext.Provider>
                                     </PickerAvoidingView>
                                 </KeyboardAvoidingView>

@@ -265,6 +265,9 @@ type MenuItemBaseProps = {
 
     /** Handles what to do when the item is focused */
     onFocus?: () => void;
+
+    /** Handles what to do when the item loose focus */
+    onBlur?: () => void;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -342,6 +345,7 @@ function MenuItem(
         isPaneMenu = false,
         shouldPutLeftPaddingWhenNoIcon = false,
         onFocus,
+        onBlur,
     }: MenuItemProps,
     ref: PressableRef,
 ) {
@@ -438,7 +442,7 @@ function MenuItem(
     };
 
     return (
-        <View>
+        <View onBlur={onBlur}>
             {!!label && !isLabelHoverable && (
                 <View style={[styles.ph5, labelStyle]}>
                     <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre])}>{label}</Text>
