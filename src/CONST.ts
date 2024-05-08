@@ -4738,7 +4738,7 @@ const CONST = {
 
     REFERRER: {
         NOTIFICATION: 'notification',
-    }
+    },
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
