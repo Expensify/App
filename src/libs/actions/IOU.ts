@@ -2444,7 +2444,9 @@ function getUpdateMoneyRequestParams(
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
                 value: {
                     [transactionThread?.parentReportActionID ?? '']: {
-                        whisperedToAccountIDs: [],
+                        originalMessage: {
+                            whisperedTo: [],
+                        },
                     },
                 },
             },
@@ -2453,7 +2455,9 @@ function getUpdateMoneyRequestParams(
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.parentReportID}`,
                 value: {
                     [iouReport?.parentReportActionID ?? '']: {
-                        whisperedToAccountIDs: [],
+                        originalMessage: {
+                            whisperedTo: [],
+                        },
                     },
                 },
             },
@@ -2687,7 +2691,9 @@ function getUpdateTrackExpenseParams(
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
             value: {
                 [transactionThread?.parentReportActionID ?? '']: {
-                    whisperedToAccountIDs: [],
+                    originalMessage: {
+                        whisperedTo: [],
+                    },
                 },
             },
         });
@@ -4509,7 +4515,9 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
             value: {
                 [reportAction.reportActionID]: {
                     lastModified: DateUtils.getDBTime(),
-                    whisperedToAccountIDs: [],
+                    originalMessage: {
+                        whisperedTo: [],
+                    },
                 },
             },
         },
@@ -4825,7 +4833,9 @@ function editRegularMoneyRequest(
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
                 value: {
                     [transactionThread?.parentReportActionID ?? '']: {
-                        whisperedToAccountIDs: [],
+                        originalMessage: {
+                            whisperedTo: [],
+                        },
                     },
                 },
             },
@@ -4834,7 +4844,9 @@ function editRegularMoneyRequest(
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.parentReportID}`,
                 value: {
                     [iouReport?.parentReportActionID ?? '']: {
-                        whisperedToAccountIDs: [],
+                        originalMessage: {
+                            whisperedTo: [],
+                        },
                     },
                 },
             },

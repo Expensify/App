@@ -147,9 +147,6 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether we have received a response back from the server */
     isLoading?: boolean;
 
-    /** accountIDs of the people to which the whisper was sent to (if any). Returns empty array if it is not a whisper */
-    whisperedToAccountIDs?: number[];
-
     avatar?: AvatarSource;
 
     automatic?: boolean;

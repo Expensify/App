@@ -143,8 +143,26 @@ function isModifiedExpenseAction(reportAction: OnyxEntry<ReportAction> | ReportA
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE;
 }
 
+function getWhisperedTo(reportAction: OnyxEntry<ReportAction> | EmptyObject) {
+    // We are in the process of deprecating originalMessage and will be sending "message" in the future see:
+    const originalMessage = reportAction?.originalMessage;
+    const message = reportAction?.message;
+
+    // If this is true then we are using the object version of the message
+    if (!Array.isArray(message) && typeof message === 'object') {
+        return (message?.whisperedTo ?? []);
+    }
+
+    // We'll use the original message if the backend is still sending this
+    if (originalMessage) {
+        return (originalMessage?.whisperedTo ?? []);
+    }
+
+    return [];
+}
+
 function isWhisperAction(reportAction: OnyxEntry<ReportAction> | EmptyObject): boolean {
-    return (reportAction?.whisperedToAccountIDs ?? []).length > 0;
+    return getWhisperedTo(reportAction).length > 0;
 }
 
 /**
@@ -154,7 +172,7 @@ function isWhisperActionTargetedToOthers(reportAction: OnyxEntry<ReportAction>):
     if (!isWhisperAction(reportAction)) {
         return false;
     }
-    return !reportAction?.whisperedToAccountIDs?.includes(currentUserAccountID ?? 0);
+    return !getWhisperedTo(reportAction).includes(currentUserAccountID ?? 0);
 }
 
 function isReimbursementQueuedAction(reportAction: OnyxEntry<ReportAction>) {
@@ -278,8 +296,8 @@ function shouldIgnoreGap(currentReportAction: ReportAction | undefined, nextRepo
     return (
         isOptimisticAction(currentReportAction) ||
         isOptimisticAction(nextReportAction) ||
-        !!currentReportAction.whisperedToAccountIDs?.length ||
-        !!nextReportAction.whisperedToAccountIDs?.length ||
+        !!getWhisperedTo(currentReportAction).length ||
+        !!getWhisperedTo(nextReportAction).length ||
         currentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM ||
         nextReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED ||
         nextReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED
