@@ -5,21 +5,27 @@ const NotificationType = {
 } as const;
 
 type NotificationDataMap = {
-    [NotificationType.REPORT_COMMENT]: ReportCommentNotificationData;
+    [NotificationType.REPORT_COMMENT]: ReportCommentPushNotificationData;
 };
 
-type NotificationData = ReportCommentNotificationData;
+type PushNotificationData = ReportCommentPushNotificationData;
 
-type ReportCommentNotificationData = {
+type BasePushNotificationData = {
     title: string;
-    type: typeof NotificationType.REPORT_COMMENT;
-    reportID: number;
-    reportActionID: string;
-    shouldScrollToLastUnread?: boolean;
-    roomName?: string;
+    type: string;
     onyxData?: OnyxServerUpdate[];
     lastUpdateID?: number;
     previousUpdateID?: number;
+};
+
+type ReportActionPushNotificationData = BasePushNotificationData & {
+    reportID: number;
+    reportActionID: string;
+};
+
+type ReportCommentPushNotificationData = ReportActionPushNotificationData & {
+    type: typeof NotificationType.REPORT_COMMENT;
+    roomName?: string;
 };
 
 /**
@@ -27,4 +33,4 @@ type ReportCommentNotificationData = {
  * types of push notifications sent by our API.
  */
 export default NotificationType;
-export type {NotificationDataMap, NotificationData, ReportCommentNotificationData};
+export type {NotificationDataMap, PushNotificationData, ReportCommentPushNotificationData};
