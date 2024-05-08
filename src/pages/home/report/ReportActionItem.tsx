@@ -6,10 +6,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import Button from '@components/Button';
-import DisplayNames from '@components/DisplayNames';
 import Hoverable from '@components/Hoverable';
-import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import InlineSystemMessage from '@components/InlineSystemMessage';
 import KYCWall from '@components/KYCWall';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -919,13 +916,8 @@ function ReportActionItem({
 
     const hasErrors = !isEmptyObject(action.errors);
     const whisperedToAccountIDs = action.whisperedToAccountIDs ?? [];
-    const isWhisper = whisperedToAccountIDs.length > 0;
-    const isMultipleParticipant = whisperedToAccountIDs.length > 1;
-    const isWhisperOnlyVisibleByUser = isWhisper && ReportUtils.isCurrentUserTheOnlyParticipant(whisperedToAccountIDs);
-    const whisperedToPersonalDetails = isWhisper
-        ? (Object.values(personalDetails ?? {}).filter((details) => whisperedToAccountIDs.includes(details?.accountID ?? -1)) as OnyxTypes.PersonalDetails[])
-        : [];
-    const displayNamesWithTooltips = isWhisper ? ReportUtils.getDisplayNamesWithTooltips(whisperedToPersonalDetails, isMultipleParticipant) : [];
+    const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(action.reportID);
+    const isWhisper = whisperedToAccountIDs.length > 0 && transactionsWithReceipts.length === 0;
 
     return (
         <PressableWithSecondaryInteraction
@@ -979,29 +971,6 @@ function ReportActionItem({
                                 needsOffscreenAlphaCompositing={ReportActionsUtils.isMoneyRequestAction(action)}
                                 shouldDisableStrikeThrough
                             >
-                                {isWhisper && (
-                                    <View style={[styles.flexRow, styles.pl5, styles.pt2, styles.pr3]}>
-                                        <View style={[styles.pl6, styles.mr3]}>
-                                            <Icon
-                                                fill={theme.icon}
-                                                src={Expensicons.Eye}
-                                                small
-                                            />
-                                        </View>
-                                        <Text style={[styles.chatItemMessageHeaderTimestamp]}>
-                                            {translate('reportActionContextMenu.onlyVisible')}
-                                            &nbsp;
-                                        </Text>
-                                        <DisplayNames
-                                            fullTitle={ReportUtils.getWhisperDisplayNames(whisperedToAccountIDs) ?? ''}
-                                            displayNamesWithTooltips={displayNamesWithTooltips}
-                                            tooltipEnabled
-                                            numberOfLines={1}
-                                            textStyles={[styles.chatItemMessageHeaderTimestamp, styles.flex1]}
-                                            shouldUseFullTitle={isWhisperOnlyVisibleByUser}
-                                        />
-                                    </View>
-                                )}
                                 {renderReportActionItem(!!hovered || !!isReportActionLinked, isWhisper, hasErrors)}
                             </OfflineWithFeedback>
                         </View>

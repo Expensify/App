@@ -262,7 +262,6 @@ function MoneyReportHeader({
                     }
                     description={translate('iou.pendingMatchWithCreditCardDescription')}
                     shouldShowBorderBottom
-                    additionalViewStyle={[styles.mr2]}
                 />
             )}
             <View style={isMoreContentShown ? [styles.dFlex, styles.flexColumn, styles.borderBottom] : []}>

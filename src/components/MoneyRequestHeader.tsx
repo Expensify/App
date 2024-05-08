@@ -22,7 +22,6 @@ import ConfirmModal from './ConfirmModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import {ReceiptScan} from './Icon/Expensicons';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import ProcessMoneyRequestHoldMenu from './ProcessMoneyRequestHoldMenu';
 
@@ -218,8 +217,15 @@ function MoneyRequestHeader({
                 />
                 {pendingType === 'PENDING' && (
                     <MoneyRequestHeaderStatusBar
-                        title={translate('iou.pending')}
-                        description={translate('iou.transactionPendingText')}
+                        title={
+                            <Icon
+                                src={Expensicons.CreditCardHourglass}
+                                height={variables.iconSizeSmall}
+                                width={variables.iconSizeSmall}
+                                fill={theme.icon}
+                            />
+                        }
+                        description={translate('iou.transactionPendingDescription')}
                         shouldShowBorderBottom={!isOnHold}
                     />
                 )}
@@ -227,10 +233,10 @@ function MoneyRequestHeader({
                     <MoneyRequestHeaderStatusBar
                         title={
                             <Icon
-                                src={ReceiptScan}
+                                src={Expensicons.ReceiptScan}
                                 height={variables.iconSizeSmall}
                                 width={variables.iconSizeSmall}
-                                fill={theme.textSupporting}
+                                fill={theme.icon}
                             />
                         }
                         description={translate('iou.receiptScanInProgressDescription')}
@@ -249,7 +255,6 @@ function MoneyRequestHeader({
                         }
                         description={translate('iou.pendingMatchWithCreditCardDescription')}
                         shouldShowBorderBottom={!isOnHold}
-                        additionalViewStyle={[styles.mr2]}
                     />
                 )}
                 {isOnHold && (

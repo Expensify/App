@@ -1,6 +1,5 @@
 import type {ReactNode} from 'react';
 import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Badge from './Badge';
@@ -18,12 +17,9 @@ type MoneyRequestHeaderStatusBarProps = {
 
     /** Whether we should use the danger theme color */
     danger?: boolean;
-
-    /** Additional style for the banner */
-    additionalViewStyle?: StyleProp<ViewStyle>;
 };
 
-function MoneyRequestHeaderStatusBar({title, description, shouldShowBorderBottom, danger = false, additionalViewStyle}: MoneyRequestHeaderStatusBarProps) {
+function MoneyRequestHeaderStatusBar({title, description, shouldShowBorderBottom, danger = false}: MoneyRequestHeaderStatusBarProps) {
     const styles = useThemeStyles();
     const borderBottomStyle = shouldShowBorderBottom ? styles.borderBottom : {};
     return (
@@ -40,17 +36,17 @@ function MoneyRequestHeaderStatusBar({title, description, shouldShowBorderBottom
                 styles.headerStatusBarContainer,
             ]}
         >
-            <View style={additionalViewStyle ?? [styles.mr3]}>
-                {typeof title === 'string' ? (
+            {typeof title === 'string' ? (
+                <View style={[styles.mr3]}>
                     <Badge
                         text={title}
                         badgeStyles={styles.ml0}
                         error={danger}
                     />
-                ) : (
-                    <View>{title}</View>
-                )}
-            </View>
+                </View>
+            ) : (
+                <View style={styles.mr2}>{title}</View>
+            )}
             <View style={[styles.flexShrink1]}>
                 <Text style={[styles.textLabelSupporting]}>{description}</Text>
             </View>

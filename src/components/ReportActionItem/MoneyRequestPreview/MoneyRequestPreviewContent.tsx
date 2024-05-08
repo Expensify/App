@@ -84,6 +84,7 @@ function MoneyRequestPreviewContent({
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
+    const isPending = TransactionUtils.isPending(transaction);
     const isOnHold = TransactionUtils.isOnHold(transaction);
     const isSettlementOrApprovalPartial = Boolean(iouReport?.pendingFields?.partial);
     const isPartialHold = isSettlementOrApprovalPartial && isOnHold;
@@ -145,14 +146,6 @@ function MoneyRequestPreviewContent({
             message = translate('iou.split');
         }
 
-        if (isCardTransaction) {
-            message = translate('iou.card');
-            if (TransactionUtils.isPending(transaction)) {
-                message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.pending')}`;
-                return message;
-            }
-        }
-
         if (isSettled && !iouReport?.isCancelledIOU && !isPartialHold) {
             message += ` ${CONST.DOT_SEPARATOR} ${getSettledMessage()}`;
             return message;
@@ -184,8 +177,6 @@ function MoneyRequestPreviewContent({
             message += ` • ${translate('violations.reviewRequired')}`;
         } else if (ReportUtils.isPaidGroupPolicyExpenseReport(iouReport) && ReportUtils.isReportApproved(iouReport) && !ReportUtils.isSettled(iouReport?.reportID) && !isPartialHold) {
             message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.approved')}`;
-        } else if (iouReport?.isWaitingOnBankAccount) {
-            message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.pending')}`;
         } else if (iouReport?.isCancelledIOU) {
             message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
         } else if (!(isSettled && !isSettlementOrApprovalPartial) && isOnHold) {
@@ -330,7 +321,18 @@ function MoneyRequestPreviewContent({
                                                     width={variables.iconSizeExtraSmall}
                                                     fill={theme.textSupporting}
                                                 />
-                                                <Text style={[styles.textLabel, styles.colorMuted, styles.ml1, styles.amountSplitPadding]}>{translate('iou.receiptScanInProgress')}</Text>
+                                                <Text style={[styles.textMicroSupporting, styles.ml1, styles.amountSplitPadding]}>{translate('iou.receiptScanInProgress')}</Text>
+                                            </View>
+                                        )}
+                                        {isPending && (
+                                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
+                                                <Icon
+                                                    src={Expensicons.CreditCardHourglass}
+                                                    height={variables.iconSizeExtraSmall}
+                                                    width={variables.iconSizeExtraSmall}
+                                                    fill={theme.textSupporting}
+                                                />
+                                                <Text style={[styles.textMicroSupporting, styles.ml1, styles.amountSplitPadding]}>{translate('iou.transactionPending')}</Text>
                                             </View>
                                         )}
                                         {!isScanning && hasPendingUI && (
