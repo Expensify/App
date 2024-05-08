@@ -144,16 +144,15 @@ function isModifiedExpenseAction(reportAction: OnyxEntry<ReportAction> | ReportA
 }
 
 function getWhisperedTo(reportAction: OnyxEntry<ReportAction> | EmptyObject) {
-    // We are in the process of deprecating originalMessage and will be sending "message" in the future see:
     const originalMessage = reportAction?.originalMessage;
     const message = reportAction?.message;
 
-    // If this is true then we are using the object version of the message
+    // If this is true then we are using the new object version of reportAction.message
     if (!Array.isArray(message) && typeof message === 'object') {
         return (message?.whisperedTo ?? []);
     }
 
-    // We'll use the original message if the backend is still sending this
+    // We are in the process of deprecating reportAction.originalMessage and will be sending the db version of "message" in the future see: https://github.com/Expensify/App/issues/39797
     if (originalMessage) {
         return (originalMessage?.whisperedTo ?? []);
     }
