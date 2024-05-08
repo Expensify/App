@@ -143,7 +143,7 @@ function isModifiedExpenseAction(reportAction: OnyxEntry<ReportAction> | ReportA
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE;
 }
 
-function getWhisperedTo(reportAction: OnyxEntry<ReportAction> | EmptyObject) {
+function getWhisperedTo(reportAction: OnyxEntry<ReportAction> | EmptyObject): number[] {
     const originalMessage = reportAction?.originalMessage;
     const message = reportAction?.message;
 
