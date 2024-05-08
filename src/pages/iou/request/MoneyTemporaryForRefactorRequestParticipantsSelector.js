@@ -74,6 +74,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
     const {didScreenTransitionEnd} = useScreenWrapperTranstionStatus();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
@@ -345,6 +346,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
             headerMessage={headerMessage}
             showLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
             canSelectMultiple={isIOUSplit && isAllowedToSplit}
+            isLoadingNewOptions={!!isSearchingForReports}
         />
     );
 }
