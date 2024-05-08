@@ -102,7 +102,6 @@ function ReportActionItemSingle({
         const delegateDisplayName = delegateDetails?.displayName;
         actorHint = `${delegateDisplayName} (${translate('reportAction.asCopilot')} ${displayName})`;
         displayName = actorHint;
-        // avatarSource = UserUtils.getAvatar(delegateDetails?.avatar ?? '', Number(action.delegateAccountID));
         avatarSource = delegateDetails?.avatar;
         avatarAccountId = action.delegateAccountID;
     }

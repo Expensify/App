@@ -332,10 +332,8 @@ function getAvatarsForAccountIDs(accountIDs: number[], personalDetails: OnyxEntr
         const login = reversedDefaultValues[accountID] ?? '';
         const userPersonalDetail = personalDetails?.[accountID] ?? {login, accountID};
 
-        // Todo check if the difference in accountID breaks something
         return {
             id: accountID,
-            // source: UserUtils.getAvatar(userPersonalDetail.avatar, userPersonalDetail.accountID),
             source: userPersonalDetail.avatar ?? FallbackAvatar,
             type: CONST.ICON_TYPE_AVATAR,
             name: userPersonalDetail.login ?? '',
