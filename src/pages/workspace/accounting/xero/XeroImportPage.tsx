@@ -31,7 +31,7 @@ function XeroImportPage({policy}: WithPolicyProps) {
                 description: translate('workspace.accounting.accounts'),
                 action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_CHART_OF_ACCOUNTS.getRoute(policyID)),
                 hasError: !!policy?.errors?.enableNewCategories,
-                title: translate('workspace.accounting.imported'),
+                title: translate('workspace.accounting.importAsCategory'),
                 pendingAction: pendingFields?.enableNewCategories,
             },
             {
