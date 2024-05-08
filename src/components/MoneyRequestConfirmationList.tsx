@@ -738,7 +738,6 @@ function MoneyRequestConfirmationList({
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                 }}
-                enterKeyEventListenerPriority={1}
             />
         ) : (
             <ButtonWithDropdownMenu
@@ -748,7 +747,6 @@ function MoneyRequestConfirmationList({
                 onPress={(event, value) => confirm(value as PaymentMethodType)}
                 options={splitOrRequestOptions}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
-                enterKeyEventListenerPriority={1}
             />
         );
 

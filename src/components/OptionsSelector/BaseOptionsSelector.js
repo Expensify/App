@@ -322,7 +322,7 @@ class BaseOptionsSelector extends Component {
         this.unsubscribeCTRLEnter = KeyboardShortcut.subscribe(
             CTRLEnterConfig.shortcutKey,
             () => {
-                if (this.props.canSelectMultipleOptions) {
+                if (this.props.onConfirmSelection) {
                     this.props.onConfirmSelection();
                     return;
                 }
