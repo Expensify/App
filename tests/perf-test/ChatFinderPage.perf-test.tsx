@@ -1,5 +1,5 @@
 import type * as NativeNavigation from '@react-navigation/native';
-import type {StackScreenProps} from '@react-navigation/stack';
+import type {StackNavigationProp, StackScreenProps} from '@react-navigation/stack';
 import {fireEvent, screen} from '@testing-library/react-native';
 import React, {useMemo} from 'react';
 import type {ComponentType} from 'react';
@@ -123,9 +123,9 @@ afterEach(() => {
 });
 
 type ChatFinderPageProps = StackScreenProps<RootStackParamList, typeof SCREENS.CHAT_FINDER_ROOT> & {
-    betas: OnyxEntry<Beta[]>;
-    reports: OnyxCollection<Report>;
-    isSearchingForReports: OnyxEntry<boolean>;
+    betas?: OnyxEntry<Beta[]>;
+    reports?: OnyxCollection<Report>;
+    isSearchingForReports?: OnyxEntry<boolean>;
 };
 
 function ChatFinderPageWrapper(args: ChatFinderPageProps) {
@@ -163,21 +163,26 @@ test('[ChatFinderPage] should render list with cached options', async () => {
         await screen.findByTestId('ChatFinderPage');
     };
 
-    const navigation = {addListener};
+    const navigation = {addListener} as unknown as StackNavigationProp<RootStackParamList, 'ChatFinder_Root', undefined>;
 
-    return (
-        waitForBatchedUpdates()
-            .then(() =>
-                Onyx.multiSet({
-                    ...mockedReports,
-                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
-                    [ONYXKEYS.BETAS]: mockedBetas,
-                    [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
-                }),
-            )
-            // @ts-expect-error Navigation prop is only used within this test
-            .then(() => measurePerformance(<ChatFinderPageWithCachedOptions navigation={navigation} />, {scenario}))
-    );
+    return waitForBatchedUpdates()
+        .then(() =>
+            Onyx.multiSet({
+                ...mockedReports,
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+                [ONYXKEYS.BETAS]: mockedBetas,
+                [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
+            }),
+        )
+        .then(() =>
+            measurePerformance(
+                <ChatFinderPageWithCachedOptions
+                    route={{key: 'ChatFinder_Root', name: 'ChatFinder_Root'}}
+                    navigation={navigation}
+                />,
+                {scenario},
+            ),
+        );
 });
 
 test('[ChatFinderPage] should interact when text input changes', async () => {
@@ -192,19 +197,24 @@ test('[ChatFinderPage] should interact when text input changes', async () => {
         fireEvent.changeText(input, 'Email Five');
     };
 
-    const navigation = {addListener};
+    const navigation = {addListener} as unknown as StackNavigationProp<RootStackParamList, 'ChatFinder_Root', undefined>;
 
-    return (
-        waitForBatchedUpdates()
-            .then(() =>
-                Onyx.multiSet({
-                    ...mockedReports,
-                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
-                    [ONYXKEYS.BETAS]: mockedBetas,
-                    [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
-                }),
-            )
-            // @ts-expect-error Navigation prop is only used within this test
-            .then(() => measurePerformance(<ChatFinderPageWrapper navigation={navigation} />, {scenario}))
-    );
+    return waitForBatchedUpdates()
+        .then(() =>
+            Onyx.multiSet({
+                ...mockedReports,
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+                [ONYXKEYS.BETAS]: mockedBetas,
+                [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
+            }),
+        )
+        .then(() =>
+            measurePerformance(
+                <ChatFinderPageWrapper
+                    route={{key: 'ChatFinder_Root', name: 'ChatFinder_Root'}}
+                    navigation={navigation}
+                />,
+                {scenario},
+            ),
+        );
 });
