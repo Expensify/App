@@ -47,6 +47,7 @@ import type PriorityMode from './PriorityMode';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
 import type QuickAction from './QuickAction';
 import type RecentlyUsedCategories from './RecentlyUsedCategories';
+import type RecentlyUsedCurrencies from './RecentlyUsedCurrencies';
 import type RecentlyUsedReportFields from './RecentlyUsedReportFields';
 import type RecentlyUsedTags from './RecentlyUsedTags';
 import type RecentWaypoint from './RecentWaypoint';
@@ -132,6 +133,7 @@ export type {
     RecentWaypoint,
     RecentlyUsedCategories,
     RecentlyUsedTags,
+    RecentlyUsedCurrencies,
     ReimbursementAccount,
     Report,
     ReportAction,

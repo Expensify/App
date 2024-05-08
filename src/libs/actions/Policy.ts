@@ -86,6 +86,7 @@ import type {
     PolicyTagList,
     PolicyTags,
     RecentlyUsedCategories,
+    RecentlyUsedCurrencies,
     RecentlyUsedTags,
     ReimbursementAccount,
     Report,
@@ -216,6 +217,13 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES,
     waitForCollectionCallback: true,
     callback: (val) => (allRecentlyUsedCategories = val),
+});
+
+let allRecentlyUsedCurrencies: OnyxCollection<RecentlyUsedCurrencies> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CURRENCIES,
+    waitForCollectionCallback: true,
+    callback: (val) => (allRecentlyUsedCurrencies = val),
 });
 
 let allPolicyTags: OnyxCollection<PolicyTagList> = {};
@@ -2770,6 +2778,16 @@ function buildOptimisticPolicyRecentlyUsedCategories(policyID?: string, category
     return lodashUnion([category], policyRecentlyUsedCategories);
 }
 
+function buildOptimisticPolicyRecentlyUsedCurrencies(policyID?: string, currency?: string) {
+    if (!policyID || !currency) {
+        return [];
+    }
+
+    const policyRecentlyUsedCurrencies = allRecentlyUsedCurrencies?.[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CURRENCIES}${policyID}`] ?? [];
+
+    return lodashUnion([currency], policyRecentlyUsedCurrencies);
+}
+
 function buildOptimisticPolicyRecentlyUsedTags(policyID?: string, transactionTags?: string): RecentlyUsedTags {
     if (!policyID || !transactionTags) {
         return {};
@@ -5236,6 +5254,7 @@ export {
     dismissAddedWithPrimaryLoginMessages,
     openDraftWorkspaceRequest,
     buildOptimisticPolicyRecentlyUsedCategories,
+    buildOptimisticPolicyRecentlyUsedCurrencies,
     buildOptimisticPolicyRecentlyUsedTags,
     createDraftInitialWorkspace,
     setWorkspaceInviteMessageDraft,
