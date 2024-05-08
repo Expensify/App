@@ -1,4 +1,4 @@
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 
 type PDFThumbnailProps = {
     /** Source URL for the preview PDF */
@@ -15,9 +15,6 @@ type PDFThumbnailProps = {
 
     /** Callback to call if PDF is password protected */
     onPassword?: () => void;
-
-    /** Styles for the error label */
-    errorLabelStyles?: StyleProp<TextStyle>;
 };
 
 export default PDFThumbnailProps;
