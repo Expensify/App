@@ -86,7 +86,7 @@ function Search({query}: SearchProps) {
                 isLoadingMoreItems ? (
                     <TableListItemSkeleton
                         shouldAnimate
-                        fixedNumItems={10}
+                        fixedNumItems={5}
                     />
                 ) : undefined
             }
