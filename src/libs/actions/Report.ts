@@ -57,6 +57,7 @@ import {prepareDraftComment} from '@libs/DraftCommentUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import * as Environment from '@libs/Environment/Environment';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -635,14 +636,38 @@ function updateGroupChatName(reportID: string, reportName: string) {
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 reportName,
-                errorFields: {
+                pendingFields: {
+                    reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                pendingFields: {
                     reportName: null,
                 },
             },
         },
     ];
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                reportName: ReportUtils.getReport(reportID)?.reportName,
+                errors: {
+                    reportName: Localize.translateLocal('groupChat.invalidGroupChatName'),
+                },
+            },
+        },
+    ];
     const parameters: UpdateGroupChatNameParams = {reportName, reportID};
-    API.write(WRITE_COMMANDS.UPDATE_GROUP_CHAT_NAME, parameters, {optimisticData});
+    API.write(WRITE_COMMANDS.UPDATE_GROUP_CHAT_NAME, parameters, {optimisticData, successData, failureData});
 }
 
 function updateGroupChatAvatar(reportID: string, file?: File | CustomRNImageManipulatorResult) {

@@ -1267,6 +1267,7 @@ export default {
         lastMemberTitle: 'Heads up!',
         lastMemberWarning: "Since you're the last person here, leaving will make this chat inaccessible to all users. Are you sure you want to leave?",
         defaultReportName: ({displayName}: {displayName: string}) => `${displayName}'s group chat`,
+        invalidGroupChatName: 'Invalid group chat name',
     },
     languagePage: {
         language: 'Language',

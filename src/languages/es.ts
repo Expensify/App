@@ -1266,6 +1266,7 @@ export default {
         lastMemberTitle: '¡Atención!',
         lastMemberWarning: 'Ya que eres la última persona aquí, si te vas, este chat quedará inaccesible para todos los usuarios. ¿Estás seguro de que quieres salir del chat?',
         defaultReportName: ({displayName}: {displayName: string}) => `Chat de group de ${displayName}`,
+        invalidGroupChatName: 'Nombre de chat grupal no válido',
     },
     languagePage: {
         language: 'Idioma',
