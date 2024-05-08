@@ -1,4 +1,4 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -63,8 +63,12 @@ function Search({query, offset}: SearchProps) {
             return;
         }
 
+        if (isLoadingMoreItems) {
+            return;
+        }
+
         const nextOffset = offset + CONST.SEARCH_RESULTS_PAGE_SIZE;
-        Navigation.navigate(ROUTES.SEARCH.getRoute(query, nextOffset));
+        Navigation.setParams({offset: nextOffset});
     };
 
     const ListItem = SearchUtils.getListItem();
