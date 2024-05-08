@@ -508,6 +508,9 @@ function hasMissingSmartscanFields(transaction: OnyxEntry<Transaction>): boolean
     return Boolean(transaction && !isDistanceRequest(transaction) && !isReceiptBeingScanned(transaction) && areRequiredFieldsEmpty(transaction));
 }
 
+/**
+ * Get all transaction violations of the transaction with given tranactionID.
+ */
 function getTransactionViolations(transactionID: string, transactionViolations: OnyxCollection<TransactionViolations> | null): TransactionViolations | null {
     return transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID] ?? null;
 }
@@ -522,10 +525,13 @@ function hasPendingRTERViolation(transactionViolations?: TransactionViolations |
 }
 
 /**
- * Check if there is pending rter violation in transactionViolations.
+ * Check if there is pending rter violation in all transactionViolations with given transactionIDs.
  */
-function haveAllPendingRTERViolation(transactionIds: string[]): boolean {
-    const transactionsWithRTERViolations = transactionIds.map((transactionId) => hasPendingRTERViolation(getTransactionViolations(transactionId, allTransactionViolations)));
+function hasAllPendingRTERViolation(transactionIds: string[]): boolean {
+    const transactionsWithRTERViolations = transactionIds.map((transactionId) => {
+        const transactionViolations = getTransactionViolations(transactionId, allTransactionViolations);
+        return hasPendingRTERViolation(transactionViolations);
+    });
     return transactionsWithRTERViolations.length !== 0 && transactionsWithRTERViolations.every((value) => value === true);
 }
 
@@ -750,7 +756,7 @@ export {
     areRequiredFieldsEmpty,
     hasMissingSmartscanFields,
     hasPendingRTERViolation,
-    haveAllPendingRTERViolation,
+    hasAllPendingRTERViolation,
     hasPendingUI,
     getWaypointIndex,
     waypointHasValidAddress,
