@@ -107,6 +107,13 @@ type TaxRate = {
     data?: TaxRateData;
 };
 
+type SplitShare = {
+    amount: number;
+    isModified?: boolean;
+};
+
+type SplitShares = Record<number, SplitShare | null>;
+
 type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
         /** The original transaction amount */
@@ -225,6 +232,12 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Indicates transaction loading */
         isLoading?: boolean;
 
+        /** Holds individual shares of a split keyed by accountID, only used locally */
+        splitShares?: SplitShares;
+
+        /** Holds the accountIDs of accounts who paid the split, for now only supports a single payer */
+        splitPayerAccountIDs?: number[];
+
         /** Whether the user input should be kept */
         shouldShowOriginalAmount?: boolean;
 
@@ -236,9 +249,6 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The linked report id for the tracked expense */
         linkedTrackedExpenseReportID?: string;
-
-        /** The payers of split bill transaction */
-        splitPayerAccountIDs?: number[];
     },
     keyof Comment
 >;
@@ -269,4 +279,6 @@ export type {
     TaxRate,
     ReceiptSource,
     TransactionCollectionDataSet,
+    SplitShare,
+    SplitShares,
 };
