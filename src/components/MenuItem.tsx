@@ -261,7 +261,7 @@ type MenuItemBaseProps = {
     onFocus?: () => void;
 
     /** Optional account id if it's user avatar or policy id if it's workspace avatar */
-    accountId?: number | string;
+    accountID?: number | string;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -337,7 +337,7 @@ function MenuItem(
         isPaneMenu = false,
         shouldPutLeftPaddingWhenNoIcon = false,
         onFocus,
-        accountId = '',
+        accountID = '',
     }: MenuItemProps,
     ref: PressableRef,
 ) {
@@ -519,7 +519,7 @@ function MenuItem(
                                                         fallbackIcon={fallbackIcon}
                                                         name={title}
                                                         type={CONST.ICON_TYPE_WORKSPACE}
-                                                        accountID={accountId}
+                                                        accountID={accountID}
                                                     />
                                                 )}
                                                 {iconType === CONST.ICON_TYPE_AVATAR && (
