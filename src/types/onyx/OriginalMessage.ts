@@ -71,6 +71,7 @@ type IOUMessage = {
     deleted?: string;
     /** Only exists when we are sending money */
     IOUDetails?: IOUDetails;
+    whisperedTo?: number[];
 };
 
 type ReimbursementDeQueuedMessage = {
@@ -233,6 +234,7 @@ type OriginalMessageReportPreview = {
     originalMessage: {
         linkedReportID: string;
         lastModified?: string;
+        whisperedTo?: number[];
     };
 };
 
@@ -385,6 +387,7 @@ export type {
     OriginalMessageJoinPolicyChangeLog,
     OriginalMessageActionableMentionWhisper,
     OriginalMessageActionableReportMentionWhisper,
+    OriginalMessageReportPreview,
     OriginalMessageChronosOOOList,
     OriginalMessageRoomChangeLog,
     OriginalMessageSource,

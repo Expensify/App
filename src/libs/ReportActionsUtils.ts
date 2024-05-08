@@ -149,12 +149,12 @@ function getWhisperedTo(reportAction: OnyxEntry<ReportAction> | EmptyObject): nu
 
     // If this is true then we are using the new object version of reportAction.message
     if (!Array.isArray(message) && typeof message === 'object') {
-        return (message?.whisperedTo ?? []);
+        return ((message as {whisperedTo?: number[]})?.whisperedTo ?? []);
     }
 
     // We are in the process of deprecating reportAction.originalMessage and will be sending the db version of "message" in the future see: https://github.com/Expensify/App/issues/39797
     if (originalMessage) {
-        return (originalMessage?.whisperedTo ?? []);
+        return ((originalMessage as {whisperedTo?: number[]})?.whisperedTo ?? []);
     }
 
     return [];
