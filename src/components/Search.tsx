@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -8,10 +8,10 @@ import * as SearchUtils from '@libs/SearchUtils';
 import Navigation from '@navigation/Navigation';
 import EmptySearchView from '@pages/Search/EmptySearchView';
 import useCustomBackHandler from '@pages/Search/useCustomBackHandler';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import CONST from '@src/CONST';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import SelectionList from './SelectionList';
 import SearchTableHeader from './SelectionList/SearchTableHeader';
@@ -38,10 +38,11 @@ function Search({query, offset}: SearchProps) {
         SearchActions.search(query, offset);
     }, [query, offset, isOffline]);
 
-    const isLoading = (!isOffline && isLoadingOnyxValue(searchResultsMeta)) || searchResults?.data === undefined;
-    const shouldShowEmptyState = !isLoading && isEmptyObject(searchResults?.data);
+    const isLoadingInitialItems = (!isOffline && isLoadingOnyxValue(searchResultsMeta)) || searchResults?.data === undefined;
+    const isLoadingMoreItems = !isLoadingInitialItems && searchResults?.search?.isLoading;
+    const shouldShowEmptyState = !isLoadingInitialItems && isEmptyObject(searchResults?.data);
 
-    if (isLoading) {
+    if (isLoadingInitialItems) {
         return <TableListItemSkeleton shouldAnimate />;
     }
 
@@ -64,7 +65,7 @@ function Search({query, offset}: SearchProps) {
 
         const nextOffset = offset + CONST.SEARCH_RESULTS_PAGE_SIZE;
         Navigation.navigate(ROUTES.SEARCH.getRoute(query, nextOffset));
-    }
+    };
 
     const ListItem = SearchUtils.getListItem();
     const data = SearchUtils.getSections(searchResults?.data ?? {});
@@ -83,6 +84,14 @@ function Search({query, offset}: SearchProps) {
             containerStyle={[styles.pv0]}
             onEndReachedThreshold={0.75}
             onEndReached={fetchMoreResults}
+            listFooterContent={
+                isLoadingMoreItems ? (
+                    <TableListItemSkeleton
+                        shouldAnimate
+                        fixedNumItems={10}
+                    />
+                ) : undefined
+            }
         />
     );
 }

@@ -6,6 +6,7 @@ type SearchResultsInfo = {
     offset: number;
     type: string;
     hasMoreResults: boolean;
+    isLoading: boolean;
 };
 
 type SearchPersonalDetails = {

@@ -408,7 +408,7 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Called once when the scroll position gets within onEndReachedThreshold of the rendered content. */
     onEndReached?: () => void;
 
-    /** 
+    /**
      * How far from the end (in units of visible length of the list) the bottom edge of the
      * list must be from the end of the content to trigger the `onEndReached` callback.
      * Thus a value of 0.5 will trigger `onEndReached` when the end of the content is

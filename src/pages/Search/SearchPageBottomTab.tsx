@@ -41,7 +41,12 @@ function SearchPageBottomTab() {
                     shouldDisplaySearch={false}
                 />
                 <SearchFilters query={query} />
-                {isSmallScreenWidth && <Search query={query} offset={offset} />}
+                {isSmallScreenWidth && (
+                    <Search
+                        query={query}
+                        offset={offset}
+                    />
+                )}
             </FullPageNotFoundView>
         </ScreenWrapper>
     );

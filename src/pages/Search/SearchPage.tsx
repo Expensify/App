@@ -37,7 +37,10 @@ function SearchPage({route}: SearchPageProps) {
                     icon={Illustrations.MoneyReceipts}
                     shouldShowBackButton={false}
                 />
-                <Search query={query} offset={offset} />
+                <Search
+                    query={query}
+                    offset={offset}
+                />
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
