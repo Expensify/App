@@ -1360,7 +1360,7 @@ function getTaxRatesOptions(taxRates: Array<Partial<TaxRate>>): TaxRatesOption[]
         searchText: modifiedName,
         tooltipText: modifiedName,
         isDisabled,
-        isSelected: isSelected,
+        isSelected,
     }));
 }
 
