@@ -215,15 +215,6 @@ Onyx.connect({
     },
 });
 
-let activePolicyID = '';
-Onyx.connect({
-    key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        activePolicyID = value ?? '';
-    },
-});
-
 let allNextSteps: NonNullable<OnyxCollection<OnyxTypes.ReportNextStep>> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.NEXT_STEP,
