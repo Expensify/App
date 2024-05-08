@@ -112,7 +112,7 @@ function MoneyReportHeader({
 
     const shouldDisableApproveButton = shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(moneyRequestReport);
 
-    const shouldShowSettlementButton = !ReportUtils.isInvoiceReport(moneyRequestReport) && (shouldShowPayButton || shouldShowApproveButton);
+    const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
 
     const shouldShowSubmitButton = isDraft && reimbursableSpend !== 0;
     const shouldDisableSubmitButton = shouldShowSubmitButton && !ReportUtils.isAllowedToSubmitDraftExpenseReport(moneyRequestReport);
@@ -126,14 +126,16 @@ function MoneyReportHeader({
     const isMoreContentShown = shouldShowNextStep || (shouldShowAnyButton && shouldUseNarrowLayout);
 
     const confirmPayment = (type?: PaymentMethodType | undefined) => {
-        if (!type) {
+        if (!type || !chatReport) {
             return;
         }
         setPaymentType(type);
         setRequestType('pay');
         if (ReportUtils.hasHeldExpenses(moneyRequestReport.reportID)) {
             setIsHoldMenuVisible(true);
-        } else if (chatReport) {
+        } else if (ReportUtils.isInvoiceReport(moneyRequestReport)) {
+            IOU.payInvoice(type, chatReport, moneyRequestReport);
+        } else {
             IOU.payMoneyRequest(type, chatReport, moneyRequestReport, true);
         }
     };
@@ -217,6 +219,7 @@ function MoneyReportHeader({
                             chatReportID={chatReport?.reportID}
                             iouReport={moneyRequestReport}
                             onPress={confirmPayment}
+                            invoicePaymentMethod={paymentType}
                             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                             addBankAccountRoute={bankAccountRoute}
                             shouldHidePaymentOptions={!shouldShowPayButton}
@@ -251,6 +254,7 @@ function MoneyReportHeader({
                             chatReportID={moneyRequestReport.chatReportID}
                             iouReport={moneyRequestReport}
                             onPress={confirmPayment}
+                            invoicePaymentMethod={paymentType}
                             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                             addBankAccountRoute={bankAccountRoute}
                             shouldHidePaymentOptions={!shouldShowPayButton}

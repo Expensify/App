@@ -14,6 +14,7 @@ import type {
     DeleteMoneyRequestParams,
     DetachReceiptParams,
     EditMoneyRequestParams,
+    PayInvoiceParams,
     PayMoneyRequestParams,
     ReplaceReceiptParams,
     RequestMoneyParams,
@@ -211,6 +212,15 @@ Onyx.connect({
     waitForCollectionCallback: true,
     callback: (value) => {
         allDraftSplitTransactions = value ?? {};
+    },
+});
+
+let activePolicyID = '';
+Onyx.connect({
+    key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        activePolicyID = value ?? '';
     },
 });
 
@@ -5651,6 +5661,8 @@ function getPayMoneyRequestParams(
     paymentMethodType: PaymentMethodType,
     full: boolean,
 ): PayMoneyRequestData {
+    const isInvoiceReport = ReportUtils.isInvoiceReport(iouReport);
+
     let total = (iouReport.total ?? 0) - (iouReport.nonReimbursableTotal ?? 0);
     if (ReportUtils.hasHeldExpenses(iouReport.reportID) && !full && !!iouReport.unheldTotal) {
         total = iouReport.unheldTotal;
@@ -5675,9 +5687,12 @@ function getPayMoneyRequestParams(
     if (reportPreviewAction) {
         optimisticReportPreviewAction = ReportUtils.updateReportPreview(iouReport, reportPreviewAction, true);
     }
-
-    const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`] ?? null;
-    const optimisticNextStep = NextStepUtils.buildNextStep(iouReport, CONST.REPORT.STATUS_NUM.REIMBURSED, {isPaidWithExpensify: paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA});
+    let currentNextStep = null;
+    let optimisticNextStep = null;
+    if (!isInvoiceReport) {
+        currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`];
+        optimisticNextStep = NextStepUtils.buildNextStep(iouReport, CONST.REPORT.STATUS_NUM.REIMBURSED, {isPaidWithExpensify: paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA});
+    }
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -5872,6 +5887,10 @@ function canIOUBePaid(iouReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, chat
 
     if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO) {
         return false;
+    }
+
+    if (ReportUtils.isInvoiceRoom(iouReport) && iouReport?.managerID === userAccountID) {
+        return true;
     }
 
     if (ReportUtils.isInvoiceReport(iouReport)) {
@@ -6286,6 +6305,24 @@ function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.R
     Navigation.dismissModalWithReport(chatReport);
 }
 
+function payInvoice(paymentMethodType: PaymentMethodType, chatReport: OnyxTypes.Report, invoiceReport: OnyxTypes.Report) {
+    const recipient = {accountID: invoiceReport.ownerAccountID};
+    const {
+        optimisticData,
+        successData,
+        failureData,
+        params: {reportActionID},
+    } = getPayMoneyRequestParams(chatReport, invoiceReport, recipient, paymentMethodType, true);
+
+    const params: PayInvoiceParams = {
+        reportID: chatReport.reportID,
+        reportActionID,
+        paymentMethodType,
+    };
+
+    API.write(WRITE_COMMANDS.PAY_INVOICE, params, {optimisticData, successData, failureData});
+}
+
 function detachReceipt(transactionID: string) {
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const newTransaction = transaction ? {...transaction, filename: '', receipt: {}} : null;
@@ -6673,6 +6710,7 @@ export {
     initMoneyRequest,
     navigateToStartStepIfScanFileCannotBeRead,
     payMoneyRequest,
+    payInvoice,
     putOnHold,
     replaceReceipt,
     requestMoney,

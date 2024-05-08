@@ -1,4 +1,5 @@
-import React, {useMemo} from 'react';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import React, {useMemo, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -103,6 +104,7 @@ function ReportPreview({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {canUseViolations} = usePermissions();
+    const [paymentType, setPaymentType] = useState<PaymentMethodType>();
 
     const {hasMissingSmartscanFields, areAllRequestsBeingSmartScanned, hasOnlyTransactionsWithPendingRoutes, hasNonReimbursableTransactions} = useMemo(
         () => ({
@@ -208,7 +210,7 @@ function ReportPreview({
 
     const shouldDisableApproveButton = shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(iouReport);
 
-    const shouldShowSettlementButton = !ReportUtils.isInvoiceReport(iouReport) && (shouldShowPayButton || shouldShowApproveButton);
+    const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
 
     const shouldPromptUserToAddBankAccount = ReportUtils.hasMissingPaymentMethod(userWallet, iouReportID);
     const shouldShowRBR = !iouSettled && hasErrors;
@@ -240,6 +242,18 @@ function ReportPreview({
             }),
         };
     }, [formattedMerchant, formattedDescription, moneyRequestComment, translate, numberOfRequests, numberOfScanningReceipts, numberOfPendingRequests]);
+
+    const confirmPayment = (paymentMethodType?: PaymentMethodType) => {
+        if (!paymentMethodType || !chatReport || !iouReport) {
+            return;
+        }
+        setPaymentType(paymentMethodType);
+        if (ReportUtils.isInvoiceReport(iouReport)) {
+            IOU.payInvoice(paymentMethodType, chatReport, iouReport);
+        } else {
+            IOU.payMoneyRequest(paymentMethodType, chatReport, iouReport);
+        }
+    };
 
     return (
         <OfflineWithFeedback
@@ -318,7 +332,8 @@ function ReportPreview({
                                         policyID={policyID}
                                         chatReportID={chatReportID}
                                         iouReport={iouReport}
-                                        onPress={(paymentType?: PaymentMethodType) => chatReport && iouReport && paymentType && IOU.payMoneyRequest(paymentType, chatReport, iouReport)}
+                                        onPress={confirmPayment}
+                                        invoicePaymentMethod={paymentType}
                                         enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                                         addBankAccountRoute={bankAccountRoute}
                                         shouldHidePaymentOptions={!shouldShowPayButton}

@@ -17,7 +17,7 @@ import type {ButtonSizeValue} from '@src/styles/utils/types';
 import type {LastPaymentMethod, Policy, Report} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
+import {type EmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {PaymentType} from './ButtonWithDropdownMenu/types';
 import * as Expensicons from './Icon/Expensicons';
@@ -104,6 +104,9 @@ type SettlementButtonProps = SettlementButtonOnyxProps & {
 
     /** Callback to open confirmation modal if any of the transactions is on HOLD */
     confirmApproval?: () => void;
+
+    /** personal/business methods which should be displayed */
+    invoicePaymentMethod?: typeof CONST.IOU.PAYMENT_TYPE.PERSONAL | typeof CONST.IOU.PAYMENT_TYPE.BUSINESS;
 };
 
 function SettlementButton({
@@ -139,6 +142,7 @@ function SettlementButton({
     enterKeyEventListenerPriority = 0,
     confirmApproval,
     policy,
+    invoicePaymentMethod,
 }: SettlementButtonProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -155,6 +159,7 @@ function SettlementButton({
     const paymentButtonOptions = useMemo(() => {
         const buttonOptions = [];
         const isExpenseReport = ReportUtils.isExpenseReport(iouReport);
+        const isInvoiceRoom = (!isEmptyObject(iouReport) && ReportUtils.isInvoiceReport(iouReport)) || false;
         const paymentMethods = {
             [CONST.IOU.PAYMENT_TYPE.EXPENSIFY]: {
                 text: translate('iou.settleExpensify', {formattedAmount}),
@@ -170,6 +175,11 @@ function SettlementButton({
                 text: translate('iou.payElsewhere', {formattedAmount}),
                 icon: Expensicons.Cash,
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+            },
+            [CONST.IOU.PAYMENT_TYPE.PERSONAL]: {
+                text: translate('iou.settlePersonal', {formattedAmount}),
+                icon: Expensicons.User,
+                value: CONST.IOU.PAYMENT_TYPE.PERSONAL,
             },
         };
         const approveButtonOption = {
@@ -195,8 +205,11 @@ function SettlementButton({
         if (isExpenseReport && shouldShowPaywithExpensifyOption) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.VBBA]);
         }
-        if (shouldShowPayElsewhereOption) {
+        if (shouldShowPayElsewhereOption || (isInvoiceRoom && invoicePaymentMethod)) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]);
+        }
+        if (isInvoiceRoom && !invoicePaymentMethod) {
+            buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.PERSONAL]);
         }
 
         if (shouldShowApproveButton) {
@@ -211,6 +224,7 @@ function SettlementButton({
         // We don't want to reorder the options when the preferred payment method changes while the button is still visible
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currency, formattedAmount, iouReport, policyID, translate, shouldHidePaymentOptions, shouldShowApproveButton, shouldDisableApproveButton]);
+
     const selectPaymentType = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
         if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
             triggerKYCFlow(event, iouPaymentType);
