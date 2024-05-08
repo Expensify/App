@@ -152,11 +152,11 @@ function getWhisperedTo(reportAction: OnyxEntry<ReportAction> | EmptyObject): nu
     const message = reportAction?.message;
 
     if (!Array.isArray(message) && typeof message === 'object') {
-        return ((message as ReportActionMessageJSON)?.whisperedTo ?? []);
+        return (message as ReportActionMessageJSON)?.whisperedTo ?? [];
     }
 
     if (originalMessage) {
-        return ((originalMessage as ReportActionMessageJSON)?.whisperedTo ?? []);
+        return (originalMessage as ReportActionMessageJSON)?.whisperedTo ?? [];
     }
 
     return [];
