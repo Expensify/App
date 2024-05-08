@@ -69,7 +69,9 @@ Onyx.connect({
             NetInfo.fetch().then((state) => {
                 setOfflineStatus(Boolean(state.isInternetReachable));
                 Log.info(
-`[NetworkStatus] The force-offline mode was turned off. Getting the device network status from NetInfo. Network state: ${JSON.stringify(state)}. Setting the offline status to: ${Boolean(state.isInternetReachable)}.`,
+                    `[NetworkStatus] The force-offline mode was turned off. Getting the device network status from NetInfo. Network state: ${JSON.stringify(
+                        state,
+                    )}. Setting the offline status to: ${Boolean(state.isInternetReachable)}.`,
                 );
             });
         }
