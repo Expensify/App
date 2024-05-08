@@ -120,7 +120,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress, preferredLocale}:
     const connectedIntegration = accountingIntegrations.find((integration) => !!policy?.connections?.[integration]) ?? connectionSyncProgress?.connectionName;
     const policyID = policy?.id ?? '';
     const successfulDate = policy?.connections?.quickbooksOnline?.lastSync?.successfulDate;
-    const formatedDate = successfulDate ? new Date(successfulDate).toString() : '';
+    const formattedDate = successfulDate ? new Date(successfulDate).toString() : '';
 
     const policyConnectedToXero = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.XERO;
 
@@ -147,15 +147,15 @@ function PolicyAccountingPage({policy, connectionSyncProgress, preferredLocale}:
 
     useEffect(() => {
         const locale = preferredLocale ?? CONST.LOCALES.DEFAULT;
-        setDateTimeToRelative(DateUtils.datetimeToRelative(locale, formatedDate));
+        setDateTimeToRelative(DateUtils.datetimeToRelative(locale, formattedDate));
         const interval = setInterval(() => {
-            setDateTimeToRelative(DateUtils.datetimeToRelative(locale, formatedDate));
+            setDateTimeToRelative(DateUtils.datetimeToRelative(locale, formattedDate));
         }, 60 * 1000);
 
         return () => {
             clearInterval(interval);
         };
-    }, [formatedDate, preferredLocale]);
+    }, [formattedDate, preferredLocale]);
 
     const connectionsMenuItems: MenuItemProps[] = useMemo(() => {
         if (isEmptyObject(policy?.connections) && !isSyncInProgress) {
