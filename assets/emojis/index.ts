@@ -36,6 +36,8 @@ const importEmojiLocale = (locale: Locale) => {
     if (!localeEmojis[locale]) {
         return import(`./${locale}`)
             .then((esEmojiModule) => {
+                console.log('esEmojiModule: ', esEmojiModule);
+                console.log('esEmojiModule: default', esEmojiModule.default);
                 localeEmojis[locale] = esEmojiModule.default.default ? esEmojiModule.default.default : esEmojiModule.default;
             })
             .catch(() => {
