@@ -2895,7 +2895,7 @@ function flagComment(reportID: string, reportAction: OnyxEntry<ReportAction>, se
     const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
     const message = ReportActionsUtils.getReportActionMessage(reportAction);
 
-    if (!message) {
+    if (!message || !reportAction) {
         return;
     }
 
@@ -3604,7 +3604,7 @@ function clearNewRoomFormError() {
 
 function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEntry<ReportAction>, resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>) {
     const message = ReportActionsUtils.getReportActionMessage(reportAction);
-    if (!message) {
+    if (!message || !reportAction) {
         return;
     }
 
