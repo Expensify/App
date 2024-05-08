@@ -13,6 +13,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import * as IOU from '@userActions/IOU';
+import * as TransactionActions from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -253,7 +254,9 @@ function MoneyRequestHeader({
                             success
                             text={translate('iou.markAsCash')}
                             style={[styles.w100, styles.pr0]}
-                            onPress={() => {}}
+                            onPress={() => {
+                                TransactionActions.markAsCash(transaction?.transactionID ?? '', report.parentReportID ?? '');
+                            }}
                         />
                     </View>
                 )}

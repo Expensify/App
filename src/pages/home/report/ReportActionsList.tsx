@@ -6,7 +6,6 @@ import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 're
 import {DeviceEventEmitter, InteractionManager} from 'react-native';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import InvertedFlatList from '@components/InvertedFlatList';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInvertedFlatList';
@@ -27,7 +26,6 @@ import type {CentralPaneNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -191,28 +189,6 @@ function ReportActionsList({
     const lastVisibleActionCreatedRef = useRef(report.lastVisibleActionCreated);
     const lastReadTimeRef = useRef(report.lastReadTime);
     // Single MoneyRequest
-    // eslint-disable-next-line rulesdir/prefer-actions-set-data
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}2827781559349986119`, {cardID: 1, merchant: 'single MoneyRequest test'});
-    // eslint-disable-next-line rulesdir/prefer-actions-set-data
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}2827781559349986119`, [{type: 'test', name: CONST.VIOLATIONS.RTER, data: {pendingPattern: true}}]);
-    // Multiple MoneyRequests test
-    // eslint-disable-next-line rulesdir/prefer-actions-set-data
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}1304796714991934480`, {cardID: 1, merchant: 'multiple MoneyRequests test 1'});
-    // eslint-disable-next-line rulesdir/prefer-actions-set-data
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}1304796714991934480`, [{type: 'test', name: CONST.VIOLATIONS.RTER, data: {pendingPattern: true}}]);
-    // eslint-disable-next-line rulesdir/prefer-actions-set-data
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}6286508495235425496`, {cardID: 1, merchant: 'multiple MoneyRequests test 2'});
-    // eslint-disable-next-line rulesdir/prefer-actions-set-data
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}6286508495235425496`, [{type: 'test', name: CONST.VIOLATIONS.RTER, data: {pendingPattern: true}}]);
-    // eslint-disable-next-line rulesdir/prefer-actions-set-data
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}2150079702326626524`, {cardID: 1, merchant: 'multiple MoneyRequests test 3'});
-    // eslint-disable-next-line rulesdir/prefer-actions-set-data
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}2150079702326626524`, [{type: 'test', name: CONST.VIOLATIONS.RTER, data: {pendingPattern: true}}]);
-    // One-Expense Chat test
-    // eslint-disable-next-line rulesdir/prefer-actions-set-data
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}2438117170083649063`, {cardID: 1, merchant: 'One-Expense Chat test'});
-    // eslint-disable-next-line rulesdir/prefer-actions-set-data
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}2438117170083649063`, [{type: 'test', name: CONST.VIOLATIONS.RTER, data: {pendingPattern: true}}]);
 
     const sortedVisibleReportActions = useMemo(
         () =>
