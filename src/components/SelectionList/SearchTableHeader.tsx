@@ -22,6 +22,7 @@ function SearchTableHeader({data}: SearchTableHeaderProps) {
 
     const shouldShowCategoryColumn = SearchUtils.getShouldShowColumn(data, CONST.SEARCH_TABLE_COLUMNS.CATEGORY);
     const shouldShowTagColumn = SearchUtils.getShouldShowColumn(data, CONST.SEARCH_TABLE_COLUMNS.TAG);
+    const shouldShowTaxColumn = SearchUtils.getShouldShowColumn(data, CONST.SEARCH_TABLE_COLUMNS.TAX_AMOUNT);
     const shouldShowMerchant = SearchUtils.getShouldShowMerchant(data);
 
     if (displayNarrowVersion) {
@@ -51,6 +52,11 @@ function SearchTableHeader({data}: SearchTableHeaderProps) {
                 {shouldShowTagColumn && (
                     <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TAG)]}>
                         <Text style={[styles.mutedNormalTextLabel]}>{translate('common.tag')}</Text>
+                    </View>
+                )}
+                {!shouldShowTaxColumn && (
+                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TAX_AMOUNT)]}>
+                        <Text style={[styles.mutedNormalTextLabel]}>{translate('common.tax')}</Text>
                     </View>
                 )}
                 <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TOTAL)]}>

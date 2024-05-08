@@ -62,6 +62,7 @@ function TransactionListItem<TItem extends ListItem>({
     const isFromExpenseReport = transactionItem.reportType === CONST.REPORT.TYPE.EXPENSE;
     const date = TransactionUtils.getCreated(transactionItem as OnyxEntry<Transaction>, CONST.DATE.MONTH_DAY_ABBR_FORMAT);
     const amount = TransactionUtils.getAmount(transactionItem as OnyxEntry<Transaction>, isFromExpenseReport);
+    const taxAmount = TransactionUtils.getAmount(transactionItem as OnyxEntry<Transaction>);
     const currency = TransactionUtils.getCurrency(transactionItem as OnyxEntry<Transaction>);
     const description = TransactionUtils.getDescription(transactionItem as OnyxEntry<Transaction>);
     const merchant = getMerchant();
@@ -134,6 +135,14 @@ function TransactionListItem<TItem extends ListItem>({
             icon={Expensicons.Tag}
             showTooltip={showTooltip}
             text={transactionItem?.tag}
+        />
+    );
+
+    const taxCell = (
+        <TextWithTooltip
+            shouldShowTooltip={showTooltip}
+            text={CurrencyUtils.convertToDisplayString(taxAmount, currency)}
+            style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter, styles.textAlignRight]}
         />
     );
 
@@ -254,6 +263,7 @@ function TransactionListItem<TItem extends ListItem>({
                     <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TO)]}>{userCell(transactionItem.to)}</View>
                     {transactionItem.shouldShowCategory && <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.CATEGORY)]}>{categoryCell}</View>}
                     {transactionItem.shouldShowTag && <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TAG)]}>{tagCell}</View>}
+                    {transactionItem.shouldShowTax && <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TAX_AMOUNT)]}>{taxCell}</View>}
                     <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TOTAL)]}>{totalCell}</View>
                     <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TYPE)]}>{typeCell}</View>
                     <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.ACTION)]}>{actionCell}</View>

@@ -929,6 +929,7 @@ const CONST = {
         TOTAL: 'total',
         TYPE: 'type',
         ACTION: 'action',
+        TAX_AMOUNT: 'taxAmount',
     },
     PRIORITY_MODE: {
         GSD: 'gsd',

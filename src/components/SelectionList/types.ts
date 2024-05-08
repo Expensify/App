@@ -143,6 +143,9 @@ type TransactionListItemType = ListItem &
 
         /** Whether we should show the tag column */
         shouldShowTag: boolean;
+
+        /** Whether we should show the tax column */
+        shouldShowTax: boolean;
     };
 
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {

@@ -21,6 +21,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data']): Transac
     const shouldShowMerchant = getShouldShowMerchant(data);
     const shouldShowCategory = getShouldShowColumn(data, CONST.SEARCH_TABLE_COLUMNS.CATEGORY);
     const shouldShowTag = getShouldShowColumn(data, CONST.SEARCH_TABLE_COLUMNS.TAG);
+    const shouldShowTax = getShouldShowColumn(data, CONST.SEARCH_TABLE_COLUMNS.TAX_AMOUNT);
     return Object.entries(data)
         .filter(([key]) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION))
         .map(([, value]) => {
@@ -32,6 +33,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data']): Transac
                 shouldShowMerchant,
                 shouldShowCategory,
                 shouldShowTag,
+                shouldShowTax,
                 keyForList: value.transactionID,
             };
         })

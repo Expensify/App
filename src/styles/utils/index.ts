@@ -1535,6 +1535,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH_TABLE_COLUMNS.TAG:
                 columnWidth = styles.flex1;
                 break;
+            case CONST.SEARCH_TABLE_COLUMNS.TAX_AMOUNT:
             case CONST.SEARCH_TABLE_COLUMNS.TOTAL:
                 columnWidth = {...getWidthStyle(variables.w96), ...styles.alignItemsEnd};
                 break;
