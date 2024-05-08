@@ -18,7 +18,6 @@ type SearchPageProps = StackScreenProps<CentralPaneNavigatorParamList, typeof SC
 function SearchPage({route}: SearchPageProps) {
     const {translate} = useLocalize();
     const currentQuery = route?.params && 'query' in route.params ? route?.params?.query : '';
-    const offset = route?.params && 'offset' in route.params ? parseInt(route?.params?.offset as string, 10) : 0;
     const query = currentQuery as SearchQuery;
     const isValidQuery = Object.values(CONST.TAB_SEARCH).includes(query);
 
@@ -39,7 +38,6 @@ function SearchPage({route}: SearchPageProps) {
                 />
                 <Search
                     query={query}
-                    offset={offset}
                 />
             </FullPageNotFoundView>
         </ScreenWrapper>

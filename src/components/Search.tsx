@@ -19,10 +19,9 @@ import TableListItemSkeleton from './Skeletons/TableListItemSkeleton';
 
 type SearchProps = {
     query: string;
-    offset: number;
 };
 
-function Search({query, offset}: SearchProps) {
+function Search({query}: SearchProps) {
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     useCustomBackHandler();
@@ -35,8 +34,8 @@ function Search({query, offset}: SearchProps) {
             return;
         }
 
-        SearchActions.search(query, offset);
-    }, [query, offset, isOffline]);
+        SearchActions.search(query, 0);
+    }, [query, isOffline]);
 
     const isLoadingInitialItems = (!isOffline && isLoadingOnyxValue(searchResultsMeta)) || searchResults?.data === undefined;
     const isLoadingMoreItems = !isLoadingInitialItems && searchResults?.search?.isLoading;
@@ -59,16 +58,11 @@ function Search({query, offset}: SearchProps) {
     };
 
     const fetchMoreResults = () => {
-        if (!searchResults?.search?.hasMoreResults) {
+        if (!searchResults?.search?.hasMoreResults || isLoadingInitialItems || isLoadingMoreItems) {
             return;
         }
-
-        if (isLoadingMoreItems) {
-            return;
-        }
-
-        const nextOffset = offset + CONST.SEARCH_RESULTS_PAGE_SIZE;
-        Navigation.setParams({offset: nextOffset});
+        const currentOffset = searchResults?.search?.offset ?? 0;
+        SearchActions.search(query, currentOffset + CONST.SEARCH_RESULTS_PAGE_SIZE);
     };
 
     const ListItem = SearchUtils.getListItem();
@@ -92,7 +86,7 @@ function Search({query, offset}: SearchProps) {
                 isLoadingMoreItems ? (
                     <TableListItemSkeleton
                         shouldAnimate
-                        fixedNumItems={10}
+                        fixedNumItems={5}
                     />
                 ) : undefined
             }
