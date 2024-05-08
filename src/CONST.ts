@@ -4735,6 +4735,10 @@ const CONST = {
         CARD: 'card',
         DISTANCE: 'distance',
     },
+
+    REFERRER: {
+        NOTIFICATION: 'notification',
+    }
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
