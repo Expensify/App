@@ -1,33 +1,10 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import type ReportActionName from './ReportActionName';
 
 type PaymentMethodType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE | typeof CONST.IOU.REPORT_ACTION_TYPE | typeof CONST.WALLET.TRANSFER_METHOD_TYPE>;
 
-type ActionName = DeepValueOf<typeof CONST.REPORT.ACTIONS.TYPE>;
-type OriginalMessageActionName =
-    | 'ADDCOMMENT'
-    | 'APPROVED'
-    | 'CHRONOSOOOLIST'
-    | 'CLOSED'
-    | 'CREATED'
-    | 'HOLD'
-    | 'UNHOLD'
-    | 'IOU'
-    | 'MODIFIEDEXPENSE'
-    | 'REIMBURSEMENTQUEUED'
-    | 'RENAMED'
-    | 'REPORTPREVIEW'
-    | 'SUBMITTED'
-    | 'TASKCANCELLED'
-    | 'TASKCOMPLETED'
-    | 'TASKEDITED'
-    | 'TASKREOPENED'
-    | 'ACTIONABLEJOINREQUEST'
-    | 'ACTIONABLEMENTIONWHISPER'
-    | 'ACTIONABLEREPORTMENTIONWHISPER'
-    | 'ACTIONABLETRACKEXPENSEWHISPER'
-    | ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>;
 type OriginalMessageApproved = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.APPROVED;
     originalMessage: unknown;
@@ -372,11 +349,9 @@ export type {
     ChronosOOOEvent,
     Decision,
     Reaction,
-    ActionName,
     IOUMessage,
     ReimbursementDeQueuedMessage,
     Closed,
-    OriginalMessageActionName,
     ChangeLog,
     OriginalMessageIOU,
     OriginalMessageCreated,

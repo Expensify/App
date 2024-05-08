@@ -41,7 +41,6 @@ import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {
     ChangeLog,
     IOUMessage,
-    OriginalMessageActionName,
     OriginalMessageCreated,
     OriginalMessageReimbursementDequeued,
     OriginalMessageRenamed,
@@ -52,6 +51,7 @@ import type {
 import type {Status} from '@src/types/onyx/PersonalDetails';
 import type {NotificationPreference, Participants, PendingChatMember, Participant as ReportParticipant} from '@src/types/onyx/Report';
 import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
+import type ReportActionName from '@src/types/onyx/ReportActionName';
 import type {Comment, Receipt, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -4233,7 +4233,7 @@ function updateReportPreview(iouReport: OnyxEntry<Report>, reportPreviewAction: 
 
 function buildOptimisticTaskReportAction(
     taskReportID: string,
-    actionName: OriginalMessageActionName,
+    actionName: ReportActionName,
     message = '',
     actorAccountID = currentUserAccountID,
     createdOffset = 0,
