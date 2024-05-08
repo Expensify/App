@@ -7,8 +7,6 @@ import type {RootStackParamList} from './types';
 
 /**
  * Dismisses the RHP modal stack if there is any
- *
- * @param targetReportID - The reportID to navigate to after dismissing the modal
  */
 function dismissRHP(navigationRef: NavigationContainerRef<RootStackParamList>) {
     if (!navigationRef.isReady()) {
