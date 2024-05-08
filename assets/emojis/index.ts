@@ -32,16 +32,17 @@ const localeEmojis: LocaleEmojis = {
     es: undefined,
 };
 
-const importEmojiLocale = async (locale: Locale) => {
+const importEmojiLocale = (locale: Locale) => {
     if (!localeEmojis[locale]) {
-        try {
-            const esEmojiModule = await import(`./${locale}`);
-            // We need to add check for nested default, cause jest engine is parsing dynamic import differently
-            localeEmojis[locale] = esEmojiModule.default.default ? esEmojiModule.default.default : esEmojiModule.default;
-        } catch (e) {
-            console.warn('Error when importing emoji locale: ', e);
-        }
+        return import(`./${locale}`)
+            .then((esEmojiModule) => {
+                localeEmojis[locale] = esEmojiModule.default.default ? esEmojiModule.default.default : esEmojiModule.default;
+            })
+            .catch(() => {
+                return Promise.resolve();
+            });
     }
+    return Promise.resolve();
 };
 
 export default emojis;
