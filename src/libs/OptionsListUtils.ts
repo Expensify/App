@@ -2443,6 +2443,7 @@ export {
     getReportOption,
     getTaxRatesSection,
     getFirstKeyForList,
+    getUserToInviteOption,
 };
 
 export type {MemberForList, CategorySection, CategoryTreeSection, Options, OptionList, SearchOption, PayeePersonalDetails, Category, Tax, TaxRatesOption, Option, OptionTree};

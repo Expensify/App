@@ -94,17 +94,32 @@ function useOptions({isGroupChat}: NewChatPageProps) {
         if (!newGroupDraft?.participants) {
             return;
         }
-        const selectedAccountIDs = newGroupDraft.participants.map((participant) => participant.accountID);
-        const selectedParticipants = listOptions.personalDetails.filter(
-            (option) => option?.accountID && option.accountID !== personalData.accountID && selectedAccountIDs.includes(option?.accountID),
-        );
+        const selectedParticipants: OptionData[] = [];
+        newGroupDraft.participants.forEach((p) => {
+            if (p.accountID === personalData.accountID) {
+                return;
+            }
+            const participant = listOptions.personalDetails.find((option) => option.accountID === p.accountID);
+            if (participant) {
+                selectedParticipants.push(participant);
+                return;
+            }
+            const userToInvite = OptionsListUtils.getUserToInviteOption({
+                searchValue: p.login,
+                betas,
+            });
+            if (!userToInvite) {
+                return;
+            }
+            selectedParticipants.push(userToInvite);
+        });
         const newSelectedOptions = selectedParticipants.map((participant) => ({
             ...participant,
             reportID: participant?.reportID ?? '',
             isSelected: true,
         }));
         setSelectedOptions(newSelectedOptions);
-    }, [newGroupDraft, listOptions.personalDetails, personalData]);
+    }, [newGroupDraft, listOptions.personalDetails, betas, personalData]);
 
     return {...options, searchTerm, debouncedSearchTerm, setSearchTerm, areOptionsInitialized: areOptionsInitialized && didScreenTransitionEnd, selectedOptions, setSelectedOptions};
 }
