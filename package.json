@@ -68,7 +68,7 @@
     "@expensify/react-native-live-markdown": "0.1.70",
     "@expo/metro-runtime": "~3.1.1",
     "@formatjs/intl-datetimeformat": "^6.10.0",
-  "@formatjs/intl-listformat": "^7.2.2",
+    "@formatjs/intl-listformat": "^7.2.2",
     "@formatjs/intl-locale": "^3.3.0",
     "@formatjs/intl-numberformat": "^8.5.0",
     "@formatjs/intl-pluralrules": "^5.2.2",
