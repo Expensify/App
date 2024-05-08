@@ -146,7 +146,7 @@ function IOURequestStepConfirmation({
             }) ?? [],
         [transaction?.participants, personalDetails, iouType],
     );
-    const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report)), [report]);
+    const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report)) || ReportUtils.isGroupPolicy(policy?.type ?? ''), [report, policy]);
     const formHasBeenSubmitted = useRef(false);
 
     useEffect(() => {
@@ -576,7 +576,7 @@ function IOURequestStepConfirmation({
                         iouType={iouType}
                         reportID={reportID}
                         isPolicyExpenseChat={isPolicyExpenseChat}
-                        policyID={report?.policyID}
+                        policyID={report?.policyID ?? policy?.id}
                         bankAccountRoute={ReportUtils.getBankAccountRoute(report)}
                         iouMerchant={transaction?.merchant}
                         iouCreated={transaction?.created}
