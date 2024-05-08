@@ -38,10 +38,6 @@ export default {
         minHeight: '100%',
     },
 
-    mnhAuto: {
-        minHeight: 'auto',
-    },
-
     mnw2: {
         minWidth: 8,
     },

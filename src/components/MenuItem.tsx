@@ -553,14 +553,7 @@ function MenuItem(
                                                     />
                                                 </View>
                                             )}
-                                            <View
-                                                style={[
-                                                    styles.justifyContentCenter,
-                                                    styles.flex1,
-                                                    StyleUtils.getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu),
-                                                    (!!errorText || !!hintText) && styles.mnhAuto,
-                                                ]}
-                                            >
+                                            <View style={[styles.justifyContentCenter, styles.flex1, StyleUtils.getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu)]}>
                                                 {!!description && shouldShowDescriptionOnTop && (
                                                     <Text
                                                         style={descriptionTextStyles}
@@ -622,14 +615,7 @@ function MenuItem(
                                             </View>
                                         </View>
                                     </View>
-                                    <View
-                                        style={[
-                                            styles.flexRow,
-                                            styles.menuItemTextContainer,
-                                            !hasPressableRightComponent && styles.pointerEventsNone,
-                                            (!!errorText || !!hintText) && styles.mnhAuto,
-                                        ]}
-                                    >
+                                    <View style={[styles.flexRow, styles.menuItemTextContainer, !hasPressableRightComponent && styles.pointerEventsNone]}>
                                         {badgeText && (
                                             <Badge
                                                 text={badgeText}
@@ -694,7 +680,7 @@ function MenuItem(
                                         isError
                                         shouldShowRedDotIndicator={false}
                                         message={errorText}
-                                        style={styles.menuItemError}
+                                        style={[styles.menuItemError, styles.mt1]}
                                     />
                                 )}
                                 {!!hintText && (
