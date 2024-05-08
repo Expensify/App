@@ -8,7 +8,6 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {useSession} from '@components/OnyxProvider';
 import {ReceiptAuditHeader, ReceiptAuditMessages} from '@components/ReceiptAudit';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
-import SpacerView from '@components/SpacerView';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import ViolationMessages from '@components/ViolationMessages';
@@ -76,9 +75,6 @@ type MoneyRequestViewPropsWithoutTransaction = MoneyRequestViewOnyxPropsWithoutT
     /** The report currently being looked at */
     report: OnyxTypes.Report;
 
-    /** Whether we should display the horizontal rule below the component */
-    shouldShowHorizontalRule: boolean;
-
     /** Whether we should display the animated banner above the component */
     shouldShowAnimatedBackground: boolean;
 };
@@ -90,7 +86,6 @@ function MoneyRequestView({
     parentReport,
     parentReportActions,
     policyCategories,
-    shouldShowHorizontalRule,
     transaction,
     policyTagList,
     policy,
@@ -499,6 +494,7 @@ function MoneyRequestView({
                             description={translate('iou.card')}
                             title={cardProgramName}
                             titleStyle={styles.flex1}
+                            interactive={false}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -555,10 +551,6 @@ function MoneyRequestView({
                     </View>
                 )}
             </View>
-            <SpacerView
-                shouldShow={shouldShowHorizontalRule}
-                style={[shouldShowHorizontalRule ? styles.reportHorizontalRule : {}]}
-            />
         </View>
     );
 }

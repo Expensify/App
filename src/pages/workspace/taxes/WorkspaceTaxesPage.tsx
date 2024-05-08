@@ -1,6 +1,6 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -51,7 +51,6 @@ function WorkspaceTaxesPage({
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
     const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
-    const dropdownButtonRef = useRef(null);
     const isFocused = useIsFocused();
 
     const fetchTaxes = useCallback(() => {
@@ -224,7 +223,6 @@ function WorkspaceTaxesPage({
         </View>
     ) : (
         <ButtonWithDropdownMenu<WorkspaceTaxRatesBulkActionType>
-            buttonRef={dropdownButtonRef}
             onPress={() => {}}
             options={dropdownMenuOptions}
             buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
@@ -232,7 +230,7 @@ function WorkspaceTaxesPage({
             shouldAlwaysShowDropdownMenu
             pressOnEnter
             isSplitButton={false}
-            style={[isSmallScreenWidth && styles.w50, isSmallScreenWidth && styles.mb3]}
+            style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
         />
     );
 
