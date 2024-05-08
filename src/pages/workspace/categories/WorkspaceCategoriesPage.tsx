@@ -46,7 +46,7 @@ type PolicyOption = ListItem & {
 type WorkspaceCategoriesPageProps = StackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES>;
 
 function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
-    const {isInModal} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -224,13 +224,13 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     customText={translate('workspace.common.selected', {selectedNumber: selectedCategoriesArray.length})}
                     options={options}
                     isSplitButton={false}
-                    style={[isInModal && styles.flexGrow1, isInModal && styles.mb3]}
+                    style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
                 />
             );
         }
 
         return (
-            <View style={[styles.w100, styles.flexRow, isInModal && styles.mb3]}>
+            <View style={[styles.w100, styles.flexRow, shouldUseNarrowLayout && styles.mb3]}>
                 {!PolicyUtils.hasAccountingConnections(policy) && (
                     <Button
                         medium
@@ -238,7 +238,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         onPress={navigateToCreateCategoryPage}
                         icon={Expensicons.Plus}
                         text={translate('workspace.categories.addCategory')}
-                        style={[styles.mr3, isInModal && styles.w50]}
+                        style={[styles.mr3, shouldUseNarrowLayout && styles.w50]}
                     />
                 )}
                 <Button
@@ -246,7 +246,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     onPress={navigateToCategoriesSettings}
                     icon={Expensicons.Gear}
                     text={translate('common.settings')}
-                    style={[isInModal && styles.w50]}
+                    style={[shouldUseNarrowLayout && styles.w50]}
                 />
             </View>
         );
@@ -272,10 +272,10 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 <HeaderWithBackButton
                     icon={Illustrations.FolderOpen}
                     title={translate('workspace.common.categories')}
-                    shouldShowBackButton={isInModal}
+                    shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={() => Navigation.goBack(backTo)}
                 >
-                    {!isInModal && getHeaderButtons()}
+                    {!shouldUseNarrowLayout && getHeaderButtons()}
                 </HeaderWithBackButton>
                 <ConfirmModal
                     isVisible={deleteCategoriesConfirmModalVisible}
@@ -287,7 +287,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     cancelText={translate('common.cancel')}
                     danger
                 />
-                {isInModal && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
+                {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                 <View style={[styles.ph5, styles.pb5, styles.pt3]}>
                     {Object.keys(policy?.connections ?? {}).length > 0 ? (
                         <Text>
