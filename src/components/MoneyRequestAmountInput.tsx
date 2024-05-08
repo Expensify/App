@@ -62,6 +62,9 @@ type MoneyRequestAmountInputProps = {
 
     /** Style for the touchable input wrapper */
     touchableInputWrapperStyle?: StyleProp<ViewStyle>;
+
+    /** Whether the user input should be kept or not */
+    shouldKeepUserInput?: boolean;
 };
 
 type Selection = {
@@ -88,6 +91,7 @@ function MoneyRequestAmountInput(
         hideCurrencySymbol = false,
         shouldUpdateSelection = true,
         moneyRequestAmountInputRef,
+        shouldKeepUserInput = false,
         ...props
     }: MoneyRequestAmountInputProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
@@ -97,7 +101,7 @@ function MoneyRequestAmountInput(
     const textInput = useRef<BaseTextInputRef | null>(null);
 
     const decimals = CurrencyUtils.getCurrencyDecimals(currency);
-    const selectedAmountAsString = amount ? CurrencyUtils.convertToFrontendAmount(amount).toString() : '';
+    const selectedAmountAsString = amount ? CurrencyUtils.convertToFrontendAmountAsString(amount).toString() : '';
 
     const [currentAmount, setCurrentAmount] = useState(selectedAmountAsString);
 
@@ -160,10 +164,10 @@ function MoneyRequestAmountInput(
     }));
 
     useEffect(() => {
-        if (!currency || typeof amount !== 'number') {
+        if (!currency || typeof amount !== 'number' || shouldKeepUserInput) {
             return;
         }
-        const frontendAmount = amount ? CurrencyUtils.convertToFrontendAmount(amount).toString() : '';
+        const frontendAmount = amount ? CurrencyUtils.convertToFrontendAmountAsString(amount).toString() : '';
         setCurrentAmount(frontendAmount);
         setSelection({
             start: frontendAmount.length,
@@ -171,7 +175,7 @@ function MoneyRequestAmountInput(
         });
         // we want to re-initialize the state only when the amount changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [amount]);
+    }, [amount, shouldKeepUserInput]);
 
     // Modifies the amount to match the decimals for changed currency.
     useEffect(() => {

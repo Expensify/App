@@ -157,13 +157,13 @@ function MoneyRequestAmountForm(
     }, []);
 
     useEffect(() => {
-        if (!currency || typeof amount !== 'number' || shouldKeepUserInput) {
+        if (!currency || typeof amount !== 'number') {
             return;
         }
         initializeAmount(amount);
         // we want to re-initialize the state only when the selected tab
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedTab, shouldKeepUserInput]);
+    }, [selectedTab]);
 
     /**
      * Update amount with number or Backspace pressed for BigNumberPad.
@@ -286,6 +286,7 @@ function MoneyRequestAmountForm(
                         }
                         textInput.current = ref;
                     }}
+                    shouldKeepUserInput={shouldKeepUserInput}
                     moneyRequestAmountInputRef={moneyRequestAmountInput}
                     inputStyle={[styles.iouAmountTextInput]}
                     containerStyle={[styles.iouAmountTextInputContainer]}
