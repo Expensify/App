@@ -18,6 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportAction, ReportActions, Session, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
+import Button from './Button';
 import ConfirmModal from './ConfirmModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import Icon from './Icon';
@@ -90,6 +91,7 @@ function MoneyRequestHeader({
     const isActionOwner = typeof parentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && parentReportAction.actorAccountID === session?.accountID;
     const isPolicyAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isApprover = ReportUtils.isMoneyRequestReport(moneyRequestReport) && moneyRequestReport?.managerID !== null && session?.accountID === moneyRequestReport?.managerID;
+    const hasAllPendingRTERViolations = TransactionUtils.hasAllPendingRTERViolations([transaction?.transactionID ?? '']);
 
     const deleteTransaction = useCallback(() => {
         if (parentReportAction) {
@@ -243,6 +245,17 @@ function MoneyRequestHeader({
                         shouldShowBorderBottom
                         danger
                     />
+                )}
+                {hasAllPendingRTERViolations && (
+                    <View style={[styles.ph5, styles.pb3, styles.borderBottom]}>
+                        <Button
+                            medium
+                            success
+                            text={translate('iou.markAsCash')}
+                            style={[styles.w100, styles.pr0]}
+                            onPress={() => {}}
+                        />
+                    </View>
                 )}
             </View>
             <ConfirmModal
