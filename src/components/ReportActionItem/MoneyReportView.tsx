@@ -35,7 +35,6 @@ function MoneyReportView({report, policy}: MoneyReportViewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
     const isSettled = ReportUtils.isSettled(report.reportID);
     const isTotalUpdated = ReportUtils.hasUpdatedTotal(report, policy);
 
