@@ -255,7 +255,7 @@ function MoneyRequestHeader({
                             text={translate('iou.markAsCash')}
                             style={[styles.w100, styles.pr0]}
                             onPress={() => {
-                                TransactionActions.markAsCash(transaction?.transactionID ?? '', report.parentReportID ?? '');
+                                TransactionActions.markAsCash(transaction?.transactionID ?? '', transaction?.reportID ?? '');
                             }}
                         />
                     </View>
