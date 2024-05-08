@@ -132,7 +132,11 @@ function getMatchingRootRouteForRHPRoute(
     // Check for CentralPaneNavigator
     for (const [centralPaneName, RHPNames] of Object.entries(CENTRAL_PANE_TO_RHP_MAPPING)) {
         if (RHPNames.includes(route.name)) {
-            return createCentralPaneNavigator({name: centralPaneName as CentralPaneName, params: route.params});
+            const params = {...route.params};
+            if (centralPaneName === SCREENS.SEARCH.CENTRAL_PANE) {
+                delete (params as Record<string, string | undefined>)?.reportID;
+            }
+            return createCentralPaneNavigator({name: centralPaneName as CentralPaneName, params});
         }
     }
 
@@ -159,6 +163,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
     const lhpNavigator = state.routes.find((route) => route.name === NAVIGATORS.LEFT_MODAL_NAVIGATOR);
     const onboardingModalNavigator = state.routes.find((route) => route.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR);
     const welcomeVideoModalNavigator = state.routes.find((route) => route.name === NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR);
+    const featureTrainingModalNavigator = state.routes.find((route) => route.name === NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR);
     const reportAttachmentsScreen = state.routes.find((route) => route.name === SCREENS.REPORT_ATTACHMENTS);
 
     if (isNarrowLayout) {
@@ -195,6 +200,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
             if (matchingRootRoute?.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR) {
                 routes.push(createCentralPaneNavigator({name: SCREENS.SETTINGS.WORKSPACES}));
             }
+
             if (matchingRootRoute && (!isNarrowLayout || !isRHPScreenOpenedFromLHN)) {
                 routes.push(matchingRootRoute);
             }
@@ -206,7 +212,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
             metainfo,
         };
     }
-    if (lhpNavigator ?? onboardingModalNavigator ?? welcomeVideoModalNavigator) {
+    if (lhpNavigator ?? onboardingModalNavigator ?? welcomeVideoModalNavigator ?? featureTrainingModalNavigator) {
         // Routes
         // - default bottom tab
         // - default central pane on desktop layout
@@ -243,6 +249,10 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
 
         if (welcomeVideoModalNavigator) {
             routes.push(welcomeVideoModalNavigator);
+        }
+
+        if (featureTrainingModalNavigator) {
+            routes.push(featureTrainingModalNavigator);
         }
 
         return {
