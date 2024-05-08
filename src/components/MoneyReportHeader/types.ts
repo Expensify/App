@@ -44,7 +44,7 @@ type MoneyReportHeaderContentOnyxProps = {
 type MoneyReportHeaderContentProps = MoneyReportHeaderProps &
     MoneyReportHeaderContentOnyxProps & {
         /** The parent report action of the transaction thread report */
-        requestParentReportAction: OnyxEntry<OnyxTypes.ReportAction> | undefined;
+        requestParentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
     };
 
 export type {MoneyReportHeaderProps, MoneyReportHeaderOnyxProps, MoneyReportHeaderContentProps, MoneyReportHeaderContentOnyxProps};

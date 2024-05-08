@@ -9,11 +9,12 @@ function MoneyReportHeader(props: MoneyReportHeaderProps) {
         if (!props.reportActions || !props.transactionThreadReport?.parentReportActionID) {
             return null;
         }
-        return props.reportActions.find((action) => action.reportActionID === props.transactionThreadReport?.parentReportActionID);
+        return props.reportActions.find((action) => action.reportActionID === props.transactionThreadReport?.parentReportActionID) ?? null;
     }, [props.reportActions, props.transactionThreadReport?.parentReportActionID]);
 
     return (
         <MoneyReportHeaderContent
+            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             requestParentReportAction={requestParentReportAction}
         />

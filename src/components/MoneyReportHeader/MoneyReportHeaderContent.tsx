@@ -21,10 +21,9 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type * as OnyxTypes from '@src/types/onyx';
 import type {IOUMessage, PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {MoneyReportHeaderContentOnyxProps, MoneyReportHeaderContentProps} from './types';
+import type {MoneyReportHeaderContentOnyxProps, MoneyReportHeaderContentProps} from './types';
 
 function MoneyReportHeaderContent({
     session,
@@ -44,7 +43,7 @@ function MoneyReportHeaderContent({
     const {windowWidth} = useWindowDimensions();
     const {reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(moneyRequestReport);
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
-    const isDeletedParentAction = ReportActionsUtils.isDeletedAction(requestParentReportAction as OnyxTypes.ReportAction);
+    const isDeletedParentAction = ReportActionsUtils.isDeletedAction(requestParentReportAction);
     const isOneTransactionRequestScanning = TransactionUtils.hasReceipt(requestTransaction) && TransactionUtils.isReceiptBeingScanned(requestTransaction);
 
     // Only the requestor can delete the request, admins can only edit it.
