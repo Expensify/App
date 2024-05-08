@@ -6,6 +6,7 @@ import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import type {Participant, Split} from './IOU';
 import type * as OnyxCommon from './OnyxCommon';
 import type RecentWaypoint from './RecentWaypoint';
+import type ReportAction from './ReportAction';
 
 type Waypoint = {
     /** The name associated with the address of the waypoint */
@@ -47,10 +48,18 @@ type Comment = {
     waypoints?: WaypointCollection;
     isLoading?: boolean;
     type?: string;
-    customUnit?: Record<string, unknown>;
+    customUnit?: TransactionCustomUnit;
     source?: string;
     originalTransactionID?: string;
     splits?: Split[];
+};
+
+type TransactionCustomUnit = {
+    customUnitID?: string;
+    customUnitRateID?: string;
+    quantity?: number;
+    name?: string;
+    defaultP2PRate?: number;
 };
 
 type GeometryType = 'LineString';
@@ -98,6 +107,13 @@ type TaxRate = {
     data?: TaxRateData;
 };
 
+type SplitShare = {
+    amount: number;
+    isModified?: boolean;
+};
+
+type SplitShares = Record<number, SplitShare | null>;
+
 type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
         /** The original transaction amount */
@@ -109,7 +125,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The transaction tax code */
         taxCode?: string;
 
-        /** Whether the request is billable */
+        /** Whether the expense is billable */
         billable?: boolean;
 
         /** The category name */
@@ -118,7 +134,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The comment object on the transaction */
         comment: Comment;
 
-        /** Date that the request was created */
+        /** Date that the expense was created */
         created: string;
 
         /** The original currency of the transaction */
@@ -151,7 +167,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The edited merchant name */
         modifiedMerchant?: string;
 
-        /** The edited waypoints for the distance request */
+        /** The edited waypoints for the distance expense */
         modifiedWaypoints?: WaypointCollection;
 
         /**
@@ -215,6 +231,21 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Indicates transaction loading */
         isLoading?: boolean;
+
+        /** Holds individual shares of a split keyed by accountID, only used locally */
+        splitShares?: SplitShares;
+
+        /** Holds the accountIDs of accounts who paid the split, for now only supports a single payer */
+        splitPayerAccountIDs?: number[];
+
+        /** The actionable report action ID associated with the transaction */
+        actionableWhisperReportActionID?: string;
+
+        /** The linked reportAction id for the tracked expense */
+        linkedTrackedExpenseReportAction?: ReportAction;
+
+        /** The linked report id for the tracked expense */
+        linkedTrackedExpenseReportID?: string;
     },
     keyof Comment
 >;
@@ -245,4 +276,6 @@ export type {
     TaxRate,
     ReceiptSource,
     TransactionCollectionDataSet,
+    SplitShare,
+    SplitShares,
 };

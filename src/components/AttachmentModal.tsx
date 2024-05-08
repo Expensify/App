@@ -100,6 +100,9 @@ type AttachmentModalProps = AttachmentModalOnyxProps & {
     /** Determines if download Button should be shown or not */
     allowDownload?: boolean;
 
+    /** Determines if the receipt comes from track expense action */
+    isTrackExpenseAction?: boolean;
+
     /** Title shown in the header of the modal */
     headerTitle?: string;
 
@@ -145,6 +148,7 @@ function AttachmentModal({
     originalFileName = '',
     isAuthTokenRequired = false,
     allowDownload = false,
+    isTrackExpenseAction = false,
     report,
     onModalShow = () => {},
     onModalHide = () => {},
@@ -181,6 +185,7 @@ function AttachmentModal({
     const nope = useSharedValue(false);
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
     const isOverlayModalVisible = (isReceiptAttachment && isDeleteReceiptConfirmModalVisible) || (!isReceiptAttachment && isAttachmentInvalid);
+    const iouType = useMemo(() => (isTrackExpenseAction ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT), [isTrackExpenseAction]);
 
     const [file, setFile] = useState<FileObject | undefined>(
         originalFileName
@@ -422,7 +427,7 @@ function AttachmentModal({
                     Navigation.navigate(
                         ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
                             CONST.IOU.ACTION.EDIT,
-                            CONST.IOU.TYPE.REQUEST,
+                            iouType,
                             transaction?.transactionID ?? '',
                             report?.reportID ?? '',
                             Navigation.getActiveRouteWithoutParams(),
@@ -449,7 +454,7 @@ function AttachmentModal({
         }
         return menuItems;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isReceiptAttachment, parentReport, parentReportActions, policy, transaction, file, sourceState]);
+    }, [isReceiptAttachment, parentReport, parentReportActions, policy, transaction, file, sourceState, iouType]);
 
     // There are a few things that shouldn't be set until we absolutely know if the file is a receipt or an attachment.
     // props.isReceiptAttachment will be null until its certain what the file is, in which case it will then be true|false.

@@ -1,10 +1,11 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useHover from '@hooks/useHover';
+import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -17,6 +18,7 @@ function BaseListItem<TItem extends ListItem>({
     containerStyle,
     isDisabled = false,
     shouldPreventDefaultFocusOnSelectRow = false,
+    shouldPreventEnterKeySubmit = false,
     canSelectMultiple = false,
     onSelectRow,
     onDismissError = () => {},
@@ -26,10 +28,19 @@ function BaseListItem<TItem extends ListItem>({
     pendingAction,
     FooterComponent,
     children,
+    isFocused,
+    shouldSyncFocus = true,
+    onFocus = () => {},
+    hoverStyle,
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {hovered, bind} = useHover();
+
+    const pressableRef = useRef<View>(null);
+
+    // Sync focus on an item
+    useSyncFocus(pressableRef, Boolean(isFocused), shouldSyncFocus);
 
     const rightHandSideComponentRender = () => {
         if (canSelectMultiple || !rightHandSideComponent) {
@@ -54,16 +65,23 @@ function BaseListItem<TItem extends ListItem>({
             <PressableWithFeedback
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...bind}
-                onPress={() => onSelectRow(item)}
-                disabled={isDisabled}
+                ref={pressableRef}
+                onPress={(e) => {
+                    if (shouldPreventEnterKeySubmit && e && 'key' in e && e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
+                        return;
+                    }
+                    onSelectRow(item);
+                }}
+                disabled={isDisabled && !item.isSelected}
                 accessibilityLabel={item.text ?? ''}
                 role={CONST.ROLE.BUTTON}
                 hoverDimmingValue={1}
-                hoverStyle={!item.isDisabled && !item.isSelected && styles.hoveredComponentBG}
+                hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, hoverStyle]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                 onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
-                nativeID={keyForList ?? ''}
+                id={keyForList ?? ''}
                 style={pressableStyle}
+                onFocus={onFocus}
             >
                 <View style={wrapperStyle}>
                     {typeof children === 'function' ? children(hovered) : children}

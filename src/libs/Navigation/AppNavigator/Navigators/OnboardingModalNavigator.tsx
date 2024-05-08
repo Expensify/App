@@ -8,6 +8,7 @@ import OnboardingModalNavigatorScreenOptions from '@libs/Navigation/AppNavigator
 import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
 import OnboardingPersonalDetails from '@pages/OnboardingPersonalDetails';
 import OnboardingPurpose from '@pages/OnboardingPurpose';
+import OnboardingWork from '@pages/OnboardingWork';
 import SCREENS from '@src/SCREENS';
 import Overlay from './Overlay';
 
@@ -24,12 +25,16 @@ function OnboardingModalNavigator() {
                 <View style={styles.OnboardingNavigatorInnerView(shouldUseNarrowLayout)}>
                     <Stack.Navigator screenOptions={OnboardingModalNavigatorScreenOptions()}>
                         <Stack.Screen
+                            name={SCREENS.ONBOARDING.PURPOSE}
+                            component={OnboardingPurpose}
+                        />
+                        <Stack.Screen
                             name={SCREENS.ONBOARDING.PERSONAL_DETAILS}
                             component={OnboardingPersonalDetails}
                         />
                         <Stack.Screen
-                            name={SCREENS.ONBOARDING.PURPOSE}
-                            component={OnboardingPurpose}
+                            name={SCREENS.ONBOARDING.WORK}
+                            component={OnboardingWork}
                         />
                     </Stack.Navigator>
                 </View>

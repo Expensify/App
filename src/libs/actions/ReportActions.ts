@@ -1,8 +1,10 @@
+import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as ReportActionUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import * as Report from './Report';
 
@@ -56,6 +58,18 @@ function clearReportActionErrors(reportID: string, reportAction: ReportAction, k
     });
 }
 
+let allReportActions: OnyxCollection<ReportActions>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+    waitForCollectionCallback: true,
+    callback: (actions) => {
+        if (!actions) {
+            return;
+        }
+        allReportActions = actions;
+    },
+});
+
 /**
  * 
 ignore: `undefined` means we want to check both parent and children report actions
@@ -78,7 +92,7 @@ function clearAllRelatedReportActionErrors(reportID: string, reportAction: Repor
     }
 
     if (reportAction.childReportID && ignore !== 'child') {
-        const childActions = ReportActionUtils.getAllReportActions(reportAction.childReportID);
+        const childActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportAction.childReportID}`] ?? {};
         Object.values(childActions).forEach((action) => {
             const childErrorKeys = Object.keys(action.errors ?? {}).filter((err) => errorKeys.includes(err));
             clearAllRelatedReportActionErrors(reportAction.childReportID ?? '', action, 'parent', childErrorKeys);

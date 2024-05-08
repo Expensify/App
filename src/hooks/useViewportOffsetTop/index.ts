@@ -18,7 +18,7 @@ export default function useViewportOffsetTop(shouldAdjustScrollView = false): nu
 
             if (Browser.isMobileSafari() && shouldAdjustScrollView && window.visualViewport) {
                 const clientHeight = document.body.clientHeight;
-                const adjustScrollY = Math.round(clientHeight - window.visualViewport.height);
+                const adjustScrollY = clientHeight - window.visualViewport.height;
                 if (cachedDefaultOffsetTop.current === 0) {
                     cachedDefaultOffsetTop.current = targetOffsetTop;
                 }
@@ -43,7 +43,7 @@ export default function useViewportOffsetTop(shouldAdjustScrollView = false): nu
         if (!shouldAdjustScrollView) {
             return;
         }
-        window.scrollTo({top: viewportOffsetTop, behavior: 'instant'});
+        window.scrollTo({top: viewportOffsetTop, behavior: 'smooth'});
     }, [shouldAdjustScrollView, viewportOffsetTop]);
 
     return viewportOffsetTop;

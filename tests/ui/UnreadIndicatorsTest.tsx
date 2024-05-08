@@ -83,7 +83,6 @@ const createAddListenerMock = (): ListenerMock => {
             transitionEndListeners.push(callback);
         }
         return () => {
-            // eslint-disable-next-line rulesdir/prefer-underscore-method
             transitionEndListeners.filter((cb) => cb !== callback);
         };
     });
@@ -406,7 +405,7 @@ describe('Unread Indicators', () => {
                                 reportActionID: createdReportActionID,
                             },
                             [commentReportActionID]: {
-                                actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+                                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                                 actorAccountID: USER_C_ACCOUNT_ID,
                                 person: [{type: 'TEXT', style: 'strong', text: 'User C'}],
                                 created: format(NEW_REPORT_FIST_MESSAGE_CREATED_DATE, CONST.DATE.FNS_DB_FORMAT_STRING),
@@ -441,11 +440,11 @@ describe('Unread Indicators', () => {
                 expect(displayNameTexts).toHaveLength(2);
                 const firstReportOption = displayNameTexts[0];
                 expect(firstReportOption?.props?.style?.fontWeight).toBe(FontUtils.fontWeight.bold);
-                expect(firstReportOption?.props?.children?.[0]).toBe('C User');
+                expect(screen.getByText('C User')).toBeOnTheScreen();
 
                 const secondReportOption = displayNameTexts[1];
                 expect(secondReportOption?.props?.style?.fontWeight).toBe(FontUtils.fontWeight.bold);
-                expect(secondReportOption?.props?.children?.[0]).toBe('B User');
+                expect(screen.getByText('B User')).toBeOnTheScreen();
 
                 // Tap the new report option and navigate back to the sidebar again via the back button
                 return navigateToSidebarOption(0);
@@ -458,9 +457,9 @@ describe('Unread Indicators', () => {
                 const displayNameTexts = screen.queryAllByLabelText(hintText);
                 expect(displayNameTexts).toHaveLength(2);
                 expect(displayNameTexts[0]?.props?.style?.fontWeight).toBe(undefined);
-                expect(displayNameTexts[0]?.props?.children?.[0]).toBe('C User');
+                expect(screen.getAllByText('C User')[0]).toBeOnTheScreen();
                 expect(displayNameTexts[1]?.props?.style?.fontWeight).toBe(FontUtils.fontWeight.bold);
-                expect(displayNameTexts[1]?.props?.children?.[0]).toBe('B User');
+                expect(screen.getByText('B User')).toBeOnTheScreen();
             }));
 
     xit('Manually marking a chat message as unread shows the new line indicator and updates the LHN', () =>
@@ -492,7 +491,7 @@ describe('Unread Indicators', () => {
                 const displayNameTexts = screen.queryAllByLabelText(hintText);
                 expect(displayNameTexts).toHaveLength(1);
                 expect(displayNameTexts[0]?.props?.style?.fontWeight).toBe(FontUtils.fontWeight.bold);
-                expect(displayNameTexts[0]?.props?.children?.[0]).toBe('B User');
+                expect(screen.getByText('B User')).toBeOnTheScreen();
 
                 // Navigate to the report again and back to the sidebar
                 return navigateToSidebarOption(0);
@@ -504,7 +503,7 @@ describe('Unread Indicators', () => {
                 const displayNameTexts = screen.queryAllByLabelText(hintText);
                 expect(displayNameTexts).toHaveLength(1);
                 expect(displayNameTexts[0]?.props?.style?.fontWeight).toBe(undefined);
-                expect(displayNameTexts[0]?.props?.children?.[0]).toBe('B User');
+                expect(screen.getByText('B User')).toBeOnTheScreen();
 
                 // Navigate to the report again and verify the new line indicator is missing
                 return navigateToSidebarOption(0);
@@ -617,7 +616,7 @@ describe('Unread Indicators', () => {
                     const hintText = Localize.translateLocal('accessibilityHints.lastChatMessagePreview');
                     const alternateText = screen.queryAllByLabelText(hintText);
                     expect(alternateText).toHaveLength(1);
-                    expect(alternateText[0].props.children).toBe('Current User Comment 1');
+                    expect(screen.getByText('Current User Comment 1')).toBeOnTheScreen();
 
                     if (lastReportAction) {
                         Report.deleteReportComment(REPORT_ID, lastReportAction);
@@ -628,7 +627,7 @@ describe('Unread Indicators', () => {
                     const hintText = Localize.translateLocal('accessibilityHints.lastChatMessagePreview');
                     const alternateText = screen.queryAllByLabelText(hintText);
                     expect(alternateText).toHaveLength(1);
-                    expect(alternateText[0].props.children).toBe('Comment 9');
+                    expect(screen.getAllByText('Comment 9')[0]).toBeOnTheScreen();
                 })
         );
     });

@@ -60,12 +60,12 @@ function AvatarWithDisplayName({
     const title = ReportUtils.getReportName(report);
     const subtitle = ReportUtils.getChatRoomSubtitle(report);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(report);
-    const isMoneyRequestOrReport = ReportUtils.isMoneyRequestReport(report) || ReportUtils.isMoneyRequest(report) || ReportUtils.isTrackExpenseReport(report);
+    const isMoneyRequestOrReport =
+        ReportUtils.isMoneyRequestReport(report) || ReportUtils.isMoneyRequest(report) || ReportUtils.isTrackExpenseReport(report) || ReportUtils.isInvoiceReport(report);
     const icons = ReportUtils.getIcons(report, personalDetails, null, '', -1, policy);
     const ownerPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(report?.ownerAccountID ? [report.ownerAccountID] : [], personalDetails);
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(Object.values(ownerPersonalDetails) as PersonalDetails[], false);
     const shouldShowSubscriptAvatar = ReportUtils.shouldReportShowSubscript(report);
-    const isExpenseRequest = ReportUtils.isExpenseRequest(report);
     const avatarBorderColor = isAnonymous ? theme.highlightBG : theme.componentBG;
 
     const actorAccountID = useRef<number | null>(null);
@@ -128,7 +128,7 @@ function AvatarWithDisplayName({
                             />
                         )}
                     </PressableWithoutFeedback>
-                    <View style={[styles.flex1, styles.flexColumn, shouldShowSubscriptAvatar && !isExpenseRequest ? styles.ml4 : {}]}>
+                    <View style={[styles.flex1, styles.flexColumn]}>
                         <DisplayNames
                             fullTitle={title}
                             displayNamesWithTooltips={displayNamesWithTooltips}

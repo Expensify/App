@@ -20,6 +20,7 @@ type ThemeColors = {
     iconHovered: Color;
     iconMenuHovered: Color;
     iconSuccessFill: Color;
+    iconDangerFill: Color;
     iconReversed: Color;
     iconColorfulBackground: Color;
     textSupporting: Color;

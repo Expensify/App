@@ -68,8 +68,14 @@ type SectionProps = ChildrenProps & {
     /** Styles to apply to illustration component */
     illustrationStyle?: StyleProp<ViewStyle>;
 
+    /** Padding for content on large screens */
+    contentPaddingOnLargeScreens?: {padding: number};
+
     /** Overlay content to display on top of animation */
     overlayContent?: () => ReactNode;
+
+    /** The component to display in the title of the section */
+    renderSubtitle?: () => ReactNode;
 };
 
 function Section({
@@ -89,7 +95,9 @@ function Section({
     illustration,
     illustrationBackgroundColor,
     illustrationStyle,
+    contentPaddingOnLargeScreens,
     overlayContent,
+    renderSubtitle,
 }: SectionProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -120,7 +128,7 @@ function Section({
                     {overlayContent?.()}
                 </View>
             )}
-            <View style={[styles.w100, isCentralPane && (isSmallScreenWidth ? styles.p5 : styles.p8)]}>
+            <View style={[styles.w100, isCentralPane && (isSmallScreenWidth ? styles.p5 : contentPaddingOnLargeScreens ?? styles.p8)]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, cardLayout === CARD_LAYOUT.ICON_ON_TOP && styles.mh1]}>
                     {cardLayout === CARD_LAYOUT.ICON_ON_LEFT && (
                         <IconSection
@@ -139,11 +147,15 @@ function Section({
                     )}
                 </View>
 
-                {!!subtitle && (
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, cardLayout === CARD_LAYOUT.ICON_ON_TOP ? [styles.mt1, styles.mh1] : styles.mt2, subtitleStyles]}>
-                        <Text style={[styles.textNormal, subtitleMuted && styles.colorMuted]}>{subtitle}</Text>
-                    </View>
-                )}
+                {renderSubtitle
+                    ? renderSubtitle?.()
+                    : !!subtitle && (
+                          <View
+                              style={[styles.flexRow, styles.alignItemsCenter, styles.w100, cardLayout === CARD_LAYOUT.ICON_ON_TOP ? [styles.mt1, styles.mh1] : styles.mt2, subtitleStyles]}
+                          >
+                              <Text style={[styles.textNormal, subtitleMuted && styles.colorMuted]}>{subtitle}</Text>
+                          </View>
+                      )}
 
                 <View style={[styles.w100, childrenStyles]}>{children}</View>
 

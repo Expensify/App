@@ -1,4 +1,3 @@
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import React, {useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -9,7 +8,6 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import RenderHTML from '@components/RenderHTML';
 import SettlementButton from '@components/SettlementButton';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
@@ -36,7 +34,7 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import ReportActionItemImages from './ReportActionItemImages';
 
 type ReportPreviewOnyxProps = {
-    /** The policy tied to the money request report */
+    /** The policy tied to the expense report */
     policy: OnyxEntry<Policy>;
 
     /** ChatReport associated with iouReport */
@@ -165,7 +163,7 @@ function ReportPreview({
             return translate('iou.receiptScanning');
         }
         if (hasOnlyTransactionsWithPendingRoutes) {
-            return translate('iou.routePending');
+            return translate('iou.fieldPending');
         }
 
         // If iouReport is not available, get amount from the action message (Ex: "Domain20821's Workspace owes $33.00" or "paid ₫60" or "paid -₫60 elsewhere")
@@ -210,34 +208,32 @@ function ReportPreview({
 
     const shouldDisableApproveButton = shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(iouReport);
 
-    const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
+    const shouldShowSettlementButton = !ReportUtils.isInvoiceReport(iouReport) && (shouldShowPayButton || shouldShowApproveButton);
 
     const shouldPromptUserToAddBankAccount = ReportUtils.hasMissingPaymentMethod(userWallet, iouReportID);
     const shouldShowRBR = !iouSettled && hasErrors;
 
     /*
-     Show subtitle if at least one of the money requests is not being smart scanned, and either:
-     - There is more than one money request – in this case, the "X requests, Y scanning" subtitle is shown;
-     - There is only one money request, it has a receipt and is not being smart scanned – in this case, the request merchant or description is shown;
+     Show subtitle if at least one of the expenses is not being smart scanned, and either:
+     - There is more than one expense – in this case, the "X expenses, Y scanning" subtitle is shown;
+     - There is only one expense, it has a receipt and is not being smart scanned – in this case, the expense merchant or description is shown;
 
-     * There is an edge case when there is only one distance request with a pending route and amount = 0.
+     * There is an edge case when there is only one distance expense with a pending route and amount = 0.
        In this case, we don't want to show the merchant or description because it says: "Pending route...", which is already displayed in the amount field.
      */
     const shouldShowSingleRequestMerchantOrDescription =
         numberOfRequests === 1 && (!!formattedMerchant || !!formattedDescription) && !(hasOnlyTransactionsWithPendingRoutes && !totalDisplaySpend);
     const shouldShowSubtitle = !isScanning && (shouldShowSingleRequestMerchantOrDescription || numberOfRequests > 1);
 
-    const {isSupportTextHtml, supportText} = useMemo(() => {
+    const {supportText} = useMemo(() => {
         if (formattedMerchant) {
-            return {isSupportTextHtml: false, supportText: formattedMerchant};
+            return {supportText: formattedMerchant};
         }
         if (formattedDescription ?? moneyRequestComment) {
-            const parsedSubtitle = new ExpensiMark().replace(formattedDescription ?? moneyRequestComment);
-            return {isSupportTextHtml: !!parsedSubtitle, supportText: parsedSubtitle ? `<muted-text>${parsedSubtitle}</muted-text>` : ''};
+            return {supportText: formattedDescription ?? moneyRequestComment};
         }
         return {
-            isSupportTextHtml: false,
-            supportText: translate('iou.requestCount', {
+            supportText: translate('iou.expenseCount', {
                 count: numberOfRequests - numberOfScanningReceipts - numberOfPendingRequests,
                 scanningReceipts: numberOfScanningReceipts,
                 pendingReceipts: numberOfPendingRequests,
@@ -310,11 +306,7 @@ function ReportPreview({
                                         {shouldShowSubtitle && supportText && (
                                             <View style={styles.flexRow}>
                                                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                                    {isSupportTextHtml ? (
-                                                        <RenderHTML html={supportText} />
-                                                    ) : (
-                                                        <Text style={[styles.textLabelSupporting, styles.textNormal, styles.lh20]}>{supportText}</Text>
-                                                    )}
+                                                    <Text style={[styles.textLabelSupporting, styles.textNormal, styles.lh20]}>{supportText}</Text>
                                                 </View>
                                             </View>
                                         )}

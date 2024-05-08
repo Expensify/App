@@ -31,6 +31,7 @@ import ThreeLeggedLaptopWoman from '@assets/images/product-illustrations/three_l
 import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cloud.svg';
 import Abacus from '@assets/images/simple-illustrations/simple-illustration__abacus.svg';
 import Accounting from '@assets/images/simple-illustrations/simple-illustration__accounting.svg';
+import Alert from '@assets/images/simple-illustrations/simple-illustration__alert.svg';
 import Approval from '@assets/images/simple-illustrations/simple-illustration__approval.svg';
 import BankArrow from '@assets/images/simple-illustrations/simple-illustration__bank-arrow.svg';
 import BigRocket from '@assets/images/simple-illustrations/simple-illustration__bigrocket.svg';
@@ -55,6 +56,7 @@ import HotDogStand from '@assets/images/simple-illustrations/simple-illustration
 import Hourglass from '@assets/images/simple-illustrations/simple-illustration__hourglass.svg';
 import House from '@assets/images/simple-illustrations/simple-illustration__house.svg';
 import InvoiceBlue from '@assets/images/simple-illustrations/simple-illustration__invoice.svg';
+import Lightbulb from '@assets/images/simple-illustrations/simple-illustration__lightbulb.svg';
 import LockClosed from '@assets/images/simple-illustrations/simple-illustration__lockclosed.svg';
 import LockOpen from '@assets/images/simple-illustrations/simple-illustration__lockopen.svg';
 import Luggage from '@assets/images/simple-illustrations/simple-illustration__luggage.svg';
@@ -159,6 +161,7 @@ export {
     Workflows,
     ThreeLeggedLaptopWoman,
     House,
+    Alert,
     TeachersUnite,
     Abacus,
     Binoculars,
@@ -172,4 +175,5 @@ export {
     Pencil,
     Tag,
     CarIce,
+    Lightbulb,
 };
