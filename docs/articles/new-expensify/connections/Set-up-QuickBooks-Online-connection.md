@@ -1,5 +1,5 @@
 ---
-title: Set up QuickBooks online connection
+title: Set up QuickBooks Online connection
 description: Integrate QuickBooks Online with Expensify
 ---
 <div id="new-expensify" markdown="1">
