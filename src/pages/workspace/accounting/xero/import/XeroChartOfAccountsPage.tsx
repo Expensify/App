@@ -17,7 +17,7 @@ function XeroChartOfAccountsPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
-    const {enableNewCategories, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
+    const {enableNewCategories, pendingFields} = policy?.connections?.xero?.config ?? {};
 
     return (
         <ConnectionLayout
