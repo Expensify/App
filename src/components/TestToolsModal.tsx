@@ -7,17 +7,17 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import Navigation from '@navigation/Navigation';
 import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import Navigation from "@navigation/Navigation";
-import ROUTES from "@src/ROUTES";
-import Button from "./Button";
-import TestToolRow from "./TestToolRow";
+import ROUTES from '@src/ROUTES';
+import Button from './Button';
 import ClientSideLoggingToolMenu from './ClientSideLoggingToolMenu';
 import Modal from './Modal';
 import ProfilingToolMenu from './ProfilingToolMenu';
 import TestToolMenu from './TestToolMenu';
+import TestToolRow from './TestToolRow';
 import Text from './Text';
 
 type TestToolsModalOnyxProps = {
