@@ -23,8 +23,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as HeaderUtils from '@libs/HeaderUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {ReportWithoutHasDraft} from '@libs/OnyxSelectors/reportWithoutHasDraftSelector';
-import reportWithoutHasDraftSelector from '@libs/OnyxSelectors/reportWithoutHasDraftSelector';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -49,7 +47,7 @@ type HeaderViewOnyxProps = {
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 
     /** Parent report */
-    parentReport: OnyxEntry<ReportWithoutHasDraft>;
+    parentReport: OnyxEntry<OnyxTypes.Report>;
 
     /** The current policy of the report */
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -65,13 +63,27 @@ type HeaderViewProps = HeaderViewOnyxProps & {
     /** The report action the transaction is tied to from the parent report */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
 
-    /** The reportID of the request */
+    /** The reportID of the current report */
     reportID: string;
+
+    /** Whether we should display the header as in narrow layout */
+    shouldUseNarrowLayout?: boolean;
 };
 
-function HeaderView({report, personalDetails, parentReport, parentReportAction, policy, session, reportID, guideCalendarLink, onNavigationMenuButtonClicked}: HeaderViewProps) {
+function HeaderView({
+    report,
+    personalDetails,
+    parentReport,
+    parentReportAction,
+    policy,
+    session,
+    reportID,
+    guideCalendarLink,
+    onNavigationMenuButtonClicked,
+    shouldUseNarrowLayout = false,
+}: HeaderViewProps) {
     const [isDeleteTaskConfirmModalVisible, setIsDeleteTaskConfirmModalVisible] = React.useState(false);
-    const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
+    const {windowWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -89,17 +101,18 @@ function HeaderView({report, personalDetails, parentReport, parentReportAction, 
     const isTaskReport = ReportUtils.isTaskReport(report);
     const reportHeaderData = !isTaskReport && !isChatThread && report.parentReportID ? parentReport : report;
     // Use sorted display names for the title for group chats on native small screen widths
-    const title = isGroupChat ? ReportUtils.getGroupChatName(report.participantAccountIDs ?? [], true) : ReportUtils.getReportName(reportHeaderData, undefined, true);
+    const title = ReportUtils.getReportName(reportHeaderData, undefined, true);
     const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(reportHeaderData);
     const isConcierge = ReportUtils.hasSingleParticipant(report) && participants.includes(CONST.ACCOUNT_ID.CONCIERGE);
     const isCanceledTaskReport = ReportUtils.isCanceledTaskReport(report, parentReportAction);
     const isWhisperAction = ReportActionsUtils.isWhisperAction(parentReportAction);
     const isUserCreatedPolicyRoom = ReportUtils.isUserCreatedPolicyRoom(report);
-    const isPolicyMember = useMemo(() => !isEmptyObject(policy), [policy]);
-    const canLeaveRoom = ReportUtils.canLeaveRoom(report, isPolicyMember);
+    const isPolicyEmployee = useMemo(() => !isEmptyObject(policy), [policy]);
+    const canLeaveRoom = ReportUtils.canLeaveRoom(report, isPolicyEmployee);
     const reportDescription = ReportUtils.getReportDescriptionText(report);
     const policyName = ReportUtils.getPolicyName(report, true);
+    const canLeavePolicyExpenseChat = ReportUtils.canLeavePolicyExpenseChat(report, policy);
     const policyDescription = ReportUtils.getPolicyDescriptionText(policy);
     const isPersonalExpenseChat = isPolicyExpenseChat && ReportUtils.isCurrentUserSubmitter(report.reportID);
     const shouldShowSubtitle = () => {
@@ -131,7 +144,7 @@ function HeaderView({report, personalDetails, parentReport, parentReportAction, 
         }
 
         // Task is not closed
-        if (report.stateNum !== CONST.REPORT.STATE_NUM.APPROVED && report.statusNum !== CONST.REPORT.STATUS_NUM.CLOSED && canModifyTask) {
+        if (ReportUtils.canWriteInReport(report) && report.stateNum !== CONST.REPORT.STATE_NUM.APPROVED && report.statusNum !== CONST.REPORT.STATUS_NUM.CLOSED && canModifyTask) {
             threeDotMenuItems.push({
                 icon: Expensicons.Trashcan,
                 text: translate('common.delete'),
@@ -144,9 +157,9 @@ function HeaderView({report, personalDetails, parentReport, parentReportAction, 
         Report.updateNotificationPreference(reportID, report.notificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, false, report.parentReportID, report.parentReportActionID),
     );
 
-    const canJoinOrLeave = !isSelfDM && !isGroupChat && (isChatThread || isUserCreatedPolicyRoom || canLeaveRoom);
+    const canJoinOrLeave = !isSelfDM && !isGroupChat && (isChatThread || isUserCreatedPolicyRoom || canLeaveRoom || canLeavePolicyExpenseChat);
     const canJoin = canJoinOrLeave && !isWhisperAction && report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
-    const canLeave = canJoinOrLeave && ((isChatThread && !!report.notificationPreference?.length) || isUserCreatedPolicyRoom || canLeaveRoom);
+    const canLeave = canJoinOrLeave && ((isChatThread && !!report.notificationPreference?.length) || isUserCreatedPolicyRoom || canLeaveRoom || canLeavePolicyExpenseChat);
     if (canJoin) {
         threeDotMenuItems.push({
             icon: Expensicons.ChatBubbles,
@@ -154,7 +167,7 @@ function HeaderView({report, personalDetails, parentReport, parentReportAction, 
             onSelected: join,
         });
     } else if (canLeave) {
-        const isWorkspaceMemberLeavingWorkspaceRoom = !isChatThread && report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED && isPolicyMember;
+        const isWorkspaceMemberLeavingWorkspaceRoom = !isChatThread && (report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED || isPolicyExpenseChat) && isPolicyEmployee;
         threeDotMenuItems.push({
             icon: Expensicons.ChatBubbles,
             text: translate('common.leave'),
@@ -201,9 +214,9 @@ function HeaderView({report, personalDetails, parentReport, parentReportAction, 
     const defaultSubscriptSize = ReportUtils.isExpenseRequest(report) ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
     const icons = ReportUtils.getIcons(reportHeaderData, personalDetails);
     const brickRoadIndicator = ReportUtils.hasReportNameError(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
-    const shouldShowBorderBottom = !isTaskReport || !isSmallScreenWidth;
+    const shouldShowBorderBottom = !isTaskReport || !shouldUseNarrowLayout;
     const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(report);
-
+    const shouldUseGroupTitle = isGroupChat && (!!report?.reportName || !isMultipleParticipant);
     const isLoading = !report.reportID || !title;
 
     return (
@@ -211,13 +224,13 @@ function HeaderView({report, personalDetails, parentReport, parentReportAction, 
             style={[shouldShowBorderBottom && styles.borderBottom]}
             dataSet={{dragArea: true}}
         >
-            <View style={[styles.appContentHeader, !isSmallScreenWidth && styles.headerBarDesktopHeight]}>
-                <View style={[styles.appContentHeaderTitle, !isSmallScreenWidth && !isLoading && styles.pl5]}>
+            <View style={[styles.appContentHeader, !shouldUseNarrowLayout && styles.headerBarDesktopHeight]}>
+                <View style={[styles.appContentHeaderTitle, !shouldUseNarrowLayout && !isLoading && styles.pl5]}>
                     {isLoading ? (
                         <ReportHeaderSkeletonView onBackButtonPress={onNavigationMenuButtonClicked} />
                     ) : (
                         <>
-                            {isSmallScreenWidth && (
+                            {shouldUseNarrowLayout && (
                                 <PressableWithoutFeedback
                                     onPress={onNavigationMenuButtonClicked}
                                     style={styles.LHNToggle}
@@ -265,13 +278,14 @@ function HeaderView({report, personalDetails, parentReport, parentReportAction, 
                                             tooltipEnabled
                                             numberOfLines={1}
                                             textStyles={[styles.headerText, styles.pre]}
-                                            shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isChatThread || isTaskReport}
+                                            shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isChatThread || isTaskReport || shouldUseGroupTitle}
                                             renderAdditionalText={renderAdditionalText}
                                         />
                                         {!isEmptyObject(parentNavigationSubtitleData) && (
                                             <ParentNavigationSubtitle
                                                 parentNavigationSubtitleData={parentNavigationSubtitleData}
                                                 parentReportID={report.parentReportID}
+                                                parentReportActionID={report.parentReportActionID}
                                                 pressableStyles={[styles.alignSelfStart, styles.mw100]}
                                             />
                                         )}
@@ -334,8 +348,8 @@ function HeaderView({report, personalDetails, parentReport, parentReportAction, 
                                     )}
                                 </PressableWithoutFeedback>
                                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
-                                    {isTaskReport && !isSmallScreenWidth && ReportUtils.isOpenTaskReport(report) && <TaskHeaderActionButton report={report} />}
-                                    {canJoin && !isSmallScreenWidth && joinButton}
+                                    {isTaskReport && !shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton report={report} />}
+                                    {canJoin && !shouldUseNarrowLayout && joinButton}
                                     {shouldShowThreeDotsButton && (
                                         <ThreeDotsMenu
                                             anchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
@@ -362,7 +376,7 @@ function HeaderView({report, personalDetails, parentReport, parentReportAction, 
                     )}
                 </View>
             </View>
-            {!isLoading && canJoin && isSmallScreenWidth && <View style={[styles.ph5, styles.pb2]}>{joinButton}</View>}
+            {!isLoading && canJoin && shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb2]}>{joinButton}</View>}
         </View>
     );
 }
@@ -377,8 +391,7 @@ export default memo(
             initialValue: null,
         },
         parentReport: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID ?? report?.reportID}`,
-            selector: reportWithoutHasDraftSelector,
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID ?? report?.reportID}`,
         },
         session: {
             key: ONYXKEYS.SESSION,

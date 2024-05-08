@@ -117,6 +117,12 @@ type AvatarWithImagePickerProps = {
 
     /** Allows to open an image without Attachment Picker. */
     enablePreview?: boolean;
+
+    /** Hard disables the "View photo" option */
+    shouldDisableViewPhoto?: boolean;
+
+    /** Optionally override the default "Edit" icon */
+    editIcon?: IconAsset;
 };
 
 function AvatarWithImagePicker({
@@ -144,6 +150,8 @@ function AvatarWithImagePicker({
     disabled = false,
     onViewPhotoPress,
     enablePreview = false,
+    shouldDisableViewPhoto = false,
+    editIcon = Expensicons.Pencil,
 }: AvatarWithImagePickerProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -332,7 +340,7 @@ function AvatarWithImagePicker({
                             {!disabled && (
                                 <View style={StyleSheet.flatten([styles.smallEditIcon, styles.smallAvatarEditIcon, editIconStyle])}>
                                     <Icon
-                                        src={Expensicons.Pencil}
+                                        src={editIcon}
                                         width={variables.iconSizeSmall}
                                         height={variables.iconSizeSmall}
                                         fill={theme.icon}
@@ -354,8 +362,8 @@ function AvatarWithImagePicker({
                             {({openPicker}) => {
                                 const menuItems = createMenuItems(openPicker);
 
-                                // If the current avatar isn't a default avatar, allow the "View Photo" option
-                                if (!isUsingDefaultAvatar) {
+                                // If the current avatar isn't a default avatar and we are not overriding this behavior allow the "View Photo" option
+                                if (!shouldDisableViewPhoto && !isUsingDefaultAvatar) {
                                     menuItems.push({
                                         icon: Expensicons.Eye,
                                         text: translate('avatarWithImagePicker.viewPhoto'),

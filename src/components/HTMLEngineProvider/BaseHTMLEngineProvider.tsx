@@ -59,6 +59,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             }),
             'thread-title': HTMLElementModel.fromCustomModel({tagName: 'thread-title', contentModel: HTMLContentModel.block}),
             'mention-user': HTMLElementModel.fromCustomModel({tagName: 'mention-user', contentModel: HTMLContentModel.textual}),
+            'mention-report': HTMLElementModel.fromCustomModel({tagName: 'mention-report', contentModel: HTMLContentModel.textual}),
             'mention-here': HTMLElementModel.fromCustomModel({tagName: 'mention-here', contentModel: HTMLContentModel.textual}),
             'next-step': HTMLElementModel.fromCustomModel({
                 tagName: 'next-step',
@@ -92,6 +93,9 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             tagsStyles={styles.webViewStyles.tagStyles}
             enableCSSInlineProcessing={false}
             systemFonts={Object.values(FontUtils.fontFamily.single)}
+            htmlParserOptions={{
+                recognizeSelfClosing: true,
+            }}
             domVisitors={{
                 // eslint-disable-next-line no-param-reassign
                 onText: (text) => (text.data = convertToLTR(text.data)),

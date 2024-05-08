@@ -44,7 +44,7 @@ type FormAlertWithSubmitButtonProps = {
     buttonStyles?: StyleProp<ViewStyle>;
 
     /** Whether to show the alert text */
-    isAlertVisible: boolean;
+    isAlertVisible?: boolean;
 
     /** Text for the button */
     buttonText: string;
@@ -69,7 +69,7 @@ function FormAlertWithSubmitButton({
     footerContent,
     buttonStyles,
     buttonText,
-    isAlertVisible,
+    isAlertVisible = false,
     onSubmit,
     useSmallerSubmitButtonSize = false,
     errorMessageStyle,
@@ -79,7 +79,7 @@ function FormAlertWithSubmitButton({
 
     return (
         <FormAlertWrapper
-            containerStyles={[styles.mh5, styles.mb5, styles.justifyContentEnd, containerStyles]}
+            containerStyles={[styles.justifyContentEnd, containerStyles]}
             isAlertVisible={isAlertVisible}
             isMessageHtml={isMessageHtml}
             message={message}

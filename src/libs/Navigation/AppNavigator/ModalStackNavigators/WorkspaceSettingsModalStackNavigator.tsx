@@ -50,6 +50,13 @@ function WorkspaceSettingsModalStackNavigator() {
                 name={SCREENS.WORKSPACE.MEMBERS}
                 getComponent={() => require('@pages/workspace/WorkspaceMembersPage').default as React.ComponentType}
             />
+
+            <StackNavigator.Screen
+                key={SCREENS.WORKSPACE.ACCOUNTING.ROOT}
+                name={SCREENS.WORKSPACE.ACCOUNTING.ROOT}
+                getComponent={() => require('@pages/workspace/accounting/PolicyAccountingPage').default as React.ComponentType}
+            />
+
             <StackNavigator.Screen
                 key={SCREENS.WORKSPACE.CATEGORIES}
                 name={SCREENS.WORKSPACE.CATEGORIES}

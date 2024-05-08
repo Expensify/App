@@ -26,6 +26,7 @@ import NavigationRoot from './libs/Navigation/NavigationRoot';
 import NetworkConnection from './libs/NetworkConnection';
 import PushNotification from './libs/Notification/PushNotification';
 import './libs/Notification/PushNotification/subscribePushNotification';
+import Performance from './libs/Performance';
 import StartupTimer from './libs/StartupTimer';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 import './libs/UnreadIndicatorUpdater';
@@ -40,6 +41,8 @@ Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
         Log.alert(message);
         console.error(message);
+    } else if (level === 'hmmm') {
+        Log.hmmm(message);
     } else {
         Log.info(message);
     }
@@ -130,6 +133,7 @@ function Expensify({
 
     const onSplashHide = useCallback(() => {
         setIsSplashHidden(true);
+        Performance.markEnd(CONST.TIMING.SIDEBAR_LOADED);
     }, []);
 
     useLayoutEffect(() => {

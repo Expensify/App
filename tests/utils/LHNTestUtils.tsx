@@ -1,7 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import type {NavigationProp} from '@react-navigation/core/src/types';
 import type * as Navigation from '@react-navigation/native';
-import type {ParamListBase} from '@react-navigation/routers';
 import {render} from '@testing-library/react-native';
 import type {ReactElement} from 'react';
 import React from 'react';
@@ -10,6 +8,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxProvider from '@components/OnyxProvider';
 import {CurrentReportIDContextProvider} from '@components/withCurrentReportID';
 import {EnvironmentProvider} from '@components/withEnvironment';
+import {ReportIDsContextProvider} from '@hooks/useReportIDs';
 import DateUtils from '@libs/DateUtils';
 import ReportActionItemSingle from '@pages/home/report/ReportActionItemSingle';
 import SidebarLinksData from '@pages/home/sidebar/SidebarLinksData';
@@ -33,17 +32,13 @@ type MockedSidebarLinksProps = {
     currentReportID?: string;
 };
 
-// we have to mock `useIsFocused` because it's used in the SidebarLinks component
-const mockedNavigate: jest.MockedFn<NavigationProp<ParamListBase>['navigate']> = jest.fn();
 jest.mock('@react-navigation/native', (): typeof Navigation => {
     const actualNav = jest.requireActual('@react-navigation/native');
     return {
         ...actualNav,
         useRoute: jest.fn(),
         useFocusEffect: jest.fn(),
-        useIsFocused: () => ({
-            navigate: mockedNavigate,
-        }),
+        useIsFocused: () => true,
         useNavigation: () => ({
             navigate: jest.fn(),
             addListener: jest.fn(),
@@ -217,7 +212,7 @@ function getFakeReportAction(actor = 'email1@test.com', millisecondsInThePast = 
     };
 }
 
-function getAdvancedFakeReport(isArchived: boolean, isUserCreatedPolicyRoom: boolean, hasAddWorkspaceError: boolean, isUnread: boolean, isPinned: boolean, hasDraft: boolean): Report {
+function getAdvancedFakeReport(isArchived: boolean, isUserCreatedPolicyRoom: boolean, hasAddWorkspaceError: boolean, isUnread: boolean, isPinned: boolean): Report {
     return {
         ...getFakeReport([1, 2], 0, isUnread),
         type: CONST.REPORT.TYPE.CHAT,
@@ -226,7 +221,6 @@ function getAdvancedFakeReport(isArchived: boolean, isUserCreatedPolicyRoom: boo
         stateNum: isArchived ? CONST.REPORT.STATE_NUM.APPROVED : 0,
         errorFields: hasAddWorkspaceError ? {1708946640843000: {addWorkspaceRoom: 'blah'}} : undefined,
         isPinned,
-        hasDraft,
     };
 }
 
@@ -254,8 +248,8 @@ function getFakePolicy(id = '1', name = 'Workspace-Test-001'): Policy {
         type: 'free',
         owner: 'myuser@gmail.com',
         outputCurrency: 'BRL',
-        avatar: '',
-        employeeList: [],
+        avatarURL: '',
+        employeeList: {},
         isPolicyExpenseChatEnabled: true,
         lastModified: '1697323926777105',
         autoReporting: true,
@@ -285,18 +279,26 @@ function getFakeAdvancedReportAction(actionName: ActionName = 'IOU', actor = 'em
 function MockedSidebarLinks({currentReportID = ''}: MockedSidebarLinksProps) {
     return (
         <ComposeProviders components={[OnyxProvider, LocaleContextProvider, EnvironmentProvider, CurrentReportIDContextProvider]}>
-            <SidebarLinksData
-                // @ts-expect-error TODO: Remove this once SidebarLinksData (https://github.com/Expensify/App/issues/25220) is migrated to TypeScript.
-                onLinkClick={() => {}}
-                insets={{
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                }}
-                isSmallScreenWidth={false}
-                currentReportID={currentReportID}
-            />
+            {/*
+             * Only required to make unit tests work, since we
+             * explicitly pass the currentReportID in LHNTestUtils
+             * to SidebarLinksData, so this context doesn't have an
+             * access to currentReportID in that case.
+             *
+             * So this is a work around to have currentReportID available
+             * only in testing environment.
+             *  */}
+            <ReportIDsContextProvider currentReportIDForTests={currentReportID}>
+                <SidebarLinksData
+                    onLinkClick={() => {}}
+                    insets={{
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                    }}
+                />
+            </ReportIDsContextProvider>
         </ComposeProviders>
     );
 }

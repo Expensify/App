@@ -9,6 +9,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
+import FocusableMenuItem from './FocusableMenuItem';
 import * as Expensicons from './Icon/Expensicons';
 import type {MenuItemProps} from './MenuItem';
 import MenuItem from './MenuItem';
@@ -104,8 +105,8 @@ function PopoverMenu({
             setCurrentMenuItems([...selectedItem.subMenuItems]);
             setEnteredSubMenuIndexes([...enteredSubMenuIndexes, index]);
         } else {
-            onItemSelected(selectedItem, index);
             selectedItemIndex.current = index;
+            onItemSelected(selectedItem, index);
         }
     };
 
@@ -193,7 +194,7 @@ function PopoverMenu({
                 {!!headerText && <Text style={[styles.createMenuHeaderText, styles.ml3]}>{headerText}</Text>}
                 {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
                 {currentMenuItems.map((item, menuIndex) => (
-                    <MenuItem
+                    <FocusableMenuItem
                         key={item.text}
                         icon={item.icon}
                         iconWidth={item.iconWidth}
@@ -208,6 +209,7 @@ function PopoverMenu({
                         focused={focusedIndex === menuIndex}
                         displayInDefaultIconColor={item.displayInDefaultIconColor}
                         shouldShowRightIcon={item.shouldShowRightIcon}
+                        iconRight={item.iconRight}
                         shouldPutLeftPaddingWhenNoIcon={item.shouldPutLeftPaddingWhenNoIcon}
                         label={item.label}
                         isLabelHoverable={item.isLabelHoverable}
@@ -215,6 +217,9 @@ function PopoverMenu({
                         floatRightAvatarSize={item.floatRightAvatarSize}
                         shouldShowSubscriptRightAvatar={item.shouldShowSubscriptRightAvatar}
                         disabled={item.disabled}
+                        onFocus={() => setFocusedIndex(menuIndex)}
+                        success={item.success}
+                        containerStyle={item.containerStyle}
                     />
                 ))}
             </View>

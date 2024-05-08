@@ -73,7 +73,7 @@ const shouldUseForcedSelectionRange = shouldUseEmojiPickerSelection();
 
 function ReportActionItemMessageEdit(
     {action, draftMessage, reportID, index, shouldDisableEmojiPicker = false, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE}: ReportActionItemMessageEditProps,
-    forwardedRef: ForwardedRef<(TextInput & HTMLTextAreaElement) | undefined>,
+    forwardedRef: ForwardedRef<TextInput | HTMLTextAreaElement | undefined>,
 ) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -118,7 +118,7 @@ function ReportActionItemMessageEdit(
 
     useEffect(() => {
         const parser = new ExpensiMark();
-        const originalMessage = parser.htmlToMarkdown(action.message?.[0].html ?? '');
+        const originalMessage = parser.htmlToMarkdown(action.message?.[0]?.html ?? '');
         if (
             ReportActionsUtils.isDeletedAction(action) ||
             Boolean(action.message && draftMessage === originalMessage) ||
@@ -318,7 +318,7 @@ function ReportActionItemMessageEdit(
      */
     const publishDraft = useCallback(() => {
         // Do nothing if draft exceed the character limit
-        if (ReportUtils.getCommentLength(draft) > CONST.MAX_COMMENT_LENGTH) {
+        if (ReportUtils.getCommentLength(draft, {reportID}) > CONST.MAX_COMMENT_LENGTH) {
             return;
         }
 
@@ -380,8 +380,8 @@ function ReportActionItemMessageEdit(
     const focus = focusComposerWithDelay(textInputRef.current);
 
     useEffect(() => {
-        validateCommentMaxLength(draft);
-    }, [draft, validateCommentMaxLength]);
+        validateCommentMaxLength(draft, {reportID});
+    }, [draft, reportID, validateCommentMaxLength]);
 
     return (
         <>
@@ -450,7 +450,7 @@ function ReportActionItemMessageEdit(
                                 setIsFocused(false);
                                 // @ts-expect-error TODO: TextInputFocusEventData doesn't contain relatedTarget.
                                 const relatedTargetId = event.nativeEvent?.relatedTarget?.id;
-                                if (relatedTargetId && [messageEditInput, emojiButtonID].includes(relatedTargetId)) {
+                                if ((relatedTargetId && [messageEditInput, emojiButtonID].includes(relatedTargetId)) || EmojiPickerAction.isEmojiPickerVisible()) {
                                     return;
                                 }
                                 setShouldShowComposeInputKeyboardAware(true);

@@ -71,7 +71,7 @@ type Message = {
     currency?: string;
 
     /** resolution for actionable mention whisper */
-    resolution?: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION> | null;
+    resolution?: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION> | ValueOf<typeof CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION> | null;
 
     /** The time this report action was deleted */
     deleted?: string;
@@ -139,10 +139,10 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     created: string;
 
     /** report action message */
-    message?: Message[];
+    message?: Array<Message | undefined>;
 
     /** report action message */
-    previousMessage?: Message[];
+    previousMessage?: Array<Message | undefined>;
 
     /** Whether we have received a response back from the server */
     isLoading?: boolean;
@@ -226,6 +226,9 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Flag for checking if data is from optimistic data */
     isOptimisticAction?: boolean;
+
+    /** The admins's ID */
+    adminAccountID?: number;
 }>;
 
 type ReportAction = ReportActionBase & OriginalMessage;

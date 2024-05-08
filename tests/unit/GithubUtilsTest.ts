@@ -11,18 +11,6 @@ import GithubUtils from '@github/libs/GithubUtils';
 const mockGetInput = jest.fn();
 const mockListIssues = jest.fn();
 
-type DeployBlockers = {
-    url: string;
-    number: number;
-    isResolved: boolean;
-};
-
-type PullRequest = {
-    url: string;
-    number: number;
-    isVerified: boolean;
-};
-
 type Label = {
     id: number;
     number?: number;
@@ -33,20 +21,6 @@ type Label = {
     color: string;
     default: boolean;
     description: string;
-};
-
-type ExpectedReponse = {
-    PRList: PullRequest[];
-    labels: Label[];
-    tag: string;
-    title: string;
-    url: string;
-    number: number;
-    deployBlockers: DeployBlockers[];
-    internalQAPRList: string[];
-    isTimingDashboardChecked: boolean;
-    isFirebaseChecked: boolean;
-    isGHStatusChecked: boolean;
 };
 
 type Issue = {
@@ -116,7 +90,7 @@ describe('GithubUtils', () => {
         issueWithDeployBlockers.body +=
             '\r\n**Deploy Blockers:**\r\n- [ ] https://github.com/Expensify/App/issues/1\r\n- [x] https://github.com/Expensify/App/issues/2\r\n- [ ] https://github.com/Expensify/App/pull/1234\r\n';
 
-        const baseExpectedResponse: ExpectedReponse = {
+        const baseExpectedResponse: Partial<Awaited<ReturnType<typeof GithubUtils.getStagingDeployCash>>> = {
             PRList: [
                 {
                     url: 'https://github.com/Expensify/App/pull/21',
@@ -181,7 +155,7 @@ describe('GithubUtils', () => {
                 body: '**Release Version:** `1.0.1-47`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\ncc @Expensify/applauseleads\n',
             };
 
-            const bareExpectedResponse: ExpectedReponse = {
+            const bareExpectedResponse: Partial<Awaited<ReturnType<typeof GithubUtils.getStagingDeployCash>>> = {
                 ...baseExpectedResponse,
                 PRList: [],
             };

@@ -16,7 +16,10 @@ export default function withToggleVisibilityView<TProps extends WithToggleVisibi
     function WithToggleVisibilityView({isVisible = false, ...rest}: SetOptional<TProps, 'isVisible'>, ref: ForwardedRef<TRef>) {
         const styles = useThemeStyles();
         return (
-            <View style={!isVisible && styles.visuallyHidden}>
+            <View
+                style={!isVisible && styles.visuallyHidden}
+                collapsable={false}
+            >
                 <WrappedComponent
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...(rest as TProps)}

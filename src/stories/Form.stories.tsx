@@ -1,4 +1,4 @@
-import type {ComponentMeta, Story} from '@storybook/react';
+import type {Meta, StoryFn} from '@storybook/react';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import AddressSearch from '@components/AddressSearch';
@@ -8,7 +8,7 @@ import FormProvider from '@components/Form/FormProvider';
 import type {FormProviderProps} from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import Picker from '@components/Picker';
-import StatePicker from '@components/StatePicker';
+import StateSelector from '@components/StateSelector';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {MaybePhraseKey} from '@libs/Localize';
@@ -19,7 +19,7 @@ import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 import {defaultStyles} from '@src/styles';
 
-type FormStory = Story<FormProviderProps>;
+type FormStory = StoryFn<FormProviderProps>;
 
 type StorybookFormValues = {
     routingNumber?: string;
@@ -41,16 +41,23 @@ const STORYBOOK_FORM_ID = 'TestForm' as keyof OnyxFormValuesMapping;
  *
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
-const story: ComponentMeta<typeof FormProvider> = {
+const story: Meta<typeof FormProvider> = {
     title: 'Components/Form',
     component: FormProvider,
     subcomponents: {
+        // @ts-expect-error Subcomponent passes props with unknown type causing a TS error
         InputWrapper,
+        // @ts-expect-error Subcomponent passes props with unknown type causing a TS error
         TextInput,
+        // @ts-expect-error Subcomponent passes props with unknown type causing a TS error
         AddressSearch,
+        // @ts-expect-error Subcomponent passes props with unknown type causing a TS error
         CheckboxWithLabel,
+        // @ts-expect-error Subcomponent passes props with unknown type causing a TS error
         Picker,
-        StatePicker,
+        // @ts-expect-error Subcomponent passes props with unknown type causing a TS error
+        StateSelector,
+        // @ts-expect-error Subcomponent passes props with unknown type causing a TS error
         DatePicker,
     },
 };
@@ -148,7 +155,7 @@ function Template(props: FormProviderProps) {
             />
             <View style={defaultStyles.mt4}>
                 <InputWrapper
-                    InputComponent={StatePicker}
+                    InputComponent={StateSelector}
                     inputID="state"
                     shouldSaveDraft
                 />

@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+import isEmpty from 'lodash/isEmpty';
 import Onyx from 'react-native-onyx';
 import {addLog} from '@libs/actions/Console';
 import CONFIG from '@src/CONFIG';
@@ -23,7 +24,7 @@ Onyx.connect({
 const originalConsoleLog = console.log;
 
 /* List of patterns to ignore in logs. "logs" key always needs to be ignored because otherwise it will cause infinite loop */
-const logPatternsToIgnore = [`merge() called for key: ${ONYXKEYS.LOGS}`];
+const logPatternsToIgnore = [`merge called for key: ${ONYXKEYS.LOGS}`];
 
 /**
  * Check if the log should be attached to the console
@@ -118,5 +119,29 @@ function createLog(text: string) {
     }
 }
 
-export {sanitizeConsoleInput, createLog, shouldAttachLog};
+/**
+ * Loops through all the logs and parses the message if it's a stringified JSON
+ * @param logs Logs captured on the current device
+ * @returns CapturedLogs with parsed messages
+ */
+function parseStringifiedMessages(logs: Log[]): Log[] {
+    if (isEmpty(logs)) {
+        return logs;
+    }
+
+    return logs.map((log) => {
+        try {
+            const parsedMessage = JSON.parse(log.message);
+            return {
+                ...log,
+                message: parsedMessage,
+            };
+        } catch {
+            // If the message can't be parsed, just return the original log
+            return log;
+        }
+    });
+}
+
+export {sanitizeConsoleInput, createLog, shouldAttachLog, parseStringifiedMessages};
 export type {Log};

@@ -27,6 +27,7 @@
   - [1.20 Hooks instead of HOCs](#hooks-instead-of-hocs)
   - [1.21 `compose` usage](#compose-usage)
   - [1.22 Type imports](#type-imports)
+  - [1.23 Ref types](#ref-types)
 - [Exception to Rules](#exception-to-rules)
 - [Communication Items](#communication-items)
 - [Migration Guidelines](#migration-guidelines)
@@ -640,6 +641,28 @@ type Foo = {
   export someVariable
   ```
 
+- [1.23](#ref-types) **Ref types**: Avoid using HTML elements while declaring refs. Please use React Native components where possible. React Native Web handles the references on its own. It also extends React Native components with [Interaction API](https://necolas.github.io/react-native-web/docs/interactions/) which should be used to handle Pointer and Mouse events. Exception of this rule is when we explicitly need to use functions available only in DOM and not in React Native, e.g. `getBoundingClientRect`. Then please declare ref type as `union` of React Native component and HTML element. When passing it to React Native component assert it as soon as possible using utility methods declared in `src/types/utils`.
+
+Normal usage: 
+```tsx
+const ref = useRef<View>();
+
+<View ref={ref} onPointerDown={e => {#DO SOMETHING}}>
+```
+
+Exceptional usage where DOM methods are necessary:
+```tsx
+import viewRef from '@src/types/utils/viewRef';
+
+const ref = useRef<View | HTMLDivElement>();
+
+if (ref.current && 'getBoundingClientRect' in ref.current) {
+  ref.current.getBoundingClientRect();
+}
+
+<View ref={viewRef(ref)} onPointerDown={e => {#DO SOMETHING}}>
+```
+
 ## Exception to Rules
 
 Most of the rules are enforced in ESLint or checked by TypeScript. If you think your particular situation warrants an exception, post the context in the `#expensify-open-source` Slack channel with your message prefixed with `TS EXCEPTION:`. The internal engineer assigned to the PR should be the one that approves each exception, however all discussion regarding granting exceptions should happen in the public channel instead of the GitHub PR page so that the TS migration team can access them easily.
@@ -684,7 +707,7 @@ _.each(arr, () => {});
 
 // GOOD
 var arr = [];
-arr.forEach(() => {});
+arr.forEach(function loopArr() {});
 
 // BAD
 lodashGet(object, ['foo'], 'bar');

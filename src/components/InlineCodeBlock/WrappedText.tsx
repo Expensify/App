@@ -3,6 +3,7 @@ import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {containsOnlyEmojis} from '@libs/EmojiUtils';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
@@ -39,7 +40,7 @@ function getTextMatrix(text: string): string[][] {
  * Validates if the text contains any emoji
  */
 function containsEmoji(text: string): boolean {
-    return CONST.REGEX.EMOJI.test(text);
+    return CONST.REGEX.EMOJIS.test(text);
 }
 
 function WrappedText({children, wordStyles, textStyles, numberOfLines}: WrappedTextProps) {
@@ -68,7 +69,21 @@ function WrappedText({children, wordStyles, textStyles, numberOfLines}: WrappedT
                             numberOfLines={numberOfLines}
                             style={[textStyles, !containsEmoji(colText) && styles.codePlainTextStyle]}
                         >
-                            {colText}
+                            
+                            {Array.from(colText).map((char, charIndex) =>
+                                containsOnlyEmojis(char) ? (
+                                    <Text
+                                        // eslint-disable-next-line react/no-array-index-key
+                                        key={`${colIndex}-${charIndex}`}
+                                        style={[textStyles, styles.emojiDefaultStyles]}
+                                    >
+                                        {char}
+                                    </Text>
+                                ) : (
+                                    char
+                                ),
+                            )}
+                        
                         </Text>
                     </View>
                 </View>

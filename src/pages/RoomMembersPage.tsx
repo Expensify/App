@@ -198,13 +198,13 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                     return;
                 }
             }
-            const pendingChatMember = report?.pendingChatMembers?.find((member) => member.accountID === accountID.toString());
+            const pendingChatMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
 
             result.push({
                 keyForList: String(accountID),
                 accountID,
                 isSelected: selectedMembers.includes(accountID),
-                isDisabled: accountID === session?.accountID,
+                isDisabled: accountID === session?.accountID || pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: details?.login ? formatPhoneNumber(details.login) : '',
                 icons: [
@@ -224,11 +224,11 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
         return result;
     };
 
-    const isPolicyMember = useMemo(() => {
+    const isPolicyEmployee = useMemo(() => {
         if (!report?.policyID || policies === null) {
             return false;
         }
-        return PolicyUtils.isPolicyMember(report.policyID, policies);
+        return PolicyUtils.isPolicyEmployee(report.policyID, policies);
     }, [report?.policyID, policies]);
     const data = getMemberOptions();
     const headerMessage = searchValue.trim() && !data.length ? translate('roomMembersPage.memberNotFound') : '';
@@ -240,7 +240,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
         >
             <FullPageNotFoundView
                 shouldShow={
-                    isEmptyObject(report) || (!ReportUtils.isChatThread(report) && ((ReportUtils.isUserCreatedPolicyRoom(report) && !isPolicyMember) || ReportUtils.isDefaultRoom(report)))
+                    isEmptyObject(report) || (!ReportUtils.isChatThread(report) && ((ReportUtils.isUserCreatedPolicyRoom(report) && !isPolicyEmployee) || ReportUtils.isDefaultRoom(report)))
                 }
                 subtitleKey={isEmptyObject(report) ? undefined : 'roomMembersPage.notAuthorized'}
                 onBackButtonPress={() => {

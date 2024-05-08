@@ -5,7 +5,6 @@ import type AttachmentViewPdfProps from './types';
 function AttachmentViewPdf({file, encryptedSourceUrl, isFocused, onPress, onToggleKeyboard, onLoadComplete, errorLabelStyles, style}: AttachmentViewPdfProps) {
     return (
         <PDFView
-            // @ts-expect-error waiting for https://github.com/Expensify/App/issues/16186 merge
             onPress={onPress}
             isFocused={isFocused}
             sourceURL={encryptedSourceUrl}

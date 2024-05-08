@@ -56,6 +56,14 @@ function buildMessageFragmentForValue(
 }
 
 /**
+ * Get the absolute value for a tax amount.
+ */
+function getTaxAmountAbsValue(taxAmount: number): number {
+    // IOU requests cannot have negative values but they can be stored as negative values, let's return absolute value
+    return Math.abs(taxAmount ?? 0);
+}
+
+/**
  * Get the message line for a modified expense.
  */
 function getMessageLine(prefix: string, messageFragments: string[]): string {
@@ -98,7 +106,7 @@ function getForDistanceRequest(newDistance: string, oldDistance: string, newAmou
  * If we change this function be sure to update the backend as well.
  */
 function getForReportAction(reportID: string | undefined, reportAction: OnyxEntry<ReportAction> | ReportAction | Record<string, never>): string {
-    if (reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
+    if (reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
         return '';
     }
     const reportActionOriginalMessage = reportAction?.originalMessage as ExpenseOriginalMessage | undefined;
@@ -116,6 +124,7 @@ function getForReportAction(reportID: string | undefined, reportAction: OnyxEntr
         'currency' in reportActionOriginalMessage;
 
     const hasModifiedMerchant = reportActionOriginalMessage && 'oldMerchant' in reportActionOriginalMessage && 'merchant' in reportActionOriginalMessage;
+
     if (hasModifiedAmount) {
         const oldCurrency = reportActionOriginalMessage?.oldCurrency ?? '';
         const oldAmountValue = reportActionOriginalMessage?.oldAmount ?? 0;
@@ -216,12 +225,35 @@ function getForReportAction(reportID: string | undefined, reportAction: OnyxEntr
         });
     }
 
+    const hasModifiedTaxAmount = reportActionOriginalMessage && 'oldTaxAmount' in reportActionOriginalMessage && 'taxAmount' in reportActionOriginalMessage;
+    if (hasModifiedTaxAmount) {
+        const currency = reportActionOriginalMessage?.currency;
+
+        const taxAmount = CurrencyUtils.convertToDisplayString(getTaxAmountAbsValue(reportActionOriginalMessage?.taxAmount ?? 0), currency);
+        const oldTaxAmountValue = getTaxAmountAbsValue(reportActionOriginalMessage?.oldTaxAmount ?? 0);
+        const oldTaxAmount = oldTaxAmountValue > 0 ? CurrencyUtils.convertToDisplayString(oldTaxAmountValue, currency) : '';
+        buildMessageFragmentForValue(taxAmount, oldTaxAmount, Localize.translateLocal('iou.taxAmount'), false, setFragments, removalFragments, changeFragments);
+    }
+
+    const hasModifiedTaxRate = reportActionOriginalMessage && 'oldTaxRate' in reportActionOriginalMessage && 'taxRate' in reportActionOriginalMessage;
+    if (hasModifiedTaxRate) {
+        buildMessageFragmentForValue(
+            reportActionOriginalMessage?.taxRate ?? '',
+            reportActionOriginalMessage?.oldTaxRate ?? '',
+            Localize.translateLocal('iou.taxRate'),
+            false,
+            setFragments,
+            removalFragments,
+            changeFragments,
+        );
+    }
+
     const hasModifiedBillable = reportActionOriginalMessage && 'oldBillable' in reportActionOriginalMessage && 'billable' in reportActionOriginalMessage;
     if (hasModifiedBillable) {
         buildMessageFragmentForValue(
             reportActionOriginalMessage?.billable ?? '',
             reportActionOriginalMessage?.oldBillable ?? '',
-            Localize.translateLocal('iou.request'),
+            Localize.translateLocal('iou.expense'),
             true,
             setFragments,
             removalFragments,
@@ -234,7 +266,7 @@ function getForReportAction(reportID: string | undefined, reportAction: OnyxEntr
         getMessageLine(`\n${Localize.translateLocal('iou.set')}`, setFragments) +
         getMessageLine(`\n${Localize.translateLocal('iou.removed')}`, removalFragments);
     if (message === '') {
-        return Localize.translateLocal('iou.changedTheRequest');
+        return Localize.translateLocal('iou.changedTheExpense');
     }
     return `${message.substring(1, message.length)}`;
 }

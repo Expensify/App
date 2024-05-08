@@ -13,7 +13,8 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 type HeaderIndice = {code: string; index: number; icon: IconAsset};
 type EmojiSpacer = {code: string; spacer: boolean};
-type EmojiPickerList = Array<EmojiSpacer | Emoji | HeaderEmoji>;
+type EmojiPickerListItem = EmojiSpacer | Emoji | HeaderEmoji;
+type EmojiPickerList = EmojiPickerListItem[];
 type ReplacedEmoji = {text: string; emojis: Emoji[]; cursorPosition?: number};
 
 let frequentlyUsedEmojis: FrequentlyUsedEmoji[] = [];
@@ -155,7 +156,7 @@ function containsOnlyEmojis(message: string): boolean {
 /**
  * Get the header emojis with their code, icon and index
  */
-function getHeaderEmojis(emojis: PickerEmojis): HeaderIndice[] {
+function getHeaderEmojis(emojis: EmojiPickerList): HeaderIndice[] {
     const headerIndices: HeaderIndice[] = [];
     emojis.forEach((emoji, index) => {
         if (!('header' in emoji)) {
@@ -554,7 +555,7 @@ const getEmojiReactionDetails = (emojiName: string, reaction: ReportActionReacti
 /**
  * Given an emoji code, returns an base emoji code without skin tone
  */
-const getRemovedSkinToneEmoji = (emoji: string) => emoji.replace(CONST.REGEX.EMOJI_SKIN_TONES, '');
+const getRemovedSkinToneEmoji = (emoji?: string) => emoji?.replace(CONST.REGEX.EMOJI_SKIN_TONES, '');
 
 function getSpacersIndexes(allEmojis: EmojiPickerList): number[] {
     const spacersIndexes: number[] = [];
@@ -567,6 +568,8 @@ function getSpacersIndexes(allEmojis: EmojiPickerList): number[] {
     });
     return spacersIndexes;
 }
+
+export type {HeaderIndice, EmojiPickerList, EmojiSpacer, EmojiPickerListItem};
 
 export {
     findEmojiByName,
