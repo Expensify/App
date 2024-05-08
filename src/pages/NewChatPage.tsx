@@ -302,6 +302,7 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
                     shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                     isLoadingNewOptions={!!isSearchingForReports}
                     initiallyFocusedOptionKey={firstKeyForList}
+                    shouldTextInputInterceptSwipe
                 />
                 {isSmallScreenWidth && <OfflineIndicator />}
             </KeyboardAvoidingView>
