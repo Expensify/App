@@ -52,8 +52,9 @@ function getSections(data: OnyxTypes.SearchResults['data']): SearchTransaction[]
     return searchTypeToItemMap.transaction.getSections(data);
 }
 
-function getQueryHash(query: string): number {
-    return UserUtils.hashText(query, 2 ** 32);
+function getQueryHash(query: string, policyID?: string): number {
+    const textToHash = policyID ? `${query}_${policyID}` : query;
+    return UserUtils.hashText(textToHash, 2 ** 32);
 }
 
 export {getListItem, getQueryHash, getSections, getShouldShowMerchant};

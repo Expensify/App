@@ -26,7 +26,7 @@ function Search({query, policyID}: SearchProps) {
     const styles = useThemeStyles();
     useCustomBackHandler();
 
-    const hash = SearchUtils.getQueryHash(query);
+    const hash = SearchUtils.getQueryHash(query, policyID);
     const [searchResults, searchResultsMeta] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
 
     useEffect(() => {

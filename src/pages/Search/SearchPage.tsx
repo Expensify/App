@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import type {CentralPaneNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
@@ -18,6 +19,7 @@ type SearchPageProps = StackScreenProps<CentralPaneNavigatorParamList, typeof SC
 
 function SearchPage({route}: SearchPageProps) {
     const {translate} = useLocalize();
+    const {isSmallScreenWidth} = useWindowDimensions();
     const currentQuery = route?.params && 'query' in route.params ? route?.params?.query : '';
     const query = currentQuery as SearchQuery;
     const isValidQuery = Object.values(CONST.TAB_SEARCH).includes(query);
@@ -25,6 +27,12 @@ function SearchPage({route}: SearchPageProps) {
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.ALL));
 
     const {activeWorkspaceID} = useActiveWorkspace();
+
+    // On small screens this page is not displayed, the configuration is in the file: src/libs/Navigation/AppNavigator/createCustomStackNavigator/index.tsx
+    // To avoid calling hooks in the Search component when this page isn't visible, we return null here.
+    if (isSmallScreenWidth) {
+        return null;
+    }
 
     return (
         <ScreenWrapper testID={Search.displayName}>
