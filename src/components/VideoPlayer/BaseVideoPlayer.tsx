@@ -95,12 +95,12 @@ function BaseVideoPlayer({
     }, [isCurrentlyURLSet, isPlaying, pauseVideo, playVideo, updateCurrentlyPlayingURL, url, videoResumeTryNumber]);
 
     const showPopoverMenu = (event?: GestureResponderEvent | KeyboardEvent) => {
-        setIsPopoverVisible(true);
         videoPopoverMenuPlayerRef.current = videoPlayerRef.current;
         videoPlayerRef.current?.getStatusAsync().then((status) => {
             if (!('rate' in status && status.rate)) {
                 return;
             }
+            setIsPopoverVisible(true);
             setCurrentPlaybackSpeed(status.rate as PlaybackSpeed);
         });
         if (!event || !('nativeEvent' in event)) {
