@@ -1,6 +1,6 @@
 import {getUnixTime} from 'date-fns';
 import Onyx from 'react-native-onyx';
-import Emojis from '@assets/emojis';
+import Emojis, {importEmojiLocale} from '@assets/emojis';
 import type {Emoji} from '@assets/emojis/types';
 import * as User from '@libs/actions/User';
 import {buildEmojisTrie} from '@libs/EmojiTrie';
@@ -13,7 +13,9 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('EmojiTest', () => {
     beforeAll(async () => {
+        await importEmojiLocale('en');
         buildEmojisTrie('en');
+        await importEmojiLocale('es');
         buildEmojisTrie('es');
     });
 
