@@ -67,7 +67,7 @@ Onyx.connect({
         } else {
             // If we are no longer forcing offline fetch the NetInfo to set isOffline appropriately
             NetInfo.fetch().then((state) => {
-                setOfflineStatus((state.isInternetReachable ?? false) === false);
+                setOfflineStatus(Boolean(state.isInternetReachable));
                 Log.info(
                     `[NetworkStatus] The user is not under force offline, calling NetInfo.fetch, setting "offlineStatus" to ${
                         (state.isInternetReachable ?? false) === false
