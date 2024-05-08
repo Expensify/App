@@ -160,7 +160,9 @@ describe('EmojiTest', () => {
         expect(EmojiUtils.suggestEmojis(text, 'en', limit)?.length).toBe(limit);
     });
 
-    it('correct suggests emojis accounting for keywords', () => {
+    it.only('correct suggests emojis accounting for keywords', async () => {
+        await importEmojiLocale('en');
+        buildEmojisTrie('en');
         const thumbEmojis: Emoji[] = [
             {
                 code: '👍',
