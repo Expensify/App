@@ -34,11 +34,11 @@ function Search({query}: SearchProps) {
             return;
         }
 
-        SearchActions.search(query, 0);
+        SearchActions.search(query);
     }, [query, isOffline]);
 
     const isLoadingInitialItems = (!isOffline && isLoadingOnyxValue(searchResultsMeta)) || searchResults?.data === undefined;
-    const isLoadingMoreItems = !isLoadingInitialItems && searchResults?.search?.isLoading;
+    const isLoadingMoreItems = searchResults?.search?.isLoading ?? false;
     const shouldShowEmptyState = !isLoadingInitialItems && isEmptyObject(searchResults?.data);
 
     if (isLoadingInitialItems) {
@@ -86,7 +86,7 @@ function Search({query}: SearchProps) {
                 isLoadingMoreItems ? (
                     <TableListItemSkeleton
                         shouldAnimate
-                        fixedNumItems={5}
+                        fixedNumItems={10}
                     />
                 ) : undefined
             }

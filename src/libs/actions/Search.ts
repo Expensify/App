@@ -5,7 +5,7 @@ import {READ_COMMANDS} from '@libs/API/types';
 import * as SearchUtils from '@libs/SearchUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-function search(query: string, offset: number) {
+function search(query: string, offset = 0) {
     const hash = SearchUtils.getQueryHash(query);
 
     const optimisticData: OnyxUpdate[] = [

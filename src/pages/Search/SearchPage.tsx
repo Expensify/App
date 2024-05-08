@@ -36,9 +36,7 @@ function SearchPage({route}: SearchPageProps) {
                     icon={Illustrations.MoneyReceipts}
                     shouldShowBackButton={false}
                 />
-                <Search
-                    query={query}
-                />
+                <Search query={query} />
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
