@@ -436,76 +436,204 @@ function MenuItem(
         }
     };
 
-    /**
-     * Converts the given HTML text to Markdown and truncates it to the specified limit.
-     * If the text is truncated, an ellipsis is added at the end.
-     *
-     * @param htmlText
-     * @param limit
-     * @param addEllipsis
-     * @returns
-     */
-    const truncateHTML = (htmlText: string, limit: number, addEllipsis = true) => {
-        console.log(title);
-        const parser = new ExpensiMark();
-        const markdownText = parser.htmlToMarkdown(htmlText);
+    interface TruncateOptions {
+        ellipsis?: string;
+        truncateLastWord?: boolean;
+        slop?: number;
+        keepImageTag?: boolean;
+    }
 
-        // if the text is already shorter than the limit, return it as is
-        if (markdownText.length <= limit) {
-            return htmlText;
+    /**
+     * Truncate HTML string and keep tag safe.
+     * pulled from https://github.com/huang47/nodejs-html-truncate/blob/master/lib/truncate.js
+     *
+     * @method truncate
+     * @param {String} string string needs to be truncated
+     * @param {Number} maxLength length of truncated string
+     * @param {Object} options (optional)
+     * @param {Boolean} [options.keepImageTag] flag to specify if keep image tag, false by default
+     * @param {Boolean} [options.truncateLastWord] truncates last word, true by default
+     * @param {Number} [options.slop] tolerance when options.truncateLastWord is false before we give up and just truncate at the maxLength position, 10 by default (but not greater than maxLength)
+     * @param {Boolean|String} [options.ellipsis] omission symbol for truncated string, '...' by default
+     * @return {String} truncated string
+     */
+    function truncate(string: string, maxLength: number, options?: TruncateOptions): string {
+        const EMPTY_OBJECT = {},
+            EMPTY_STRING = '',
+            DEFAULT_TRUNCATE_SYMBOL = '...',
+            DEFAULT_SLOP = 10 > maxLength ? maxLength : 10,
+            EXCLUDE_TAGS = ['img', 'br'], // non-closed tags
+            items: string[] = [], // stack for saving tags
+            KEY_VALUE_REGEX = '([\\w|-]+\\s*=\\s*"[^"]*"\\s*)*',
+            IS_CLOSE_REGEX = '\\s*\\/?\\s*',
+            CLOSE_REGEX = '\\s*\\/\\s*',
+            SELF_CLOSE_REGEX = new RegExp('<\\/?\\w+\\s*' + KEY_VALUE_REGEX + CLOSE_REGEX + '>'),
+            HTML_TAG_REGEX = new RegExp('<\\/?\\w+\\s*' + KEY_VALUE_REGEX + IS_CLOSE_REGEX + '>'),
+            URL_REGEX = /(((ftp|https?):\/\/)[\-\w@:%_\+.~#?,&\/\/=]+)|((mailto:)?[_.\w\-]+@([\w][\w\-]+\.)+[a-zA-Z]{2,3})/g, // Simple regexp
+            IMAGE_TAG_REGEX = new RegExp('<img\\s*' + KEY_VALUE_REGEX + IS_CLOSE_REGEX + '>'),
+            WORD_BREAK_REGEX = new RegExp('\\W+', 'g');
+        let matches: RegExpExecArray | null = HTML_TAG_REGEX.exec(string);
+        let result,
+            index,
+            tail,
+            tag,
+            selfClose = null;
+        let content = EMPTY_STRING; // truncated text storage
+        let total = 0; // record how many characters we traced so far
+
+        const opts: TruncateOptions = options || EMPTY_OBJECT;
+        opts.ellipsis = opts.ellipsis !== undefined ? opts.ellipsis : DEFAULT_TRUNCATE_SYMBOL;
+        opts.truncateLastWord = opts.truncateLastWord !== undefined ? opts.truncateLastWord : true;
+        opts.slop = opts.slop !== undefined ? opts.slop : DEFAULT_SLOP;
+
+        function _removeImageTag(string: string): string {
+            const match = IMAGE_TAG_REGEX.exec(string);
+            if (!match) {
+                return string;
+            }
+
+            const index = match.index,
+                len = match[0].length;
+
+            return string.substring(0, index) + string.substring(index + len);
         }
 
-        // here, we want to split the markdown by character, so that we are consistent with our character slicing
-        const markdownChars = markdownText.split('');
-        let characterCount = 0;
-        let overallIndex = 0;
+        function _dumpCloseTag(tags: string[]): string {
+            let html = '';
 
-        // we want to loop through our markdown characters until we reach the limit, avoiding any symbols
-        // that are not part of the text (like links, images, block quote, etc.)
-        // this makes it so that we don't count the markdown syntax characters towards the limit (it needs to be char specific limit)
-        for (const char of markdownChars) {
-            if (/[a-zA-Z\s\n]/.test(char)) {
-                characterCount++;
+            tags.reverse().forEach((tag) => {
+                // dump non-excluded tags only
+                if (EXCLUDE_TAGS.indexOf(tag) === -1) {
+                    html += '</' + tag + '>';
+                }
+            });
+
+            return html;
+        }
+
+        function _getTag(string: string): string {
+            let tail = string.indexOf(' ');
+
+            // TODO:
+            // we have to figure out how to handle non-well-formatted HTML case
+            if (tail === -1) {
+                tail = string.indexOf('>');
+                if (tail === -1) {
+                    throw new Error('HTML tag is not well-formed : ' + string);
+                }
             }
-            overallIndex++;
-            if (characterCount >= limit) {
+
+            return string.substring(1, tail);
+        }
+
+        function _getEndPosition(string: string, tailPos?: number): number {
+            const defaultPos = maxLength - total;
+            const slop = opts.slop || DEFAULT_SLOP;
+            let position = defaultPos;
+            const isShort = defaultPos < slop || 0,
+                slopPos = isShort ? defaultPos : slop - 1,
+                substr = string.slice(isShort ? 0 : defaultPos - slop, tailPos || defaultPos + slop),
+                result = WORD_BREAK_REGEX.exec(substr);
+
+            if (!opts.truncateLastWord) {
+                if (tailPos && substr.length <= tailPos) {
+                    position = substr.length;
+                } else {
+                    while (result !== null) {
+                        // a natural break position before the hard break position
+                        if (result.index < slopPos) {
+                            position = defaultPos - (slopPos - result.index);
+                            // keep seeking closer to the hard break position
+                            // unless a natural break is at position 0
+                            if (result.index === 0 && defaultPos <= 1) break;
+                        }
+                        // a natural break position exactly at the hard break position
+                        else if (result.index === slopPos) {
+                            position = defaultPos;
+                            break; // seek no more
+                        }
+                        // a natural break position after the hard break position
+                        else {
+                            position = defaultPos + (result.index - slopPos);
+                            break; // seek no more
+                        }
+                    }
+                }
+                if (string.charAt(position - 1).match(/\s$/)) position--;
+            }
+            return position;
+        }
+
+        while (matches) {
+            matches = HTML_TAG_REGEX.exec(string);
+
+            if (!matches) {
+                if (total >= maxLength) {
+                    break;
+                }
+
+                matches = URL_REGEX.exec(string);
+                if (!matches || matches.index >= maxLength) {
+                    content += string.substring(0, _getEndPosition(string));
+                    break;
+                }
+
+                while (matches) {
+                    result = matches[0];
+                    index = matches.index;
+                    content += string.substring(0, index + result.length - total);
+                    string = string.substring(index + result.length);
+                    matches = URL_REGEX.exec(string);
+                }
                 break;
             }
-        }
 
-        // now that we have the index of the last character, we can slice the markdown text
-        let truncatedText = markdownText.substring(0, overallIndex);
+            result = matches[0];
+            index = matches.index;
 
-        // Avoid cutting the text in the middle of a Markdown element (like [link](url))
-        const lastSpace = truncatedText.lastIndexOf(' ');
-        const lastOpenBracket = truncatedText.lastIndexOf('[');
-        const lastCloseBracket = truncatedText.lastIndexOf(']');
-        const lastOpenParen = truncatedText.lastIndexOf('(');
-        const lastCloseParen = truncatedText.lastIndexOf(')');
-
-        // Extend the cut-off point to avoid breaking Markdown links and parenthesis syntax
-        if (lastCloseBracket > lastOpenBracket && lastCloseBracket > lastSpace) {
-            const nextCloseParen = markdownText.indexOf(')', lastCloseBracket);
-            if (nextCloseParen !== -1 && nextCloseParen <= overallIndex) {
-                truncatedText = markdownText.substring(0, nextCloseParen + 1);
+            if (total + index > maxLength) {
+                // exceed given `maxLength`, dump everything to clear stack
+                content += string.substring(0, _getEndPosition(string, index));
+                break;
             } else {
-                truncatedText = markdownText.substring(0, lastCloseBracket + 1);
+                total += index;
+                content += string.substring(0, index);
             }
-        } else if (lastCloseParen > lastOpenParen && lastCloseParen > lastSpace) {
-            truncatedText = markdownText.substring(0, lastCloseParen + 1);
-        } else {
-            truncatedText = markdownText.substring(0, lastSpace);
+
+            if ('/' === result[1]) {
+                // move out open tag
+                items.pop();
+                selfClose = null;
+            } else {
+                selfClose = SELF_CLOSE_REGEX.exec(result);
+                if (!selfClose) {
+                    tag = _getTag(result);
+
+                    items.push(tag);
+                }
+            }
+
+            if (selfClose) {
+                content += selfClose[0];
+            } else {
+                content += result;
+            }
+            string = string.substring(index + result.length);
         }
 
-        // Add ellipsis if specified
-        if (addEllipsis) {
-            truncatedText += '...';
+        if (string.length > maxLength - total && opts.ellipsis) {
+            content += opts.ellipsis;
+        }
+        content += _dumpCloseTag(items);
+
+        if (!opts.keepImageTag) {
+            content = _removeImageTag(content);
         }
 
-        return parser.replace(truncatedText);
-    };
+        return content;
+    }
 
-    const maxDescLength = 280;
+    const maxDescLength = 100;
 
     return (
         <View>
@@ -630,7 +758,7 @@ function MenuItem(
                                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                                 {!!title && (shouldRenderAsHTML || (shouldParseTitle && !!html.length)) && (
                                                     <View style={styles.renderHTMLTitle}>
-                                                        <RenderHTML html={truncateHTML(processedTitle, maxDescLength)} />
+                                                        <RenderHTML html={truncate(processedTitle, maxDescLength)} />
                                                     </View>
                                                 )}
                                                 {!shouldRenderAsHTML && !shouldParseTitle && !!title && (
