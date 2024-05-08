@@ -2,49 +2,7 @@ diff --git a/node_modules/react-native-vision-camera/VisionCamera.podspec b/node
 index 3a0e313..6460c5c 100644
 --- a/node_modules/react-native-vision-camera/VisionCamera.podspec
 +++ b/node_modules/react-native-vision-camera/VisionCamera.podspec
-@@ -2,7 +2,13 @@ require "json"
- 
- package = JSON.parse(File.read(File.join(__dir__, "package.json")))
- 
--nodeModules = File.join(File.dirname(`cd "#{Pod::Config.instance.installation_root.to_s}" && node --print "require.resolve('react-native/package.json')"`), '..')
-+pkgJsonPath = ENV['REACT_NATIVE_DIR'] ? '../react-native/package.json' : 'react-native/package.json'
-+nodeModules = File.join(File.dirname(`cd "#{Pod::Config.instance.installation_root.to_s}" && node --print "require.resolve('#{pkgJsonPath}')"`), '..')
-+
-+frameworks_flags = {
-+  "OTHER_CFLAGS" => "$(inherited) -DUSE_FRAMEWORKS",
-+  "OTHER_CPLUSPLUSFLAGS" => "$(inherited) -DUSE_FRAMEWORKS",
-+}
- 
- forceDisableFrameProcessors = false
- if defined?($VCDisableFrameProcessors)
-@@ -15,6 +21,13 @@ workletsPath = File.join(nodeModules, "react-native-worklets-core")
- hasWorklets = File.exist?(workletsPath) && !forceDisableFrameProcessors
- Pod::UI.puts("[VisionCamera] react-native-worklets-core #{hasWorklets ? "found" : "not found"}, Frame Processors #{hasWorklets ? "enabled" : "disabled"}!")
- 
-+default_config = {
-+  "GCC_PREPROCESSOR_DEFINITIONS" => "$(inherited) SK_METAL=1 SK_GANESH=1 VISION_CAMERA_ENABLE_FRAME_PROCESSORS=#{hasWorklets}",
-+  "OTHER_SWIFT_FLAGS" => "$(inherited) -DRCT_NEW_ARCH_ENABLED #{hasWorklets ? "-D VISION_CAMERA_ENABLE_FRAME_PROCESSORS" : ""}",
-+  "CLANG_CXX_LANGUAGE_STANDARD" => "c++17",
-+  "HEADER_SEARCH_PATHS" => "\"$(PODS_TARGET_SRCROOT)/cpp/\"/** "
-+}
-+
- Pod::Spec.new do |s|
-   s.name         = "VisionCamera"
-   s.version      = package["version"]
-@@ -27,19 +40,13 @@ Pod::Spec.new do |s|
-   s.platforms    = { :ios => "12.4" }
-   s.source       = { :git => "https://github.com/mrousavy/react-native-vision-camera.git", :tag => "#{s.version}" }
- 
--  s.pod_target_xcconfig = {
--    "GCC_PREPROCESSOR_DEFINITIONS" => "$(inherited) SK_METAL=1 SK_GANESH=1 VISION_CAMERA_ENABLE_FRAME_PROCESSORS=#{hasWorklets}",
--    "OTHER_SWIFT_FLAGS" => "$(inherited) #{hasWorklets ? "-D VISION_CAMERA_ENABLE_FRAME_PROCESSORS" : ""}",
--    "CLANG_CXX_LANGUAGE_STANDARD" => "c++17",
--    "HEADER_SEARCH_PATHS" => "\"$(PODS_TARGET_SRCROOT)/cpp/\"/** "
--  }
--
-   s.requires_arc = true
- 
-   # All source files that should be publicly visible
+@@ -40,6 +40,7 @@ Pod::Spec.new do |s|
    # Note how this does not include headers, since those can nameclash.
    s.source_files = [
      # Core
@@ -55,15 +13,13 @@ index 3a0e313..6460c5c 100644
 @@ -66,9 +67,10 @@ Pod::Spec.new do |s|
      "ios/**/*.h"
    ]
-   
+ 
 -  s.dependency "React"
 -  s.dependency "React-Core"
 -  s.dependency "React-callinvoker"
-+  if ENV['USE_FRAMEWORKS'] == '1'
-+    s.pod_target_xcconfig = default_config.merge(frameworks_flags)
-+  else
-+    s.pod_target_xcconfig = default_config
-+  end
++  s.pod_target_xcconfig    = {
++    "OTHER_SWIFT_FLAGS" => "-DRCT_NEW_ARCH_ENABLED"
++  }
 +  install_modules_dependencies(s)
  
    if hasWorklets
