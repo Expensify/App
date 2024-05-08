@@ -11,6 +11,10 @@ import type OriginalMessage from './OriginalMessage';
 import type {NotificationPreference} from './Report';
 import type {Receipt} from './Transaction';
 
+type ReportActionMessageJSON = {
+    whisperedTo?: number[];
+};
+
 type Message = {
     /** The type of the action item fragment. Used to render a corresponding component */
     type: string;
@@ -237,4 +241,4 @@ type ReportActions = Record<string, ReportAction>;
 type ReportActionsCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>;
 
 export default ReportAction;
-export type {ReportActions, ReportActionBase, Message, LinkMetadata, OriginalMessage, ReportActionsCollectionDataSet, ReportPreviewAction, ModifiedExpenseAction};
+export type {ReportActions, ReportActionBase, Message, LinkMetadata, OriginalMessage, ReportActionsCollectionDataSet, ReportPreviewAction, ModifiedExpenseAction, ReportActionMessageJSON};
