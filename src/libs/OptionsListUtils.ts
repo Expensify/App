@@ -1484,6 +1484,7 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
             }
 
             const isSelfDM = ReportUtils.isSelfDM(report);
+            const isChatRoom = ReportUtils.isChatRoom(report);
             let accountIDs = [];
 
             if (isSelfDM) {
@@ -1497,7 +1498,7 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
                 }
             }
 
-            if (!accountIDs || accountIDs.length === 0) {
+            if ((!accountIDs || accountIDs.length === 0) && !isChatRoom) {
                 return;
             }
 
@@ -1783,6 +1784,7 @@ function getOptions(
         const isPolicyExpenseChat = option.isPolicyExpenseChat;
         const isMoneyRequestReport = option.isMoneyRequestReport;
         const isSelfDM = option.isSelfDM;
+        const isChatRoom = option.isChatRoom;
         let accountIDs = [];
 
         if (isSelfDM) {
@@ -1826,7 +1828,7 @@ function getOptions(
             return;
         }
 
-        if (!accountIDs || accountIDs.length === 0) {
+        if ((!accountIDs || accountIDs.length === 0) && !isChatRoom) {
             return;
         }
 
