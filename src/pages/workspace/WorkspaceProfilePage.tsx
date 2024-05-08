@@ -80,6 +80,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
         );
     const readOnly = !PolicyUtils.isPolicyAdmin(policy);
     const imageStyle: StyleProp<ImageStyle> = isSmallScreenWidth ? [styles.mhv12, styles.mhn5, styles.mbn5] : [styles.mhv8, styles.mhn8, styles.mbn5];
+    const shouldShowAddress = !readOnly || formattedAddress;
 
     const DefaultAvatar = useCallback(
         () => (
@@ -218,7 +219,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                                 />
                             </View>
                         </OfflineWithFeedback>
-                        {canUseSpotnanaTravel && (
+                        {canUseSpotnanaTravel && shouldShowAddress && (
                             <OfflineWithFeedback pendingAction={policy?.pendingFields?.generalSettings}>
                                 <View>
                                     <MenuItemWithTopDescription

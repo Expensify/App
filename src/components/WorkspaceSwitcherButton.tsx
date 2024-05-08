@@ -24,7 +24,7 @@ function WorkspaceSwitcherButton({policy}: WorkspaceSwitcherButtonProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
 
-    const pressableRef = useRef<HTMLDivElement | View | null>(null);
+    const pressableRef = useRef<View>(null);
 
     const {source, name, type, id} = useMemo(() => {
         if (!policy) {

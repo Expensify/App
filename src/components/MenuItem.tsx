@@ -141,6 +141,12 @@ type MenuItemBaseProps = {
     /** A description text to show under the title */
     description?: string;
 
+    /** Text to show below menu item. This text is not interactive */
+    helperText?: string;
+
+    /** Any additional styles to pass to helper text. */
+    helperTextStyle?: StyleProp<TextStyle>;
+
     /** Should the description be shown above the title (instead of the other way around) */
     shouldShowDescriptionOnTop?: boolean;
 
@@ -296,6 +302,9 @@ function MenuItem(
         furtherDetailsIcon,
         furtherDetails,
         description,
+        helperText,
+        helperTextStyle,
+        error,
         errorText,
         hintText,
         success = false,
@@ -702,6 +711,7 @@ function MenuItem(
                     </PressableWithSecondaryInteraction>
                 )}
             </Hoverable>
+            {!!helperText && <Text style={[styles.mutedNormalTextLabel, styles.ph5, styles.pb5, helperTextStyle]}>{helperText}</Text>}
         </View>
     );
 }
