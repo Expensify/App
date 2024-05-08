@@ -200,7 +200,7 @@ function ReportActionsList({
     );
     const lastActionIndex = sortedVisibleReportActions[0]?.reportActionID;
     const reportActionSize = useRef(sortedVisibleReportActions.length);
-    const hasNewestReportAction = sortedReportActions?.[0].created === report.lastVisibleActionCreated;
+    const hasNewestReportAction = sortedVisibleReportActions?.[0]?.created === report.lastVisibleActionCreated;
     const hasNewestReportActionRef = useRef(hasNewestReportAction);
     hasNewestReportActionRef.current = hasNewestReportAction;
     const previousLastIndex = useRef(lastActionIndex);
@@ -458,9 +458,9 @@ function ReportActionsList({
     );
 
     const shouldUseThreadDividerLine = useMemo(() => {
-        const topReport = sortedVisibleReportActions[sortedVisibleReportActions.length - 1];
+        const topReport = sortedVisibleReportActions.length > 0 ? sortedVisibleReportActions[sortedVisibleReportActions.length - 1] : null;
 
-        if (topReport.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
+        if (topReport && topReport.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
             return false;
         }
 
@@ -559,7 +559,7 @@ function ReportActionsList({
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                 shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                 shouldDisplayNewMarker={shouldDisplayNewMarker(reportAction, index)}
-                shouldDisplayReplyDivider={sortedReportActions.length > 1}
+                shouldDisplayReplyDivider={sortedVisibleReportActions.length > 1}
                 isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
                 shouldUseThreadDividerLine={shouldUseThreadDividerLine}
             />
@@ -568,7 +568,6 @@ function ReportActionsList({
             report,
             linkedReportActionID,
             sortedVisibleReportActions,
-            sortedReportActions.length,
             mostRecentIOUReportActionID,
             shouldHideThreadDividerLine,
             shouldDisplayNewMarker,
