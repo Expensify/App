@@ -1213,6 +1213,7 @@ export {
     getParentReportAction,
     getReportAction,
     getReportActionMessageText,
+    getWhisperedTo,
     isApprovedOrSubmittedReportAction,
     getReportPreviewAction,
     getSortedReportActions,

@@ -21,11 +21,11 @@ export default {
     originalMessage: PropTypes.shape({
         // The ID of the iou transaction
         IOUTransactionID: PropTypes.string,
+
+        /** accountIDs of the people to which the whisper was sent to (if any). Returns empty array if it is not a whisper */
+        whisperedTo: PropTypes.arrayOf(PropTypes.number)
     }),
 
     /** Error message that's come back from the server. */
     error: PropTypes.string,
-
-    /** accountIDs of the people to which the whisper was sent to (if any). Returns empty array if it is not a whisper */
-    whisperedToAccountIDs: PropTypes.arrayOf(PropTypes.number),
 };

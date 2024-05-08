@@ -59,6 +59,7 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type {Comment, Receipt, ReceiptSource, SplitShares, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {ReportPreviewAction} from '@src/types/onyx/ReportAction';
 import * as CachedPDFPaths from './CachedPDFPaths';
 import * as Policy from './Policy';
 import * as Report from './Report';
@@ -1875,7 +1876,7 @@ function getMoneyRequestInformation(
     let reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : getReportPreviewAction(chatReport.reportID, iouReport.reportID);
 
     if (reportPreviewAction) {
-        reportPreviewAction = ReportUtils.updateReportPreview(iouReport, reportPreviewAction, false, comment, optimisticTransaction);
+        reportPreviewAction = ReportUtils.updateReportPreview(iouReport, reportPreviewAction as ReportPreviewAction, false, comment, optimisticTransaction);
     } else {
         reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, comment, optimisticTransaction);
 
@@ -2099,7 +2100,7 @@ function getTrackExpenseInformation(
         reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : getReportPreviewAction(chatReport.reportID, iouReport.reportID);
 
         if (reportPreviewAction) {
-            reportPreviewAction = ReportUtils.updateReportPreview(iouReport, reportPreviewAction, false, comment, optimisticTransaction);
+            reportPreviewAction = ReportUtils.updateReportPreview(iouReport, reportPreviewAction as ReportPreviewAction, false, comment, optimisticTransaction);
         } else {
             reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, comment, optimisticTransaction);
             // Generated ReportPreview action is a parent report action of the iou report.
@@ -3955,7 +3956,7 @@ function createSplitsAndOnyxData(
 
         let oneOnOneReportPreviewAction = getReportPreviewAction(oneOnOneChatReport.reportID, oneOnOneIOUReport.reportID);
         if (oneOnOneReportPreviewAction) {
-            oneOnOneReportPreviewAction = ReportUtils.updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction);
+            oneOnOneReportPreviewAction = ReportUtils.updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction as ReportPreviewAction);
         } else {
             oneOnOneReportPreviewAction = ReportUtils.buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport);
         }
@@ -4644,7 +4645,7 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
 
         let oneOnOneReportPreviewAction = getReportPreviewAction(oneOnOneChatReport?.reportID ?? '', oneOnOneIOUReport?.reportID ?? '');
         if (oneOnOneReportPreviewAction) {
-            oneOnOneReportPreviewAction = ReportUtils.updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction);
+            oneOnOneReportPreviewAction = ReportUtils.updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction as ReportPreviewAction);
         } else {
             oneOnOneReportPreviewAction = ReportUtils.buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport, '', oneOnOneTransaction);
         }
@@ -5685,7 +5686,7 @@ function getPayMoneyRequestParams(
     let optimisticReportPreviewAction = null;
     const reportPreviewAction = getReportPreviewAction(chatReport.reportID, iouReport.reportID);
     if (reportPreviewAction) {
-        optimisticReportPreviewAction = ReportUtils.updateReportPreview(iouReport, reportPreviewAction, true);
+        optimisticReportPreviewAction = ReportUtils.updateReportPreview(iouReport, reportPreviewAction as ReportPreviewAction, true);
     }
 
     const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`] ?? null;

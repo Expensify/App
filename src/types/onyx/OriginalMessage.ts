@@ -292,6 +292,7 @@ type OriginalMessageModifiedExpense = {
         taxRate?: string;
         oldBillable?: string;
         billable?: string;
+        whisperedTo?: number[];
     };
 };
 
@@ -388,6 +389,7 @@ export type {
     OriginalMessageActionableMentionWhisper,
     OriginalMessageActionableReportMentionWhisper,
     OriginalMessageReportPreview,
+    OriginalMessageModifiedExpense,
     OriginalMessageChronosOOOList,
     OriginalMessageRoomChangeLog,
     OriginalMessageSource,
