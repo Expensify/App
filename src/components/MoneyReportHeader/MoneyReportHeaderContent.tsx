@@ -1,7 +1,14 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
+import Button from '@components/Button';
+import ConfirmModal from '@components/ConfirmModal';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MoneyReportHeaderStatusBar from '@components/MoneyReportHeaderStatusBar';
+import MoneyRequestHeaderStatusBar from '@components/MoneyRequestHeaderStatusBar';
+import ProcessMoneyReportHoldMenu from '@components/ProcessMoneyReportHoldMenu';
+import SettlementButton from '@components/SettlementButton';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -9,80 +16,36 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as HeaderUtils from '@libs/HeaderUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import type {IOUMessage, PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import Button from './Button';
-import ConfirmModal from './ConfirmModal';
-import HeaderWithBackButton from './HeaderWithBackButton';
-import * as Expensicons from './Icon/Expensicons';
-import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
-import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
-import SettlementButton from './SettlementButton';
+import {MoneyReportHeaderContentOnyxProps, MoneyReportHeaderContentProps} from './types';
 
-type MoneyReportHeaderOnyxProps = {
-    /** The chat report this report is linked to */
-    chatReport: OnyxEntry<OnyxTypes.Report>;
-
-    /** The next step for the report */
-    nextStep: OnyxEntry<OnyxTypes.ReportNextStep>;
-
-    /** Session info for the currently logged in user. */
-    session: OnyxEntry<OnyxTypes.Session>;
-
-    /** The transaction thread report associated with the current report, if any */
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
-};
-
-type MoneyReportHeaderProps = MoneyReportHeaderOnyxProps & {
-    /** The report currently being looked at */
-    report: OnyxTypes.Report;
-
-    /** The policy tied to the expense report */
-    policy: OnyxEntry<OnyxTypes.Policy>;
-
-    /** Array of report actions for the report */
-    reportActions: OnyxTypes.ReportAction[];
-
-    /** The reportID of the transaction thread report associated with this current report, if any */
-    // eslint-disable-next-line react/no-unused-prop-types
-    transactionThreadReportID?: string | null;
-
-    /** Whether we should display the header as in narrow layout */
-    shouldUseNarrowLayout?: boolean;
-
-    /** Method to trigger when pressing close button of the header */
-    onBackButtonPress: () => void;
-};
-
-function MoneyReportHeader({
+function MoneyReportHeaderContent({
     session,
     policy,
     chatReport,
     nextStep,
     report: moneyRequestReport,
     transactionThreadReport,
-    reportActions,
     shouldUseNarrowLayout = false,
     onBackButtonPress,
-}: MoneyReportHeaderProps) {
+    requestParentReportAction,
+    requestTransaction,
+}: MoneyReportHeaderContentProps) {
     const styles = useThemeStyles();
     const [isDeleteRequestModalVisible, setIsDeleteRequestModalVisible] = useState(false);
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
     const {reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(moneyRequestReport);
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
-    const requestParentReportAction = useMemo(() => {
-        if (!reportActions || !transactionThreadReport?.parentReportActionID) {
-            return null;
-        }
-        return reportActions.find((action) => action.reportActionID === transactionThreadReport.parentReportActionID);
-    }, [reportActions, transactionThreadReport?.parentReportActionID]);
     const isDeletedParentAction = ReportActionsUtils.isDeletedAction(requestParentReportAction as OnyxTypes.ReportAction);
+    const isOneTransactionRequestScanning = TransactionUtils.hasReceipt(requestTransaction) && TransactionUtils.isReceiptBeingScanned(requestTransaction);
 
     // Only the requestor can delete the request, admins can only edit it.
     const isActionOwner =
@@ -273,10 +236,17 @@ function MoneyReportHeader({
                         />
                     </View>
                 )}
-                {shouldShowNextStep && (
+                {!isOneTransactionRequestScanning && shouldShowNextStep && (
                     <View style={[styles.ph5, styles.pb3]}>
                         <MoneyReportHeaderStatusBar nextStep={nextStep} />
                     </View>
+                )}
+                {isOneTransactionRequestScanning && (
+                    <MoneyRequestHeaderStatusBar
+                        title={translate('iou.receiptStatusTitle')}
+                        description={translate('iou.receiptStatusText')}
+                        shouldShowBorderBottom={false}
+                    />
                 )}
             </View>
             {isHoldMenuVisible && requestType !== undefined && (
@@ -316,19 +286,19 @@ function MoneyReportHeader({
     );
 }
 
-MoneyReportHeader.displayName = 'MoneyReportHeader';
-
-export default withOnyx<MoneyReportHeaderProps, MoneyReportHeaderOnyxProps>({
+export default withOnyx<MoneyReportHeaderContentProps, MoneyReportHeaderContentOnyxProps>({
     chatReport: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`,
     },
     nextStep: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.NEXT_STEP}${report.reportID}`,
     },
-    transactionThreadReport: {
-        key: ({transactionThreadReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
-    },
     session: {
         key: ONYXKEYS.SESSION,
     },
-})(MoneyReportHeader);
+    requestTransaction: {
+        key: ({requestParentReportAction}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${(requestParentReportAction?.originalMessage as IOUMessage)?.IOUTransactionID}`,
+    },
+})(MoneyReportHeaderContent);
+
+MoneyReportHeaderContent.displayName = 'MoneyReportHeaderContent';
