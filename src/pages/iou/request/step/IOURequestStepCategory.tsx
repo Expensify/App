@@ -159,7 +159,6 @@ function IOURequestStepCategory({
             shouldShowWrapper
             shouldShowNotFoundPage={shouldShowNotFoundPage}
             testID={IOURequestStepCategory.displayName}
-            includeSafeAreaPaddingBottom={false}
         >
             {isLoading && (
                 <ActivityIndicator
@@ -176,6 +175,7 @@ function IOURequestStepCategory({
                         iconHeight={variables.modalTopIconHeight}
                         title={translate('workspace.categories.emptyCategories.title')}
                         subtitle={translate('workspace.categories.emptyCategories.subtitle')}
+                        contentFitImage="contain"
                     />
                     <FixedFooter style={[styles.mtAuto, styles.pt5]}>
                         <Button
