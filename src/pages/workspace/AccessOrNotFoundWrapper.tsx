@@ -24,6 +24,8 @@ const ACCESS_VARIANTS = {
     [CONST.POLICY.ACCESS_VARIANTS.PAID]: (policy: OnyxEntry<OnyxTypes.Policy>) => PolicyUtils.isPaidGroupPolicy(policy) && !!policy?.isPolicyExpenseChatEnabled,
     [CONST.POLICY.ACCESS_VARIANTS.ADMIN]: (policy: OnyxEntry<OnyxTypes.Policy>) => PolicyUtils.isPolicyAdmin(policy),
     [CONST.IOU.ACCESS_VARIANTS.CREATE]: (policy: OnyxEntry<OnyxTypes.Policy>, report: OnyxEntry<OnyxTypes.Report>, allPolicies: OnyxCollection<OnyxTypes.Policy>, iouType?: IOUType) =>
+        !!iouType &&
+        IOUUtils.isValidMoneyRequestType(iouType) &&
         // Allow the user to submit the expense if we are submitting the expense in global menu or the report can create the expense
         (isEmptyObject(report?.reportID) || ReportUtils.canCreateRequest(report, policy, iouType)) &&
         (iouType !== CONST.IOU.TYPE.INVOICE || PolicyUtils.canSendInvoice(allPolicies)),
@@ -94,6 +96,8 @@ function AccessOrNotFoundWrapper({accessVariants = [], fullPageNotFoundViewProps
     const {policy, policyID, report, iouType, allPolicies, featureName, isLoadingReportData} = props;
 
     const isPolicyIDInRoute = !!policyID?.length;
+    const isMoneyRequest = !!iouType && IOUUtils.isValidMoneyRequestType(iouType);
+    const isFromGlobalCreate = isEmptyObject(report?.reportID);
 
     useEffect(() => {
         if (!isPolicyIDInRoute || !isEmptyObject(policy)) {
@@ -105,7 +109,7 @@ function AccessOrNotFoundWrapper({accessVariants = [], fullPageNotFoundViewProps
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isPolicyIDInRoute, policyID]);
 
-    const shouldShowFullScreenLoadingIndicator = isLoadingReportData !== false && (!Object.entries(policy ?? {}).length || !policy?.id);
+    const shouldShowFullScreenLoadingIndicator = !isMoneyRequest && isLoadingReportData !== false && (!Object.entries(policy ?? {}).length || !policy?.id);
 
     const isFeatureEnabled = featureName ? PolicyUtils.isPolicyFeatureEnabled(policy, featureName) : true;
 
@@ -114,12 +118,8 @@ function AccessOrNotFoundWrapper({accessVariants = [], fullPageNotFoundViewProps
         return acc && accessFunction(policy, report, allPolicies, iouType);
     }, true);
 
-    const isIOU = !!iouType && IOUUtils.isValidMoneyRequestType(iouType);
-    const isFromGlobalCreate = isEmptyObject(report?.reportID);
-
     const isPolicyNotAccessible = isEmptyObject(policy) || (Object.keys(policy).length === 1 && !isEmptyObject(policy.errors)) || !policy?.id;
-    const shouldShowNotFoundPage =
-        isPolicyNotAccessible || !isPageAccessible || !isFeatureEnabled || shouldBeBlocked;
+    const shouldShowNotFoundPage = (!isMoneyRequest && !isFromGlobalCreate && isPolicyNotAccessible) || !isPageAccessible || !isFeatureEnabled || shouldBeBlocked;
 
     if (shouldShowFullScreenLoadingIndicator) {
         return <FullscreenLoadingIndicator />;
