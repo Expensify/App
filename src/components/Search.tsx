@@ -38,7 +38,7 @@ function Search({query}: SearchProps) {
     }, [query, isOffline]);
 
     const isLoadingInitialItems = (!isOffline && isLoadingOnyxValue(searchResultsMeta)) || searchResults?.data === undefined;
-    const isLoadingMoreItems = searchResults?.search?.isLoading ?? false;
+    const isLoadingMoreItems = !isLoadingInitialItems && searchResults?.search?.isLoading;
     const shouldShowEmptyState = !isLoadingInitialItems && isEmptyObject(searchResults?.data);
 
     if (isLoadingInitialItems) {
