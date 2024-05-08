@@ -4,9 +4,9 @@ description: Change the appearance of Expensify
 ---
 <div id="new-expensify" markdown="1">
 
-Expensify has three themes that determine how the app looks:
-- **Dark mode**: The app appears with a black background
-- **Light mode**: The app appears with a white background
+Expensify has three theme options that determine how the app looks:
+- **Dark mode**: The app appears with a dark background
+- **Light mode**: The app appears with a light background
 - **Use Device settings**: Expensify will automatically use your device’s default theme 
 
 To change your Expensify theme,
