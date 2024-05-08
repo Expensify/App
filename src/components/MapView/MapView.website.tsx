@@ -17,7 +17,6 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import setUserLocation from '@userActions/UserLocation';
 import CONST from '@src/CONST';
