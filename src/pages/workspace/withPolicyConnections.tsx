@@ -6,7 +6,6 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useNetwork from '@hooks/useNetwork';
 import {openPolicyAccountingPage} from '@libs/actions/PolicyConnections';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
 import withPolicy from './withPolicy';
 import type {WithPolicyProps} from './withPolicy';
 
@@ -22,24 +21,24 @@ type WithPolicyConnectionsProps = WithPolicyProps;
  * Only the active policy gets the complete policy data upon app start that includes the connections data.
  * For other policies, the connections data needs to be fetched when it's needed.
  */
-function withPolicyConnections(WrappedComponent: ComponentType<WithPolicyConnectionsProps & {policy: Policy}>) {
-    function WithPolicyConnections({policy, policyDraft, route}: WithPolicyConnectionsProps) {
+function withPolicyConnections<TProps extends WithPolicyConnectionsProps>(WrappedComponent: ComponentType<TProps>) {
+    function WithPolicyConnections(props: TProps) {
         const {isOffline} = useNetwork();
-        const [hasConnectionsDataBeenFetched, {status}] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${policy?.id ?? '0'}`, {
+        const [hasConnectionsDataBeenFetched, {status}] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${props.policy?.id ?? '0'}`, {
             initWithStoredValues: false,
         });
 
         useEffect(() => {
             // When the accounting feature is not enabled, or if the connections data already exists,
             // there is no need to fetch the connections data.
-            if (!policy || !policy.areConnectionsEnabled || !!hasConnectionsDataBeenFetched || !!policy.connections) {
+            if (!props.policy || !props.policy.areConnectionsEnabled || !!hasConnectionsDataBeenFetched || !!props.policy.connections) {
                 return;
             }
 
-            openPolicyAccountingPage(policy.id);
-        }, [hasConnectionsDataBeenFetched, policy, isOffline]);
+            openPolicyAccountingPage(props.policy.id);
+        }, [hasConnectionsDataBeenFetched, props.policy, isOffline]);
 
-        if (!policy || status === 'loading' || !hasConnectionsDataBeenFetched) {
+        if (props.policy?.areConnectionsEnabled && (!props.policy || status === 'loading' || hasConnectionsDataBeenFetched === false)) {
             return (
                 <FullPageOfflineBlockingView>
                     <FullScreenLoadingIndicator />
@@ -49,9 +48,8 @@ function withPolicyConnections(WrappedComponent: ComponentType<WithPolicyConnect
 
         return (
             <WrappedComponent
-                policy={policy}
-                policyDraft={policyDraft}
-                route={route}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
             />
         );
     }
@@ -60,3 +58,5 @@ function withPolicyConnections(WrappedComponent: ComponentType<WithPolicyConnect
 }
 
 export default withPolicyConnections;
+
+export type {WithPolicyConnectionsProps};
