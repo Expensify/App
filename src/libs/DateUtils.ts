@@ -42,7 +42,6 @@ import * as Localize from './Localize';
 import Log from './Log';
 
 type CustomStatusTypes = (typeof CONST.CUSTOM_STATUS_TYPES)[keyof typeof CONST.CUSTOM_STATUS_TYPES];
-type TimePeriod = 'AM' | 'PM';
 type Locale = ValueOf<typeof CONST.LOCALES>;
 type WeekDay = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
@@ -321,7 +320,6 @@ function getMonthNames(preferredLocale: Locale): string[] {
         end: new Date(fullYear, 11, 31), // December 31st of the current year
     });
 
-    // eslint-disable-next-line rulesdir/prefer-underscore-method
     return monthsArray.map((monthDate) => format(monthDate, CONST.DATE.MONTH_FORMAT));
 }
 
@@ -337,7 +335,6 @@ function getDaysOfWeek(preferredLocale: Locale): string[] {
     const endOfCurrentWeek = endOfWeek(new Date(), {weekStartsOn});
     const daysOfWeek = eachDayOfInterval({start: startOfCurrentWeek, end: endOfCurrentWeek});
 
-    // eslint-disable-next-line rulesdir/prefer-underscore-method
     return daysOfWeek.map((date) => format(date, 'eeee'));
 }
 
@@ -398,19 +395,6 @@ function addMillisecondsFromDateTime(dateTime: string, milliseconds: number): st
     const newTimestamp = addMilliseconds(date, milliseconds).valueOf();
 
     return getDBTime(newTimestamp);
-}
-
-/**
- * @param isoTimestamp example: 2023-05-16 05:34:14.388
- * @returns example: 2023-05-16
- */
-function getDateStringFromISOTimestamp(isoTimestamp: string): string {
-    if (!isoTimestamp) {
-        return '';
-    }
-
-    const [dateString] = isoTimestamp.split(' ');
-    return dateString;
 }
 
 /**
@@ -535,8 +519,8 @@ function getStatusUntilDate(inputDate: string): string {
     const now = new Date();
     const endOfToday = endOfDay(now);
 
-    // If the date is equal to the end of today
-    if (isSameDay(input, endOfToday)) {
+    // If the date is adjusted to the following day
+    if (isSameSecond(input, endOfToday)) {
         return translateLocal('statusPage.untilTomorrow');
     }
 
@@ -634,28 +618,6 @@ function get12HourTimeObjectFromDate(dateTime: string): {hour: string; minute: s
 }
 
 /**
- * param {String} timeString
- * returns {String}
- * example getTimePeriod('11:10 PM') // 'PM'
- */
-function getTimePeriod(timeString: string): TimePeriod {
-    const parts = timeString.split(' ');
-    return parts[1] as TimePeriod;
-}
-
-/**
- * param {String} dateTimeStringFirst // YYYY-MM-DD HH:mm:ss
- * param {String} dateTimeStringSecond // YYYY-MM-DD HH:mm:ss
- * returns {Boolean}
- */
-function areDatesIdentical(dateTimeStringFirst: string, dateTimeStringSecond: string): boolean {
-    const date1 = parse(dateTimeStringFirst, 'yyyy-MM-dd HH:mm:ss', new Date());
-    const date2 = parse(dateTimeStringSecond, 'yyyy-MM-dd HH:mm:ss', new Date());
-
-    return isSameSecond(date1, date2);
-}
-
-/**
  * Checks if the time input is at least one minute in the future.
  * param {String} timeString: '04:24 AM'
  * param {String} dateTimeString: '2023-11-14 14:24:00'
@@ -664,15 +626,6 @@ function areDatesIdentical(dateTimeStringFirst: string, dateTimeStringSecond: st
 const isTimeAtLeastOneMinuteInFuture = ({timeString, dateTimeString}: {timeString?: string; dateTimeString: string}): boolean => {
     let dateToCheck = dateTimeString;
     if (timeString) {
-        //  return false;
-        // Parse the hour and minute from the time input
-        const [hourStr] = timeString.split(/[:\s]+/);
-        const hour = parseInt(hourStr, 10);
-
-        if (hour === 0) {
-            return false;
-        }
-
         dateToCheck = combineDateAndTime(timeString, dateTimeString);
     }
 
@@ -793,19 +746,13 @@ const DateUtils = {
     setLocale,
     subtractMillisecondsFromDateTime,
     addMillisecondsFromDateTime,
-    getDateStringFromISOTimestamp,
-    getThirtyMinutesFromNow,
     getEndOfToday,
-    getOneWeekFromNow,
     getDateFromStatusType,
     getOneHourFromNow,
     extractDate,
-    formatDateTimeTo12Hour,
     getStatusUntilDate,
     extractTime12Hour,
     get12HourTimeObjectFromDate,
-    areDatesIdentical,
-    getTimePeriod,
     getLocalizedTimePeriodDescription,
     combineDateAndTime,
     getDayValidationErrorKey,
@@ -816,7 +763,6 @@ const DateUtils = {
     getMonthNames,
     getDaysOfWeek,
     formatWithUTCTimeZone,
-    getWeekStartsOn,
     getWeekEndsOn,
     isTimeAtLeastOneMinuteInFuture,
     formatToSupportedTimezone,

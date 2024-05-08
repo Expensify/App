@@ -87,6 +87,9 @@ type MenuItemBaseProps = {
     /** Any additional styles to apply on the badge element */
     badgeStyle?: ViewStyle;
 
+    /** Any additional styles to apply to the label */
+    labelStyle?: StyleProp<ViewStyle>;
+
     /** Any adjustments to style when menu item is hovered or pressed */
     hoverAndPressStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
 
@@ -137,6 +140,12 @@ type MenuItemBaseProps = {
 
     /** A description text to show under the title */
     description?: string;
+
+    /** Text to show below menu item. This text is not interactive */
+    helperText?: string;
+
+    /** Any additional styles to pass to helper text. */
+    helperTextStyle?: StyleProp<TextStyle>;
 
     /** Should the description be shown above the title (instead of the other way around) */
     shouldShowDescriptionOnTop?: boolean;
@@ -212,6 +221,9 @@ type MenuItemBaseProps = {
     /** Should render the content in HTML format */
     shouldRenderAsHTML?: boolean;
 
+    /** Whether or not the text should be escaped */
+    shouldEscapeText?: boolean;
+
     /** Should we grey out the menu item when it is disabled? */
     shouldGreyOutWhenDisabled?: boolean;
 
@@ -267,6 +279,7 @@ function MenuItem(
         outerWrapperStyle,
         containerStyle,
         titleStyle,
+        labelStyle,
         hoverAndPressStyle,
         descriptionTextStyle,
         badgeStyle,
@@ -289,6 +302,8 @@ function MenuItem(
         furtherDetailsIcon,
         furtherDetails,
         description,
+        helperText,
+        helperTextStyle,
         error,
         errorText,
         success = false,
@@ -313,6 +328,7 @@ function MenuItem(
         isSmallAvatarSubscriptMenu = false,
         brickRoadIndicator,
         shouldRenderAsHTML = false,
+        shouldEscapeText = undefined,
         shouldGreyOutWhenDisabled = true,
         shouldUseDefaultCursorWhenDisabled = false,
         isAnonymousAction = false,
@@ -334,7 +350,7 @@ function MenuItem(
     const StyleUtils = useStyleUtils();
     const combinedStyle = [style, styles.popoverMenuItem];
     const {isSmallScreenWidth} = useWindowDimensions();
-    const {isExecuting, singleExecution} = useContext(MenuItemGroupContext) ?? {};
+    const {isExecuting, singleExecution, waitForNavigate} = useContext(MenuItemGroupContext) ?? {};
 
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
     const descriptionVerticalMargin = shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
@@ -366,8 +382,8 @@ function MenuItem(
             return '';
         }
         const parser = new ExpensiMark();
-        return parser.replace(title);
-    }, [title, shouldParseTitle]);
+        return parser.replace(title, {shouldEscapeText});
+    }, [title, shouldParseTitle, shouldEscapeText]);
 
     const processedTitle = useMemo(() => {
         let titleToWrap = '';
@@ -409,18 +425,22 @@ function MenuItem(
         }
 
         if (onPress && event) {
-            if (!singleExecution) {
+            if (!singleExecution || !waitForNavigate) {
                 onPress(event);
                 return;
             }
-            singleExecution(onPress)(event);
+            singleExecution(
+                waitForNavigate(() => {
+                    onPress(event);
+                }),
+            )();
         }
     };
 
     return (
         <View>
             {!!label && !isLabelHoverable && (
-                <View style={[styles.ph5]}>
+                <View style={[styles.ph5, labelStyle]}>
                     <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre])}>{label}</Text>
                 </View>
             )}
@@ -456,7 +476,7 @@ function MenuItem(
                             <>
                                 <View style={[styles.flexColumn, styles.flex1]}>
                                     {!!label && isLabelHoverable && (
-                                        <View style={icon ? styles.mb2 : null}>
+                                        <View style={[icon ? styles.mb2 : null, labelStyle]}>
                                             <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre])}>
                                                 {label}
                                             </Text>
@@ -599,14 +619,7 @@ function MenuItem(
                                     {badgeText && (
                                         <Badge
                                             text={badgeText}
-                                            textStyles={styles.textStrong}
-                                            badgeStyles={[
-                                                styles.alignSelfCenter,
-                                                styles.badgeBordered,
-                                                brickRoadIndicator ? styles.mr2 : undefined,
-                                                focused || isHovered || pressed ? styles.activeItemBadge : {},
-                                                badgeStyle,
-                                            ]}
+                                            badgeStyles={badgeStyle}
                                         />
                                     )}
                                     {/* Since subtitle can be of type number, we should allow 0 to be shown */}
@@ -674,6 +687,7 @@ function MenuItem(
                     </PressableWithSecondaryInteraction>
                 )}
             </Hoverable>
+            {!!helperText && <Text style={[styles.mutedNormalTextLabel, styles.ph5, styles.pb5, helperTextStyle]}>{helperText}</Text>}
         </View>
     );
 }

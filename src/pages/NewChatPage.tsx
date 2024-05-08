@@ -68,26 +68,28 @@ function useOptions({isGroupChat}: NewChatPageProps) {
             {},
             [],
             true,
+            undefined,
+            undefined,
+            undefined,
+            true,
         );
-        const maxParticipantsReached = selectedOptions.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
 
         const headerMessage = OptionsListUtils.getHeaderMessage(
             filteredOptions.personalDetails.length + filteredOptions.recentReports.length !== 0,
             Boolean(filteredOptions.userToInvite),
             debouncedSearchTerm.trim(),
-            maxParticipantsReached,
             selectedOptions.some((participant) => participant?.searchText?.toLowerCase?.().includes(debouncedSearchTerm.trim().toLowerCase())),
         );
-        return {...filteredOptions, headerMessage, maxParticipantsReached};
+        return {...filteredOptions, headerMessage};
     }, [betas, debouncedSearchTerm, isGroupChat, listOptions.personalDetails, listOptions.reports, selectedOptions]);
 
     useEffect(() => {
-        if (!debouncedSearchTerm.length || options.maxParticipantsReached) {
+        if (!debouncedSearchTerm.length) {
             return;
         }
 
         Report.searchInServer(debouncedSearchTerm);
-    }, [debouncedSearchTerm, options.maxParticipantsReached]);
+    }, [debouncedSearchTerm]);
 
     useEffect(() => {
         if (!newGroupDraft?.participants) {
@@ -113,35 +115,20 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
     const {insets} = useStyledSafeAreaInsets();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
 
-    const {
-        headerMessage,
-        maxParticipantsReached,
-        searchTerm,
-        debouncedSearchTerm,
-        setSearchTerm,
-        selectedOptions,
-        setSelectedOptions,
-        recentReports,
-        personalDetails,
-        userToInvite,
-        areOptionsInitialized,
-    } = useOptions({
-        isGroupChat,
-    });
+    const {headerMessage, searchTerm, debouncedSearchTerm, setSearchTerm, selectedOptions, setSelectedOptions, recentReports, personalDetails, userToInvite, areOptionsInitialized} =
+        useOptions({
+            isGroupChat,
+        });
 
     const [sections, firstKeyForList] = useMemo(() => {
         const sectionsList: OptionsListUtils.CategorySection[] = [];
         let firstKey = '';
 
-        const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(debouncedSearchTerm, selectedOptions, recentReports, personalDetails, maxParticipantsReached);
+        const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(debouncedSearchTerm, selectedOptions, recentReports, personalDetails);
         sectionsList.push(formatResults.section);
 
         if (!firstKey) {
             firstKey = OptionsListUtils.getFirstKeyForList(formatResults.section.data);
-        }
-
-        if (maxParticipantsReached) {
-            return [sectionsList, firstKey];
         }
 
         sectionsList.push({
@@ -174,7 +161,7 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
         }
 
         return [sectionsList, firstKey];
-    }, [debouncedSearchTerm, selectedOptions, recentReports, personalDetails, maxParticipantsReached, translate, userToInvite]);
+    }, [debouncedSearchTerm, selectedOptions, recentReports, personalDetails, translate, userToInvite]);
 
     /**
      * Creates a new 1:1 chat with the option and the current user,
@@ -182,6 +169,10 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
      */
     const createChat = useCallback(
         (option?: OptionsListUtils.Option) => {
+            if (option?.isSelfDM) {
+                Navigation.dismissModal(option.reportID);
+                return;
+            }
             let login = '';
 
             if (option?.login) {
@@ -200,6 +191,9 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
 
     const itemRightSideComponent = useCallback(
         (item: ListItem & OptionsListUtils.Option) => {
+            if (item.isSelfDM) {
+                return null;
+            }
             /**
              * Removes a selected option from list if already selected. If not already selected add this option to the list.
              * @param  option
@@ -308,6 +302,7 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
                     shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                     isLoadingNewOptions={!!isSearchingForReports}
                     initiallyFocusedOptionKey={firstKeyForList}
+                    shouldTextInputInterceptSwipe
                 />
                 {isSmallScreenWidth && <OfflineIndicator />}
             </KeyboardAvoidingView>

@@ -72,7 +72,7 @@ function invertObject(object: Record<string, string>): Record<string, string> {
 type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 
 function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, route, policy, session, currentUserPersonalDetails, isLoadingReportData = true}: WorkspaceMembersPageProps) {
-    const policyMemberEmailsToAccountIDs = useMemo(() => PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList), [policy?.employeeList]);
+    const policyMemberEmailsToAccountIDs = useMemo(() => PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList, true), [policy?.employeeList]);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [selectedEmployees, setSelectedEmployees] = useState<number[]>([]);
@@ -87,7 +87,6 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
     const prevPersonalDetails = usePrevious(personalDetails);
     const {translate, formatPhoneNumber, preferredLocale} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const dropdownButtonRef = useRef(null);
     const isPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
     const isLoading = useMemo(
         () => !isOfflineAndNoMemberDataAvailable && (!OptionsListUtils.isPersonalDetailsReady(personalDetails) || isEmptyObject(policy?.employeeList)),
@@ -339,13 +338,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
             const isAdmin = policyEmployee.role === CONST.POLICY.ROLE.ADMIN;
             let roleBadge = null;
             if (isOwner || isAdmin) {
-                roleBadge = (
-                    <Badge
-                        text={isOwner ? translate('common.owner') : translate('common.admin')}
-                        textStyles={styles.textStrong}
-                        badgeStyles={[styles.justifyContentCenter, StyleUtils.getMinimumWidth(60), styles.badgeBordered, isSelected && styles.activeItemBadge]}
-                    />
-                );
+                roleBadge = <Badge text={isOwner ? translate('common.owner') : translate('common.admin')} />;
             }
 
             result.push({
@@ -374,7 +367,6 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
         result = result.sort((a, b) => (a.text ?? '').toLowerCase().localeCompare((b.text ?? '').toLowerCase()));
         return result;
     }, [
-        StyleUtils,
         currentUserLogin,
         formatPhoneNumber,
         invitedPrimaryToSecondaryLogins,
@@ -388,10 +380,6 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
         policyOwner,
         selectedEmployees,
         session?.accountID,
-        styles.activeItemBadge,
-        styles.badgeBordered,
-        styles.justifyContentCenter,
-        styles.textStrong,
         translate,
     ]);
 
@@ -515,7 +503,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                         buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                         onPress={() => null}
                         options={getBulkActionsButtonOptions()}
-                        buttonRef={dropdownButtonRef}
+                        isSplitButton={false}
                         style={[isSmallScreenWidth && styles.flexGrow1]}
                     />
                 ) : (
