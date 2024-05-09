@@ -1,10 +1,11 @@
 import type {OnyxEntry} from 'react-native-onyx';
+import type {OnboardingPurposeType} from '@src/CONST';
 
 type OnboardingPurposeProps = Record<string, unknown>;
 
 type BaseOnboardingPurposeOnyxProps = {
     /** Saved onboarding purpose selected by the user */
-    onboardingPurposeSelected: OnyxEntry<string>;
+    onboardingPurposeSelected: OnyxEntry<OnboardingPurposeType>;
 };
 
 type BaseOnboardingPurposeProps = OnboardingPurposeProps &
