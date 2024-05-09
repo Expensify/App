@@ -539,7 +539,9 @@ function MoneyRequestConfirmationList({
                 <Text style={[styles.ph4, styles.textLabelSupporting]}>{translate('moneyRequestConfirmationList.splitAmounts')}</Text>
                 {!shouldShowReadOnlySplits && isSplitModified && (
                     <PressableWithFeedback
-                        onPress={() => IOU.resetSplitShares(transaction)}
+                        onPress={() => {
+                            IOU.resetSplitShares(transaction);
+                        }}
                         accessibilityLabel={CONST.ROLE.BUTTON}
                         role={CONST.ROLE.BUTTON}
                         shouldUseAutoHitSlop
