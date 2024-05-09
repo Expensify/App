@@ -1,8 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
-import type React from 'react';
 import {useCallback, useContext, useEffect, useRef, useState} from 'react';
-import type {View} from 'react-native';
 import {PopoverContext} from '@components/PopoverProvider';
+import type UseDragAndDrop from './types';
 
 const COPY_DROP_EFFECT = 'copy';
 const NONE_DROP_EFFECT = 'none';
@@ -11,22 +10,10 @@ const DRAG_OVER_EVENT = 'dragover';
 const DRAG_LEAVE_EVENT = 'dragleave';
 const DROP_EVENT = 'drop';
 
-type DragAndDropParams = {
-    dropZone: React.MutableRefObject<HTMLDivElement | View | null>;
-    onDrop?: (event: DragEvent) => void;
-    shouldAllowDrop?: boolean;
-    isDisabled?: boolean;
-    shouldAcceptDrop?: (event: DragEvent) => boolean;
-};
-
-type DragAndDropOptions = {
-    isDraggingOver: boolean;
-};
-
 /**
  * @param dropZone – ref to the dropZone component
  */
-export default function useDragAndDrop({dropZone, onDrop = () => {}, shouldAllowDrop = true, isDisabled = false, shouldAcceptDrop = () => true}: DragAndDropParams): DragAndDropOptions {
+const useDragAndDrop: UseDragAndDrop = ({dropZone, onDrop = () => {}, shouldAllowDrop = true, isDisabled = false, shouldAcceptDrop = () => true}) => {
     const isFocused = useIsFocused();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
     const {close: closePopover} = useContext(PopoverContext);
@@ -111,7 +98,7 @@ export default function useDragAndDrop({dropZone, onDrop = () => {}, shouldAllow
             return;
         }
 
-        const dropZoneRef = dropZone.current as HTMLDivElement;
+        const dropZoneRef = dropZone.current;
 
         // Note that the dragover event needs to be called with `event.preventDefault` in order for the drop event to be fired:
         // https://stackoverflow.com/questions/21339924/drop-event-not-firing-in-chrome
@@ -133,4 +120,6 @@ export default function useDragAndDrop({dropZone, onDrop = () => {}, shouldAllow
     }, [dropZone, dropZoneDragHandler]);
 
     return {isDraggingOver};
-}
+};
+
+export default useDragAndDrop;
