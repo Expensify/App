@@ -5336,6 +5336,7 @@ function parseReportRouteParams(route: string): ReportRouteParams {
     const pathSegments = parsingRoute.split('/');
 
     const reportIDSegment = pathSegments[1];
+    const hasRouteReportActionID = !Number.isNaN(Number(reportIDSegment));
 
     // Check for "undefined" or any other unwanted string values
     if (!reportIDSegment || reportIDSegment === 'undefined') {
@@ -5344,7 +5345,7 @@ function parseReportRouteParams(route: string): ReportRouteParams {
 
     return {
         reportID: reportIDSegment,
-        isSubReportPageRoute: pathSegments.length > 2,
+        isSubReportPageRoute: pathSegments.length > 2 && !hasRouteReportActionID,
     };
 }
 
