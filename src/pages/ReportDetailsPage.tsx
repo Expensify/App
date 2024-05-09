@@ -83,7 +83,8 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const shouldShowReportDescription = isChatRoom && (canEditReportDescription || report.description !== '');
     const shouldDisableRename = useMemo(() => ReportUtils.shouldDisableRename(report, policy), [policy, report]);
     const isDeprecatedGroupDM = useMemo(() => ReportUtils.isDeprecatedGroupDM(report), [report]);
-    const shouldShowRoomName = ReportUtils.isPolicyExpenseChat(report) || (!ReportUtils.isChatThread(report) && !isTaskReport && !isDeprecatedGroupDM && !isMoneyRequestReport);
+    const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(report), [report]);
+    const shouldShowRoomName = isPolicyExpenseChat || (!ReportUtils.isChatThread(report) && !isTaskReport && !isDeprecatedGroupDM && !isMoneyRequestReport);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
     const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(report), [report, policy]);
@@ -164,10 +165,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     }
                 },
             });
-        } else if (
-            (isUserCreatedPolicyRoom && (!participants.length || !isPolicyEmployee)) ||
-            ((isDefaultRoom || ReportUtils.isPolicyExpenseChat(report)) && isChatThread && !isPolicyEmployee)
-        ) {
+        } else if ((isUserCreatedPolicyRoom && (!participants.length || !isPolicyEmployee)) || ((isDefaultRoom || isPolicyExpenseChat) && isChatThread && !isPolicyEmployee)) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.INVITE,
                 translationKey: 'common.invite',
@@ -269,11 +267,20 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             : ReportUtils.getReportName(report);
 
     const roomFurtherDetails =
-        (ReportUtils.isPolicyExpenseChat(report) && !!report?.isOwnPolicyExpenseChat) || ReportUtils.isExpenseReport(report) || isInvoiceRoom
+        (isPolicyExpenseChat && !!report?.isOwnPolicyExpenseChat) || ReportUtils.isExpenseReport(report) || isPolicyExpenseChat || isInvoiceRoom
             ? chatRoomSubtitle
             : `${translate('threads.in')} ${chatRoomSubtitle}`;
 
-    const roomTitle = ReportUtils.isPolicyExpenseChat(report) || isGroupChat ? reportName : report?.reportName ?? reportName;
+    const roomTitle = isPolicyExpenseChat || isGroupChat ? reportName : report?.reportName ?? reportName;
+
+    let roomDescription;
+    if (isInvoiceRoom || isPolicyExpenseChat) {
+        roomDescription = translate('common.name');
+    } else if (isGroupChat) {
+        roomDescription = translate('groupConfirmPage.groupName');
+    } else {
+        roomDescription = translate('newRoomPage.roomName');
+    }
 
     return (
         <ScreenWrapper testID={ReportDetailsPage.displayName}>
@@ -343,7 +350,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                                 title={roomTitle}
                                 titleStyle={styles.newKansasLarge}
                                 shouldCheckActionAllowedOnPress={false}
-                                description={isGroupChat ? translate('groupConfirmPage.groupName') : translate('newRoomPage.roomName')}
+                                description={roomDescription}
                                 furtherDetails={chatRoomSubtitle && !isGroupChat ? roomFurtherDetails : ''}
                                 onPress={() =>
                                     isGroupChat
