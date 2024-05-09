@@ -62,7 +62,7 @@ function TransactionListItem<TItem extends ListItem>({
     const isFromExpenseReport = transactionItem.reportType === CONST.REPORT.TYPE.EXPENSE;
     const date = TransactionUtils.getCreated(transactionItem as OnyxEntry<Transaction>, CONST.DATE.MONTH_DAY_ABBR_FORMAT);
     const amount = TransactionUtils.getAmount(transactionItem as OnyxEntry<Transaction>, isFromExpenseReport);
-    const taxAmount = TransactionUtils.getAmount(transactionItem as OnyxEntry<Transaction>);
+    const taxAmount = TransactionUtils.getTaxAmount(transactionItem as OnyxEntry<Transaction>, isFromExpenseReport);
     const currency = TransactionUtils.getCurrency(transactionItem as OnyxEntry<Transaction>);
     const description = TransactionUtils.getDescription(transactionItem as OnyxEntry<Transaction>);
     const merchant = getMerchant();
@@ -209,7 +209,7 @@ function TransactionListItem<TItem extends ListItem>({
                                     height={variables.iconSizeXXSmall}
                                     fill={theme.icon}
                                 />
-                                <View style={[styles.mw50]}>{userCell(transactionItem.to)}</View>
+                                <View style={[styles.flex1, styles.mw50]}>{userCell(transactionItem.to)}</View>
                             </View>
                             <View style={[StyleUtils.getWidthStyle(variables.w80)]}>{actionCell}</View>
                         </View>
