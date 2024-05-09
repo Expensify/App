@@ -515,7 +515,7 @@ function ReportActionItem({
                 isSendingMoney)
         ) {
             // There is no single iouReport for bill splits, so only 1:1 requests require an iouReportID
-            const iouReportID = action.originalMessage.IOUReportID ? action.originalMessage.IOUReportID.toString() : '0';
+            const iouReportID = action.originalMessage.IOUReportID ? action.originalMessage.IOUReportID.toString() : '-1';
             children = (
                 <MoneyRequestAction
                     // If originalMessage.iouReportID is set, this is a 1:1 IOU expense in a DM chat whose reportID is report.chatReportID
