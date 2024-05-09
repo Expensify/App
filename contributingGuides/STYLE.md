@@ -254,9 +254,11 @@ function logObject(object: Record<string, unknown>) {
 
 ### Prop Types
 
-Don't use `ComponentProps` to grab a component's prop types. Go to the source file for the component and export prop types from there. Import and use the exported prop types.
+Don't use `ComponentProps` to grab a component's prop types. Go to the source file for the component and export prop types from there. Import and use the exported prop types. 
 
-> Don't export prop types from component files by default. Only export it when there is a code that needs to access the prop type directly.
+> Why? Importing prop type from the component file is more common and readable. Using `ComponentProps` might cause problems in some cases (see [related GitHub issue](https://github.com/piotrwitek/react-redux-typescript-guide/issues/170)). Each component with props has it's prop  type defined in the file anyway, so it's easy to export it when required.
+
+Don't export prop types from component files by default. Only export it when there is a code that needs to access the prop type directly.
 
 ```tsx
 // MyComponent.tsx
