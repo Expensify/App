@@ -25,6 +25,7 @@ type OriginalMessageActionName =
     | 'TASKREOPENED'
     | 'ACTIONABLEJOINREQUEST'
     | 'ACTIONABLEMENTIONWHISPER'
+    | 'ACTIONABLEREPORTMENTIONWHISPER'
     | 'ACTIONABLETRACKEXPENSEWHISPER'
     | ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>;
 type OriginalMessageApproved = {
@@ -70,6 +71,7 @@ type IOUMessage = {
     deleted?: string;
     /** Only exists when we are sending money */
     IOUDetails?: IOUDetails;
+    whisperedTo?: number[];
 };
 
 type ReimbursementDeQueuedMessage = {
@@ -153,6 +155,19 @@ type OriginalMessageActionableMentionWhisper = {
     };
 };
 
+type OriginalMessageActionableReportMentionWhisper = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER;
+    originalMessage: {
+        reportNames: string[];
+        mentionedAccountIDs: number[];
+        reportActionID: number;
+        reportID: number;
+        lastModified: string;
+        resolution?: ValueOf<typeof CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION> | null;
+        whisperedTo?: number[];
+    };
+};
+
 type OriginalMessageSubmitted = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED;
     originalMessage: unknown;
@@ -219,6 +234,7 @@ type OriginalMessageReportPreview = {
     originalMessage: {
         linkedReportID: string;
         lastModified?: string;
+        whisperedTo?: number[];
     };
 };
 
@@ -276,6 +292,7 @@ type OriginalMessageModifiedExpense = {
         taxRate?: string;
         oldBillable?: string;
         billable?: string;
+        whisperedTo?: number[];
     };
 };
 
@@ -330,6 +347,7 @@ type OriginalMessage =
     | OriginalMessageIOU
     | OriginalMessageAddComment
     | OriginalMessageActionableMentionWhisper
+    | OriginalMessageActionableReportMentionWhisper
     | OriginalMessageSubmitted
     | OriginalMessageClosed
     | OriginalMessageCreated
@@ -369,6 +387,9 @@ export type {
     OriginalMessageAddComment,
     OriginalMessageJoinPolicyChangeLog,
     OriginalMessageActionableMentionWhisper,
+    OriginalMessageActionableReportMentionWhisper,
+    OriginalMessageReportPreview,
+    OriginalMessageModifiedExpense,
     OriginalMessageChronosOOOList,
     OriginalMessageRoomChangeLog,
     OriginalMessageSource,
