@@ -30,11 +30,20 @@ const getFilenameFromMime = (name: string, mime: string): string => {
 const createDownloadQueue = () => {
     const downloadItemProcessor = (item: DownloadItem): Promise<void> =>
         new Promise((resolve, reject) => {
-            item.win.webContents.downloadURL(item.url);
+            let downloadTimeout: NodeJS.Timeout;
+            let downloadListener: (event: Electron.Event, electronDownloadItem: Electron.DownloadItem) => void;
 
-            const listener = (event: Electron.Event, electronDownloadItem: Electron.DownloadItem) => {
+            // Define the timeout function
+            const timeoutFunction = () => {
+                item.win.webContents.session.removeListener('will-download', downloadListener);
+                resolve();
+            };
+
+            const listenerFunction = (event: Electron.Event, electronDownloadItem: Electron.DownloadItem) => {
+                clearTimeout(downloadTimeout);
+
                 const options = item.options;
-                const cleanup = () => item.win.webContents.session.removeListener('will-download', listener);
+                const cleanup = () => item.win.webContents.session.removeListener('will-download', listenerFunction);
                 const errorMessage = `The download of ${electronDownloadItem.getFilename()} was interrupted`;
 
                 if (options.directory && !path.isAbsolute(options.directory)) {
@@ -87,7 +96,11 @@ const createDownloadQueue = () => {
                 item.win.webContents.send(ELECTRON_EVENTS.DOWNLOAD_STARTED, {url: item.url});
             };
 
-            item.win.webContents.session.on('will-download', listener);
+            downloadTimeout = setTimeout(timeoutFunction, 5000);
+            downloadListener = listenerFunction;
+
+            item.win.webContents.downloadURL(item.url);
+            item.win.webContents.session.on('will-download', downloadListener);
         });
 
     const queue = createQueue<DownloadItem>(downloadItemProcessor);
