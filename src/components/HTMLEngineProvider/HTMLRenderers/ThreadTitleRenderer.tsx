@@ -3,10 +3,13 @@ import {View} from 'react-native';
 import {TChildrenRenderer} from 'react-native-render-html';
 import type {CustomRendererProps, TBlock, TNode} from 'react-native-render-html';
 import Text from '@components/Text';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 type ThreadTitleRendererProps = CustomRendererProps<TBlock>;
 
 function ThreadTitleRenderer({tnode}: ThreadTitleRendererProps) {
+    const styles = useThemeStyles();
+
     const renderFn = (node: TNode) => {
         const children = node.children;
 
@@ -29,9 +32,6 @@ function ThreadTitleRenderer({tnode}: ThreadTitleRendererProps) {
                         <TChildrenRenderer
                             key={`threadTitleHTML-${child.nodeIndex}`}
                             tchildren={[child]}
-                            propsForChildren={{
-                                numberOfLines: 1,
-                            }}
                         />
                     </Text>
                 );
@@ -42,7 +42,7 @@ function ThreadTitleRenderer({tnode}: ThreadTitleRendererProps) {
                 return (
                     <Text
                         key={`threadTitleText-${child.nodeIndex}`}
-                        style={[...Object.values(child.styles), {flex: 1, flexWrap: 'wrap'}]}
+                        style={[...Object.values(child.styles), styles.renderHTML]}
                         numberOfLines={1}
                     >
                         {child.data}

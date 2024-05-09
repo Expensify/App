@@ -3070,22 +3070,6 @@ function getInvoicePayerName(report: OnyxEntry<Report>): string {
 }
 
 /**
- * Get the report action message for a report action.
- */
-function getReportActionMessage(reportAction: ReportAction | EmptyObject, parentReportID?: string) {
-    if (isEmptyObject(reportAction)) {
-        return '';
-    }
-    if (ReportActionsUtils.isApprovedOrSubmittedReportAction(reportAction)) {
-        return ReportActionsUtils.getReportActionMessageText(reportAction);
-    }
-    if (ReportActionsUtils.isReimbursementQueuedAction(reportAction)) {
-        return getReimbursementQueuedActionMessage(reportAction, getReport(parentReportID), false);
-    }
-    return Str.removeSMSDomain(reportAction?.message?.[0]?.text ?? '');
-}
-
-/**
  * Get the title for an invoice room.
  */
 function getInvoicesChatName(report: OnyxEntry<Report>): string {
@@ -3135,12 +3119,18 @@ function getThreadReportNameHtml(reportActionMessageHtml: string): string {
  * Get the title for a thread based on parent message.
  * If render in html, only the first line of the message should display.
  */
-function getThreadReportName(parentReportAction: OnyxEntry<ReportAction> | EmptyObject = {}, shouldRenderAsHTML = false, shouldRenderFirstLineOnly = true): string {
+function getThreadReportName(parentReportAction: OnyxEntry<ReportAction> | EmptyObject = {}, parentReportID?: string, shouldRenderAsHTML = false, shouldRenderFirstLineOnly = true): string {
+    if (isEmptyObject(parentReportAction)) {
+        return '';
+    }
     if (ReportActionsUtils.isApprovedOrSubmittedReportAction(parentReportAction)) {
-        return ReportActionsUtils.getReportActionMessageText(parentReportAction).replace(/(\r\n|\n|\r)/gm, ' ');
+        return ReportActionsUtils.getReportActionMessageText(parentReportAction);
+    }
+    if (ReportActionsUtils.isReimbursementQueuedAction(parentReportAction)) {
+        return getReimbursementQueuedActionMessage(parentReportAction, getReport(parentReportID), false);
     }
     if (!shouldRenderAsHTML && !shouldRenderFirstLineOnly) {
-        return (parentReportAction?.message?.[0]?.text ?? '').replace(/(\r\n|\n|\r)/gm, ' ');
+        return Str.removeSMSDomain(parentReportAction?.message?.[0]?.text ?? '');
     }
 
     const threadReportNameHtml = getThreadReportNameHtml(parentReportAction?.message?.[0]?.html ?? '');
@@ -3172,7 +3162,7 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
         }
 
         const isAttachment = ReportActionsUtils.isReportActionAttachment(!isEmptyObject(parentReportAction) ? parentReportAction : null);
-        const parentReportActionMessage = getReportActionMessage(parentReportAction, report?.parentReportID).replace(/(\r\n|\n|\r)/gm, ' ');
+        const parentReportActionMessage = getThreadReportName(parentReportAction, report?.parentReportID, shouldRenderAsHTML, shouldRenderFirstLineOnly).replace(/(\r\n|\n|\r)/gm, ' ');
         if (isAttachment && parentReportActionMessage) {
             return `[${Localize.translateLocal('common.attachment')}]`;
         }

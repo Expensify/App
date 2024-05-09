@@ -69,7 +69,6 @@ function WrappedText({children, wordStyles, textStyles, numberOfLines}: WrappedT
                             numberOfLines={numberOfLines}
                             style={[textStyles, !containsEmoji(colText) && styles.codePlainTextStyle]}
                         >
-                            
                             {Array.from(colText).map((char, charIndex) =>
                                 containsOnlyEmojis(char) ? (
                                     <Text
@@ -83,7 +82,6 @@ function WrappedText({children, wordStyles, textStyles, numberOfLines}: WrappedT
                                     char
                                 ),
                             )}
-                        
                         </Text>
                     </View>
                 </View>
