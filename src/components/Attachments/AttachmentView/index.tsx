@@ -133,7 +133,6 @@ function AttachmentView({
     if (TransactionUtils.hasEReceipt(transaction) && transaction) {
         return (
             <View
-                fsClass="fs-exclude"
                 style={[styles.flex1, styles.alignItemsCenter]}>
                 <ScrollView
                     style={styles.w100}
@@ -222,7 +221,6 @@ function AttachmentView({
 
         return (
             <AttachmentViewVideo
-                            fsClass="fs-exclude"
                             source={source}
                             shouldUseSharedVideoElement={isUsedInCarousel}
                             isHovered={isHovered}
@@ -233,10 +231,8 @@ function AttachmentView({
 
     return (
         <View
-            fsClass="fs-exclude"
             style={[styles.defaultAttachmentView, containerStyles]}>
             <View
-                fsClass="fs-exclude"
                 style={styles.mr2}>
                 <Icon
                     fill={theme.icon}
@@ -245,14 +241,11 @@ function AttachmentView({
             </View>
 
             <Text
-                fsClass="fs-exclude"
                 style={[styles.textStrong, styles.flexShrink1, styles.breakAll, styles.flexWrap, styles.mw100]}>{file?.name}</Text>
             {!shouldShowLoadingSpinnerIcon && shouldShowDownloadIcon && (
                 <Tooltip
-                    fsClass="fs-exclude"
                     text={translate('common.download')}>
                     <View
-                        fsClass="fs-exclude"
                         style={styles.ml2}>
                         <Icon
                             fill={theme.icon}
@@ -263,13 +256,10 @@ function AttachmentView({
             )}
             {shouldShowLoadingSpinnerIcon && (
                 <View
-                    fsClass="fs-exclude"
                     style={styles.ml2}>
                     <Tooltip
-                    fsClass="fs-exclude"
                         text={translate('common.downloading')}>
                         <ActivityIndicator
-                        fsClass="fs-exclude"
                             size="small"
                             color={theme.textSupporting}
                         />

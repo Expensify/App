@@ -39,7 +39,6 @@ function BaseVideoPlayer({
     onPlaybackStatusUpdate,
     onFullscreenUpdate,
     shouldPlay,
-    fsClass,
     // TODO: investigate what is the root cause of the bug with unexpected video switching
     // isVideoHovered caused a bug with unexpected video switching. We are investigating the root cause of the issue,
     // but current workaround is just not to use it here for now. This causes not displaying the video controls when
@@ -356,11 +355,10 @@ function BaseVideoPlayer({
                                 )}
                             </PressableWithoutFeedback>
 
-                            {(isLoading || isBuffering) && <FullScreenLoadingIndicator fsClass="fs-exclude" style={[styles.opacity1, styles.bgTransparent]} />}
+                            {(isLoading || isBuffering) && <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
 
                             {controlsStatus !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE && !isLoading && (isPopoverVisible || isHovered || canUseTouchScreen) && (
                                 <VideoPlayerControls
-                                    fsClass="fs-exclude"
                                     duration={duration}
                                     position={position}
                                     url={url}
@@ -378,7 +376,6 @@ function BaseVideoPlayer({
                 </Hoverable>
             </PressableWithoutFeedback>
             <VideoPopoverMenu
-                fsClass="fs-exclude"
                 isPopoverVisible={isPopoverVisible}
                 hidePopover={hidePopoverMenu}
                 anchorPosition={popoverAnchorPosition}

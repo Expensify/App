@@ -18,7 +18,6 @@ type VideoDimensions = {
 };
 
 type VideoPlayerPreviewProps = {
-    fsClass: string;
     /** Url to a video. */
     videoUrl: string;
 
@@ -72,7 +71,6 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
 
     return (
         <View
-            fsClass="fs-exclude"
             style={[styles.webViewStyles.tagStyles.video, thumbnailDimensionsStyles]}>
             {isSmallScreenWidth || isThumbnail ? (
                 <VideoPlayerThumbnail
@@ -82,10 +80,8 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
                 />
             ) : (
                 <View
-                    fsClass="fs-exclude"
                     style={styles.flex1}>
                     <VideoPlayer
-                        fsClass="fs-exclude"
                         url={videoUrl}
                         onVideoLoaded={onVideoLoaded as (event: VideoReadyForDisplayEvent) => void}
                         videoDuration={videoDuration}
@@ -94,7 +90,6 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
                         videoPlayerStyle={styles.videoPlayerPreview}
                     />
                     <View
-                        fsClass="fs-exclude"
                         style={[styles.pAbsolute, styles.w100]}>
                         <IconButton
                             src={Expensicons.Expand}
