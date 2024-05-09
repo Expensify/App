@@ -135,7 +135,7 @@ function ReportActionItemSingle({
         source: avatarSource,
         type: isWorkspaceActor ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR,
         name: primaryDisplayName ?? '',
-        id: isWorkspaceActor ? '' : actorAccountID,
+        id: isWorkspaceActor ? report.policyID : actorAccountID,
     };
 
     // Since the display name for a report action message is delivered with the report history as an array of fragments
