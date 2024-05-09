@@ -75,7 +75,7 @@ function TransactionListItem<TItem extends ListItem>({
             iconSize='small'
             shouldUseThumbnailImage={!transactionItem.hasEReceipt}
             isAuthTokenRequired
-            isThumbnail
+            fallbackIcon={Expensicons.ReceiptPlus}
         />
     );
 
