@@ -102,6 +102,7 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
         return;
     }
 
+    // When we want to open SearchPage, we need to push to the navigation stack the CentralPane screen as a source of the correct URL.
     const shouldPushCentralPane = !getIsNarrowLayout() || shouldOpenSearchPage;
 
     // If the layout is wide we need to push matching central pane route to the stack.
