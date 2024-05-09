@@ -144,6 +144,7 @@ import Podcast from '@assets/images/social-podcast.svg';
 import Twitter from '@assets/images/social-twitter.svg';
 import Youtube from '@assets/images/social-youtube.svg';
 import Stopwatch from '@assets/images/stopwatch.svg';
+import Suitcase from '@assets/images/suitcase.svg';
 import Sync from '@assets/images/sync.svg';
 import Tag from '@assets/images/tag.svg';
 import Task from '@assets/images/task.svg';
@@ -303,6 +304,7 @@ export {
     Send,
     Shield,
     Stopwatch,
+    Suitcase,
     Sync,
     Task,
     ThumbsUp,
