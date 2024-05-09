@@ -605,8 +605,9 @@ function ReportActionsList({
     const listFooterComponent = useMemo(() => {
         // Skip this hook on the first render (when online), as we are not sure if more actions are going to be loaded,
         // Therefore showing the skeleton on footer might be misleading.
-        // When offline, there should be no second render, so we should show the skeleton if the corresponding loading prop is present
-        if (!isOffline && !hasFooterRendered.current) {
+        // When offline, there should be no second render, so we should show the skeleton if the corresponding loading prop is present.
+        // In case of an error we want to display the footer no matter what.
+        if (!isOffline && !hasFooterRendered.current && !hasLoadingOlderReportActionsError) {
             hasFooterRendered.current = true;
             return null;
         }
@@ -641,7 +642,8 @@ function ReportActionsList({
     }, [loadNewerChats]);
 
     const listHeaderComponent = useMemo(() => {
-        if (!canShowHeader) {
+        // In case of an error we want to display the header no matter what.
+        if (!canShowHeader && !hasLoadingNewerReportActionsError) {
             hasHeaderRendered.current = true;
             return null;
         }

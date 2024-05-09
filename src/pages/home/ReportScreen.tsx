@@ -770,7 +770,9 @@ export default withCurrentReportID(
                 initialValue: {
                     isLoadingInitialReportActions: true,
                     isLoadingOlderReportActions: false,
+                    hasLoadingOlderReportActionsError: false,
                     isLoadingNewerReportActions: false,
+                    hasLoadingNewerReportActionsError: false,
                 },
             },
             isComposerFullSize: {
