@@ -6377,19 +6377,17 @@ function setMoneyRequestParticipantsFromReport(transactionID: string, report: On
 
     if (ReportUtils.isPolicyExpenseChat(chatReport) || shouldAddAsReport) {
         participants = [{accountID: 0, reportID: chatReport?.reportID, isPolicyExpenseChat: ReportUtils.isPolicyExpenseChat(chatReport), selected: true}];
+    } else if (ReportUtils.isInvoiceRoom(chatReport)) {
+        participants = [
+            {...chatReport?.invoiceReceiver, selected: true},
+            {
+                policyID: chatReport?.policyID,
+                isSender: true,
+                selected: false,
+            },
+        ];
     } else {
         participants = (chatReport?.participantAccountIDs ?? []).filter((accountID) => currentUserAccountID !== accountID).map((accountID) => ({accountID, selected: true}));
-
-        if (ReportUtils.isInvoiceRoom(chatReport)) {
-            participants = [
-                ...participants,
-                {
-                    policyID: chatReport?.policyID,
-                    isSender: true,
-                    selected: false,
-                },
-            ];
-        }
     }
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants, participantsAutoAssigned: true});
