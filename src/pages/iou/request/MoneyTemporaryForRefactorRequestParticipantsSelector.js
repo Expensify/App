@@ -81,6 +81,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
 
     const offlineMessage = isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : '';
 
+    const actionTypeForParticipants = iouType === CONST.IOU.TYPE.SPLIT ? CONST.IOU.TYPE.SPLIT : iouRequestType;
     const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isCategorizeOrShareAction = [CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(action);
 
@@ -129,6 +130,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
             undefined,
             !isCategorizeOrShareAction,
             isCategorizeOrShareAction ? 0 : undefined,
+            actionTypeForParticipants,
         );
 
         const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(debouncedSearchTerm, participants, chatOptions.recentReports, chatOptions.personalDetails, personalDetails, true);
@@ -172,6 +174,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
         iouRequestType,
         personalDetails,
         translate,
+        actionTypeForParticipants,
         didScreenTransitionEnd,
         isCategorizeOrShareAction,
     ]);

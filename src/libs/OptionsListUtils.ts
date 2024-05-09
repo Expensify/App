@@ -7,6 +7,7 @@ import lodashSet from 'lodash/set';
 import lodashSortBy from 'lodash/sortBy';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import type {SelectedTagOption} from '@components/TagPicker';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -134,6 +135,8 @@ type Tax = {
 
 type Hierarchy = Record<string, Category & {[key: string]: Hierarchy & Category}>;
 
+type ActionType = ValueOf<typeof CONST.IOU.REQUEST_TYPE> | ValueOf<Pick<typeof CONST.REPORT.TYPE, 'TASK'>> | ValueOf<Pick<typeof CONST.IOU.TYPE, 'SPLIT'>> | undefined;
+
 type GetOptionsConfig = {
     reportActions?: ReportActions;
     betas?: OnyxEntry<Beta[]>;
@@ -169,6 +172,7 @@ type GetOptionsConfig = {
     policyReportFieldOptions?: string[];
     recentlyUsedPolicyReportFieldOptions?: string[];
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
+    actionTypeForParticipants?: ActionType;
 };
 
 type GetUserToInviteConfig = {
@@ -1674,6 +1678,7 @@ function getOptions(
         includePolicyReportFieldOptions = false,
         policyReportFieldOptions = [],
         recentlyUsedPolicyReportFieldOptions = [],
+        actionTypeForParticipants,
     }: GetOptionsConfig,
 ): Options {
     if (includeCategories) {
@@ -1732,6 +1737,7 @@ function getOptions(
         };
     }
 
+    const recentReportOptionsByAction: ReportUtils.OptionData[] = [];
     const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchInputValue)));
     const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number?.e164 ?? '' : searchInputValue.toLowerCase();
     const topmostReportId = Navigation.getTopmostReportId() ?? '';
@@ -1771,6 +1777,14 @@ function getOptions(
     });
     orderedReportOptions.reverse();
 
+    const isTaskActionTypeForParticipants = actionTypeForParticipants === CONST.REPORT.TYPE.TASK;
+    const isMoneyRequestActionTypeForParticipants =
+        !isTaskActionTypeForParticipants &&
+        (actionTypeForParticipants === CONST.IOU.REQUEST_TYPE.MANUAL ||
+            actionTypeForParticipants === CONST.IOU.REQUEST_TYPE.SCAN ||
+            actionTypeForParticipants === CONST.IOU.REQUEST_TYPE.DISTANCE ||
+            actionTypeForParticipants === CONST.IOU.TYPE.SPLIT);
+    const recentChatReportIDsForActionType: string[] = [];
     const allReportOptions = orderedReportOptions.filter((option) => {
         const report = option.item;
 
@@ -1813,6 +1827,14 @@ function getOptions(
             return;
         }
 
+        // Collect the parent report of the given task for consideration in recent list.
+        if (isTaskActionTypeForParticipants && isTaskReport && includeRecentReports) {
+            if (report.parentReportID && ReportUtils.isValidReportIDFromPath(report.parentReportID) && recentChatReportIDsForActionType.indexOf(report.parentReportID) === -1) {
+                recentChatReportIDsForActionType.push(report.parentReportID);
+            }
+            return;
+        }
+
         if (isTaskReport && !includeTasks) {
             return;
         }
@@ -1841,7 +1863,7 @@ function getOptions(
         allPersonalDetailsOptions = lodashOrderBy(allPersonalDetailsOptions, [(personalDetail) => personalDetail.text?.toLowerCase()], 'asc');
     }
 
-    const optionsToExclude: Option[] = [{login: CONST.EMAIL.NOTIFICATIONS}];
+    let optionsToExclude: Option[] = [{login: CONST.EMAIL.NOTIFICATIONS}];
 
     // If we're including selected options from the search results, we only want to exclude them if the search input is empty
     // This is because on certain pages, we show the selected options at the top when the search input is empty
@@ -1854,21 +1876,32 @@ function getOptions(
         optionsToExclude.push({login});
     });
 
-    let recentReportOptions = [];
+    const optionsToExcludeByActions: Option[] = [];
+    optionsToExcludeByActions.push(...optionsToExclude);
+    let recentReportOptions: ReportUtils.OptionData[] = [];
     let personalDetailsOptions: ReportUtils.OptionData[] = [];
-
     if (includeRecentReports) {
+        // Collect the highest context (i.e. DM/Workspace chat) of the money request report for consideration in recent list.
+        if (isMoneyRequestActionTypeForParticipants) {
+            TransactionUtils.getTransactionsByActionType(actionTypeForParticipants).every((recentTransaction) => {
+                const iouReport = ReportUtils.getReport(recentTransaction?.reportID);
+                if (
+                    iouReport?.parentReportID &&
+                    ReportUtils.isValidReportIDFromPath(iouReport?.parentReportID) &&
+                    recentChatReportIDsForActionType.indexOf(iouReport?.parentReportID) === -1
+                ) {
+                    recentChatReportIDsForActionType.push(iouReport?.parentReportID);
+                }
+                return true;
+            });
+        }
+
         for (const reportOption of allReportOptions) {
             /**
              * By default, generated options does not have the chat preview line enabled.
              * If showChatPreviewLine or forcePolicyNamePreview are true, let's generate and overwrite the alternate text.
              */
             reportOption.alternateText = getAlternateText(reportOption, {showChatPreviewLine, forcePolicyNamePreview});
-
-            // Stop adding options to the recentReports array when we reach the maxRecentReportsToShow value
-            if (recentReportOptions.length > 0 && recentReportOptions.length === maxRecentReportsToShow) {
-                break;
-            }
 
             // Skip notifications@expensify.com
             if (reportOption.login === CONST.EMAIL.NOTIFICATIONS) {
@@ -1880,15 +1913,6 @@ function getOptions(
 
             // Skip if we aren't including multiple participant reports and this report has multiple participants
             if (!isCurrentUserOwnedPolicyExpenseChatThatCouldShow && !includeMultipleParticipantReports && !reportOption.login) {
-                continue;
-            }
-
-            // If we're excluding threads, check the report to see if it has a single participant and if the participant is already selected
-            if (
-                !includeThreads &&
-                (!!reportOption.login || reportOption.reportID) &&
-                optionsToExclude.some((option) => option.login === reportOption.login || option.reportID === reportOption.reportID)
-            ) {
                 continue;
             }
 
@@ -1908,14 +1932,54 @@ function getOptions(
                 }
             }
 
+            // Check if this report option is to be displayed based on the action type
+            const isActionTypeOptionForParticipants =
+                (isMoneyRequestActionTypeForParticipants || isTaskActionTypeForParticipants) &&
+                recentChatReportIDsForActionType.some((reportID: string) => reportID === String(reportOption.reportID));
+            if (isActionTypeOptionForParticipants && optionsToExcludeByActions.some((option) => option.login === reportOption.login || option.reportID === reportOption.reportID)) {
+                continue;
+            }
+
             reportOption.isSelected = isReportSelected(reportOption, selectedOptions);
 
-            recentReportOptions.push(reportOption);
-
-            // Add this login to the exclude list so it won't appear when we process the personal details
-            if (reportOption.login) {
-                optionsToExclude.push({login: reportOption.login});
+            // Stop adding to the recent report option list if we have reached the maxRecentReportsToShow value
+            if (recentReportOptionsByAction.length > 0 && recentReportOptionsByAction.length === maxRecentReportsToShow) {
+                break;
             }
+
+            // Push the report option to be displayed based on action type
+            if (isActionTypeOptionForParticipants) {
+                recentReportOptionsByAction.push(reportOption);
+                if (reportOption.login) {
+                    optionsToExcludeByActions.push({login: reportOption.login});
+                }
+                continue;
+            }
+
+            // If we're excluding threads, check the report to see if it has a single participant and if the participant is already selected
+            if (
+                !includeThreads &&
+                (!!reportOption.login || reportOption.reportID) &&
+                optionsToExclude.some((option) => option.login === reportOption.login || option.reportID === reportOption.reportID)
+            ) {
+                continue;
+            }
+
+            // Keep adding to the recentReports array if there is no limit set or until maxRecentReportsToShow limit is reached
+            if (!maxRecentReportsToShow || recentReportOptions.length < maxRecentReportsToShow) {
+                recentReportOptions.push(reportOption);
+                // Add this login to the exclude list so it won't appear when we process the personal details
+                if (reportOption.login) {
+                    optionsToExclude.push({login: reportOption.login});
+                }
+            }
+        }
+
+        // Let us reset the recent list and the options to exclude if we have found
+        // recent reports by action type for setting personal details and for search results.
+        if (recentReportOptionsByAction.length > 0) {
+            optionsToExclude = [...optionsToExcludeByActions];
+            recentReportOptions = [...recentReportOptionsByAction];
         }
     }
 
@@ -2082,6 +2146,7 @@ function getFilteredOptions(
     recentlyUsedPolicyReportFieldOptions: string[] = [],
     includePersonalDetails = true,
     maxRecentReportsToShow = 5,
+    actionTypeForParticipants: ActionType = undefined,
 ) {
     return getOptions(
         {reports, personalDetails},
@@ -2109,6 +2174,7 @@ function getFilteredOptions(
             includePolicyReportFieldOptions,
             policyReportFieldOptions,
             recentlyUsedPolicyReportFieldOptions,
+            actionTypeForParticipants,
         },
     );
 }

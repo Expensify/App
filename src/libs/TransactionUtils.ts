@@ -5,7 +5,7 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {RecentWaypoint, Report, TaxRate, TaxRates, TaxRatesWithDefault, Transaction, TransactionViolation} from '@src/types/onyx';
-import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
+import type {Comment, IOUActionType, Receipt, TransactionChanges, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {IOURequestType} from './actions/IOU';
 import {isCorporateCard, isExpensifyCard} from './CardUtils';
@@ -55,6 +55,10 @@ function isScanRequest(transaction: OnyxEntry<Transaction>): boolean {
     return Boolean(transaction?.receipt?.source);
 }
 
+function isSplitRequest(transaction: Transaction): boolean {
+    return Boolean(transaction?.comment?.source === CONST.IOU.TYPE.SPLIT);
+}
+
 function getRequestType(transaction: OnyxEntry<Transaction>): IOURequestType {
     if (isDistanceRequest(transaction)) {
         return CONST.IOU.REQUEST_TYPE.DISTANCE;
@@ -73,6 +77,28 @@ function isManualRequest(transaction: Transaction): boolean {
     }
 
     return getRequestType(transaction) === CONST.IOU.REQUEST_TYPE.MANUAL;
+}
+
+/**
+ * Returns the type of action for the given transaction
+ */
+function getTransactionActionType(transaction: Transaction): IOUActionType {
+    if (isSplitRequest(transaction)) {
+        return CONST.IOU.TYPE.SPLIT;
+    }
+    return getRequestType(transaction);
+}
+
+/**
+ * Returns a sorted array of transactions based on the type of action
+ */
+function getTransactionsByActionType(actionType?: IOUActionType): Array<OnyxEntry<Transaction>> {
+    return (
+        Object.values(allTransactions ?? {})
+            .filter((transaction): transaction is Transaction => transaction != null && actionType === getTransactionActionType(transaction))
+            // String based sorting of dates having format [YYYY-MM-DD HH:MM:SS.mmm]
+            .sort((transactionA, transactionB) => (transactionA?.created && transactionB?.created && transactionA?.created < transactionB?.created ? 1 : -1))
+    );
 }
 
 /**
@@ -680,6 +706,7 @@ export {
     getRequestType,
     isManualRequest,
     isScanRequest,
+    isSplitRequest,
     getAmount,
     getTaxAmount,
     getTaxCode,
@@ -723,6 +750,8 @@ export {
     waypointHasValidAddress,
     getRecentTransactions,
     hasViolation,
+    getTransactionsByActionType,
+    getTransactionActionType,
     hasNoticeTypeViolation,
     isCustomUnitRateIDForP2P,
     getRateID,
