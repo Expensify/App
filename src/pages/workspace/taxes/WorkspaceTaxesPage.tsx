@@ -234,13 +234,10 @@ function WorkspaceTaxesPage({
         />
     );
 
-    const getSmallWidthHeaderComponent = () => (
-        <>
-            <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>
-            <View style={[styles.ph5, styles.pb5, styles.pt3]}>
-                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.taxes.subtitle')}</Text>
-            </View>
-        </>
+    const getHeaderText = () => (
+        <View style={[styles.ph5, styles.pb5, styles.pt3]}>
+            <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.taxes.subtitle')}</Text>
+        </View>
     );
 
     return (
@@ -262,11 +259,8 @@ function WorkspaceTaxesPage({
                 >
                     {!isSmallScreenWidth && headerButtons}
                 </HeaderWithBackButton>
-                {!isSmallScreenWidth && (
-                    <View style={[styles.ph5, styles.pb5, styles.pt3]}>
-                        <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.taxes.subtitle')}</Text>
-                    </View>
-                )}
+                {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
+                {!isSmallScreenWidth && getHeaderText()}
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -283,7 +277,7 @@ function WorkspaceTaxesPage({
                     showScrollIndicator
                     ListItem={TableListItem}
                     customListHeader={getCustomListHeader()}
-                    ListHeaderComponent={isSmallScreenWidth ? getSmallWidthHeaderComponent() : null}
+                    ListHeaderComponent={isSmallScreenWidth ? getHeaderText() : null}
                     shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                     listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                     onDismissError={(item) => (item.keyForList ? clearTaxRateError(policyID, item.keyForList, item.pendingAction) : undefined)}

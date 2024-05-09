@@ -504,7 +504,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                         onPress={() => null}
                         options={getBulkActionsButtonOptions()}
                         isSplitButton={false}
-                        style={[isSmallScreenWidth && styles.flexGrow1]}
+                        style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
                     />
                 ) : (
                     <Button
@@ -514,7 +514,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                         text={translate('workspace.invite.member')}
                         icon={Expensicons.Plus}
                         innerStyles={[isSmallScreenWidth && styles.alignItemsCenter]}
-                        style={[isSmallScreenWidth && styles.flexGrow1]}
+                        style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
                     />
                 )}
             </View>
@@ -545,6 +545,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                 >
                     {!isSmallScreenWidth && getHeaderButtons()}
                 </HeaderWithBackButton>
+                {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                 <ConfirmModal
                     danger
                     title={translate('workspace.people.removeMembersTitle')}
@@ -582,14 +583,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                         textInputRef={textInputRef}
                         customListHeader={getCustomListHeader()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                        ListHeaderComponent={
-                            isSmallScreenWidth ? (
-                                <View style={[styles.pl5, styles.pr5]}>
-                                    {getHeaderContent()}
-                                    {getHeaderButtons()}
-                                </View>
-                            ) : null
-                        }
+                        ListHeaderComponent={isSmallScreenWidth ? <View style={[styles.pl5, styles.pr5]}>{getHeaderContent()}</View> : null}
                     />
                 </View>
             </FullPageNotFoundView>

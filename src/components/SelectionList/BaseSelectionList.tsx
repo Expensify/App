@@ -605,6 +605,7 @@ function BaseSelectionList<TItem extends ListItem>(
                             <SectionList
                                 ref={listRef}
                                 sections={slicedSections}
+                                stickySectionHeadersEnabled={false}
                                 renderSectionHeader={(arg) => (
                                     <>
                                         {renderSectionHeader(arg)}
@@ -630,7 +631,6 @@ function BaseSelectionList<TItem extends ListItem>(
                                 style={(!maxToRenderPerBatch || (shouldHideListOnInitialRender && isInitialSectionListRender)) && styles.opacity0}
                                 ListFooterComponent={listFooterContent ?? ShowMoreButtonInstance}
                                 ListHeaderComponent={ListHeaderComponent && ListHeaderComponent}
-                                stickySectionHeadersEnabled={!!ListHeaderComponent && true}
                             />
                             {children}
                         </>
