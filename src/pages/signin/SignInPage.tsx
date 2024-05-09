@@ -279,12 +279,7 @@ function SignInPageInner({credentials, account, activeClients = [], preferredLoc
                 {!shouldShowAnotherLoginPageOpenedMessage && (
                     <>
                         {shouldShowUnlinkLoginForm && <UnlinkLoginForm />}
-                        {shouldShowChooseSSOOrMagicCode && (
-                            <ChooseSSOOrMagicCode
-                                isUsingRecoveryCode={isUsingRecoveryCode}
-                                setIsUsingRecoveryCode={setIsUsingRecoveryCode}
-                            />
-                        )}
+                        {shouldShowChooseSSOOrMagicCode && <ChooseSSOOrMagicCode setIsUsingMagicCode={setIsUsingMagicCode} />}
                         {shouldShowEmailDeliveryFailurePage && <EmailDeliveryFailurePage />}
                     </>
                 )}
