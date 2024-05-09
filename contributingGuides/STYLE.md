@@ -406,8 +406,10 @@ const sizingStyles = {
     mw100: {
         maxWidth: '100%',
     },
-} satisfies Record<string, ViewStyle>;
+} as const satisfies Record<string, ViewStyle>;
 ```
+
+The example above results in the most narrow type possible, also the values are `readonly`. There are some cases in which that is not desired (e.g. the variable can be modified), if so `as const` should be omitted.
 
 ### Type imports/exports
 
