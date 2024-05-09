@@ -141,12 +141,6 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** ISO-formatted datetime */
     created: string;
 
-    /** report action message */
-    message?: Array<Message | undefined>;
-
-    /** report action message */
-    previousMessage?: Array<Message | undefined>;
-
     /** Whether we have received a response back from the server */
     isLoading?: boolean;
 
@@ -233,6 +227,12 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
 type ReportAction<T extends ReportActionName = ReportActionName> = ReportActionBase & {
     originalMessage: OriginalMessage<T>;
+
+    /** report action message */
+    message?: OriginalMessage<T> | Array<Message | undefined>;
+
+    /** report action message */
+    previousMessage?: OriginalMessage<T> | Array<Message | undefined>;
 };
 
 type ReportActions = Record<string, ReportAction>;

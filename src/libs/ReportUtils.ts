@@ -2149,7 +2149,7 @@ function getReimbursementDeQueuedActionMessage(
     report: OnyxEntry<Report> | EmptyObject,
     isLHNPreview = false,
 ): string {
-    const originalMessage = reportAction?.originalMessage as ReimbursementDeQueuedMessage | undefined;
+    const originalMessage = reportAction?.originalMessage;
     const amount = originalMessage?.amount;
     const currency = originalMessage?.currency;
     const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
@@ -2670,7 +2670,7 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxEntry<ReportAction>, field
  * - It's not pending deletion
  */
 function canEditReportAction(reportAction: OnyxEntry<ReportAction>): boolean {
-    const isCommentOrIOU = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU;
+    const isCommentOrIOU = ReportActionsUtils.isAddCommentAction(reportAction) || ReportActionsUtils.isMoneyRequestAction(reportAction);
 
     return Boolean(
         reportAction?.actorAccountID === currentUserAccountID &&

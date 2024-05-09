@@ -92,7 +92,7 @@ function isCreatedAction(reportAction: OnyxEntry<ReportAction>): reportAction is
 }
 
 function isClosedAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CLOSED> {
-    return report?.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED;
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED;
 }
 
 function isAddCommentAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT> {
@@ -1232,6 +1232,7 @@ export {
     isConsecutiveActionMadeByPreviousActor,
     isCreatedAction,
     isClosedAction,
+    isAddCommentAction,
     isCreatedTaskReportAction,
     isDeletedAction,
     isDeletedParentAction,

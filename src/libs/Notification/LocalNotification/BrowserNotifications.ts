@@ -5,6 +5,7 @@ import EXPENSIFY_ICON_URL from '@assets/images/expensify-logo-round-clearspace.p
 import * as AppUpdate from '@libs/actions/AppUpdate';
 import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import * as ReportUtils from '@libs/ReportUtils';
+import type CONST from '@src/CONST';
 import type {Report, ReportAction} from '@src/types/onyx';
 import focusApp from './focusApp';
 import type {LocalNotificationClickHandler, LocalNotificationData} from './types';
@@ -90,7 +91,7 @@ export default {
      *
      * @param usesIcon true if notification uses right circular icon
      */
-    pushReportCommentNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, usesIcon = false) {
+    pushReportCommentNotification(report: Report, reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT>, onClick: LocalNotificationClickHandler, usesIcon = false) {
         let title;
         let body;
         const icon = usesIcon ? EXPENSIFY_ICON_URL : '';
@@ -101,7 +102,7 @@ export default {
         const plainTextPerson = person?.map((f) => f.text).join() ?? '';
 
         // Specifically target the comment part of the message
-        const plainTextMessage = message?.find((f) => f?.type === 'COMMENT')?.text ?? '';
+        const plainTextMessage = Array.isArray(message) ? message.find((f) => f?.type === 'COMMENT')?.text ?? '' : message?.text ?? '';
 
         if (isChatRoom) {
             const roomName = ReportUtils.getReportName(report);

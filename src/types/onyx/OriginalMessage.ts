@@ -67,6 +67,7 @@ type Reaction = {
 
 type OriginalMessageAddComment = {
     html: string;
+    text: string;
     source?: OriginalMessageSource;
     lastModified?: string;
     taskReportID?: string;

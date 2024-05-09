@@ -301,11 +301,12 @@ function ReportScreen({
     const hasHelpfulErrors = Object.keys(report?.errorFields ?? {}).some((key) => key !== 'notFound');
     const shouldHideReport = !hasHelpfulErrors && !ReportUtils.canAccessReport(report, policies, betas);
 
-    const lastReportAction: OnyxEntry<OnyxTypes.ReportAction> = useMemo(
+    const lastReportAction: OnyxEntry<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT>> = useMemo(
         () =>
-            reportActions.length
-                ? [...reportActions, parentReportAction].find((action) => ReportUtils.canEditReportAction(action) && !ReportActionsUtils.isMoneyRequestAction(action)) ?? null
-                : null,
+            [...reportActions, parentReportAction].find(
+                (action): action is OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT> | null =>
+                    ReportUtils.canEditReportAction(action) && !ReportActionsUtils.isMoneyRequestAction(action),
+            ) ?? null,
         [reportActions, parentReportAction],
     );
     const isSingleTransactionView = ReportUtils.isMoneyRequest(report) || ReportUtils.isTrackExpenseReport(report);
