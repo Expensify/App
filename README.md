@@ -11,7 +11,7 @@
 
 #### Table of Contents
 * [Local Development](#local-development)
-* [Testing on browsers on simulators and emulators](#testing-on-browsers-on-simulators-and-emulators)
+* [Testing on browsers in simulators and emulators](#testing-on-browsers-in-simulators-and-emulators)
 * [Running The Tests](#running-the-tests)
 * [Debugging](#debugging)
 * [App Structure and Conventions](#app-structure-and-conventions)
@@ -36,7 +36,7 @@ These instructions should get you set up ready to work on New Expensify 🙌
 1. Install `nvm` then `node` & `npm`: `brew install nvm && nvm install`
 2. Install `watchman`: `brew install watchman`
 3. Install dependencies: `npm install`
-4. Install `mkcert`: `brew install mkcert` followed by `npm run setup-https`. If you are not using macOS, follow the instructions [here](https://github.com/FiloSottile/mkcert?tab=readme-ov-file#installation). 
+4. Install `mkcert`: `brew install mkcert` followed by `npm run setup-https`. If you are not using macOS, follow the instructions [here](https://github.com/FiloSottile/mkcert?tab=readme-ov-file#installation).
 5. Create a host entry in your local hosts file, `/etc/hosts` for dev.new.expensify.com pointing to localhost:
 ```
 127.0.0.1 dev.new.expensify.com
@@ -54,12 +54,13 @@ If you're using another operating system, you will need to ensure `mkcert` is in
 
 ## Running the web app 🕸
 * To run the **development web app**: `npm run web`
-* Changes applied to Javascript will be applied automatically via WebPack as configured in `webpack.dev.js`
+* Changes applied to Javascript will be applied automatically via WebPack as configured in `webpack.dev.ts`
 
 ## Running the iOS app 📱
 For an M1 Mac, read this [SO](https://stackoverflow.com/questions/64901180/how-to-run-cocoapods-on-apple-silicon-m1) for installing cocoapods.
 
 * If you haven't already, install Xcode tools and make sure to install the optional "iOS Platform" package as well. This installation may take awhile.
+    * After installation, check in System Settings that there's no update for Xcode. Otherwise, you may encounter issues later that don't explain that you solve them by updating Xcode.
 * Install project gems, including cocoapods, using bundler to ensure everyone uses the same versions. In the project root, run: `bundle install`
     * If you get the error `Could not find 'bundler'`, install the bundler gem first: `gem install bundler` and try again.
     * If you are using MacOS and get the error `Gem::FilePermissionError` when trying to install the bundler gem, you're likely using system Ruby, which requires administrator permission to modify. To get around this, install another version of Ruby with a version manager like [rbenv](https://github.com/rbenv/rbenv#installation).
@@ -82,11 +83,21 @@ If you want to run the app on an actual physical iOS device, please follow the i
 ## Running the MacOS desktop app 🖥
 * To run the **Development app**, run: `npm run desktop`, this will start a new Electron process running on your MacOS desktop in the `dist/Mac` folder.
 
+## Receiving Notifications
+To receive notifications on development build of the app while hitting the Staging or Production API, you need to use the production airship config.
+### Android
+1. Copy the [production config](https://github.com/Expensify/App/blob/d7c1256f952c0020344d809ee7299b49a4c70db2/android/app/src/main/assets/airshipconfig.properties#L1-L7) to the [development config](https://github.com/Expensify/App/blob/d7c1256f952c0020344d809ee7299b49a4c70db2/android/app/src/development/assets/airshipconfig.properties#L1-L8).
+2. Rebuild the app.
+
+### iOS
+1. Replace the [development key and secret](https://github.com/Expensify/App/blob/d7c1256f952c0020344d809ee7299b49a4c70db2/ios/AirshipConfig.plist#L7-L10) with the [production values](https://github.com/Expensify/App/blob/d7c1256f952c0020344d809ee7299b49a4c70db2/ios/AirshipConfig.plist#L11-L14).
+2. Rebuild the app.
+
 ## Troubleshooting
 1. If you are having issues with **_Getting Started_**, please reference [React Native's Documentation](https://reactnative.dev/docs/environment-setup)
 2. If you are running into CORS errors like (in the browser dev console)
    ```sh
-   Access to fetch at 'https://www.expensify.com/api?command=BeginSignIn' from origin 'http://localhost:8080' has been blocked by CORS policy
+   Access to fetch at 'https://www.expensify.com/api/BeginSignIn' from origin 'http://localhost:8080' has been blocked by CORS policy
    ```
    You probably have a misconfigured `.env` file - remove it (`rm .env`) and try again
 
@@ -113,7 +124,7 @@ variables referenced here get updated since your local `.env` file is ignored.
    see [PERFORMANCE.md](contributingGuides/PERFORMANCE.md#performance-metrics-opt-in-on-local-release-builds) for more information
 - `ONYX_METRICS` (optional) - Set this to `true` to capture even more performance metrics and see them in Flipper
    see [React-Native-Onyx#benchmarks](https://github.com/Expensify/react-native-onyx#benchmarks) for more information
-- `E2E_TESTING` (optional) - This needs to be set to `true` when running the e2e tests for performance regression testing. 
+- `E2E_TESTING` (optional) - This needs to be set to `true` when running the e2e tests for performance regression testing.
    This happens usually automatically, read [this](tests/e2e/README.md) for more information
 
 ----
@@ -127,7 +138,7 @@ You create this certificate by following the instructions in [`Configuring HTTPS
 #### Pre-requisite for Android flow
 1. Open any emulator using Android Studio
 2. Use `adb push "$(mkcert -CAROOT)/rootCA.pem" /storage/emulated/0/Download/` to push certificate to install in Download folder.
-3. Install the certificate as CA certificate from the settings. On the Android emulator, this option can be found in Settings > Security > Encryption & Credentials > Install a certificate > CA certificate.  
+3. Install the certificate as CA certificate from the settings. On the Android emulator, this option can be found in Settings > Security > Encryption & Credentials > Install a certificate > CA certificate.
 4. Close the emulator.
 
 Note - If you want to run app on `https://127.0.0.1:8082`, then just install the certificate and use `adb reverse tcp:8082 tcp:8082` on every startup.
@@ -186,6 +197,79 @@ Our React Native Android app now uses the `Hermes` JS engine which requires your
 ## Web
 
 To make it easier to test things in web, we expose the Onyx object to the window, so you can easily do `Onyx.set('bla', 1)`.
+
+----
+
+# Release Profiler
+Often, performance issue debugging occurs in debug builds, which can introduce errors from elements such as JS Garbage Collection, Hermes debug markers, or LLDB pauses.
+
+`react-native-release-profiler` facilitates profiling within release builds for accurate local problem-solving and broad performance analysis in production to spot regressions or collect extensive device data. Therefore, we will utilize the production build version
+
+### Getting Started with Source Maps
+To accurately profile your application, generating source maps for Android and iOS is crucial. Here's how to enable them:
+1. Enable source maps on Android
+Ensure the following is set in your app's `android/app/build.gradle` file.
+
+    ```jsx
+    project.ext.react = [
+        enableHermes: true,
+        hermesFlagsRelease: ["-O", "-output-source-map"], // <-- here, plus whichever flag was required to set this away from default
+    ]
+    ```
+
+2. Enable source maps on IOS
+Within Xcode head to the build phase - `Bundle React Native code and images`.
+
+    ```jsx
+    export SOURCEMAP_FILE="$(pwd)/../main.jsbundle.map" // <-- here;
+
+    export NODE_BINARY=node
+    ../node_modules/react-native/scripts/react-native-xcode.sh
+    ```
+3. Install the necessary packages and CocoaPods dependencies:
+    ```jsx
+    npm i && npm run pod-install
+    ```
+7. Depending on the platform you are targeting, run your Android/iOS app in production mode.
+8. Upon completion, the generated source map can be found at:
+  Android: `android/app/build/generated/sourcemaps/react/productionRelease/index.android.bundle.map`
+  IOS: `main.jsbundle.map`
+
+### Recording a Trace:
+1. Ensure you have generated the source map as outlined above.
+2. Launch the app in production mode.
+2. Navigate to the feature you wish to profile.
+3. Initiate the profiling session by tapping with four fingers to open the menu and selecting **`Use Profiling`**.
+4. Close the menu and interact with the app.
+5. After completing your interactions, tap with four fingers again and select to stop profiling.
+6. You will be presented with a **`Share`** option to export the trace, which includes a trace file (`Profile<app version>.cpuprofile`) and build info (`AppInfo<app version>.json`).
+
+Build info:
+```jsx
+{
+    appVersion: "1.0.0",
+    environment: "production",
+    platform: "IOS",
+    totalMemory: "3GB",
+    usedMemory: "300MB"
+}
+```
+
+### How to symbolicate trace record:
+1. You have two files: `AppInfo<app version>.json` and `Profile<app version>.cpuprofile`
+2. Place the `Profile<app version>.cpuprofile` file at the root of your project.
+3. If you have already generated a source map from the steps above for this branch, you can skip to the next step. Otherwise, obtain the app version from `AppInfo<app version>.json` switch to that branch and generate the source map as described.
+
+`IMPORTANT:` You should generate the source map from the same branch as the trace was recorded.
+
+4. Use the following commands to symbolicate the trace for Android and iOS, respectively:
+Android: `npm run symbolicate-release:android`
+IOS: `npm run symbolicate-release:ios`
+5. A new file named `Profile_trace_for_<app version>-converted.json` will appear in your project's root folder.
+6. Open this file in your tool of choice:
+    - SpeedScope ([https://www.speedscope.app](https://www.speedscope.app/))
+    - Perfetto UI (https://ui.perfetto.dev/)
+    - Google Chrome's Tracing UI (chrome://tracing)
 
 ---
 
@@ -409,8 +493,8 @@ Updated rules for managing members across all types of chats in New Expensify.
     - Members can't leave or be removed from the #announce room
     - Admins can't leave or be removed from #admins
     - Domain members can't leave or be removed from their domain chat
-    - Report submitters can't leave or be removed from their reports 
-    - Report managers can't leave or be removed from their reports 
+    - Report submitters can't leave or be removed from their reports
+    - Report managers can't leave or be removed from their reports
     - Group owners cannot be removed from their groups - they need to transfer ownership first
 - **Excepting the above, admins can remove anyone. For example:**
     - Group admins can remove other group admins, as well as group members
@@ -421,17 +505,17 @@ Updated rules for managing members across all types of chats in New Expensify.
 
 1. ### DM
     |  | Member
-    | :---: | :---: 
-    | **Invite** | ❌ 
-    | **Remove** | ❌ 
-    | **Leave**  | ❌ 
+    | :---: | :---:
+    | **Invite** | ❌
+    | **Remove** | ❌
+    | **Leave**  | ❌
     | **Can be removed**  | ❌
 - DM always has two participants. None of the participant can leave or be removed from the DM. Also no additional member can be invited to the chat.
 
 2. ### Workspace
     1. #### Workspace
         |   |  Creator  |  Member(Employee/User) | Admin |  Auditor?
-        | :---: | :---:  |  :---: | :---: | :---: 
+        | :---: | :---:  |  :---: | :---: | :---:
         | **Invite** | ✅ |  ❌ |  ✅ | ❌
         | **Remove** | ✅ |  ❌ |  ✅ | ❌
         | **Leave**  | ❌ |  ✅ |  ❌ | ✅
@@ -445,7 +529,7 @@ Updated rules for managing members across all types of chats in New Expensify.
 
     2. #### Workspace #announce room
         |   |  Member(Employee/User) | Admin |  Auditor?
-        | :---: | :---:  |  :---: | :---: 
+        | :---: | :---:  |  :---: | :---:
         | **Invite** | ❌ |  ❌ |  ❌
         | **Remove** | ❌ |  ❌ |  ❌
         | **Leave**  | ❌ |  ❌ |  ❌
@@ -455,14 +539,14 @@ Updated rules for managing members across all types of chats in New Expensify.
 
     3. #### Workspace #admin room
         |   |  Admin |
-        | :---: | :---: 
-        | **Invite** | ❌  
-        | **Remove** | ❌   
-        | **Leave**  | ❌ 
+        | :---: | :---:
+        | **Invite** | ❌
+        | **Remove** | ❌
+        | **Leave**  | ❌
         | **Can be removed**  | ❌
 
         - Admins can't leave or be removed from #admins
-    
+
     4. #### Workspace rooms
         |   |  Creator | Member | Guest(outside of the workspace)
         | :---: | :---:  |  :---: | :---:
@@ -475,10 +559,10 @@ Updated rules for managing members across all types of chats in New Expensify.
         - Guests are not able to remove anyone from the room
 
     4. #### Workspace chats
-        |   |  Admin | Member(default) | Member(invited)  
+        |   |  Admin | Member(default) | Member(invited)
         | :---: | :---:  |  :---:  |  :---:
         | **Invite** | ✅ |  ✅ | ❌
-        | **Remove** | ✅ |  ✅ | ❌  
+        | **Remove** | ✅ |  ✅ | ❌
         | **Leave**  | ❌ |  ❌  | ✅
         | **Can be removed**  | ❌ | ❌ | ✅
 
@@ -490,16 +574,16 @@ Updated rules for managing members across all types of chats in New Expensify.
 
 3. ### Domain chat
     |   |  Member
-    | :---: | :---:  
-    | **Remove** | ❌ 
-    | **Leave**  | ❌ 
-    | **Can be removed**  | ❌ 
+    | :---: | :---:
+    | **Remove** | ❌
+    | **Leave**  | ❌
+    | **Can be removed**  | ❌
 
 - Domain members can't leave or be removed from their domain chat
 
 4. ### Reports
     |   |  Submitter | Manager
-    | :---: | :---:  | :---:  
+    | :---: | :---:  | :---:
     | **Remove** | ❌ | ❌
     | **Leave**  | ❌ | ❌
     | **Can be removed**  | ❌ | ❌

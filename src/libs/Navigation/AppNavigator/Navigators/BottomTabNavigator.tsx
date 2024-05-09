@@ -4,12 +4,12 @@ import React from 'react';
 import createCustomBottomTabNavigator from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator';
 import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
 import type {BottomTabNavigatorParamList} from '@libs/Navigation/types';
-import AllSettingsScreen from '@pages/home/sidebar/AllSettingsScreen';
 import SidebarScreen from '@pages/home/sidebar/SidebarScreen';
+import SearchPageBottomTab from '@pages/Search/SearchPageBottomTab';
 import SCREENS from '@src/SCREENS';
 import ActiveRouteContext from './ActiveRouteContext';
 
-const loadWorkspaceInitialPage = () => require('../../../../pages/workspace/WorkspaceInitialPage').default as React.ComponentType;
+const loadInitialSettingsPage = () => require('../../../../pages/settings/InitialSettingsPage').default as React.ComponentType;
 
 const Tab = createCustomBottomTabNavigator<BottomTabNavigatorParamList>();
 
@@ -20,20 +20,21 @@ const screenOptions: StackNavigationOptions = {
 
 function BottomTabNavigator() {
     const activeRoute = useNavigationState(getTopmostCentralPaneRoute);
+
     return (
-        <ActiveRouteContext.Provider value={activeRoute?.name ?? ''}>
+        <ActiveRouteContext.Provider value={activeRoute}>
             <Tab.Navigator screenOptions={screenOptions}>
                 <Tab.Screen
                     name={SCREENS.HOME}
                     component={SidebarScreen}
                 />
                 <Tab.Screen
-                    name={SCREENS.ALL_SETTINGS}
-                    component={AllSettingsScreen}
+                    name={SCREENS.SEARCH.BOTTOM_TAB}
+                    component={SearchPageBottomTab}
                 />
                 <Tab.Screen
-                    name={SCREENS.WORKSPACE.INITIAL}
-                    getComponent={loadWorkspaceInitialPage}
+                    name={SCREENS.SETTINGS.ROOT}
+                    getComponent={loadInitialSettingsPage}
                 />
             </Tab.Navigator>
         </ActiveRouteContext.Provider>

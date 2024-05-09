@@ -52,7 +52,7 @@ function openOnfidoFlow() {
     API.read(READ_COMMANDS.OPEN_ONFIDO_FLOW, {}, {optimisticData, finallyData});
 }
 
-function setAdditionalDetailsQuestions(questions: WalletAdditionalQuestionDetails[], idNumber: string) {
+function setAdditionalDetailsQuestions(questions: WalletAdditionalQuestionDetails[] | null, idNumber?: string) {
     Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {questions, idNumber});
 }
 
@@ -79,7 +79,7 @@ function updatePersonalDetails(personalDetails: UpdatePersonalDetailsForWalletPa
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
+            key: ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS,
             value: {
                 isLoading: true,
                 errors: null,
@@ -91,7 +91,7 @@ function updatePersonalDetails(personalDetails: UpdatePersonalDetailsForWalletPa
     const finallyData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
+            key: ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS,
             value: {
                 isLoading: false,
             },
@@ -232,7 +232,7 @@ function answerQuestionsForWallet(answers: WalletQuestionAnswer[], idNumber: str
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
+            key: ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS,
             value: {
                 isLoading: true,
             },
@@ -242,7 +242,7 @@ function answerQuestionsForWallet(answers: WalletQuestionAnswer[], idNumber: str
     const finallyData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
+            key: ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS,
             value: {
                 isLoading: false,
             },
@@ -295,6 +295,10 @@ function requestPhysicalExpensifyCard(cardID: number, authToken: string, private
     API.write(WRITE_COMMANDS.REQUEST_PHYSICAL_EXPENSIFY_CARD, requestParams, {optimisticData});
 }
 
+function resetWalletAdditionalDetailsDraft() {
+    Onyx.set(ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_DRAFT, null);
+}
+
 export {
     openOnfidoFlow,
     openInitialSettingsPage,
@@ -309,4 +313,5 @@ export {
     acceptWalletTerms,
     setKYCWallSource,
     requestPhysicalExpensifyCard,
+    resetWalletAdditionalDetailsDraft,
 };

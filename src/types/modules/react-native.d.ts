@@ -330,6 +330,14 @@ declare module 'react-native' {
     }
     interface PressableProps extends WebPressableProps {}
 
+    interface AppStateStatic {
+        emitCurrentTestState: (status: string) => void;
+    }
+
+    interface LinkingStatic {
+        setInitialURL: (url: string) => void;
+    }
+
     /**
      * Styles
      */

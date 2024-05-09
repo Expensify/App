@@ -27,7 +27,7 @@ type DistanceRequestFooterOnyxProps = {
 };
 
 type DistanceRequestFooterProps = DistanceRequestFooterOnyxProps & {
-    /** The waypoints for the distance request */
+    /** The waypoints for the distance expense */
     waypoints?: WaypointCollection;
 
     /** Function to call when the user wants to add a new waypoint */
@@ -96,7 +96,7 @@ function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, navig
                         onPress={() => navigateToWaypointEditPage(Object.keys(transaction?.comment?.waypoints ?? {}).length)}
                         text={translate('distance.addStop')}
                         isDisabled={numberOfWaypoints === MAX_WAYPOINTS}
-                        innerStyles={[styles.ph10]}
+                        innerStyles={[styles.pl10, styles.pr10]}
                     />
                 </View>
             )}

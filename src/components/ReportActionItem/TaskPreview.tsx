@@ -108,7 +108,7 @@ function TaskPreview({taskReport, taskReportID, action, contextMenuAnchor, chatR
                         })}
                         accessibilityLabel={translate('task.task')}
                     />
-                    <RenderHTML html={htmlForTaskPreview} />
+                    <RenderHTML html={isTaskCompleted ? `<completed-task>${htmlForTaskPreview}</completed-task>` : htmlForTaskPreview} />
                 </View>
                 <Icon
                     src={Expensicons.ArrowRight}

@@ -13,13 +13,16 @@ import CustomStatusBarAndBackground from './components/CustomStatusBarAndBackgro
 import CustomStatusBarAndBackgroundContextProvider from './components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContextProvider';
 import ErrorBoundary from './components/ErrorBoundary';
 import HTMLEngineProvider from './components/HTMLEngineProvider';
+import InitialURLContextProvider from './components/InitialURLContextProvider';
 import {LocaleContextProvider} from './components/LocaleContextProvider';
 import OnyxProvider from './components/OnyxProvider';
 import PopoverContextProvider from './components/PopoverProvider';
 import SafeArea from './components/SafeArea';
+import ScrollOffsetContextProvider from './components/ScrollOffsetContextProvider';
 import ThemeIllustrationsProvider from './components/ThemeIllustrationsProvider';
 import ThemeProvider from './components/ThemeProvider';
 import ThemeStylesProvider from './components/ThemeStylesProvider';
+import {FullScreenContextProvider} from './components/VideoPlayerContexts/FullScreenContext';
 import {PlaybackContextProvider} from './components/VideoPlayerContexts/PlaybackContext';
 import {VideoPopoverMenuContextProvider} from './components/VideoPlayerContexts/VideoPopoverMenuContext';
 import {VolumeContextProvider} from './components/VideoPlayerContexts/VolumeContext';
@@ -29,13 +32,13 @@ import {KeyboardStateProvider} from './components/withKeyboardState';
 import {WindowDimensionsProvider} from './components/withWindowDimensions';
 import Expensify from './Expensify';
 import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
+import {ReportIDsContextProvider} from './hooks/useReportIDs';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
-import InitialUrlContext from './libs/InitialUrlContext';
 import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsContext';
 import type {Route} from './ROUTES';
 
 type AppProps = {
-    /** If we have an authToken this is true */
+    /** URL passed to our top-level React Native component by HybridApp. Will always be undefined in "pure" NewDot builds. */
     url?: Route;
 };
 
@@ -52,7 +55,7 @@ function App({url}: AppProps) {
     useDefaultDragAndDrop();
     OnyxUpdateManager();
     return (
-        <InitialUrlContext.Provider value={url}>
+        <InitialURLContextProvider url={url}>
             <GestureHandlerRootView style={fill}>
                 <ComposeProviders
                     components={[
@@ -69,13 +72,16 @@ function App({url}: AppProps) {
                         KeyboardStateProvider,
                         PopoverContextProvider,
                         CurrentReportIDContextProvider,
+                        ScrollOffsetContextProvider,
                         ReportAttachmentsProvider,
                         PickerStateProvider,
                         EnvironmentProvider,
                         CustomStatusBarAndBackgroundContextProvider,
                         ActiveElementRoleProvider,
                         ActiveWorkspaceContextProvider,
+                        ReportIDsContextProvider,
                         PlaybackContextProvider,
+                        FullScreenContextProvider,
                         VolumeContextProvider,
                         VideoPopoverMenuContextProvider,
                     ]}
@@ -88,7 +94,7 @@ function App({url}: AppProps) {
                     </ErrorBoundary>
                 </ComposeProviders>
             </GestureHandlerRootView>
-        </InitialUrlContext.Provider>
+        </InitialURLContextProvider>
     );
 }
 

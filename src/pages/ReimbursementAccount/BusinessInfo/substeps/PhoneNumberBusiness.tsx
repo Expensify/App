@@ -43,8 +43,9 @@ function PhoneNumberBusiness({reimbursementAccount, onNext, isEditing}: PhoneNum
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,
-        isEditing,
         onNext,
+        // During draft saving, the phone number is sanitized (i.e. leading and trailing whitespace is removed)
+        shouldSaveDraft: true,
     });
 
     return (

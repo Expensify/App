@@ -31,13 +31,14 @@ type BankInfoOnyxProps = {
 
     /** The draft values of the bank account being setup */
     reimbursementAccountDraft: OnyxEntry<ReimbursementAccountForm>;
-
-    policyID: string;
 };
 
 type BankInfoProps = BankInfoOnyxProps & {
     /** Goes to the previous step */
     onBackButtonPress: () => void;
+
+    /** Current Policy ID */
+    policyID: string;
 };
 
 const BANK_INFO_STEP_KEYS = INPUT_IDS.BANK_INFO_STEP;
@@ -118,12 +119,13 @@ function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkTok
                     [BANK_INFO_STEP_KEYS.ROUTING_NUMBER]: '',
                     [BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER]: '',
                     [BANK_INFO_STEP_KEYS.PLAID_MASK]: '',
-                    [BANK_INFO_STEP_KEYS.IS_SAVINGS]: '',
+                    [BANK_INFO_STEP_KEYS.IS_SAVINGS]: false,
                     [BANK_INFO_STEP_KEYS.BANK_NAME]: '',
                     [BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID]: '',
                     [BANK_INFO_STEP_KEYS.PLAID_ACCESS_TOKEN]: '',
                 };
                 ReimbursementAccountUtils.updateReimbursementAccountDraft(bankAccountData);
+                ReimbursementAccountUtils.hideBankAccountErrors();
                 BankAccounts.setBankAccountSubStep(null);
             }
         } else {

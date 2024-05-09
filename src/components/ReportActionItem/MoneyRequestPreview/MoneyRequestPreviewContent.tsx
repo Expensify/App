@@ -1,7 +1,6 @@
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import {truncate} from 'lodash';
 import lodashSortBy from 'lodash/sortBy';
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
 import ConfirmedRoute from '@components/ConfirmedRoute';
@@ -11,7 +10,6 @@ import MoneyRequestSkeletonView from '@components/MoneyRequestSkeletonView';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import RenderHTML from '@components/RenderHTML';
 import ReportActionItemImages from '@components/ReportActionItem/ReportActionItemImages';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
@@ -24,7 +22,6 @@ import ControlSelection from '@libs/ControlSelection';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as IOUUtils from '@libs/IOUUtils';
-import * as Localize from '@libs/Localize';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -64,7 +61,6 @@ function MoneyRequestPreviewContent({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
-    const parser = new ExpensiMark();
 
     const sessionAccountID = session?.accountID;
     const managerID = iouReport?.managerID ?? -1;
@@ -86,20 +82,25 @@ function MoneyRequestPreviewContent({
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
+    const isOnHold = TransactionUtils.isOnHold(transaction);
+    const isSettlementOrApprovalPartial = Boolean(iouReport?.pendingFields?.partial);
+    const isPartialHold = isSettlementOrApprovalPartial && isOnHold;
     const hasViolations = TransactionUtils.hasViolation(transaction?.transactionID ?? '', transactionViolations);
+    const hasNoticeTypeViolations = TransactionUtils.hasNoticeTypeViolation(transaction?.transactionID ?? '', transactionViolations);
     const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(transaction);
-    const shouldShowRBR = hasViolations || hasFieldErrors;
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
     const isFetchingWaypointsFromServer = TransactionUtils.isFetchingWaypointsFromServer(transaction);
     const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
     const isSettled = ReportUtils.isSettled(iouReport?.reportID);
-    const isOnHold = TransactionUtils.isOnHold(transaction);
     const isDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const isFullySettled = isSettled && !isSettlementOrApprovalPartial;
+    const isFullyApproved = ReportUtils.isReportApproved(iouReport) && !isSettlementOrApprovalPartial;
+    const shouldShowRBR = hasNoticeTypeViolations || hasViolations || hasFieldErrors || (!isFullySettled && !isFullyApproved && isOnHold);
 
     /*
      Show the merchant for IOUs and expenses only if:
      - the merchant is not empty, is custom, or is not related to scanning smartscan;
-     - the request is not a distance request with a pending route and amount = 0 - in this case,
+     - the expense is not a distance expense with a pending route and amount = 0 - in this case,
        the merchant says: "Route pending...", which is already shown in the amount field;
     */
     const shouldShowMerchant =
@@ -131,42 +132,61 @@ function MoneyRequestPreviewContent({
     };
 
     const getPreviewHeaderText = (): string => {
+        let message = translate('iou.cash');
+
         if (isDistanceRequest) {
-            return translate('common.distance');
-        }
-
-        if (isScanning) {
-            return translate('common.receipt');
-        }
-
-        if (isBillSplit) {
-            return translate('iou.split');
+            message = translate('common.distance');
+        } else if (isScanning) {
+            message = translate('common.receipt');
+        } else if (isBillSplit) {
+            message = translate('iou.split');
         }
 
         if (isCardTransaction) {
-            let message = translate('iou.card');
+            message = translate('iou.card');
             if (TransactionUtils.isPending(transaction)) {
-                message += ` • ${translate('iou.pending')}`;
+                message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.pending')}`;
+                return message;
             }
+        }
+
+        if (isSettled && !iouReport?.isCancelledIOU && !isPartialHold) {
+            message += ` ${CONST.DOT_SEPARATOR} ${getSettledMessage()}`;
             return message;
         }
 
-        let message = translate('iou.cash');
-        if (hasViolations && transaction) {
+        if (shouldShowRBR && transaction) {
             const violations = TransactionUtils.getTransactionViolations(transaction.transactionID, transactionViolations);
             if (violations?.[0]) {
                 const violationMessage = ViolationsUtils.getViolationTranslation(violations[0], translate);
-                const isTooLong = violations.filter((v) => v.type === 'violation').length > 1 || violationMessage.length > 15;
-                message += ` • ${isTooLong ? translate('violations.reviewRequired') : violationMessage}`;
+                const violationsCount = violations.filter((v) => v.type === CONST.VIOLATION_TYPES.VIOLATION).length;
+                const isTooLong = violationsCount > 1 || violationMessage.length > 15;
+                const hasViolationsAndFieldErrors = violationsCount > 0 && hasFieldErrors;
+
+                return `${message} ${CONST.DOT_SEPARATOR} ${isTooLong || hasViolationsAndFieldErrors ? translate('violations.reviewRequired') : violationMessage}`;
             }
-        } else if (ReportUtils.isPaidGroupPolicyExpenseReport(iouReport) && ReportUtils.isReportApproved(iouReport) && !ReportUtils.isSettled(iouReport?.reportID)) {
-            message += ` • ${translate('iou.approved')}`;
+
+            const isMerchantMissing = TransactionUtils.isMerchantMissing(transaction);
+            const isAmountMissing = TransactionUtils.isAmountMissing(transaction);
+            if (isAmountMissing && isMerchantMissing) {
+                message += ` ${CONST.DOT_SEPARATOR} ${translate('violations.reviewRequired')}`;
+            } else if (isAmountMissing) {
+                message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.missingAmount')}`;
+            } else if (isMerchantMissing) {
+                message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.missingMerchant')}`;
+            } else if (!(isSettled && !isSettlementOrApprovalPartial) && isOnHold) {
+                message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.hold')}`;
+            }
+        } else if (hasNoticeTypeViolations && transaction && !ReportUtils.isReportApproved(iouReport) && !ReportUtils.isSettled(iouReport?.reportID)) {
+            message += ` • ${translate('violations.reviewRequired')}`;
+        } else if (ReportUtils.isPaidGroupPolicyExpenseReport(iouReport) && ReportUtils.isReportApproved(iouReport) && !ReportUtils.isSettled(iouReport?.reportID) && !isPartialHold) {
+            message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.approved')}`;
         } else if (iouReport?.isWaitingOnBankAccount) {
-            message += ` • ${translate('iou.pending')}`;
+            message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.pending')}`;
         } else if (iouReport?.isCancelledIOU) {
-            message += ` • ${translate('iou.canceled')}`;
-        } else if (isOnHold) {
-            message += ` • ${translate('iou.hold')}`;
+            message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
+        } else if (!(isSettled && !isSettlementOrApprovalPartial) && isOnHold) {
+            message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.hold')}`;
         }
         return message;
     };
@@ -177,11 +197,7 @@ function MoneyRequestPreviewContent({
         }
 
         if (isFetchingWaypointsFromServer && !requestAmount) {
-            return translate('iou.routePending');
-        }
-
-        if (!isSettled && TransactionUtils.hasMissingSmartscanFields(transaction)) {
-            return Localize.translateLocal('iou.receiptMissingDetails');
+            return translate('iou.fieldPending');
         }
 
         return CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency);
@@ -195,6 +211,17 @@ function MoneyRequestPreviewContent({
     };
 
     const displayAmount = isDeleted ? getDisplayDeleteAmountText() : getDisplayAmountText();
+
+    const shouldShowSplitShare = isBillSplit && !!requestAmount && requestAmount > 0;
+
+    // If available, retrieve the split share from the splits object of the transaction, if not, display an even share.
+    const splitShare = useMemo(
+        () =>
+            shouldShowSplitShare &&
+            (transaction?.comment?.splits?.find((split) => split.accountID === sessionAccountID)?.amount ??
+                IOUUtils.calculateAmount(isPolicyExpenseChat ? 1 : participantAccountIDs.length - 1, requestAmount, requestCurrency ?? '', action.actorAccountID === sessionAccountID)),
+        [shouldShowSplitShare, isPolicyExpenseChat, action.actorAccountID, participantAccountIDs.length, transaction?.comment?.splits, requestAmount, requestCurrency, sessionAccountID],
+    );
 
     const childContainer = (
         <View>
@@ -215,7 +242,10 @@ function MoneyRequestPreviewContent({
                 >
                     {showMapAsImage && (
                         <View style={styles.reportActionItemImages}>
-                            <ConfirmedRoute transaction={transaction} />
+                            <ConfirmedRoute
+                                transaction={transaction}
+                                interactive={false}
+                            />
                         </View>
                     )}
                     {!showMapAsImage && hasReceipt && (
@@ -232,9 +262,7 @@ function MoneyRequestPreviewContent({
                             <View style={styles.expenseAndReportPreviewTextButtonContainer}>
                                 <View style={styles.expenseAndReportPreviewTextContainer}>
                                     <View style={[styles.flexRow]}>
-                                        <Text style={[styles.textLabelSupporting, styles.flex1, styles.lh16]}>
-                                            {getPreviewHeaderText() + (isSettled && !iouReport?.isCancelledIOU ? ` • ${getSettledMessage()}` : '')}
-                                        </Text>
+                                        <Text style={[styles.textLabelSupporting, styles.flex1, styles.lh16]}>{getPreviewHeaderText()}</Text>
                                         {!isSettled && shouldShowRBR && (
                                             <Icon
                                                 src={Expensicons.DotIndicator}
@@ -256,7 +284,7 @@ function MoneyRequestPreviewContent({
                                                 >
                                                     {displayAmount}
                                                 </Text>
-                                                {ReportUtils.isSettled(iouReport?.reportID) && !isBillSplit && (
+                                                {ReportUtils.isSettled(iouReport?.reportID) && !isPartialHold && !isBillSplit && (
                                                     <View style={styles.defaultCheckmarkWrapper}>
                                                         <Icon
                                                             src={Expensicons.Checkmark}
@@ -281,21 +309,13 @@ function MoneyRequestPreviewContent({
                                                 {!isCurrentUserManager && shouldShowPendingConversionMessage && (
                                                     <Text style={[styles.textLabel, styles.colorMuted]}>{translate('iou.pendingConversionMessage')}</Text>
                                                 )}
-                                                {shouldShowDescription && (
-                                                    <View style={[styles.breakWord, styles.preWrap]}>
-                                                        <RenderHTML html={`<muted-text>${parser.replace(merchantOrDescription)}</muted-text>`} />
-                                                    </View>
+                                                {(shouldShowMerchant || shouldShowDescription) && (
+                                                    <Text style={[styles.textLabelSupporting, styles.textNormal]}>{merchantOrDescription}</Text>
                                                 )}
-                                                {shouldShowMerchant && <Text style={[styles.textLabelSupporting, styles.textNormal]}>{merchantOrDescription}</Text>}
                                             </View>
-                                            {isBillSplit && participantAccountIDs.length > 0 && !!requestAmount && requestAmount > 0 && (
+                                            {splitShare && (
                                                 <Text style={[styles.textLabel, styles.colorMuted, styles.ml1, styles.amountSplitPadding]}>
-                                                    {translate('iou.amountEach', {
-                                                        amount: CurrencyUtils.convertToDisplayString(
-                                                            IOUUtils.calculateAmount(isPolicyExpenseChat ? 1 : participantAccountIDs.length - 1, requestAmount, requestCurrency ?? ''),
-                                                            requestCurrency,
-                                                        ),
-                                                    })}
+                                                    {translate('iou.yourSplit', {amount: CurrencyUtils.convertToDisplayString(splitShare ?? 0, requestCurrency ?? '')})}
                                                 </Text>
                                             )}
                                         </View>
@@ -324,7 +344,12 @@ function MoneyRequestPreviewContent({
             shouldUseHapticsOnLongPress
             accessibilityLabel={isBillSplit ? translate('iou.split') : translate('iou.cash')}
             accessibilityHint={CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency)}
-            style={[styles.moneyRequestPreviewBox, containerStyles, shouldDisableOnPress && styles.cursorDefault]}
+            style={[
+                styles.moneyRequestPreviewBox,
+                containerStyles,
+                shouldDisableOnPress && styles.cursorDefault,
+                (isSettled || ReportUtils.isReportApproved(iouReport)) && isSettlementOrApprovalPartial && styles.offlineFeedback.pending,
+            ]}
         >
             {childContainer}
         </PressableWithoutFeedback>

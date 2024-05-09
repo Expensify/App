@@ -1,52 +1,70 @@
-import React, {useEffect, useMemo} from 'react';
-import {Image as RNImage} from 'react-native';
+import React, {useCallback, useMemo, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import useNetwork from '@hooks/useNetwork';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ImageOnyxProps, ImageOwnProps, ImageProps} from './types';
+import BaseImage from './BaseImage';
+import type {ImageOnLoadEvent, ImageOnyxProps, ImageOwnProps, ImageProps} from './types';
 
-function Image({source: propsSource, isAuthTokenRequired = false, onLoad, session, ...forwardedProps}: ImageProps) {
-    const {isOffline} = useNetwork();
+function Image({source: propsSource, isAuthTokenRequired = false, session, onLoad, objectPosition = CONST.IMAGE_OBJECT_POSITION.INITIAL, style, ...forwardedProps}: ImageProps) {
+    const [aspectRatio, setAspectRatio] = useState<string | number | null>(null);
+    const isObjectPositionTop = objectPosition === CONST.IMAGE_OBJECT_POSITION.TOP;
 
+    const updateAspectRatio = useCallback(
+        (width: number, height: number) => {
+            if (!isObjectPositionTop) {
+                return;
+            }
+
+            if (width > height) {
+                setAspectRatio(1);
+                return;
+            }
+
+            setAspectRatio(height ? width / height : 'auto');
+        },
+        [isObjectPositionTop],
+    );
+
+    const handleLoad = useCallback(
+        (event: ImageOnLoadEvent) => {
+            const {width, height} = event.nativeEvent;
+
+            onLoad?.(event);
+
+            updateAspectRatio(width, height);
+        },
+        [onLoad, updateAspectRatio],
+    );
     /**
      * Check if the image source is a URL - if so the `encryptedAuthToken` is appended
      * to the source.
      */
     const source = useMemo(() => {
-        const authToken = session?.encryptedAuthToken ?? null;
-        if (isAuthTokenRequired && typeof propsSource === 'object' && 'uri' in propsSource && authToken) {
-            // There is currently a `react-native-web` bug preventing the authToken being passed
-            // in the headers of the image request so the authToken is added as a query param.
-            // On native the authToken IS passed in the image request headers
-            return {uri: `${propsSource?.uri}?encryptedAuthToken=${encodeURIComponent(authToken)}`};
+        if (typeof propsSource === 'object' && 'uri' in propsSource) {
+            if (typeof propsSource.uri === 'number') {
+                return propsSource.uri;
+            }
+            const authToken = session?.encryptedAuthToken ?? null;
+            if (isAuthTokenRequired && authToken) {
+                return {
+                    ...propsSource,
+                    headers: {
+                        [CONST.CHAT_ATTACHMENT_TOKEN_KEY]: authToken,
+                    },
+                };
+            }
         }
         return propsSource;
         // The session prop is not required, as it causes the image to reload whenever the session changes. For more information, please refer to issue #26034.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [propsSource, isAuthTokenRequired]);
 
-    /**
-     * The natural image dimensions are retrieved using the updated source
-     * and as a result the `onLoad` event needs to be manually invoked to return these dimensions
-     */
-    useEffect(() => {
-        // If an onLoad callback was specified then manually call it and pass
-        // the natural image dimensions to match the native API
-        if (onLoad == null) {
-            return;
-        }
-
-        if (typeof source === 'object' && 'uri' in source && source.uri) {
-            RNImage.getSize(source.uri, (width, height) => {
-                onLoad({nativeEvent: {width, height}});
-            });
-        }
-    }, [onLoad, source, isOffline]);
-
     return (
-        <RNImage
+        <BaseImage
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...forwardedProps}
+            onLoad={handleLoad}
+            style={[style, aspectRatio ? {aspectRatio, height: 'auto'} : {}, isObjectPositionTop && !aspectRatio && {opacity: 0}]}
             source={source}
         />
     );

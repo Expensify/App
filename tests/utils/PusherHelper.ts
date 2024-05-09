@@ -1,8 +1,8 @@
-import type {OnyxUpdate} from 'react-native-onyx';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import * as Pusher from '@src/libs/Pusher/pusher';
 import PusherConnectionManager from '@src/libs/PusherConnectionManager';
+import type {OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
 import asMutable from '@src/types/utils/asMutable';
 
 const CHANNEL_NAME = `${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}1${CONFIG.PUSHER.SUFFIX}`;
@@ -20,11 +20,11 @@ function setup() {
     Pusher.init({
         appKey: CONFIG.PUSHER.APP_KEY,
         cluster: CONFIG.PUSHER.CLUSTER,
-        authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api?command=AuthenticatePusher`,
+        authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
     });
 }
 
-function emitOnyxUpdate(args: OnyxUpdate[]) {
+function emitOnyxUpdate(args: OnyxServerUpdate[]) {
     const channel = Pusher.getChannel(CHANNEL_NAME);
     channel?.emit(Pusher.TYPE.MULTIPLE_EVENTS, {
         type: 'pusher',

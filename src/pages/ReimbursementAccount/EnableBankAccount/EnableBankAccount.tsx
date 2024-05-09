@@ -29,7 +29,7 @@ type EnableBankAccountOnyxProps = {
 
 type EnableBankAccountProps = EnableBankAccountOnyxProps & {
     /** Bank account currently in setup */
-    reimbursementAccount: ReimbursementAccount;
+    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
 
     /** Method to trigger when pressing back button of the header */
     onBackButtonPress: () => void;
@@ -93,7 +93,6 @@ function EnableBankAccount({reimbursementAccount, user, onBackButtonPress}: Enab
                                 }}
                                 icon={Expensicons.Mail}
                                 style={[styles.mt4]}
-                                iconStyles={[styles.buttonCTAIcon]}
                                 shouldShowRightIcon
                                 large
                                 success

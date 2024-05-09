@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useState} from 'react';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -7,16 +8,20 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
+import type {WorkspacesCentralPaneNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
+import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 const DAYS_OF_MONTH = 28;
 
-type WorkspaceAutoReportingMonthlyOffsetProps = WithPolicyOnyxProps;
+type WorkspaceAutoReportingMonthlyOffsetProps = WithPolicyOnyxProps &
+    StackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET>;
 
 type AutoReportingOffsetKeys = ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>;
 
@@ -27,7 +32,7 @@ type WorkspaceAutoReportingMonthlyOffsetPageItem = {
     isNumber?: boolean;
 };
 
-function WorkspaceAutoReportingMonthlyOffsetPage({policy}: WorkspaceAutoReportingMonthlyOffsetProps) {
+function WorkspaceAutoReportingMonthlyOffsetPage({policy, route}: WorkspaceAutoReportingMonthlyOffsetProps) {
     const {translate, toLocaleOrdinal} = useLocalize();
     const offset = policy?.autoReportingOffset ?? 0;
     const [searchText, setSearchText] = useState('');
@@ -67,34 +72,39 @@ function WorkspaceAutoReportingMonthlyOffsetPage({policy}: WorkspaceAutoReportin
     };
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            testID={WorkspaceAutoReportingMonthlyOffsetPage.displayName}
+        <AccessOrNotFoundWrapper
+            policyID={route.params.policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
         >
-            <FullPageNotFoundView
-                onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
-                onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
-                shouldShow={isEmptyObject(policy) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy) || !PolicyUtils.isPaidGroupPolicy(policy)}
-                subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                testID={WorkspaceAutoReportingMonthlyOffsetPage.displayName}
             >
-                <HeaderWithBackButton
-                    title={translate('workflowsPage.submissionFrequency')}
-                    onBackButtonPress={Navigation.goBack}
-                />
+                <FullPageNotFoundView
+                    onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
+                    onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
+                    shouldShow={isEmptyObject(policy) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy) || !PolicyUtils.isPaidGroupPolicy(policy)}
+                    subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
+                >
+                    <HeaderWithBackButton
+                        title={translate('workflowsPage.submissionFrequency')}
+                        onBackButtonPress={Navigation.goBack}
+                    />
 
-                <SelectionList
-                    sections={[{data: filteredDaysOfMonth, indexOffset: 0}]}
-                    textInputLabel={translate('workflowsPage.submissionFrequencyDateOfMonth')}
-                    textInputValue={searchText}
-                    onChangeText={setSearchText}
-                    headerMessage={headerMessage}
-                    ListItem={RadioListItem}
-                    onSelectRow={onSelectDayOfMonth}
-                    initiallyFocusedOptionKey={offset.toString()}
-                    showScrollIndicator
-                />
-            </FullPageNotFoundView>
-        </ScreenWrapper>
+                    <SelectionList
+                        sections={[{data: filteredDaysOfMonth}]}
+                        textInputLabel={translate('workflowsPage.submissionFrequencyDateOfMonth')}
+                        textInputValue={searchText}
+                        onChangeText={setSearchText}
+                        headerMessage={headerMessage}
+                        ListItem={RadioListItem}
+                        onSelectRow={onSelectDayOfMonth}
+                        initiallyFocusedOptionKey={offset.toString()}
+                        showScrollIndicator
+                    />
+                </FullPageNotFoundView>
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 

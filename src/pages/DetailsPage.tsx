@@ -101,7 +101,6 @@ function DetailsPage({personalDetails, route, session}: DetailsPageProps) {
                                 <AttachmentModal
                                     headerTitle={displayName}
                                     source={UserUtils.getFullSizeAvatar(details?.avatar, details.accountID)}
-                                    isAuthTokenRequired
                                     originalFileName={details.originalFileName}
                                     maybeIcon
                                 >

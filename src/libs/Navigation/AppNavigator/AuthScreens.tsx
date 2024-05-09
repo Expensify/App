@@ -1,18 +1,23 @@
-import React, {memo, useEffect, useRef} from 'react';
+import React, {memo, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {withOnyx} from 'react-native-onyx';
+import OptionsListContextProvider from '@components/OptionListContextProvider';
+import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
+import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
+import getOnboardingModalScreenOptions from '@libs/Navigation/getOnboardingModalScreenOptions';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import NetworkConnection from '@libs/NetworkConnection';
 import * as Pusher from '@libs/Pusher/pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 import * as SessionUtils from '@libs/SessionUtils';
+import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import DesktopSignInRedirectPage from '@pages/signin/DesktopSignInRedirectPage';
 import SearchInputManager from '@pages/workspace/SearchInputManager';
@@ -38,9 +43,12 @@ import defaultScreenOptions from './defaultScreenOptions';
 import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
 import BottomTabNavigator from './Navigators/BottomTabNavigator';
 import CentralPaneNavigator from './Navigators/CentralPaneNavigator';
+import FeatureTrainingModalNavigator from './Navigators/FeatureTrainingModalNavigator';
 import FullScreenNavigator from './Navigators/FullScreenNavigator';
 import LeftModalNavigator from './Navigators/LeftModalNavigator';
+import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
 import RightModalNavigator from './Navigators/RightModalNavigator';
+import WelcomeVideoModalNavigator from './Navigators/WelcomeVideoModalNavigator';
 
 type AuthScreensProps = {
     /** Session of currently logged in user */
@@ -48,9 +56,6 @@ type AuthScreensProps = {
 
     /** The report ID of the last opened public room as anonymous user */
     lastOpenedPublicRoomID: OnyxEntry<string>;
-
-    /** Opt-in experimental mode that prevents certain Onyx keys from persisting to disk */
-    isUsingMemoryOnlyKeys: OnyxEntry<boolean>;
 
     /** The last Onyx update ID was applied to the client */
     initialLastUpdateIDAppliedToClient: OnyxEntry<number>;
@@ -63,6 +68,8 @@ const loadConciergePage = () => require('../../../pages/ConciergePage').default 
 const loadProfileAvatar = () => require('../../../pages/settings/Profile/ProfileAvatar').default as React.ComponentType;
 const loadWorkspaceAvatar = () => require('../../../pages/workspace/WorkspaceAvatar').default as React.ComponentType;
 const loadReportAvatar = () => require('../../../pages/ReportAvatar').default as React.ComponentType;
+const loadReceiptView = () => require('../../../pages/TransactionReceiptPage').default as React.ComponentType;
+const loadWorkspaceJoinUser = () => require('@pages/workspace/WorkspaceJoinUserPage').default as React.ComponentType;
 
 let timezone: Timezone | null;
 let currentAccountID = -1;
@@ -127,6 +134,7 @@ function handleNetworkReconnect() {
     if (isLoadingApp) {
         App.openApp();
     } else {
+        Log.info('[handleNetworkReconnect] Sending ReconnectApp');
         App.reconnectApp(lastUpdateIDAppliedToClient);
     }
 }
@@ -145,14 +153,21 @@ const modalScreenListeners = {
         // Clear search input (WorkspaceInvitePage) when modal is closed
         SearchInputManager.searchInput = '';
         Modal.setModalVisibility(false);
+        Modal.willAlertModalBecomeVisible(false);
     },
 };
 
-function AuthScreens({session, lastOpenedPublicRoomID, isUsingMemoryOnlyKeys = false, initialLastUpdateIDAppliedToClient}: AuthScreensProps) {
+function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDAppliedToClient}: AuthScreensProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useOnboardingLayout();
     const screenOptions = getRootNavigatorScreenOptions(isSmallScreenWidth, styles, StyleUtils);
+    const onboardingModalScreenOptions = useMemo(() => screenOptions.onboardingModalNavigator(shouldUseNarrowLayout), [screenOptions, shouldUseNarrowLayout]);
+    const onboardingScreenOptions = useMemo(
+        () => getOnboardingModalScreenOptions(isSmallScreenWidth, styles, StyleUtils, shouldUseNarrowLayout),
+        [StyleUtils, isSmallScreenWidth, shouldUseNarrowLayout, styles],
+    );
     const isInitialRender = useRef(true);
 
     if (isInitialRender.current) {
@@ -166,7 +181,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, isUsingMemoryOnlyKeys = f
         const chatShortcutConfig = CONST.KEYBOARD_SHORTCUTS.NEW_CHAT;
         const currentUrl = getCurrentUrl();
         const isLoggingInAsNewUser = !!session?.email && SessionUtils.isLoggingInAsNewUser(currentUrl, session.email);
-        const shouldGetAllData = !!isUsingMemoryOnlyKeys || SessionUtils.didUserLogInDuringSession();
         // Sign out the current user if we're transitioning with a different user
         const isTransitioning = currentUrl.includes(ROUTES.TRANSITION_BETWEEN_APPS);
         const isSupportalTransition = currentUrl.includes('authTokenType=support');
@@ -181,19 +195,17 @@ function AuthScreens({session, lastOpenedPublicRoomID, isUsingMemoryOnlyKeys = f
         Pusher.init({
             appKey: CONFIG.PUSHER.APP_KEY,
             cluster: CONFIG.PUSHER.CLUSTER,
-            authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api?command=AuthenticatePusher`,
+            authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
         }).then(() => {
             User.subscribeToUserEvents();
         });
 
         // If we are on this screen then we are "logged in", but the user might not have "just logged in". They could be reopening the app
         // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp().
-        // Note: If a Guide has enabled the memory only key mode then we do want to run OpenApp as their app will not be rehydrated with
-        // the correct state on refresh. They are explicitly opting out of storing data they would need (i.e. reports_) to take advantage of
-        // the optimizations performed during ReconnectApp.
-        if (shouldGetAllData) {
+        if (SessionUtils.didUserLogInDuringSession()) {
             App.openApp();
         } else {
+            Log.info('[AuthScreens] Sending ReconnectApp');
             App.reconnectApp(initialLastUpdateIDAppliedToClient);
         }
 
@@ -233,7 +245,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, isUsingMemoryOnlyKeys = f
         const unsubscribeSearchShortcut = KeyboardShortcut.subscribe(
             searchShortcutConfig.shortcutKey,
             () => {
-                Modal.close(Session.checkIfActionIsAllowed(() => Navigation.navigate(ROUTES.SEARCH)));
+                Modal.close(Session.checkIfActionIsAllowed(() => Navigation.navigate(ROUTES.CHAT_FINDER)));
             },
             shortcutsOverviewShortcutConfig.descriptionKey,
             shortcutsOverviewShortcutConfig.modifiers,
@@ -262,102 +274,142 @@ function AuthScreens({session, lastOpenedPublicRoomID, isUsingMemoryOnlyKeys = f
     }, []);
 
     return (
-        <View style={styles.rootNavigatorContainerStyles(isSmallScreenWidth)}>
-            <RootStack.Navigator isSmallScreenWidth={isSmallScreenWidth}>
-                <RootStack.Screen
-                    name={NAVIGATORS.BOTTOM_TAB_NAVIGATOR}
-                    options={screenOptions.bottomTab}
-                    component={BottomTabNavigator}
-                />
-                <RootStack.Screen
-                    name={NAVIGATORS.CENTRAL_PANE_NAVIGATOR}
-                    options={screenOptions.centralPaneNavigator}
-                    component={CentralPaneNavigator}
-                />
-                <RootStack.Screen
-                    name={SCREENS.VALIDATE_LOGIN}
-                    options={{
-                        ...screenOptions.fullScreen,
-                        headerShown: false,
-                        title: 'New Expensify',
-                    }}
-                    getComponent={loadValidateLoginPage}
-                />
-                <RootStack.Screen
-                    name={SCREENS.TRANSITION_BETWEEN_APPS}
-                    options={defaultScreenOptions}
-                    getComponent={loadLogOutPreviousUserPage}
-                />
-                <RootStack.Screen
-                    name={SCREENS.CONCIERGE}
-                    options={defaultScreenOptions}
-                    getComponent={loadConciergePage}
-                />
-                <RootStack.Screen
-                    name={SCREENS.REPORT_ATTACHMENTS}
-                    options={{
-                        headerShown: false,
-                        presentation: 'transparentModal',
-                    }}
-                    getComponent={loadReportAttachments}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name={SCREENS.PROFILE_AVATAR}
-                    options={{
-                        headerShown: false,
-                        presentation: 'transparentModal',
-                    }}
-                    getComponent={loadProfileAvatar}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name={SCREENS.WORKSPACE_AVATAR}
-                    options={{
-                        headerShown: false,
-                        presentation: 'transparentModal',
-                    }}
-                    getComponent={loadWorkspaceAvatar}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name={SCREENS.REPORT_AVATAR}
-                    options={{
-                        headerShown: false,
-                        presentation: 'transparentModal',
-                    }}
-                    getComponent={loadReportAvatar}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name={SCREENS.NOT_FOUND}
-                    options={screenOptions.fullScreen}
-                    component={NotFoundPage}
-                />
-                <RootStack.Screen
-                    name={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
-                    options={screenOptions.rightModalNavigator}
-                    component={RightModalNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name={NAVIGATORS.FULL_SCREEN_NAVIGATOR}
-                    options={screenOptions.fullScreen}
-                    component={FullScreenNavigator}
-                />
-                <RootStack.Screen
-                    name={NAVIGATORS.LEFT_MODAL_NAVIGATOR}
-                    options={screenOptions.leftModalNavigator}
-                    component={LeftModalNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name={SCREENS.DESKTOP_SIGN_IN_REDIRECT}
-                    options={screenOptions.fullScreen}
-                    component={DesktopSignInRedirectPage}
-                />
-            </RootStack.Navigator>
-        </View>
+        <OptionsListContextProvider>
+            <View style={styles.rootNavigatorContainerStyles(isSmallScreenWidth)}>
+                <RootStack.Navigator isSmallScreenWidth={isSmallScreenWidth}>
+                    <RootStack.Screen
+                        name={NAVIGATORS.BOTTOM_TAB_NAVIGATOR}
+                        options={screenOptions.bottomTab}
+                        component={BottomTabNavigator}
+                    />
+                    <RootStack.Screen
+                        name={NAVIGATORS.CENTRAL_PANE_NAVIGATOR}
+                        options={screenOptions.centralPaneNavigator}
+                        component={CentralPaneNavigator}
+                    />
+                    <RootStack.Screen
+                        name={SCREENS.VALIDATE_LOGIN}
+                        options={{
+                            ...screenOptions.fullScreen,
+                            headerShown: false,
+                            title: 'New Expensify',
+                        }}
+                        getComponent={loadValidateLoginPage}
+                    />
+                    <RootStack.Screen
+                        name={SCREENS.TRANSITION_BETWEEN_APPS}
+                        options={defaultScreenOptions}
+                        getComponent={loadLogOutPreviousUserPage}
+                    />
+                    <RootStack.Screen
+                        name={SCREENS.CONCIERGE}
+                        options={defaultScreenOptions}
+                        getComponent={loadConciergePage}
+                    />
+                    <RootStack.Screen
+                        name={SCREENS.REPORT_ATTACHMENTS}
+                        options={{
+                            headerShown: false,
+                            presentation: 'transparentModal',
+                        }}
+                        getComponent={loadReportAttachments}
+                        listeners={modalScreenListeners}
+                    />
+                    <RootStack.Screen
+                        name={SCREENS.PROFILE_AVATAR}
+                        options={{
+                            headerShown: false,
+                            presentation: 'transparentModal',
+                        }}
+                        getComponent={loadProfileAvatar}
+                        listeners={modalScreenListeners}
+                    />
+                    <RootStack.Screen
+                        name={SCREENS.WORKSPACE_AVATAR}
+                        options={{
+                            headerShown: false,
+                            presentation: 'transparentModal',
+                        }}
+                        getComponent={loadWorkspaceAvatar}
+                        listeners={modalScreenListeners}
+                    />
+                    <RootStack.Screen
+                        name={SCREENS.REPORT_AVATAR}
+                        options={{
+                            headerShown: false,
+                            presentation: 'transparentModal',
+                        }}
+                        getComponent={loadReportAvatar}
+                        listeners={modalScreenListeners}
+                    />
+                    <RootStack.Screen
+                        name={SCREENS.NOT_FOUND}
+                        options={screenOptions.fullScreen}
+                        component={NotFoundPage}
+                    />
+                    <RootStack.Screen
+                        name={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
+                        options={screenOptions.rightModalNavigator}
+                        component={RightModalNavigator}
+                        listeners={modalScreenListeners}
+                    />
+                    <RootStack.Screen
+                        name={NAVIGATORS.FULL_SCREEN_NAVIGATOR}
+                        options={screenOptions.fullScreen}
+                        component={FullScreenNavigator}
+                    />
+                    <RootStack.Screen
+                        name={NAVIGATORS.LEFT_MODAL_NAVIGATOR}
+                        options={screenOptions.leftModalNavigator}
+                        component={LeftModalNavigator}
+                        listeners={modalScreenListeners}
+                    />
+                    <RootStack.Screen
+                        name={SCREENS.DESKTOP_SIGN_IN_REDIRECT}
+                        options={screenOptions.fullScreen}
+                        component={DesktopSignInRedirectPage}
+                    />
+                    <RootStack.Screen
+                        name={NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR}
+                        options={onboardingModalScreenOptions}
+                        component={FeatureTrainingModalNavigator}
+                    />
+                    <RootStack.Screen
+                        name={NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR}
+                        options={onboardingModalScreenOptions}
+                        component={WelcomeVideoModalNavigator}
+                    />
+                    <RootStack.Screen
+                        name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}
+                        options={onboardingScreenOptions}
+                        component={OnboardingModalNavigator}
+                    />
+                    <RootStack.Screen
+                        name={SCREENS.WORKSPACE_JOIN_USER}
+                        options={{
+                            headerShown: false,
+                            presentation: 'transparentModal',
+                        }}
+                        listeners={modalScreenListeners}
+                        getComponent={loadWorkspaceJoinUser}
+                    />
+                    <RootStack.Screen
+                        name={SCREENS.TRANSACTION_RECEIPT}
+                        options={{
+                            headerShown: false,
+                            presentation: 'transparentModal',
+                        }}
+                        getComponent={loadReceiptView}
+                        listeners={modalScreenListeners}
+                    />
+                    <RootStack.Screen
+                        name={SCREENS.CONNECTION_COMPLETE}
+                        options={defaultScreenOptions}
+                        component={ConnectionCompletePage}
+                    />
+                </RootStack.Navigator>
+            </View>
+        </OptionsListContextProvider>
     );
 }
 
@@ -371,9 +423,6 @@ export default withOnyx<AuthScreensProps, AuthScreensProps>({
     },
     lastOpenedPublicRoomID: {
         key: ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID,
-    },
-    isUsingMemoryOnlyKeys: {
-        key: ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS,
     },
     initialLastUpdateIDAppliedToClient: {
         key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,

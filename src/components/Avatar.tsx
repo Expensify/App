@@ -7,6 +7,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserUtils';
+import * as UserUtils from '@libs/UserUtils';
 import type {AvatarSizeName} from '@styles/utils';
 import CONST from '@src/CONST';
 import type {AvatarType} from '@src/types/onyx/OnyxCommon';
@@ -49,10 +50,13 @@ type AvatarProps = {
 
     /** Owner of the avatar. If user, displayName. If workspace, policy name */
     name?: string;
+
+    /** Optional account id if it's user avatar or policy id if it's workspace avatar */
+    accountID?: number | string;
 };
 
 function Avatar({
-    source,
+    source: originalSource,
     imageStyles,
     iconAdditionalStyles,
     containerStyles,
@@ -62,6 +66,7 @@ function Avatar({
     fallbackIconTestID = '',
     type = CONST.ICON_TYPE_AVATAR,
     name = '',
+    accountID,
 }: AvatarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -72,11 +77,7 @@ function Avatar({
 
     useEffect(() => {
         setImageError(false);
-    }, [source]);
-
-    if (!source) {
-        return null;
-    }
+    }, [originalSource]);
 
     const isWorkspace = type === CONST.ICON_TYPE_WORKSPACE;
     const iconSize = StyleUtils.getAvatarSize(size);
@@ -84,11 +85,21 @@ function Avatar({
     const imageStyle: StyleProp<ImageStyle> = [StyleUtils.getAvatarStyle(size), imageStyles, styles.noBorderRadius];
     const iconStyle = imageStyles ? [StyleUtils.getAvatarStyle(size), styles.bgTransparent, imageStyles] : undefined;
 
-    const iconFillColor = isWorkspace ? StyleUtils.getDefaultWorkspaceAvatarColor(name).fill : fill;
+    // We pass the color styles down to the SVG for the workspace and fallback avatar.
+    const source = isWorkspace ? originalSource : UserUtils.getAvatar(originalSource, Number(accountID));
+    const useFallBackAvatar = imageError || !source || source === Expensicons.FallbackAvatar;
     const fallbackAvatar = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatar(name) : fallbackIcon || Expensicons.FallbackAvatar;
     const fallbackAvatarTestID = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatarTestID(name) : fallbackIconTestID || 'SvgFallbackAvatar Icon';
+    const avatarSource = useFallBackAvatar ? fallbackAvatar : source;
 
-    const avatarSource = imageError ? fallbackAvatar : source;
+    let iconColors;
+    if (isWorkspace) {
+        iconColors = StyleUtils.getDefaultWorkspaceAvatarColor(accountID?.toString() ?? '');
+    } else if (useFallBackAvatar) {
+        iconColors = StyleUtils.getBackgroundColorAndFill(theme.buttonHoveredBG, theme.icon);
+    } else {
+        iconColors = null;
+    }
 
     return (
         <View style={[containerStyles, styles.pointerEventsNone]}>
@@ -107,13 +118,8 @@ function Avatar({
                         src={avatarSource}
                         height={iconSize}
                         width={iconSize}
-                        fill={imageError ? theme.offline : iconFillColor}
-                        additionalStyles={[
-                            StyleUtils.getAvatarBorderStyle(size, type),
-                            isWorkspace && StyleUtils.getDefaultWorkspaceAvatarColor(name),
-                            imageError && StyleUtils.getBackgroundColorStyle(theme.fallbackIconColor),
-                            iconAdditionalStyles,
-                        ]}
+                        fill={imageError ? iconColors?.fill ?? theme.offline : iconColors?.fill ?? fill}
+                        additionalStyles={[StyleUtils.getAvatarBorderStyle(size, type), iconColors, iconAdditionalStyles]}
                     />
                 </View>
             )}

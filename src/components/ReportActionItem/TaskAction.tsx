@@ -17,7 +17,7 @@ function TaskAction({action}: TaskActionProps) {
     const message = TaskUtils.getTaskReportActionMessage(action);
 
     return (
-        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.breakWord, styles.preWrap]}>
             {message.html ? <RenderHTML html={`<muted-text>${message.html}</muted-text>`} /> : <Text style={[styles.chatItemMessage, styles.colorMuted]}>{message.text}</Text>}
         </View>
     );

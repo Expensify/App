@@ -55,6 +55,9 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
         );
     }
 
+    const hasStrikethroughStyle = 'textDecorationLine' in parentStyle && parentStyle.textDecorationLine === 'line-through';
+    const textDecorationLineStyle = hasStrikethroughStyle ? styles.underlineLineThrough : {};
+
     return (
         <AnchorForCommentsOnly
             href={attrHref}
@@ -65,12 +68,30 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
             // eslint-disable-next-line react/jsx-props-no-multi-spaces
             target={htmlAttribs.target || '_blank'}
             rel={htmlAttribs.rel || 'noopener noreferrer'}
-            style={[style, parentStyle, styles.textUnderlinePositionUnder, styles.textDecorationSkipInkNone]}
+            style={[style, parentStyle, textDecorationLineStyle, styles.textUnderlinePositionUnder, styles.textDecorationSkipInkNone]}
             key={key}
             // Only pass the press handler for internal links. For public links or whitelisted internal links fallback to default link handling
             onPress={internalNewExpensifyPath || internalExpensifyPath ? () => Link.openLink(attrHref, environmentURL, isAttachment) : undefined}
         >
-            <TNodeChildrenRenderer tnode={tnode} />
+            <TNodeChildrenRenderer
+                tnode={tnode}
+                renderChild={(props) => {
+                    if (props.childTnode.tagName === 'br') {
+                        return <Text key={props.key}>{'\n'}</Text>;
+                    }
+                    if (props.childTnode.type === 'text') {
+                        return (
+                            <Text
+                                key={props.key}
+                                style={[props.childTnode.getNativeStyles(), parentStyle, textDecorationLineStyle, styles.textUnderlinePositionUnder, styles.textDecorationSkipInkNone]}
+                            >
+                                {props.childTnode.data}
+                            </Text>
+                        );
+                    }
+                    return props.childElement;
+                }}
+            />
         </AnchorForCommentsOnly>
     );
 }

@@ -27,7 +27,7 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount}: FinishCha
     const styles = useThemeStyles();
     const policyID = reimbursementAccount?.achData?.policyID ?? '';
     const shouldShowResetModal = reimbursementAccount.shouldShowResetModal ?? false;
-    const handleNavigateToConciergeChat = () => Report.navigateToConciergeChat();
+    const handleNavigateToConciergeChat = () => Report.navigateToConciergeChat(true);
 
     return (
         <ScrollView style={[styles.flex1]}>
@@ -39,13 +39,13 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount}: FinishCha
             >
                 <Text style={styles.mb6}>{translate('connectBankAccountStep.letsChatText')}</Text>
                 <Button
+                    iconStyles={[styles.customMarginButtonWithMenuItem]}
                     text={translate('connectBankAccountStep.letsChatCTA')}
                     onPress={handleNavigateToConciergeChat}
                     icon={Expensicons.ChatBubble}
-                    iconStyles={[styles.buttonCTAIcon]}
                     shouldShowRightIcon
-                    large
                     success
+                    innerStyles={[styles.pr2, styles.pl4, styles.h13]}
                 />
                 <MenuItem
                     title={translate('workspace.bankAccount.noLetsStartOver')}

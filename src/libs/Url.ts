@@ -41,4 +41,25 @@ function hasSameExpensifyOrigin(url1: string, url2: string): boolean {
     }
 }
 
-export {addTrailingForwardSlash, hasSameExpensifyOrigin, getPathFromURL};
+/**
+ * Appends or updates a query parameter in a given URL.
+ */
+function appendParam(url: string, paramName: string, paramValue: string) {
+    // If parameter exists, replace it
+    if (url.includes(`${paramName}=`)) {
+        const regex = new RegExp(`${paramName}=([^&]*)`);
+        return url.replace(regex, `${paramName}=${paramValue}`);
+    }
+
+    // If parameter doesn't exist, append it
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}${paramName}=${paramValue}`;
+}
+
+function hasURL(text: string) {
+    const urlPattern = /((https|http)?:\/\/[^\s]+)/g;
+
+    return urlPattern.test(text);
+}
+
+export {addTrailingForwardSlash, hasSameExpensifyOrigin, getPathFromURL, appendParam, hasURL};

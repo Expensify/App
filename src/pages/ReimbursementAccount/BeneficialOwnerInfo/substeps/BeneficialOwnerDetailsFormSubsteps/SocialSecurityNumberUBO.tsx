@@ -43,8 +43,8 @@ function SocialSecurityNumberUBO({reimbursementAccountDraft, onNext, isEditing, 
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: stepFields,
-        isEditing,
         onNext,
+        shouldSaveDraft: isEditing,
     });
 
     return (

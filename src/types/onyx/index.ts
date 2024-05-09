@@ -6,11 +6,12 @@ import type Beta from './Beta';
 import type BlockedFromConcierge from './BlockedFromConcierge';
 import type Card from './Card';
 import type {CardList} from './Card';
-import type Log from './Console';
+import type {CapturedLogs, Log} from './Console';
 import type Credentials from './Credentials';
 import type Currency from './Currency';
 import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
+import type DismissedReferralBanners from './DismissedReferralBanners';
 import type Download from './Download';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import type {FundList} from './Fund';
@@ -26,20 +27,25 @@ import type Login from './Login';
 import type MapboxAccessToken from './MapboxAccessToken';
 import type Modal from './Modal';
 import type Network from './Network';
+import type NewGroupChatDraft from './NewGroupChatDraft';
 import type {OnyxUpdateEvent, OnyxUpdatesFromServer} from './OnyxUpdatesFromServer';
 import type {DecisionName, OriginalMessageIOU} from './OriginalMessage';
 import type PersonalBankAccount from './PersonalBankAccount';
-import type {PersonalDetailsList} from './PersonalDetails';
+import type {PersonalDetailsList, PersonalDetailsMetadata} from './PersonalDetails';
 import type PersonalDetails from './PersonalDetails';
 import type PlaidData from './PlaidData';
 import type Policy from './Policy';
-import type {TaxRate, TaxRates, TaxRatesWithDefault} from './Policy';
+import type {PolicyConnectionSyncProgress, PolicyReportField, TaxRate, TaxRates, TaxRatesWithDefault} from './Policy';
 import type {PolicyCategories, PolicyCategory} from './PolicyCategory';
-import type {PolicyMembers} from './PolicyMember';
-import type PolicyMember from './PolicyMember';
-import type {PolicyReportField, PolicyReportFields} from './PolicyReportField';
+import type {PolicyEmployeeList} from './PolicyEmployee';
+import type PolicyEmployee from './PolicyEmployee';
+import type PolicyJoinMember from './PolicyJoinMember';
+import type PolicyOwnershipChangeChecks from './PolicyOwnershipChangeChecks';
 import type {PolicyTag, PolicyTagList, PolicyTags} from './PolicyTag';
+import type PreferredTheme from './PreferredTheme';
+import type PriorityMode from './PriorityMode';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
+import type QuickAction from './QuickAction';
 import type RecentlyUsedCategories from './RecentlyUsedCategories';
 import type RecentlyUsedReportFields from './RecentlyUsedReportFields';
 import type RecentlyUsedTags from './RecentlyUsedTags';
@@ -57,7 +63,9 @@ import type ReportUserIsTyping from './ReportUserIsTyping';
 import type Request from './Request';
 import type Response from './Response';
 import type ScreenShareRequest from './ScreenShareRequest';
+import type SearchResults from './SearchResults';
 import type SecurityGroup from './SecurityGroup';
+import type SelectedTabRequest from './SelectedTabRequest';
 import type Session from './Session';
 import type Task from './Task';
 import type Transaction from './Transaction';
@@ -87,6 +95,7 @@ export type {
     Currency,
     CurrencyList,
     CustomStatusDraft,
+    DismissedReferralBanners,
     Download,
     FrequentlyUsedEmoji,
     Fund,
@@ -104,16 +113,22 @@ export type {
     PersonalBankAccount,
     PersonalDetails,
     PersonalDetailsList,
+    PersonalDetailsMetadata,
     PlaidData,
     Policy,
     PolicyCategories,
     PolicyCategory,
-    PolicyMember,
-    PolicyMembers,
+    PolicyEmployee,
+    PolicyEmployeeList,
+    PolicyConnectionSyncProgress,
+    PolicyOwnershipChangeChecks,
     PolicyTag,
     PolicyTags,
     PolicyTagList,
+    PreferredTheme,
+    PriorityMode,
     PrivatePersonalDetails,
+    QuickAction,
     RecentWaypoint,
     RecentlyUsedCategories,
     RecentlyUsedTags,
@@ -130,6 +145,7 @@ export type {
     Response,
     ScreenShareRequest,
     SecurityGroup,
+    SelectedTabRequest,
     Session,
     Task,
     TaxRate,
@@ -151,7 +167,6 @@ export type {
     WorkspaceRateAndUnit,
     ReportUserIsTyping,
     PolicyReportField,
-    PolicyReportFields,
     RecentlyUsedReportFields,
     DecisionName,
     OriginalMessageIOU,
@@ -159,5 +174,9 @@ export type {
     LastPaymentMethod,
     LastSelectedDistanceRates,
     InvitedEmailsToAccountIDs,
+    NewGroupChatDraft,
     Log,
+    PolicyJoinMember,
+    CapturedLogs,
+    SearchResults,
 };

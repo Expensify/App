@@ -29,6 +29,7 @@ const fileDownload: FileDownload = (url, fileName) => {
             // adding href to anchor
             link.href = href;
             link.style.display = 'none';
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as nullish coalescing works only if the value is undefined or null, and since fileName can be an empty string we want to default to `FileUtils.getFileName(url)`
             link.download = FileUtils.appendTimeToFileName(fileName || FileUtils.getFileName(url));
 
             // Append to html link element page

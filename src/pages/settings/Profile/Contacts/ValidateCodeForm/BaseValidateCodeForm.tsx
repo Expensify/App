@@ -224,6 +224,7 @@ function BaseValidateCodeForm({account = {}, contactMethod, hasMagicCodeBeenSent
                     style={[styles.mt4]}
                     success
                     pressOnEnter
+                    large
                     isLoading={account?.isLoading}
                 />
             </OfflineWithFeedback>

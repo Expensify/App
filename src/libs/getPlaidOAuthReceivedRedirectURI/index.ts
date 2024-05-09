@@ -12,7 +12,7 @@ const getPlaidOAuthReceivedRedirectURI: GetPlaidOAuthReceivedRedirectURI = () =>
 
     // If no stateID passed in then we are either not in OAuth flow or flow is broken
     if (!oauthStateID) {
-        return null;
+        return undefined;
     }
     return receivedRedirectURI;
 };

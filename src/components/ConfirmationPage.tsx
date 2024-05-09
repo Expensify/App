@@ -1,4 +1,5 @@
 import React from 'react';
+import type {TextStyle} from 'react-native';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Button from './Button';
@@ -26,9 +27,24 @@ type ConfirmationPageProps = {
 
     /** Whether we should show a confirmation button */
     shouldShowButton?: boolean;
+
+    /** Additional style for the heading */
+    headingStyle?: TextStyle;
+
+    /** Additional style for the description */
+    descriptionStyle?: TextStyle;
 };
 
-function ConfirmationPage({animation = LottieAnimations.Fireworks, heading, description, buttonText = '', onButtonPress = () => {}, shouldShowButton = false}: ConfirmationPageProps) {
+function ConfirmationPage({
+    animation = LottieAnimations.Fireworks,
+    heading,
+    description,
+    buttonText = '',
+    onButtonPress = () => {},
+    shouldShowButton = false,
+    headingStyle,
+    descriptionStyle,
+}: ConfirmationPageProps) {
     const styles = useThemeStyles();
 
     return (
@@ -40,13 +56,14 @@ function ConfirmationPage({animation = LottieAnimations.Fireworks, heading, desc
                     loop
                     style={styles.confirmationAnimation}
                 />
-                <Text style={[styles.textHeadline, styles.textAlignCenter, styles.mv2]}>{heading}</Text>
-                <Text style={styles.textAlignCenter}>{description}</Text>
+                <Text style={[styles.textHeadline, styles.textAlignCenter, styles.mv2, headingStyle]}>{heading}</Text>
+                <Text style={[styles.textAlignCenter, descriptionStyle]}>{description}</Text>
             </View>
             {shouldShowButton && (
                 <FixedFooter>
                     <Button
                         success
+                        large
                         text={buttonText}
                         style={styles.mt6}
                         pressOnEnter

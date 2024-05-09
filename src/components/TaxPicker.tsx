@@ -1,20 +1,29 @@
 import React, {useMemo, useState} from 'react';
+import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useThemeStyles from '@hooks/useThemeStyles';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
-import type {TaxRatesWithDefault} from '@src/types/onyx';
-import OptionsSelector from './OptionsSelector';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy} from '@src/types/onyx';
+import SelectionList from './SelectionList';
+import RadioListItem from './SelectionList/RadioListItem';
 
-type TaxPickerProps = {
-    /** Collection of tax rates attached to a policy */
-    taxRates: TaxRatesWithDefault;
+type TaxPickerOnyxProps = {
+    /** The policy which the user has access to and which the report is tied to */
+    policy: OnyxEntry<Policy>;
+};
 
+type TaxPickerProps = TaxPickerOnyxProps & {
     /** The selected tax rate of an expense */
     selectedTaxRate?: string;
+
+    /** ID of the policy */
+    // eslint-disable-next-line react/no-unused-prop-types
+    policyID?: string;
 
     /**
      * Safe area insets required for reflecting the portion of the view,
@@ -23,16 +32,16 @@ type TaxPickerProps = {
     insets?: EdgeInsets;
 
     /** Callback to fire when a tax is pressed */
-    onSubmit: () => void;
+    onSubmit: (tax: OptionsListUtils.TaxRatesOption) => void;
 };
 
-function TaxPicker({selectedTaxRate = '', taxRates, insets, onSubmit}: TaxPickerProps) {
-    const styles = useThemeStyles();
+function TaxPicker({selectedTaxRate = '', policy, insets, onSubmit}: TaxPickerProps) {
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
 
-    const taxRatesCount = TransactionUtils.getEnabledTaxRateCount(taxRates.taxes);
+    const taxRates = policy?.taxRates;
+    const taxRatesCount = TransactionUtils.getEnabledTaxRateCount(taxRates?.taxes ?? {});
     const isTaxRatesCountBelowThreshold = taxRatesCount < CONST.TAX_RATES_LIST_THRESHOLD;
 
     const shouldShowTextInput = !isTaxRatesCountBelowThreshold;
@@ -44,43 +53,39 @@ function TaxPicker({selectedTaxRate = '', taxRates, insets, onSubmit}: TaxPicker
 
         return [
             {
-                name: selectedTaxRate,
-                enabled: true,
+                modifiedName: selectedTaxRate,
+                isDisabled: false,
                 accountID: null,
             },
         ];
     }, [selectedTaxRate]);
 
-    const sections = useMemo(() => {
-        const {taxRatesOptions} = OptionsListUtils.getFilteredOptions({}, {}, [], searchValue, selectedOptions, [], false, false, false, {}, [], false, {}, [], false, false, true, taxRates);
-        return taxRatesOptions;
-    }, [taxRates, searchValue, selectedOptions]);
+    const sections = useMemo(() => OptionsListUtils.getTaxRatesSection(taxRates, selectedOptions as OptionsListUtils.Tax[], searchValue), [taxRates, searchValue, selectedOptions]);
 
-    const selectedOptionKey = sections?.[0]?.data?.find((taxRate) => taxRate.searchText === selectedTaxRate)?.keyForList;
+    const headerMessage = OptionsListUtils.getHeaderMessageForNonUserList(sections[0].data.length > 0, searchValue);
+
+    const selectedOptionKey = useMemo(() => sections?.[0]?.data?.find((taxRate) => taxRate.searchText === selectedTaxRate)?.keyForList, [sections, selectedTaxRate]);
 
     return (
-        <OptionsSelector
-            // @ts-expect-error TODO: Remove this once OptionsSelector (https://github.com/Expensify/App/issues/25125) is migrated to TypeScript.
-            contentContainerStyles={[{paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]}
-            optionHoveredStyle={styles.hoveredComponentBG}
-            sectionHeaderStyle={styles.mt5}
+        <SelectionList
             sections={sections}
-            selectedOptions={selectedOptions}
-            value={searchValue}
-            // Focus the first option when searching
-            focusedIndex={0}
-            initiallyFocusedOptionKey={selectedOptionKey}
-            textInputLabel={translate('common.search')}
-            boldStyle
-            highlightSelectedOptions
-            isRowMultilineSupported
-            shouldShowTextInput={shouldShowTextInput}
+            headerMessage={headerMessage}
+            textInputValue={searchValue}
+            textInputLabel={shouldShowTextInput ? translate('common.search') : undefined}
             onChangeText={setSearchValue}
             onSelectRow={onSubmit}
+            ListItem={RadioListItem}
+            initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
+            isRowMultilineSupported
+            containerStyle={{paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}}
         />
     );
 }
 
 TaxPicker.displayName = 'TaxPicker';
 
-export default TaxPicker;
+export default withOnyx<TaxPickerProps, TaxPickerOnyxProps>({
+    policy: {
+        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+    },
+})(TaxPicker);

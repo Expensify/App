@@ -1,13 +1,12 @@
-import React, {useMemo} from 'react';
+import React, {useMemo, useRef} from 'react';
+import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import * as Expensicons from './Icon/Expensicons';
@@ -19,40 +18,45 @@ type WorkspaceSwitcherButtonOnyxProps = {
     policy: OnyxEntry<Policy>;
 };
 
-type WorkspaceSwitcherButtonProps = {activeWorkspaceID?: string} & WorkspaceSwitcherButtonOnyxProps;
+type WorkspaceSwitcherButtonProps = WorkspaceSwitcherButtonOnyxProps;
 
-function WorkspaceSwitcherButton({activeWorkspaceID, policy}: WorkspaceSwitcherButtonProps) {
+function WorkspaceSwitcherButton({policy}: WorkspaceSwitcherButtonProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
 
-    const {source, name, type} = useMemo(() => {
-        if (!activeWorkspaceID) {
+    const pressableRef = useRef<View>(null);
+
+    const {source, name, type, id} = useMemo(() => {
+        if (!policy) {
             return {source: Expensicons.ExpensifyAppIcon, name: CONST.WORKSPACE_SWITCHER.NAME, type: CONST.ICON_TYPE_AVATAR};
         }
 
-        const avatar = policy?.avatar ? policy.avatar : getDefaultWorkspaceAvatar(policy?.name);
+        const avatar = policy?.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy?.name);
         return {
             source: avatar,
             name: policy?.name ?? '',
             type: CONST.ICON_TYPE_WORKSPACE,
+            id: policy?.id ?? '',
         };
-    }, [policy, activeWorkspaceID]);
+    }, [policy]);
 
     return (
         <Tooltip text={translate('workspace.switcher.headerTitle')}>
             <PressableWithFeedback
+                ref={pressableRef}
                 accessibilityRole={CONST.ROLE.BUTTON}
                 accessibilityLabel={translate('common.workspaces')}
                 accessible
-                onPress={() =>
+                onPress={() => {
+                    pressableRef?.current?.blur();
                     interceptAnonymousUser(() => {
                         Navigation.navigate(ROUTES.WORKSPACE_SWITCHER);
-                    })
-                }
+                    });
+                }}
             >
                 {({hovered}) => (
                     <SubscriptAvatar
-                        mainAvatar={{source, name, type}}
+                        mainAvatar={{source, name, type, id}}
                         subscriptIcon={{
                             source: Expensicons.DownArrow,
                             width: CONST.WORKSPACE_SWITCHER.SUBSCRIPT_ICON_SIZE,
@@ -71,8 +75,4 @@ function WorkspaceSwitcherButton({activeWorkspaceID, policy}: WorkspaceSwitcherB
 
 WorkspaceSwitcherButton.displayName = 'WorkspaceSwitcherButton';
 
-export default withOnyx<WorkspaceSwitcherButtonProps, WorkspaceSwitcherButtonOnyxProps>({
-    policy: {
-        key: ({activeWorkspaceID}) => `${ONYXKEYS.COLLECTION.POLICY}${activeWorkspaceID}`,
-    },
-})(WorkspaceSwitcherButton);
+export default WorkspaceSwitcherButton;

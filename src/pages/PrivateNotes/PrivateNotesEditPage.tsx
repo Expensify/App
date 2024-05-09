@@ -24,6 +24,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import type {WithReportAndPrivateNotesOrNotFoundProps} from '@pages/home/report/withReportAndPrivateNotesOrNotFound';
 import withReportAndPrivateNotesOrNotFound from '@pages/home/report/withReportAndPrivateNotesOrNotFound';
+import variables from '@styles/variables';
 import * as ReportActions from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -151,7 +152,7 @@ function PrivateNotesEditPage({route, personalDetailsList, report}: PrivateNotes
                         maxLength={CONST.MAX_COMMENT_LENGTH}
                         autoCorrect={false}
                         autoGrowHeight
-                        containerStyles={[styles.autoGrowHeightMultilineInput]}
+                        maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                         defaultValue={privateNote}
                         value={privateNote}
                         onChangeText={(text: string) => {
@@ -165,6 +166,7 @@ function PrivateNotesEditPage({route, personalDetailsList, report}: PrivateNotes
                             privateNotesInput.current = el;
                             updateMultilineInputRange(privateNotesInput.current);
                         }}
+                        isMarkdownEnabled
                     />
                 </OfflineWithFeedback>
             </FormProvider>

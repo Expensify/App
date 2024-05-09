@@ -1,5 +1,4 @@
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import Str from 'expensify-common/lib/str';
 import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -17,6 +16,7 @@ import Tooltip from '@components/Tooltip';
 import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -26,6 +26,7 @@ import * as Browser from '@libs/Browser';
 import * as ComposerUtils from '@libs/ComposerUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
+import type {Selection} from '@libs/focusComposerWithDelay/types';
 import focusEditAfterCancelDelete from '@libs/focusEditAfterCancelDelete';
 import onyxSubscribe from '@libs/onyxSubscribe';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
@@ -41,6 +42,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
+import shouldUseEmojiPickerSelection from './shouldUseEmojiPickerSelection';
 
 type ReportActionItemMessageEditProps = {
     /** All the data of the action */
@@ -67,10 +69,11 @@ const emojiButtonID = 'emojiButton';
 const messageEditInput = 'messageEditInput';
 
 const isMobileSafari = Browser.isMobileSafari();
+const shouldUseForcedSelectionRange = shouldUseEmojiPickerSelection();
 
 function ReportActionItemMessageEdit(
     {action, draftMessage, reportID, index, shouldDisableEmojiPicker = false, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE}: ReportActionItemMessageEditProps,
-    forwardedRef: ForwardedRef<(TextInput & HTMLTextAreaElement) | undefined>,
+    forwardedRef: ForwardedRef<TextInput | HTMLTextAreaElement | undefined>,
 ) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -79,37 +82,24 @@ function ReportActionItemMessageEdit(
     const {translate, preferredLocale} = useLocalize();
     const {isKeyboardShown} = useKeyboardState();
     const {isSmallScreenWidth} = useWindowDimensions();
-
-    const getInitialDraft = () => {
-        if (draftMessage === action?.message?.[0].html) {
-            // We only convert the report action message to markdown if the draft message is unchanged.
-            const parser = new ExpensiMark();
-            return parser.htmlToMarkdown(draftMessage).trim();
-        }
-        // We need to decode saved draft message because it's escaped before saving.
-        return Str.htmlDecode(draftMessage);
-    };
+    const prevDraftMessage = usePrevious(draftMessage);
 
     const getInitialSelection = () => {
         if (isMobileSafari) {
             return {start: 0, end: 0};
         }
 
-        const length = getInitialDraft().length;
+        const length = draftMessage.length;
         return {start: length, end: length};
     };
     const emojisPresentBefore = useRef<Emoji[]>([]);
     const [draft, setDraft] = useState(() => {
-        const initialDraft = getInitialDraft();
-        if (initialDraft) {
-            emojisPresentBefore.current = EmojiUtils.extractEmojis(initialDraft);
+        if (draftMessage) {
+            emojisPresentBefore.current = EmojiUtils.extractEmojis(draftMessage);
         }
-        return initialDraft;
+        return draftMessage;
     });
-    const [selection, setSelection] = useState<{
-        start: number;
-        end: number;
-    }>(getInitialSelection);
+    const [selection, setSelection] = useState<Selection>(getInitialSelection);
     const [isFocused, setIsFocused] = useState<boolean>(false);
     const {hasExceededMaxCommentLength, validateCommentMaxLength} = useHandleExceedMaxCommentLength();
     const [modal, setModal] = useState<OnyxTypes.Modal>({
@@ -122,13 +112,22 @@ function ReportActionItemMessageEdit(
     const isFocusedRef = useRef<boolean>(false);
     const insertedEmojis = useRef<Emoji[]>([]);
     const draftRef = useRef(draft);
+    const emojiPickerSelectionRef = useRef<Selection | undefined>(undefined);
+    // The ref to check whether the comment saving is in progress
+    const isCommentPendingSaved = useRef(false);
 
     useEffect(() => {
-        if (ReportActionsUtils.isDeletedAction(action) || (action.message && draftMessage === action.message[0].html)) {
+        const parser = new ExpensiMark();
+        const originalMessage = parser.htmlToMarkdown(action.message?.[0]?.html ?? '');
+        if (
+            ReportActionsUtils.isDeletedAction(action) ||
+            Boolean(action.message && draftMessage === originalMessage) ||
+            Boolean(prevDraftMessage === draftMessage || isCommentPendingSaved.current)
+        ) {
             return;
         }
-        setDraft(Str.htmlDecode(draftMessage));
-    }, [draftMessage, action]);
+        setDraft(draftMessage);
+    }, [draftMessage, action, prevDraftMessage]);
 
     useEffect(() => {
         // required for keeping last state of isFocused variable
@@ -225,8 +224,17 @@ function ReportActionItemMessageEdit(
         () =>
             lodashDebounce((newDraft: string) => {
                 Report.saveReportActionDraft(reportID, action, newDraft);
+                isCommentPendingSaved.current = false;
             }, 1000),
         [reportID, action],
+    );
+
+    useEffect(
+        () => () => {
+            debouncedSaveDraft.cancel();
+            isCommentPendingSaved.current = false;
+        },
+        [debouncedSaveDraft],
     );
 
     /**
@@ -274,6 +282,7 @@ function ReportActionItemMessageEdit(
 
             // We want to escape the draft message to differentiate the HTML from the report action and the HTML the user drafted.
             debouncedSaveDraft(newDraft);
+            isCommentPendingSaved.current = true;
         },
         [debouncedSaveDraft, debouncedUpdateFrequentlyUsedEmojis, preferredSkinTone, preferredLocale, selection.end],
     );
@@ -287,7 +296,6 @@ function ReportActionItemMessageEdit(
      * Delete the draft of the comment being edited. This will take the comment out of "edit mode" with the old content.
      */
     const deleteDraft = useCallback(() => {
-        debouncedSaveDraft.cancel();
         Report.deleteReportActionDraft(reportID, action);
 
         if (isActive()) {
@@ -302,7 +310,7 @@ function ReportActionItemMessageEdit(
                 keyboardDidHideListener.remove();
             });
         }
-    }, [action, debouncedSaveDraft, index, reportID, reportScrollManager, isActive]);
+    }, [action, index, reportID, reportScrollManager, isActive]);
 
     /**
      * Save the draft of the comment to be the new comment message. This will take the comment out of "edit mode" with
@@ -310,13 +318,9 @@ function ReportActionItemMessageEdit(
      */
     const publishDraft = useCallback(() => {
         // Do nothing if draft exceed the character limit
-        if (ReportUtils.getCommentLength(draft) > CONST.MAX_COMMENT_LENGTH) {
+        if (ReportUtils.getCommentLength(draft, {reportID}) > CONST.MAX_COMMENT_LENGTH) {
             return;
         }
-
-        // To prevent re-mount after user saves edit before debounce duration (example: within 1 second), we cancel
-        // debounce here.
-        debouncedSaveDraft.cancel();
 
         const trimmedNewDraft = draft.trim();
 
@@ -328,16 +332,23 @@ function ReportActionItemMessageEdit(
         }
         Report.editReportComment(reportID, action, trimmedNewDraft);
         deleteDraft();
-    }, [action, debouncedSaveDraft, deleteDraft, draft, reportID]);
+    }, [action, deleteDraft, draft, reportID]);
 
     /**
      * @param emoji
      */
     const addEmojiToTextBox = (emoji: string) => {
-        setSelection((prevSelection) => ({
-            start: prevSelection.start + emoji.length + CONST.SPACE_LENGTH,
-            end: prevSelection.start + emoji.length + CONST.SPACE_LENGTH,
-        }));
+        const newSelection = {
+            start: selection.start + emoji.length + CONST.SPACE_LENGTH,
+            end: selection.start + emoji.length + CONST.SPACE_LENGTH,
+        };
+        setSelection(newSelection);
+
+        if (shouldUseForcedSelectionRange) {
+            // On Android and Chrome mobile, focusing the input sets the cursor position back to the start.
+            // To fix this, immediately set the selection again after focusing the input.
+            emojiPickerSelectionRef.current = newSelection;
+        }
         updateDraft(ComposerUtils.insertText(draft, selection, `${emoji} `));
     };
 
@@ -369,8 +380,8 @@ function ReportActionItemMessageEdit(
     const focus = focusComposerWithDelay(textInputRef.current);
 
     useEffect(() => {
-        validateCommentMaxLength(draft);
-    }, [draft, validateCommentMaxLength]);
+        validateCommentMaxLength(draft, {reportID});
+    }, [draft, reportID, validateCommentMaxLength]);
 
     return (
         <>
@@ -439,7 +450,7 @@ function ReportActionItemMessageEdit(
                                 setIsFocused(false);
                                 // @ts-expect-error TODO: TextInputFocusEventData doesn't contain relatedTarget.
                                 const relatedTargetId = event.nativeEvent?.relatedTarget?.id;
-                                if (relatedTargetId && [messageEditInput, emojiButtonID].includes(relatedTargetId)) {
+                                if ((relatedTargetId && [messageEditInput, emojiButtonID].includes(relatedTargetId)) || EmojiPickerAction.isEmojiPickerVisible()) {
                                     return;
                                 }
                                 setShouldShowComposeInputKeyboardAware(true);
@@ -451,7 +462,9 @@ function ReportActionItemMessageEdit(
                     <View style={styles.editChatItemEmojiWrapper}>
                         <EmojiPickerButton
                             isDisabled={shouldDisableEmojiPicker}
-                            onModalHide={() => focus(true)}
+                            onModalHide={() => {
+                                focus(true, emojiPickerSelectionRef.current ? {...emojiPickerSelectionRef.current} : undefined);
+                            }}
                             onEmojiSelected={addEmojiToTextBox}
                             id={emojiButtonID}
                             emojiPickerID={action.reportActionID}

@@ -1,4 +1,4 @@
-import {cleanup, screen} from '@testing-library/react-native';
+import {screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import * as Report from '@libs/actions/Report';
 import DateUtils from '@libs/DateUtils';
@@ -25,6 +25,7 @@ const ONYXKEYS = {
         REPORT: 'report_',
         REPORT_ACTIONS: 'reportActions_',
         POLICY: 'policy_',
+        REPORT_DRAFT_COMMENT: 'reportDraftComment_',
     },
     NETWORK: 'network',
     IS_LOADING_REPORT_DATA: 'isLoadingReportData',
@@ -47,7 +48,6 @@ describe('Sidebar', () => {
 
     // Clear out Onyx after each test so that each test starts with a clean slate
     afterEach(() => {
-        cleanup();
         Onyx.clear();
     });
 
@@ -121,7 +121,7 @@ describe('Sidebar', () => {
             const report2 = LHNTestUtils.getFakeReport([3, 4], 2);
             const report3 = LHNTestUtils.getFakeReport([5, 6], 1);
 
-            // Each report has at least one ADDCOMMENT action so should be rendered in the LNH
+            // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
             Report.addComment(report1.reportID, 'Hi, this is a comment');
             Report.addComment(report2.reportID, 'Hi, this is a comment');
             Report.addComment(report3.reportID, 'Hi, this is a comment');
@@ -148,11 +148,11 @@ describe('Sidebar', () => {
                     .then(() => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
-
                         expect(displayNames).toHaveLength(3);
-                        expect(displayNames[0].props.children[0]).toBe('Five, Six');
-                        expect(displayNames[1].props.children[0]).toBe('Three, Four');
-                        expect(displayNames[2].props.children[0]).toBe('One, Two');
+
+                        expect(displayNames[0]).toHaveTextContent('Five, Six');
+                        expect(displayNames[1]).toHaveTextContent('Three, Four');
+                        expect(displayNames[2]).toHaveTextContent('One, Two');
                     })
             );
         });
@@ -163,12 +163,11 @@ describe('Sidebar', () => {
             // And the currently viewed report is the first report
             const report1 = {
                 ...LHNTestUtils.getFakeReport([1, 2], 3),
-                hasDraft: true,
             };
             const report2 = LHNTestUtils.getFakeReport([3, 4], 2);
             const report3 = LHNTestUtils.getFakeReport([5, 6], 1);
 
-            // Each report has at least one ADDCOMMENT action so should be rendered in the LNH
+            // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
             Report.addComment(report1.reportID, 'Hi, this is a comment');
             Report.addComment(report2.reportID, 'Hi, this is a comment');
             Report.addComment(report3.reportID, 'Hi, this is a comment');
@@ -190,6 +189,7 @@ describe('Sidebar', () => {
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
+                            [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report1.reportID}`]: 'report1 draft',
                             ...reportCollectionDataSet,
                         }),
                     )
@@ -203,9 +203,9 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
-                        expect(displayNames[0].props.children[0]).toBe('One, Two'); // this has `hasDraft` flag enabled so it will be on top
-                        expect(displayNames[1].props.children[0]).toBe('Five, Six');
-                        expect(displayNames[2].props.children[0]).toBe('Three, Four');
+                        expect(displayNames[0]).toHaveTextContent('One, Two'); // this has `hasDraft` flag enabled so it will be on top
+                        expect(displayNames[1]).toHaveTextContent('Five, Six');
+                        expect(displayNames[2]).toHaveTextContent('Three, Four');
                     })
             );
         });
@@ -218,7 +218,7 @@ describe('Sidebar', () => {
             const report2 = LHNTestUtils.getFakeReport([3, 4], 2);
             const report3 = LHNTestUtils.getFakeReport([5, 6], 1);
 
-            // Each report has at least one ADDCOMMENT action so should be rendered in the LNH
+            // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
             Report.addComment(report1.reportID, 'Hi, this is a comment');
             Report.addComment(report2.reportID, 'Hi, this is a comment');
             Report.addComment(report3.reportID, 'Hi, this is a comment');
@@ -254,9 +254,9 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
-                        expect(displayNames[0].props.children[0]).toBe('One, Two');
-                        expect(displayNames[1].props.children[0]).toBe('Five, Six');
-                        expect(displayNames[2].props.children[0]).toBe('Three, Four');
+                        expect(displayNames[0]).toHaveTextContent('One, Two');
+                        expect(displayNames[1]).toHaveTextContent('Five, Six');
+                        expect(displayNames[2]).toHaveTextContent('Three, Four');
                     })
             );
         });
@@ -277,7 +277,7 @@ describe('Sidebar', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             };
 
-            // Each report has at least one ADDCOMMENT action so should be rendered in the LNH
+            // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
             Report.addComment(report1.reportID, 'Hi, this is a comment');
             Report.addComment(report2.reportID, 'Hi, this is a comment');
             Report.addComment(report3.reportID, 'Hi, this is a comment');
@@ -298,7 +298,7 @@ describe('Sidebar', () => {
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                            [ONYXKEYS.IS_LOADING_APP]: false,
                             ...reportCollectionDataSet,
                         }),
                     )
@@ -308,10 +308,10 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(4);
-                        expect(displayNames[0].props.children[0]).toBe(taskReportName);
-                        expect(displayNames[1].props.children[0]).toBe('Five, Six');
-                        expect(displayNames[2].props.children[0]).toBe('Three, Four');
-                        expect(displayNames[3].props.children[0]).toBe('One, Two');
+                        expect(displayNames[0]).toHaveTextContent(taskReportName);
+                        expect(displayNames[1]).toHaveTextContent('Five, Six');
+                        expect(displayNames[2]).toHaveTextContent('Three, Four');
+                        expect(displayNames[3]).toHaveTextContent('One, Two');
                     })
             );
         });
@@ -341,7 +341,7 @@ describe('Sidebar', () => {
             };
             report3.iouReportID = iouReport.reportID;
 
-            // Each report has at least one ADDCOMMENT action so should be rendered in the LNH
+            // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
             Report.addComment(report1.reportID, 'Hi, this is a comment');
             Report.addComment(report2.reportID, 'Hi, this is a comment');
             Report.addComment(report3.reportID, 'Hi, this is a comment');
@@ -362,7 +362,7 @@ describe('Sidebar', () => {
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                            [ONYXKEYS.IS_LOADING_APP]: false,
                             ...reportCollectionDataSet,
                         }),
                     )
@@ -372,10 +372,10 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(4);
-                        expect(displayNames[0].props.children[0]).toBe('Email Two owes $100.00');
-                        expect(displayNames[1].props.children[0]).toBe('Five, Six');
-                        expect(displayNames[2].props.children[0]).toBe('Three, Four');
-                        expect(displayNames[3].props.children[0]).toBe('One, Two');
+                        expect(displayNames[0]).toHaveTextContent('Email Two owes $100.00');
+                        expect(displayNames[1]).toHaveTextContent('Five, Six');
+                        expect(displayNames[2]).toHaveTextContent('Three, Four');
+                        expect(displayNames[3]).toHaveTextContent('One, Two');
                     })
             );
         });
@@ -408,7 +408,7 @@ describe('Sidebar', () => {
             };
             report3.iouReportID = expenseReport.reportID;
 
-            // Each report has at least one ADDCOMMENT action so should be rendered in the LNH
+            // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
             Report.addComment(report1.reportID, 'Hi, this is a comment');
             Report.addComment(report2.reportID, 'Hi, this is a comment');
             Report.addComment(report3.reportID, 'Hi, this is a comment');
@@ -429,7 +429,7 @@ describe('Sidebar', () => {
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                            [ONYXKEYS.IS_LOADING_APP]: false,
                             [`${ONYXKEYS.COLLECTION.POLICY}${fakeReport.policyID}`]: fakePolicy,
                             ...reportCollectionDataSet,
                         }),
@@ -440,10 +440,10 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(4);
-                        expect(displayNames[0].props.children[0]).toBe('Workspace owes $100.00');
-                        expect(displayNames[1].props.children[0]).toBe('Email Five');
-                        expect(displayNames[2].props.children[0]).toBe('Three, Four');
-                        expect(displayNames[3].props.children[0]).toBe('One, Two');
+                        expect(displayNames[0]).toHaveTextContent('Workspace owes $100.00');
+                        expect(displayNames[1]).toHaveTextContent('Email Five');
+                        expect(displayNames[2]).toHaveTextContent('Three, Four');
+                        expect(displayNames[3]).toHaveTextContent('One, Two');
                     })
             );
         });
@@ -455,11 +455,10 @@ describe('Sidebar', () => {
             const report1 = LHNTestUtils.getFakeReport([1, 2], 3);
             const report2: OnyxTypes.Report = {
                 ...LHNTestUtils.getFakeReport([3, 4], 2),
-                hasDraft: true,
             };
             const report3 = LHNTestUtils.getFakeReport([5, 6], 1);
 
-            // Each report has at least one ADDCOMMENT action so should be rendered in the LNH
+            // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
             Report.addComment(report1.reportID, 'Hi, this is a comment');
             Report.addComment(report2.reportID, 'Hi, this is a comment');
             Report.addComment(report3.reportID, 'Hi, this is a comment');
@@ -481,6 +480,7 @@ describe('Sidebar', () => {
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
+                            [ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT + report2.reportID]: 'This is a draft',
                             ...reportCollectionDataSet,
                         }),
                     )
@@ -499,9 +499,9 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
-                        expect(displayNames[0].props.children[0]).toBe('Three, Four');
-                        expect(displayNames[1].props.children[0]).toBe('Five, Six');
-                        expect(displayNames[2].props.children[0]).toBe('One, Two');
+                        expect(displayNames[0]).toHaveTextContent('Three, Four');
+                        expect(displayNames[1]).toHaveTextContent('Five, Six');
+                        expect(displayNames[2]).toHaveTextContent('One, Two');
                     })
             );
         });
@@ -513,7 +513,6 @@ describe('Sidebar', () => {
             // And the report has a draft
             const report: OnyxTypes.Report = {
                 ...LHNTestUtils.getFakeReport([1, 2]),
-                hasDraft: true,
             };
 
             const reportCollectionDataSet: ReportCollectionDataSet = {
@@ -528,6 +527,7 @@ describe('Sidebar', () => {
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
+                            [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`]: 'This is a draft',
                             ...reportCollectionDataSet,
                         }),
                     )
@@ -538,7 +538,7 @@ describe('Sidebar', () => {
                     })
 
                     // When the draft is removed
-                    .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {hasDraft: null}))
+                    .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, null))
 
                     // Then the pencil icon goes away
                     .then(() => {
@@ -599,7 +599,6 @@ describe('Sidebar', () => {
             };
             const report2: OnyxTypes.Report = {
                 ...LHNTestUtils.getFakeReport([3, 4], 2),
-                hasDraft: true,
             };
             const report3: OnyxTypes.Report = {
                 ...LHNTestUtils.getFakeReport([5, 6], 1),
@@ -643,6 +642,7 @@ describe('Sidebar', () => {
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
                             [ONYXKEYS.SESSION]: {accountID: currentlyLoggedInUserAccountID},
+                            [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report2.reportID}`]: 'Report2 draft comment',
                             ...reportCollectionDataSet,
                         }),
                     )
@@ -656,9 +656,9 @@ describe('Sidebar', () => {
                         expect(displayNames).toHaveLength(3);
                         expect(screen.queryAllByTestId('Pin Icon')).toHaveLength(1);
                         expect(screen.queryAllByTestId('Pencil Icon')).toHaveLength(1);
-                        expect(displayNames[0].props.children[0]).toBe('Email Two owes $100.00');
-                        expect(displayNames[1].props.children[0]).toBe('One, Two');
-                        expect(displayNames[2].props.children[0]).toBe('Three, Four');
+                        expect(displayNames[0]).toHaveTextContent('Email Two owes $100.00');
+                        expect(displayNames[1]).toHaveTextContent('One, Two');
+                        expect(displayNames[2]).toHaveTextContent('Three, Four');
                     })
             );
         });
@@ -708,9 +708,9 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
-                        expect(displayNames[0].props.children[0]).toBe('Five, Six');
-                        expect(displayNames[1].props.children[0]).toBe('One, Two');
-                        expect(displayNames[2].props.children[0]).toBe('Three, Four');
+                        expect(displayNames[0]).toHaveTextContent('Five, Six');
+                        expect(displayNames[1]).toHaveTextContent('One, Two');
+                        expect(displayNames[2]).toHaveTextContent('Three, Four');
                     })
 
                     // When a new report is added
@@ -721,10 +721,10 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(4);
-                        expect(displayNames[0].props.children[0]).toBe('Five, Six');
-                        expect(displayNames[1].props.children[0]).toBe('One, Two');
-                        expect(displayNames[2].props.children[0]).toBe('Seven, Eight');
-                        expect(displayNames[3].props.children[0]).toBe('Three, Four');
+                        expect(displayNames[0]).toHaveTextContent('Five, Six');
+                        expect(displayNames[1]).toHaveTextContent('One, Two');
+                        expect(displayNames[2]).toHaveTextContent('Seven, Eight');
+                        expect(displayNames[3]).toHaveTextContent('Three, Four');
                     })
             );
         });
@@ -734,19 +734,15 @@ describe('Sidebar', () => {
             // and they all have drafts
             const report1: OnyxTypes.Report = {
                 ...LHNTestUtils.getFakeReport([1, 2], 3),
-                hasDraft: true,
             };
             const report2: OnyxTypes.Report = {
                 ...LHNTestUtils.getFakeReport([3, 4], 2),
-                hasDraft: true,
             };
             const report3: OnyxTypes.Report = {
                 ...LHNTestUtils.getFakeReport([5, 6], 1),
-                hasDraft: true,
             };
             const report4: OnyxTypes.Report = {
                 ...LHNTestUtils.getFakeReport([7, 8], 0),
-                hasDraft: true,
             };
 
             LHNTestUtils.getDefaultRenderedSidebarLinks('0');
@@ -757,6 +753,12 @@ describe('Sidebar', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
             };
 
+            const reportDraftCommentCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report1.reportID}`]: 'report1 draft',
+                [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report2.reportID}`]: 'report2 draft',
+                [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report3.reportID}`]: 'report3 draft',
+            };
+
             return (
                 waitForBatchedUpdates()
                     // When Onyx is updated with the data and the sidebar re-renders
@@ -765,6 +767,7 @@ describe('Sidebar', () => {
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
+                            ...reportDraftCommentCollectionDataSet,
                             ...reportCollectionDataSet,
                         }),
                     )
@@ -774,23 +777,30 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
-                        expect(displayNames[0].props.children[0]).toBe('Five, Six');
-                        expect(displayNames[1].props.children[0]).toBe('One, Two');
-                        expect(displayNames[2].props.children[0]).toBe('Three, Four');
+                        expect(displayNames[0]).toHaveTextContent('Five, Six');
+                        expect(displayNames[1]).toHaveTextContent('One, Two');
+                        expect(displayNames[2]).toHaveTextContent('Three, Four');
                     })
 
                     // When a new report is added
-                    .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report4.reportID}`, report4))
+                    .then(() =>
+                        Onyx.multiSet({
+                            ...reportDraftCommentCollectionDataSet,
+                            [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report4.reportID}`]: 'report4 draft',
+                            ...reportCollectionDataSet,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${report4.reportID}`]: report4,
+                        }),
+                    )
 
                     // Then they are still in alphabetical order
                     .then(() => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(4);
-                        expect(displayNames[0].props.children[0]).toBe('Five, Six');
-                        expect(displayNames[1].props.children[0]).toBe('One, Two');
-                        expect(displayNames[2].props.children[0]).toBe('Seven, Eight');
-                        expect(displayNames[3].props.children[0]).toBe('Three, Four');
+                        expect(displayNames[0]).toHaveTextContent('Five, Six');
+                        expect(displayNames[1]).toHaveTextContent('One, Two');
+                        expect(displayNames[2]).toHaveTextContent('Seven, Eight');
+                        expect(displayNames[3]).toHaveTextContent('Three, Four');
                     })
             );
         });
@@ -806,7 +816,7 @@ describe('Sidebar', () => {
             const report2 = LHNTestUtils.getFakeReport([3, 4]);
             const report3 = LHNTestUtils.getFakeReport([5, 6]);
 
-            // Each report has at least one ADDCOMMENT action so should be rendered in the LNH
+            // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
             Report.addComment(report1.reportID, 'Hi, this is a comment');
             Report.addComment(report2.reportID, 'Hi, this is a comment');
             Report.addComment(report3.reportID, 'Hi, this is a comment');
@@ -840,9 +850,9 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
-                        expect(displayNames[0].props.children[0]).toBe('Five, Six');
-                        expect(displayNames[1].props.children[0]).toBe('Three, Four');
-                        expect(displayNames[2].props.children[0]).toBe('Report (archived)');
+                        expect(displayNames[0]).toHaveTextContent('Five, Six');
+                        expect(displayNames[1]).toHaveTextContent('Three, Four');
+                        expect(displayNames[2]).toHaveTextContent('Report (archived)');
                     })
             );
         });
@@ -881,9 +891,9 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
-                        expect(displayNames[0].props.children[0]).toBe('Five, Six');
-                        expect(displayNames[1].props.children[0]).toBe('One, Two');
-                        expect(displayNames[2].props.children[0]).toBe('Three, Four');
+                        expect(displayNames[0]).toHaveTextContent('Five, Six');
+                        expect(displayNames[1]).toHaveTextContent('One, Two');
+                        expect(displayNames[2]).toHaveTextContent('Three, Four');
                     })
 
                     // When a new report is added
@@ -894,10 +904,10 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(4);
-                        expect(displayNames[0].props.children[0]).toBe('Five, Six');
-                        expect(displayNames[1].props.children[0]).toBe('One, Two');
-                        expect(displayNames[2].props.children[0]).toBe('Seven, Eight');
-                        expect(displayNames[3].props.children[0]).toBe('Three, Four');
+                        expect(displayNames[0]).toHaveTextContent('Five, Six');
+                        expect(displayNames[1]).toHaveTextContent('One, Two');
+                        expect(displayNames[2]).toHaveTextContent('Seven, Eight');
+                        expect(displayNames[3]).toHaveTextContent('Three, Four');
                     })
             );
         });
@@ -942,9 +952,9 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
-                        expect(displayNames[0].props.children[0]).toBe('Five, Six');
-                        expect(displayNames[1].props.children[0]).toBe('Three, Four');
-                        expect(displayNames[2].props.children[0]).toBe('Report (archived)');
+                        expect(displayNames[0]).toHaveTextContent('Five, Six');
+                        expect(displayNames[1]).toHaveTextContent('Three, Four');
+                        expect(displayNames[2]).toHaveTextContent('Report (archived)');
                     })
             );
         });
@@ -1083,11 +1093,11 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(5);
-                        expect(displayNames[0].props.children[0]).toBe('Email Five owes $100.00');
-                        expect(displayNames[1].props.children[0]).toBe('Email Four owes $1,000.00');
-                        expect(displayNames[2].props.children[0]).toBe('Email Six owes $100.00');
-                        expect(displayNames[3].props.children[0]).toBe('Email Three owes $100.00');
-                        expect(displayNames[4].props.children[0]).toBe('Email Two owes $100.00');
+                        expect(displayNames[0]).toHaveTextContent('Email Five owes $100.00');
+                        expect(displayNames[1]).toHaveTextContent('Email Four owes $1,000.00');
+                        expect(displayNames[2]).toHaveTextContent('Email Six owes $100.00');
+                        expect(displayNames[3]).toHaveTextContent('Email Three owes $100.00');
+                        expect(displayNames[4]).toHaveTextContent('Email Two owes $100.00');
                     })
             );
         });
@@ -1108,7 +1118,7 @@ describe('Sidebar', () => {
                 lastVisibleActionCreated,
             };
 
-            // Each report has at least one ADDCOMMENT action so should be rendered in the LNH
+            // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
             Report.addComment(report1.reportID, 'Hi, this is a comment');
             Report.addComment(report2.reportID, 'Hi, this is a comment');
             Report.addComment(report3.reportID, 'Hi, this is a comment');
@@ -1138,9 +1148,9 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
-                        expect(displayNames[0].props.children[0]).toBe('Five, Six');
-                        expect(displayNames[1].props.children[0]).toBe('One, Two');
-                        expect(displayNames[2].props.children[0]).toBe('Three, Four');
+                        expect(displayNames[0]).toHaveTextContent('Five, Six');
+                        expect(displayNames[1]).toHaveTextContent('One, Two');
+                        expect(displayNames[2]).toHaveTextContent('Three, Four');
                     })
             );
         });

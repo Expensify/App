@@ -72,3 +72,5 @@ function RadioButtonWithLabel({LabelComponent, style, label = '', hasError = fal
 RadioButtonWithLabel.displayName = 'RadioButtonWithLabel';
 
 export default RadioButtonWithLabel;
+
+export type {RadioButtonWithLabelProps};

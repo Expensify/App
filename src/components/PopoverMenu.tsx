@@ -1,4 +1,3 @@
-import type {ImageContentFit} from 'expo-image';
 import type {RefObject} from 'react';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -10,48 +9,25 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
-import type IconAsset from '@src/types/utils/IconAsset';
+import FocusableMenuItem from './FocusableMenuItem';
 import * as Expensicons from './Icon/Expensicons';
+import type {MenuItemProps} from './MenuItem';
 import MenuItem from './MenuItem';
 import PopoverWithMeasuredContent from './PopoverWithMeasuredContent';
 import Text from './Text';
 
-type PopoverMenuItem = {
-    /** An icon element displayed on the left side */
-    icon: IconAsset;
-
+type PopoverMenuItem = MenuItemProps & {
     /** Text label */
     text: string;
 
     /** A callback triggered when this item is selected */
-    onSelected: () => void;
-
-    /** A description text to show under the title */
-    description?: string;
-
-    /** The fill color to pass into the icon. */
-    iconFill?: string;
-
-    /** Icon Width */
-    iconWidth?: number;
-
-    /** Icon Height */
-    iconHeight?: number;
-
-    /** Icon should be displayed in its own color */
-    displayInDefaultIconColor?: boolean;
-
-    /** Determines how the icon should be resized to fit its container */
-    contentFit?: ImageContentFit;
+    onSelected?: () => void;
 
     /** Sub menu items to be rendered after a menu item is selected */
     subMenuItems?: PopoverMenuItem[];
 
-    /** Determines whether an icon should be displayed on the right side of the menu item. */
-    shouldShowRightIcon?: boolean;
-
-    /** Adds padding to the left of the text when there is no icon. */
-    shouldPutLeftPaddingWhenNoIcon?: boolean;
+    /** Determines whether the menu item is disabled or not */
+    disabled?: boolean;
 };
 
 type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming'>;
@@ -129,8 +105,8 @@ function PopoverMenu({
             setCurrentMenuItems([...selectedItem.subMenuItems]);
             setEnteredSubMenuIndexes([...enteredSubMenuIndexes, index]);
         } else {
-            onItemSelected(selectedItem, index);
             selectedItemIndex.current = index;
+            onItemSelected(selectedItem, index);
         }
     };
 
@@ -181,7 +157,7 @@ function PopoverMenu({
     const onModalHide = () => {
         setFocusedIndex(-1);
         if (selectedItemIndex.current !== null) {
-            currentMenuItems[selectedItemIndex.current].onSelected();
+            currentMenuItems[selectedItemIndex.current].onSelected?.();
             selectedItemIndex.current = null;
         }
     };
@@ -218,7 +194,7 @@ function PopoverMenu({
                 {!!headerText && <Text style={[styles.createMenuHeaderText, styles.ml3]}>{headerText}</Text>}
                 {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
                 {currentMenuItems.map((item, menuIndex) => (
-                    <MenuItem
+                    <FocusableMenuItem
                         key={item.text}
                         icon={item.icon}
                         iconWidth={item.iconWidth}
@@ -228,11 +204,22 @@ function PopoverMenu({
                         title={item.text}
                         shouldCheckActionAllowedOnPress={false}
                         description={item.description}
+                        numberOfLinesDescription={item.numberOfLinesDescription}
                         onPress={() => selectItem(menuIndex)}
                         focused={focusedIndex === menuIndex}
                         displayInDefaultIconColor={item.displayInDefaultIconColor}
                         shouldShowRightIcon={item.shouldShowRightIcon}
+                        iconRight={item.iconRight}
                         shouldPutLeftPaddingWhenNoIcon={item.shouldPutLeftPaddingWhenNoIcon}
+                        label={item.label}
+                        isLabelHoverable={item.isLabelHoverable}
+                        floatRightAvatars={item.floatRightAvatars}
+                        floatRightAvatarSize={item.floatRightAvatarSize}
+                        shouldShowSubscriptRightAvatar={item.shouldShowSubscriptRightAvatar}
+                        disabled={item.disabled}
+                        onFocus={() => setFocusedIndex(menuIndex)}
+                        success={item.success}
+                        containerStyle={item.containerStyle}
                     />
                 ))}
             </View>
@@ -243,4 +230,4 @@ function PopoverMenu({
 PopoverMenu.displayName = 'PopoverMenu';
 
 export default React.memo(PopoverMenu);
-export type {PopoverMenuItem};
+export type {PopoverMenuItem, PopoverMenuProps};

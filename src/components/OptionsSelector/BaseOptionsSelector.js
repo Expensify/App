@@ -1,8 +1,13 @@
+import lodashDebounce from 'lodash/debounce';
+import lodashFind from 'lodash/find';
+import lodashFindIndex from 'lodash/findIndex';
 import lodashGet from 'lodash/get';
+import lodashIsEqual from 'lodash/isEqual';
+import lodashMap from 'lodash/map';
+import lodashValues from 'lodash/values';
 import PropTypes from 'prop-types';
 import React, {Component} from 'react';
 import {View} from 'react-native';
-import _ from 'underscore';
 import ArrowKeyFocusManager from '@components/ArrowKeyFocusManager';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
@@ -77,9 +82,9 @@ class BaseOptionsSelector extends Component {
         this.calculateAllVisibleOptionsCount = this.calculateAllVisibleOptionsCount.bind(this);
         this.handleFocusIn = this.handleFocusIn.bind(this);
         this.handleFocusOut = this.handleFocusOut.bind(this);
-        this.debouncedUpdateSearchValue = _.debounce(this.updateSearchValue, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
+        this.debouncedUpdateSearchValue = lodashDebounce(this.updateSearchValue, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
         this.relatedTarget = null;
-        this.accessibilityRoles = _.values(CONST.ROLE);
+        this.accessibilityRoles = lodashValues(CONST.ROLE);
         this.isWebOrDesktop = [CONST.PLATFORM.DESKTOP, CONST.PLATFORM.WEB].includes(getPlatform());
 
         const allOptions = this.flattenSections();
@@ -155,7 +160,7 @@ class BaseOptionsSelector extends Component {
             this.focusedOption = this.state.allOptions[this.state.focusedIndex];
         }
 
-        if (_.isEqual(this.props.sections, prevProps.sections)) {
+        if (lodashIsEqual(this.props.sections, prevProps.sections)) {
             return;
         }
 
@@ -171,14 +176,14 @@ class BaseOptionsSelector extends Component {
         }
         const newFocusedIndex = this.props.selectedOptions.length;
         const isNewFocusedIndex = newFocusedIndex !== this.state.focusedIndex;
-        const prevFocusedOption = _.find(newOptions, (option) => this.focusedOption && option.keyForList === this.focusedOption.keyForList);
-        const prevFocusedOptionIndex = prevFocusedOption ? _.findIndex(newOptions, (option) => this.focusedOption && option.keyForList === this.focusedOption.keyForList) : undefined;
+        const prevFocusedOption = lodashFind(newOptions, (option) => this.focusedOption && option.keyForList === this.focusedOption.keyForList);
+        const prevFocusedOptionIndex = prevFocusedOption ? lodashFindIndex(newOptions, (option) => this.focusedOption && option.keyForList === this.focusedOption.keyForList) : undefined;
         // eslint-disable-next-line react/no-did-update-set-state
         this.setState(
             {
                 sections: newSections,
                 allOptions: newOptions,
-                focusedIndex: prevFocusedOptionIndex || (_.isNumber(this.props.focusedIndex) ? this.props.focusedIndex : newFocusedIndex),
+                focusedIndex: prevFocusedOptionIndex || (typeof this.props.focusedIndex === 'number' ? this.props.focusedIndex : newFocusedIndex),
             },
             () => {
                 // If we just toggled an option on a multi-selection page or cleared the search input, scroll to top
@@ -230,11 +235,11 @@ class BaseOptionsSelector extends Component {
         } else {
             defaultIndex = this.props.selectedOptions.length;
         }
-        if (_.isUndefined(this.props.initiallyFocusedOptionKey)) {
+        if (this.props.initiallyFocusedOptionKey === undefined) {
             return defaultIndex;
         }
 
-        const indexOfInitiallyFocusedOption = _.findIndex(allOptions, (option) => option.keyForList === this.props.initiallyFocusedOptionKey);
+        const indexOfInitiallyFocusedOption = lodashFindIndex(allOptions, (option) => option.keyForList === this.props.initiallyFocusedOptionKey);
 
         return indexOfInitiallyFocusedOption;
     }
@@ -245,8 +250,8 @@ class BaseOptionsSelector extends Component {
      * @returns {Objects[]}
      */
     sliceSections() {
-        return _.map(this.props.sections, (section) => {
-            if (_.isEmpty(section.data)) {
+        return lodashMap(this.props.sections, (section) => {
+            if (section.data.length === 0) {
                 return section;
             }
 
@@ -266,7 +271,7 @@ class BaseOptionsSelector extends Component {
     calculateAllVisibleOptionsCount() {
         let count = 0;
 
-        _.forEach(this.state.sections, (section) => {
+        this.state.sections.forEach((section) => {
             count += lodashGet(section, 'data.length', 0);
         });
 
@@ -347,7 +352,7 @@ class BaseOptionsSelector extends Component {
 
     selectFocusedOption(e) {
         const focusedItemKey = lodashGet(e, ['target', 'attributes', 'id', 'value']);
-        const focusedOption = focusedItemKey ? _.find(this.state.allOptions, (option) => option.keyForList === focusedItemKey) : this.state.allOptions[this.state.focusedIndex];
+        const focusedOption = focusedItemKey ? lodashFind(this.state.allOptions, (option) => option.keyForList === focusedItemKey) : this.state.allOptions[this.state.focusedIndex];
 
         if (!focusedOption || !this.props.isFocused) {
             return;
@@ -393,8 +398,8 @@ class BaseOptionsSelector extends Component {
         const allOptions = [];
         this.disabledOptionsIndexes = [];
         let index = 0;
-        _.each(this.props.sections, (section, sectionIndex) => {
-            _.each(section.data, (option, optionIndex) => {
+        this.props.sections.forEach((section, sectionIndex) => {
+            section.data.forEach((option, optionIndex) => {
                 allOptions.push({
                     ...option,
                     sectionIndex,
@@ -496,8 +501,8 @@ class BaseOptionsSelector extends Component {
     render() {
         const shouldShowShowMoreButton = this.state.allOptions.length > CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * this.state.paginationPage;
         const shouldShowFooter =
-            !this.props.isReadOnly && (this.props.shouldShowConfirmButton || this.props.footerContent) && !(this.props.canSelectMultipleOptions && _.isEmpty(this.props.selectedOptions));
-        const defaultConfirmButtonText = _.isUndefined(this.props.confirmButtonText) ? this.props.translate('common.confirm') : this.props.confirmButtonText;
+            !this.props.isReadOnly && (this.props.shouldShowConfirmButton || this.props.footerContent) && !(this.props.canSelectMultipleOptions && this.props.selectedOptions.length === 0);
+        const defaultConfirmButtonText = this.props.confirmButtonText === undefined ? this.props.translate('common.confirm') : this.props.confirmButtonText;
         const shouldShowDefaultConfirmButton = !this.props.footerContent && defaultConfirmButtonText;
         const safeAreaPaddingBottomStyle = shouldShowFooter ? undefined : this.props.safeAreaPaddingBottomStyle;
         const listContainerStyles = this.props.listContainerStyles || [this.props.themeStyles.flex1];
@@ -665,6 +670,7 @@ class BaseOptionsSelector extends Component {
                         {shouldShowDefaultConfirmButton && (
                             <Button
                                 success
+                                large
                                 style={[this.props.themeStyles.w100]}
                                 text={defaultConfirmButtonText}
                                 onPress={this.props.onConfirmSelection}

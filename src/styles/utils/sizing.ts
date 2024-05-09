@@ -14,6 +14,10 @@ export default {
         height: 272,
     },
 
+    h13: {
+        height: 52,
+    },
+
     w15: {
         width: '15%',
     },
@@ -24,6 +28,10 @@ export default {
 
     w25: {
         width: '25%',
+    },
+
+    mh100: {
+        maxHeight: '100%',
     },
 
     mnh100: {
@@ -72,6 +80,10 @@ export default {
 
     mwn: {
         maxWidth: 'auto',
+    },
+
+    mw50: {
+        maxWidth: '50%',
     },
 
     mw75: {

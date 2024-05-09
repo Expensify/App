@@ -1,4 +1,5 @@
 import type {ReportAction} from '@src/types/onyx';
+import type {Unit} from '@src/types/onyx/Policy';
 import type en from './en';
 
 type AddressLineParams = {
@@ -7,10 +8,6 @@ type AddressLineParams = {
 
 type CharacterLimitParams = {
     limit: number;
-};
-
-type MaxParticipantsReachedParams = {
-    count: number;
 };
 
 type ZipCodeExampleFormatParams = {
@@ -90,6 +87,7 @@ type ReportArchiveReasonsMergedParams = {
 type ReportArchiveReasonsRemovedFromPolicyParams = {
     displayName: string;
     policyName: string;
+    shouldUseYou?: boolean;
 };
 
 type ReportArchiveReasonsPolicyDeletedParams = {
@@ -110,13 +108,13 @@ type RequestAmountParams = {amount: string};
 
 type RequestedAmountMessageParams = {formattedAmount: string; comment?: string};
 
-type SplitAmountParams = {amount: number};
+type SplitAmountParams = {amount: string};
 
 type DidSplitAmountMessageParams = {formattedAmount: string; comment: string};
 
-type AmountEachParams = {amount: string};
+type UserSplitParams = {amount: string};
 
-type PayerOwesAmountParams = {payer: string; amount: number | string};
+type PayerOwesAmountParams = {payer: string; amount: number | string; comment?: string};
 
 type PayerOwesParams = {payer: string};
 
@@ -210,8 +208,6 @@ type UpdatedTheDistanceParams = {newDistanceToDisplay: string; oldDistanceToDisp
 
 type FormattedMaxLengthParams = {formattedMaxLength: string};
 
-type TagSelectionParams = {tagName: string};
-
 type WalletProgramParams = {walletProgram: string};
 
 type ViolationsAutoReportedRejectedExpenseParams = {rejectedBy: string; rejectReason: string};
@@ -247,6 +243,8 @@ type ViolationsRterParams = {
 type ViolationsTagOutOfPolicyParams = {tagName?: string};
 
 type ViolationsTaxOutOfPolicyParams = {taxName?: string};
+
+type PaySomeoneParams = {name?: string};
 
 type TaskCreatedActionParams = {title: string};
 
@@ -296,12 +294,16 @@ type LogSizeParams = {size: number};
 
 type HeldRequestParams = {comment: string};
 
+type DistanceRateOperationsParams = {count: number};
+
+type ReimbursementRateParams = {unit: Unit};
+
 export type {
     AdminCanceledRequestParams,
     ApprovedAmountParams,
     AddressLineParams,
     AlreadySignedInParams,
-    AmountEachParams,
+    UserSplitParams,
     BeginningOfChatHistoryAdminRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartTwo,
@@ -314,6 +316,7 @@ export type {
     DeleteActionParams,
     DeleteConfirmationParams,
     DidSplitAmountMessageParams,
+    DistanceRateOperationsParams,
     EditActionParams,
     ElectronicFundsParams,
     EnglishTranslation,
@@ -326,7 +329,6 @@ export type {
     LoggedInAsParams,
     ManagerApprovedAmountParams,
     ManagerApprovedParams,
-    MaxParticipantsReachedParams,
     NewFaceEnterMagicCodeParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
@@ -361,7 +363,6 @@ export type {
     SizeExceededParams,
     SplitAmountParams,
     StepCounterParams,
-    TagSelectionParams,
     TaskCreatedActionParams,
     TermsParams,
     ThreadRequestReportNameParams,
@@ -399,4 +400,6 @@ export type {
     ZipCodeExampleFormatParams,
     LogSizeParams,
     HeldRequestParams,
+    PaySomeoneParams,
+    ReimbursementRateParams,
 };

@@ -25,12 +25,11 @@ import Navigation from './libs/Navigation/Navigation';
 import NavigationRoot from './libs/Navigation/NavigationRoot';
 import NetworkConnection from './libs/NetworkConnection';
 import PushNotification from './libs/Notification/PushNotification';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import './libs/Notification/PushNotification/subscribePushNotification';
+import Performance from './libs/Performance';
 import StartupTimer from './libs/StartupTimer';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import UnreadIndicatorUpdater from './libs/UnreadIndicatorUpdater';
+import './libs/UnreadIndicatorUpdater';
 import Visibility from './libs/Visibility';
 import ONYXKEYS from './ONYXKEYS';
 import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/PopoverReportActionContextMenu';
@@ -42,6 +41,8 @@ Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
         Log.alert(message);
         console.error(message);
+    } else if (level === 'hmmm') {
+        Log.hmmm(message);
     } else {
         Log.info(message);
     }
@@ -132,6 +133,7 @@ function Expensify({
 
     const onSplashHide = useCallback(() => {
         setIsSplashHidden(true);
+        Performance.markEnd(CONST.TIMING.SIDEBAR_LOADED);
     }, []);
 
     useLayoutEffect(() => {
@@ -183,12 +185,12 @@ function Expensify({
         // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
         Linking.getInitialURL().then((url) => {
             setInitialUrl(url);
-            Report.openReportFromDeepLink(url ?? '', isAuthenticated);
+            Report.openReportFromDeepLink(url ?? '');
         });
 
         // Open chat report from a deep link (only mobile native)
         Linking.addEventListener('url', (state) => {
-            Report.openReportFromDeepLink(state.url, isAuthenticated);
+            Report.openReportFromDeepLink(state.url);
         });
 
         return () => {

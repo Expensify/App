@@ -4,14 +4,18 @@ import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import AccountUtils from '@libs/AccountUtils';
 import * as App from '@userActions/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Locale} from '@src/types/onyx';
+import type {Account, Locale} from '@src/types/onyx';
 import Picker from './Picker';
 import type {PickerSize} from './Picker/types';
 
 type LocalePickerOnyxProps = {
+    /** The details about the account that the user is signing in with */
+    account: OnyxEntry<Account>;
+
     /** Indicates which locale the user currently has selected */
     preferredLocale: OnyxEntry<Locale>;
 };
@@ -21,7 +25,7 @@ type LocalePickerProps = LocalePickerOnyxProps & {
     size?: PickerSize;
 };
 
-function LocalePicker({preferredLocale = CONST.LOCALES.DEFAULT, size = 'normal'}: LocalePickerProps) {
+function LocalePicker({account, preferredLocale = CONST.LOCALES.DEFAULT, size = 'normal'}: LocalePickerProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -31,6 +35,7 @@ function LocalePicker({preferredLocale = CONST.LOCALES.DEFAULT, size = 'normal'}
         keyForList: language,
         isSelected: preferredLocale === language,
     }));
+    const shouldDisablePicker = AccountUtils.isValidateCodeFormSubmitting(account);
 
     return (
         <Picker
@@ -42,7 +47,10 @@ function LocalePicker({preferredLocale = CONST.LOCALES.DEFAULT, size = 'normal'}
 
                 App.setLocale(locale);
             }}
+            isDisabled={shouldDisablePicker}
             items={localesToLanguages}
+            shouldAllowDisabledStyle={false}
+            shouldShowOnlyTextWhenDisabled={false}
             size={size}
             value={preferredLocale}
             containerStyles={size === 'small' ? styles.pickerContainerSmall : {}}
@@ -54,6 +62,9 @@ function LocalePicker({preferredLocale = CONST.LOCALES.DEFAULT, size = 'normal'}
 LocalePicker.displayName = 'LocalePicker';
 
 export default withOnyx<LocalePickerProps, LocalePickerOnyxProps>({
+    account: {
+        key: ONYXKEYS.ACCOUNT,
+    },
     preferredLocale: {
         key: ONYXKEYS.NVP_PREFERRED_LOCALE,
     },

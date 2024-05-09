@@ -56,6 +56,7 @@ function ChooseSSOOrMagicCode({credentials, account, setIsUsingMagicCode}: Choos
                 <Button
                     isDisabled={isOffline}
                     success
+                    large
                     style={[styles.mv3]}
                     text={translate('samlSignIn.useSingleSignOn')}
                     isLoading={account?.isLoading}
@@ -73,6 +74,7 @@ function ChooseSSOOrMagicCode({credentials, account, setIsUsingMagicCode}: Choos
                 <Button
                     isDisabled={isOffline}
                     style={[styles.mv3]}
+                    large
                     text={translate('samlSignIn.useMagicCode')}
                     isLoading={account?.isLoading && account?.loadingForm === (account?.requiresTwoFactorAuth ? CONST.FORMS.VALIDATE_TFA_CODE_FORM : CONST.FORMS.VALIDATE_CODE_FORM)}
                     onPress={() => {

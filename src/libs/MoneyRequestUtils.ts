@@ -1,5 +1,7 @@
-import type {ValueOf} from 'type-fest';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
+import type {SelectedTabRequest} from '@src/types/onyx';
 
 /**
  * Strip comma from the amount
@@ -13,6 +15,10 @@ function stripCommaFromAmount(amount: string): string {
  */
 function stripSpacesFromAmount(amount: string): string {
     return amount.replace(/\s+/g, '');
+}
+
+function replaceCommasWithPeriod(amount: string): string {
+    return amount.replace(/,+/g, '.');
 }
 
 /**
@@ -49,13 +55,13 @@ function calculateAmountLength(amount: string, decimals: number): number {
 /**
  * Check if amount is a decimal up to 3 digits
  */
-function validateAmount(amount: string, decimals: number): boolean {
+function validateAmount(amount: string, decimals: number, amountMaxLength: number = CONST.IOU.AMOUNT_MAX_LENGTH): boolean {
     const regexString =
         decimals === 0
             ? `^\\d+(,\\d*)*$` // Don't allow decimal point if decimals === 0
             : `^\\d+(,\\d*)*(\\.\\d{0,${decimals}})?$`; // Allow the decimal point and the desired number of digits after the point
     const decimalNumberRegex = new RegExp(regexString, 'i');
-    return amount === '' || (decimalNumberRegex.test(amount) && calculateAmountLength(amount, decimals) <= CONST.IOU.AMOUNT_MAX_LENGTH);
+    return amount === '' || (decimalNumberRegex.test(amount) && calculateAmountLength(amount, decimals) <= amountMaxLength);
 }
 
 /**
@@ -76,17 +82,17 @@ function replaceAllDigits(text: string, convertFn: (char: string) => string): st
 }
 
 /**
- * Check if distance request or not
+ * Check if distance expense or not
  */
-function isDistanceRequest(iouType: ValueOf<typeof CONST.IOU.TYPE>, selectedTab: ValueOf<typeof CONST.TAB_REQUEST>): boolean {
-    return iouType === CONST.IOU.TYPE.REQUEST && selectedTab === CONST.TAB_REQUEST.DISTANCE;
+function isDistanceRequest(iouType: IOUType, selectedTab: OnyxEntry<SelectedTabRequest>): boolean {
+    return (iouType === CONST.IOU.TYPE.REQUEST || iouType === CONST.IOU.TYPE.SUBMIT) && selectedTab === CONST.TAB_REQUEST.DISTANCE;
 }
 
 /**
- * Check if scan request or not
+ * Check if scan expense or not
  */
-function isScanRequest(selectedTab: ValueOf<typeof CONST.TAB_REQUEST>): boolean {
+function isScanRequest(selectedTab: SelectedTabRequest): boolean {
     return selectedTab === CONST.TAB_REQUEST.SCAN;
 }
 
-export {stripCommaFromAmount, stripDecimalsFromAmount, stripSpacesFromAmount, addLeadingZero, validateAmount, replaceAllDigits, isDistanceRequest, isScanRequest};
+export {addLeadingZero, isDistanceRequest, isScanRequest, replaceAllDigits, stripCommaFromAmount, stripDecimalsFromAmount, stripSpacesFromAmount, replaceCommasWithPeriod, validateAmount};

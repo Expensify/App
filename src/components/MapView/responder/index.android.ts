@@ -1,8 +1,11 @@
 import {PanResponder} from 'react-native';
 
-const responder = PanResponder.create({
+const InterceptPanResponderCapture = PanResponder.create({
     onStartShouldSetPanResponder: () => true,
+    onStartShouldSetPanResponderCapture: () => true,
+    onMoveShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponderCapture: () => true,
     onPanResponderTerminationRequest: () => false,
 });
 
-export default responder;
+export default InterceptPanResponderCapture;

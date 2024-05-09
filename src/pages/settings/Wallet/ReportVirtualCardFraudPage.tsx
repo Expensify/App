@@ -10,10 +10,9 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CardUtils from '@libs/CardUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PublicScreensParamList} from '@libs/Navigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as Card from '@userActions/Card';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -31,11 +30,11 @@ type ReportVirtualCardFraudPageOnyxProps = {
     cardList: OnyxEntry<Record<string, OnyxCard>>;
 };
 
-type ReportVirtualCardFraudPageProps = ReportVirtualCardFraudPageOnyxProps & StackScreenProps<PublicScreensParamList, typeof SCREENS.TRANSITION_BETWEEN_APPS>;
+type ReportVirtualCardFraudPageProps = ReportVirtualCardFraudPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD>;
 
 function ReportVirtualCardFraudPage({
     route: {
-        params: {domain = ''},
+        params: {cardID = ''},
     },
     cardList,
     formData,
@@ -43,8 +42,7 @@ function ReportVirtualCardFraudPage({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const domainCards = CardUtils.getDomainCards(cardList)[domain];
-    const virtualCard = domainCards?.find((card) => card.isVirtual);
+    const virtualCard = cardList?.[cardID];
     const virtualCardError = ErrorUtils.getLatestErrorMessage(virtualCard?.errors ?? {});
 
     const prevIsLoading = usePrevious(formData?.isLoading);
@@ -57,8 +55,8 @@ function ReportVirtualCardFraudPage({
             return;
         }
 
-        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(domain));
-    }, [domain, formData?.isLoading, prevIsLoading, virtualCard?.errors]);
+        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(cardID));
+    }, [cardID, formData?.isLoading, prevIsLoading, virtualCard?.errors]);
 
     if (isEmptyObject(virtualCard)) {
         return <NotFoundPage />;
@@ -68,7 +66,7 @@ function ReportVirtualCardFraudPage({
         <ScreenWrapper testID={ReportVirtualCardFraudPage.displayName}>
             <HeaderWithBackButton
                 title={translate('reportFraudPage.title')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(domain))}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(cardID))}
             />
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <Text style={[styles.webViewStyles.baseFontStyle, styles.mh5]}>{translate('reportFraudPage.description')}</Text>
@@ -78,6 +76,7 @@ function ReportVirtualCardFraudPage({
                     message={virtualCardError}
                     isLoading={formData?.isLoading}
                     buttonText={translate('reportFraudPage.deactivateCard')}
+                    containerStyles={[styles.m5]}
                 />
             </View>
         </ScreenWrapper>

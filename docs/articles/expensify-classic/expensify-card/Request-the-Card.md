@@ -38,6 +38,10 @@ If you need to cancel your Expensify Card and cannot access the website or mobil
 
 It's not possible to order a replacement card over the phone, so, if applicable, you would need to handle this step from your Expensify account.
 
+# Card Expiration Date
+
+If you notice that your card expiration date is soon, it's time for a new Expensify card. Expensify will automatically input a notification in your account's Home (Inbox) tab. This notice will ask you to input your address, but this is more if you have changed your address since your card was issued to you. You can ignore it and do nothing; the new Expensify card will ship to your address on file. The new Expensify card will have a new, unique card number and will not be associated with the old one.
+
 {% include faq-begin.md %}
 
 ## What if I haven’t received my card after multiple weeks? 

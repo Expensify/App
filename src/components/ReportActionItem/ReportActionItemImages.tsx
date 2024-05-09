@@ -30,7 +30,7 @@ type ReportActionItemImagesProps = {
 
 /**
  * This component displays a row of images in a report action item like a card, such
- * as report previews or money request previews which contain receipt images. The maximum of images
+ * as report previews or expense previews which contain receipt images. The maximum of images
  * shown in this row is dictated by the size prop, which, if not passed, is just the number of images.
  * Otherwise, if size is passed and the number of images is over size, we show a small overlay on the
  * last image of how many additional images there are. If passed, total prop can be used to change how this
@@ -63,45 +63,47 @@ function ReportActionItemImages({images, size, total, isHovered = false}: Report
     const triangleWidth = variables.reportActionItemImagesMoreCornerTriangleWidth;
 
     return (
-        <View style={[styles.reportActionItemImages, hoverStyle, heightStyle]}>
-            {shownImages.map(({thumbnail, image, transaction, isLocalFile, filename}, index) => {
-                const isLastImage = index === numberOfShownImages - 1;
-
-                // Show a border to separate multiple images. Shown to the right for each except the last.
-                const shouldShowBorder = shownImages.length > 1 && index < shownImages.length - 1;
-                const borderStyle = shouldShowBorder ? styles.reportActionItemImageBorder : {};
-                return (
-                    <View
-                        key={`${index}-${image as string}`}
-                        style={[styles.reportActionItemImage, borderStyle, hoverStyle]}
+        <View style={styles.reportActionItemImagesContainer}>
+            <View style={[styles.reportActionItemImages, hoverStyle, heightStyle]}>
+                {shownImages.map(({thumbnail, isThumbnail, image, transaction, isLocalFile, fileExtension, filename}, index) => {
+                    // Show a border to separate multiple images. Shown to the right for each except the last.
+                    const shouldShowBorder = shownImages.length > 1 && index < shownImages.length - 1;
+                    const borderStyle = shouldShowBorder ? styles.reportActionItemImageBorder : {};
+                    return (
+                        <View
+                            key={`${index}-${image}`}
+                            style={[styles.reportActionItemImage, borderStyle, hoverStyle]}
+                        >
+                            <ReportActionItemImage
+                                thumbnail={thumbnail}
+                                fileExtension={fileExtension}
+                                image={image}
+                                isLocalFile={isLocalFile}
+                                filename={filename}
+                                transaction={transaction}
+                                isThumbnail={isThumbnail}
+                                isSingleImage={numberOfShownImages === 1}
+                            />
+                        </View>
+                    );
+                })}
+            </View>
+            {remaining > 0 && (
+                <View style={[styles.reportActionItemImagesMoreContainer]}>
+                    <View style={[styles.reportActionItemImagesMore, isHovered ? styles.reportActionItemImagesMoreHovered : {}]} />
+                    <Svg
+                        height={triangleWidth}
+                        width={triangleWidth}
+                        style={styles.reportActionItemImagesMoreCornerTriangle}
                     >
-                        <ReportActionItemImage
-                            thumbnail={thumbnail}
-                            image={image}
-                            isLocalFile={isLocalFile}
-                            filename={filename}
-                            transaction={transaction}
-                            isSingleImage={numberOfShownImages === 1}
+                        <Polygon
+                            points={`${triangleWidth},0 ${triangleWidth},${triangleWidth} 0,${triangleWidth}`}
+                            fill={isHovered ? theme.border : theme.cardBG}
                         />
-                        {isLastImage && remaining > 0 && (
-                            <View style={[styles.reportActionItemImagesMoreContainer]}>
-                                <View style={[styles.reportActionItemImagesMore, isHovered ? styles.reportActionItemImagesMoreHovered : {}]} />
-                                <Svg
-                                    height={triangleWidth}
-                                    width={triangleWidth}
-                                    style={styles.reportActionItemImagesMoreCornerTriangle}
-                                >
-                                    <Polygon
-                                        points={`${triangleWidth},0 ${triangleWidth},${triangleWidth} 0,${triangleWidth}`}
-                                        fill={isHovered ? theme.border : theme.cardBG}
-                                    />
-                                </Svg>
-                                <Text style={[styles.reportActionItemImagesMoreText, styles.textStrong]}>{remaining > MAX_REMAINING ? `${MAX_REMAINING}+` : `+${remaining}`}</Text>
-                            </View>
-                        )}
-                    </View>
-                );
-            })}
+                    </Svg>
+                    <Text style={[styles.reportActionItemImagesMoreText, styles.textStrong]}>{remaining > MAX_REMAINING ? `${MAX_REMAINING}+` : `+${remaining}`}</Text>
+                </View>
+            )}
         </View>
     );
 }
@@ -109,3 +111,4 @@ function ReportActionItemImages({images, size, total, isHovered = false}: Report
 ReportActionItemImages.displayName = 'ReportActionItemImages';
 
 export default ReportActionItemImages;
+export type {ReportActionItemImagesProps};

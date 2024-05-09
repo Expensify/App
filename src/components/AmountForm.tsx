@@ -12,8 +12,9 @@ import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import CONST from '@src/CONST';
 import BigNumberPad from './BigNumberPad';
 import FormHelpMessage from './FormHelpMessage';
-import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
+import type {BaseTextInputProps, BaseTextInputRef} from './TextInput/BaseTextInput/types';
 import TextInputWithCurrencySymbol from './TextInputWithCurrencySymbol';
+import type TextInputWithCurrencySymbolProps from './TextInputWithCurrencySymbol/types';
 
 type AmountFormProps = {
     /** Amount supplied by the FormProvider */
@@ -36,7 +37,11 @@ type AmountFormProps = {
 
     /** Whether the currency symbol is pressable */
     isCurrencyPressable?: boolean;
-};
+
+    /** Custom max amount length. It defaults to CONST.IOU.AMOUNT_MAX_LENGTH */
+    amountMaxLength?: number;
+} & Pick<TextInputWithCurrencySymbolProps, 'hideCurrencySymbol' | 'extraSymbol'> &
+    Pick<BaseTextInputProps, 'autoFocus'>;
 
 /**
  * Returns the new selection object based on the updated amount's length
@@ -51,7 +56,7 @@ const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
 const NUM_PAD_VIEW_ID = 'numPadView';
 
 function AmountForm(
-    {value: amount, currency = CONST.CURRENCY.USD, extraDecimals = 0, errorText, onInputChange, onCurrencyButtonPress, isCurrencyPressable = true}: AmountFormProps,
+    {value: amount, currency = CONST.CURRENCY.USD, extraDecimals = 0, amountMaxLength, errorText, onInputChange, onCurrencyButtonPress, isCurrencyPressable = true, ...rest}: AmountFormProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
 ) {
     const styles = useThemeStyles();
@@ -79,7 +84,13 @@ function AmountForm(
         if (!ids.includes(relatedTargetId)) {
             return;
         }
+
         event.preventDefault();
+        setSelection({
+            start: selection.end,
+            end: selection.end,
+        });
+
         if (!textInput.current) {
             return;
         }
@@ -99,23 +110,23 @@ function AmountForm(
             const newAmountWithoutSpaces = MoneyRequestUtils.stripSpacesFromAmount(newAmount);
             // Use a shallow copy of selection to trigger setSelection
             // More info: https://github.com/Expensify/App/issues/16385
-            if (!MoneyRequestUtils.validateAmount(newAmountWithoutSpaces, decimals)) {
+            if (!MoneyRequestUtils.validateAmount(newAmountWithoutSpaces, decimals, amountMaxLength)) {
                 setSelection((prevSelection) => ({...prevSelection}));
                 return;
             }
 
             const strippedAmount = MoneyRequestUtils.stripCommaFromAmount(newAmountWithoutSpaces);
             const isForwardDelete = currentAmount.length > strippedAmount.length && forwardDeletePressedRef.current;
-            setSelection((prevSelection) => getNewSelection(prevSelection, isForwardDelete ? strippedAmount.length : currentAmount.length, strippedAmount.length));
+            setSelection(getNewSelection(selection, isForwardDelete ? strippedAmount.length : currentAmount.length, strippedAmount.length));
             onInputChange?.(strippedAmount);
         },
-        [currentAmount, decimals, onInputChange],
+        [amountMaxLength, currentAmount, decimals, onInputChange, selection],
     );
 
     // Modifies the amount to match the decimals for changed currency.
     useEffect(() => {
         // If the changed currency supports decimals, we can return
-        if (MoneyRequestUtils.validateAmount(currentAmount, decimals)) {
+        if (MoneyRequestUtils.validateAmount(currentAmount, decimals, amountMaxLength)) {
             return;
         }
 
@@ -214,6 +225,10 @@ function AmountForm(
                     }}
                     onKeyPress={textInputKeyPress}
                     isCurrencyPressable={isCurrencyPressable}
+                    style={[styles.iouAmountTextInput]}
+                    containerStyle={[styles.iouAmountTextInputContainer]}
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...rest}
                 />
                 {!!errorText && (
                     <FormHelpMessage
@@ -243,3 +258,4 @@ function AmountForm(
 AmountForm.displayName = 'AmountForm';
 
 export default forwardRef(AmountForm);
+export type {AmountFormProps};

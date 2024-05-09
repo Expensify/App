@@ -8,7 +8,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues, FormValue} from '@components/Form/types';
 import CONST from '@src/CONST';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
+import type {Report, TaxRates} from '@src/types/onyx';
 import * as CardUtils from './CardUtils';
 import DateUtils from './DateUtils';
 import type {MaybePhraseKey} from './Localize';
@@ -284,7 +284,7 @@ function isValidUSPhone(phoneNumber = '', isCountryCodeOptional?: boolean): bool
 
     // When we pass regionCode as an option to parsePhoneNumber it wrongly assumes inputs like '=15123456789' as valid
     // so we need to check if it is a valid phone.
-    if (regionCode && !Str.isValidPhone(phone)) {
+    if (regionCode && !Str.isValidPhoneFormat(phone)) {
         return false;
     }
 
@@ -334,6 +334,10 @@ function isValidRoutingNumber(routingNumber: string): boolean {
  */
 function isValidCompanyName(name: string) {
     return !name.match(CONST.REGEX.EMOJIS);
+}
+
+function isValidReportName(name: string) {
+    return name.trim().length < CONST.REPORT_NAME_LIMIT;
 }
 
 /**
@@ -460,6 +464,22 @@ function prepareValues(values: ValuesType): ValuesType {
     return trimmedStringValues;
 }
 
+/**
+ * Validates the given value if it is correct percentage value.
+ */
+function isValidPercentage(value: string): boolean {
+    const parsedValue = Number(value);
+    return !Number.isNaN(parsedValue) && parsedValue >= 0 && parsedValue <= 100;
+}
+
+/**
+ * Validates the given value if it is correct tax name.
+ */
+function isExistingTaxName(taxName: string, taxRates: TaxRates): boolean {
+    const trimmedTaxName = taxName.trim();
+    return !!Object.values(taxRates).find((taxRate) => taxRate.name === trimmedTaxName);
+}
+
 export {
     meetsMinimumAgeRequirement,
     meetsMaximumAgeRequirement,
@@ -498,4 +518,7 @@ export {
     validateDateTimeIsAtLeastOneMinuteInFuture,
     prepareValues,
     isValidPersonName,
+    isValidPercentage,
+    isValidReportName,
+    isExistingTaxName,
 };

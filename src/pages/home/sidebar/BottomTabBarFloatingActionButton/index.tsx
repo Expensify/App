@@ -32,7 +32,6 @@ function BottomTabBarFloatingActionButton() {
     return (
         <FloatingActionButtonAndPopover
             ref={popoverModal}
-            // @ts-expect-error Error will be resolved after FloatingActionButtonAndPopover migration to Typescript
             onShowCreateMenu={createDragoverListener}
             onHideCreateMenu={removeDragoverListener}
         />

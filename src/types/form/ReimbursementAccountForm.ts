@@ -21,6 +21,7 @@ const INPUT_IDS = {
         CITY: 'requestorAddressCity',
         STATE: 'requestorAddressState',
         ZIP_CODE: 'requestorAddressZipCode',
+        IS_ONFIDO_SETUP_COMPLETE: 'isOnfidoSetupComplete',
     },
     BUSINESS_INFO_STEP: {
         COMPANY_NAME: 'companyName',
@@ -101,6 +102,7 @@ type RequestorStepProps = {
     [INPUT_IDS.PERSONAL_INFO_STEP.ZIP_CODE]: string;
     [INPUT_IDS.PERSONAL_INFO_STEP.DOB]: string;
     [INPUT_IDS.PERSONAL_INFO_STEP.SSN_LAST_4]: string;
+    [INPUT_IDS.PERSONAL_INFO_STEP.IS_ONFIDO_SETUP_COMPLETE]: boolean;
 };
 
 type ACHContractStepProps = {
@@ -131,5 +133,6 @@ export type {
     BeneficialOwnersStepProps,
     ACHContractStepProps,
     ReimbursementAccountProps,
+    InputID,
 };
 export default INPUT_IDS;

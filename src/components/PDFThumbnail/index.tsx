@@ -12,7 +12,7 @@ if (!pdfjs.GlobalWorkerOptions.workerSrc) {
     pdfjs.GlobalWorkerOptions.workerSrc = URL.createObjectURL(new Blob([pdfWorkerSource], {type: 'text/javascript'}));
 }
 
-function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, enabled = true, onPassword = () => {}}: PDFThumbnailProps) {
+function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, enabled = true, onPassword}: PDFThumbnailProps) {
     const styles = useThemeStyles();
 
     const thumbnail = useMemo(
@@ -25,9 +25,7 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ena
                     cMapPacked: true,
                 }}
                 externalLinkTarget="_blank"
-                onPassword={() => {
-                    onPassword();
-                }}
+                onPassword={onPassword}
             >
                 <View pointerEvents="none">
                     <Thumbnail pageIndex={0} />
