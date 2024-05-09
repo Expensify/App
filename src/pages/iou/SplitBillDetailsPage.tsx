@@ -12,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SplitDetailsNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import withReportAndReportActionOrNotFound from '@pages/home/report/withReportAndReportActionOrNotFound';
@@ -58,7 +59,7 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
     const reportID = report?.reportID ?? '';
     const {translate} = useLocalize();
     const reportAction = useMemo(() => reportActions?.[route.params.reportActionID] ?? ({} as ReportAction), [reportActions, route.params.reportActionID]);
-    const participantAccountIDs = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? reportAction?.originalMessage.participantAccountIDs ?? [] : [];
+    const participantAccountIDs = ReportActionsUtils.isMoneyRequestAction(reportAction) ? reportAction?.originalMessage.participantAccountIDs ?? [] : [];
 
     // In case this is workspace split expense, we manually add the workspace as the second participant of the split expense
     // because we don't save any accountID in the report action's originalMessage other than the payee's accountID
@@ -144,17 +145,15 @@ SplitBillDetailsPage.displayName = 'SplitBillDetailsPage';
 const WrappedComponent = withOnyx<SplitBillDetailsPageProps, SplitBillDetailsPageTransactionOnyxProps>({
     transaction: {
         key: ({route, reportActions}) => {
-            const reportAction = reportActions?.[route.params.reportActionID];
-            const IOUTransactionID =
-                reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && reportAction?.originalMessage?.IOUTransactionID ? reportAction.originalMessage.IOUTransactionID : 0;
+            const reportAction = reportActions?.[route.params.reportActionID] ?? null;
+            const IOUTransactionID = ReportActionsUtils.isMoneyRequestAction(reportAction) ? reportAction.originalMessage.IOUTransactionID ?? 0 : 0;
             return `${ONYXKEYS.COLLECTION.TRANSACTION}${IOUTransactionID}`;
         },
     },
     draftTransaction: {
         key: ({route, reportActions}) => {
-            const reportAction = reportActions?.[route.params.reportActionID];
-            const IOUTransactionID =
-                reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && reportAction?.originalMessage?.IOUTransactionID ? reportAction.originalMessage.IOUTransactionID : 0;
+            const reportAction = reportActions?.[route.params.reportActionID] ?? null;
+            const IOUTransactionID = ReportActionsUtils.isMoneyRequestAction(reportAction) ? reportAction.originalMessage.IOUTransactionID ?? 0 : 0;
             return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${IOUTransactionID}`;
         },
     },
