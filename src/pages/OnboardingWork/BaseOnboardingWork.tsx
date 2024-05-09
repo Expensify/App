@@ -9,7 +9,6 @@ import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import OfflineIndicator from '@components/OfflineIndicator';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useDisableModalDismissOnEscape from '@hooks/useDisableModalDismissOnEscape';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
@@ -18,16 +17,17 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import variables from '@styles/variables';
 import * as Policy from '@userActions/Policy';
-import * as Report from '@userActions/Report';
+import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/WorkForm';
 import type {BaseOnboardingWorkOnyxProps, BaseOnboardingWorkProps} from './types';
 
-function BaseOnboardingWork({currentUserPersonalDetails, shouldUseNativeStyles, onboardingPurposeSelected}: BaseOnboardingWorkProps) {
+const OPEN_WORK_PAGE_PURPOSES = [CONST.ONBOARDING_CHOICES.MANAGE_TEAM];
+
+function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected}: BaseOnboardingWorkProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -40,39 +40,12 @@ function BaseOnboardingWork({currentUserPersonalDetails, shouldUseNativeStyles, 
             if (!onboardingPurposeSelected) {
                 return;
             }
-
             const work = values.work.trim();
-
             const {adminsChatReportID} = Policy.createWorkspace(undefined, true, work);
-
-            Report.completeOnboarding(
-                onboardingPurposeSelected,
-                CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
-                {
-                    login: currentUserPersonalDetails.login ?? '',
-                    firstName: currentUserPersonalDetails.firstName ?? '',
-                    lastName: currentUserPersonalDetails.lastName ?? '',
-                },
-                adminsChatReportID,
-            );
-
-            Navigation.dismissModal();
-
-            // Only navigate to concierge chat when central pane is visible
-            // Otherwise stay on the chats screen.
-            if (isSmallScreenWidth) {
-                Navigation.navigate(ROUTES.HOME);
-            } else {
-                Report.navigateToConciergeChat();
-            }
-
-            // Small delay purely due to design considerations,
-            // no special technical reasons behind that.
-            setTimeout(() => {
-                Navigation.navigate(ROUTES.WELCOME_VIDEO_ROOT);
-            }, variables.welcomeVideoDelay);
+            Welcome.setOnboardingAdminsChatReportID(adminsChatReportID);
+            Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS);
         },
-        [currentUserPersonalDetails.firstName, currentUserPersonalDetails.lastName, currentUserPersonalDetails.login, isSmallScreenWidth, onboardingPurposeSelected],
+        [onboardingPurposeSelected],
     );
 
     const validate = (values: FormOnyxValues<'onboardingWorkForm'>) => {
@@ -96,7 +69,7 @@ function BaseOnboardingWork({currentUserPersonalDetails, shouldUseNativeStyles, 
         <View style={[styles.h100, styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}>
             <HeaderWithBackButton
                 shouldShowBackButton
-                progressBarPercentage={75}
+                progressBarPercentage={OPEN_WORK_PAGE_PURPOSES.includes(onboardingPurposeSelected ?? '') ? 50 : 75}
                 onBackButtonPress={Navigation.goBack}
             />
             <KeyboardAvoidingView
@@ -141,10 +114,8 @@ function BaseOnboardingWork({currentUserPersonalDetails, shouldUseNativeStyles, 
 
 BaseOnboardingWork.displayName = 'BaseOnboardingWork';
 
-export default withCurrentUserPersonalDetails(
-    withOnyx<BaseOnboardingWorkProps, BaseOnboardingWorkOnyxProps>({
-        onboardingPurposeSelected: {
-            key: ONYXKEYS.ONBOARDING_PURPOSE_SELECTED,
-        },
-    })(BaseOnboardingWork),
-);
+export default withOnyx<BaseOnboardingWorkProps, BaseOnboardingWorkOnyxProps>({
+    onboardingPurposeSelected: {
+        key: ONYXKEYS.ONBOARDING_PURPOSE_SELECTED,
+    },
+})(BaseOnboardingWork);

@@ -7,7 +7,6 @@ import type {
     AddressLineParams,
     AdminCanceledRequestParams,
     AlreadySignedInParams,
-    AmountEachParams,
     ApprovedAmountParams,
     BeginningOfChatHistoryAdminRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
@@ -82,6 +81,7 @@ import type {
     UpdatedTheRequestParams,
     UsePlusButtonParams,
     UserIsAlreadyMemberParams,
+    UserSplitParams,
     ViolationsAutoReportedRejectedExpenseParams,
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,
@@ -330,6 +330,7 @@ export default {
         clear: 'Clear',
         type: 'Type',
         action: 'Action',
+        expenses: 'Expenses',
     },
     location: {
         useCurrent: 'Use current location',
@@ -405,7 +406,6 @@ export default {
     },
     moneyRequestConfirmationList: {
         paidBy: 'Paid by',
-        splitWith: 'Split with',
         splitAmounts: 'Split amounts',
         whatsItFor: "What's it for?",
     },
@@ -610,12 +610,14 @@ export default {
         splitBill: 'Split expense',
         splitScan: 'Split receipt',
         splitDistance: 'Split distance',
-        sendMoney: 'Pay someone',
+        paySomeone: ({name}: PaySomeoneParams) => `Pay ${name ?? 'someone'}`,
         assignTask: 'Assign task',
         header: 'Quick action',
         trackManual: 'Track expense',
         trackScan: 'Track receipt',
         trackDistance: 'Track distance',
+        noLongerHaveReportAccess: 'You no longer have access to your previous quick action destination. Pick a new one below.',
+        updateDestination: 'Update destination',
     },
     iou: {
         amount: 'Amount',
@@ -673,7 +675,7 @@ export default {
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `tracking ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `split ${amount}`,
         didSplitAmount: ({formattedAmount, comment}: DidSplitAmountMessageParams) => `split ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
-        amountEach: ({amount}: AmountEachParams) => `${amount} each`,
+        yourSplit: ({amount}: UserSplitParams) => `Your split ${amount}`,
         payerOwesAmount: ({payer, amount, comment}: PayerOwesAmountParams) => `${payer} owes ${amount}${comment ? ` for ${comment}` : ''}`,
         payerOwes: ({payer}: PayerOwesParams) => `${payer} owes: `,
         payerPaidAmount: ({payer, amount}: PayerPaidAmountParams): string => `${payer ? `${payer} ` : ''}paid ${amount}`,
@@ -710,7 +712,8 @@ export default {
             invalidCategoryLength: 'The length of the category chosen exceeds the maximum allowed (255). Please choose a different or shorten the category name first.',
             invalidAmount: 'Please enter a valid amount before continuing.',
             invalidTaxAmount: ({amount}: RequestAmountParams) => `Maximum tax amount is ${amount}`,
-            invalidSplit: 'Split amounts do not equal total amount.',
+            invalidSplit: 'The sum of splits must equal the total amount.',
+            invalidSplitParticipants: 'Enter an amount greater than zero for at least two participants.',
             other: 'Unexpected error, please try again later.',
             genericCreateFailureMessage: 'Unexpected error submitting this expense. Please try again later.',
             genericCreateInvoiceFailureMessage: 'Unexpected error sending invoice, please try again later.',
@@ -1838,6 +1841,28 @@ export default {
     session: {
         offlineMessageRetry: "Looks like you're offline. Please check your connection and try again.",
     },
+    travel: {
+        header: 'Book travel',
+        title: 'Travel smart',
+        subtitle: 'Use Expensify Travel to get the best travel offers and manage all your business expenses in one place.',
+        features: {
+            saveMoney: 'Save money on your bookings',
+            alerts: 'Get realtime updates and alerts',
+        },
+        bookTravel: 'Book travel',
+        termsAndConditions: {
+            header: 'Before we continue...',
+            title: 'Please read the Terms & Conditions for travel',
+            subtitle: 'To enable travel on your workspace you must agree to our ',
+            termsconditions: 'terms & conditions',
+            travelTermsAndConditions: 'terms & conditions',
+            helpDocIntro: 'Check out this ',
+            helpDocOutro: 'for more information or reach out to Concierge or your Account Manager.',
+            helpDoc: 'Help Doc',
+            agree: 'I agree to the travel ',
+            error: 'You must accept the Terms & Conditions for travel to continue',
+        },
+    },
     workspace: {
         common: {
             card: 'Cards',
@@ -1889,9 +1914,9 @@ export default {
             locations: 'Locations',
             customers: 'Customers/Projects',
             displayedAs: 'Displayed as',
-            accountsDescription: 'Chart of Accounts import as categories when connected to an accounting integration, this cannot be disabled.',
-            accountsSwitchTitle: 'Enable newly imported Chart of Accounts.',
-            accountsSwitchDescription: 'New categories imported from QuickBooks Online to Expensify will be either enabled or disabled by default.',
+            accountsDescription: 'When connected to Quickbooks Online, chart of accounts are always imported to Expensify as categories.',
+            accountsSwitchTitle: 'Below you can choose to have any new account imported as an enabled or disabled category by default.',
+            accountsSwitchDescription: 'Enabled categories are available for members to select when creating their expenses.',
             classesDescription: 'Choose whether to import classes, and see where classes are displayed.',
             customersDescription: 'Choose whether to import customers/projects and see where customers/projects are displayed.',
             locationsDescription: 'Choose whether to import locations, and see where locations are displayed.',
@@ -1966,7 +1991,7 @@ export default {
                 qboInvoiceCollectionAccount: 'QuickBooks invoice collections account',
                 accountSelectDescription:
                     "As you've enabled sync reimbursed reports, you will need select the bank account your reimbursements are coming out of, and we'll create the payment in QuickBooks.",
-                invoiceAccountSelectDescription:
+                invoiceAccountSelectorDescription:
                     'If you are exporting invoices from Expensify to Quickbooks Online, this is the account the invoice will appear against once marked as paid.',
             },
             accounts: {
@@ -1997,10 +2022,45 @@ export default {
             organizationDescription: 'Select the organization in Xero you are importing data from.',
             importDescription: 'Choose which coding configurations are imported from Xero to Expensify.',
             trackingCategories: 'Tracking categories',
+            trackingCategoriesDescription: 'Choose whether to import tracking categories and see where they are displayed.',
+            mapXeroCostCentersTo: 'Map Xero cost centers to',
+            mapXeroRegionsTo: 'Map Xero regions to',
+            mapXeroCostCentersToDescription: 'Choose where to map cost centers to when exporting to Xero.',
+            mapXeroRegionsToDescription: 'Choose where to map employee regions when exporting expense reports to Xero.',
             customers: 'Re-bill customers',
             customersDescription: 'Import customer contacts. Billable expenses need tags for export. Expenses will carry the customer information to Xero for sales invoices.',
             taxesDescription: 'Choose whether to import tax rates and tax defaults from your accounting integration.',
             notImported: 'Not imported',
+            trackingCategoriesOptions: {
+                default: 'Xero contact default',
+                tag: 'Tags',
+            },
+            export: 'Export',
+            exportDescription: 'Configure how data in Expensify gets exported to Xero.',
+            exportCompanyCard: 'Export company card expenses as',
+            purchaseBill: 'Purchase bill',
+            exportDeepDiveCompanyCard:
+                'Each exported expense posts as a bank transaction to the Xero bank account you select below, and transaction dates will match the dates on your bank statement.',
+            bankTransactions: 'Bank transactions',
+            xeroBankAccount: 'Xero bank account',
+            preferredExporter: 'Preferred exporter',
+            exportExpenses: 'Export out-of-pocket expenses as',
+            exportExpensesDescription: 'Reports will export as a purchase bill, using the date and status you select below.',
+            purchaseBillDate: 'Purchase bill date',
+            exportInvoices: 'Export invoices as',
+            salesInvoice: 'Sales invoice',
+            exportInvoicesDescription: 'Sales invoices always display the date on which the invoice was sent.',
+            advancedConfig: {
+                advanced: 'Advanced',
+                autoSync: 'Auto-Sync',
+                autoSyncDescription: 'Sync Xero and Expensify automatically every day.',
+                purchaseBillStatusTitle: 'Purchase bill status',
+                reimbursedReports: 'Sync reimbursed reports',
+                reimbursedReportsDescription: 'Any time a report is paid using Expensify ACH, the corresponding bill payment will be created in the Xero account below.',
+                xeroBillPaymentAccount: 'Xero Bill Payment Account',
+                xeroInvoiceCollectionAccount: 'Xero Invoice Collections Account',
+                invoiceAccountSelectorDescription: "As you've enabled exporting invoices from Expensify to Xero, this is the account the invoice will appear against once marked as paid.",
+            },
         },
         type: {
             free: 'Free',
@@ -2649,7 +2709,8 @@ export default {
     checkForUpdatesModal: {
         available: {
             title: 'Update Available',
-            message: "The new version will be available shortly. We'll notify you when we're ready to update.",
+            message: ({isSilentUpdating}: {isSilentUpdating: boolean}) =>
+                `The new version will be available shortly.${!isSilentUpdating ? " We'll notify you when we're ready to update." : ''}`,
             soundsGood: 'Sounds good',
         },
         notAvailable: {
@@ -2965,5 +3026,8 @@ export default {
         offlineTitle: "Looks like you're stuck here...",
         offline:
             "You appear to be offline. Unfortunately, Expensify Classic doesn't work offline, but New Expensify does. If you prefer to use Expensify Classic, try again when you have an internet connection.",
+    },
+    systemMessage: {
+        mergedWithCashTransaction: 'matched a receipt to this transaction.',
     },
 } satisfies TranslationBase;
