@@ -20,7 +20,7 @@ function XeroImportPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
 
     const policyID = policy?.id ?? '';
-    const {importCustomers, importTaxRates, importTrackingCategories, pendingFields} = policy?.connections?.xero?.config ?? {};
+    const {importCustomers, importTaxRates, importTrackingCategories, pendingFields, errorFields} = policy?.connections?.xero?.config ?? {};
 
     const tenants = useMemo(() => getXeroTenants(policy ?? undefined), [policy]);
     const currentXeroOrganization = tenants.find((tenant) => tenant.id === policy?.connections?.xero.config.tenantID);
@@ -30,47 +30,51 @@ function XeroImportPage({policy}: WithPolicyProps) {
             {
                 description: translate('workspace.accounting.accounts'),
                 action: () => {},
-                hasError: !!policy?.errors?.enableNewCategories,
+                hasError: !!errorFields?.enableNewCategories,
                 title: translate('workspace.accounting.imported'),
                 pendingAction: pendingFields?.enableNewCategories,
+                errorText: errorFields?.enableNewCategories ? translate('common.genericErrorMessage') : undefined,
             },
             {
                 description: translate('workspace.xero.trackingCategories'),
                 action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES.getRoute(policyID)),
-                hasError: !!policy?.errors?.importTrackingCategories,
+                hasError: !!errorFields?.importTrackingCategories,
                 title: importTrackingCategories ? translate('workspace.accounting.importTypes.TAG') : translate('workspace.xero.notImported'),
                 pendingAction: pendingFields?.importTrackingCategories,
+                errorText: errorFields?.importTrackingCategories ? translate('common.genericErrorMessage') : undefined,
             },
             {
                 description: translate('workspace.xero.customers'),
                 action: () => {
                     Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_CUSTOMER.getRoute(policyID));
                 },
-                hasError: !!policy?.errors?.importCustomers,
+                hasError: !!errorFields?.importCustomers,
                 title: importCustomers ? translate('workspace.accounting.importTypes.TAG') : translate('workspace.xero.notImported'),
                 pendingAction: pendingFields?.importCustomers,
+                errorText: errorFields?.importCustomers ? translate('common.genericErrorMessage') : undefined,
             },
             {
                 description: translate('workspace.accounting.taxes'),
                 action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_TAXES.getRoute(policyID)),
-                hasError: !!policy?.errors?.importTaxes,
+                hasError: !!errorFields?.importTaxes,
                 title: importTaxRates ? translate('workspace.accounting.imported') : translate('workspace.xero.notImported'),
                 pendingAction: pendingFields?.importTaxRates,
+                errorText: errorFields?.importTaxes ? translate('common.genericErrorMessage') : undefined,
             },
         ],
         [
+            translate,
+            pendingFields?.enableNewCategories,
+            pendingFields?.importTrackingCategories,
+            pendingFields?.importCustomers,
+            pendingFields?.importTaxRates,
+            errorFields?.enableNewCategories,
+            errorFields?.importTrackingCategories,
+            errorFields?.importCustomers,
+            errorFields?.importTaxes,
+            importTrackingCategories,
             importCustomers,
             importTaxRates,
-            importTrackingCategories,
-            pendingFields?.enableNewCategories,
-            pendingFields?.importTaxRates,
-            pendingFields?.importCustomers,
-            pendingFields?.importTrackingCategories,
-            policy?.errors?.importTrackingCategories,
-            policy?.errors?.enableNewCategories,
-            policy?.errors?.importCustomers,
-            policy?.errors?.importTaxes,
-            translate,
             policyID,
         ],
     );
@@ -103,6 +107,7 @@ function XeroImportPage({policy}: WithPolicyProps) {
                                 shouldShowRightIcon
                                 onPress={section.action}
                                 brickRoadIndicator={section.hasError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                error={section.errorText}
                             />
                         </OfflineWithFeedback>
                     ))}
