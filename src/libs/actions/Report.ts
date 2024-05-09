@@ -1324,7 +1324,15 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
             lastActorAccountID,
         };
     }
-
+    const report = ReportUtils.getReport(reportID);
+    const didCommentMentionCurrentUser = ReportActionsUtils.didMessageMentionCurrentUser(reportAction?.message?.[0]?.html ?? '');
+    if (didCommentMentionCurrentUser && reportAction.created === report?.lastMentionedTime) {
+        const reportActionsForReport = allReportActions?.[reportID];
+        const latestMentioneReportAction = Object.values(reportActionsForReport ?? {}).find(
+            (action) => action.reportActionID !== reportAction.reportActionID && ReportActionsUtils.didMessageMentionCurrentUser(action?.message?.[0]?.html ?? ''),
+        );
+        optimisticReport.lastMentionedTime = latestMentioneReportAction?.created ?? null;
+    }
     // If the API call fails we must show the original message again, so we revert the message content back to how it was
     // and and remove the pendingAction so the strike-through clears
     const failureData: OnyxUpdate[] = [
