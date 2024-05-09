@@ -13,6 +13,7 @@ import type {FileObject} from '@components/AttachmentModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
+import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams, TranslationPaths} from '@src/languages/types';
@@ -50,7 +51,7 @@ import type {
 } from '@src/types/onyx/OriginalMessage';
 import type {Status} from '@src/types/onyx/PersonalDetails';
 import type {NotificationPreference, Participants, PendingChatMember, Participant as ReportParticipant} from '@src/types/onyx/Report';
-import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
+import type {Message, ReportActionBase, ReportActions, ReportPreviewAction} from '@src/types/onyx/ReportAction';
 import type {Comment, Receipt, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -147,7 +148,6 @@ type OptimisticAddCommentReportAction = Pick<
     | 'childCommenterCount'
     | 'childLastVisibleActionCreated'
     | 'childOldestFourAccountIDs'
-    | 'whisperedToAccountIDs'
 > & {isOptimisticAction: boolean};
 
 type OptimisticReportAction = {
@@ -196,7 +196,6 @@ type OptimisticIOUReportAction = Pick<
     | 'created'
     | 'pendingAction'
     | 'receipt'
-    | 'whisperedToAccountIDs'
     | 'childReportID'
     | 'childVisibleActionCount'
     | 'childCommenterCount'
@@ -448,6 +447,10 @@ type OptionData = {
     reportID?: string;
     enabled?: boolean;
     data?: Partial<TaxRate>;
+    transactionThreadReportID?: string | null;
+    shouldShowAmountInput?: boolean;
+    amountInputProps?: MoneyRequestAmountInputProps;
+    tabIndex?: 0 | -1;
 } & Report;
 
 type OnyxDataTaskAssigneeChat = {
@@ -3893,6 +3896,7 @@ function buildOptimisticIOUReportAction(
         IOUTransactionID: transactionID,
         IOUReportID,
         type,
+        whisperedTo: [CONST.IOU.RECEIPT_STATE.SCANREADY, CONST.IOU.RECEIPT_STATE.SCANNING].some((value) => value === receipt?.state) ? [currentUserAccountID ?? -1] : [],
     };
 
     if (type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
@@ -3946,7 +3950,6 @@ function buildOptimisticIOUReportAction(
         shouldShow: true,
         created,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        whisperedToAccountIDs: [CONST.IOU.RECEIPT_STATE.SCANREADY, CONST.IOU.RECEIPT_STATE.SCANNING].some((value) => value === receipt?.state) ? [currentUserAccountID ?? -1] : [],
     };
 }
 
@@ -4078,6 +4081,7 @@ function buildOptimisticReportPreview(chatReport: OnyxEntry<Report>, iouReport: 
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         originalMessage: {
             linkedReportID: iouReport?.reportID,
+            whisperedTo: isReceiptBeingScanned ? [currentUserAccountID ?? -1] : [],
         },
         message: [
             {
@@ -4095,7 +4099,6 @@ function buildOptimisticReportPreview(chatReport: OnyxEntry<Report>, iouReport: 
         childMoneyRequestCount: 1,
         childLastMoneyRequestComment: comment,
         childRecentReceiptTransactionIDs: hasReceipt && !isEmptyObject(transaction) ? {[transaction?.transactionID ?? '']: created} : undefined,
-        whisperedToAccountIDs: isReceiptBeingScanned ? [currentUserAccountID ?? -1] : [],
     };
 }
 
@@ -4185,7 +4188,13 @@ function buildOptimisticMovedTrackedExpenseModifiedReportAction(transactionThrea
  * @param [transaction] - optimistic newest transaction of a report preview
  *
  */
-function updateReportPreview(iouReport: OnyxEntry<Report>, reportPreviewAction: ReportAction, isPayRequest = false, comment = '', transaction: OnyxEntry<Transaction> = null): ReportAction {
+function updateReportPreview(
+    iouReport: OnyxEntry<Report>,
+    reportPreviewAction: ReportPreviewAction,
+    isPayRequest = false,
+    comment = '',
+    transaction: OnyxEntry<Transaction> = null,
+): ReportPreviewAction {
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const recentReceiptTransactions = reportPreviewAction?.childRecentReceiptTransactionIDs ?? {};
     const transactionsToKeep = TransactionUtils.getRecentTransactions(recentReceiptTransactions);
@@ -4221,7 +4230,10 @@ function updateReportPreview(iouReport: OnyxEntry<Report>, reportPreviewAction: 
             : recentReceiptTransactions,
         // As soon as we add a transaction without a receipt to the report, it will have ready expenses,
         // so we remove the whisper
-        whisperedToAccountIDs: hasReceipt ? reportPreviewAction?.whisperedToAccountIDs : [],
+        originalMessage: {
+            ...(reportPreviewAction.originalMessage ?? {}),
+            whisperedTo: hasReceipt ? reportPreviewAction?.originalMessage?.whisperedTo : [],
+        },
     };
 }
 
@@ -6002,6 +6014,13 @@ function isReportParticipant(accountID: number, report: OnyxEntry<Report>): bool
     return possibleAccountIDs.includes(accountID);
 }
 
+/**
+ * Check to see if the current user has access to view the report.
+ */
+function canCurrentUserOpenReport(report: OnyxEntry<Report>): boolean {
+    return (isReportParticipant(currentUserAccountID ?? 0, report) || isPublicRoom(report)) && canAccessReport(report, allPolicies, allBetas);
+}
+
 function shouldUseFullTitleToDisplay(report: OnyxEntry<Report>): boolean {
     return (
         isMoneyRequestReport(report) || isPolicyExpenseChat(report) || isChatRoom(report) || isChatThread(report) || isTaskReport(report) || isGroupChat(report) || isInvoiceReport(report)
@@ -6381,7 +6400,7 @@ function hasActionsWithErrors(reportID: string): boolean {
     return Object.values(reportActions).some((action) => !isEmptyObject(action.errors));
 }
 
-function canLeavePolicyExpenseChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> | EmptyObject): boolean {
+function canLeavePolicyExpenseChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
     return isPolicyExpenseChat(report) && !(PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPolicyOwner(policy, currentUserAccountID ?? -1) || isReportOwner(report));
 }
 
@@ -6533,6 +6552,7 @@ export {
     canBeAutoReimbursed,
     canCreateRequest,
     canCreateTaskInReport,
+    canCurrentUserOpenReport,
     canDeleteReportAction,
     canEditFieldOfMoneyRequest,
     canEditMoneyRequest,
@@ -6676,6 +6696,7 @@ export {
     isExpensifyOnlyParticipantInReport,
     isGroupChat,
     isGroupChatAdmin,
+    isGroupPolicy,
     isReportInGroupPolicy,
     isHoldCreator,
     isIOUOwnedByCurrentUser,

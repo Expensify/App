@@ -20,7 +20,7 @@ import type {
     OriginalMessageReimbursementDequeued,
 } from '@src/types/onyx/OriginalMessage';
 import type Report from '@src/types/onyx/Report';
-import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
+import type {Message, ReportActionBase, ReportActionMessageJSON, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -143,8 +143,27 @@ function isModifiedExpenseAction(reportAction: OnyxEntry<ReportAction> | ReportA
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE;
 }
 
+/**
+ * We are in the process of deprecating reportAction.originalMessage and will be setting the db version of "message" to reportAction.message in the future see: https://github.com/Expensify/App/issues/39797
+ * In the interim, we must check to see if we have an object or array for the reportAction.message, if we have an array we will use the originalMessage as this means we have not yet migrated.
+ */
+function getWhisperedTo(reportAction: OnyxEntry<ReportAction> | EmptyObject): number[] {
+    const originalMessage = reportAction?.originalMessage;
+    const message = reportAction?.message;
+
+    if (!Array.isArray(message) && typeof message === 'object') {
+        return (message as ReportActionMessageJSON)?.whisperedTo ?? [];
+    }
+
+    if (originalMessage) {
+        return (originalMessage as ReportActionMessageJSON)?.whisperedTo ?? [];
+    }
+
+    return [];
+}
+
 function isWhisperAction(reportAction: OnyxEntry<ReportAction> | EmptyObject): boolean {
-    return (reportAction?.whisperedToAccountIDs ?? []).length > 0;
+    return getWhisperedTo(reportAction).length > 0;
 }
 
 /**
@@ -154,7 +173,7 @@ function isWhisperActionTargetedToOthers(reportAction: OnyxEntry<ReportAction>):
     if (!isWhisperAction(reportAction)) {
         return false;
     }
-    return !reportAction?.whisperedToAccountIDs?.includes(currentUserAccountID ?? 0);
+    return !getWhisperedTo(reportAction).includes(currentUserAccountID ?? 0);
 }
 
 function isReimbursementQueuedAction(reportAction: OnyxEntry<ReportAction>) {
@@ -263,6 +282,29 @@ function getSortedReportActions(reportActions: ReportAction[] | null, shouldSort
     return sortedActions;
 }
 
+function isOptimisticAction(reportAction: ReportAction) {
+    return (
+        !!reportAction.isOptimisticAction ||
+        reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD ||
+        reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
+    );
+}
+
+function shouldIgnoreGap(currentReportAction: ReportAction | undefined, nextReportAction: ReportAction | undefined) {
+    if (!currentReportAction || !nextReportAction) {
+        return false;
+    }
+    return (
+        isOptimisticAction(currentReportAction) ||
+        isOptimisticAction(nextReportAction) ||
+        !!getWhisperedTo(currentReportAction).length ||
+        !!getWhisperedTo(nextReportAction).length ||
+        currentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM ||
+        nextReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED ||
+        nextReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED
+    );
+}
+
 /**
  * Returns a sorted and filtered list of report actions from a report and it's associated child
  * transaction thread report in order to correctly display reportActions from both reports in the one-transaction report view.
@@ -295,12 +337,7 @@ function getContinuousReportActionChain(sortedReportActions: ReportAction[], id?
     if (id) {
         index = sortedReportActions.findIndex((reportAction) => reportAction.reportActionID === id);
     } else {
-        index = sortedReportActions.findIndex(
-            (reportAction) =>
-                reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD &&
-                reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
-                !reportAction.isOptimisticAction,
-        );
+        index = sortedReportActions.findIndex((reportAction) => !isOptimisticAction(reportAction));
     }
 
     if (index === -1) {
@@ -312,32 +349,21 @@ function getContinuousReportActionChain(sortedReportActions: ReportAction[], id?
     let startIndex = index;
     let endIndex = index;
 
-    // Iterate forwards through the array, starting from endIndex. This loop checks the continuity of actions by:
-    // 1. Comparing the current item's previousReportActionID with the next item's reportActionID.
-    //    This ensures that we are moving in a sequence of related actions from newer to older.
+    // Iterate forwards through the array, starting from endIndex. i.e: newer to older
+    // This loop checks the continuity of actions by comparing the current item's previousReportActionID with the next item's reportActionID.
+    // It ignores optimistic actions, whispers and InviteToRoom actions
     while (
         (endIndex < sortedReportActions.length - 1 && sortedReportActions[endIndex].previousReportActionID === sortedReportActions[endIndex + 1].reportActionID) ||
-        !!sortedReportActions[endIndex + 1]?.whisperedToAccountIDs?.length ||
-        !!sortedReportActions[endIndex]?.whisperedToAccountIDs?.length ||
-        sortedReportActions[endIndex]?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM ||
-        sortedReportActions[endIndex + 1]?.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED ||
-        sortedReportActions[endIndex + 1]?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED
+        shouldIgnoreGap(sortedReportActions[endIndex], sortedReportActions[endIndex + 1])
     ) {
         endIndex++;
     }
 
-    // Iterate backwards through the sortedReportActions, starting from startIndex. This loop has two main checks:
-    // 1. It compares the current item's reportActionID with the previous item's previousReportActionID.
-    //    This is to ensure continuity in a sequence of actions.
-    // 2. If the first condition fails, it then checks if the previous item has a pendingAction of 'add'.
-    //    This additional check is to include recently sent messages that might not yet be part of the established sequence.
+    // Iterate backwards through the sortedReportActions, starting from startIndex. (older to newer)
+    // This loop ensuress continuity in a sequence of actions by comparing the current item's reportActionID with the previous item's previousReportActionID.
     while (
         (startIndex > 0 && sortedReportActions[startIndex].reportActionID === sortedReportActions[startIndex - 1].previousReportActionID) ||
-        sortedReportActions[startIndex - 1]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD ||
-        sortedReportActions[startIndex - 1]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        sortedReportActions[startIndex - 1]?.isOptimisticAction ||
-        sortedReportActions[startIndex - 1]?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM
+        shouldIgnoreGap(sortedReportActions[startIndex], sortedReportActions[startIndex - 1])
     ) {
         startIndex--;
     }
@@ -1189,6 +1215,7 @@ export {
     getParentReportAction,
     getReportAction,
     getReportActionMessageText,
+    getWhisperedTo,
     isApprovedOrSubmittedReportAction,
     getReportPreviewAction,
     getSortedReportActions,

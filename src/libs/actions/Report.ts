@@ -1220,8 +1220,8 @@ function togglePinnedState(reportID: string, isPinnedChat: boolean) {
  * tab, refresh etc without worrying about loosing what they typed out.
  * When empty string or null is passed, it will delete the draft comment from Onyx store.
  */
-function saveReportDraftComment(reportID: string, comment: string | null) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, prepareDraftComment(comment));
+function saveReportDraftComment(reportID: string, comment: string | null, callback: () => void = () => {}) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, prepareDraftComment(comment)).then(callback);
 }
 
 /** Broadcasts whether or not a user is typing on a report over the report's private pusher channel. */
@@ -1252,13 +1252,17 @@ function handleReportChanged(report: OnyxEntry<Report>) {
     // In this case, the API will let us know by returning a preexistingReportID.
     // We should clear out the optimistically created report and re-route the user to the preexisting report.
     if (report?.reportID && report.preexistingReportID) {
-        Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, null);
-
+        let callback = () => {};
         // Only re-route them if they are still looking at the optimistically created report
         if (Navigation.getActiveRoute().includes(`/r/${report.reportID}`)) {
-            // Pass 'FORCED_UP' type to replace new report on second login with proper one in the Navigation
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.preexistingReportID), CONST.NAVIGATION.TYPE.FORCED_UP);
+            callback = () => {
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.preexistingReportID ?? ''), CONST.NAVIGATION.TYPE.FORCED_UP);
+            };
         }
+        DeviceEventEmitter.emit(`switchToPreExistingReport_${report.reportID}`, {
+            preexistingReportID: report.preexistingReportID,
+            callback,
+        });
         return;
     }
 
@@ -2739,24 +2743,44 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
 }
 
 function updateGroupChatMemberRoles(reportID: string, accountIDList: number[], role: ValueOf<typeof CONST.REPORT.ROLE>) {
-    const participants: Participants = {};
     const memberRoles: Record<number, string> = {};
+    const optimisticParticipants: Participants = {};
+    const successParticipants: Participants = {};
+
     accountIDList.forEach((accountID) => {
         memberRoles[accountID] = role;
-        participants[accountID] = {role};
+        optimisticParticipants[accountID] = {
+            role,
+            pendingFields: {
+                role: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            },
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+        };
+        successParticipants[accountID] = {
+            pendingFields: {
+                role: null,
+            },
+            pendingAction: null,
+        };
     });
 
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                participants,
-            },
+            value: {participants: optimisticParticipants},
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {participants: successParticipants},
         },
     ];
     const parameters: UpdateGroupChatMemberRolesParams = {reportID, memberRoles: JSON.stringify(memberRoles)};
-    API.write(WRITE_COMMANDS.UPDATE_GROUP_CHAT_MEMBER_ROLES, parameters, {optimisticData});
+    API.write(WRITE_COMMANDS.UPDATE_GROUP_CHAT_MEMBER_ROLES, parameters, {optimisticData, successData});
 }
 
 /** Invites people to a group chat */

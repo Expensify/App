@@ -918,12 +918,12 @@ function ReportActionItem({
     }
 
     const hasErrors = !isEmptyObject(action.errors);
-    const whisperedToAccountIDs = action.whisperedToAccountIDs ?? [];
-    const isWhisper = whisperedToAccountIDs.length > 0;
-    const isMultipleParticipant = whisperedToAccountIDs.length > 1;
-    const isWhisperOnlyVisibleByUser = isWhisper && ReportUtils.isCurrentUserTheOnlyParticipant(whisperedToAccountIDs);
+    const whisperedTo = ReportActionsUtils.getWhisperedTo(action);
+    const isWhisper = whisperedTo.length > 0;
+    const isMultipleParticipant = whisperedTo.length > 1;
+    const isWhisperOnlyVisibleByUser = isWhisper && ReportUtils.isCurrentUserTheOnlyParticipant(whisperedTo);
     const whisperedToPersonalDetails = isWhisper
-        ? (Object.values(personalDetails ?? {}).filter((details) => whisperedToAccountIDs.includes(details?.accountID ?? -1)) as OnyxTypes.PersonalDetails[])
+        ? (Object.values(personalDetails ?? {}).filter((details) => whisperedTo.includes(details?.accountID ?? -1)) as OnyxTypes.PersonalDetails[])
         : [];
     const displayNamesWithTooltips = isWhisper ? ReportUtils.getDisplayNamesWithTooltips(whisperedToPersonalDetails, isMultipleParticipant) : [];
 
@@ -961,7 +961,12 @@ function ReportActionItem({
                             checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                             setIsEmojiPickerActive={setIsEmojiPickerActive}
                         />
-                        <View style={StyleUtils.getReportActionItemStyle(hovered || isWhisper || isContextMenuActive || !!isEmojiPickerActive || draftMessage !== undefined, !!onPress)}>
+                        <View
+                            style={StyleUtils.getReportActionItemStyle(
+                                hovered || isWhisper || isContextMenuActive || !!isEmojiPickerActive || draftMessage !== undefined,
+                                draftMessage === undefined && !!onPress,
+                            )}
+                        >
                             <OfflineWithFeedback
                                 onClose={() => ReportActions.clearAllRelatedReportActionErrors(report.reportID, action)}
                                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -988,7 +993,7 @@ function ReportActionItem({
                                             &nbsp;
                                         </Text>
                                         <DisplayNames
-                                            fullTitle={ReportUtils.getWhisperDisplayNames(whisperedToAccountIDs) ?? ''}
+                                            fullTitle={ReportUtils.getWhisperDisplayNames(whisperedTo) ?? ''}
                                             displayNamesWithTooltips={displayNamesWithTooltips}
                                             tooltipEnabled
                                             numberOfLines={1}
