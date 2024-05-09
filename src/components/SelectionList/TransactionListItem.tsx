@@ -216,7 +216,7 @@ function TransactionListItem<TItem extends ListItem>({
                         <View style={[styles.flexRow, styles.justifyContentBetween, styles.gap1]}>
                             <View style={[styles.flex1, styles.gap1]}>
                                 {merchantCell}
-                                <View style={[styles.flexRow, styles.alignItemsEnd, styles.gap3]}>
+                                <View style={[styles.flexRow, styles.flex1, styles.alignItemsEnd, styles.gap3]}>
                                     {categoryCell}
                                     {tagCell}
                                 </View>

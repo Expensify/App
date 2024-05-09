@@ -26,14 +26,19 @@ export default function TextWithIconCell({icon, text, showTooltip}: TextWithIcon
             shouldRender={showTooltip}
             text={text}
         >
-            <View style={[styles.flexRow, styles.gap1]}>
+            <View style={[styles.flexRow, styles.flex1, styles.gap1]}>
                 <Icon
                     src={icon}
                     fill={theme.icon}
                     height={12}
                     width={12}
                 />
-                <Text style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter, styles.textMicro, styles.textSupporting]}>{text}</Text>
+                <Text
+                    numberOfLines={1}
+                    style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter, styles.textMicro, styles.textSupporting, styles.flexShrink1]}
+                >
+                    {text}
+                </Text>
             </View>
         </Tooltip>
     );
