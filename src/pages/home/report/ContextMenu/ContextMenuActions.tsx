@@ -360,9 +360,9 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(mentionWhisperMessage);
                 } else if (ReportActionsUtils.isActionableTrackExpense(reportAction)) {
                     setClipboardMessage('What would you like to do with this expense?');
-                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
+                } else if (ReportActionsUtils.isHoldAction(reportAction)) {
                     Clipboard.setString(Localize.translateLocal('iou.heldExpense'));
-                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
+                } else if (ReportActionsUtils.isUnholdAction(reportAction)) {
                     Clipboard.setString(Localize.translateLocal('iou.unheldExpense'));
                 } else if (content) {
                     setClipboardMessage(

@@ -616,7 +616,7 @@ export default withOnyx<AttachmentModalProps, AttachmentModalOnyxProps>({
     transaction: {
         key: ({report}) => {
             const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
-            if (!parentReportAction || !ReportActionsUtils.isIOUAction(parentReportAction)) {
+            if (!parentReportAction || !ReportActionsUtils.isMoneyRequestAction(parentReportAction)) {
                 return `${ONYXKEYS.COLLECTION.TRANSACTION}0`;
             }
             const transactionID = parentReportAction.originalMessage.IOUTransactionID;

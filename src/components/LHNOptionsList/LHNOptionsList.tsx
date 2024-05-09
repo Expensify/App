@@ -111,7 +111,7 @@ function LHNOptionsList({
             const itemParentReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${itemFullReport?.parentReportID}`] ?? null;
             const itemParentReportAction = itemParentReportActions?.[itemFullReport?.parentReportActionID ?? ''] ?? null;
             const itemPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${itemFullReport?.policyID}`] ?? null;
-            const transactionID = itemParentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? itemParentReportAction.originalMessage.IOUTransactionID ?? '' : '';
+            const transactionID = ReportActionsUtils.isMoneyRequestAction(itemParentReportAction) ? itemParentReportAction.originalMessage.IOUTransactionID ?? '' : '';
             const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? null;
             const hasDraftComment = DraftCommentUtils.isValidDraftComment(draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`]);
             const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(itemReportActions);
@@ -120,7 +120,7 @@ function LHNOptionsList({
             // Get the transaction for the last report action
             let lastReportActionTransactionID = '';
 
-            if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+            if (ReportActionsUtils.isMoneyRequestAction(lastReportAction)) {
                 lastReportActionTransactionID = lastReportAction.originalMessage?.IOUTransactionID ?? '';
             }
             const lastReportActionTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${lastReportActionTransactionID}`] ?? {};
