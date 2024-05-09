@@ -53,7 +53,7 @@ function getSections(data: OnyxTypes.SearchResults['data']): SearchTransaction[]
 }
 
 function getQueryHash(query: string, policyID?: string): number {
-    const textToHash = policyID ? `${query}_${policyID}` : query;
+    const textToHash = [query, policyID].filter(Boolean).join('_');
     return UserUtils.hashText(textToHash, 2 ** 32);
 }
 
