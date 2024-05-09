@@ -899,16 +899,16 @@ function ReportActionItem({
         );
     }
 
-    // // For the `pay` IOU action on non-pay expense flow, we don't want to render anything if `isWaitingOnBankAccount` is true
-    // // Otherwise, we will see two system messages informing the payee needs to add a bank account or wallet
-    // if (isIOUReport(action) && !!report?.isWaitingOnBankAccount && action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && !isSendingMoney) {
-    //     return null;
-    // }
+    // For the `pay` IOU action on non-pay expense flow, we don't want to render anything if `isWaitingOnBankAccount` is true
+    // Otherwise, we will see two system messages informing the payee needs to add a bank account or wallet
+    if (isIOUReport(action) && !!report?.isWaitingOnBankAccount && action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && !isSendingMoney) {
+        return null;
+    }
 
-    // // If action is actionable whisper and resolved by user, then we don't want to render anything
-    // if (isActionableWhisper && (action.originalMessage.resolution ?? null)) {
-    //     return null;
-    // }
+    // If action is actionable whisper and resolved by user, then we don't want to render anything
+    if (isActionableWhisper && (action.originalMessage.resolution ?? null)) {
+        return null;
+    }
 
     // We currently send whispers to all report participants and hide them in the UI for users that shouldn't see them.
     // This is a temporary solution needed for comment-linking.
@@ -921,7 +921,7 @@ function ReportActionItem({
     const whisperedTo = ReportActionsUtils.getWhisperedTo(action);
     const isMultipleParticipant = whisperedTo.length > 1;
 
-    const iouReportID = action.originalMessage.IOUReportID ? action.originalMessage.IOUReportID.toString() : '0';
+    const iouReportID = isIOUReport(action) && action.originalMessage.IOUReportID ? action.originalMessage.IOUReportID.toString() : '0';
     const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(iouReportID);
     const isWhisper = whisperedTo.length > 0 && transactionsWithReceipts.length === 0 && !action.pendingAction;
     const whisperedToPersonalDetails = isWhisper
