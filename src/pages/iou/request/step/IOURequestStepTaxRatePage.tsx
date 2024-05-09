@@ -87,7 +87,7 @@ function IOURequestStepTaxRatePage({
         }
 
         if (taxAmount === undefined) {
-            Navigation.goBack();
+            Navigation.goBack(backTo);
             return;
         }
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(taxAmount);
