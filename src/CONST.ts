@@ -148,6 +148,14 @@ const CONST = {
         RESERVED_NAMES: ['Expensify', 'Concierge'],
     },
 
+    GPS: {
+        // It's OK to get a cached location that is up to an hour old because the only accuracy needed is the country the user is in
+        MAX_AGE: 3600000,
+
+        // 15 seconds, don't wait too long because the server can always fall back to using the IP address
+        TIMEOUT: 15000,
+    },
+
     LEGAL_NAME: {
         MAX_LENGTH: 40,
     },
@@ -644,6 +652,7 @@ const CONST = {
             TYPE: {
                 ACTIONABLE_JOIN_REQUEST: 'ACTIONABLEJOINREQUEST',
                 ACTIONABLE_MENTION_WHISPER: 'ACTIONABLEMENTIONWHISPER',
+                ACTIONABLE_REPORT_MENTION_WHISPER: 'ACTIONABLEREPORTMENTIONWHISPER',
                 ACTIONABLE_TRACK_EXPENSE_WHISPER: 'ACTIONABLETRACKEXPENSEWHISPER',
                 ADD_COMMENT: 'ADDCOMMENT',
                 APPROVED: 'APPROVED',
@@ -781,6 +790,10 @@ const CONST = {
             NOTHING: 'nothing',
         },
         ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION: {
+            NOTHING: 'nothing',
+        },
+        ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION: {
+            CREATE: 'created',
             NOTHING: 'nothing',
         },
         ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION: {
@@ -1136,6 +1149,11 @@ const CONST = {
         URL: 'url',
     },
 
+    INPUT_AUTOGROW_DIRECTION: {
+        LEFT: 'left',
+        RIGHT: 'right',
+    },
+
     YOUR_LOCATION_TEXT: 'Your Location',
 
     ATTACHMENT_MESSAGE_TEXT: '[Attachment]',
@@ -1283,6 +1301,17 @@ const CONST = {
         SYNC: 'sync',
         IMPORT_CUSTOMERS: 'importCustomers',
         IMPORT_TAX_RATES: 'importTaxRates',
+        IMPORT_TRACKING_CATEGORIES: 'importTrackingCategories',
+        MAPPINGS: 'mappings',
+        TRACKING_CATEGORY_PREFIX: 'trackingCategory_',
+        TRACKING_CATEGORY_FIELDS: {
+            COST_CENTERS: 'cost centers',
+            REGION: 'region',
+        },
+        TRACKING_CATEGORY_OPTIONS: {
+            DEFAULT: 'DEFAULT',
+            TAG: 'TAG',
+        },
     },
 
     QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE: {
@@ -2037,6 +2066,7 @@ const CONST = {
         INFO: 'info',
     },
     REPORT_DETAILS_MENU_ITEM: {
+        SHARE_CODE: 'shareCode',
         MEMBERS: 'member',
         INVITE: 'invite',
         SETTINGS: 'settings',

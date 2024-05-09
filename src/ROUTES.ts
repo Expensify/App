@@ -804,6 +804,18 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/xero/organization/:currentOrganizationID',
         getRoute: (policyID: string, currentOrganizationID: string) => `settings/workspaces/${policyID}/accounting/xero/organization/${currentOrganizationID}` as const,
     },
+    POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES: {
+        route: 'settings/workspaces/:policyID/accounting/xero/import/tracking-categories',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/import/tracking-categories` as const,
+    },
+    POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES_MAP_COST_CENTERS: {
+        route: 'settings/workspaces/:policyID/accounting/xero/import/tracking-categories/cost-centers',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/import/tracking-categories/cost-centers` as const,
+    },
+    POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES_MAP_REGION: {
+        route: 'settings/workspaces/:policyID/accounting/xero/import/tracking-categories/region',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/import/tracking-categories/region` as const,
+    },
     POLICY_ACCOUNTING_XERO_CUSTOMER: {
         route: '/settings/workspaces/:policyID/accounting/xero/import/customers',
         getRoute: (policyID: string) => `/settings/workspaces/${policyID}/accounting/xero/import/customers` as const,
@@ -811,6 +823,10 @@ const ROUTES = {
     POLICY_ACCOUNTING_XERO_TAXES: {
         route: 'settings/workspaces/:policyID/accounting/xero/import/taxes',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/import/taxes` as const,
+    },
+    POLICY_ACCOUNTING_XERO_EXPORT: {
+        route: 'settings/workspaces/:policyID/accounting/xero/export',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/export` as const,
     },
     POLICY_ACCOUNTING_XERO_ADVANCED: {
         route: 'settings/workspaces/:policyID/accounting/xero/advanced',

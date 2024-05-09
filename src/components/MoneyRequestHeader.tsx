@@ -182,6 +182,7 @@ function MoneyRequestHeader({
                 <HeaderWithBackButton
                     shouldShowBorderBottom={!isScanning && !isPending && !isOnHold}
                     shouldShowReportAvatarWithDisplay
+                    shouldEnableDetailPageNavigation
                     shouldShowPinButton={false}
                     shouldShowThreeDotsButton
                     threeDotsMenuItems={threeDotsMenuItems}
