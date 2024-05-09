@@ -105,6 +105,7 @@ function IOURequestStepParticipants({
 
     const goToNextStep = useCallback(() => {
         const isCategorizing = action === CONST.IOU.ACTION.CATEGORIZE;
+        const isShareAction = action === CONST.IOU.ACTION.SHARE;
 
         const isPolicyExpenseChat = participants?.some((participant) => participant.isPolicyExpenseChat);
         if (iouType === CONST.IOU.TYPE.SPLIT && !isPolicyExpenseChat && transaction?.amount && transaction?.currency) {
@@ -114,8 +115,7 @@ function IOURequestStepParticipants({
 
         IOU.setMoneyRequestTag(transactionID, '');
         IOU.setMoneyRequestCategory(transactionID, '');
-
-        if (isCategorizing && numberOfParticipants.current === 0) {
+        if ((isCategorizing || isShareAction) && numberOfParticipants.current === 0) {
             ReportUtils.createDraftWorkspaceAndNavigateToConfirmationScreen(transactionID, action);
             return;
         }
