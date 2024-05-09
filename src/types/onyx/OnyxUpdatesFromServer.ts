@@ -3,22 +3,42 @@ import CONST from '@src/CONST';
 import type Request from './Request';
 import type Response from './Response';
 
+/** Model of a onyx server update */
 type OnyxServerUpdate = OnyxUpdate & {
+    /** Whether the update should notify UI */
     shouldNotify?: boolean;
+
+    /** Whether the update should be shown as a push notification */
     shouldShowPushNotification?: boolean;
 };
 
+/** Model of a onyx update event */
 type OnyxUpdateEvent = {
+    /** Type of the update event received from the server */
     eventType: string;
+
+    /** Collections of data updates */
     data: OnyxServerUpdate[];
 };
 
+/** Model of onyx server updates */
 type OnyxUpdatesFromServer = {
+    /** Delivery method of onyx updates */
     type: 'https' | 'pusher' | 'airship';
+
+    /** Last update ID from server */
     lastUpdateID: number | string;
+
+    /** Previous update ID from server */
     previousUpdateID: number | string;
+
+    /** Request data sent to the server */
     request?: Request;
+
+    /** Response data from server */
     response?: Response;
+
+    /** Collection of onyx updates */
     updates?: OnyxUpdateEvent[];
 };
 

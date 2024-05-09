@@ -116,6 +116,8 @@ function ExpensifyCardPage({
         // eslint-disable-next-line rulesdir/no-thenable-actions-in-views
         Card.revealVirtualCardDetails(revealedCardID)
             .then((value) => {
+                // TODO: Card.revealVirtualCardDetails return type doesn't include TCardDetails, forcing us to type cast it here.
+                // The return type could be rewritten like Promise<Response & TCardDetails>
                 setCardsDetails((prevState: Record<number, TCardDetails | null>) => ({...prevState, [revealedCardID]: value as TCardDetails}));
                 setCardsDetailsErrors((prevState) => ({
                     ...prevState,

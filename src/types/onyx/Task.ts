@@ -1,5 +1,6 @@
 import type Report from './Report';
 
+/** Model of task data */
 type Task = {
     /** Title of the Task */
     title?: string;

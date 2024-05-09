@@ -4,8 +4,10 @@ import type DismissedReferralBanners from './DismissedReferralBanners';
 import type * as OnyxCommon from './OnyxCommon';
 import type {TravelSettings} from './TravelSettings';
 
+/** Two factor authentication steps */
 type TwoFactorAuthStep = ValueOf<typeof CONST.TWO_FACTOR_AUTH_STEPS> | '';
 
+/** Model of user account */
 type Account = {
     /** Whether SAML is enabled for the current account */
     isSAMLEnabled?: boolean;
@@ -55,10 +57,19 @@ type Account = {
     /** Whether a sign is loading */
     isLoading?: boolean;
 
+    /** Authentication failure errors */
     errors?: OnyxCommon.Errors | null;
+
+    /** Authentication success message */
     success?: string;
+
+    /** Whether the two factor authentication codes were copied */
     codesAreCopied?: boolean;
+
+    /** Current two factor authentication step */
     twoFactorAuthStep?: TwoFactorAuthStep;
+
+    /** Referral banners that the user dismissed */
     dismissedReferralBanners?: DismissedReferralBanners;
 
     /** Object containing all account information necessary to connect with Spontana */

@@ -5,48 +5,96 @@ import type * as OnyxTypes from '.';
 import type * as OnyxCommon from './OnyxCommon';
 import type {WorkspaceTravelSettings} from './TravelSettings';
 
+/** Distance units */
 type Unit = 'mi' | 'km';
 
+/** Model of policy distance rate */
 type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** Name of the distance rate */
     name?: string;
+
+    /** Amount to be reimbursed per distance unit travelled */
     rate?: number;
+
+    /** Currency used to pay the distance rate */
     currency?: string;
+
+    /** Generated ID to identify the distance rate */
     customUnitRateID?: string;
+
+    /** Whether this distance rate is currently enabled */
     enabled?: boolean;
+
+    /** Error messages to show in UI */
     errors?: OnyxCommon.Errors;
+
+    /** Form fields that triggered the errors */
     errorFields?: OnyxCommon.ErrorFields;
 }>;
 
+/** Custom unit attributes */
 type Attributes = {
+    /** Distance unit name */
     unit: Unit;
 };
 
+/** Policy custom unit */
 type CustomUnit = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** Custom unit name */
     name: string;
+
+    /** ID that identifies this custom unit */
     customUnitID: string;
+
+    /** Contains custom attributes like unit, for this custom unit */
     attributes: Attributes;
+
+    /** Distance rates using this custom unit */
     rates: Record<string, Rate>;
+
+    /** The default category in which this custom unit is used */
     defaultCategory?: string;
+
+    /** Whether this custom unit is enabled */
     enabled?: boolean;
+
+    /** Error messages to show in UI */
     errors?: OnyxCommon.Errors;
+
+    /** Form fields that triggered errors */
     errorFields?: OnyxCommon.ErrorFields;
 }>;
 
+/** Policy company address data */
 type CompanyAddress = {
+    /** Street address */
     addressStreet: string;
+
+    /** City */
     city: string;
+
+    /** State */
     state: string;
+
+    /** Zip post code */
     zipCode: string;
+
+    /** Country code */
     country: Country | '';
 };
 
+/** Policy disabled fields */
 type DisabledFields = {
+    /** Whether the default billable field is disabled */
     defaultBillable?: boolean;
+
+    /** Whether the reimbursable field is disabled */
     reimbursable?: boolean;
 };
 
+/** Policy tax rate */
 type TaxRate = OnyxCommon.OnyxValueWithOfflineFeedback<{
-    /** Name of the a tax rate. */
+    /** Name of the tax rate. */
     name: string;
 
     /** The value of the tax rate. */
@@ -68,8 +116,10 @@ type TaxRate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     errorFields?: OnyxCommon.ErrorFields;
 }>;
 
+/** Record of policy tax rates, indexed by id_{taxRateName} where taxRateName is the name of the tax rate in UPPER_SNAKE_CASE */
 type TaxRates = Record<string, TaxRate>;
 
+/** Policy tax rates with default tax rate */
 type TaxRatesWithDefault = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Name of the tax */
     name: string;
@@ -93,40 +143,85 @@ type TaxRatesWithDefault = OnyxCommon.OnyxValueWithOfflineFeedback<{
     errorFields?: OnyxCommon.ErrorFields;
 }>;
 
+/** Connection last synchronization state */
 type ConnectionLastSync = {
+    /** Date when the connection's last successful sync occurred */
     successfulDate?: string;
+
+    /** Date when the connection's last failed sync occurred */
     errorDate?: string;
+
+    /** Whether the connection's last sync was successful */
     isSuccessful: boolean;
+
+    /** Where did the connection's last sync came from */
     source: 'DIRECT' | 'EXPENSIFYWEB' | 'EXPENSIFYAPI' | 'AUTOSYNC' | 'AUTOAPPROVE';
 };
 
+/** Financial account (bank account, debit card, etc) */
 type Account = {
+    /** GL code assigned to the financial account */
     glCode?: string;
+
+    /** Name of the financial account */
     name: string;
+
+    /** Currency of the financial account */
     currency: string;
+
+    /** ID assigned to the financial account */
     id: string;
 };
 
+/** Model of QuickBooks Online employee data */
 type Employee = {
+    /** ID assigned to the employee */
     id: string;
+
+    /** Employee's first name */
     firstName?: string;
+
+    /** Employee's last name */
     lastName?: string;
+
+    /** Employee's display name */
     name: string;
+
+    /** Employee's e-mail */
     email: string;
 };
 
+/** Model of QuickBooks Online vendor data */
 type Vendor = {
+    /** ID assigned to the vendor */
     id: string;
+
+    /** Vendor's name */
     name: string;
+
+    /** Vendor's currency */
     currency: string;
+
+    /** Vendor's e-mail */
     email: string;
 };
 
+/** Model of QuickBooks Online tax code data */
 type TaxCode = {
+    /** TODO: Not used in app */
     totalTaxRateVal: string;
+
+    /** TODO: Not used in app */
     simpleName: string;
+
+    /** TODO: Not used in app */
     taxCodeRef: string;
+
+    /** TODO: Not used in app */
     taxRateRefs: Record<string, string>;
+
+    /** TODO: Not used in app */
+    /** Name of the tax code */
     name: string;
 };
 
@@ -134,86 +229,190 @@ type TaxCode = {
  * Data imported from QuickBooks Online.
  */
 type QBOConnectionData = {
+    /** TODO: I think this value can be changed to `ValueOf<CONST.COUNTRY>` */
+    /** Country code */
     country: string;
+
+    /** TODO: Doesn't exist in the app */
     edition: string;
+
+    /** TODO: Doesn't exist in the app */
     homeCurrency: string;
+
+    /** TODO: Doesn't exist in the app */
     isMultiCurrencyEnabled: boolean;
 
+    /** Collection of journal entry accounts  */
     journalEntryAccounts: Account[];
+
+    /** Collection of bank accounts */
     bankAccounts: Account[];
+
+    /** Collection of credit cards */
     creditCards: Account[];
+
+    /** Collection of export destination accounts */
     accountsReceivable: Account[];
+
+    /** TODO: Not enough context */
     accountPayable: Account[];
+
+    /** TODO: Not enough context */
     otherCurrentAssetAccounts: Account[];
 
+    /** TODO: Doesn't exist in the app */
     taxCodes: TaxCode[];
+
+    /** TODO: Doesn't exist in the app */
     employees: Employee[];
+
+    /** Collections of vendors */
     vendors: Vendor[];
 };
 
+/** Sync entity names */
 type IntegrationEntityMap = (typeof CONST.INTEGRATION_ENTITY_MAP_TYPES)[keyof typeof CONST.INTEGRATION_ENTITY_MAP_TYPES];
 
+/** Non reimbursable account types exported from QuickBooks Online */
 type QBONonReimbursableExportAccountType = (typeof CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE)[keyof typeof CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE];
+
+/** Reimbursable account types exported from QuickBooks Online */
 type QBOReimbursableExportAccountType = (typeof CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE)[keyof typeof CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE];
 
 /**
  * User configuration for the QuickBooks Online accounting integration.
  */
 type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** TODO: Doesn't exist in the app */
+    /** ID of the QuickBooks Online realm */
     realmId: string;
+
+    /** TODO: Doesn't exist in the app */
+    /** Company name */
     companyName: string;
+
+    /** Configuration of automatic synchronization from QuickBooks Online to the app */
     autoSync: {
+        /** TODO: Doesn't exist in the app */
         jobID: string;
+
+        /** Whether changes made in QuickBooks Online should be reflected into the app automatically */
         enabled: boolean;
     };
+
+    /** Whether employees can be invited */
     syncPeople: boolean;
+
+    /** TODO: Doesn't exist in the app */
     syncItems: boolean;
+
+    /** TODO: Doesn't exist in the app */
     markChecksToBePrinted: boolean;
+
     reimbursableExpensesExportDestination: QBOReimbursableExportAccountType;
+
     nonReimbursableExpensesExportDestination: QBONonReimbursableExportAccountType;
+
     nonReimbursableBillDefaultVendor: string;
+
     collectionAccountID?: string;
+
     reimbursementAccountID?: string;
+
     reimbursableExpensesAccount?: Account;
+
     nonReimbursableExpensesAccount?: Account;
+
+    /** Account that receives the exported invoices */
     receivableAccount?: Account;
+
+    /**
+     * Whether a default vendor will be created and applied to all credit card
+     * transactions upon import
+     */
     autoCreateVendor: boolean;
+
+    /** TODO: Doesn't exist in the app */
     hasChosenAutoSyncOption: boolean;
+
+    /** Whether Quickbooks Online classes should be imported */
     syncClasses: IntegrationEntityMap;
+
+    /** Whether Quickbooks Online customers should be imported */
     syncCustomers: IntegrationEntityMap;
+
+    /** Whether Quickbooks Online locations should be imported */
     syncLocations: IntegrationEntityMap;
+
+    /** TODO: Doesn't exist in the app */
     lastConfigurationTime: number;
+
+    /** Whether the taxes should be synchronized */
     syncTax: boolean;
+
+    /** Whether new categories are enabled in chart of accounts */
     enableNewCategories: boolean;
+
+    /** TODO: Doesn't exist in the app */
     errors?: OnyxCommon.Errors;
+
+    /** TODO: Doesn't exist in the app */
     exportDate: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_DATE>;
+
+    /** Configuration of the export */
     export: {
+        /** E-mail of the exporter */
         exporter: string;
     };
+
+    /** Collections of form field errors */
     errorFields?: OnyxCommon.ErrorFields;
 }>;
 
+/** Xero bill status values */
 type BillStatusValues = 'DRAFT' | 'AWT_APPROVAL' | 'AWT_PAYMENT';
 
+/** Xero expense status values */
 type ExpenseTypesValues = 'BILL' | 'BANK_TRANSACTION' | 'SALES_INVOICE' | 'NOTHING';
 
+/** Xero bill date values */
 type BillDateValues = 'REPORT_SUBMITTED' | 'REPORT_EXPORTED' | 'LAST_EXPENSE';
 
+/** Model of an organization in Xero */
 type Tenant = {
+    /** ID of the organization */
     id: string;
+
+    /** Name of the organization */
     name: string;
+
+    /** TODO: Doesn't exist in the app */
     value: string;
 };
 
+/**
+ * Data imported from Xero
+ */
 type XeroConnectionData = {
+    /** Collection of bank accounts */
     bankAccounts: Account[];
+
+    /** TODO: Doesn't exist in the app */
     countryCode: string;
+
+    /** TODO: Doesn't exist in the app */
     organisationID: string;
+
+    /** TODO: Doesn't exist in the app */
     revenueAccounts: Array<{
         id: string;
         name: string;
     }>;
+
+    /** Collection of organizations */
     tenants: Tenant[];
+
+    /** TODO: Doesn't exist in the app */
     trackingCategories: unknown[];
 };
 
@@ -221,68 +420,143 @@ type XeroConnectionData = {
  * User configuration for the Xero accounting integration.
  */
 type XeroConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** Xero auto synchronization configs */
     autoSync: {
+        /** Whether data should be automatically synched between the app and Xero */
         enabled: boolean;
+
+        /** TODO: Doesn't exist in the app */
         jobID: string;
     };
+
+    /** TODO: Doesn't exist in the app */
     enableNewCategories: boolean;
+
+    /** Xero export configs */
     export: {
+        /** Current bill status */
         billDate: BillDateValues;
+
         billStatus: {
+            /** Current status of the purchase bill */
             purchase: BillStatusValues;
+
+            /** Current status of the sales bill */
             sales: BillStatusValues;
         };
+
+        /** TODO: Doesn't exist in the app */
         billable: ExpenseTypesValues;
+
+        /** The e-mail of the exporter */
         exporter: string;
+
+        /** TODO: Doesn't exist in the app */
         nonReimbursable: ExpenseTypesValues;
+
+        /** TODO: Doesn't exist in the app */
         nonReimbursableAccount: string;
+
+        /** TODO: Doesn't exist in the app */
         reimbursable: ExpenseTypesValues;
     };
+
+    /** Whether customers should be imported from Xero */
     importCustomers: boolean;
+
+    /** Whether tax rates should be imported from Xero */
     importTaxRates: boolean;
+
+    /** Whether tracking categories should be imported from Xero */
     importTrackingCategories: boolean;
+
+    /** TODO: Doesn't exist in the app */
     isConfigured: boolean;
+
+    /** TODO: Doesn't exist in the app */
     mappings: {
         customer: string;
     };
     sync: {
+        /** TODO: Doesn't exist in the app */
         hasChosenAutoSyncOption: boolean;
+
+        /** TODO: Doesn't exist in the app */
         hasChosenSyncReimbursedReportsOption: boolean;
+
+        /** ID of the bank account for Xero invoice collections */
         invoiceCollectionsAccountID: string;
+
+        /** TODO: Doesn't exist in the app */
         reimbursementAccountID: string;
+
+        /** TODO: Doesn't exist in the app */
         syncReimbursedReports: boolean;
     };
+
+    /** ID of Xero organization */
     tenantID: string;
+
+    /** TODO: Doesn't exist in the app */
     errors?: OnyxCommon.Errors;
+
+    /** Collection of form field errors  */
     errorFields?: OnyxCommon.ErrorFields;
 }>;
 
+/** State of integration connection */
 type Connection<ConnectionData, ConnectionConfig> = {
+    /** TODO: Doesn't exist in the app */
+    /** State of the last synchronization */
     lastSync?: ConnectionLastSync;
+
+    /** Data imported from integration */
     data: ConnectionData;
+
+    /** Configuration of the connection */
     config: ConnectionConfig;
 };
 
+/** Available integration connections */
 type Connections = {
+    /** QuickBooks integration connection */
     quickbooksOnline: Connection<QBOConnectionData, QBOConnectionConfig>;
+
+    /** Xero integration connection */
     xero: Connection<XeroConnectionData, XeroConnectionConfig>;
 };
 
+/** Names of integration connections */
 type ConnectionName = keyof Connections;
 
+/** Model of verified reimbursement bank account linked to policy */
 type ACHAccount = {
+    /** ID of the bank account */
     bankAccountID: number;
+
+    /** Bank account number */
     accountNumber: string;
+
+    /** Routing number of bank account */
     routingNumber: string;
+
+    /** Address name of the bank account */
     addressName: string;
+
+    /** Name of the bank */
     bankName: string;
+
+    /** E-mail of the reimburser */
     reimburser: string;
 };
 
+/** Day of the month to schedule submission  */
 type AutoReportingOffset = number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>;
 
+/** Types of policy report fields */
 type PolicyReportFieldType = 'text' | 'date' | 'dropdown' | 'formula';
 
+/** Model of policy report field */
 type PolicyReportField = {
     /** Name of the field */
     name: string;
@@ -308,6 +582,7 @@ type PolicyReportField = {
     /** Options to select from if field is of type dropdown */
     values: string[];
 
+    /** TODO: Doesn't seem to be used in app */
     target: string;
 
     /** Tax UDFs have keys holding the names of taxes (eg, VAT), values holding percentages (eg, 15%) and a value indicating the currently selected tax value (eg, 15%). */
@@ -316,6 +591,7 @@ type PolicyReportField = {
     /** list of externalIDs, this are either imported from the integrations or auto generated by us, each externalID */
     externalIDs: string[];
 
+    /** Collection of flags that state whether droplist field options are disabled */
     disabledOptions: boolean[];
 
     /** Is this a tax user defined report field */
@@ -331,22 +607,37 @@ type PolicyReportField = {
     defaultExternalID?: string | null;
 };
 
+/** Names of policy features */
 type PolicyFeatureName = ValueOf<typeof CONST.POLICY.MORE_FEATURES>;
 
+/** Current user policy join request state */
 type PendingJoinRequestPolicy = {
+    /** Whether the current user requested to join the policy */
     isJoinRequestPending: boolean;
+
+    /** Record of public policy details, indexed by policy ID */
     policyDetailsForNonMembers: Record<
         string,
         OnyxCommon.OnyxValueWithOfflineFeedback<{
+            /** Name of the policy */
             name: string;
+
+            /** Policy owner account ID */
             ownerAccountID: number;
+
+            /** Policy owner e-mail */
             ownerEmail: string;
+
+            /** Policy type */
             type: ValueOf<typeof CONST.POLICY.TYPE>;
+
+            /** Policy avatar */
             avatar?: string;
         }>
     >;
 };
 
+/** Model of policy data */
 type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
         /** The ID of the policy */
@@ -528,10 +819,18 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
     'generalSettings' | 'addWorkspaceRoom' | keyof ACHAccount
 >;
 
+/** Stages of policy connection sync */
 type PolicyConnectionSyncStage = ValueOf<typeof CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME>;
+
+/** Names of policy connection services */
 type PolicyConnectionName = ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
+
+/** Policy connection sync progress state */
 type PolicyConnectionSyncProgress = {
+    /** Current sync stage */
     stageInProgress: PolicyConnectionSyncStage;
+
+    /** Name of the connected service */
     connectionName: PolicyConnectionName;
 };
 

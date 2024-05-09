@@ -2,15 +2,30 @@ import type CONST from '@src/CONST';
 import type AccountData from './AccountData';
 import type * as OnyxCommon from './OnyxCommon';
 
+// TODO: This type is a duplicate of the one present in AccountData.ts
+/** Model of additional bank account data */
 type AdditionalData = {
+    /** Is a Peer-To-Peer Debit Card */
     isP2PDebitCard?: boolean;
+
+    /** Owners that can benefit from this bank account */
     beneficialOwners?: string[];
+
+    /** In which currency is the bank account */
     currency?: string;
+
+    /** In which bank is the bank account */
     bankName?: string;
+
+    // TODO: Confirm this
+    /** Whether the bank account is local or international */
     fieldsType?: string;
+
+    /** In which country is the bank account */
     country?: string;
 };
 
+/** Model of bank account */
 type BankAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** The bank account type */
     accountType?: typeof CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT;
@@ -18,6 +33,7 @@ type BankAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** string like 'Account ending in XXXX' */
     description?: string;
 
+    /** Determines if the bank account is a default payment method */
     isDefault?: boolean;
 
     /* Determines if the bank account is a savings account */
@@ -26,7 +42,7 @@ type BankAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Date when the 3 micro amounts for validation were supposed to reach the bank account. */
     validateCodeExpectedDate?: string;
 
-    /** string like 'bankAccount-{<bankAccountID>}' where <bankAccountID> is the bankAccountID */
+    /** string like 'bankAccount-{\<bankAccountID\>}' where <bankAccountID> is the bankAccountID */
     key?: string;
 
     /** Alias for bankAccountID */
@@ -42,6 +58,7 @@ type BankAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
     errors?: OnyxCommon.Errors;
 }>;
 
+/** Record of bank accounts, indexed by bankAccountID */
 type BankAccountList = Record<string, BankAccount>;
 
 export default BankAccount;
