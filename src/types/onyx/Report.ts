@@ -24,10 +24,10 @@ type PendingChatMember = {
     errors?: OnyxCommon.Errors;
 };
 
-type Participant = {
+type Participant = OnyxCommon.OnyxValueWithOfflineFeedback<{
     hidden?: boolean;
     role?: 'admin' | 'member';
-};
+}>;
 
 type InvoiceReceiver =
     | {
