@@ -229,7 +229,7 @@ function TransactionListItem<TItem extends ListItem>({
         >
             {() => (
                 <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
-                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DATE)]}>{receiptCell}</View>
+                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.RECEIPT)]}>{receiptCell}</View>
                     <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DATE)]}>{dateCell}</View>
                     <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.MERCHANT)]}>{merchantCell}</View>
                     <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.FROM)]}>{userCell(transactionItem.from)}</View>
