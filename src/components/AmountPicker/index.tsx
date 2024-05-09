@@ -42,7 +42,7 @@ function AmountPicker({value, description, title, errorText = '', onInputChange,
                 onPress={showPickerModal}
                 furtherDetails={furtherDetails}
                 brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                rightLabel={!errorText ? rightLabel : undefined}
+                rightLabel={rightLabel}
                 errorText={errorText}
             />
             <AmountSelectorModal

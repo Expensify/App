@@ -658,7 +658,7 @@ function MenuItem(
                                                 />
                                             </View>
                                         )}
-                                        {!title && !!rightLabel && (
+                                        {!title && !!rightLabel && !errorText && (
                                             <View style={styles.justifyContentCenter}>
                                                 <Text style={styles.rightLabelMenuItem}>{rightLabel}</Text>
                                             </View>
@@ -680,7 +680,7 @@ function MenuItem(
                                         isError
                                         shouldShowRedDotIndicator={false}
                                         message={errorText}
-                                        style={[styles.menuItemError, styles.mt1]}
+                                        style={styles.menuItemError}
                                     />
                                 )}
                                 {!!hintText && (
@@ -688,7 +688,7 @@ function MenuItem(
                                         isError={false}
                                         shouldShowRedDotIndicator={false}
                                         message={hintText}
-                                        style={[styles.menuItemError, !!errorText && styles.mt1]}
+                                        style={styles.menuItemError}
                                     />
                                 )}
                             </View>
