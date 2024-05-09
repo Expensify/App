@@ -1,7 +1,7 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import lodashSortBy from 'lodash/sortBy';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -62,7 +62,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const theme = useTheme();
     const {translate} = useLocalize();
     const [selectedTags, setSelectedTags] = useState<Record<string, boolean>>({});
-    const dropdownButtonRef = useRef(null);
     const [deleteTagsConfirmModalVisible, setDeleteTagsConfirmModalVisible] = useState(false);
     const isFocused = useIsFocused();
     const policyID = route.params.policyID ?? '';
@@ -164,14 +163,17 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.TAGS_BULK_ACTION_TYPES>>> = [];
+        const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
 
         if (selectedTagsArray.length > 0) {
-            options.push({
-                icon: Expensicons.Trashcan,
-                text: translate(selectedTagsArray.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
-                value: CONST.POLICY.TAGS_BULK_ACTION_TYPES.DELETE,
-                onSelected: () => setDeleteTagsConfirmModalVisible(true),
-            });
+            if (!isThereAnyAccountingConnection) {
+                options.push({
+                    icon: Expensicons.Trashcan,
+                    text: translate(selectedTagsArray.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
+                    value: CONST.POLICY.TAGS_BULK_ACTION_TYPES.DELETE,
+                    onSelected: () => setDeleteTagsConfirmModalVisible(true),
+                });
+            }
 
             const enabledTags = selectedTagsArray.filter((tagName) => tagListKeyedByName?.[tagName]?.enabled);
             if (enabledTags.length > 0) {
@@ -220,7 +222,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
             return (
                 <ButtonWithDropdownMenu
-                    buttonRef={dropdownButtonRef}
                     onPress={() => null}
                     shouldAlwaysShowDropdownMenu
                     pressOnEnter

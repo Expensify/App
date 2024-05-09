@@ -352,9 +352,9 @@ const ROUTES = {
             getUrlWithBackToParam(`${action as string}/${iouType as string}/currency/${transactionID}/${reportID}/${pageIndex}?currency=${currency}`, backTo),
     },
     MONEY_REQUEST_STEP_DATE: {
-        route: ':action/:iouType/date/:transactionID/:reportID',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`${action as string}/${iouType as string}/date/${transactionID}/${reportID}`, backTo),
+        route: ':action/:iouType/date/:transactionID/:reportID/:reportActionID?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '', reportActionID?: string) =>
+            getUrlWithBackToParam(`${action as string}/${iouType as string}/date/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo),
     },
     MONEY_REQUEST_STEP_DESCRIPTION: {
         route: ':action/:iouType/description/:transactionID/:reportID/:reportActionID?',
@@ -758,8 +758,10 @@ const ROUTES = {
         route: 'referral/:contentType',
         getRoute: (contentType: string, backTo?: string) => getUrlWithBackToParam(`referral/${contentType}`, backTo),
     },
-    TRACK_TRAINING_MODAL: 'track-training',
     PROCESS_MONEY_REQUEST_HOLD: 'hold-expense-educational',
+    TRAVEL_MY_TRIPS: 'travel',
+    TRAVEL_TCS: 'travel/terms',
+    TRACK_TRAINING_MODAL: 'track-training',
     ONBOARDING_ROOT: 'onboarding',
     ONBOARDING_PERSONAL_DETAILS: 'onboarding/personal-details',
     ONBOARDING_WORK: 'onboarding/work',
@@ -778,6 +780,18 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/xero/organization/:currentOrganizationID',
         getRoute: (policyID: string, currentOrganizationID: string) => `settings/workspaces/${policyID}/accounting/xero/organization/${currentOrganizationID}` as const,
     },
+    POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES: {
+        route: 'settings/workspaces/:policyID/accounting/xero/import/tracking-categories',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/import/tracking-categories` as const,
+    },
+    POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES_MAP_COST_CENTERS: {
+        route: 'settings/workspaces/:policyID/accounting/xero/import/tracking-categories/cost-centers',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/import/tracking-categories/cost-centers` as const,
+    },
+    POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES_MAP_REGION: {
+        route: 'settings/workspaces/:policyID/accounting/xero/import/tracking-categories/region',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/import/tracking-categories/region` as const,
+    },
     POLICY_ACCOUNTING_XERO_CUSTOMER: {
         route: '/settings/workspaces/:policyID/accounting/xero/import/customers',
         getRoute: (policyID: string) => `/settings/workspaces/${policyID}/accounting/xero/import/customers` as const,
@@ -786,9 +800,17 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/xero/import/taxes',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/import/taxes` as const,
     },
+    POLICY_ACCOUNTING_XERO_EXPORT: {
+        route: 'settings/workspaces/:policyID/accounting/xero/export',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/export` as const,
+    },
     POLICY_ACCOUNTING_XERO_ADVANCED: {
         route: 'settings/workspaces/:policyID/accounting/xero/advanced',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/advanced` as const,
+    },
+    POLICY_ACCOUNTING_XERO_INVOICE_SELECTOR: {
+        route: 'settings/workspaces/:policyID/accounting/xero/advanced/invoice-account-selector',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/advanced/invoice-account-selector` as const,
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_IMPORT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import',
