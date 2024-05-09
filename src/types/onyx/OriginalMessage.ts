@@ -1,5 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+import type AssertTypesEqual from '@src/types/utils/AssertTypesEqual';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type ReportActionName from './ReportActionName';
 
@@ -316,33 +317,76 @@ type OriginalMessageDismissedViolation = {
     };
 };
 
-type OriginalMessage =
-    | OriginalMessageApproved
-    | OriginalMessageIOU
-    | OriginalMessageAddComment
-    | OriginalMessageActionableMentionWhisper
-    | OriginalMessageActionableReportMentionWhisper
-    | OriginalMessageSubmitted
-    | OriginalMessageClosed
-    | OriginalMessageCreated
-    | OriginalMessageHold
-    | OriginalMessageHoldComment
-    | OriginalMessageUnHold
-    | OriginalMessageRenamed
-    | OriginalMessageChronosOOOList
-    | OriginalMessageReportPreview
-    | OriginalMessageRoomChangeLog
-    | OriginalMessagePolicyChangeLog
-    | OriginalMessagePolicyTask
-    | OriginalMessageJoinPolicyChangeLog
-    | OriginalMessageModifiedExpense
-    | OriginalMessageReimbursementQueued
-    | OriginalMessageReimbursementDequeued
-    | OriginalMessageMoved
-    | OriginalMessageMarkedReimbursed
-    | OriginalMessageActionableTrackedExpenseWhisper
-    | OriginalMessageMergedWithCashTransaction
-    | OriginalMessageDismissedViolation;
+type OriginalMessageMap = {
+    [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST]: OriginalMessageJoinPolicyChangeLog;
+    [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER]: OriginalMessageActionableMentionWhisper;
+    [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER]: OriginalMessageActionableReportMentionWhisper;
+    [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER]: OriginalMessageActionableTrackedExpenseWhisper;
+    [CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT]: OriginalMessageAddComment;
+    [CONST.REPORT.ACTIONS.TYPE.APPROVED]: OriginalMessageApproved;
+    [CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD]: never;
+    [CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY]: never;
+    [CONST.REPORT.ACTIONS.TYPE.CHANGE_TYPE]: never;
+    [CONST.REPORT.ACTIONS.TYPE.CHRONOS_OOO_LIST]: OriginalMessageChronosOOOList;
+    [CONST.REPORT.ACTIONS.TYPE.CLOSED]: OriginalMessageClosed;
+    [CONST.REPORT.ACTIONS.TYPE.CREATED]: OriginalMessageCreated;
+    [CONST.REPORT.ACTIONS.TYPE.DELEGATE_SUBMIT]: never;
+    [CONST.REPORT.ACTIONS.TYPE.DELETED_ACCOUNT]: never;
+    [CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION]: OriginalMessageDismissedViolation;
+    [CONST.REPORT.ACTIONS.TYPE.DONATION]: never;
+    [CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV]: never;
+    [CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION]: never;
+    [CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_QUICK_BOOKS]: never;
+    [CONST.REPORT.ACTIONS.TYPE.FORWARDED]: never;
+    [CONST.REPORT.ACTIONS.TYPE.HOLD]: OriginalMessageHold;
+    [CONST.REPORT.ACTIONS.TYPE.HOLD_COMMENT]: OriginalMessageHoldComment;
+    [CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE]: never;
+    [CONST.REPORT.ACTIONS.TYPE.IOU]: OriginalMessageIOU;
+    [CONST.REPORT.ACTIONS.TYPE.MANAGER_ATTACH_RECEIPT]: never;
+    [CONST.REPORT.ACTIONS.TYPE.MANAGER_DETACH_RECEIPT]: never;
+    [CONST.REPORT.ACTIONS.TYPE.MARK_REIMBURSED_FROM_INTEGRATION]: never;
+    [CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED]: OriginalMessageMarkedReimbursed;
+    [CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION]: OriginalMessageMergedWithCashTransaction;
+    [CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE]: OriginalMessageModifiedExpense;
+    [CONST.REPORT.ACTIONS.TYPE.MOVED]: OriginalMessageMoved;
+    [CONST.REPORT.ACTIONS.TYPE.OUTDATED_BANK_ACCOUNT]: never;
+    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE]: never;
+    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELLED]: never;
+    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACCOUNT_CHANGED]: never;
+    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED]: OriginalMessageReimbursementDequeued;
+    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED]: never;
+    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED]: OriginalMessageReimbursementQueued;
+    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REQUESTED]: never;
+    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP]: never;
+    [CONST.REPORT.ACTIONS.TYPE.RENAMED]: OriginalMessageRenamed;
+    [CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW]: OriginalMessageReportPreview;
+    [CONST.REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT]: never;
+    [CONST.REPORT.ACTIONS.TYPE.SHARE]: never;
+    [CONST.REPORT.ACTIONS.TYPE.STRIPE_PAID]: never;
+    [CONST.REPORT.ACTIONS.TYPE.SUBMITTED]: OriginalMessageSubmitted;
+    [CONST.REPORT.ACTIONS.TYPE.TASK_CANCELLED]: OriginalMessagePolicyTask;
+    [CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED]: OriginalMessagePolicyTask;
+    [CONST.REPORT.ACTIONS.TYPE.TASK_EDITED]: OriginalMessagePolicyTask;
+    [CONST.REPORT.ACTIONS.TYPE.TASK_REOPENED]: OriginalMessagePolicyTask;
+    [CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL]: never;
+    [CONST.REPORT.ACTIONS.TYPE.UNAPPROVED]: never;
+    [CONST.REPORT.ACTIONS.TYPE.UNHOLD]: OriginalMessageUnHold;
+    [CONST.REPORT.ACTIONS.TYPE.UNSHARE]: never;
+    [CONST.REPORT.ACTIONS.TYPE.UPDATE_GROUP_CHAT_MEMBER_ROLE]: never;
+} & {
+    [T in ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>]: OriginalMessagePolicyChangeLog;
+} & {
+    [T in ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>]: OriginalMessageRoomChangeLog;
+};
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+type AssertOriginalMessageDefinedForAllActions = AssertTypesEqual<
+    ReportActionName,
+    keyof OriginalMessageMap,
+    `Error: Types don't match, OriginalMessageMap type is missing: ${Exclude<ReportActionName, keyof OriginalMessageMap>}`
+>;
+
+type OriginalMessage<T extends ReportActionName> = OriginalMessageMap[T];
 
 export default OriginalMessage;
 export type {
