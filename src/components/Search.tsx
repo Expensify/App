@@ -34,8 +34,9 @@ function Search({query, policyID}: SearchProps) {
             return;
         }
 
-        SearchActions.search(query, policyID);
-    }, [query, policyID, isOffline]);
+        SearchActions.search(hash, query, policyID);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [hash, isOffline]);
 
     const isLoading = (!isOffline && isLoadingOnyxValue(searchResultsMeta)) || searchResults?.data === undefined;
     const shouldShowEmptyState = !isLoading && isEmptyObject(searchResults?.data);
