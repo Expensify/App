@@ -237,7 +237,7 @@ function getOwnershipChecksDisplayText(
     const subscription = changeOwner?.subscription as unknown as {ownerUserCount: number; totalUserCount: number};
     const ownerOwesAmount = changeOwner?.ownerOwesAmount as unknown as {ownerEmail: string; amount: number; currency: string};
 
-    switch (error) {
+    switch (CONST.POLICY.OWNERSHIP_ERRORS.FAILED_TO_CLEAR_BALANCE) {
         case CONST.POLICY.OWNERSHIP_ERRORS.AMOUNT_OWED:
             title = translate('workspace.changeOwner.amountOwedTitle');
             text = translate('workspace.changeOwner.amountOwedText');
