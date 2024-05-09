@@ -231,7 +231,9 @@ export default {
     bankButtonMargin: 23,
     textInputAutoGrowMaxHeight: 115,
 
+    h36: 36,
     w28: 28,
+    w40: 40,
     w44: 44,
     w80: 80,
     w96: 96,

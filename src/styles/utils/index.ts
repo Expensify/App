@@ -401,11 +401,20 @@ function getZoomSizingStyle(
 }
 
 /**
- * Returns auto grow text input style
+ * Returns a style with width set to the specified number
  */
 function getWidthStyle(width: number): ViewStyle & ImageStyle {
     return {
         width,
+    };
+}
+
+/**
+ * Returns a style with border radius set to the specified number
+ */
+function getBorderRadiusStyle(borderRadius: number): ViewStyle & ImageStyle {
+    return {
+        borderRadius,
     };
 }
 
@@ -1200,6 +1209,7 @@ const staticStyleUtils = {
     getButtonStyleWithIcon,
     getCharacterWidth,
     getAmountWidth,
+    getBorderRadiusStyle,
 };
 
 const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
