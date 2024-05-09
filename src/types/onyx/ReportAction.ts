@@ -6,14 +6,10 @@ import type ONYXKEYS from '@src/ONYXKEYS';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import type * as OnyxCommon from './OnyxCommon';
-import type {Decision, OriginalMessageModifiedExpense, OriginalMessageReportPreview, Reaction} from './OriginalMessage';
 import type OriginalMessage from './OriginalMessage';
 import type {NotificationPreference} from './Report';
+import type ReportActionName from './ReportActionName';
 import type {Receipt} from './Transaction';
-
-type ReportActionMessageJSON = {
-    whisperedTo?: number[];
-};
 
 type Message = {
     /** The type of the action item fragment. Used to render a corresponding component */
@@ -54,9 +50,9 @@ type Message = {
     /** Whether the pending transaction was reversed and didn't post to the card */
     isReversedTransaction?: boolean;
     whisperedTo?: number[];
-    reactions?: Reaction[];
+    // reactions?: Reaction[];
 
-    moderationDecision?: Decision;
+    // moderationDecision?: Decision;
     translationKey?: string;
 
     /** ID of a task report */
@@ -130,6 +126,9 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** The ID of the previous reportAction on the report. It is a string represenation of a 64-bit integer (or null for CREATED actions). */
     previousReportActionID?: string;
+
+    /** The name (or type) of the action */
+    actionName: ReportActionName;
 
     actorAccountID?: number;
 
@@ -232,13 +231,13 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     adminAccountID?: number;
 }>;
 
-type ReportAction = ReportActionBase & OriginalMessage;
-type ReportPreviewAction = ReportActionBase & OriginalMessageReportPreview;
-type ModifiedExpenseAction = ReportActionBase & OriginalMessageModifiedExpense;
+type ReportAction<T extends ReportActionName = ReportActionName> = ReportActionBase & {
+    originalMessage: OriginalMessage<T>;
+};
 
 type ReportActions = Record<string, ReportAction>;
 
 type ReportActionsCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>;
 
 export default ReportAction;
-export type {ReportActions, ReportActionBase, Message, LinkMetadata, OriginalMessage, ReportActionsCollectionDataSet, ReportPreviewAction, ModifiedExpenseAction, ReportActionMessageJSON};
+export type {ReportActions, ReportActionBase, Message, LinkMetadata, OriginalMessage, ReportActionsCollectionDataSet};

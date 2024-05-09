@@ -105,20 +105,17 @@ type Closed = {
 };
 
 type OriginalMessageAddComment = {
-    actionName: typeof CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
-    originalMessage: {
-        html: string;
-        source?: OriginalMessageSource;
-        lastModified?: string;
-        taskReportID?: string;
-        edits?: string[];
-        childReportID?: string;
-        isDeletedParentAction?: boolean;
-        flags?: Record<FlagSeverityName, FlagSeverity[]>;
-        moderationDecisions?: Decision[];
-        whisperedTo: number[];
-        reactions?: Reaction[];
-    };
+    html: string;
+    source?: OriginalMessageSource;
+    lastModified?: string;
+    taskReportID?: string;
+    edits?: string[];
+    childReportID?: string;
+    isDeletedParentAction?: boolean;
+    flags?: Record<FlagSeverityName, FlagSeverity[]>;
+    moderationDecisions?: Decision[];
+    whisperedTo: number[];
+    reactions?: Reaction[];
 };
 
 type OriginalMessageActionableMentionWhisper = {
@@ -392,29 +389,3 @@ type AssertOriginalMessageDefinedForAllActions = AssertTypesEqual<
 type OriginalMessage<T extends ReportActionName> = OriginalMessageMap[T];
 
 export default OriginalMessage;
-export type {
-    ChronosOOOEvent,
-    Decision,
-    Reaction,
-    IOUMessage,
-    ReimbursementDeQueuedMessage,
-    Closed,
-    ChangeLog,
-    OriginalMessageIOU,
-    OriginalMessageCreated,
-    OriginalMessageRenamed,
-    OriginalMessageAddComment,
-    OriginalMessageJoinPolicyChangeLog,
-    OriginalMessageActionableMentionWhisper,
-    OriginalMessageActionableReportMentionWhisper,
-    OriginalMessageReportPreview,
-    OriginalMessageModifiedExpense,
-    OriginalMessageChronosOOOList,
-    OriginalMessageRoomChangeLog,
-    OriginalMessageSource,
-    OriginalMessageReimbursementDequeued,
-    DecisionName,
-    PaymentMethodType,
-    OriginalMessageActionableTrackedExpenseWhisper,
-    OriginalMessageDismissedViolation,
-};
