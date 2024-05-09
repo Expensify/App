@@ -16,7 +16,7 @@ if (!pdfjs.GlobalWorkerOptions.workerSrc) {
     pdfjs.GlobalWorkerOptions.workerSrc = URL.createObjectURL(new Blob([pdfWorkerSource], {type: 'text/javascript'}));
 }
 
-function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, enabled = true, onPassword}: PDFThumbnailProps) {
+function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, enabled = true, onPassword, onLoadError}: PDFThumbnailProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const [hasError, setHasError] = useState(false);
@@ -36,6 +36,9 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ena
                     setHasError(false);
                 }}
                 onLoadError={() => {
+                    if (onLoadError) {
+                        onLoadError();
+                    }
                     setHasError(true);
                 }}
                 error={() => null}
@@ -45,7 +48,7 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ena
                 </View>
             </Document>
         ),
-        [isAuthTokenRequired, previewSourceURL, onPassword],
+        [isAuthTokenRequired, previewSourceURL, onPassword, onLoadError],
     );
 
     return (
