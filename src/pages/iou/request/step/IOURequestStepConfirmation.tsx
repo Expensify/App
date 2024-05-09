@@ -84,7 +84,7 @@ function IOURequestStepConfirmation({
     const {windowWidth} = useWindowDimensions();
     const {isOffline} = useNetwork();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
-    const [selectedParticipants, setSelectedParticipants] = useState<Participant[]>([]);
+    const selectedParticipantsRef = useRef<Participant[]>([]);
 
     const [receiptFile, setReceiptFile] = useState<Receipt>();
 
@@ -240,7 +240,7 @@ function IOURequestStepConfirmation({
                 transaction.merchant,
                 currentUserPersonalDetails.login,
                 currentUserPersonalDetails.accountID,
-                selectedParticipants[0],
+                selectedParticipantsRef.current[0],
                 trimmedComment,
                 receiptObj,
                 transaction.category,
@@ -258,19 +258,7 @@ function IOURequestStepConfirmation({
                 transaction.linkedTrackedExpenseReportID,
             );
         },
-        [
-            report,
-            transaction,
-            transactionTaxCode,
-            transactionTaxAmount,
-            currentUserPersonalDetails.login,
-            currentUserPersonalDetails.accountID,
-            policy,
-            policyTags,
-            policyCategories,
-            action,
-            selectedParticipants,
-        ],
+        [report, transaction, transactionTaxCode, transactionTaxAmount, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, policy, policyTags, policyCategories, action],
     );
 
     const trackExpense = useCallback(
@@ -286,7 +274,7 @@ function IOURequestStepConfirmation({
                 transaction.merchant,
                 currentUserPersonalDetails.login,
                 currentUserPersonalDetails.accountID,
-                selectedParticipants[0],
+                selectedParticipantsRef.current[0],
                 trimmedComment,
                 receiptObj,
                 transaction.category,
@@ -305,19 +293,7 @@ function IOURequestStepConfirmation({
                 transaction.linkedTrackedExpenseReportID,
             );
         },
-        [
-            report,
-            transaction,
-            currentUserPersonalDetails.login,
-            currentUserPersonalDetails.accountID,
-            transactionTaxCode,
-            transactionTaxAmount,
-            policy,
-            policyTags,
-            policyCategories,
-            action,
-            selectedParticipants,
-        ],
+        [report, transaction, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, transactionTaxCode, transactionTaxAmount, policy, policyTags, policyCategories, action],
     );
 
     const createDistanceRequest = useCallback(
@@ -327,7 +303,7 @@ function IOURequestStepConfirmation({
             }
             IOU.createDistanceRequest(
                 report,
-                selectedParticipants[0],
+                selectedParticipantsRef.current[0],
                 trimmedComment,
                 transaction.created,
                 transaction.category,
@@ -343,12 +319,12 @@ function IOURequestStepConfirmation({
                 customUnitRateID,
             );
         },
-        [policy, policyCategories, policyTags, report, selectedParticipants, transaction],
+        [policy, policyCategories, policyTags, report, transaction],
     );
 
     const createTransaction = useCallback(
         (locationPermissionGranted = false) => {
-            let splitParticipants = selectedParticipants;
+            let splitParticipants = selectedParticipantsRef.current;
 
             // Filter out participants with an amount equal to O
             if (iouType === CONST.IOU.TYPE.SPLIT && transaction?.splitShares) {
@@ -519,7 +495,6 @@ function IOURequestStepConfirmation({
             currentUserPersonalDetails.accountID,
             trackExpense,
             createDistanceRequest,
-            selectedParticipants,
             isSharingTrackExpense,
             isCategorizingTrackExpense,
             action,
@@ -575,7 +550,7 @@ function IOURequestStepConfirmation({
     const isLoading = !!transaction?.originalCurrency;
 
     const onConfirm = (listOfParticipants: Participant[]) => {
-        setSelectedParticipants(listOfParticipants);
+        selectedParticipantsRef.current = listOfParticipants;
 
         if (gpsRequired) {
             setStartLocationPermissionFlow(true);
