@@ -83,7 +83,7 @@ type Foo = {
 
 ### `d.ts` Extension
 
-Do not use `d.ts` file extension even when a file contains only type declarations. Only exceptions are `src/types/global.d.ts` and `src/types/modules/*.d.ts` files in which third party packages and JavaScript's built-in modules (e.g. `window` object) can be modified using module augmentation.
+Do not use `d.ts` file extension even when a file contains only type declarations. Only exceptions are `src/types/global.d.ts` and `src/types/modules/*.d.ts` files in which third party packages and JavaScript's built-in modules (e.g. `window` object) can be modified using [module augmentation](https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation).
 
 > Why? Type errors in `d.ts` files are not checked by TypeScript.
 
@@ -220,6 +220,13 @@ type ReadOnlyFoo = {
 
 // GOOD
 type ReadOnlyFoo = Readonly<Foo>;
+
+// BAD
+type FooValue = Foo[keyof Foo];
+
+// GOOD
+type FooValue = ValueOf<Foo>;
+
 ```
 
 ### `object` type
@@ -274,7 +281,7 @@ import MyComponent, { MyComponentProps } from "./MyComponent";
 
 In modules with platform-specific implementations, create `types.ts` to define shared types. Import and use shared types in each platform specific files. Do not use [`satisfies` operator](#satisfies-operator) for platform-specific implementations, always define shared types that complies with all variants.
 
-> Why? To encourage consistent API across platform-specific implementations. If you're migrating module that doesn't have a default implement (i.e. `index.ts`, e.g. `getPlatform`), refer to [Migration Guidelines](#migration-guidelines) for further information.
+> Why? To encourage consistent API across platform-specific implementations. If you're migrating module that doesn't have a default implementation (i.e. `index.ts`, e.g. `getPlatform`), refer to [Migration Guidelines](#migration-guidelines) for further information.
 
 Utility module example
 
@@ -1020,35 +1027,10 @@ Use hooks whenever possible, avoid using HOCs.
 
 > Why? Hooks are easier to use (can be used inside the function component), and don't need nesting or `compose` when exporting the component. It also allows us to remove `compose` completely in some components since it has been bringing up some issues with TypeScript. Read the [`compose` usage](#compose-usage) section for further information about the TypeScript issues with `compose`.
 
-> Note: Because Onyx doesn't provide a hook yet, in a component that accesses Onyx data with `withOnyx` HOC, please make sure that you don't use other HOCs (if applicable) to avoid HOC nesting.
+Onyx now provides a `useOnyx` hook that should be used over `withOnyx` HOC.
 
 ```tsx
 // BAD
-type ComponentOnyxProps = {
-    session: OnyxEntry<Session>;
-};
-
-type ComponentProps = WindowDimensionsProps &
-    WithLocalizeProps &
-    ComponentOnyxProps & {
-        someProp: string;
-    };
-
-function Component({windowWidth, windowHeight, translate, session, someProp}: ComponentProps) {
-    // component's code
-}
-
-export default compose(
-    withWindowDimensions,
-    withLocalize,
-    withOnyx<ComponentProps, ComponentOnyxProps>({
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-    }),
-)(Component);
-
-// GOOD
 type ComponentOnyxProps = {
     session: OnyxEntry<Session>;
 };
@@ -1063,12 +1045,24 @@ function Component({session, someProp}: ComponentProps) {
     // component's code
 }
 
-// There is no hook alternative for withOnyx yet.
 export default withOnyx<ComponentProps, ComponentOnyxProps>({
     session: {
         key: ONYXKEYS.SESSION,
     },
 })(Component);
+
+// GOOD
+type ComponentProps = {
+    someProp: string;
+};
+
+function Component({someProp}: ComponentProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION)
+
+    const {windowWidth, windowHeight} = useWindowDimensions();
+    const {translate} = useLocalize();
+    // component's code
+}
 ```
 
 ### Stateless components vs Pure Components vs Class based components vs Render Props - When to use what?
@@ -1081,7 +1075,7 @@ Class components are DEPRECATED. Use function components and React hooks.
 
 Avoid the usage of `compose` function to compose HOCs in TypeScript files. Use nesting instead.
 
-  > Why? `compose` function doesn't work well with TypeScript when dealing with several HOCs being used in a component, many times resulting in wrong types and errors. Instead, nesting can be used to allow a seamless use of multiple HOCs and result in a correct return type of the compoment. Also, you can use [hooks instead of HOCs](#hooks-instead-of-hocs) whenever possible to minimize or even remove the need of HOCs in the component.
+> Why? `compose` function doesn't work well with TypeScript when dealing with several HOCs being used in a component, many times resulting in wrong types and errors. Instead, nesting can be used to allow a seamless use of multiple HOCs and result in a correct return type of the compoment. Also, you can use [hooks instead of HOCs](#hooks-instead-of-hocs) whenever possible to minimize or even remove the need of HOCs in the component.
 
 From React's documentation -
 >Props and composition give you all the flexibility you need to customize a component’s look and behavior in an explicit and safe way. Remember that components may accept arbitrary props, including primitive values, React elements, or functions.
