@@ -2,6 +2,7 @@ import type {BrowserWindow} from 'electron';
 import {app} from 'electron';
 import * as path from 'path';
 import createQueue from '@libs/Queue/Queue';
+import CONST from '@src/CONST';
 import ELECTRON_EVENTS from './ELECTRON_EVENTS';
 import type {Options} from './electronDownloadManagerType';
 
@@ -96,7 +97,7 @@ const createDownloadQueue = () => {
                 item.win.webContents.send(ELECTRON_EVENTS.DOWNLOAD_STARTED, {url: item.url});
             };
 
-            downloadTimeout = setTimeout(timeoutFunction, 5000);
+            downloadTimeout = setTimeout(timeoutFunction, CONST.DOWNLOADS_TIMEOUT);
             downloadListener = listenerFunction;
 
             item.win.webContents.downloadURL(item.url);

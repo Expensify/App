@@ -1,5 +1,6 @@
 import ELECTRON_EVENTS from '@desktop/ELECTRON_EVENTS';
 import type {Options} from '@desktop/electronDownloadManagerType';
+import CONST from '@src/CONST';
 import type {FileDownload} from './types';
 
 /**
@@ -13,9 +14,9 @@ const fileDownload: FileDownload = (url, fileName) => {
     window.electron.send(ELECTRON_EVENTS.DOWNLOAD, {url, options});
     return new Promise((resolve) => {
         // This sets a timeout that will resolve the promise after 5 seconds to prevent indefinite hanging
-        const timeout = setTimeout(() => {
+        const downloadTimeout = setTimeout(() => {
             resolve();
-        }, 5000);
+        }, CONST.DOWNLOADS_TIMEOUT);
 
         window.electron.on(ELECTRON_EVENTS.DOWNLOAD_STARTED, (...args: unknown[]) => {
             const arg = Array.isArray(args) ? args[0] : null;
@@ -24,7 +25,7 @@ const fileDownload: FileDownload = (url, fileName) => {
             // This event is triggered for all active download instances. We intentionally keep other promises waiting.
             // Early resolution or rejection of other promises could prematurely stop the loading spinner or prevent the promise from being resolved.
             if (eventUrl === url) {
-                clearTimeout(timeout);
+                clearTimeout(downloadTimeout);
                 resolve();
             }
         });
