@@ -1206,6 +1206,7 @@ function getAccountIDsFromMessage(message: string) {
     const regex = /<mention-user\s+accountID="(\d+)"\/>/g;
     const matches = [];
     let match;
+    // eslint-disable-next-line no-cond-assign
     while ((match = regex.exec(message)) !== null) {
         matches.push(match[1]);
     }
@@ -1216,6 +1217,7 @@ function getMentionedEmailsFromMessage(message: string) {
     const regex = /<mention-user>(.*?)<\/mention-user>/g;
     const matches = [];
     let match;
+    // eslint-disable-next-line no-cond-assign
     while ((match = regex.exec(message)) !== null) {
         matches.push(Str.removeSMSDomain(match[1].substring(1)));
     }
