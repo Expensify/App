@@ -214,7 +214,7 @@ const IOURequestStepDescriptionWithOnyx = withOnyx<IOURequestStepDescriptionProp
         }) => {
             let reportID = '0';
             if (action === CONST.IOU.ACTION.EDIT) {
-                reportID = iouType === CONST.IOU.TYPE.SPLIT ? report?.reportID ?? '0' : report?.parentReportID ?? '0';
+                reportID = iouType === CONST.IOU.TYPE.SPLIT ? report?.reportID ?? '0' : report?.parentReportID ?? '-1';
             }
             return `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
         },

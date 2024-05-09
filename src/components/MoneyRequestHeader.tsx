@@ -262,7 +262,7 @@ export default withOnyx<Omit<MoneyRequestHeaderProps, 'transaction' | 'shownHold
         key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`,
     },
     parentReportActions: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID ?? '0'}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID ?? '-1'}`,
         canEvict: false,
     },
 })(MoneyRequestHeaderWithTransaction);
