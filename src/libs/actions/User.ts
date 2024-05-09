@@ -42,7 +42,6 @@ import type {OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
 import type OnyxPersonalDetails from '@src/types/onyx/PersonalDetails';
 import type {Status} from '@src/types/onyx/PersonalDetails';
 import type ReportAction from '@src/types/onyx/ReportAction';
-import type {OriginalMessage} from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import applyOnyxUpdatesReliably from './applyOnyxUpdatesReliably';
@@ -523,7 +522,7 @@ function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
                 }
             }
 
-            const types = flatten.map((data) => data?.originalMessage).filter(Boolean) as OriginalMessage[];
+            const types = flatten.map((data) => data?.originalMessage).filter(Boolean);
 
             for (const message of types) {
                 // Pay someone flow
