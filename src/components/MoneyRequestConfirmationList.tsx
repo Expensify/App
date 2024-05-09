@@ -1106,6 +1106,7 @@ function MoneyRequestConfirmationList({
             )}
             {isTypeInvoice && (
                 <MenuItem
+                    accountID={senderWorkspace?.id}
                     key={translate('workspace.invoices.sendFrom')}
                     shouldShowRightIcon={!isReadOnly && canUpdateSenderWorkspace}
                     title={senderWorkspace?.name}

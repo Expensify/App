@@ -337,7 +337,7 @@ function MenuItem(
         isPaneMenu = false,
         shouldPutLeftPaddingWhenNoIcon = false,
         onFocus,
-        accountID = '',
+        accountID,
     }: MenuItemProps,
     ref: PressableRef,
 ) {
