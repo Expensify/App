@@ -20,7 +20,7 @@ import type {
     OriginalMessageReimbursementDequeued,
 } from '@src/types/onyx/OriginalMessage';
 import type Report from '@src/types/onyx/Report';
-import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
+import type {Message, ReportActionBase, ReportActionMessageJSON, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -143,18 +143,20 @@ function isModifiedExpenseAction(reportAction: OnyxEntry<ReportAction> | ReportA
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE;
 }
 
-function getWhisperedTo(reportAction: OnyxEntry<ReportAction> | EmptyObject) {
+/**
+ * We are in the process of deprecating reportAction.originalMessage and will be setting the db version of "message" to reportAction.message in the future see: https://github.com/Expensify/App/issues/39797
+ * In the interim, we must check to see if we have an object or array for the reportAction.message, if we have an array we will use the originalMessage as this means we have not yet migrated.
+ */
+function getWhisperedTo(reportAction: OnyxEntry<ReportAction> | EmptyObject): number[] {
     const originalMessage = reportAction?.originalMessage;
     const message = reportAction?.message;
 
-    // If this is true then we are using the new object version of reportAction.message
     if (!Array.isArray(message) && typeof message === 'object') {
-        return (message?.whisperedTo ?? []);
+        return (message as ReportActionMessageJSON)?.whisperedTo ?? [];
     }
 
-    // We are in the process of deprecating reportAction.originalMessage and will be sending the db version of "message" in the future see: https://github.com/Expensify/App/issues/39797
     if (originalMessage) {
-        return (originalMessage?.whisperedTo ?? []);
+        return (originalMessage as ReportActionMessageJSON)?.whisperedTo ?? [];
     }
 
     return [];
@@ -1213,6 +1215,7 @@ export {
     getParentReportAction,
     getReportAction,
     getReportActionMessageText,
+    getWhisperedTo,
     isApprovedOrSubmittedReportAction,
     getReportPreviewAction,
     getSortedReportActions,
