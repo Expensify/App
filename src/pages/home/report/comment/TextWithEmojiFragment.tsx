@@ -12,16 +12,22 @@ import CONST from '@src/CONST';
 type TextWithEmojiFragmentProps = {
     /** The message to be displayed */
     message: string;
+
     /** Additional styles to add after local styles. */
     passedStyles?: StyleProp<TextStyle>;
+
     /** Should this message fragment be styled as deleted? */
     styleAsDeleted?: boolean;
+
     /** Should this message fragment be styled as muted? */
     styleAsMuted?: boolean;
+
     /** Is message displayed on narrow screen? */
     isSmallScreenWidth?: boolean;
+
     /** Should "(edited)" suffix be rendered? */
     isEdited?: boolean;
+
     /** Does message contain only emojis? */
     emojisOnly?: boolean;
 };
