@@ -2510,7 +2510,7 @@ export default {
             updateToUSD: 'Actualizar a USD',
         },
         changeOwner: {
-            changeOwnerPageTitle: 'Dueño de la transferencia',
+            changeOwnerPageTitle: 'Transferir dueño',
             addPaymentCardTitle: 'Ingrese tu tarjeta de pago para transferir la propiedad',
             addPaymentCardButtonText: 'Aceptar términos y agregar tarjeta de pago',
             addPaymentCardReadAndAcceptTextPart1: 'Lea y acepte',
