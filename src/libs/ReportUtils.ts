@@ -5458,8 +5458,11 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
         return [];
     }
 
-    if (isInvoiceRoom(report) && isPolicyAdmin(report?.policyID ?? '', allPolicies)) {
-        return [CONST.IOU.TYPE.INVOICE];
+    if (isInvoiceRoom(report)) {
+        if (isPolicyAdmin(report?.policyID ?? '', allPolicies)) {
+            return [CONST.IOU.TYPE.INVOICE];
+        }
+        return [];
     }
 
     // We don't allow IOU actions if an Expensify account is a participant of the report, unless the policy that the report is on is owned by an Expensify account
