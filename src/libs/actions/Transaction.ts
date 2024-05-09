@@ -3,6 +3,7 @@ import lodashClone from 'lodash/clone';
 import lodashHas from 'lodash/has';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {CurrentUserPersonalDetails} from '@components/withCurrentUserPersonalDetails';
 import * as API from '@libs/API';
 import type {DismissViolationParams, GetRouteParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -272,9 +273,9 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection, i
     });
 }
 
-function dismissDuplicateTransactionViolation(transactionID: string, transactionIDs: string[], dissmissedPersonalDetails: PersonalDetails) {
+function dismissDuplicateTransactionViolation(transactionID: string, transactionIDs: string[], dissmissedPersonalDetails: PersonalDetails | CurrentUserPersonalDetails) {
     const currentTransactionViolations = allTransactionViolation?.[transactionID] ?? [];
-    const optimisticTransactionViolation = currentTransactionViolations.filter((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
+    const optimisticTransactionViolation = currentTransactionViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
     const transactionIDList = transactionIDs.join(',');
 
     const optimisticData: OnyxUpdate[] = [
@@ -297,6 +298,7 @@ function dismissDuplicateTransactionViolation(transactionID: string, transaction
             },
         },
     ];
+
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,

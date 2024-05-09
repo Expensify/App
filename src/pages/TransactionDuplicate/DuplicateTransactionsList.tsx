@@ -1,43 +1,35 @@
 import React from 'react';
-import type {FlatListProps} from 'react-native';
+import type {FlatListProps, ScrollViewProps} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import FlatList from '@components/FlatList';
-import ScrollView from '@components/ScrollView';
-import variables from '@styles/variables';
+import type {Transaction} from '@src/types/onyx';
 import DuplicateTransactionItem from './DuplicateTransactionItem';
 
 type DuplicateTransactionsListProps = {
-    transactionIDs: string[];
+    transactions: Array<OnyxEntry<Transaction>>;
 };
 
-const keyExtractor: FlatListProps<string>['keyExtractor'] = (item, index) => `${item}+${index}`;
+const keyExtractor: FlatListProps<OnyxEntry<Transaction>>['keyExtractor'] = (item, index) => `${item?.transactionID}+${index}`;
 
-const getItemLayout = (data: ArrayLike<string> | null | undefined, index: number): {length: number; offset: number; index: number} => ({
-    index,
-    length: variables.listItemHeightNormal,
-    offset: variables.listItemHeightNormal * index,
-});
+const renderItem: FlatListProps<OnyxEntry<Transaction>>['renderItem'] = ({item, index}) => (
+    <DuplicateTransactionItem
+        transaction={item}
+        index={index}
+    />
+);
 
-function DuplicateTransactionsList({transactionIDs}: DuplicateTransactionsListProps) {
+const maintainVisibleContentPosition: ScrollViewProps['maintainVisibleContentPosition'] = {
+    minIndexForVisible: 1,
+};
+
+function DuplicateTransactionsList({transactions}: DuplicateTransactionsListProps) {
     return (
-        // <FlatList
-        //     data={transactionIDs}
-        //     renderItem={({item, index}) => (
-        //         <DuplicateTransactionItem
-        //             transactionID={item}
-        //             index={index}
-        //         />
-        //     )}
-        //     keyExtractor={keyExtractor}
-        //     getItemLayout={getItemLayout}
-        // />
-        <ScrollView>
-            {transactionIDs.map((transactionID, index) => (
-                <DuplicateTransactionItem
-                    transactionID={transactionID}
-                    index={index}
-                />
-            ))}
-        </ScrollView>
+        <FlatList
+            data={transactions}
+            renderItem={renderItem}
+            keyExtractor={keyExtractor}
+            maintainVisibleContentPosition={maintainVisibleContentPosition}
+        />
     );
 }
 

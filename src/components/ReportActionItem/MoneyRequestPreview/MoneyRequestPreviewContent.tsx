@@ -1,4 +1,3 @@
-import type {RouteProp} from '@react-navigation/native';
 import {useRoute} from '@react-navigation/native';
 import {truncate} from 'lodash';
 import lodashSortBy from 'lodash/sortBy';
@@ -25,7 +24,6 @@ import ControlSelection from '@libs/ControlSelection';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as IOUUtils from '@libs/IOUUtils';
-import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -37,8 +35,7 @@ import * as Report from '@userActions/Report';
 import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import type {IOUMessage} from '@src/types/onyx/OriginalMessage';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -69,7 +66,7 @@ function MoneyRequestPreviewContent({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
-    const route = useRoute<RouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
+    const route = useRoute();
 
     const sessionAccountID = session?.accountID;
     const managerID = iouReport?.managerID ?? -1;
@@ -102,7 +99,8 @@ function MoneyRequestPreviewContent({
     const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
     const isSettled = ReportUtils.isSettled(iouReport?.reportID);
     const isDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    const isReviewDuplicateTransaction = route.path === `/${ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(route.params?.threadReportID)}`;
+    const isReviewDuplicateTransaction = route.name === SCREENS.TRANSACTION_DUPLICATE.REVIEW;
+
     const isFullySettled = isSettled && !isSettlementOrApprovalPartial;
     const isFullyApproved = ReportUtils.isReportApproved(iouReport) && !isSettlementOrApprovalPartial;
     const shouldShowRBR = hasNoticeTypeViolations || hasViolations || hasFieldErrors || (!isFullySettled && !isFullyApproved && isOnHold);

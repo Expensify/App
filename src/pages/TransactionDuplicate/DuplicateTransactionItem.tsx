@@ -1,49 +1,39 @@
-import type {RouteProp} from '@react-navigation/native';
-import {useRoute} from '@react-navigation/native';
 import React from 'react';
-import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
-import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import ReportActionItem from '@pages/home/report/ReportActionItem';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
-import type {Report, ReportAction} from '@src/types/onyx';
+import type {Report, ReportAction, Transaction} from '@src/types/onyx';
 
 type DuplicateTransactionItemProps = {
-    transactionID: string;
+    transaction: OnyxEntry<Transaction>;
     index: number;
 };
 
-function DuplicateTransactionItem({transactionID, index}: DuplicateTransactionItemProps) {
-    const route = useRoute<RouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
-    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`);
+function DuplicateTransactionItem(props: DuplicateTransactionItemProps) {
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.transaction?.reportID}`);
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`);
     const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
 
     return (
-        <View>
-            <ReportActionItem
-                transactionThreadReport={transactionThreadReport}
-                action={
-                    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                    Object.values(reportActions ?? {})?.find(
-                        (reportAction) => reportAction.actionName === 'IOU' && reportAction.originalMessage.IOUTransactionID === transactionID,
-                    ) as ReportAction
-                }
+        <ReportActionItem
+            action={
                 // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                report={report as Report}
-                parentReportAction={parentReportAction}
-                index={index}
-                reportActions={Object.values(reportActions ?? {})}
-                displayAsGroup={false}
-                shouldDisplayNewMarker={false}
-                isMostRecentIOUReportAction={false}
-                isFirstVisibleReportAction={false}
-            />
-        </View>
+                Object.values(reportActions ?? {})?.find(
+                    (reportAction) => reportAction.actionName === 'IOU' && reportAction.originalMessage.IOUTransactionID === props.transaction?.transactionID,
+                ) as ReportAction
+            }
+            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+            report={report as Report}
+            parentReportAction={parentReportAction}
+            index={props.index}
+            reportActions={Object.values(reportActions ?? {})}
+            displayAsGroup={false}
+            shouldDisplayNewMarker={false}
+            isMostRecentIOUReportAction={false}
+            isFirstVisibleReportAction={false}
+        />
     );
 }
 

@@ -112,7 +112,7 @@ type ReportActionItemProps = {
     report: OnyxTypes.Report;
 
     /** The transaction thread report associated with the report for this action, if any */
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
+    transactionThreadReport?: OnyxEntry<OnyxTypes.Report>;
 
     /** Array of report actions for the report for this action */
     // eslint-disable-next-line react/no-unused-prop-types
@@ -499,6 +499,7 @@ function ReportActionItem({
      * @param hovered whether the ReportActionItem is hovered
      * @param isWhisper whether the report action is a whisper
      * @param hasErrors whether the report action has any errors
+     * @param isReviewDuplicateTransaction whether the report action is a review duplicate transaction
      * @returns child component(s)
      */
     const renderItemContent = (hovered = false, isWhisper = false, hasErrors = false): React.JSX.Element => {
@@ -743,6 +744,7 @@ function ReportActionItem({
      * @param hasErrors whether the report action has any errors
      * @returns report action item
      */
+
     const renderReportActionItem = (hovered: boolean, isWhisper: boolean, hasErrors: boolean): React.JSX.Element => {
         const content = renderItemContent(hovered || isContextMenuActive || isEmojiPickerActive, isWhisper, hasErrors);
 

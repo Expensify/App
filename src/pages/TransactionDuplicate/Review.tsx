@@ -6,10 +6,12 @@ import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -19,6 +21,7 @@ import DuplicateTransactionsList from './DuplicateTransactionsList';
 function TransactionDuplicateReview() {
     const styles = useThemeStyles();
     const route = useRoute<RouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
+    const currentPersonalDetails = useCurrentUserPersonalDetails();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
     const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
     const transactionID = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction?.originalMessage.IOUTransactionID ?? '0' : '0';
@@ -27,10 +30,14 @@ function TransactionDuplicateReview() {
         () => transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [],
         [transactionViolations],
     );
+
+    const transactions = [transactionID, ...duplicateTransactionIDs].map((item) => TransactionUtils.getTransaction(item)).sort((a, b) => new Date(a.created) - new Date(b.created));
+
     const keepAll = () => {
-        Transaction.dismissDuplicateTransactionViolation(transactionID, duplicateTransactionIDs);
+        Transaction.dismissDuplicateTransactionViolation(transactionID, duplicateTransactionIDs, currentPersonalDetails);
         Navigation.goBack();
     };
+
     return (
         <ScreenWrapper testID={TransactionDuplicateReview.displayName}>
             <HeaderWithBackButton title="Review duplicates" />
@@ -40,7 +47,7 @@ function TransactionDuplicateReview() {
                     onPress={keepAll}
                 />
             </View>
-            <DuplicateTransactionsList transactionIDs={[transactionID, ...duplicateTransactionIDs]} />
+            <DuplicateTransactionsList transactions={transactions} />
         </ScreenWrapper>
     );
 }
