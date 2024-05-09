@@ -919,7 +919,8 @@ function ReportActionItem({
 
     const hasErrors = !isEmptyObject(action.errors);
     const whisperedToAccountIDs = action.whisperedToAccountIDs ?? [];
-    const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(action.reportID);
+    const iouReportID = action.originalMessage.IOUReportID ? action.originalMessage.IOUReportID.toString() : '0';
+    const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(iouReportID);
     const isWhisper = whisperedToAccountIDs.length > 0 && transactionsWithReceipts.length === 0;
 
     const isMultipleParticipant = whisperedToAccountIDs.length > 1;
