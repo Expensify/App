@@ -53,14 +53,14 @@ function TaxPicker({selectedTaxRate = '', policy, insets, onSubmit}: TaxPickerPr
 
         return [
             {
-                name: selectedTaxRate,
-                enabled: true,
+                modifiedName: selectedTaxRate,
+                isDisabled: false,
                 accountID: null,
             },
         ];
     }, [selectedTaxRate]);
 
-    const sections = useMemo(() => OptionsListUtils.getTaxRatesSection(taxRates, selectedOptions as OptionsListUtils.Category[], searchValue), [taxRates, searchValue, selectedOptions]);
+    const sections = useMemo(() => OptionsListUtils.getTaxRatesSection(taxRates, selectedOptions as OptionsListUtils.Tax[], searchValue), [taxRates, searchValue, selectedOptions]);
 
     const headerMessage = OptionsListUtils.getHeaderMessageForNonUserList(sections[0].data.length > 0, searchValue);
 

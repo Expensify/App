@@ -19,7 +19,8 @@ export default function (packageName: string, path: string, platform = 'android'
                 // Ignore errors
                 Logger.warn('Failed to uninstall app:', error.message);
             })
+            // install and grant push notifications permissions right away (the popup may block e2e tests sometimes)
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
-            .finally(() => execAsync(`adb install ${path}`))
+            .finally(() => execAsync(`adb install ${path}`).then(() => execAsync(`adb shell pm grant ${packageName.split('/')[0]} android.permission.POST_NOTIFICATIONS`)))
     );
 }

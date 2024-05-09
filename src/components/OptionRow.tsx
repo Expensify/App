@@ -260,16 +260,16 @@ function OptionRow({
                                         prefixCharacter={option.amountInputProps.prefixCharacter}
                                         disableKeyboard={false}
                                         isCurrencyPressable={false}
+                                        hideFocusedState={false}
                                         hideCurrencySymbol
                                         formatAmountOnBlur
-                                        touchableInputWrapperStyle={[styles.optionRowAmountInputWrapper, option.amountInputProps.containerStyle]}
                                         prefixContainerStyle={[styles.pv0]}
+                                        containerStyle={[styles.textInputContainer]}
                                         inputStyle={[
                                             styles.optionRowAmountInput,
                                             StyleUtils.getPaddingLeft(StyleUtils.getCharacterPadding(option.amountInputProps.prefixCharacter ?? '') + styles.pl1.paddingLeft) as TextStyle,
                                             option.amountInputProps.inputStyle,
                                         ]}
-                                        containerStyle={styles.iouAmountTextInputContainer}
                                         onAmountChange={option.amountInputProps.onAmountChange}
                                         maxLength={option.amountInputProps.maxLength}
                                     />

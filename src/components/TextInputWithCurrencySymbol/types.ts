@@ -62,7 +62,11 @@ type TextInputWithCurrencySymbolProps = {
     /** Customizes the touchable wrapper of the TextInput component */
     touchableInputWrapperStyle?: StyleProp<ViewStyle>;
 
+    /** Max length for the amount input */
     maxLength?: number;
+
+    /** Hide the focus styles on TextInput */
+    hideFocusedState?: boolean;
 } & Pick<BaseTextInputProps, 'autoFocus'>;
 
 export default TextInputWithCurrencySymbolProps;

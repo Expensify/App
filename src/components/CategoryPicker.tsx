@@ -38,7 +38,6 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
         return [
             {
                 name: selectedCategory,
-                enabled: true,
                 accountID: undefined,
                 isSelected: true,
             },
