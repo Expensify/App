@@ -73,7 +73,7 @@ function ReportActionItemImage({
 }: ReportActionItemImageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const isDistanceRequest = transaction && TransactionUtils.isDistanceRequest(transaction);
+    const isDistanceRequest = Boolean(transaction && TransactionUtils.isDistanceRequest(transaction));
     const hasPendingWaypoints = transaction && TransactionUtils.isFetchingWaypointsFromServer(transaction);
     const showMapAsImage = isDistanceRequest && hasPendingWaypoints;
 
@@ -93,7 +93,6 @@ function ReportActionItemImage({
     const attachmentModalSource = tryResolveUrlFromApiRoot(image ?? '');
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail ?? '');
     const isEReceipt = transaction && TransactionUtils.hasEReceipt(transaction);
-    const isDistanceRequest = Boolean(transaction && TransactionUtils.isDistanceRequest(transaction));
 
     let propsObj: ReceiptImageProps;
 
