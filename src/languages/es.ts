@@ -2523,7 +2523,6 @@ export default {
             addPaymentCardRedundant: 'Infraestructura redundante',
             addPaymentCardLearnMore: 'Conozca más sobre nuestra',
             addPaymentCardSecurity: 'seguridad',
-            // TODO: add spanish translations below
             amountOwedTitle: 'Saldo pendiente',
             amountOwedButtonText: 'OK',
             amountOwedText: 'Esta cuenta tiene un saldo pendiente de un mes anterior.\n\n¿Quiere liquidar el saldo y hacerse cargo de la facturación de este espacio de trabajo?',
@@ -2543,9 +2542,9 @@ export default {
             hasFailedSettlementsButtonText: 'Entiendo',
             hasFailedSettlementsText: ({email}) =>
                 `No puede hacerse cargo de la facturación porque ${email} tiene una liquidación vencida de la tarjeta Expensify. Avíseles que se comuniquen con concierge@expensify.com para resolver el problema. Luego, podrá hacerse cargo de la facturación de este espacio de trabajo.`,
-            failedToClearBalanceTitle: 'Failed to clear balance',
+            failedToClearBalanceTitle: 'Saldo no compensado',
             failedToClearBalanceButtonText: 'OK',
-            failedToClearBalanceText: 'We were unable to clear the balance. Please try again later.',
+            failedToClearBalanceText: 'No hemos podido liquidar el saldo, por favor, inténtalo más tarde.',
             successTitle: '¡Guau! Todo listo.',
             successDescription: 'Ahora eres el propietario de este espacio de trabajo.',
             errorTitle: '¡Ups! No tan rapido...',
