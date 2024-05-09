@@ -185,6 +185,9 @@ type TransactionListItemType = ListItem & {
 
     /** Whether we should show the merchant column */
     shouldShowMerchant: boolean;
+
+    /** Whether this transaction has an eReceipt */
+    hasEReceipt: boolean;
 };
 
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {

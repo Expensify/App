@@ -26,6 +26,9 @@ function SearchTableHeader({shouldShowMerchant}: SearchTableHeaderProps) {
     return (
         <View style={[styles.ph5, styles.pb3]}>
             <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.ph4]}>
+                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.RECEIPT)]}>
+                    <Text style={[styles.mutedNormalTextLabel]}>{translate('common.receipt')}</Text>
+                </View>
                 <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DATE)]}>
                     <Text style={[styles.mutedNormalTextLabel]}>{translate('common.date')}</Text>
                 </View>

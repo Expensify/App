@@ -17,6 +17,7 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
+import ReceiptImage from '@components/ReceiptImage';
 import type {SearchPersonalDetails, SearchPolicyDetails, SearchTransactionType} from '@src/types/onyx/SearchResults';
 import BaseListItem from './BaseListItem';
 import type {ListItem, TransactionListItemProps, TransactionListItemType} from './types';
@@ -65,6 +66,18 @@ function TransactionListItem<TItem extends ListItem>({
     const description = TransactionUtils.getDescription(transactionItem as OnyxEntry<Transaction>);
     const merchant = getMerchant();
     const typeIcon = getTypeIcon(transactionItem.type);
+
+    const receiptCell = (
+        <ReceiptImage
+            source={transactionItem?.receipt?.source}
+            isEReceipt={transactionItem.hasEReceipt}
+            transactionID={transactionItem.transactionID}
+            iconSize='small'
+            shouldUseThumbnailImage={!transactionItem.hasEReceipt}
+            isAuthTokenRequired
+            isThumbnail
+        />
+    );
 
     const dateCell = (
         <TextWithTooltip
@@ -213,6 +226,7 @@ function TransactionListItem<TItem extends ListItem>({
         >
             {() => (
                 <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
+                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DATE)]}>{receiptCell}</View>
                     <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DATE)]}>{dateCell}</View>
                     <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.MERCHANT)]}>{merchantCell}</View>
                     <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.FROM)]}>{userCell(transactionItem.from)}</View>
