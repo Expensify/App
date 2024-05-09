@@ -22,6 +22,7 @@ function PendingMapView({title = '', subtitle = '', style, isSmallerIcon = false
                     iconColor={theme.border}
                     title={title}
                     subtitle={subtitle}
+                    subtitleStyle={styles.textSupporting}
                     shouldShowLink={false}
                 />
             ) : (
