@@ -48,8 +48,8 @@ function ReportHeaderSkeletonView({shouldAnimate = true, onBackButtonPress = () 
                     animate={shouldAnimate}
                     width={styles.w100.width}
                     height={height}
-                    backgroundColor={theme.highlightBG}
-                    foregroundColor={theme.border}
+                    backgroundColor={theme.skeletonLHNIn}
+                    foregroundColor={theme.skeletonLHNOut}
                 >
                     <Circle
                         cx="20"
