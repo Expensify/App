@@ -8,12 +8,12 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import {getXeroTenants} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Tenant} from '@src/types/onyx/Policy';
 
 function XeroImportPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
@@ -22,7 +22,7 @@ function XeroImportPage({policy}: WithPolicyProps) {
     const policyID = policy?.id ?? '';
     const {importCustomers, importTaxRates, importTrackingCategories, pendingFields} = policy?.connections?.xero?.config ?? {};
 
-    const tenants = useMemo<Tenant[]>(() => policy?.connections?.xero?.data?.tenants ?? [], [policy?.connections?.xero.data.tenants]);
+    const tenants = useMemo(() => getXeroTenants(policy ?? undefined), [policy]);
     const currentXeroOrganization = tenants.find((tenant) => tenant.id === policy?.connections?.xero.config.tenantID);
 
     const sections = useMemo(
@@ -36,16 +36,18 @@ function XeroImportPage({policy}: WithPolicyProps) {
             },
             {
                 description: translate('workspace.xero.trackingCategories'),
-                action: () => {},
+                action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES.getRoute(policyID)),
                 hasError: !!policy?.errors?.importTrackingCategories,
-                title: importTrackingCategories ? translate('workspace.accounting.importedAsTags') : translate('workspace.xero.notImported'),
+                title: importTrackingCategories ? translate('workspace.accounting.importTypes.TAG') : translate('workspace.xero.notImported'),
                 pendingAction: pendingFields?.importTrackingCategories,
             },
             {
                 description: translate('workspace.xero.customers'),
-                action: () => {},
+                action: () => {
+                    Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_CUSTOMER.getRoute(policyID));
+                },
                 hasError: !!policy?.errors?.importCustomers,
-                title: importCustomers ? translate('workspace.accounting.importedAsTags') : translate('workspace.xero.notImported'),
+                title: importCustomers ? translate('workspace.accounting.importTypes.TAG') : translate('workspace.xero.notImported'),
                 pendingAction: pendingFields?.importCustomers,
             },
             {

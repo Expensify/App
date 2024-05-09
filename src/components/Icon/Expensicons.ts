@@ -144,6 +144,7 @@ import Podcast from '@assets/images/social-podcast.svg';
 import Twitter from '@assets/images/social-twitter.svg';
 import Youtube from '@assets/images/social-youtube.svg';
 import Stopwatch from '@assets/images/stopwatch.svg';
+import Suitcase from '@assets/images/suitcase.svg';
 import Sync from '@assets/images/sync.svg';
 import Tag from '@assets/images/tag.svg';
 import Task from '@assets/images/task.svg';
@@ -163,6 +164,7 @@ import Wallet from '@assets/images/wallet.svg';
 import Workflows from '@assets/images/workflows.svg';
 import Workspace from '@assets/images/workspace-default-avatar.svg';
 import Wrench from '@assets/images/wrench.svg';
+import Clear from '@assets/images/x-circle.svg';
 import Zoom from '@assets/images/zoom.svg';
 
 export {
@@ -302,6 +304,7 @@ export {
     Send,
     Shield,
     Stopwatch,
+    Suitcase,
     Sync,
     Task,
     ThumbsUp,
@@ -332,4 +335,5 @@ export {
     ChatBubbleReply,
     Lightbulb,
     DocumentPlus,
+    Clear,
 };
