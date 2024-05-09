@@ -14,7 +14,6 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ena
     const styles = useThemeStyles();
     const theme = useTheme();
     const sizeStyles = [styles.w100, styles.h100];
-
     const [hasError, setHasError] = useState(false);
 
     return (
@@ -29,7 +28,7 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ena
                         singlePage
                         style={sizeStyles}
                         onError={(error) => {
-                            if ('message' in error && typeof error.message === 'string' && error.message.match(/corrupted/i)) {
+                            if ('message' in error && typeof error.message === 'string' && error.message.match(/Load pdf failed/i)) {
                                 setHasError(true);
                             }
                             if (!('message' in error && typeof error.message === 'string' && error.message.match(/password/i))) {
@@ -43,7 +42,7 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ena
                     />
                 )}
                 {hasError && (
-                    <View style={[styles.justifyContentCenter, styles.moneyRequestViewImage, styles.moneyRequestAttachReceipt, styles.mv0, styles.mh0, styles.alignItemsCenter]}>
+                    <View style={[styles.justifyContentCenter, styles.pdfErrorPlaceholder, styles.alignItemsCenter]}>
                         <Icon
                             src={Expensicons.ReceiptSlash}
                             width={variables.receiptPlaceholderIconWidth}

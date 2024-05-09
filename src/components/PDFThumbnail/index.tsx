@@ -38,8 +38,22 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ena
                 onLoadError={() => {
                     setHasError(true);
                 }}
-                error={
-                    <View style={[styles.justifyContentCenter, styles.moneyRequestViewImage, styles.moneyRequestAttachReceipt, styles.mv0, styles.mh0, styles.alignItemsCenter]}>
+                error={() => null}
+            >
+                <View pointerEvents="none">
+                    <Thumbnail pageIndex={0} />
+                </View>
+            </Document>
+        ),
+        [isAuthTokenRequired, previewSourceURL, onPassword],
+    );
+
+    return (
+        <View style={[style, styles.h100, styles.overflowHidden]}>
+            <View style={[styles.w100, styles.h100, !hasError && styles.alignItemsCenter, !hasError && styles.justifyContentCenter]}>
+                {enabled && thumbnail}
+                {hasError && (
+                    <View style={[styles.justifyContentCenter, styles.pdfErrorPlaceholder, styles.alignItemsCenter]}>
                         <Icon
                             src={Expensicons.ReceiptSlash}
                             width={variables.receiptPlaceholderIconWidth}
@@ -47,19 +61,8 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ena
                             fill={theme.icon}
                         />
                     </View>
-                }
-            >
-                <View pointerEvents="none">
-                    <Thumbnail pageIndex={0} />
-                </View>
-            </Document>
-        ),
-        [isAuthTokenRequired, previewSourceURL, onPassword, styles, theme],
-    );
-
-    return (
-        <View style={[style, styles.overflowHidden]}>
-            <View style={[styles.w100, styles.h100, !hasError && styles.alignItemsCenter, !hasError && styles.justifyContentCenter]}>{enabled && thumbnail}</View>
+                )}
+            </View>
         </View>
     );
 }

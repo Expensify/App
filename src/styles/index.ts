@@ -4215,6 +4215,7 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 16,
             margin: 20,
             overflow: 'hidden',
+            justifyContent: 'center',
         },
 
         reportPreviewBox: {
@@ -4371,6 +4372,16 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusLarge,
             height: 200,
             maxWidth: 400,
+        },
+
+        pdfErrorPlaceholder: {
+            overflow: 'hidden',
+            borderWidth: 2,
+            borderColor: theme.cardBG,
+            borderRadius: variables.componentBorderRadiusLarge,
+            maxWidth: 400,
+            height: '100%',
+            backgroundColor: theme.highlightBG,
         },
 
         moneyRequestAttachReceipt: {
