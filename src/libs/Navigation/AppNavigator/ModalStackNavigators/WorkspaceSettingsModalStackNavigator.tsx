@@ -3,8 +3,8 @@ import React from 'react';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import getRootNavigatorScreenOptions from '@libs/Navigation/AppNavigator/getRootNavigatorScreenOptions';
 import SCREENS from '@src/SCREENS';
-import getRootNavigatorScreenOptions from '../getRootNavigatorScreenOptions';
 
 const StackNavigator = createStackNavigator();
 
