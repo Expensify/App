@@ -9,6 +9,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+import variables from '@styles/variables';
 import type PDFThumbnailProps from './types';
 
 if (!pdfjs.GlobalWorkerOptions.workerSrc) {
@@ -41,8 +42,8 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ena
                     <View style={[styles.justifyContentCenter, styles.moneyRequestViewImage, styles.moneyRequestAttachReceipt, styles.mv0, styles.mh0, styles.alignItemsCenter]}>
                         <Icon
                             src={Expensicons.ReceiptSlash}
-                            width={72}
-                            height={72}
+                            width={variables.receiptPlaceholderIconWidth}
+                            height={variables.receiptPlaceholderIconHeight}
                             fill={theme.icon}
                         />
                     </View>
