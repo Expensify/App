@@ -1,4 +1,4 @@
-import GetUAForWebView from './types';
+import type GetUAForWebView from './types';
 
 /**
  * Android WebView is built on top of Chromium which is not supported by Xero causing the site to show warning.

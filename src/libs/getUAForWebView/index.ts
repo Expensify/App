@@ -1,4 +1,4 @@
-import GetUAForWebView from './types';
+import type GetUAForWebView from './types';
 
 const getUAForWebView: GetUAForWebView = () => undefined;
 
