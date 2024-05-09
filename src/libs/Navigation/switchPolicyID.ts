@@ -1,7 +1,7 @@
 import {getActionFromState} from '@react-navigation/core';
 import type {NavigationAction, NavigationContainerRef, NavigationState, PartialState} from '@react-navigation/native';
 import {getPathFromState} from '@react-navigation/native';
-import type {ValueOf, Writable} from 'type-fest';
+import type {Writable} from 'type-fest';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -36,15 +36,7 @@ function getActionForBottomTabNavigator(action: StackNavigationAction, state: Na
     let payloadParams = params?.params as Record<string, string | undefined>;
     let screen = params.screen;
 
-    // Case when the user is on the AllSettingsScreen and selects the specific workspace. The user is redirected then to the specific workspace settings.
-    if (screen === SCREENS.ALL_SETTINGS && policyID) {
-        screen = SCREENS.WORKSPACE.INITIAL;
-    }
-
-    // Alternative case when the user is on the specific workspace settings screen and selects "All" workspace.
-    else if (!policyID && screen === SCREENS.WORKSPACE.INITIAL) {
-        screen = SCREENS.ALL_SETTINGS;
-    } else if (screen === SCREENS.SEARCH.CENTRAL_PANE) {
+    if (screen === SCREENS.SEARCH.CENTRAL_PANE) {
         screen = SCREENS.SEARCH.BOTTOM_TAB;
     }
 
@@ -80,10 +72,10 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
     const rootState = navigation.getRootState() as NavigationState<RootStackParamList>;
     let newPath = route ?? getPathFromState({routes: rootState.routes} as State, linkingConfig.config);
 
-    // Currently, the search page displayed in the bottom tab has the same URL as the page in the central pane, but under the hood this page has its own URL.
-    // So when we change the policyID on the search page, we need to open the page with the correct URL.
-    const shouldOpenSearchPage = newPath.startsWith(CONST.SEARCH_BOTTOM_TAB_URL);
-    if (shouldOpenSearchPage) {
+    // Currently, the search page displayed in the bottom tab has the same URL as the page in the central pane, so we need to redirect to the correct search route.
+    // Here's the configuration: src/libs/Navigation/AppNavigator/createCustomStackNavigator/index.tsx
+    const isOpeningSearchFromBottomTab = newPath.startsWith(CONST.SEARCH_BOTTOM_TAB_URL);
+    if (isOpeningSearchFromBottomTab) {
         newPath = ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.ALL);
     }
     const stateFromPath = getStateFromPath(newPath as Route) as PartialState<NavigationState<RootStackParamList>>;
@@ -102,54 +94,31 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
         return;
     }
 
-    // When we want to open SearchPage, we need to push to the navigation stack the CentralPane screen as a source of the correct URL.
-    const shouldPushCentralPane = !getIsNarrowLayout() || shouldOpenSearchPage;
+    // The correct route for SearchPage is located in the CentralPane
+    const shouldAddToCentralPane = !getIsNarrowLayout() || isOpeningSearchFromBottomTab;
 
     // If the layout is wide we need to push matching central pane route to the stack.
-    if (shouldPushCentralPane) {
-        // Case when the user selects "All" workspace from the specific workspace settings
-        if (checkIfActionPayloadNameIsEqual(actionForBottomTabNavigator, SCREENS.ALL_SETTINGS) && !policyID) {
-            root.dispatch({
-                type: CONST.NAVIGATION.ACTION_TYPE.PUSH,
-                payload: {
-                    name: NAVIGATORS.CENTRAL_PANE_NAVIGATOR,
-                    params: {
-                        screen: SCREENS.SETTINGS.WORKSPACES,
-                        params: undefined,
-                    },
-                },
-            });
-        } else {
-            const topmostCentralPaneRoute = getTopmostCentralPaneRoute(rootState);
-            const screen = topmostCentralPaneRoute?.name;
-            const params: CentralPaneRouteParams = {...topmostCentralPaneRoute?.params};
-            const isWorkspaceScreen = screen && Object.values(SCREENS.WORKSPACE).includes(screen as ValueOf<typeof SCREENS.WORKSPACE>);
+    if (shouldAddToCentralPane) {
+        const topmostCentralPaneRoute = getTopmostCentralPaneRoute(rootState);
+        const screen = topmostCentralPaneRoute?.name;
+        const params: CentralPaneRouteParams = {...topmostCentralPaneRoute?.params};
 
-            // Only workspace settings screens have to store the policyID in the params.
-            // In other case, the policyID is read from the BottomTab params.
-            if (!isWorkspaceScreen) {
-                delete params.policyID;
-            } else {
-                params.policyID = policyID;
-            }
-
-            // If the user is on the home page and changes the current workspace, then should be displayed a report from the selected workspace.
-            // To achieve that, it's necessary to navigate without the reportID param.
-            if (checkIfActionPayloadNameIsEqual(actionForBottomTabNavigator, SCREENS.HOME)) {
-                delete params.reportID;
-            }
-
-            root.dispatch({
-                type: CONST.NAVIGATION.ACTION_TYPE.PUSH,
-                payload: {
-                    name: NAVIGATORS.CENTRAL_PANE_NAVIGATOR,
-                    params: {
-                        screen,
-                        params,
-                    },
-                },
-            });
+        // If the user is on the home page and changes the current workspace, then should be displayed a report from the selected workspace.
+        // To achieve that, it's necessary to navigate without the reportID param.
+        if (checkIfActionPayloadNameIsEqual(actionForBottomTabNavigator, SCREENS.HOME)) {
+            delete params.reportID;
         }
+
+        root.dispatch({
+            type: CONST.NAVIGATION.ACTION_TYPE.PUSH,
+            payload: {
+                name: NAVIGATORS.CENTRAL_PANE_NAVIGATOR,
+                params: {
+                    screen,
+                    params,
+                },
+            },
+        });
     } else {
         // If the layout is small we need to pop everything from the central pane so the bottom tab navigator is visible.
         root.dispatch({
