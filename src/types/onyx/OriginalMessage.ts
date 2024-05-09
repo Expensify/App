@@ -96,14 +96,6 @@ type Reaction = {
     users: User[];
 };
 
-type Closed = {
-    policyName: string;
-    reason: ValueOf<typeof CONST.REPORT.ARCHIVE_REASON>;
-    lastModified?: string;
-    newAccountID?: number;
-    oldAccountID?: number;
-};
-
 type OriginalMessageAddComment = {
     html: string;
     source?: OriginalMessageSource;
@@ -149,8 +141,11 @@ type OriginalMessageSubmitted = {
 };
 
 type OriginalMessageClosed = {
-    actionName: typeof CONST.REPORT.ACTIONS.TYPE.CLOSED;
-    originalMessage: Closed;
+    policyName: string;
+    reason: ValueOf<typeof CONST.REPORT.ARCHIVE_REASON>;
+    lastModified?: string;
+    newAccountID?: number;
+    oldAccountID?: number;
 };
 
 type OriginalMessageCreated = {

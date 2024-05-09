@@ -2,11 +2,11 @@ import React from 'react';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import type {OriginalMessageSource} from '@src/types/onyx/OriginalMessage';
+import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import RenderCommentHTML from './RenderCommentHTML';
 
 type AttachmentCommentFragmentProps = {
-    source: OriginalMessageSource;
+    source: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT>;
     html: string;
     addExtraMargin: boolean;
     styleAsDeleted: boolean;

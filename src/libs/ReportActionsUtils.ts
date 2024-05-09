@@ -680,7 +680,7 @@ function getSortedReportActionsForDisplay(reportActions: ReportActions | null | 
  * Additionally, archived #admins and #announce do not have the closed report action so we will return null if none is found.
  *
  */
-function getLastClosedReportAction(reportActions: ReportActions | null): OnyxEntry<ReportAction> {
+function getLastClosedReportAction(reportActions: ReportActions | null): OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CLOSED>> {
     // If closed report action is not present, return early
     if (!Object.values(reportActions ?? {}).some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED)) {
         return null;
@@ -688,7 +688,7 @@ function getLastClosedReportAction(reportActions: ReportActions | null): OnyxEnt
 
     const filteredReportActions = filterOutDeprecatedReportActions(reportActions);
     const sortedReportActions = getSortedReportActions(filteredReportActions);
-    return lodashFindLast(sortedReportActions, (action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED) ?? null;
+    return sortedReportActions.findLast((action): action is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CLOSED> => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED) ?? null;
 }
 
 /**
