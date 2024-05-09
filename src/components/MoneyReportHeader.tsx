@@ -219,7 +219,6 @@ function MoneyReportHeader({
                             chatReportID={chatReport?.reportID}
                             iouReport={moneyRequestReport}
                             onPress={confirmPayment}
-                            invoicePaymentMethod={paymentType}
                             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                             addBankAccountRoute={bankAccountRoute}
                             shouldHidePaymentOptions={!shouldShowPayButton}
@@ -254,7 +253,6 @@ function MoneyReportHeader({
                             chatReportID={moneyRequestReport.chatReportID}
                             iouReport={moneyRequestReport}
                             onPress={confirmPayment}
-                            invoicePaymentMethod={paymentType}
                             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                             addBankAccountRoute={bankAccountRoute}
                             shouldHidePaymentOptions={!shouldShowPayButton}

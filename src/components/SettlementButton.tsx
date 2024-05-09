@@ -17,7 +17,8 @@ import type {ButtonSizeValue} from '@src/styles/utils/types';
 import type {LastPaymentMethod, Policy, Report} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
-import {type EmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {EmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {PaymentType} from './ButtonWithDropdownMenu/types';
 import * as Expensicons from './Icon/Expensicons';
@@ -104,9 +105,6 @@ type SettlementButtonProps = SettlementButtonOnyxProps & {
 
     /** Callback to open confirmation modal if any of the transactions is on HOLD */
     confirmApproval?: () => void;
-
-    /** personal/business methods which should be displayed */
-    invoicePaymentMethod?: typeof CONST.IOU.PAYMENT_TYPE.PERSONAL | typeof CONST.IOU.PAYMENT_TYPE.BUSINESS;
 };
 
 function SettlementButton({
@@ -142,7 +140,6 @@ function SettlementButton({
     enterKeyEventListenerPriority = 0,
     confirmApproval,
     policy,
-    invoicePaymentMethod,
 }: SettlementButtonProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -153,13 +150,13 @@ function SettlementButton({
 
     const session = useSession();
     const chatReport = ReportUtils.getReport(chatReportID);
+    const isInvoiceReport = (!isEmptyObject(iouReport) && ReportUtils.isInvoiceReport(iouReport)) || false;
     const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicyExpenseChat(chatReport);
     const shouldShowPaywithExpensifyOption = !isPaidGroupPolicy || (!shouldHidePaymentOptions && ReportUtils.isPayer(session, iouReport as OnyxEntry<Report>));
-    const shouldShowPayElsewhereOption = !isPaidGroupPolicy || policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+    const shouldShowPayElsewhereOption = (!isPaidGroupPolicy || policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL) && !isInvoiceReport;
     const paymentButtonOptions = useMemo(() => {
         const buttonOptions = [];
         const isExpenseReport = ReportUtils.isExpenseReport(iouReport);
-        const isInvoiceRoom = (!isEmptyObject(iouReport) && ReportUtils.isInvoiceReport(iouReport)) || false;
         const paymentMethods = {
             [CONST.IOU.PAYMENT_TYPE.EXPENSIFY]: {
                 text: translate('iou.settleExpensify', {formattedAmount}),
@@ -205,10 +202,11 @@ function SettlementButton({
         if (isExpenseReport && shouldShowPaywithExpensifyOption) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.VBBA]);
         }
-        if (shouldShowPayElsewhereOption || (isInvoiceRoom && invoicePaymentMethod)) {
+        if (shouldShowPayElsewhereOption) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]);
         }
-        if (isInvoiceRoom && !invoicePaymentMethod) {
+
+        if (isInvoiceReport) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.PERSONAL]);
         }
 

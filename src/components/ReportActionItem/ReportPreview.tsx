@@ -1,4 +1,3 @@
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import React, {useMemo, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -104,7 +103,6 @@ function ReportPreview({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {canUseViolations} = usePermissions();
-    const [paymentType, setPaymentType] = useState<PaymentMethodType>();
 
     const {hasMissingSmartscanFields, areAllRequestsBeingSmartScanned, hasOnlyTransactionsWithPendingRoutes, hasNonReimbursableTransactions} = useMemo(
         () => ({
@@ -247,7 +245,6 @@ function ReportPreview({
         if (!paymentMethodType || !chatReport || !iouReport) {
             return;
         }
-        setPaymentType(paymentMethodType);
         if (ReportUtils.isInvoiceReport(iouReport)) {
             IOU.payInvoice(paymentMethodType, chatReport, iouReport);
         } else {
@@ -333,7 +330,6 @@ function ReportPreview({
                                         chatReportID={chatReportID}
                                         iouReport={iouReport}
                                         onPress={confirmPayment}
-                                        invoicePaymentMethod={paymentType}
                                         enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                                         addBankAccountRoute={bankAccountRoute}
                                         shouldHidePaymentOptions={!shouldShowPayButton}
