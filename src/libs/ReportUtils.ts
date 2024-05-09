@@ -4308,7 +4308,7 @@ function buildOptimisticChatReport(
         chatType,
         isOwnPolicyExpenseChat,
         isPinned: reportName === CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS || isNewlyCreatedWorkspaceChat,
-        lastActorAccountID: 0,
+        lastActorAccountID: -1,
         lastMessageTranslationKey: '',
         lastMessageHtml: '',
         lastMessageText: undefined,
