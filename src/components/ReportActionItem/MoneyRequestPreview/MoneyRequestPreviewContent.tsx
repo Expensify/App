@@ -31,7 +31,6 @@ import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
-import type {IOUMessage} from '@src/types/onyx/OriginalMessage';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {MoneyRequestPreviewProps} from './types';
@@ -67,7 +66,7 @@ function MoneyRequestPreviewContent({
     const ownerAccountID = iouReport?.ownerAccountID ?? -1;
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
 
-    const participantAccountIDs = action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && isBillSplit ? action.originalMessage.participantAccountIDs ?? [] : [managerID, ownerAccountID];
+    const participantAccountIDs = ReportActionsUtils.isMoneyRequestAction(action) && isBillSplit ? action.originalMessage.participantAccountIDs ?? [] : [managerID, ownerAccountID];
     const participantAvatars = OptionsListUtils.getAvatarsForAccountIDs(participantAccountIDs, personalDetails ?? {});
     const sortedParticipantAvatars = lodashSortBy(participantAvatars, (avatar) => avatar.id);
     if (isPolicyExpenseChat && isBillSplit) {
@@ -204,9 +203,11 @@ function MoneyRequestPreviewContent({
     };
 
     const getDisplayDeleteAmountText = (): string => {
-        const iouOriginalMessage: IOUMessage | EmptyObject = action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? action.originalMessage : {};
-        const {amount = 0, currency = CONST.CURRENCY.USD} = iouOriginalMessage;
+        if (!ReportActionsUtils.isMoneyRequestAction(action)) {
+            return CurrencyUtils.convertToDisplayString(0, CONST.CURRENCY.USD);
+        }
 
+        const {amount, currency} = action.originalMessage;
         return CurrencyUtils.convertToDisplayString(amount, currency);
     };
 
