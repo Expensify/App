@@ -1123,7 +1123,7 @@ function MoneyRequestConfirmationList({
                     style={styles.moneyRequestMenuItem}
                     labelStyle={styles.mt2}
                     titleStyle={styles.flex1}
-                    disabled={didConfirm || !canUpdateSenderWorkspace}
+                    disabled={didConfirm}
                 />
             )}
             {!isDistanceRequest &&
