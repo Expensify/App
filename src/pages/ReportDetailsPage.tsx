@@ -78,6 +78,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const isMoneyRequestReport = useMemo(() => ReportUtils.isMoneyRequestReport(report), [report]);
     const isMoneyRequest = useMemo(() => ReportUtils.isMoneyRequest(report), [report]);
     const isInvoiceReport = useMemo(() => ReportUtils.isInvoiceReport(report), [report]);
+    const isInvoiceRoom = useMemo(() => ReportUtils.isInvoiceRoom(report), [report]);
     const canEditReportDescription = useMemo(() => ReportUtils.canEditReportDescription(report, policy), [report, policy]);
     const shouldShowReportDescription = isChatRoom && (canEditReportDescription || report.description !== '');
     const shouldDisableRename = useMemo(() => ReportUtils.shouldDisableRename(report, policy), [policy, report]);
@@ -268,7 +269,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             : ReportUtils.getReportName(report);
 
     const roomFurtherDetails =
-        (ReportUtils.isPolicyExpenseChat(report) && !!report?.isOwnPolicyExpenseChat) || ReportUtils.isExpenseReport(report)
+        (ReportUtils.isPolicyExpenseChat(report) && !!report?.isOwnPolicyExpenseChat) || ReportUtils.isExpenseReport(report) || isInvoiceRoom
             ? chatRoomSubtitle
             : `${translate('threads.in')} ${chatRoomSubtitle}`;
 
