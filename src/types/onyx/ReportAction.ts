@@ -7,6 +7,7 @@ import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import type * as OnyxCommon from './OnyxCommon';
 import type OriginalMessage from './OriginalMessage';
+import type {ReportActionNamesWithHTMLMessage} from './OriginalMessage';
 import type {NotificationPreference} from './Report';
 import type ReportActionName from './ReportActionName';
 import type {Receipt} from './Transaction';
@@ -235,9 +236,11 @@ type ReportAction<T extends ReportActionName = ReportActionName> = ReportActionB
     previousMessage?: OriginalMessage<T> | Array<Message | undefined>;
 };
 
+type ReportActionWithHTMLMessage = ReportAction<ReportActionNamesWithHTMLMessage>;
+
 type ReportActions = Record<string, ReportAction>;
 
 type ReportActionsCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>;
 
 export default ReportAction;
-export type {ReportActions, Message, LinkMetadata, OriginalMessage, ReportActionsCollectionDataSet};
+export type {ReportActions, Message, LinkMetadata, OriginalMessage, ReportActionsCollectionDataSet, ReportActionWithHTMLMessage};

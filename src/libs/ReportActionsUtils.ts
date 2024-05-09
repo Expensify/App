@@ -6,8 +6,10 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReportActionNamesWithHTMLMessage} from '@src/types/onyx/OriginalMessage';
+import {REPORT_ACTIONS_WITH_HTML_MESSAGE} from '@src/types/onyx/OriginalMessage';
 import type Report from '@src/types/onyx/Report';
-import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
+import type {Message, ReportActions, ReportActionWithHTMLMessage} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
@@ -109,7 +111,18 @@ function isDeletedAction(reportAction: OnyxEntry<ReportAction | OptimisticIOURep
 }
 
 function isDeletedParentAction(reportAction: OnyxEntry<ReportAction>): boolean {
-    return (reportAction?.message?.[0]?.isDeletedParentAction ?? false) && (reportAction?.childVisibleActionCount ?? 0) > 0;
+    if (!isAddCommentAction(reportAction)) {
+        return false;
+    }
+    const messageJSON = Array.isArray(reportAction.message) ? reportAction.message.find((fragment) => fragment?.type === CONST.REPORT.MESSAGE.TYPE.COMMENT) : reportAction.message;
+    const childVisibleActionCount = reportAction.childVisibleActionCount ?? 0;
+    return (messageJSON?.isDeletedParentAction ?? false) && childVisibleActionCount > 0;
+}
+
+function isInviteToRoomAction(
+    reportAction: OnyxEntry<ReportAction>,
+): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM | typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM> {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM;
 }
 
 function isReversedTransaction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>) {
@@ -1207,6 +1220,10 @@ function isLinkedTransactionHeld(reportActionID: string, reportID: string): bool
     return TransactionUtils.isOnHoldByTransactionID(getLinkedTransactionID(reportActionID, reportID) ?? '');
 }
 
+function hasHTMLMessage(reportAction: ReportAction): reportAction is ReportActionWithHTMLMessage {
+    return (REPORT_ACTIONS_WITH_HTML_MESSAGE as readonly string[]).includes(reportAction.actionName);
+}
+
 export {
     extractLinksFromMessageHtml,
     getDismissedViolationMessageText,
@@ -1236,6 +1253,7 @@ export {
     isCreatedTaskReportAction,
     isDeletedAction,
     isDeletedParentAction,
+    isInviteToRoomAction,
     isMessageDeleted,
     isModifiedExpenseAction,
     isMoneyRequestAction,
@@ -1277,6 +1295,7 @@ export {
     isLinkedTransactionHeld,
     isHoldAction,
     isUnholdAction,
+    hasHTMLMessage,
 };
 
 export type {LastVisibleMessage};
