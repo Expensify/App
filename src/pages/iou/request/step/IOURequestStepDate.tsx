@@ -159,6 +159,7 @@ const IOURequestStepDateWithOnyx = withOnyx<IOURequestStepDateProps, IOURequestS
             }
             return `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID ?? '0'}`;
         },
+        canEvict: false,
     },
     policy: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,

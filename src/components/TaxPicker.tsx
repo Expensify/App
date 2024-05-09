@@ -66,15 +66,15 @@ function TaxPicker({selectedTaxRate = '', policy, transaction, insets, onSubmit}
 
         return [
             {
-                name: selectedTaxRate,
-                enabled: true,
-                isSelected: true,
+                modifiedName: selectedTaxRate,
+                isDisabled: false,
+                accountID: null,
             },
         ];
     }, [selectedTaxRate]);
 
     const sections = useMemo(
-        () => OptionsListUtils.getTaxRatesSection(policy, selectedOptions as OptionsListUtils.Category[], searchValue, transaction),
+        () => OptionsListUtils.getTaxRatesSection(policy, selectedOptions as OptionsListUtils.Tax[], searchValue, transaction),
         [searchValue, selectedOptions, policy, transaction],
     );
 

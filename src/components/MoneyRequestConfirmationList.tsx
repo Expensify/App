@@ -306,10 +306,12 @@ function MoneyRequestConfirmationList({
     const canModifyTaxFields = !isReadOnly && !isDistanceRequest;
 
     // A flag for showing the tags field
-    const shouldShowTags = useMemo(() => isPolicyExpenseChat && OptionsListUtils.hasEnabledTags(policyTagLists), [isPolicyExpenseChat, policyTagLists]);
+    // TODO: remove the !isTypeInvoice from this condition after BE supports tags for invoices: https://github.com/Expensify/App/issues/41281
+    const shouldShowTags = useMemo(() => isPolicyExpenseChat && OptionsListUtils.hasEnabledTags(policyTagLists) && !isTypeInvoice, [isPolicyExpenseChat, policyTagLists, isTypeInvoice]);
 
     // A flag for showing tax rate
-    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, customUnitRateID, isDistanceRequest);
+    // TODO: remove the !isTypeInvoice from this condition after BE supports tax for invoices: https://github.com/Expensify/App/issues/41281
+    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, customUnitRateID, isDistanceRequest) && !isTypeInvoice;
 
     // A flag for showing the billable field
     const shouldShowBillable = policy?.disabledFields?.defaultBillable === false;
@@ -326,6 +328,7 @@ function MoneyRequestConfirmationList({
     const taxRateTitle = TransactionUtils.getTaxName(policy, transaction);
 
     const previousTransactionAmount = usePrevious(transaction?.amount);
+    const previousTransactionCurrency = usePrevious(transaction?.currency);
 
     const isFocused = useIsFocused();
     const [formError, debouncedFormError, setFormError] = useDebouncedState('');
@@ -382,12 +385,12 @@ function MoneyRequestConfirmationList({
         const taxAmount = getTaxAmount(transaction, policy).toString();
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount));
 
-        if (transaction?.taxAmount && previousTransactionAmount === transaction?.amount) {
+        if (transaction?.taxAmount && previousTransactionAmount === transaction?.amount && previousTransactionCurrency === transaction?.currency) {
             return IOU.setMoneyRequestTaxAmount(transaction?.transactionID, transaction?.taxAmount, true);
         }
 
         IOU.setMoneyRequestTaxAmount(transactionID, amountInSmallestCurrencyUnits, true);
-    }, [policy, transaction, transactionID, previousTransactionAmount]);
+    }, [policy, transaction, transactionID, previousTransactionAmount, previousTransactionCurrency]);
 
     // If completing a split expense fails, set didConfirm to false to allow the user to edit the fields again
     if (isEditingSplitBill && didConfirm) {
@@ -475,9 +478,8 @@ function MoneyRequestConfirmationList({
                 let amount: number | undefined = 0;
                 if (iouAmount > 0) {
                     amount =
-                        isPolicyExpenseChat || !transaction?.comment?.splits
-                            ? IOUUtils.calculateAmount(selectedParticipants.length, iouAmount, iouCurrencyCode ?? '', isPayer)
-                            : transaction.comment.splits.find((split) => split.accountID === participantOption.accountID)?.amount;
+                        transaction?.comment?.splits?.find((split) => split.accountID === participantOption.accountID)?.amount ??
+                        IOUUtils.calculateAmount(selectedParticipants.length, iouAmount, iouCurrencyCode ?? '', isPayer);
                 }
                 return {
                     ...participantOption,
@@ -504,7 +506,7 @@ function MoneyRequestConfirmationList({
                 onAmountChange: (value: string) => onSplitShareChange(participantOption.accountID ?? 0, Number(value)),
             },
         }));
-    }, [transaction, iouCurrencyCode, isPolicyExpenseChat, onSplitShareChange, payeePersonalDetails, selectedParticipants, currencyList, iouAmount, shouldShowReadOnlySplits, StyleUtils]);
+    }, [transaction, iouCurrencyCode, onSplitShareChange, payeePersonalDetails, selectedParticipants, currencyList, iouAmount, shouldShowReadOnlySplits, StyleUtils]);
 
     const isSplitModified = useMemo(() => {
         if (!transaction?.splitShares) {
@@ -1094,6 +1096,7 @@ function MoneyRequestConfirmationList({
             onConfirmSelection={confirm}
             selectedOptions={selectedOptions}
             disableArrowKeysActions
+            disableFocusOptions
             boldStyle
             showTitleTooltip
             shouldTextInputAppearBelowOptions
