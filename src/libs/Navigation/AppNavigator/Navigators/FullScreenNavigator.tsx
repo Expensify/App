@@ -15,7 +15,7 @@ const RootStack = createCustomFullScreenNavigator();
 
 type Screens = Partial<Record<keyof FullScreenNavigatorParamList, () => React.ComponentType>>;
 
-const workspacesScreens = {
+const centralPaneWorkspaceScreens = {
     [SCREENS.WORKSPACE.PROFILE]: () => require('../../../../pages/workspace/WorkspaceProfilePage').default as React.ComponentType,
     [SCREENS.WORKSPACE.CARD]: () => require('../../../../pages/workspace/card/WorkspaceCardPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.WORKFLOWS]: () => require('../../../../pages/workspace/workflows/WorkspaceWorkflowsPage').default as React.ComponentType,
@@ -24,7 +24,7 @@ const workspacesScreens = {
     [SCREENS.WORKSPACE.INVOICES]: () => require('../../../../pages/workspace/invoices/WorkspaceInvoicesPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.TRAVEL]: () => require('../../../../pages/workspace/travel/WorkspaceTravelPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.MEMBERS]: () => require('../../../../pages/workspace/WorkspaceMembersPage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.ACCOUNTING]: () => require('../../../../pages/workspace/accounting/WorkspaceAccountingPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.ROOT]: () => require('../../../../pages/workspace/accounting/PolicyAccountingPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.CATEGORIES]: () => require('../../../../pages/workspace/categories/WorkspaceCategoriesPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.MORE_FEATURES]: () => require('../../../../pages/workspace/WorkspaceMoreFeaturesPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.TAGS]: () => require('../../../../pages/workspace/tags/WorkspaceTagsPage').default as React.ComponentType,
@@ -47,7 +47,7 @@ function FullScreenNavigator() {
                     options={screenOptions.homeScreen}
                     getComponent={loadWorkspaceInitialPage}
                 />
-                {Object.entries(workspacesScreens).map(([screenName, componentGetter]) => (
+                {Object.entries(centralPaneWorkspaceScreens).map(([screenName, componentGetter]) => (
                     <RootStack.Screen
                         key={screenName}
                         name={screenName as keyof Screens}

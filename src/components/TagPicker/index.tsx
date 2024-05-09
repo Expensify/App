@@ -15,6 +15,7 @@ import type {PolicyTag, PolicyTagList, PolicyTags, RecentlyUsedTags} from '@src/
 type SelectedTagOption = {
     name: string;
     enabled: boolean;
+    isSelected?: boolean;
     accountID: number | undefined;
 };
 
@@ -32,7 +33,7 @@ type TagPickerProps = TagPickerOnyxProps & {
     // eslint-disable-next-line react/no-unused-prop-types
     policyID: string;
 
-    /** The selected tag of the money request */
+    /** The selected tag of the expense */
     selectedTag: string;
 
     /** The name of tag list we are getting tags for */

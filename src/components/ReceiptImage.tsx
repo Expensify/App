@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import EReceiptThumbnail from './EReceiptThumbnail';
 import type {IconSize} from './EReceiptThumbnail';
@@ -52,6 +53,9 @@ type ReceiptImageProps = (
     /** Whether we should display the receipt with ThumbnailImage component */
     shouldUseThumbnailImage?: boolean;
 
+    /** Whether we should display the receipt with initial object position */
+    shouldUseInitialObjectPosition?: boolean;
+
     /** Whether the receipt image requires an authToken */
     isAuthTokenRequired?: boolean;
 
@@ -84,6 +88,7 @@ function ReceiptImage({
     iconSize,
     fallbackIcon,
     fallbackIconSize,
+    shouldUseInitialObjectPosition = false,
 }: ReceiptImageProps) {
     const styles = useThemeStyles();
 
@@ -115,10 +120,11 @@ function ReceiptImage({
             <ThumbnailImage
                 previewSourceURL={source ?? ''}
                 style={[styles.w100, styles.h100]}
-                isAuthTokenRequired
+                isAuthTokenRequired={isAuthTokenRequired ?? false}
                 shouldDynamicallyResize={false}
                 fallbackIcon={fallbackIcon}
                 fallbackIconSize={fallbackIconSize}
+                objectPosition={shouldUseInitialObjectPosition ? CONST.IMAGE_OBJECT_POSITION.INITIAL : CONST.IMAGE_OBJECT_POSITION.TOP}
             />
         );
     }
@@ -126,7 +132,7 @@ function ReceiptImage({
     return (
         <Image
             source={{uri: source}}
-            style={style ?? [styles.w100, styles.h100]}
+            style={[style ?? [styles.w100, styles.h100], styles.overflowHidden]}
             isAuthTokenRequired={isAuthTokenRequired}
         />
     );

@@ -1,5 +1,5 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {SelectedTabRequest} from '@src/types/onyx';
 
@@ -15,6 +15,10 @@ function stripCommaFromAmount(amount: string): string {
  */
 function stripSpacesFromAmount(amount: string): string {
     return amount.replace(/\s+/g, '');
+}
+
+function replaceCommasWithPeriod(amount: string): string {
+    return amount.replace(/,+/g, '.');
 }
 
 /**
@@ -78,17 +82,17 @@ function replaceAllDigits(text: string, convertFn: (char: string) => string): st
 }
 
 /**
- * Check if distance request or not
+ * Check if distance expense or not
  */
-function isDistanceRequest(iouType: ValueOf<typeof CONST.IOU.TYPE>, selectedTab: OnyxEntry<SelectedTabRequest>): boolean {
-    return iouType === CONST.IOU.TYPE.REQUEST && selectedTab === CONST.TAB_REQUEST.DISTANCE;
+function isDistanceRequest(iouType: IOUType, selectedTab: OnyxEntry<SelectedTabRequest>): boolean {
+    return (iouType === CONST.IOU.TYPE.REQUEST || iouType === CONST.IOU.TYPE.SUBMIT) && selectedTab === CONST.TAB_REQUEST.DISTANCE;
 }
 
 /**
- * Check if scan request or not
+ * Check if scan expense or not
  */
 function isScanRequest(selectedTab: SelectedTabRequest): boolean {
     return selectedTab === CONST.TAB_REQUEST.SCAN;
 }
 
-export {stripCommaFromAmount, stripDecimalsFromAmount, stripSpacesFromAmount, addLeadingZero, validateAmount, replaceAllDigits, isDistanceRequest, isScanRequest};
+export {addLeadingZero, isDistanceRequest, isScanRequest, replaceAllDigits, stripCommaFromAmount, stripDecimalsFromAmount, stripSpacesFromAmount, replaceCommasWithPeriod, validateAmount};

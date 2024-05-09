@@ -1,3 +1,5 @@
+import * as Browser from '@libs/Browser';
+
 /**
  * Converts milliseconds to '[hours:]minutes:seconds' format
  */
@@ -14,7 +16,9 @@ function convertMillisecondsToTime(milliseconds: number) {
  * Adds a #t=seconds tag to the end of the URL to skip first seconds of the video
  */
 function addSkipTimeTagToURL(url: string, seconds: number) {
-    if (url.includes('#t=')) {
+    // On iOS: mWeb (WebKit-based browser engines), we don't add the time fragment
+    // because it's not supported and will throw (WebKitBlobResource error 1).
+    if (Browser.isMobileWebKit() || url.includes('#t=')) {
         return url;
     }
     return `${url}#t=${seconds}`;

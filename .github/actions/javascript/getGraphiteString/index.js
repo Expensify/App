@@ -2735,6 +2735,7 @@ const run = () => {
     const regressionEntries = regressionFile.split('\n');
     // Initialize string to store Graphite metrics
     let graphiteString = '';
+    let timestamp;
     // Iterate over each entry
     regressionEntries.forEach((entry) => {
         // Skip empty lines
@@ -2744,7 +2745,9 @@ const run = () => {
         try {
             const current = JSON.parse(entry);
             // Extract timestamp, Graphite accepts timestamp in seconds
-            const timestamp = current.metadata?.creationDate ? Math.floor(new Date(current.metadata.creationDate).getTime() / 1000) : '';
+            if (current.metadata?.creationDate) {
+                timestamp = Math.floor(new Date(current.metadata.creationDate).getTime() / 1000);
+            }
             if (current.name && current.meanDuration && current.meanCount && timestamp) {
                 const formattedName = current.name.split(' ').join('-');
                 const renderDurationString = `${GRAPHITE_PATH}.${formattedName}.renderDuration ${current.meanDuration} ${timestamp}`;

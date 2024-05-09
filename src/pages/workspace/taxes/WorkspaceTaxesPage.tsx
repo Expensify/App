@@ -1,6 +1,6 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -26,10 +26,8 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import type {WorkspacesCentralPaneNavigatorParamList} from '@navigation/types';
-import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
-import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
-import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
+import type {FullScreenNavigatorParamList} from '@navigation/types';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import CONST from '@src/CONST';
@@ -37,7 +35,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {TaxRate} from '@src/types/onyx';
 
-type WorkspaceTaxesPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.TAXES>;
+type WorkspaceTaxesPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.TAXES>;
 
 function WorkspaceTaxesPage({
     policy,
@@ -53,7 +51,6 @@ function WorkspaceTaxesPage({
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
     const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
-    const dropdownButtonRef = useRef(null);
     const isFocused = useIsFocused();
 
     const fetchTaxes = useCallback(() => {
@@ -226,81 +223,78 @@ function WorkspaceTaxesPage({
         </View>
     ) : (
         <ButtonWithDropdownMenu<WorkspaceTaxRatesBulkActionType>
-            buttonRef={dropdownButtonRef}
             onPress={() => {}}
             options={dropdownMenuOptions}
             buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
             customText={translate('workspace.common.selected', {selectedNumber: selectedTaxesIDs.length})}
             shouldAlwaysShowDropdownMenu
             pressOnEnter
-            style={[isSmallScreenWidth && styles.w50, isSmallScreenWidth && styles.mb3]}
+            isSplitButton={false}
+            style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
         />
     );
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
-            <PaidPolicyAccessOrNotFoundWrapper policyID={policyID}>
-                <FeatureEnabledAccessOrNotFoundWrapper
-                    policyID={policyID}
-                    featureName={CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED}
+        <AccessOrNotFoundWrapper
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED}
+        >
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                style={[styles.defaultModalContainer]}
+                testID={WorkspaceTaxesPage.displayName}
+                shouldShowOfflineIndicatorInWideScreen
+            >
+                <HeaderWithBackButton
+                    icon={Illustrations.Coins}
+                    title={translate('workspace.common.taxes')}
+                    shouldShowBackButton={isSmallScreenWidth}
                 >
-                    <ScreenWrapper
-                        includeSafeAreaPaddingBottom={false}
-                        style={[styles.defaultModalContainer]}
-                        testID={WorkspaceTaxesPage.displayName}
-                        shouldShowOfflineIndicatorInWideScreen
-                    >
-                        <HeaderWithBackButton
-                            icon={Illustrations.Coins}
-                            title={translate('workspace.common.taxes')}
-                            shouldShowBackButton={isSmallScreenWidth}
-                        >
-                            {!isSmallScreenWidth && headerButtons}
-                        </HeaderWithBackButton>
+                    {!isSmallScreenWidth && headerButtons}
+                </HeaderWithBackButton>
 
-                        {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
+                {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
 
-                        <View style={[styles.ph5, styles.pb5, styles.pt3]}>
-                            <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.taxes.subtitle')}</Text>
-                        </View>
-                        {isLoading && (
-                            <ActivityIndicator
-                                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                                style={[styles.flex1]}
-                                color={theme.spinner}
-                            />
-                        )}
-                        <SelectionList
-                            canSelectMultiple
-                            sections={[{data: taxesList, isDisabled: false}]}
-                            onCheckboxPress={toggleTax}
-                            onSelectRow={navigateToEditTaxRate}
-                            onSelectAll={toggleAllTaxes}
-                            showScrollIndicator
-                            ListItem={TableListItem}
-                            customListHeader={getCustomListHeader()}
-                            shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                            listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                            onDismissError={(item) => (item.keyForList ? clearTaxRateError(policyID, item.keyForList, item.pendingAction) : undefined)}
-                        />
-                        <ConfirmModal
-                            title={translate('workspace.taxes.actions.delete')}
-                            isVisible={isDeleteModalVisible}
-                            onConfirm={deleteTaxes}
-                            onCancel={() => setIsDeleteModalVisible(false)}
-                            prompt={
-                                selectedTaxesIDs.length > 1
-                                    ? translate('workspace.taxes.deleteMultipleTaxConfirmation', {taxAmount: selectedTaxesIDs.length})
-                                    : translate('workspace.taxes.deleteTaxConfirmation')
-                            }
-                            confirmText={translate('common.delete')}
-                            cancelText={translate('common.cancel')}
-                            danger
-                        />
-                    </ScreenWrapper>
-                </FeatureEnabledAccessOrNotFoundWrapper>
-            </PaidPolicyAccessOrNotFoundWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+                <View style={[styles.ph5, styles.pb5, styles.pt3]}>
+                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.taxes.subtitle')}</Text>
+                </View>
+                {isLoading && (
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        style={[styles.flex1]}
+                        color={theme.spinner}
+                    />
+                )}
+                <SelectionList
+                    canSelectMultiple
+                    sections={[{data: taxesList, isDisabled: false}]}
+                    onCheckboxPress={toggleTax}
+                    onSelectRow={navigateToEditTaxRate}
+                    onSelectAll={toggleAllTaxes}
+                    showScrollIndicator
+                    ListItem={TableListItem}
+                    customListHeader={getCustomListHeader()}
+                    shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+                    listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                    onDismissError={(item) => (item.keyForList ? clearTaxRateError(policyID, item.keyForList, item.pendingAction) : undefined)}
+                />
+                <ConfirmModal
+                    title={translate('workspace.taxes.actions.delete')}
+                    isVisible={isDeleteModalVisible}
+                    onConfirm={deleteTaxes}
+                    onCancel={() => setIsDeleteModalVisible(false)}
+                    prompt={
+                        selectedTaxesIDs.length > 1
+                            ? translate('workspace.taxes.deleteMultipleTaxConfirmation', {taxAmount: selectedTaxesIDs.length})
+                            : translate('workspace.taxes.deleteTaxConfirmation')
+                    }
+                    confirmText={translate('common.delete')}
+                    cancelText={translate('common.cancel')}
+                    danger
+                />
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 

@@ -78,7 +78,7 @@ const restrictedImportPatterns = [
 
 module.exports = {
     extends: ['expensify', 'plugin:storybook/recommended', 'plugin:react-native-a11y/basic', 'plugin:@dword-design/import-alias/recommended', 'prettier'],
-    plugins: ['react-native-a11y'],
+    plugins: ['react-native-a11y', 'testing-library'],
     parser: 'babel-eslint',
     ignorePatterns: ['!.*', 'src/vendor', '.github/actions/**/index.js', 'desktop/dist/*.js', 'dist/*.js', 'node_modules/.bin/**', 'node_modules/.cache/**', '.git/**'],
     env: {
@@ -94,7 +94,6 @@ module.exports = {
             rules: {
                 'prefer-regex-literals': 'off',
                 'rulesdir/no-multiple-onyx-in-file': 'off',
-                'rulesdir/onyx-props-must-have-default': 'off',
                 'react-native-a11y/has-accessibility-hint': ['off'],
                 'react/jsx-no-constructed-context-values': 'error',
                 'react-native-a11y/has-valid-accessibility-descriptors': [
@@ -123,12 +122,27 @@ module.exports = {
                         },
                     },
                 ],
+                'rulesdir/avoid-anonymous-functions': 'off',
             },
         },
         // This helps disable the `prefer-alias` rule to be enabled for specific directories
         {
             files: ['tests/**/*.js', 'tests/**/*.ts', 'tests/**/*.jsx', 'assets/**/*.js', '.storybook/**/*.js'],
             rules: {'@dword-design/import-alias/prefer-alias': ['off']},
+        },
+        {
+            files: ['tests/**/*.js', 'tests/**/*.ts', 'tests/**/*.jsx', 'tests/**/*.tsx'],
+            extends: ['plugin:testing-library/react'],
+            rules: {
+                'testing-library/await-async-queries': 'error',
+                'testing-library/await-async-utils': 'error',
+                'testing-library/no-debugging-utils': 'error',
+                'testing-library/no-manual-cleanup': 'error',
+                'testing-library/no-unnecessary-act': 'error',
+                'testing-library/prefer-find-by': 'error',
+                'testing-library/prefer-presence-queries': 'error',
+                'testing-library/prefer-screen-queries': 'error',
+            },
         },
         {
             files: ['*.js', '*.jsx'],
@@ -261,13 +275,7 @@ module.exports = {
                 'no-restricted-imports': [
                     'error',
                     {
-                        paths: [
-                            ...restrictedImportPaths,
-                            {
-                                name: 'underscore',
-                                message: 'Please use the corresponding method from lodash instead',
-                            },
-                        ],
+                        paths: restrictedImportPaths,
                         patterns: restrictedImportPatterns,
                     },
                 ],
@@ -281,6 +289,12 @@ module.exports = {
                 '@lwc/lwc/no-async-await': 'off',
                 'no-await-in-loop': 'off',
                 'no-restricted-syntax': ['error', 'ForInStatement', 'LabeledStatement', 'WithStatement'],
+            },
+        },
+        {
+            files: ['en.ts', 'es.ts'],
+            rules: {
+                'rulesdir/use-periods-for-error-messages': 'error',
             },
         },
     ],

@@ -242,7 +242,7 @@ function base64ToFile(base64: string, filename: string): File {
 }
 
 function validateImageForCorruption(file: FileObject): Promise<void> {
-    if (!Str.isImage(file.name ?? '')) {
+    if (!Str.isImage(file.name ?? '') || !file.uri) {
         return Promise.resolve();
     }
     return new Promise((resolve, reject) => {

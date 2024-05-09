@@ -7,7 +7,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as HeaderUtils from '@libs/HeaderUtils';
-import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as IOU from '@userActions/IOU';
@@ -43,7 +42,7 @@ type MoneyReportHeaderProps = MoneyReportHeaderOnyxProps & {
     /** The report currently being looked at */
     report: OnyxTypes.Report;
 
-    /** The policy tied to the money request report */
+    /** The policy tied to the expense report */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
     /** Array of report actions for the report */
@@ -52,13 +51,29 @@ type MoneyReportHeaderProps = MoneyReportHeaderOnyxProps & {
     /** The reportID of the transaction thread report associated with this current report, if any */
     // eslint-disable-next-line react/no-unused-prop-types
     transactionThreadReportID?: string | null;
+
+    /** Whether we should display the header as in narrow layout */
+    shouldUseNarrowLayout?: boolean;
+
+    /** Method to trigger when pressing close button of the header */
+    onBackButtonPress: () => void;
 };
 
-function MoneyReportHeader({session, policy, chatReport, nextStep, report: moneyRequestReport, transactionThreadReport, reportActions}: MoneyReportHeaderProps) {
+function MoneyReportHeader({
+    session,
+    policy,
+    chatReport,
+    nextStep,
+    report: moneyRequestReport,
+    transactionThreadReport,
+    reportActions,
+    shouldUseNarrowLayout = false,
+    onBackButtonPress,
+}: MoneyReportHeaderProps) {
     const styles = useThemeStyles();
     const [isDeleteRequestModalVisible, setIsDeleteRequestModalVisible] = useState(false);
     const {translate} = useLocalize();
-    const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
+    const {windowWidth} = useWindowDimensions();
     const {reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(moneyRequestReport);
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const requestParentReportAction = useMemo(() => {
@@ -97,7 +112,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
 
     const shouldDisableApproveButton = shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(moneyRequestReport);
 
-    const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
+    const shouldShowSettlementButton = !ReportUtils.isInvoiceReport(moneyRequestReport) && (shouldShowPayButton || shouldShowApproveButton);
 
     const shouldShowSubmitButton = isDraft && reimbursableSpend !== 0;
     const shouldDisableSubmitButton = shouldShowSubmitButton && !ReportUtils.isAllowedToSubmitDraftExpenseReport(moneyRequestReport);
@@ -108,7 +123,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
     const formattedAmount = CurrencyUtils.convertToDisplayString(reimbursableSpend, moneyRequestReport.currency);
     const [nonHeldAmount, fullAmount] = ReportUtils.getNonHeldAndFullAmount(moneyRequestReport, policy);
     const displayedAmount = ReportUtils.hasHeldExpenses(moneyRequestReport.reportID) && canAllowSettlement ? nonHeldAmount : formattedAmount;
-    const isMoreContentShown = shouldShowNextStep || (shouldShowAnyButton && isSmallScreenWidth);
+    const isMoreContentShown = shouldShowNextStep || (shouldShowAnyButton && shouldUseNarrowLayout);
 
     const confirmPayment = (type?: PaymentMethodType | undefined) => {
         if (!type) {
@@ -185,15 +200,15 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                 shouldShowPinButton={false}
                 report={moneyRequestReport}
                 policy={policy}
-                shouldShowBackButton={isSmallScreenWidth}
-                onBackButtonPress={() => Navigation.goBack(undefined, false, true)}
+                shouldShowBackButton={shouldUseNarrowLayout}
+                onBackButtonPress={onBackButtonPress}
                 // Shows border if no buttons or next steps are showing below the header
-                shouldShowBorderBottom={!(shouldShowAnyButton && isSmallScreenWidth) && !(shouldShowNextStep && !isSmallScreenWidth)}
+                shouldShowBorderBottom={!(shouldShowAnyButton && shouldUseNarrowLayout) && !(shouldShowNextStep && !shouldUseNarrowLayout)}
                 shouldShowThreeDotsButton
                 threeDotsMenuItems={threeDotsMenuItems}
                 threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
             >
-                {shouldShowSettlementButton && !isSmallScreenWidth && (
+                {shouldShowSettlementButton && !shouldUseNarrowLayout && (
                     <View style={styles.pv2}>
                         <SettlementButton
                             currency={moneyRequestReport.currency}
@@ -213,7 +228,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                         />
                     </View>
                 )}
-                {shouldShowSubmitButton && !isSmallScreenWidth && (
+                {shouldShowSubmitButton && !shouldUseNarrowLayout && (
                     <View style={styles.pv2}>
                         <Button
                             medium
@@ -227,7 +242,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                 )}
             </HeaderWithBackButton>
             <View style={isMoreContentShown ? [styles.dFlex, styles.flexColumn, styles.borderBottom] : []}>
-                {shouldShowSettlementButton && isSmallScreenWidth && (
+                {shouldShowSettlementButton && shouldUseNarrowLayout && (
                     <View style={[styles.ph5, styles.pb2]}>
                         <SettlementButton
                             currency={moneyRequestReport.currency}
@@ -246,7 +261,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                         />
                     </View>
                 )}
-                {shouldShowSubmitButton && isSmallScreenWidth && (
+                {shouldShowSubmitButton && shouldUseNarrowLayout && (
                     <View style={[styles.ph5, styles.pb2]}>
                         <Button
                             medium
@@ -269,7 +284,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                     nonHeldAmount={!ReportUtils.hasOnlyHeldExpenses(moneyRequestReport.reportID) ? nonHeldAmount : undefined}
                     requestType={requestType}
                     fullAmount={fullAmount}
-                    isSmallScreenWidth={isSmallScreenWidth}
+                    isSmallScreenWidth={shouldUseNarrowLayout}
                     onClose={() => setIsHoldMenuVisible(false)}
                     isVisible={isHoldMenuVisible}
                     paymentType={paymentType}
@@ -288,7 +303,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                 danger
             />
             <ConfirmModal
-                title={translate('iou.deleteRequest')}
+                title={translate('iou.deleteExpense')}
                 isVisible={isDeleteRequestModalVisible}
                 onConfirm={deleteTransaction}
                 onCancel={() => setIsDeleteRequestModalVisible(false)}

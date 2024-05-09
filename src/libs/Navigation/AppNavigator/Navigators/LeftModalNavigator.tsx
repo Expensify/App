@@ -7,13 +7,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ModalNavigatorScreenOptions from '@libs/Navigation/AppNavigator/ModalNavigatorScreenOptions';
 import type {AuthScreensParamList, LeftModalNavigatorParamList} from '@libs/Navigation/types';
+import ChatFinderPage from '@pages/ChatFinderPage';
 import type NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import Overlay from './Overlay';
 
 type LeftModalNavigatorProps = StackScreenProps<AuthScreensParamList, typeof NAVIGATORS.LEFT_MODAL_NAVIGATOR>;
 
-const loadSearchPage = () => require('../../../../pages/SearchPage').default as React.ComponentType;
 const loadWorkspaceSwitcherPage = () => require('../../../../pages/WorkspaceSwitcherPage').default as React.ComponentType;
 
 const Stack = createStackNavigator<LeftModalNavigatorParamList>();
@@ -34,8 +34,8 @@ function LeftModalNavigator({navigation}: LeftModalNavigatorProps) {
             <View style={styles.LHPNavigatorContainer(isSmallScreenWidth)}>
                 <Stack.Navigator screenOptions={screenOptions}>
                     <Stack.Screen
-                        name={SCREENS.LEFT_MODAL.SEARCH}
-                        getComponent={loadSearchPage}
+                        name={SCREENS.LEFT_MODAL.CHAT_FINDER}
+                        component={ChatFinderPage}
                     />
                     <Stack.Screen
                         name={SCREENS.LEFT_MODAL.WORKSPACE_SWITCHER}
