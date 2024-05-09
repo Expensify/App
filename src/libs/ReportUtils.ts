@@ -4106,7 +4106,7 @@ function buildOptimisticReportPreview(chatReport: OnyxEntry<Report>, iouReport: 
  * Builds an optimistic ACTIONABLETRACKEXPENSEWHISPER action with a randomly generated reportActionID.
  */
 function buildOptimisticActionableTrackExpenseWhisper(iouAction: OptimisticIOUReportAction, transactionID: string): ReportAction {
-    const created = DateUtils.getDBTime();
+    const currentTime = DateUtils.getDBTime();
     const targetEmail = CONST.EMAIL.CONCIERGE;
     const actorAccountID = PersonalDetailsUtils.getAccountIDsByLogins([targetEmail])[0];
     const reportActionID = NumberUtils.rand64();
@@ -4114,8 +4114,8 @@ function buildOptimisticActionableTrackExpenseWhisper(iouAction: OptimisticIOURe
         actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER,
         actorAccountID,
         avatar: UserUtils.getDefaultAvatarURL(actorAccountID),
-        created,
-        lastModified: created,
+        created: DateUtils.addMillisecondsFromDateTime(currentTime, 1),
+        lastModified: DateUtils.addMillisecondsFromDateTime(currentTime, 1),
         message: [
             {
                 html: 'What would you like to do with this expense?',
@@ -4125,7 +4125,7 @@ function buildOptimisticActionableTrackExpenseWhisper(iouAction: OptimisticIOURe
             },
         ],
         originalMessage: {
-            lastModified: created,
+            lastModified: DateUtils.addMillisecondsFromDateTime(currentTime, 1),
             transactionID,
         },
         person: [
