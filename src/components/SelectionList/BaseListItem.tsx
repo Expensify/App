@@ -37,7 +37,7 @@ function BaseListItem<TItem extends ListItem>({
     const styles = useThemeStyles();
     const {hovered, bind} = useHover();
 
-    const pressableRef = useRef<View | HTMLDivElement>(null);
+    const pressableRef = useRef<View>(null);
 
     // Sync focus on an item
     useSyncFocus(pressableRef, Boolean(isFocused), shouldSyncFocus);
@@ -72,7 +72,7 @@ function BaseListItem<TItem extends ListItem>({
                     }
                     onSelectRow(item);
                 }}
-                disabled={isDisabled}
+                disabled={isDisabled && !item.isSelected}
                 accessibilityLabel={item.text ?? ''}
                 role={CONST.ROLE.BUTTON}
                 hoverDimmingValue={1}
