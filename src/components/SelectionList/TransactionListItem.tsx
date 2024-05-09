@@ -66,17 +66,19 @@ function TransactionListItem<TItem extends ListItem>({
     const description = TransactionUtils.getDescription(transactionItem as OnyxEntry<Transaction>);
     const merchant = getMerchant();
     const typeIcon = getTypeIcon(transactionItem.type);
-
+    
     const receiptCell = (
-        <ReceiptImage
-            source={transactionItem?.receipt?.source}
-            isEReceipt={transactionItem.hasEReceipt}
-            transactionID={transactionItem.transactionID}
-            iconSize='small'
-            shouldUseThumbnailImage={!transactionItem.hasEReceipt}
-            isAuthTokenRequired
-            fallbackIcon={Expensicons.ReceiptPlus}
-        />
+        <View style={{height: 40, width: 36, borderRadius: variables.componentBorderRadiusSmall, overflow: 'hidden'}}>
+            <ReceiptImage
+                source={transactionItem?.receipt?.source}
+                isEReceipt={transactionItem.hasEReceipt}
+                transactionID={transactionItem.transactionID}
+                shouldUseThumbnailImage={!transactionItem?.receipt?.source}
+                isAuthTokenRequired
+                fallbackIcon={Expensicons.ReceiptPlus}
+                fallbackIconSize={20}
+            />
+        </View>
     );
 
     const dateCell = (
