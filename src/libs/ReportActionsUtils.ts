@@ -1,27 +1,15 @@
 import fastMerge from 'expensify-common/lib/fastMerge';
 import _ from 'lodash';
-import lodashFindLast from 'lodash/findLast';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {
-    ActionName,
-    ChangeLog,
-    IOUMessage,
-    OriginalMessageActionableMentionWhisper,
-    OriginalMessageActionableReportMentionWhisper,
-    OriginalMessageActionableTrackedExpenseWhisper,
-    OriginalMessageDismissedViolation,
-    OriginalMessageIOU,
-    OriginalMessageJoinPolicyChangeLog,
-    OriginalMessageReimbursementDequeued,
-} from '@src/types/onyx/OriginalMessage';
 import type Report from '@src/types/onyx/Report';
-import type {Message, ReportActionBase, ReportActionMessageJSON, ReportActions} from '@src/types/onyx/ReportAction';
+import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
+import type ReportActionName from '@src/types/onyx/ReportActionName';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import DateUtils from './DateUtils';
@@ -505,7 +493,7 @@ function isReportActionDeprecated(reportAction: OnyxEntry<ReportAction>, key: st
 }
 
 const {POLICY_CHANGE_LOG: policyChangelogTypes, ROOM_CHANGE_LOG: roomChangeLogTypes, ...otherActionTypes} = CONST.REPORT.ACTIONS.TYPE;
-const supportedActionTypes: ActionName[] = [...Object.values(otherActionTypes), ...Object.values(policyChangelogTypes), ...Object.values(roomChangeLogTypes)];
+const supportedActionTypes: ReportActionName[] = [...Object.values(otherActionTypes), ...Object.values(policyChangelogTypes), ...Object.values(roomChangeLogTypes)];
 
 /**
  * Checks if a reportAction is fit for display, meaning that it's not deprecated, is of a valid
@@ -932,7 +920,7 @@ function isNotifiableReportAction(reportAction: OnyxEntry<ReportAction>): boolea
         return false;
     }
 
-    const actions: ActionName[] = [CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, CONST.REPORT.ACTIONS.TYPE.IOU, CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE];
+    const actions: ReportActionName[] = [CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, CONST.REPORT.ACTIONS.TYPE.IOU, CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE];
 
     return actions.includes(reportAction.actionName);
 }
@@ -1199,6 +1187,10 @@ function isLinkedTransactionHeld(reportActionID: string, reportID: string): bool
     return TransactionUtils.isOnHoldByTransactionID(getLinkedTransactionID(reportActionID, reportID) ?? '');
 }
 
+function isIOUAction(reportAction: ReportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> {
+    return reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU;
+}
+
 export {
     extractLinksFromMessageHtml,
     getDismissedViolationMessageText,
@@ -1265,6 +1257,7 @@ export {
     isActionableJoinRequestPending,
     isActionableTrackExpense,
     isLinkedTransactionHeld,
+    isIOUAction,
 };
 
 export type {LastVisibleMessage};

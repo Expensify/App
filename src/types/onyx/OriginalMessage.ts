@@ -33,7 +33,14 @@ type IOUDetails = {
     currency: string;
 };
 
-type IOUMessage = {
+type ReimbursementDeQueuedMessage = {
+    cancellationReason: string;
+    expenseReportID?: string;
+    amount: number;
+    currency: string;
+};
+
+type OriginalMessageIOU = {
     /** The ID of the iou transaction */
     IOUTransactionID?: string;
     IOUReportID?: string;
@@ -50,18 +57,6 @@ type IOUMessage = {
     /** Only exists when we are sending money */
     IOUDetails?: IOUDetails;
     whisperedTo?: number[];
-};
-
-type ReimbursementDeQueuedMessage = {
-    cancellationReason: string;
-    expenseReportID?: string;
-    amount: number;
-    currency: string;
-};
-
-type OriginalMessageIOU = {
-    actionName: typeof CONST.REPORT.ACTIONS.TYPE.IOU;
-    originalMessage: IOUMessage;
 };
 
 type FlagSeverityName = ValueOf<
