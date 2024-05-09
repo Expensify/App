@@ -63,7 +63,7 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
     const offlineMessage: MaybePhraseKey = isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : '';
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
-    const [, debouncedSearchValueInServer, setSearchValueInServer] = useDebouncedState('', 500, true);
+    const [, debouncedSearchValueInServer, setSearchValueInServer] = useDebouncedState('', 500);
     const updateSearchValue = useCallback(
         (value: string) => {
             setSearchValue(value);
