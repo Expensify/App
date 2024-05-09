@@ -280,3 +280,4 @@ type AssertOriginalMessageDefinedForAllActions = AssertTypesEqual<
 type OriginalMessage<T extends ReportActionName> = OriginalMessageMap[T];
 
 export default OriginalMessage;
+export type {ChronosOOOEvent, PaymentMethodType};
