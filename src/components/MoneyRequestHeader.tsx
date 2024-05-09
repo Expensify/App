@@ -243,14 +243,9 @@ MoneyRequestHeader.displayName = 'MoneyRequestHeader';
 const MoneyRequestHeaderWithTransaction = withOnyx<MoneyRequestHeaderProps, Pick<MoneyRequestHeaderOnyxProps, 'transaction' | 'shownHoldUseExplanation'>>({
     transaction: {
         key: ({report, parentReportActions}) => {
-            if (!report.parentReportActionID || !parentReportActions) {
-                return `${ONYXKEYS.COLLECTION.TRANSACTION}0`;
-            }
-            const parentReportAction = parentReportActions[report.parentReportActionID];
-            if (!ReportActionsUtils.isMoneyRequestAction(parentReportAction)) {
-                return `${ONYXKEYS.COLLECTION.TRANSACTION}0`;
-            }
-            return `${ONYXKEYS.COLLECTION.TRANSACTION}${parentReportAction.originalMessage.IOUTransactionID ?? 0}`;
+            const parentReportAction = parentReportActions?.[report.parentReportActionID ?? ''] ?? null;
+            const transactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? parentReportAction.originalMessage.IOUTransactionID ?? 0 : 0;
+            return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
         },
     },
     shownHoldUseExplanation: {

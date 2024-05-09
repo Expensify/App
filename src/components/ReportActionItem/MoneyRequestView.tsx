@@ -29,6 +29,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
@@ -593,17 +594,15 @@ export default withOnyx<MoneyRequestViewPropsWithoutTransaction, MoneyRequestVie
     withOnyx<MoneyRequestViewProps, MoneyRequestViewTransactionOnyxProps>({
         transaction: {
             key: ({report, parentReportActions}) => {
-                const parentReportAction = parentReportActions?.[report.parentReportActionID ?? ''];
-                const originalMessage = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction.originalMessage : undefined;
-                const transactionID = originalMessage?.IOUTransactionID ?? 0;
+                const parentReportAction = parentReportActions?.[report.parentReportActionID ?? ''] ?? null;
+                const transactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? parentReportAction.originalMessage.IOUTransactionID ?? 0 : 0;
                 return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
             },
         },
         transactionViolations: {
             key: ({report, parentReportActions}) => {
-                const parentReportAction = parentReportActions?.[report.parentReportActionID ?? ''];
-                const originalMessage = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction.originalMessage : undefined;
-                const transactionID = originalMessage?.IOUTransactionID ?? 0;
+                const parentReportAction = parentReportActions?.[report.parentReportActionID ?? ''] ?? null;
+                const transactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? parentReportAction.originalMessage.IOUTransactionID ?? 0 : 0;
                 return `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`;
             },
         },
