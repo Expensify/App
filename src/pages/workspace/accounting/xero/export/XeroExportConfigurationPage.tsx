@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
 import type {MenuItemProps} from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -21,6 +21,14 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const policyOwner = policy?.owner ?? '';
 
     const {export: exportConfiguration, errorFields, pendingFields} = policy?.connections?.xero?.config ?? {};
+
+    const {bankAccounts} = policy?.connections?.xero?.data ?? {};
+    const selectedBankAccountName = useMemo(() => {
+        const selectedAccount = (bankAccounts ?? []).find((bank) => bank.id === exportConfiguration?.nonReimbursableAccount);
+        return selectedAccount?.name ?? '';
+    }, [bankAccounts, exportConfiguration?.nonReimbursableAccount]);
+
+
     const menuItems: MenuItem[] = [
         {
             description: translate('workspace.xero.preferredExporter'),
@@ -70,11 +78,11 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
         },
         {
             description: translate('workspace.xero.xeroBankAccount'),
-            onPress: () => {},
+            onPress: () =>  Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT_BANK_ACCOUNT_SELECT.getRoute(policyID)),
             brickRoadIndicator: errorFields?.nonReimbursableAccount ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-            title: undefined,
+            title: selectedBankAccountName,
             pendingAction: pendingFields?.export,
-            error: undefined,
+            error: errorFields?.nonReimbursableAccount? translate('common.genericErrorMessage') : undefined,
         },
     ];
 

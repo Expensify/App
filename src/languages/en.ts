@@ -2043,6 +2043,7 @@ export default {
                 'Each exported expense posts as a bank transaction to the Xero bank account you select below, and transaction dates will match the dates on your bank statement.',
             bankTransactions: 'Bank transactions',
             xeroBankAccount: 'Xero bank account',
+            xeroBankAccountDescription: 'Select the bank account expenses will be posted to as bank transactions.',
             preferredExporter: 'Preferred exporter',
             exportExpenses: 'Export out-of-pocket expenses as',
             exportExpensesDescription: 'Reports will export as a purchase bill, using the date and status you select below.',
