@@ -3072,6 +3072,12 @@ function getReportActionMessage(reportAction: ReportAction | EmptyObject, parent
     if (isEmptyObject(reportAction)) {
         return '';
     }
+    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
+        return Localize.translateLocal('iou.heldExpense');
+    }
+    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
+        return Localize.translateLocal('iou.unheldExpense');
+    }
     if (ReportActionsUtils.isApprovedOrSubmittedReportAction(reportAction)) {
         return ReportActionsUtils.getReportActionMessageText(reportAction);
     }
