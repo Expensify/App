@@ -921,7 +921,7 @@ function ReportActionItem({
     const whisperedToAccountIDs = action.whisperedToAccountIDs ?? [];
     const iouReportID = action.originalMessage.IOUReportID ? action.originalMessage.IOUReportID.toString() : '0';
     const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(iouReportID);
-    const isWhisper = whisperedToAccountIDs.length > 0 && transactionsWithReceipts.length === 0;
+    const isWhisper = whisperedToAccountIDs.length > 0 && transactionsWithReceipts.length === 0 && !action.pendingAction;
 
     const isMultipleParticipant = whisperedToAccountIDs.length > 1;
     const isWhisperOnlyVisibleByUser = isWhisper && ReportUtils.isCurrentUserTheOnlyParticipant(whisperedToAccountIDs);
