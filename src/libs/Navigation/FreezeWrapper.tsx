@@ -1,8 +1,8 @@
 import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import React, {useEffect, useRef, useState} from 'react';
 import {Freeze} from 'react-freeze';
-import {Platform} from 'react-native';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import shouldSetScreenBlurred from './shouldSetScreenBlurred';
 
 type FreezeWrapperProps = ChildrenProps & {
     /** Prop to disable freeze */
@@ -29,8 +29,7 @@ function FreezeWrapper({keepVisible = false, children}: FreezeWrapperProps) {
             // we don't want to freeze the screen if it's the previous screen because the freeze placeholder
             // would be visible at the beginning of the back animation then
             const navigationIndex = (navigation.getState()?.index ?? 0) - (screenIndexRef.current ?? 0);
-            const shouldSetScreenBlurred = Platform.OS === 'android' || Platform.OS === 'ios' ? navigationIndex > 1 : navigationIndex >= 1;
-            setIsScreenBlurred(shouldSetScreenBlurred);
+            setIsScreenBlurred(shouldSetScreenBlurred(navigationIndex));
         });
         return () => unsubscribe();
     }, [isFocused, isScreenBlurred, navigation]);
