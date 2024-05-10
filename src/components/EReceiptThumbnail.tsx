@@ -1,4 +1,3 @@
-import type {ValueOf} from 'type-fest';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';

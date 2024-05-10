@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';

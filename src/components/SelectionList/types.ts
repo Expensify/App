@@ -191,6 +191,12 @@ type TransactionListItemType = ListItem & {
 
     /** The MCC Group associated with the transaction */
     mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
+
+    /** The modified MCC Group associated with the transaction */
+    modifiedMCCGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
+
+    /** The parent transaction id */
+    parentTransactionID?: string;
 };
 
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
