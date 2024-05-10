@@ -241,7 +241,7 @@ function SuggestionMention(
                     icons: [
                         {
                             name: detail?.login,
-                            source: detail?.avatar,
+                            source: detail?.avatar ?? Expensicons.FallbackAvatar,
                             type: CONST.ICON_TYPE_AVATAR,
                             fallbackIcon: detail?.fallbackIcon,
                             id: detail?.accountID,

@@ -265,6 +265,9 @@ type MenuItemBaseProps = {
 
     /** Handles what to do when the item is focused */
     onFocus?: () => void;
+
+    /** Optional account id if it's user avatar or policy id if it's workspace avatar */
+    accountID?: number | string;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -342,6 +345,7 @@ function MenuItem(
         isPaneMenu = false,
         shouldPutLeftPaddingWhenNoIcon = false,
         onFocus,
+        accountID,
     }: MenuItemProps,
     ref: PressableRef,
 ) {
@@ -519,7 +523,8 @@ function MenuItem(
                                                     <Avatar
                                                         imageStyles={[styles.alignSelfCenter]}
                                                         size={CONST.AVATAR_SIZE.DEFAULT}
-                                                        source={icon as AvatarSource}
+                                                        source={icon}
+                                                        accountID={accountID}
                                                         fallbackIcon={fallbackIcon}
                                                         name={title}
                                                         type={CONST.ICON_TYPE_WORKSPACE}
@@ -528,7 +533,8 @@ function MenuItem(
                                                 {iconType === CONST.ICON_TYPE_AVATAR && (
                                                     <Avatar
                                                         imageStyles={[styles.alignSelfCenter]}
-                                                        source={icon as AvatarSource}
+                                                        source={icon}
+                                                        accountID={accountID}
                                                         fallbackIcon={fallbackIcon}
                                                         size={avatarSize}
                                                     />

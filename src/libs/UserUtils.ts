@@ -82,10 +82,10 @@ function generateAccountID(searchValue: string): number {
  * @returns
  */
 function getDefaultAvatar(accountID = -1, avatarURL?: string): IconAsset | undefined {
-    if (Number(accountID) === CONST.ACCOUNT_ID.CONCIERGE) {
+    if (accountID === CONST.ACCOUNT_ID.CONCIERGE) {
         return ConciergeAvatar;
     }
-    if (Number(accountID) === CONST.ACCOUNT_ID.NOTIFICATIONS) {
+    if (accountID === CONST.ACCOUNT_ID.NOTIFICATIONS) {
         return NotificationsAvatar;
     }
 
@@ -94,14 +94,19 @@ function getDefaultAvatar(accountID = -1, avatarURL?: string): IconAsset | undef
 
     // When creating a chat, we generate an avatar using an ID and the backend response will modify the ID to the actual user ID.
     // But the avatar link still corresponds to the original ID-generated link. So we extract the SVG image number from the backend's link instead of using the user ID directly
-    let accountIDHashBucket: AvatarRange;
+    let accountIDHashBucket: AvatarRange | undefined;
     if (avatarURL) {
         const match = avatarURL.match(/(default-avatar_|avatar_)(\d+)(?=\.)/);
         const lastDigit = match && parseInt(match[2], 10);
         accountIDHashBucket = lastDigit as AvatarRange;
-    } else {
+    } else if (accountID > 0) {
         accountIDHashBucket = ((accountID % CONST.DEFAULT_AVATAR_COUNT) + 1) as AvatarRange;
     }
+
+    if (!accountIDHashBucket) {
+        return;
+    }
+
     return defaultAvatars[`Avatar${accountIDHashBucket}`];
 }
 
