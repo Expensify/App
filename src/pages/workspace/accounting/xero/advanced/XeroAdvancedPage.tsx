@@ -7,7 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {findCurrentXeroOrganization, getXeroTenants} from '@libs/PolicyUtils';
+import {getCurrentXeroOrganizationName} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -31,14 +31,13 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
         return selectedAccount?.name ?? '';
     }, [bankAccounts, invoiceCollectionsAccountID]);
 
-    const tenants = useMemo(() => getXeroTenants(policy ?? undefined), [policy]);
-    const currentXeroOrganization = findCurrentXeroOrganization(tenants, policy?.connections?.xero?.config?.tenantID);
+    const currentXeroOrganizationName = useMemo(() => getCurrentXeroOrganizationName(policy ?? undefined), [policy]);
 
     return (
         <ConnectionLayout
             displayName={XeroAdvancedPage.displayName}
             headerTitle="workspace.xero.advancedConfig.advanced"
-            headerSubtitle={currentXeroOrganization?.name}
+            headerSubtitle={currentXeroOrganizationName}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
