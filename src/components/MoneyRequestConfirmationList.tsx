@@ -55,7 +55,7 @@ import {PressableWithFeedback} from './Pressable';
 import ReceiptEmptyState from './ReceiptEmptyState';
 import ReceiptImage from './ReceiptImage';
 import SelectionList from './SelectionList';
-import type {ListItem, SectionListDataType} from './SelectionList/types';
+import type {ListItem, SectionListDataType, SectionWithIndexOffset} from './SelectionList/types';
 import UserListItem from './SelectionList/UserListItem';
 import SettlementButton from './SettlementButton';
 import ShowMoreButton from './ShowMoreButton';
@@ -77,9 +77,6 @@ type MoneyRequestConfirmationListOnyxProps = {
 
     /** The draft policy of the report */
     policyDraft: OnyxEntry<OnyxTypes.Policy>;
-
-    /** The session of the logged in user */
-    session: OnyxEntry<OnyxTypes.Session>;
 
     /** Unit and rate used for if the expense is a distance expense */
     mileageRates: OnyxEntry<Record<string, MileageRate>>;
@@ -103,9 +100,6 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
 
     /** Callback to parent modal to pay someone */
     onSendMoney?: (paymentMethod: PaymentMethodType | undefined) => void;
-
-    /** Callback to inform a participant is selected */
-    onSelectParticipant?: (option: Participant) => void;
 
     /** Should we request a single or multiple participant selection from user */
     hasMultipleParticipants: boolean;
@@ -193,30 +187,6 @@ type IouListItem = {
     tabIndex?: number;
 } & ListItem;
 
-function SplitAmountSectionHeader({
-    section: {title, shouldShowActionButton, onActionButtonPress, actionButtonTitle},
-}: {
-    section: SectionListDataType<IouListItem> & {shouldShowActionButton?: boolean; onActionButtonPress?: () => void; actionButtonTitle?: string};
-}) {
-    const styles = useThemeStyles();
-
-    return (
-        <View style={[styles.optionsListSectionHeader, styles.flexRow, styles.justifyContentBetween]}>
-            <Text style={[styles.ph5, styles.textLabelSupporting]}>{title}</Text>
-            {shouldShowActionButton && (
-                <PressableWithFeedback
-                    onPress={onActionButtonPress}
-                    accessibilityLabel={CONST.ROLE.BUTTON}
-                    role={CONST.ROLE.BUTTON}
-                    shouldUseAutoHitSlop
-                >
-                    <Text style={[styles.pr5, styles.textLabelSupporting, styles.link]}>{actionButtonTitle}</Text>
-                </PressableWithFeedback>
-            )}
-        </View>
-    );
-}
-
 const getTaxAmount = (transaction: OnyxEntry<OnyxTypes.Transaction>, defaultTaxValue: string) => {
     const percentage = (transaction?.taxRate ? transaction?.taxRate?.data?.value : defaultTaxValue) ?? '';
     return TransactionUtils.calculateTaxAmount(percentage, transaction?.amount ?? 0);
@@ -226,7 +196,6 @@ function MoneyRequestConfirmationList({
     transaction = null,
     onSendMoney,
     onConfirm,
-    onSelectParticipant,
     iouType = CONST.IOU.TYPE.SUBMIT,
     iouAmount,
     policyCategories: policyCategoriesReal,
@@ -245,7 +214,6 @@ function MoneyRequestConfirmationList({
     hasMultipleParticipants,
     selectedParticipants: selectedParticipantsProp,
     payeePersonalDetails: payeePersonalDetailsProp,
-    session,
     isReadOnly = false,
     bankAccountRoute = '',
     policyID = '',
@@ -541,8 +509,39 @@ function MoneyRequestConfirmationList({
         return Object.keys(transaction.splitShares).some((key) => transaction.splitShares?.[Number(key) ?? -1]?.isModified);
     }, [transaction?.splitShares]);
 
+    const SplitAmountSectionHeader = useCallback(
+        ({section}: {section: SectionWithIndexOffset<IouListItem>}) => (
+            <View style={[styles.optionsListSectionHeader, styles.flexRow, styles.justifyContentBetween]}>
+                <Text style={[styles.ph5, styles.textLabelSupporting]}>{section.title}</Text>
+                {!shouldShowReadOnlySplits && isSplitModified && (
+                    <PressableWithFeedback
+                        onPress={() => IOU.resetSplitShares(transaction)}
+                        accessibilityLabel={CONST.ROLE.BUTTON}
+                        role={CONST.ROLE.BUTTON}
+                        shouldUseAutoHitSlop
+                    >
+                        <Text style={[styles.pr5, styles.textLabelSupporting, styles.link]}>{translate('common.reset')}</Text>
+                    </PressableWithFeedback>
+                )}
+            </View>
+        ),
+        [
+            isSplitModified,
+            shouldShowReadOnlySplits,
+            styles.flexRow,
+            styles.justifyContentBetween,
+            styles.link,
+            styles.optionsListSectionHeader,
+            styles.ph5,
+            styles.pr5,
+            styles.textLabelSupporting,
+            transaction,
+            translate,
+        ],
+    );
+
     const selectionListSections = useMemo(() => {
-        const sections: Array<SectionListDataType<IouListItem> & {shouldShowActionButton?: boolean; onActionButtonPress?: () => void; actionButtonTitle?: string}> = [];
+        const sections: Array<SectionListDataType<IouListItem>> = [];
         if (hasMultipleParticipants) {
             sections.push(
                 ...[
@@ -582,9 +581,6 @@ function MoneyRequestConfirmationList({
                                 ) : null,
                         })),
                         shouldShow: true,
-                        shouldShowActionButton: !shouldShowReadOnlySplits && isSplitModified,
-                        onActionButtonPress: () => IOU.resetSplitShares(transaction),
-                        actionButtonTitle: translate('common.reset'),
                     },
                 ],
             );
@@ -606,9 +602,6 @@ function MoneyRequestConfirmationList({
         hasMultipleParticipants,
         translate,
         splitParticipants,
-        transaction,
-        shouldShowReadOnlySplits,
-        isSplitModified,
         payeePersonalDetails,
         StyleUtils,
         styles.iouAmountTextInputContainer,
@@ -616,6 +609,7 @@ function MoneyRequestConfirmationList({
         styles.optionRowAmountInputWrapper,
         styles.pl1.paddingLeft,
         styles.pv0,
+        SplitAmountSectionHeader,
     ]);
 
     useEffect(() => {
@@ -1216,9 +1210,6 @@ function MoneyRequestConfirmationList({
 MoneyRequestConfirmationList.displayName = 'MoneyRequestConfirmationList';
 
 export default withOnyx<MoneyRequestConfirmationListProps, MoneyRequestConfirmationListOnyxProps>({
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
     policyCategories: {
         key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
     },
