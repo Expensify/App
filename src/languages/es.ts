@@ -3462,13 +3462,13 @@ export default {
         missingComment: 'Descripción obligatoria para la categoría seleccionada',
         missingTag: ({tagName}: ViolationsMissingTagParams) => `Falta ${tagName ?? 'etiqueta'}`,
         modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
-            if (type === 'card' && displayPercentVariance) {
-                return `Importe ${displayPercentVariance}% mayor al del recibo escaneado`;
-            }
             switch (type) {
                 case 'distance':
                     return 'Importe difiere del calculado basado en distancia';
                 case 'card':
+                    if (displayPercentVariance) {
+                        return `Importe ${displayPercentVariance}% mayor al del recibo escaneado`;
+                    }
                     return 'Importe mayor al de la transacción de la tarjeta';
                 default:
                     return 'Importe mayor al del recibo escaneado';

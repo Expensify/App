@@ -2961,13 +2961,13 @@ export default {
         missingComment: 'Description required for selected category',
         missingTag: ({tagName}: ViolationsMissingTagParams) => `Missing ${tagName ?? 'tag'}`,
         modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams): string => {
-            if (type === 'card' && displayPercentVariance) {
-                return `Amount ${displayPercentVariance}% greater than scanned receipt`;
-            }
             switch (type) {
                 case 'distance':
                     return 'Amount differs from calculated distance';
                 case 'card':
+                    if (displayPercentVariance) {
+                        return `Amount ${displayPercentVariance}% greater than scanned receipt`;
+                    }
                     return 'Amount greater than card transaction';
                 default:
                     return 'Amount greater than scanned receipt';
