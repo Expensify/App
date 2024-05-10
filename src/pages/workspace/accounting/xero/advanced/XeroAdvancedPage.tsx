@@ -62,7 +62,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     description={translate('workspace.xero.advancedConfig.purchaseBillStatusTitle')}
                     key={translate('workspace.xero.advancedConfig.purchaseBillStatusTitle')}
                     wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                    onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_BILL_STATUS_SELECTOR.getRoute(policyID))}
+                    onPress={() => {}}
                 />
             </OfflineWithFeedback>
             <ToggleSettingOptionRow
