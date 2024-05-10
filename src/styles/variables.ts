@@ -73,6 +73,7 @@ export default {
     lineHeightHero: 45,
     iconSizeXXXSmall: 4,
     iconSizeXXSmall: 8,
+    iconSizeXSmall: 10,
     iconSizeExtraSmall: 12,
     iconSizeSmall: 16,
     iconSizeMedium: 18,

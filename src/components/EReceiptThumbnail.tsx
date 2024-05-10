@@ -43,9 +43,6 @@ type EReceiptThumbnailProps = EReceiptThumbnailOnyxProps & {
 
     /** Size of the eReceipt icon. Possible values 'x-small', 'small', 'medium' or 'large' */
     iconSize?: IconSize;
-
-    /** The MCC Group associated with the transaction */
-    mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
 };
 
 const backgroundImages = {
@@ -57,7 +54,7 @@ const backgroundImages = {
     [CONST.ERECEIPT_COLORS.PINK]: eReceiptBGs.EReceiptBG_Pink,
 };
 
-function EReceiptThumbnail({transaction, borderRadius, fileExtension, isReceiptThumbnail = false, centerIconV = true, iconSize = 'large', mccGroup}: EReceiptThumbnailProps) {
+function EReceiptThumbnail({transaction, borderRadius, fileExtension, isReceiptThumbnail = false, centerIconV = true, iconSize = 'large'}: EReceiptThumbnailProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const colorCode = isReceiptThumbnail ? StyleUtils.getFileExtensionColorCode(fileExtension) : StyleUtils.getEReceiptColorCode(transaction);
@@ -68,7 +65,7 @@ function EReceiptThumbnail({transaction, borderRadius, fileExtension, isReceiptT
     const primaryColor = colorStyles?.backgroundColor;
     const secondaryColor = colorStyles?.color;
     const transactionDetails = ReportUtils.getTransactionDetails(transaction);
-    const transactionMCCGroup = mccGroup ?? transactionDetails?.mccGroup;
+    const transactionMCCGroup = transactionDetails?.mccGroup;
     const MCCIcon = transactionMCCGroup ? MCCIcons[`${transactionMCCGroup}`] : undefined;
 
     let receiptIconWidth: number = variables.eReceiptIconWidth;
@@ -78,9 +75,9 @@ function EReceiptThumbnail({transaction, borderRadius, fileExtension, isReceiptT
     let labelLineHeight: number = variables.lineHeightLarge;
 
     if (iconSize === 'x-small') {
-        receiptIconWidth = 20;
-        receiptIconHeight = 24;
-        receiptMCCSize = 10;
+        receiptIconWidth = variables.iconSizeNormal;
+        receiptIconHeight = variables.iconSizeLarge;
+        receiptMCCSize = variables.iconSizeXSmall;
         labelFontSize = variables.fontSizeExtraSmall;
         labelLineHeight = variables.lineHeightXSmall;
     } else if (iconSize === 'small') {
@@ -110,9 +107,10 @@ function EReceiptThumbnail({transaction, borderRadius, fileExtension, isReceiptT
         >
             <Image
                 source={backgroundImage}
+                style={styles.eReceiptBackgroundThumbnail}
                 resizeMode="cover"
             />
-            <View style={[styles.alignItemsCenter]}>
+            <View style={[styles.alignItemsCenter, styles.ph8, styles.pt8, styles.pb8]}>
                 <View style={[StyleUtils.getWidthAndHeightStyle(receiptIconWidth, receiptIconHeight), styles.alignItemsCenter, styles.justifyContentCenter]}>
                     <Icon
                         src={Expensicons.EReceiptIcon}

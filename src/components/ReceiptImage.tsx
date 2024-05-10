@@ -74,9 +74,6 @@ type ReceiptImageProps = (
 
     /** The size of the fallback icon */
     fallbackIconSize?: number;
-
-    /** The MCC Group associated with the transaction */
-    mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
 };
 
 function ReceiptImage({
@@ -93,7 +90,6 @@ function ReceiptImage({
     fallbackIcon,
     fallbackIconSize,
     shouldUseInitialObjectPosition = false,
-    mccGroup,
 }: ReceiptImageProps) {
     const styles = useThemeStyles();
 
@@ -113,7 +109,6 @@ function ReceiptImage({
                 <EReceiptThumbnail
                     transactionID={transactionID ?? ''}
                     iconSize={iconSize}
-                    mccGroup={mccGroup}
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                 />
