@@ -10,7 +10,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SelectedTagOption} from '@components/TagPicker';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import ONYXKEYS, {OnyxCollectionKey} from '@src/ONYXKEYS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     Beta,
     Login,
@@ -37,7 +37,6 @@ import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import times from '@src/utils/times';
 import Timing from './actions/Timing';
-import * as CollectionUtils from './CollectionUtils';
 import * as ErrorUtils from './ErrorUtils';
 import filterArrayByMatch from './filterArrayByMatch';
 import localeCompare from './LocaleCompare';
@@ -275,16 +274,15 @@ Onyx.connect({
         allReportActions = actions ?? {};
 
         // Iterate over the report actions to build the sorted and lastVisible report actions bjects
-        Object.entries(allReportActions).forEach(reportActions => {
-            let reportActionKey = reportActions[0] as OnyxCollectionKey
-            let reportID = CollectionUtils.extractCollectionItemID(reportActionKey);
-            let reportActionsArray = Object.values(reportActions[1] ?? {});
+        Object.entries(allReportActions).forEach((reportActions) => {
+            const reportID = reportActions[0].split('_')[1];
+            const reportActionsArray = Object.values(reportActions[1] ?? {});
             let sortedReportActions = ReportActionUtils.getSortedReportActions(reportActionsArray, true);
             allSortedReportActions[reportID] = sortedReportActions;
 
             // If the report is a one-transaction report and has , we need to return the combined reportActions so that the LHN can display modifications
             // to the transaction thread or the report itself
-            const transactionThreadReportID = ReportActionUtils.getOneTransactionThreadReportID(reportID, actions[reportActionKey], true);
+            const transactionThreadReportID = ReportActionUtils.getOneTransactionThreadReportID(reportID, actions[reportActions[0]], true);
             if (transactionThreadReportID) {
                 const transactionThreadReportActionsArray = Object.values(actions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`] ?? {});
                 sortedReportActions = ReportActionUtils.getCombinedReportActions(reportActionsArray, transactionThreadReportActionsArray);
@@ -1753,7 +1751,8 @@ function getOptions(
 
         const {parentReportID, parentReportActionID} = report ?? {};
         const canGetParentReport = parentReportID && parentReportActionID && allReportActions;
-        const parentReportAction = canGetParentReport ? allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`]?.[parentReportActionID] ?? null : null;
+        const parentReportActions = allReportActions ? allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`] ?? {} : {};
+        const parentReportAction = canGetParentReport ? parentReportActions[parentReportActionID] ?? null : null;
         const doesReportHaveViolations =
             (betas?.includes(CONST.BETAS.VIOLATIONS) && ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction)) ?? false;
 
