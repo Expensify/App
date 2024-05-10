@@ -300,11 +300,11 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
                         onSelectRow={openRateDetails}
                         onSelectAll={toggleAllRates}
                         onDismissError={dismissError}
-                        showScrollIndicator
                         ListItem={TableListItem}
                         shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                         customListHeader={getCustomListHeader()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                        showScrollIndicator={false}
                     />
                 )}
                 <ConfirmModal
