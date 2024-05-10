@@ -376,7 +376,7 @@ export default {
         youCanAlso: 'También puedes',
         openLinkInBrowser: 'abrir este enlace en tu navegador',
         loggedInAs: ({email}: LoggedInAsParams) =>
-            `Has iniciado sesión como ${email}. Haga clic en "Abrir enlace" en el aviso para iniciar sesión en la aplicación de escritorio con esta cuenta.`,
+            `Has iniciado sesión como ${email}. Haz clic en "Abrir enlace" en el aviso para iniciar sesión en la aplicación de escritorio con esta cuenta.`,
         doNotSeePrompt: '¿No ves el aviso?',
         tryAgain: 'Inténtalo de nuevo',
         or: ', o',
@@ -1102,7 +1102,7 @@ export default {
         reportFraud: 'Reportar fraude con la tarjeta virtual',
         reviewTransaction: 'Revisar transacción',
         suspiciousBannerTitle: 'Transacción sospechosa',
-        suspiciousBannerDescription: 'Hemos detectado una transacción sospechosa en la tarjeta. Haga click abajo para revisarla.',
+        suspiciousBannerDescription: 'Hemos detectado una transacción sospechosa en la tarjeta. Haz click abajo para revisarla.',
         cardLocked: 'La tarjeta está temporalmente bloqueada mientras nuestro equipo revisa la cuenta de tu empresa.',
         cardDetails: {
             cardNumber: 'Número de tarjeta virtual',
@@ -1510,7 +1510,7 @@ export default {
         chooseAnAccount: 'Elige una cuenta',
         connectOnlineWithPlaid: 'Conéctate a Plaid online',
         connectManually: 'Conectar manualmente',
-        desktopConnection: 'Para conectarse con Chase, Wells Fargo, Capital One o Bank of America, haga clic aquí para completar este proceso en un navegador.',
+        desktopConnection: 'Para conectarse con Chase, Wells Fargo, Capital One o Bank of America, haz clic aquí para completar este proceso en un navegador.',
         yourDataIsSecure: 'Tus datos están seguros',
         toGetStarted: 'Añade una cuenta bancaria y emite tarjetas corporativas, reembolsa gastos y cobra y paga facturas, todo desde un mismo lugar.',
         plaidBodyCopy: 'Ofrezca a sus empleados una forma más sencilla de pagar - y recuperar - los gastos de la empresa.',
