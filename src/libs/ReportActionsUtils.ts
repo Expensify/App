@@ -2,7 +2,7 @@ import fastMerge from 'expensify-common/lib/fastMerge';
 import _ from 'lodash';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import type {TupleToUnion, ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -951,7 +951,7 @@ function isReportActionAttachment(reportAction: OnyxEntry<ReportAction>): report
 const NOTIFIABLE_REPORT_ACTIONS = [CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, CONST.REPORT.ACTIONS.TYPE.IOU, CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE] as const;
 
 // eslint-disable-next-line rulesdir/no-negated-variables
-function isNotifiableReportAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<(typeof NOTIFIABLE_REPORT_ACTIONS)[number]> {
+function isNotifiableReportAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<TupleToUnion<typeof NOTIFIABLE_REPORT_ACTIONS>> {
     if (!reportAction) {
         return false;
     }
