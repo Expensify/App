@@ -1303,9 +1303,9 @@ const CONST = {
         IMPORT_CUSTOMERS: 'importCustomers',
         IMPORT_TAX_RATES: 'importTaxRates',
         INVOICE_STATUS: {
-            AWAITING_PAYMENT: 'AWT_PAYMENT',
             DRAFT: 'DRAFT',
             AWAITING_APPROVAL: 'AWT_APPROVAL',
+            AWAITING_PAYMENT: 'AWT_PAYMENT',
         },
         IMPORT_TRACKING_CATEGORIES: 'importTrackingCategories',
         MAPPINGS: 'mappings',
