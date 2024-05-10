@@ -25,9 +25,6 @@ function FreezeWrapper({keepVisible = false, children}: FreezeWrapperProps) {
 
     useEffect(() => {
         const unsubscribe = navigation.addListener('state', () => {
-            // if the screen is more than 1 screen away from the current screen, freeze it,
-            // we don't want to freeze the screen if it's the previous screen because the freeze placeholder
-            // would be visible at the beginning of the back animation then
             const navigationIndex = (navigation.getState()?.index ?? 0) - (screenIndexRef.current ?? 0);
             setIsScreenBlurred(shouldSetScreenBlurred(navigationIndex));
         });
