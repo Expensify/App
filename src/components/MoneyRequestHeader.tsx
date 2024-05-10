@@ -17,7 +17,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportAction, ReportActions, Session, Transaction} from '@src/types/onyx';
-import type {OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import ConfirmModal from './ConfirmModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import Icon from './Icon';
@@ -89,7 +88,7 @@ function MoneyRequestHeader({
 
     const deleteTransaction = useCallback(() => {
         if (parentReportAction) {
-            const iouTransactionID = parentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction.originalMessage?.IOUTransactionID ?? '' : '';
+            const iouTransactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? parentReportAction.originalMessage?.IOUTransactionID ?? '' : '';
             if (ReportActionsUtils.isTrackExpenseAction(parentReportAction)) {
                 IOU.deleteTrackExpense(parentReport?.reportID ?? '', iouTransactionID, parentReportAction, true);
                 return;
@@ -110,7 +109,7 @@ function MoneyRequestHeader({
     const canDeleteRequest = isActionOwner && (ReportUtils.canAddOrDeleteTransactions(moneyRequestReport) || ReportUtils.isTrackExpenseReport(report)) && !isDeletedParentAction;
 
     const changeMoneyRequestStatus = () => {
-        const iouTransactionID = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction.originalMessage?.IOUTransactionID ?? '' : '';
+        const iouTransactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? parentReportAction.originalMessage?.IOUTransactionID ?? '' : '';
 
         if (isOnHold) {
             IOU.unholdRequest(iouTransactionID, report?.reportID);
@@ -262,8 +261,9 @@ MoneyRequestHeader.displayName = 'MoneyRequestHeader';
 const MoneyRequestHeaderWithTransaction = withOnyx<MoneyRequestHeaderProps, Pick<MoneyRequestHeaderOnyxProps, 'transaction' | 'shownHoldUseExplanation'>>({
     transaction: {
         key: ({report, parentReportActions}) => {
-            const parentReportAction = (report.parentReportActionID && parentReportActions ? parentReportActions[report.parentReportActionID] : {}) as ReportAction & OriginalMessageIOU;
-            return `${ONYXKEYS.COLLECTION.TRANSACTION}${parentReportAction?.originalMessage?.IOUTransactionID ?? 0}`;
+            const parentReportAction = parentReportActions?.[report.parentReportActionID ?? ''] ?? null;
+            const transactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? parentReportAction.originalMessage.IOUTransactionID ?? 0 : 0;
+            return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
         },
     },
     shownHoldUseExplanation: {

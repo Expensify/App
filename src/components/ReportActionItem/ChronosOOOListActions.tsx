@@ -7,15 +7,15 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import * as Chronos from '@userActions/Chronos';
-import type {OriginalMessageChronosOOOList} from '@src/types/onyx/OriginalMessage';
-import type {ReportActionBase} from '@src/types/onyx/ReportAction';
+import type CONST from '@src/CONST';
+import type ReportAction from '@src/types/onyx/ReportAction';
 
 type ChronosOOOListActionsProps = {
     /** The ID of the report */
     reportID: string;
 
     /** All the data of the action */
-    action: ReportActionBase & OriginalMessageChronosOOOList;
+    action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CHRONOS_OOO_LIST>;
 };
 
 function ChronosOOOListActions({reportID, action}: ChronosOOOListActionsProps) {

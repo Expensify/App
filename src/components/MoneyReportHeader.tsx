@@ -82,7 +82,7 @@ function MoneyReportHeader({
         }
         return reportActions.find((action) => action.reportActionID === transactionThreadReport.parentReportActionID);
     }, [reportActions, transactionThreadReport?.parentReportActionID]);
-    const isDeletedParentAction = ReportActionsUtils.isDeletedAction(requestParentReportAction as OnyxTypes.ReportAction);
+    const isDeletedParentAction = ReportActionsUtils.isDeletedAction(requestParentReportAction!);
 
     // Only the requestor can delete the request, admins can only edit it.
     const isActionOwner =
@@ -149,7 +149,7 @@ function MoneyReportHeader({
 
     const deleteTransaction = useCallback(() => {
         if (requestParentReportAction) {
-            const iouTransactionID = requestParentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? requestParentReportAction.originalMessage?.IOUTransactionID ?? '' : '';
+            const iouTransactionID = ReportActionsUtils.isMoneyRequestAction(requestParentReportAction) ? requestParentReportAction.originalMessage?.IOUTransactionID ?? '' : '';
             if (ReportActionsUtils.isTrackExpenseAction(requestParentReportAction)) {
                 IOU.deleteTrackExpense(moneyRequestReport?.reportID ?? '', iouTransactionID, requestParentReportAction, true);
                 return;

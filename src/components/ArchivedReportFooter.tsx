@@ -15,7 +15,7 @@ import Banner from './Banner';
 
 type ArchivedReportFooterOnyxProps = {
     /** The reason this report was archived */
-    reportClosedAction: OnyxEntry<ReportAction>;
+    reportClosedAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CLOSED>>;
 
     /** Personal details of all users */
     personalDetails: OnyxEntry<PersonalDetailsList>;

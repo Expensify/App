@@ -29,6 +29,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
@@ -102,6 +103,7 @@ function MoneyRequestView({
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate, toLocaleDigit} = useLocalize();
     const parentReportAction = parentReportActions?.[report.parentReportActionID ?? ''] ?? null;
+    const isParentActionMoneyRequestAction = ReportActionsUtils.isMoneyRequestAction(parentReportAction);
     const isTrackExpense = ReportUtils.isTrackExpenseReport(report);
     const {canUseViolations, canUseP2PDistanceRequests} = usePermissions(isTrackExpense ? CONST.IOU.TYPE.TRACK : undefined);
     const moneyRequestReport = parentReport;
@@ -146,15 +148,15 @@ function MoneyRequestView({
 
     // Used for non-restricted fields such as: description, category, tag, billable, etc.
     const canEdit = ReportUtils.canEditMoneyRequest(parentReportAction);
-    const canEditAmount = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.AMOUNT);
-    const canEditMerchant = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.MERCHANT);
-    const canEditDate = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DATE);
-    const canEditReceipt = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
+    const canEditAmount = isParentActionMoneyRequestAction && ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.AMOUNT);
+    const canEditMerchant = isParentActionMoneyRequestAction && ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.MERCHANT);
+    const canEditDate = isParentActionMoneyRequestAction && ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DATE);
+    const canEditReceipt = isParentActionMoneyRequestAction && ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const isReceiptBeingScanned = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
     const didRceiptScanSucceed = hasReceipt && TransactionUtils.didRceiptScanSucceed(transaction);
     // TODO: remove the !isTrackExpense from this condition after this fix: https://github.com/Expensify/Expensify/issues/382786
-    const canEditDistance = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE) && !isTrackExpense;
+    const canEditDistance = isParentActionMoneyRequestAction && ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE) && !isTrackExpense;
 
     const isAdmin = policy?.role === 'admin';
     const isApprover = ReportUtils.isMoneyRequestReport(moneyRequestReport) && moneyRequestReport?.managerID !== null && session?.accountID === moneyRequestReport?.managerID;
@@ -588,17 +590,15 @@ export default withOnyx<MoneyRequestViewPropsWithoutTransaction, MoneyRequestVie
     withOnyx<MoneyRequestViewProps, MoneyRequestViewTransactionOnyxProps>({
         transaction: {
             key: ({report, parentReportActions}) => {
-                const parentReportAction = parentReportActions?.[report.parentReportActionID ?? ''];
-                const originalMessage = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction.originalMessage : undefined;
-                const transactionID = originalMessage?.IOUTransactionID ?? 0;
+                const parentReportAction = parentReportActions?.[report.parentReportActionID ?? ''] ?? null;
+                const transactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? parentReportAction.originalMessage.IOUTransactionID ?? 0 : 0;
                 return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
             },
         },
         transactionViolations: {
             key: ({report, parentReportActions}) => {
-                const parentReportAction = parentReportActions?.[report.parentReportActionID ?? ''];
-                const originalMessage = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction.originalMessage : undefined;
-                const transactionID = originalMessage?.IOUTransactionID ?? 0;
+                const parentReportAction = parentReportActions?.[report.parentReportActionID ?? ''] ?? null;
+                const transactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? parentReportAction.originalMessage.IOUTransactionID ?? 0 : 0;
                 return `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`;
             },
         },
