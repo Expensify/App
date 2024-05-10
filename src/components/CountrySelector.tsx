@@ -1,4 +1,5 @@
-import {useIsFocused} from '@react-navigation/native';
+import type {ParamListBase, RouteProp} from '@react-navigation/native';
+import {useIsFocused, useRoute} from '@react-navigation/native';
 import React, {forwardRef, useEffect, useRef} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
@@ -7,9 +8,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {MaybePhraseKey} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {Country} from '@src/CONST';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import FormHelpMessage from './FormHelpMessage';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
+
+// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+type CustomParamList = ParamListBase & Record<string, Record<string, string>>;
 
 type CountrySelectorProps = {
     /** Form error text. e.g when no country is selected */
@@ -32,6 +37,10 @@ type CountrySelectorProps = {
 function CountrySelector({errorText = '', value: countryCode, onInputChange = () => {}, onBlur}: CountrySelectorProps, ref: ForwardedRef<View>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const route = useRoute<RouteProp<CustomParamList, string>>();
+    const countryFromUrlTemp = route?.params?.country;
+    // Check if country is valid
+    const countryFromUrl = CONST.ALL_COUNTRIES[countryFromUrlTemp as keyof typeof CONST.ALL_COUNTRIES] ? countryFromUrlTemp : '';
 
     const title = countryCode ? translate(`allCountries.${countryCode}`) : '';
     const countryTitleDescStyle = title.length === 0 ? styles.textNormal : null;
@@ -39,12 +48,30 @@ function CountrySelector({errorText = '', value: countryCode, onInputChange = ()
     const didOpenContrySelector = useRef(false);
     const isFocused = useIsFocused();
     useEffect(() => {
-        if (!isFocused || !didOpenContrySelector.current) {
+        // Check if the country selector was opened and no value was selected, triggering onBlur to display an error
+        if (isFocused && didOpenContrySelector.current) {
+            didOpenContrySelector.current = false;
+            if (!countryFromUrl) {
+                onBlur?.();
+            }
+        }
+
+        // If no country is selected from the URL, exit the effect early to avoid further processing.
+        if (!countryFromUrl) {
             return;
         }
-        didOpenContrySelector.current = false;
-        onBlur?.();
-    }, [isFocused, onBlur]);
+
+        // If a country is selected, invoke `onInputChange` to update the form and clear any validation errors related to the country selection.
+        if (onInputChange) {
+            onInputChange(countryFromUrl);
+        }
+
+        // Clears the `country` parameter from the URL to ensure the component country is driven by the parent component rather than URL parameters.
+        // This helps prevent issues where the component might not update correctly if the country is controlled by both the parent and the URL.
+        Navigation.setParams({country: undefined});
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [countryFromUrl, isFocused, onBlur]);
 
     useEffect(() => {
         // This will cause the form to revalidate and remove any error related to country name
