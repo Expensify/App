@@ -20,14 +20,14 @@ import type SCREENS from '@src/SCREENS';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
-type AddressPageOnyxProps = {
+type PersonalAddressPageOnyxProps = {
     /** User's private personal details */
     privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
     /** Whether app is loading */
     isLoadingApp: OnyxEntry<boolean>;
 };
 
-type AddressPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.ADDRESS> & AddressPageOnyxProps;
+type PersonalAddressPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.ADDRESS> & PersonalAddressPageOnyxProps;
 
 /**
  * Submit form to update user's first and last legal name
@@ -44,7 +44,7 @@ function updateAddress(values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS
     );
 }
 
-function AddressPage({privatePersonalDetails, route, isLoadingApp = true}: AddressPageProps) {
+function PersonalAddressPage({privatePersonalDetails, route, isLoadingApp = true}: PersonalAddressPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const address = useMemo(() => privatePersonalDetails?.address, [privatePersonalDetails]);
@@ -114,7 +114,7 @@ function AddressPage({privatePersonalDetails, route, isLoadingApp = true}: Addre
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={AddressPage.displayName}
+            testID={PersonalAddressPage.displayName}
         >
             <HeaderWithBackButton
                 title={translate('privatePersonalDetails.address')}
@@ -141,13 +141,13 @@ function AddressPage({privatePersonalDetails, route, isLoadingApp = true}: Addre
     );
 }
 
-AddressPage.displayName = 'AddressPage';
+PersonalAddressPage.displayName = 'PersonalAddressPage';
 
-export default withOnyx<AddressPageProps, AddressPageOnyxProps>({
+export default withOnyx<PersonalAddressPageProps, PersonalAddressPageOnyxProps>({
     privatePersonalDetails: {
         key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
     },
     isLoadingApp: {
         key: ONYXKEYS.IS_LOADING_APP,
     },
-})(AddressPage);
+})(PersonalAddressPage);
