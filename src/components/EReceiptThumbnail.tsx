@@ -75,8 +75,8 @@ function EReceiptThumbnail({transaction, borderRadius, fileExtension, isReceiptT
 
     if (iconSize === 'x-small') {
         receiptIconWidth = 20;
-        receiptIconHeight = 20;
-        receiptMCCSize = 8;
+        receiptIconHeight = 24;
+        receiptMCCSize = 10;
         labelFontSize = variables.fontSizeExtraSmall;
         labelLineHeight = variables.lineHeightXSmall;
     } else if (iconSize === 'small') {
