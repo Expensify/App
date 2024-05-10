@@ -4,7 +4,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import * as PaymentUtils from '@libs/PaymentUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import * as BankAccounts from '@userActions/BankAccounts';
@@ -155,6 +154,7 @@ function SettlementButton({
     const shouldShowPayElsewhereOption = !isPaidGroupPolicy || policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
 
     const paymentButtonOptions = useMemo(() => {
+        const isExpenseReport = ReportUtils.isExpenseReport(iouReport);
         const paymentMethods = {
             [CONST.IOU.PAYMENT_TYPE.VBBA]: {
                 text: translate('iou.settleExpensify', {formattedAmount}),
@@ -199,8 +199,9 @@ function SettlementButton({
         // If the user has previously chosen a specific payment option or paid for some expense,
         // let's use the last payment method or use default.
         const paymentMethod = nvpLastPaymentMethod?.[policyID] ?? '';
+        const canUsePersonalBankAccount = isExpenseReport && shouldShowPaywithExpensifyOption;
 
-        if (shouldShowPersonalBankAccountOption) {
+        if (shouldShowPersonalBankAccountOption && canUsePersonalBankAccount) {
             buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]);
         }
 
