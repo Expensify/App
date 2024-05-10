@@ -332,7 +332,13 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                             />
                         </OfflineWithFeedback>
                     )}
-                    {isGroupChat && <ChatDetailsQuickActionsBar report={report} />}
+                    {isGroupChat && (
+                        <ChatDetailsQuickActionsBar
+                            shouldShowLeaveButton
+                            shouldShowShareButton={false}
+                            report={report}
+                        />
+                    )}
                     {menuItems.map((item) => {
                         const brickRoadIndicator =
                             ReportUtils.hasReportNameError(report) && item.key === CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
