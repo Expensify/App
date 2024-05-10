@@ -1,6 +1,6 @@
 import React, {useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import CollapsibleSection from '@components/CollapsibleSection';
 import ConfirmModal from '@components/ConfirmModal';
@@ -12,6 +12,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {MenuItemProps} from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
+import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
@@ -110,6 +111,10 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
     const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
     const threeDotsMenuContainerRef = useRef<View>(null);
+    const [hasConnectionsDataBeenFetched] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${policy?.id ?? '0'}`, {
+        initWithStoredValues: true,
+    });
+    const isConnectionDataFetched = !policy || !policy.areConnectionsEnabled || !!hasConnectionsDataBeenFetched || !!policy.connections;
 
     const isSyncInProgress = !!connectionSyncProgress?.stageInProgress && connectionSyncProgress.stageInProgress !== CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE;
 
@@ -156,7 +161,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
             });
         }
 
-        if (!connectedIntegration) {
+        if (!connectedIntegration || !hasConnectionsDataBeenFetched) {
             return [];
         }
         const integrationData = accountingIntegrationData(connectedIntegration, policyID, translate);
@@ -258,6 +263,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
         threeDotsMenuPosition,
         translate,
         accountingIntegrations,
+        hasConnectionsDataBeenFetched,
     ]);
 
     const otherIntegrationsItems = useMemo(() => {
@@ -334,21 +340,29 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                             titleStyles={styles.accountSettingsSectionTitle}
                             childrenStyles={styles.pt5}
                         >
-                            <MenuItemList
-                                menuItems={connectionsMenuItems}
-                                shouldUseSingleExecution
-                            />
-                            {otherIntegrationsItems && (
-                                <CollapsibleSection
-                                    title={translate('workspace.accounting.other')}
-                                    wrapperStyle={styles.pr3}
-                                    titleStyle={[styles.textNormal, styles.colorMuted]}
-                                >
+                            {!isConnectionDataFetched ? (
+                                <View style={styles.mnh20}>
+                                    <OptionsListSkeletonView shouldAnimate />
+                                </View>
+                            ) : (
+                                <>
                                     <MenuItemList
-                                        menuItems={otherIntegrationsItems}
+                                        menuItems={connectionsMenuItems}
                                         shouldUseSingleExecution
                                     />
-                                </CollapsibleSection>
+                                    {otherIntegrationsItems && (
+                                        <CollapsibleSection
+                                            title={translate('workspace.accounting.other')}
+                                            wrapperStyle={styles.pr3}
+                                            titleStyle={[styles.textNormal, styles.colorMuted]}
+                                        >
+                                            <MenuItemList
+                                                menuItems={otherIntegrationsItems}
+                                                shouldUseSingleExecution
+                                            />
+                                        </CollapsibleSection>
+                                    )}
+                                </>
                             )}
                         </Section>
                     </View>

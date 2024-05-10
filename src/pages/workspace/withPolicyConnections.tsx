@@ -24,7 +24,7 @@ type WithPolicyConnectionsProps = WithPolicyProps;
 function withPolicyConnections<TProps extends WithPolicyConnectionsProps>(WrappedComponent: ComponentType<TProps>) {
     function WithPolicyConnections(props: TProps) {
         const {isOffline} = useNetwork();
-        const [hasConnectionsDataBeenFetched, {status}] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${props.policy?.id ?? '0'}`, {
+        const [hasConnectionsDataBeenFetched] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${props.policy?.id ?? '0'}`, {
             initWithStoredValues: false,
         });
 
@@ -38,7 +38,7 @@ function withPolicyConnections<TProps extends WithPolicyConnectionsProps>(Wrappe
             openPolicyAccountingPage(props.policy.id);
         }, [hasConnectionsDataBeenFetched, props.policy, isOffline]);
 
-        if (props.policy?.areConnectionsEnabled && (!props.policy || status === 'loading' || hasConnectionsDataBeenFetched === false)) {
+        if (props.policy?.areConnectionsEnabled && !props.policy) {
             return (
                 <FullPageOfflineBlockingView>
                     <FullScreenLoadingIndicator />
