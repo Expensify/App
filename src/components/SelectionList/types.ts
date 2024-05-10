@@ -188,6 +188,9 @@ type TransactionListItemType = ListItem & {
 
     /** Whether this transaction has an eReceipt */
     hasEReceipt: boolean;
+
+    /** The MCC Group associated with the transaction */
+    mccgroup?: ValueOf<typeof CONST.MCC_GROUPS>;
 };
 
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
