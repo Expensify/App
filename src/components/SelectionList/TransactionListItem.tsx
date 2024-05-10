@@ -77,6 +77,7 @@ function TransactionListItem<TItem extends ListItem>({
                 isAuthTokenRequired
                 fallbackIcon={Expensicons.ReceiptPlus}
                 fallbackIconSize={20}
+                fallbackIconColor={theme.icon}
                 iconSize="x-small"
             />
         </View>
