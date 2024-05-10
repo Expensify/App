@@ -480,7 +480,6 @@ function IOURequestStepScan({
                             <NavigationAwareCamera
                                 ref={camera}
                                 device={device}
-                                isActive
                                 style={styles.flex1}
                                 zoom={device.neutralZoom}
                                 photo
