@@ -41,7 +41,7 @@ import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {Status} from '@src/types/onyx/PersonalDetails';
 import type {NotificationPreference, Participants, PendingChatMember, Participant as ReportParticipant} from '@src/types/onyx/Report';
-import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
+import type {Message, OriginalMessage, ReportActionChangeLog, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 import type {Comment, Receipt, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
@@ -2565,7 +2565,7 @@ function canEditMoneyRequest(reportAction: OnyxEntry<ReportAction>): boolean {
  * Checks if the current user can edit the provided property of an expense
  *
  */
-function canEditFieldOfMoneyRequest(reportAction: OnyxEntry<ReportAction>, fieldToEdit: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>): boolean {
+function canEditFieldOfMoneyRequest(reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>, fieldToEdit: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>): boolean {
     // A list of fields that cannot be edited by anyone, once an expense has been settled
     const restrictedFields: string[] = [
         CONST.EDIT_REQUEST_FIELD.AMOUNT,
@@ -2740,14 +2740,16 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction | Optimis
  */
 function getReportPreviewMessage(
     report: OnyxEntry<Report> | EmptyObject,
-    iouReportAction: OnyxEntry<ReportAction> | EmptyObject = {},
+    iouReportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>,
     shouldConsiderScanningReceiptOrPendingRoute = false,
     isPreviewMessageForParentChatReport = false,
     policy: OnyxEntry<Policy> = null,
     isForListPreview = false,
-    originalReportAction: OnyxEntry<ReportAction> | EmptyObject = iouReportAction,
+    originalReportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU | typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>> = iouReportAction,
 ): string {
-    const reportActionMessage = iouReportAction?.message?.[0]?.html ?? '';
+    // Note: originalMessage is in the process of being deprecated, and message is changing from an array to an object with the same shape as originalMessage
+    // However, IOU actions' originalMessage does not yet have all the same information as the message array - so we fallback on an empty string for now.
+    const reportActionMessage = Array.isArray(iouReportAction?.message) ? iouReportAction.message[0]?.html ?? '' : '';
 
     if (isEmptyObject(report) || !report?.reportID) {
         // The iouReport is not found locally after SignIn because the OpenApp API won't return iouReports if they're settled
@@ -2827,7 +2829,7 @@ function getReportPreviewMessage(
         return Localize.translateLocal('iou.fieldPending');
     }
 
-    const originalMessage = iouReportAction?.originalMessage as IOUMessage | undefined;
+    const originalMessage = iouReportAction?.originalMessage;
 
     // Show Paid preview message if it's settled or if the amount is paid & stuck at receivers end for only chat reports.
     if (isSettled(report.reportID) || (report.isWaitingOnBankAccount && isPreviewMessageForParentChatReport)) {
@@ -2900,8 +2902,8 @@ function getModifiedExpenseOriginalMessage(
     transactionChanges: TransactionChanges,
     isFromExpenseReport: boolean,
     policy: OnyxEntry<Policy>,
-): ExpenseOriginalMessage {
-    const originalMessage: ExpenseOriginalMessage = {};
+): OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE> {
+    const originalMessage: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE> = {};
     // Remark: Comment field is the only one which has new/old prefixes for the keys (newComment/ oldComment),
     // all others have old/- pattern such as oldCreated/created
     if ('comment' in transactionChanges) {
@@ -2957,26 +2959,15 @@ function getModifiedExpenseOriginalMessage(
 }
 
 /**
- * Check if original message is an object and can be used as a ChangeLog type
- * @param originalMessage
- */
-function isChangeLogObject(originalMessage?: ChangeLog): ChangeLog | undefined {
-    if (originalMessage && typeof originalMessage === 'object') {
-        return originalMessage;
-    }
-    return undefined;
-}
-
-/**
  * Build invited usernames for admin chat threads
  * @param parentReportAction
  * @param parentReportActionMessage
  */
-function getAdminRoomInvitedParticipants(parentReportAction: ReportAction, parentReportActionMessage: string) {
+function getAdminRoomInvitedParticipants(parentReportAction: ReportActionChangeLog, parentReportActionMessage: string) {
     if (!parentReportAction?.originalMessage) {
         return parentReportActionMessage || Localize.translateLocal('parentReportAction.deletedMessage');
     }
-    const originalMessage = isChangeLogObject(parentReportAction.originalMessage);
+    const originalMessage = parentReportAction.originalMessage;
     const participantAccountIDs = originalMessage?.targetAccountIDs ?? [];
 
     const participants = participantAccountIDs.map((id) => {

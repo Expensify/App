@@ -1,4 +1,4 @@
-import type {ValueOf} from 'type-fest';
+import type {Spread, TupleToUnion, ValueOf} from 'type-fest';
 import type {FileObject} from '@components/AttachmentModal';
 import type {AvatarSource} from '@libs/UserUtils';
 import type CONST from '@src/CONST';
@@ -237,10 +237,11 @@ type ReportAction<T extends ReportActionName = ReportActionName> = ReportActionB
 };
 
 type ReportActionWithHTMLMessage = ReportAction<ReportActionNamesWithHTMLMessage>;
+type ReportActionChangeLog = ReportAction<ValueOf<Spread<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG, typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>>>;
 
 type ReportActions = Record<string, ReportAction>;
 
 type ReportActionsCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>;
 
 export default ReportAction;
-export type {ReportActions, Message, LinkMetadata, OriginalMessage, ReportActionsCollectionDataSet, ReportActionWithHTMLMessage};
+export type {ReportActions, Message, LinkMetadata, OriginalMessage, ReportActionsCollectionDataSet, ReportActionWithHTMLMessage, ReportActionChangeLog};

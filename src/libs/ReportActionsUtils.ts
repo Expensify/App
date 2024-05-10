@@ -9,7 +9,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActionNamesWithHTMLMessage} from '@src/types/onyx/OriginalMessage';
 import {REPORT_ACTIONS_WITH_HTML_MESSAGE} from '@src/types/onyx/OriginalMessage';
 import type Report from '@src/types/onyx/Report';
-import type {Message, ReportActions, ReportActionWithHTMLMessage} from '@src/types/onyx/ReportAction';
+import type {Message, ReportActionChangeLog, ReportActions, ReportActionWithHTMLMessage} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
@@ -99,6 +99,15 @@ function isClosedAction(reportAction: OnyxEntry<ReportAction>): reportAction is 
 
 function isAddCommentAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT> {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
+}
+
+function isChangeLogAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportActionChangeLog {
+    if (!reportAction) {
+        return false;
+    }
+
+    const changeLogActions = Object.values({...CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG, ...CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG});
+    return (changeLogActions as readonly string[]).includes(reportAction?.actionName);
 }
 
 function isDeletedAction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>): boolean {
@@ -1250,6 +1259,7 @@ export {
     isCreatedAction,
     isClosedAction,
     isAddCommentAction,
+    isChangeLogAction,
     isCreatedTaskReportAction,
     isDeletedAction,
     isDeletedParentAction,
