@@ -31,8 +31,6 @@ function TransactionDuplicateReview() {
         [transactionViolations],
     );
 
-    console.log('transactionID', transactionID);
-
     const transactions = [transactionID, ...duplicateTransactionIDs].map((item) => TransactionUtils.getTransaction(item)).sort((a, b) => new Date(a.created) - new Date(b.created));
 
     const keepAll = () => {

@@ -4,7 +4,7 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {RecentWaypoint, Report, TaxRate, TaxRates, TaxRatesWithDefault, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {RecentWaypoint, Report, TaxRate, TaxRates, TaxRatesWithDefault, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {IOURequestType} from './actions/IOU';
@@ -32,6 +32,30 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
     callback: (value) => (allReports = value),
+});
+
+let allTransactionViolations: NonNullable<OnyxCollection<TransactionViolations>> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        if (!value) {
+            allTransactionViolations = {};
+            return;
+        }
+
+        allTransactionViolations = value;
+    },
+});
+
+let currentUserEmail = '';
+let currentUserAccountID = -1;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (val) => {
+        currentUserEmail = val?.email ?? '';
+        currentUserAccountID = val?.accountID ?? -1;
+    },
 });
 
 function isDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
@@ -583,7 +607,24 @@ function getRecentTransactions(transactions: Record<string, string>, size = 2): 
  * Check if transaction is duplicated
  */
 function isDuplicate(transactionID: string, checkDissmissed: boolean): boolean {
-    return true;
+    const hasDuplicatedViolation = !!allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]?.some(
+        (violation: TransactionViolation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+    );
+    if (!checkDissmissed) {
+        return hasDuplicatedViolation;
+    }
+    const didDismissedViolation =
+        allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.comment?.dismissedViolations?.duplicatedTransaction?.[currentUserEmail] === `${currentUserAccountID}`;
+    return hasDuplicatedViolation && !didDismissedViolation;
+}
+
+/**
+ * Checks if any violations for the provided transaction are of type 'warning'
+ */
+function hasWarning(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
+    return Boolean(
+        transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some((violation: TransactionViolation) => violation.type === CONST.VIOLATION_TYPES.WARNING),
+    );
 }
 
 /**
@@ -594,11 +635,7 @@ function isOnHold(transaction: OnyxEntry<Transaction>): boolean {
         return false;
     }
 
-    if (isDuplicate(transaction.transactionID, true)) {
-        return true;
-    }
-
-    return !!transaction.comment?.hold;
+    return !!transaction.comment?.hold || isDuplicate(transaction?.transactionID, true);
 }
 
 /**
@@ -680,6 +717,54 @@ function getTaxName(taxes: TaxRates, transactionTaxCode: string) {
     return transactionTaxCode && taxName && taxValue ? `${taxName} (${taxValue})` : '';
 }
 
+function getTransaction(transactionID: string): Transaction | null {
+    return allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? null;
+}
+
+type FieldsToCompare = Record<string, Array<keyof Transaction>>;
+
+function compareDuplicateTransactionFields(transactionID: string) {
+    console.log('transactionID', transactionID);
+    const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+    console.log(transactionViolations);
+    const duplicates = transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [];
+    console.log(duplicates);
+    const transactions = [transactionID, ...duplicates].map((item) => getTransaction(item));
+    console.log(transactions);
+    const keep: Record<string, any> = {};
+    const change: Record<string, any[]> = {};
+    const fieldsToCompare: FieldsToCompare = {
+        merchant: ['modifiedMerchant', 'merchant'],
+        category: ['category'],
+        tag: ['tag'],
+        description: ['comment'],
+        taxCode: ['taxCode'],
+        billable: ['billable'],
+        reimbursable: ['reimbursable'],
+    };
+
+    for (const fieldName in fieldsToCompare) {
+        if (Object.prototype.hasOwnProperty.call(fieldsToCompare, fieldName)) {
+            const keys = fieldsToCompare[fieldName];
+            const firstTransaction = transactions[0];
+
+            if (transactions.every((item) => keys.every((key) => item && key in item && item[key] === firstTransaction?.[key]))) {
+                keep[fieldName] = firstTransaction?.[keys[0]];
+            } else {
+                const differentValues = transactions.map((item) => keys.map((key) => item?.[key])).flat();
+                // .filter(Boolean);
+
+                if (differentValues.length > 0) {
+                    change[fieldName] = differentValues;
+                }
+            }
+        }
+    }
+
+    console.log({keep, change});
+    return {keep, change};
+}
+
 export {
     buildOptimisticTransaction,
     calculateTaxAmount,
@@ -736,8 +821,11 @@ export {
     hasViolation,
     isDuplicate,
     hasNoticeTypeViolation,
+    hasWarning,
     isCustomUnitRateIDForP2P,
     getRateID,
+    getTransaction,
+    compareDuplicateTransactionFields,
 };
 
 export type {TransactionChanges};

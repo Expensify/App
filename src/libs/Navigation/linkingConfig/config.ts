@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {LinkingOptions} from '@react-navigation/native';
+import {exact} from 'prop-types';
 import type {RootStackParamList} from '@navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
@@ -652,10 +653,22 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.route,
                             exact: true,
                         },
-                        // [SCREENS.TRANSACTION_DUPLICATE.MERCHANT]: ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE.route,
-                        // [SCREENS.TRANSACTION_DUPLICATE.CATEGORY]: ROUTES.TRANSACTION_DUPLICATE_REVIEW_CATEGORY_PAGE.route,
-                        // [SCREENS.TRANSACTION_DUPLICATE.TAG]: ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAG_PAGE.route,
-                        // [SCREENS.TRANSACTION_DUPLICATE.DESCRIPTION]: ROUTES.TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION_PAGE.route,
+                        [SCREENS.TRANSACTION_DUPLICATE.MERCHANT]: {
+                            path: ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE.route,
+                            exact: true,
+                        },
+                        [SCREENS.TRANSACTION_DUPLICATE.CATEGORY]: {
+                            path: ROUTES.TRANSACTION_DUPLICATE_REVIEW_CATEGORY_PAGE.route,
+                            exact: true,
+                        },
+                        [SCREENS.TRANSACTION_DUPLICATE.TAG]: {
+                            path: ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAG_PAGE.route,
+                            exact: true,
+                        },
+                        [SCREENS.TRANSACTION_DUPLICATE.DESCRIPTION]: {
+                            path: ROUTES.TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION_PAGE.route,
+                            exact: true,
+                        },
                         // [SCREENS.TRANSACTION_DUPLICATE.CONFIRM]: ROUTES.TRANSACTION_DUPLICATE_CONFIRM.route,
                     },
                 },

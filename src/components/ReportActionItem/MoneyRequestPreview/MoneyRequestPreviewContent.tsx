@@ -245,69 +245,27 @@ function MoneyRequestPreviewContent({
         [shouldShowSplitShare, isPolicyExpenseChat, action.actorAccountID, participantAccountIDs.length, transaction?.comment?.splits, requestAmount, requestCurrency, sessionAccountID],
     );
 
-    type FieldsToCompare = Record<string, Array<keyof OnyxTransaction>>;
-
-    const compareFields = (transactions: Array<OnyxEntry<OnyxTransaction>>, fields: FieldsToCompare) => {
-        const keep: Record<string, any> = {};
-        const change: Record<string, any[]> = {};
-
-        for (const fieldName in fields) {
-            if (Object.prototype.hasOwnProperty.call(fields, fieldName)) {
-                const keys = fields[fieldName];
-                const firstTransaction = transactions[0];
-
-                if (transactions.every((item) => keys.every((key) => item && key in item && item[key] === firstTransaction?.[key]))) {
-                    keep[fieldName] = firstTransaction?.[keys[0]];
-                } else {
-                    const differentValues = transactions
-                        .map((item) => keys.map((key) => item?.[key]))
-                        .flat()
-                        .filter(Boolean);
-
-                    if (differentValues.length > 0) {
-                        change[fieldName] = differentValues;
-                    }
-                }
-            }
-        }
-
-        return {keep, change};
-    };
-
     const navigateToReviewFields = () => {
-        const fieldsToCompare: FieldsToCompare = {
-            merchant: ['modifiedMerchant', 'merchant'],
-            category: ['category'],
-            tag: ['tag'],
-            description: ['comment'],
-            taxCode: ['taxCode'],
-            billable: ['billable'],
-            reimbursable: ['reimbursable'],
-        };
-        const transactions = [reviewingTransactionID, ...duplicates].map((item) => TransactionUtils.getTransaction(item));
-        const comparisonResult = compareFields(transactions, fieldsToCompare);
+        console.log('navigateToReviewFields', reviewingTransactionID);
+        const comparisonResult = TransactionUtils.compareDuplicateTransactionFields(reviewingTransactionID);
+        // Transaction.setReviewDuplicatesKey(transaction?.transactionID ?? '', {...comparisonResult.keep, duplicates});
 
-        console.log('transactions', transactions);
-        console.log(comparisonResult);
-
-        Transaction.setReviewDuplicatesKey(transaction?.transactionID ?? '', {...comparisonResult.keep, duplicates});
-
-        if ('merchant' in comparisonResult.change) {
-            console.log('navigate to merchant');
-            Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE.getRoute(route.params?.threadReportID));
-        } else if ('category' in comparisonResult.change) {
-            console.log('navigate to category');
-            Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_CATEGORY_PAGE.getRoute(route.params?.threadReportID));
-        } else if ('tag' in comparisonResult.change) {
-            console.log('navigate to tag');
-            Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAG_PAGE.getRoute(route.params.threadReportID));
-        } else if ('description' in comparisonResult.change) {
-            console.log('navigate to description');
-            Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION_PAGE.getRoute(route.params.threadReportID));
-        } else {
-            console.log('navigate to summary');
-            // Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_SUMMARY_PAGE.getRoute(route.params.threadReportID));
-        }
+        // if ('merchant' in comparisonResult.change) {
+        //     console.log('navigate to merchant');
+        //     Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE.getRoute(route.params?.threadReportID));
+        // } else if ('category' in comparisonResult.change) {
+        //     console.log('navigate to category');
+        //     Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_CATEGORY_PAGE.getRoute(route.params?.threadReportID));
+        // } else if ('tag' in comparisonResult.change) {
+        //     console.log('navigate to tag');
+        //     Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAG_PAGE.getRoute(route.params.threadReportID));
+        // } else if ('description' in comparisonResult.change) {
+        //     console.log('navigate to description');
+        //     Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION_PAGE.getRoute(route.params.threadReportID));
+        // } else {
+        //     console.log('navigate to summary');
+        //     // Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_SUMMARY_PAGE.getRoute(route.params.threadReportID));
+        // }
     };
 
     const childContainer = (
