@@ -817,8 +817,8 @@ const ROUTES = {
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/advanced` as const,
     },
     POLICY_ACCOUNTING_XERO_BILL_STATUS_SELECTOR: {
-        route: 'settings/workspaces/:policyID/accounting/xero/advanced/purchase-bill-status-selector',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/advanced/purchase-bill-status-selector` as const,
+        route: 'settings/workspaces/:policyID/accounting/xero/export/purchase-bill-status-selector',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/export/purchase-bill-status-selector` as const,
     },
     POLICY_ACCOUNTING_XERO_INVOICE_SELECTOR: {
         route: 'settings/workspaces/:policyID/accounting/xero/advanced/invoice-account-selector',
