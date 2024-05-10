@@ -1021,8 +1021,8 @@ export default {
     },
     privateNotes: {
         title: 'Private notes',
-        personalNoteMessage: 'Keep notes about this chat here. You are the only person who can add, edit or view these notes.',
-        sharedNoteMessage: 'Keep notes about this chat here. Expensify employees and other users on the team.expensify.com domain can view these notes.',
+        personalNoteMessage: 'Keep notes about this chat here. You're the only person who can add, edit, or view these notes.',
+        sharedNoteMessage: 'Keep notes about this chat here. Expensify employees and other members of the team.expensify.com domain can view these notes.',
         composerLabel: 'Notes',
         myNote: 'My note',
         error: {
