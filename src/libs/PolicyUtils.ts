@@ -406,6 +406,10 @@ function findCurrentXeroOrganization(tenants: Tenant[] | undefined, organization
     return tenants?.find((tenant) => tenant.id === organizationID);
 }
 
+function getCurrentXeroOrganizationName(policy: Policy | undefined): string | undefined {
+    return findCurrentXeroOrganization(getXeroTenants(policy), policy?.connections?.xero?.config?.tenantID)?.name;
+}
+
 export {
     getActivePolicies,
     hasAccountingConnections,
@@ -453,6 +457,7 @@ export {
     canSendInvoice,
     getXeroTenants,
     findCurrentXeroOrganization,
+    getCurrentXeroOrganizationName,
 };
 
 export type {MemberEmailsToAccountIDs};
