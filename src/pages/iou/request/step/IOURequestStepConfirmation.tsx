@@ -146,7 +146,7 @@ function IOURequestStepConfirmation({
             }) ?? [],
         [transaction?.participants, personalDetails, iouType],
     );
-    const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report)) || ReportUtils.isGroupPolicy(policy?.type ?? ''), [report, policy]);
+    const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
     const formHasBeenSubmitted = useRef(false);
 
     useEffect(() => {
@@ -558,7 +558,6 @@ function IOURequestStepConfirmation({
                     />
                     <MoneyRequestConfirmationList
                         transaction={transaction}
-                        hasMultipleParticipants={iouType === CONST.IOU.TYPE.SPLIT}
                         selectedParticipants={participants}
                         iouAmount={Math.abs(transaction?.amount ?? 0)}
                         iouComment={transaction?.comment.comment ?? ''}
