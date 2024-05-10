@@ -284,8 +284,14 @@ Onyx.connect({
 
         // The report is only visible if it is the last action not deleted that
         // does not match a closed or created state.
-        const reportActionsForDisplay = sortedReportActions.filter((reportAction) => ReportActionUtils.shouldReportActionBeVisibleAsLastAction(reportAction));
-        visibleReportActionItems[reportID] = reportActionsForDisplay[0];
+        const reportActionsForDisplay = sortedReportActions.filter(
+            (reportAction, actionKey) =>
+                ReportActionUtils.shouldReportActionBeVisible(reportAction, actionKey) &&
+                !ReportActionUtils.isWhisperAction(reportAction) &&
+                reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED &&
+                reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        );
+        visibleReportActionItems[reportID] = reportActionsForDisplay[reportActionsForDisplay.length - 1];
     },
 });
 
@@ -562,7 +568,7 @@ function getAlternateText(option: ReportUtils.OptionData, {showChatPreviewLine =
  * Get the last message text from the report directly or from other sources for special cases.
  */
 function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null, policy?: OnyxEntry<Policy>): string {
-    const lastReportAction = visibleReportActionItems[report?.reportID ?? ''] ?? null;
+    const lastReportAction = allSortedReportActions[report?.reportID ?? '']?.find((reportAction) => ReportActionUtils.shouldReportActionBeVisibleAsLastAction(reportAction)) ?? null;
 
     // some types of actions are filtered out for lastReportAction, in some cases we need to check the actual last action
     const lastOriginalReportAction = lastReportActions[report?.reportID ?? ''] ?? null;

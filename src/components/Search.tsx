@@ -4,6 +4,7 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as SearchActions from '@libs/actions/Search';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import Log from '@libs/Log';
 import * as SearchUtils from '@libs/SearchUtils';
 import Navigation from '@navigation/Navigation';
 import EmptySearchView from '@pages/Search/EmptySearchView';
@@ -65,8 +66,15 @@ function Search({query}: SearchProps) {
         SearchActions.search(query, currentOffset + CONST.SEARCH_RESULTS_PAGE_SIZE);
     };
 
-    const ListItem = SearchUtils.getListItem();
-    const data = SearchUtils.getSections(searchResults?.data ?? {});
+    const type = SearchUtils.getSearchType(searchResults?.search);
+
+    if (type === undefined) {
+        Log.alert('[Search] Undefined search type');
+        return null;
+    }
+
+    const ListItem = SearchUtils.getListItem(type);
+    const data = SearchUtils.getSections(searchResults?.data ?? {}, type);
     const shouldShowMerchant = SearchUtils.getShouldShowMerchant(searchResults?.data ?? {});
 
     return (
