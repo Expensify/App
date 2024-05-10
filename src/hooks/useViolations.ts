@@ -40,6 +40,7 @@ const violationFields: Record<ViolationName, ViolationField> = {
     smartscanFailed: 'receipt',
     someTagLevelsRequired: 'tag',
     tagOutOfPolicy: 'tag',
+    taxRateChanged: 'tax',
     taxAmountChanged: 'tax',
     taxOutOfPolicy: 'tax',
     taxRequired: 'tax',
@@ -50,6 +51,9 @@ type ViolationsMap = Map<ViolationField, TransactionViolation[]>;
 function useViolations(violations: TransactionViolation[], shouldIncludeNoticeViolations?: boolean) {
     const violationsByField = useMemo((): ViolationsMap => {
         const filteredViolations = violations.filter((violation) => {
+            if (violation.name === 'taxRateChanged' || violation.name === 'taxAmountChanged') {
+                return false;
+            }
             if (!shouldIncludeNoticeViolations) {
                 return violation.type === CONST.VIOLATION_TYPES.VIOLATION;
             }

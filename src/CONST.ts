@@ -3651,6 +3651,7 @@ const CONST = {
         TAG_OUT_OF_POLICY: 'tagOutOfPolicy',
         TAX_AMOUNT_CHANGED: 'taxAmountChanged',
         TAX_OUT_OF_POLICY: 'taxOutOfPolicy',
+        TAX_RATE_CHANGED: 'taxRateChanged',
         TAX_REQUIRED: 'taxRequired',
     },
 

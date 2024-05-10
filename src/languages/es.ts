@@ -86,6 +86,7 @@ import type {
     ViolationsInvoiceMarkupParams,
     ViolationsMaxAgeParams,
     ViolationsMissingTagParams,
+    ViolationsModifiedAmountParams,
     ViolationsOverAutoApprovalLimitParams,
     ViolationsOverCategoryLimitParams,
     ViolationsOverLimitParams,
@@ -3460,7 +3461,19 @@ export default {
         missingCategory: 'Falta categoría',
         missingComment: 'Descripción obligatoria para la categoría seleccionada',
         missingTag: ({tagName}: ViolationsMissingTagParams) => `Falta ${tagName ?? 'etiqueta'}`,
-        modifiedAmount: 'Importe superior al del recibo escaneado',
+        modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
+            if (type === 'card' && displayPercentVariance) {
+                return `Importe ${displayPercentVariance}% mayor al del recibo escaneado`;
+            }
+            switch (type) {
+                case 'distance':
+                    return 'Importe difiere del calculado basado en distancia';
+                case 'card':
+                    return 'Importe mayor al de la transacción de la tarjeta';
+                default:
+                    return 'Importe mayor al del recibo escaneado';
+            }
+        },
         modifiedDate: 'Fecha difiere del recibo escaneado',
         nonExpensiworksExpense: 'Gasto no proviene de Expensiworks',
         overAutoApprovalLimit: ({formattedLimit}: ViolationsOverAutoApprovalLimitParams) =>

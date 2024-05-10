@@ -222,6 +222,8 @@ type ViolationsMaxAgeParams = {maxAge: number};
 
 type ViolationsMissingTagParams = {tagName?: string};
 
+type ViolationsModifiedAmountParams = {type: string; displayPercentVariance?: string};
+
 type ViolationsOverAutoApprovalLimitParams = {formattedLimit?: string};
 
 type ViolationsOverCategoryLimitParams = {formattedLimit?: string};
@@ -382,6 +384,7 @@ export type {
     ViolationsInvoiceMarkupParams,
     ViolationsMaxAgeParams,
     ViolationsMissingTagParams,
+    ViolationsModifiedAmountParams,
     ViolationsOverAutoApprovalLimitParams,
     ViolationsOverCategoryLimitParams,
     ViolationsOverLimitParams,
