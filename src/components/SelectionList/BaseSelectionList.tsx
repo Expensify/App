@@ -109,6 +109,7 @@ function BaseSelectionList<TItem extends ListItem>(
         const allOptions: TItem[] = [];
 
         const disabledOptionsIndexes: number[] = [];
+        const disabledArrowKeyOptionsIndexes: number[] = [];
         let disabledIndex = 0;
 
         let offset = 0;
@@ -133,6 +134,9 @@ function BaseSelectionList<TItem extends ListItem>(
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 if (!!section.isDisabled || item.isDisabled || item.isDisabledCheckbox) {
                     disabledOptionsIndexes.push(disabledIndex);
+                    if (!!section.isDisabled || item.isDisabled) {
+                        disabledArrowKeyOptionsIndexes.push(disabledIndex);
+                    }
                 }
                 disabledIndex += 1;
 
@@ -165,6 +169,7 @@ function BaseSelectionList<TItem extends ListItem>(
             allOptions,
             selectedOptions,
             disabledOptionsIndexes,
+            disabledArrowKeyOptionsIndexes,
             itemLayouts,
             allSelected: selectedOptions.length > 0 && selectedOptions.length === allOptions.length - disabledOptionsIndexes.length,
         };
@@ -230,7 +235,7 @@ function BaseSelectionList<TItem extends ListItem>(
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: flattenedSections.allOptions.findIndex((option) => option.keyForList === initiallyFocusedOptionKey),
         maxIndex: Math.min(flattenedSections.allOptions.length - 1, CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * currentPage - 1),
-        disabledIndexes: flattenedSections.disabledOptionsIndexes,
+        disabledIndexes: flattenedSections.disabledArrowKeyOptionsIndexes,
         isActive: true,
         onFocusedIndexChange: (index: number) => {
             scrollToIndex(index, true);
