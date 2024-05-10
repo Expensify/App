@@ -34,7 +34,6 @@ function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPag
     const {translate} = useLocalize();
     const policyTagName = useMemo(() => PolicyUtils.getTagLists(policyTags)?.[0]?.name ?? '', [policyTags]);
     const hasEnabledOptions = OptionsListUtils.hasEnabledOptions(Object.values(policyTags ?? {}).flatMap(({tags}) => Object.values(tags)));
-    console.log('hasEnabledOptions', hasEnabledOptions);
 
     const updateWorkspaceRequiresTag = useCallback(
         (value: boolean) => {
