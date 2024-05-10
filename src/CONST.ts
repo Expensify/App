@@ -4746,13 +4746,18 @@ const CONST = {
         CARD: 'card',
         DISTANCE: 'distance',
     },
+
+    SEARCH_DATA_TYPES: {
+        TRANSACTION: 'transaction',
+    },
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
 
 type IOUType = ValueOf<typeof CONST.IOU.TYPE>;
 type IOUAction = ValueOf<typeof CONST.IOU.ACTION>;
+type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
-export type {Country, IOUAction, IOUType, RateAndUnit, OnboardingPurposeType};
+export type {Country, IOUAction, IOUType, RateAndUnit, OnboardingPurposeType, IOURequestType};
 
 export default CONST;
