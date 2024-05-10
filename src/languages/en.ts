@@ -2082,6 +2082,8 @@ export default {
                 },
             },
             invoiceStatus: {
+                label: 'Purchase bill status',
+                description: 'When exported to Xero what state should purchase bills have.',
                 values: {
                     [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_PAYMENT]: 'Authorised',
                     [CONST.XERO_CONFIG.INVOICE_STATUS.DRAFT]: 'Draft',
