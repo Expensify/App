@@ -120,7 +120,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress, preferredLocale}:
     const connectedIntegration = accountingIntegrations.find((integration) => !!policy?.connections?.[integration]) ?? connectionSyncProgress?.connectionName;
     const policyID = policy?.id ?? '';
     const successfulDate = policy?.connections?.quickbooksOnline?.lastSync?.successfulDate;
-    const formattedDate = successfulDate ? new Date(successfulDate).toString() : '';
+    const formattedDate = successfulDate ? new Date(successfulDate).toISOString().replace('Z', '') : '';
 
     const policyConnectedToXero = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.XERO;
 
