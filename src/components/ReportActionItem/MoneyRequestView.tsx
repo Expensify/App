@@ -341,7 +341,7 @@ function MoneyRequestView({
                     <OfflineWithFeedback
                         pendingAction={pendingAction}
                         errors={transaction?.errors}
-                        errorRowStyles={[styles.ml4]}
+                        errorRowStyles={[styles.mh4]}
                         onClose={() => {
                             if (!transaction?.transactionID) {
                                 return;

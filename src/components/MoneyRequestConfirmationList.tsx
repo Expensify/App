@@ -102,9 +102,6 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     /** Callback to inform a participant is selected */
     onSelectParticipant?: (option: Participant) => void;
 
-    /** Should we request a single or multiple participant selection from user */
-    hasMultipleParticipants: boolean;
-
     /** IOU amount */
     iouAmount: number;
 
@@ -211,7 +208,6 @@ function MoneyRequestConfirmationList({
     policyTags,
     iouCurrencyCode,
     iouMerchant,
-    hasMultipleParticipants,
     selectedParticipants: selectedParticipantsProp,
     payeePersonalDetails: payeePersonalDetailsProp,
     session,
@@ -469,6 +465,9 @@ function MoneyRequestConfirmationList({
     const shouldShowReadOnlySplits = useMemo(() => isPolicyExpenseChat || isReadOnly || isScanRequest, [isPolicyExpenseChat, isReadOnly, isScanRequest]);
 
     const splitParticipants = useMemo(() => {
+        if (!isTypeSplit) {
+            return;
+        }
         const payeeOption = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails);
         if (shouldShowReadOnlySplits) {
             return [payeeOption, ...selectedParticipants].map((participantOption: Participant) => {
@@ -504,7 +503,7 @@ function MoneyRequestConfirmationList({
                 onAmountChange: (value: string) => onSplitShareChange(participantOption.accountID ?? 0, Number(value)),
             },
         }));
-    }, [transaction, iouCurrencyCode, onSplitShareChange, payeePersonalDetails, selectedParticipants, currencyList, iouAmount, shouldShowReadOnlySplits, StyleUtils]);
+    }, [isTypeSplit, transaction, iouCurrencyCode, onSplitShareChange, payeePersonalDetails, selectedParticipants, currencyList, iouAmount, shouldShowReadOnlySplits, StyleUtils]);
 
     const isSplitModified = useMemo(() => {
         if (!transaction?.splitShares) {
@@ -515,7 +514,7 @@ function MoneyRequestConfirmationList({
 
     const optionSelectorSections = useMemo(() => {
         const sections = [];
-        if (hasMultipleParticipants) {
+        if (isTypeSplit) {
             sections.push(
                 ...[
                     {
@@ -546,14 +545,14 @@ function MoneyRequestConfirmationList({
             });
         }
         return sections;
-    }, [selectedParticipants, hasMultipleParticipants, translate, splitParticipants, transaction, shouldShowReadOnlySplits, isSplitModified, payeePersonalDetails]);
+    }, [selectedParticipants, isTypeSplit, translate, splitParticipants, transaction, shouldShowReadOnlySplits, isSplitModified, payeePersonalDetails]);
 
     const selectedOptions = useMemo(() => {
-        if (!hasMultipleParticipants) {
+        if (!isTypeSplit) {
             return [];
         }
         return [...selectedParticipants, OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails)];
-    }, [selectedParticipants, hasMultipleParticipants, payeePersonalDetails]);
+    }, [selectedParticipants, isTypeSplit, payeePersonalDetails]);
 
     useEffect(() => {
         if (!isDistanceRequest || isMovingTransactionFromTrackExpense) {
