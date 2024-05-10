@@ -396,9 +396,10 @@ const ContextMenuActions: ContextMenuAction[] = [
             return type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && !isAttachmentTarget && !ReportActionsUtils.isMessageDeleted(reportAction);
         },
         onPress: (closePopover, {reportAction, reportID}) => {
+            const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
             Environment.getEnvironmentURL().then((environmentURL) => {
                 const reportActionID = reportAction?.reportActionID;
-                Clipboard.setString(`${environmentURL}/r/${reportID}/${reportActionID}`);
+                Clipboard.setString(`${environmentURL}/r/${originalReportID}/${reportActionID}`);
             });
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },
