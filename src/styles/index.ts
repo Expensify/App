@@ -799,6 +799,7 @@ const styles = (theme: ThemeColors) =>
                     fontSize: 17,
                 },
                 modalViewMiddle: {
+                    position: 'relative',
                     backgroundColor: theme.border,
                     borderTopWidth: 0,
                 },
@@ -840,6 +841,10 @@ const styles = (theme: ThemeColors) =>
                 icon: {
                     width: variables.iconSizeExtraSmall,
                     height: variables.iconSizeExtraSmall,
+                },
+                chevronContainer: {
+                    pointerEvents: 'none',
+                    opacity: 0,
                 },
             } satisfies CustomPickerStyle),
 
@@ -1135,11 +1140,6 @@ const styles = (theme: ThemeColors) =>
             overflow: 'hidden',
             borderBottomWidth: 2,
             borderColor: theme.border,
-        },
-
-        optionRowAmountInputWrapper: {
-            borderColor: theme.border,
-            borderBottomWidth: 2,
         },
 
         optionRowAmountInput: {
