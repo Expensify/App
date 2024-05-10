@@ -4746,6 +4746,10 @@ const CONST = {
         CARD: 'card',
         DISTANCE: 'distance',
     },
+
+    SEARCH_DATA_TYPES: {
+        TRANSACTION: 'transaction',
+    },
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
