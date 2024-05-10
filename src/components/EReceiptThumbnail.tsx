@@ -21,7 +21,7 @@ type EReceiptThumbnailOnyxProps = {
     transaction: OnyxEntry<Transaction>;
 };
 
-type IconSize = 'small' | 'medium' | 'large';
+type IconSize = 'x-small' | 'small' | 'medium' | 'large';
 
 type EReceiptThumbnailProps = EReceiptThumbnailOnyxProps & {
     /** TransactionID of the transaction this EReceipt corresponds to. It's used by withOnyx HOC */
@@ -73,7 +73,13 @@ function EReceiptThumbnail({transaction, borderRadius, fileExtension, isReceiptT
     let labelFontSize: number = variables.fontSizeNormal;
     let labelLineHeight: number = variables.lineHeightLarge;
 
-    if (iconSize === 'small') {
+    if (iconSize === 'x-small') {
+        receiptIconWidth = 20;
+        receiptIconHeight = 20;
+        receiptMCCSize = 8;
+        labelFontSize = variables.fontSizeExtraSmall;
+        labelLineHeight = variables.lineHeightXSmall;
+    } else if (iconSize === 'small') {
         receiptIconWidth = variables.eReceiptIconWidthSmall;
         receiptIconHeight = variables.eReceiptIconHeightSmall;
         receiptMCCSize = variables.eReceiptMCCHeightWidthSmall;
@@ -100,10 +106,9 @@ function EReceiptThumbnail({transaction, borderRadius, fileExtension, isReceiptT
         >
             <Image
                 source={backgroundImage}
-                style={styles.eReceiptBackgroundThumbnail}
                 resizeMode="cover"
             />
-            <View style={[styles.alignItemsCenter, styles.ph8, styles.pt8, styles.pb8]}>
+            <View style={[styles.alignItemsCenter]}>
                 <View style={[StyleUtils.getWidthAndHeightStyle(receiptIconWidth, receiptIconHeight), styles.alignItemsCenter, styles.justifyContentCenter]}>
                     <Icon
                         src={Expensicons.EReceiptIcon}
