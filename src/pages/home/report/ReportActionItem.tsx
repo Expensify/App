@@ -918,12 +918,12 @@ function ReportActionItem({
     }
 
     const hasErrors = !isEmptyObject(action.errors);
-    const whisperedToAccountIDs = action.whisperedToAccountIDs ?? [];
-    const isWhisper = whisperedToAccountIDs.length > 0;
-    const isMultipleParticipant = whisperedToAccountIDs.length > 1;
-    const isWhisperOnlyVisibleByUser = isWhisper && ReportUtils.isCurrentUserTheOnlyParticipant(whisperedToAccountIDs);
+    const whisperedTo = ReportActionsUtils.getWhisperedTo(action);
+    const isWhisper = whisperedTo.length > 0;
+    const isMultipleParticipant = whisperedTo.length > 1;
+    const isWhisperOnlyVisibleByUser = isWhisper && ReportUtils.isCurrentUserTheOnlyParticipant(whisperedTo);
     const whisperedToPersonalDetails = isWhisper
-        ? (Object.values(personalDetails ?? {}).filter((details) => whisperedToAccountIDs.includes(details?.accountID ?? -1)) as OnyxTypes.PersonalDetails[])
+        ? (Object.values(personalDetails ?? {}).filter((details) => whisperedTo.includes(details?.accountID ?? -1)) as OnyxTypes.PersonalDetails[])
         : [];
     const displayNamesWithTooltips = isWhisper ? ReportUtils.getDisplayNamesWithTooltips(whisperedToPersonalDetails, isMultipleParticipant) : [];
 
@@ -993,7 +993,7 @@ function ReportActionItem({
                                             &nbsp;
                                         </Text>
                                         <DisplayNames
-                                            fullTitle={ReportUtils.getWhisperDisplayNames(whisperedToAccountIDs) ?? ''}
+                                            fullTitle={ReportUtils.getWhisperDisplayNames(whisperedTo) ?? ''}
                                             displayNamesWithTooltips={displayNamesWithTooltips}
                                             tooltipEnabled
                                             numberOfLines={1}
