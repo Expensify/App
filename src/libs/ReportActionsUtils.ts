@@ -282,29 +282,6 @@ function getSortedReportActions(reportActions: ReportAction[] | null, shouldSort
     return sortedActions;
 }
 
-function isOptimisticAction(reportAction: ReportAction) {
-    return (
-        !!reportAction.isOptimisticAction ||
-        reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD ||
-        reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
-    );
-}
-
-function shouldIgnoreGap(currentReportAction: ReportAction | undefined, nextReportAction: ReportAction | undefined) {
-    if (!currentReportAction || !nextReportAction) {
-        return false;
-    }
-    return (
-        isOptimisticAction(currentReportAction) ||
-        isOptimisticAction(nextReportAction) ||
-        !!getWhisperedTo(currentReportAction).length ||
-        !!getWhisperedTo(nextReportAction).length ||
-        currentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM ||
-        nextReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED ||
-        nextReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED
-    );
-}
-
 /**
  * Returns a sorted and filtered list of report actions from a report and it's associated child
  * transaction thread report in order to correctly display reportActions from both reports in the one-transaction report view.
@@ -326,6 +303,38 @@ function getCombinedReportActions(reportActions: ReportAction[], transactionThre
     return getSortedReportActions(filteredReportActions, true);
 }
 
+function hasNextContinuousAction(sortedReportActions: ReportAction[], index: number): boolean {
+    for (let i = index; i < sortedReportActions.length - 1; i++) {
+        // If we hit a gap marker, the action is in the gap and not continuous.
+        if (sortedReportActions[i].previousReportActionID === CONST.PAGINATION_GAP_ID) {
+            return false;
+        }
+        // If we hit an action with a previousReportActionID, the action is not in a gap and is continuous.
+        if (sortedReportActions[i].previousReportActionID !== undefined) {
+            return true;
+        }
+    }
+
+    // If we reach the end the action is in a gap and not continuous.
+    return false;
+}
+
+function hasPreviousContinuousAction(sortedReportActions: ReportAction[], index: number): boolean {
+    for (let i = index; i >= 0; i--) {
+        // If we hit a gap marker, the action is in the gap and not continuous.
+        if (sortedReportActions[i].previousReportActionID === CONST.PAGINATION_GAP_ID) {
+            return false;
+        }
+        // If we hit an action with a previousReportActionID, the action is not in a gap and is continuous.
+        if (sortedReportActions[i].previousReportActionID !== undefined) {
+            return true;
+        }
+    }
+
+    // If we reach the start the action is not in a gap and is continuous.
+    return true;
+}
+
 /**
  * Returns the largest gapless range of reportActions including a the provided reportActionID, where a "gap" is defined as a reportAction's `previousReportActionID` not matching the previous reportAction in the sortedReportActions array.
  * See unit tests for example of inputs and expected outputs.
@@ -336,8 +345,12 @@ function getContinuousReportActionChain(sortedReportActions: ReportAction[], id?
 
     if (id) {
         index = sortedReportActions.findIndex((reportAction) => reportAction.reportActionID === id);
+        // If we are linking to an action with no previousReportActionID in a gap just return it.
+        if (index >= 0 && sortedReportActions[index].previousReportActionID === undefined && !hasPreviousContinuousAction(sortedReportActions, index)) {
+            return [sortedReportActions[index]];
+        }
     } else {
-        index = sortedReportActions.findIndex((reportAction) => !isOptimisticAction(reportAction));
+        index = sortedReportActions.findIndex((reportAction) => reportAction.previousReportActionID !== undefined);
     }
 
     if (index === -1) {
@@ -351,19 +364,20 @@ function getContinuousReportActionChain(sortedReportActions: ReportAction[], id?
 
     // Iterate forwards through the array, starting from endIndex. i.e: newer to older
     // This loop checks the continuity of actions by comparing the current item's previousReportActionID with the next item's reportActionID.
-    // It ignores optimistic actions, whispers and InviteToRoom actions
     while (
-        (endIndex < sortedReportActions.length - 1 && sortedReportActions[endIndex].previousReportActionID === sortedReportActions[endIndex + 1].reportActionID) ||
-        shouldIgnoreGap(sortedReportActions[endIndex], sortedReportActions[endIndex + 1])
+        endIndex < sortedReportActions.length - 1 &&
+        sortedReportActions[endIndex].previousReportActionID !== CONST.PAGINATION_GAP_ID &&
+        (sortedReportActions[endIndex].previousReportActionID !== undefined || hasNextContinuousAction(sortedReportActions, endIndex))
     ) {
         endIndex++;
     }
 
     // Iterate backwards through the sortedReportActions, starting from startIndex. (older to newer)
-    // This loop ensuress continuity in a sequence of actions by comparing the current item's reportActionID with the previous item's previousReportActionID.
+    // This loop ensures continuity in a sequence of actions by comparing the current item's reportActionID with the previous item's previousReportActionID.
     while (
-        (startIndex > 0 && sortedReportActions[startIndex].reportActionID === sortedReportActions[startIndex - 1].previousReportActionID) ||
-        shouldIgnoreGap(sortedReportActions[startIndex], sortedReportActions[startIndex - 1])
+        startIndex > 0 &&
+        sortedReportActions[startIndex - 1].previousReportActionID !== CONST.PAGINATION_GAP_ID &&
+        (sortedReportActions[startIndex - 1].previousReportActionID !== undefined || hasPreviousContinuousAction(sortedReportActions, startIndex - 1))
     ) {
         startIndex--;
     }

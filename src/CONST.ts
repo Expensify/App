@@ -4777,6 +4777,8 @@ const CONST = {
     REFERRER: {
         NOTIFICATION: 'notification',
     },
+
+    PAGINATION_GAP_ID: '-1',
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
