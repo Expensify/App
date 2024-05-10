@@ -72,8 +72,8 @@ function getOrderedReportIDs(
     currentPolicyID = '',
     policyMemberAccountIDs: number[] = [],
 ): string[] {
-    const isInGSDMode = priorityMode === CONST.PRIORITY_MODE.GSD;
-    const isInDefaultMode = !isInGSDMode;
+    const isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
+    const isInDefaultMode = !isInFocusMode;
     const allReportsDictValues = Object.values(allReports ?? {});
 
     // Filter out all the reports that shouldn't be displayed
@@ -103,7 +103,7 @@ function getOrderedReportIDs(
         return ReportUtils.shouldReportBeInOptionList({
             report,
             currentReportId: currentReportId ?? '',
-            isInGSDMode,
+            isInFocusMode,
             betas,
             policies: policies as OnyxCollection<Policy>,
             excludeEmptyChats: true,
