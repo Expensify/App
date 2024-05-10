@@ -59,6 +59,9 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     );
 
     if (!optionItem) {
+        // rendering null as a render item causes the FlashList to render all
+        // its children and consume signficant memory. We can avoid this by
+        // rendering a placeholder view instead.
         return <View style={sidebarInnerRowStyle} />;
     }
 
