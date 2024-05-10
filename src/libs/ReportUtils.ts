@@ -2605,24 +2605,27 @@ function getLinkedTransaction(reportAction: OnyxEntry<ReportAction | OptimisticI
 /**
  * Check if any of the transactions in the report has required missing fields
  *
- * NOTE: On LHN preview we show RBR only to the user that made the request.
- * https://github.com/Expensify/App/issues/37044#issuecomment-1984922236
  */
-function hasMissingSmartscanFields(iouReportID: string, isLHNPreview?: boolean): boolean {
-    if (isLHNPreview) {
-        const reportActions = Object.values(ReportActionsUtils.getAllReportActions(iouReportID));
-        return reportActions.some((action) => {
-            if (!ReportActionsUtils.isMoneyRequestAction(action)) {
-                return false;
-            }
-            const transaction = getLinkedTransaction(action);
-            if (isEmptyObject(transaction)) {
-                return false;
-            }
-            return TransactionUtils.hasMissingSmartscanFields(transaction) && currentUserAccountID === action?.actorAccountID;
-        });
-    }
+function hasMissingSmartscanFields(iouReportID: string): boolean {
     return TransactionUtils.getAllReportTransactions(iouReportID).some((transaction) => TransactionUtils.hasMissingSmartscanFields(transaction));
+}
+
+/**
+ * Check if iouReportID has required missing fields
+ *
+ */
+function shouldShowRBRForMissingSmartscanFields(iouReportID: string): boolean {
+    const reportActions = Object.values(ReportActionsUtils.getAllReportActions(iouReportID));
+    return reportActions.some((action) => {
+        if (!ReportActionsUtils.isMoneyRequestAction(action)) {
+            return false;
+        }
+        const transaction = getLinkedTransaction(action);
+        if (isEmptyObject(transaction)) {
+            return false;
+        }
+        return TransactionUtils.hasMissingSmartscanFields(transaction) && currentUserAccountID === action?.actorAccountID;
+    });
 }
 
 /**
@@ -5757,7 +5760,10 @@ function hasSmartscanError(reportActions: ReportAction[], isLHNPreview: boolean)
             return false;
         }
         const IOUReportID = ReportActionsUtils.getIOUReportIDFromReportActionPreview(action);
-        const isReportPreviewError = ReportActionsUtils.isReportPreviewAction(action) && hasMissingSmartscanFields(IOUReportID, isLHNPreview) && !isSettled(IOUReportID);
+        const isReportPreviewError =
+            ReportActionsUtils.isReportPreviewAction(action) && isLHNPreview
+                ? shouldShowRBRForMissingSmartscanFields(IOUReportID)
+                : hasMissingSmartscanFields(IOUReportID) && !isSettled(IOUReportID);
         const transactionID = (action.originalMessage as IOUMessage).IOUTransactionID ?? '0';
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? {};
         const isSplitBillError = ReportActionsUtils.isSplitBillAction(action) && TransactionUtils.hasMissingSmartscanFields(transaction as Transaction);
@@ -6434,6 +6440,7 @@ export {
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
     shouldShowFlagComment,
+    shouldShowRBRForMissingSmartscanFields,
     shouldUseFullTitleToDisplay,
     sortReportsByLastRead,
     updateOptimisticParentReportAction,
