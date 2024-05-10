@@ -94,32 +94,28 @@ function useOptions({isGroupChat}: NewChatPageProps) {
         if (!newGroupDraft?.participants) {
             return;
         }
-        const selectedParticipants: OptionData[] = [];
-        newGroupDraft.participants.forEach((p) => {
-            if (p.accountID === personalData.accountID) {
+        const newSelectedOptions: OptionData[] = [];
+        newGroupDraft.participants.forEach((participant) => {
+            if (participant.accountID === personalData.accountID) {
                 return;
             }
-            const participant = listOptions.personalDetails.find((option) => option.accountID === p.accountID);
-            if (participant) {
-                selectedParticipants.push(participant);
+            let participantOption: OptionData | undefined | null = listOptions.personalDetails.find((option) => option.accountID === participant.accountID);
+            if (!participantOption) {
+                participantOption = OptionsListUtils.getUserToInviteOption({
+                    searchValue: participant.login,
+                    betas,
+                });
+            }
+            if (!participantOption) {
                 return;
             }
-            const userToInvite = OptionsListUtils.getUserToInviteOption({
-                searchValue: p.login,
-                betas,
+            newSelectedOptions.push({
+                ...participantOption,
+                isSelected: true,
             });
-            if (!userToInvite) {
-                return;
-            }
-            selectedParticipants.push(userToInvite);
         });
-        const newSelectedOptions = selectedParticipants.map((participant) => ({
-            ...participant,
-            reportID: participant?.reportID ?? '',
-            isSelected: true,
-        }));
         setSelectedOptions(newSelectedOptions);
-    }, [newGroupDraft, listOptions.personalDetails, betas, personalData]);
+    }, [newGroupDraft?.participants, listOptions.personalDetails, betas, personalData.accountID]);
 
     return {...options, searchTerm, debouncedSearchTerm, setSearchTerm, areOptionsInitialized: areOptionsInitialized && didScreenTransitionEnd, selectedOptions, setSelectedOptions};
 }
