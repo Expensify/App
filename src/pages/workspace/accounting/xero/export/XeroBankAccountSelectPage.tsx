@@ -44,14 +44,14 @@ function XeroBankAccountSelectPage({policy}: WithPolicyConnectionsProps) {
 
     const initiallyFocusedOptionKey = useMemo(() => xeroSelectorOptions?.find((mode) => mode.isSelected)?.keyForList, [xeroSelectorOptions]);
 
-    const updateMode = useCallback(
+    const updateBankAccount = useCallback(
         ({value}: SelectorType) => {
             if (initiallyFocusedOptionKey !== value) {
                 Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.EXPORT, {
                     nonReimbursableAccount: value,
                 });
             }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID));
+            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID));
         },
         [policyID, initiallyFocusedOptionKey],
     );
@@ -64,7 +64,7 @@ function XeroBankAccountSelectPage({policy}: WithPolicyConnectionsProps) {
             displayName={XeroBankAccountSelectPage.displayName}
             sections={[{data: xeroSelectorOptions}]}
             listItem={RadioListItem}
-            onSelectRow={updateMode}
+            onSelectRow={updateBankAccount}
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
             headerContent={listHeaderComponent}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID))}
