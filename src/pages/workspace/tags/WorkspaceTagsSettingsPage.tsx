@@ -13,6 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Policy from '@libs/actions/Policy';
 import Navigation from '@libs/Navigation/Navigation';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -32,6 +33,8 @@ function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPag
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyTagName = useMemo(() => PolicyUtils.getTagLists(policyTags)?.[0]?.name ?? '', [policyTags]);
+    const hasEnabledOptions = OptionsListUtils.hasEnabledOptions(Object.values(policyTags ?? {}).flatMap(({tags}) => Object.values(tags)));
+    console.log('hasEnabledOptions', hasEnabledOptions);
 
     const updateWorkspaceRequiresTag = useCallback(
         (value: boolean) => {
@@ -65,6 +68,7 @@ function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPag
                                         isOn={policy?.requiresTag ?? false}
                                         accessibilityLabel={translate('workspace.tags.requiresTag')}
                                         onToggle={updateWorkspaceRequiresTag}
+                                        disabled={!policy?.areTagsEnabled || !hasEnabledOptions}
                                     />
                                 </View>
                             </View>
