@@ -14,7 +14,7 @@ import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import SelectionList from './SelectionList';
-import SearchTableHeader from './SelectionList/SearchTableHeader';
+import SearchTableHeader from './SelectionList/Search/SearchTableHeader';
 import TableListItemSkeleton from './Skeletons/TableListItemSkeleton';
 
 type SearchProps = {

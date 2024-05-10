@@ -18,8 +18,8 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 import type {SearchPersonalDetails, SearchPolicyDetails, SearchTransactionType} from '@src/types/onyx/SearchResults';
-import BaseListItem from './BaseListItem';
-import type {ListItem, TransactionListItemProps, TransactionListItemType} from './types';
+import BaseListItem from '@components/SelectionList/BaseListItem';
+import type {ListItem, TransactionListItemProps, TransactionListItemType} from '@components/SelectionList/types';
 
 const getTypeIcon = (type?: SearchTransactionType) => {
     switch (type) {

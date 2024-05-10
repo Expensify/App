@@ -245,6 +245,8 @@ type TableListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
+type ReportListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+
 type ValidListItem = typeof RadioListItem | typeof UserListItem | typeof TableListItem | typeof InviteMemberListItem | typeof TransactionListItem;
 
 type Section<TItem extends ListItem> = {
@@ -451,4 +453,5 @@ export type {
     UserListItemProps,
     ValidListItem,
     TransactionListItemType,
+    ReportListItemProps,
 };
