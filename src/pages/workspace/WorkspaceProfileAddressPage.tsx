@@ -21,14 +21,15 @@ function WorkspaceProfileAddressPage({policy}: WorkspaceProfileAddressPageProps)
     const address: Address = useMemo(() => {
         const tempAddress = policy?.address;
         const [street1, street2] = (tempAddress?.addressStreet ?? '').split('\n');
-        return {
-            street: street1.trim() ?? '',
+        const result = {
+            street: street1?.trim() ?? '',
             street2: street2?.trim() ?? '',
-            city: address?.city?.trim() ?? '',
-            state: address?.state?.trim() ?? '',
-            zipCode: address?.zipPostCode?.trim().toUpperCase() ?? '',
-            country: address?.country,
+            city: tempAddress?.city?.trim() ?? '',
+            state: tempAddress?.state?.trim() ?? '',
+            zip: tempAddress?.zipCode?.trim().toUpperCase() ?? '',
+            country: tempAddress?.country ?? '',
         };
+        return result;
     }, [policy]);
 
     const updatePolicyAddress = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>) => {
