@@ -1,9 +1,12 @@
+import type {RouteProp} from '@react-navigation/native';
 import {useRoute} from '@react-navigation/native';
 import {truncate} from 'lodash';
 import lodashSortBy from 'lodash/sortBy';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import ConfirmedRoute from '@components/ConfirmedRoute';
 import Icon from '@components/Icon';
@@ -24,6 +27,8 @@ import ControlSelection from '@libs/ControlSelection';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as IOUUtils from '@libs/IOUUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -35,7 +40,9 @@ import * as Report from '@userActions/Report';
 import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type {Transaction as OnyxTransaction} from '@src/types/onyx';
 import type {IOUMessage} from '@src/types/onyx/OriginalMessage';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -105,8 +112,11 @@ function MoneyRequestPreviewContent({
     const isFullyApproved = ReportUtils.isReportApproved(iouReport) && !isSettlementOrApprovalPartial;
     const shouldShowRBR = hasNoticeTypeViolations || hasViolations || hasFieldErrors || (!isFullySettled && !isFullyApproved && isOnHold);
 
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params?.threadReportID as string}`);
+    const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
+    const reviewingTransactionID = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction?.originalMessage.IOUTransactionID ?? '0' : '0';
     const duplicates =
-        transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`]?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)
+        transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${reviewingTransactionID}`]?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)
             ?.data?.duplicates ?? [];
 
     /*
@@ -234,6 +244,71 @@ function MoneyRequestPreviewContent({
                 IOUUtils.calculateAmount(isPolicyExpenseChat ? 1 : participantAccountIDs.length - 1, requestAmount, requestCurrency ?? '', action.actorAccountID === sessionAccountID)),
         [shouldShowSplitShare, isPolicyExpenseChat, action.actorAccountID, participantAccountIDs.length, transaction?.comment?.splits, requestAmount, requestCurrency, sessionAccountID],
     );
+
+    type FieldsToCompare = Record<string, Array<keyof OnyxTransaction>>;
+
+    const compareFields = (transactions: Array<OnyxEntry<OnyxTransaction>>, fields: FieldsToCompare) => {
+        const keep: Record<string, any> = {};
+        const change: Record<string, any[]> = {};
+
+        for (const fieldName in fields) {
+            if (Object.prototype.hasOwnProperty.call(fields, fieldName)) {
+                const keys = fields[fieldName];
+                const firstTransaction = transactions[0];
+
+                if (transactions.every((item) => keys.every((key) => item && key in item && item[key] === firstTransaction?.[key]))) {
+                    keep[fieldName] = firstTransaction?.[keys[0]];
+                } else {
+                    const differentValues = transactions
+                        .map((item) => keys.map((key) => item?.[key]))
+                        .flat()
+                        .filter(Boolean);
+
+                    if (differentValues.length > 0) {
+                        change[fieldName] = differentValues;
+                    }
+                }
+            }
+        }
+
+        return {keep, change};
+    };
+
+    const navigateToReviewFields = () => {
+        const fieldsToCompare: FieldsToCompare = {
+            merchant: ['modifiedMerchant', 'merchant'],
+            category: ['category'],
+            tag: ['tag'],
+            description: ['comment'],
+            taxCode: ['taxCode'],
+            billable: ['billable'],
+            reimbursable: ['reimbursable'],
+        };
+        const transactions = [reviewingTransactionID, ...duplicates].map((item) => TransactionUtils.getTransaction(item));
+        const comparisonResult = compareFields(transactions, fieldsToCompare);
+
+        console.log('transactions', transactions);
+        console.log(comparisonResult);
+
+        Transaction.setReviewDuplicatesKey(transaction?.transactionID ?? '', {...comparisonResult.keep, duplicates});
+
+        if ('merchant' in comparisonResult.change) {
+            console.log('navigate to merchant');
+            Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE.getRoute(route.params?.threadReportID));
+        } else if ('category' in comparisonResult.change) {
+            console.log('navigate to category');
+            Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_CATEGORY_PAGE.getRoute(route.params?.threadReportID));
+        } else if ('tag' in comparisonResult.change) {
+            console.log('navigate to tag');
+            Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAG_PAGE.getRoute(route.params.threadReportID));
+        } else if ('description' in comparisonResult.change) {
+            console.log('navigate to description');
+            Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION_PAGE.getRoute(route.params.threadReportID));
+        } else {
+            console.log('navigate to summary');
+            // Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_SUMMARY_PAGE.getRoute(route.params.threadReportID));
+        }
+    };
 
     const childContainer = (
         <View>
@@ -370,9 +445,7 @@ function MoneyRequestPreviewContent({
                     success
                     medium
                     style={styles.p2}
-                    onPress={() => {
-                        Transaction.setReviewDuplicatesKey(transaction?.transactionID ?? '', duplicates);
-                    }}
+                    onPress={navigateToReviewFields}
                 />
             )}
         </PressableWithoutFeedback>

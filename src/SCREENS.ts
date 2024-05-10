@@ -180,10 +180,13 @@ const SCREENS = {
 
     TRANSACTION_DUPLICATE: {
         REVIEW: 'Transaction_Duplicate_Review',
-        // MERCHANT: 'Transaction_Duplicate_Merchant',
-        // CATEGORY: 'Transaction_Duplicate_Category',
-        // TAG: 'Transaction_Duplicate_Tag',
-        // DESCRIPTION: 'Transaction_Duplicate_Description',
+        MERCHANT: 'Transaction_Duplicate_Merchant',
+        CATEGORY: 'Transaction_Duplicate_Category',
+        TAG: 'Transaction_Duplicate_Tag',
+        DESCRIPTION: 'Transaction_Duplicate_Description',
+        TAX_RATE: 'Transaction_Duplicate_Tax_Rate',
+        BILLABLE: 'Transaction_Duplicate_Billable',
+        REIMBURSABLE: 'Transaction_Duplicate_Reimburable',
         // CONFIRM: 'Transaction_Duplicate_Confirm',
     },
 

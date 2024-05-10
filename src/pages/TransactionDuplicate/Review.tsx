@@ -31,6 +31,8 @@ function TransactionDuplicateReview() {
         [transactionViolations],
     );
 
+    console.log('transactionID', transactionID);
+
     const transactions = [transactionID, ...duplicateTransactionIDs].map((item) => TransactionUtils.getTransaction(item)).sort((a, b) => new Date(a.created) - new Date(b.created));
 
     const keepAll = () => {
@@ -41,7 +43,7 @@ function TransactionDuplicateReview() {
     return (
         <ScreenWrapper testID={TransactionDuplicateReview.displayName}>
             <HeaderWithBackButton title="Review duplicates" />
-            <View style={[styles.justifyContentCenter, styles.pt3, styles.pl2, styles.pb4, styles.pr2, styles.borderBottom]}>
+            <View style={[styles.justifyContentCenter, styles.pl2, styles.pb4, styles.pr2, styles.borderBottom]}>
                 <Button
                     text="Keep all"
                     onPress={keepAll}
