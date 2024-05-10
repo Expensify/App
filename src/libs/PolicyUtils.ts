@@ -131,8 +131,8 @@ function isExpensifyTeam(email: string | undefined): boolean {
 /**
  * Checks if the current user is an admin of the policy.
  */
-const isPolicyAdmin = (policy: OnyxEntry<Policy> | EmptyObject): boolean => policy?.role === CONST.POLICY.ROLE.ADMIN;
-
+const isPolicyAdmin = (policy: OnyxEntry<Policy> | EmptyObject): boolean =>
+    policy?.role === CONST.POLICY.ROLE.ADMIN || policy?.employeeList?.[policy?.owner]?.role === CONST.POLICY.ROLE.ADMIN;
 /**
  * Checks if the policy is a free group policy.
  */
