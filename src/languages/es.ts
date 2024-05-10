@@ -2419,11 +2419,11 @@ export default {
             sendFrom: 'Enviar desde',
             paymentMethods: {
                 personal: 'Personal',
-                business: 'Business',
-                chooseInvoiceMethod: 'Choose a payment method below:',
-                addBankAccount: 'Add bank account',
-                payingAsIndividual: 'Paying as an individual',
-                payingAsBusiness: 'Paying as a business',
+                business: 'Empresas',
+                chooseInvoiceMethod: 'Elija un método de pago:',
+                addBankAccount: 'Añadir cuenta bancaria',
+                payingAsIndividual: 'Pago individual',
+                payingAsBusiness: 'Pagar como una empresa',
             },
         },
         travel: {
