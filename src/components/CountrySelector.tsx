@@ -1,4 +1,3 @@
-import type {ParamListBase, RouteProp} from '@react-navigation/native';
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import React, {forwardRef, useEffect, useRef} from 'react';
 import type {ForwardedRef} from 'react';
@@ -12,9 +11,6 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import FormHelpMessage from './FormHelpMessage';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
-
-// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
-type CustomParamList = ParamListBase & Record<string, Record<string, string>>;
 
 type CountrySelectorProps = {
     /** Form error text. e.g when no country is selected */
@@ -37,8 +33,8 @@ type CountrySelectorProps = {
 function CountrySelector({errorText = '', value: countryCode, onInputChange = () => {}, onBlur}: CountrySelectorProps, ref: ForwardedRef<View>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const route = useRoute<RouteProp<CustomParamList, string>>();
-    const countryFromUrlTemp = route?.params?.country;
+    const route = useRoute();
+    const countryFromUrlTemp = (route?.params as Record<string, string>)?.country;
     // Check if country is valid
     const countryFromUrl = CONST.ALL_COUNTRIES[countryFromUrlTemp as keyof typeof CONST.ALL_COUNTRIES] ? countryFromUrlTemp : '';
 
