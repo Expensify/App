@@ -3633,7 +3633,7 @@ function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string,
     }
 
     // Otherwise, create a new 1:1 chat report
-    const splitChatReport = ReportUtils.buildOptimisticChatReport(allParticipantsAccountIDs);
+    const splitChatReport = ReportUtils.buildOptimisticChatReport(participantAccountIDs);
     return {existingSplitChatReport: null, splitChatReport};
 }
 
