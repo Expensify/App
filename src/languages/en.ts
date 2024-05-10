@@ -2060,7 +2060,36 @@ export default {
                 xeroBillPaymentAccount: 'Xero Bill Payment Account',
                 xeroInvoiceCollectionAccount: 'Xero Invoice Collections Account',
                 invoiceAccountSelectorDescription: "As you've enabled exporting invoices from Expensify to Xero, this is the account the invoice will appear against once marked as paid.",
+                xeroBillPaymentAccountDescription:
+                    "As you've enabled sync reimbursed reports, you will need to select the bank account your reimbursements are coming out of, and we'll create the payment in Xero.",
             },
+            exportDate: {
+                label: 'Export date',
+                description: 'Use this date when exporting reports to Xero.',
+                values: {
+                    [CONST.QUICKBOOKS_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Date of last expense',
+                        description: 'The date of the most recent expense on the report',
+                    },
+                    [CONST.QUICKBOOKS_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'Export date',
+                        description: 'The date the report was exported to Xero',
+                    },
+                    [CONST.QUICKBOOKS_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Submitted date',
+                        description: 'The date the report was submitted for approval',
+                    },
+                },
+            },
+            invoiceStatus: {
+                values: {
+                    [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_PAYMENT]: 'Authorised',
+                    [CONST.XERO_CONFIG.INVOICE_STATUS.DRAFT]: 'Draft',
+                    [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_APPROVAL]: 'Submitted',
+                },
+            },
+            exportPreferredExporterNote: 'This can be any workspace admin, but must be a domain admin if you set different export accounts for individual company cards in domain settings.',
+            exportPreferredExporterSubNote: 'Once set, the preferred exporter will see reports for export in their account.',
         },
         type: {
             free: 'Free',

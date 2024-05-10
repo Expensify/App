@@ -24,7 +24,9 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const menuItems: MenuItem[] = [
         {
             description: translate('workspace.xero.preferredExporter'),
-            onPress: () => {},
+            onPress: () => {
+                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_PREFERRED_EXPORTER_SELECT.getRoute(policyID));
+            },
             brickRoadIndicator: errorFields?.exporter ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: exportConfiguration?.exporter ?? policyOwner,
             pendingAction: pendingFields?.export,
@@ -39,15 +41,16 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
         },
         {
             description: translate('workspace.xero.purchaseBillDate'),
+            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT_PURCHASE_BILL_DATE_SELECT.getRoute(policyID)),
             brickRoadIndicator: errorFields?.billDate ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-            title: exportConfiguration?.billDate,
+            title: exportConfiguration?.billDate ? translate(`workspace.xero.exportDate.values.${exportConfiguration.billDate}.label`) : undefined,
             pendingAction: pendingFields?.export,
             error: errorFields?.billDate ? translate('common.genericErrorMessage') : undefined,
         },
         {
             description: translate('workspace.xero.advancedConfig.purchaseBillStatusTitle'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_BILL_STATUS_SELECTOR.getRoute(policyID)),
-            title: exportConfiguration?.billStatus?.purchase,
+            title: exportConfiguration?.billStatus?.purchase ? translate(`workspace.xero.invoiceStatus.values.${exportConfiguration.billStatus.purchase}`) : undefined,
             pendingAction: pendingFields?.export,
             error: errorFields?.purchase ? translate('common.genericErrorMessage') : undefined,
         },
