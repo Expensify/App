@@ -1,8 +1,8 @@
-import CONST from '@src/CONST';
-import type {ConnectionName} from '@src/types/onyx/Policy';
 import '@formatjs/intl-locale/polyfill';
 import '@formatjs/intl-pluralrules/locale-data/es';
 import '@formatjs/intl-pluralrules/polyfill';
+import CONST from '@src/CONST';
+import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {
     AddressLineParams,
     AdminCanceledRequestParams,
@@ -106,8 +106,6 @@ import type {
     WeSentYouMagicSignInLinkParams,
     ZipCodeExampleFormatParams,
 } from './types';
-
-const esPluralRules = new Intl.PluralRules('es', {type: 'ordinal'});
 
 /* eslint-disable max-len */
 export default {
@@ -657,18 +655,10 @@ export default {
         //     one: `${count} gasto${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}${pendingReceipts > 0 ? `, ${pendingReceipts} pendiente` : ''}`,
         //     other: `${count} gastos${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}${pendingReceipts > 0 ? `, ${pendingReceipts} pendiente` : ''}`,
         // }),
-        expenseCount: ({count, scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) => {
-            const pluralForm = esPluralRules.select(count);
-
-            switch (pluralForm) {
-                case 'one':
-                    return `${count} gasto${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}${pendingReceipts > 0 ? `, ${pendingReceipts} pendiente` : ''}`;
-                case 'other':
-                    return `${count} gastos${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}${pendingReceipts > 0 ? `, ${pendingReceipts} pendiente` : ''}`;
-                default:
-                    return '';
-            }
-        },
+        expenseCount: (count: number, {scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) => ({
+                one: `${count} gasto${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}${pendingReceipts > 0 ? `, ${pendingReceipts} pendiente` : ''}`,
+                other: `${count} gastos${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}${pendingReceipts > 0 ? `, ${pendingReceipts} pendiente` : ''}`
+        }),
         deleteExpense: 'Eliminar gasto',
         deleteConfirmation: '¿Estás seguro de que quieres eliminar esta solicitud?',
         settledExpensify: 'Pagado',

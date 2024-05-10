@@ -99,7 +99,6 @@ type ReportArchiveReasonsPolicyDeletedParams = {
 };
 
 type RequestCountParams = {
-    count: number;
     scanningReceipts: number;
     pendingReceipts: number;
 };
@@ -256,7 +255,7 @@ type TaskCreatedActionParams = {title: string};
 
 /* Translation Object types */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type TranslationBaseValue = string | string[] | ((...args: any[]) => string);
+type TranslationBaseValue = string | string[] | ((...args: any[]) => string) | ((count: number, ...args: any[]) => Record<Intl.LDMLPluralRule, string>);
 
 type TranslationBase = {[key: string]: TranslationBaseValue | TranslationBase};
 

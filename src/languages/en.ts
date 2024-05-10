@@ -2,11 +2,6 @@ import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {ConnectionName} from '@src/types/onyx/Policy';
-
-import '@formatjs/intl-locale/polyfill';
-import '@formatjs/intl-pluralrules/polyfill';
-import '@formatjs/intl-pluralrules/locale-data/en';
-
 import type {
     AddressLineParams,
     AdminCanceledRequestParams,
@@ -118,8 +113,6 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 
 type AllCountries = Record<Country, string>;
-
-const enPluralRules = new Intl.PluralRules('en-US', {type: 'ordinal'});
 
 /* eslint-disable max-len */
 export default {
@@ -663,16 +656,10 @@ export default {
         receiptStatusText: "Only you can see this receipt when it's scanning. Check back later or enter the details now.",
         receiptScanningFailed: 'Receipt scanning failed. Enter the details manually.',
         transactionPendingText: 'It takes a few days from the date the card was used for the transaction to post.',
-        expenseCount: ({count, scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) => {
-            const pluralForm = enPluralRules.select(count);
-
-            switch (pluralForm) {
-                case 'one':
-                    return `${count} expense${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}${pendingReceipts > 0 ? `, ${pendingReceipts} pending` : ''}`;
-                default:
-                    return `${count} expenses${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}${pendingReceipts > 0 ? `, ${pendingReceipts} pending` : ''}`;
-            }
-        },
+        expenseCount: (count: number, {scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) => ({
+            zero: `${count} expenses${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}${pendingReceipts > 0 ? `, ${pendingReceipts} pending` : ''}`,
+            one: `${count} expense${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}${pendingReceipts > 0 ? `, ${pendingReceipts} pending` : ''}`,
+        }),
         deleteExpense: 'Delete expense',
         deleteConfirmation: 'Are you sure that you want to delete this expense?',
         settledExpensify: 'Paid',
@@ -1902,17 +1889,11 @@ export default {
             testTransactions: 'Test transactions',
             issueAndManageCards: 'Issue and manage cards',
             reconcileCards: 'Reconcile cards',
-            selected: ({selectedNumber}: CommonSelectedParams) => {
-                const pluralForm = enPluralRules.select(selectedNumber);
-                switch (pluralForm) {
-                    case 'one':
-                        return `${selectedNumber} selected`;
-                    case 'other':
-                        return `${selectedNumber} selected`;
-                    default:
-                        return `${selectedNumber} selected`;
-                }
-            },
+            selected: (count: number) => ({
+                zero: `${count} selected`,
+                one: `${count} selected`,
+                other: `${count} selected`,
+            }),
             settlementFrequency: 'Settlement frequency',
             deleteConfirmation: 'Are you sure you want to delete this workspace?',
             unavailable: 'Unavailable workspace',
@@ -2422,50 +2403,25 @@ export default {
             centrallyManage: 'Centrally manage rates, choose to track in miles or kilometers, and set a default category.',
             rate: 'Rate',
             addRate: 'Add rate',
-            deleteRates: ({count}: DistanceRateOperationsParams) => {
-                const pluralForm = enPluralRules.select(count);
-                switch (pluralForm) {
-                    case 'one':
-                        return `Delete ${count} rate`;
-                    case 'other':
-                        return `Delete ${count} rates`;
-                    default:
-                        return `Delete ${count} rates`;
-                }
-            },
-            enableRates: ({count}: DistanceRateOperationsParams) => {
-                const pluralForm = enPluralRules.select(count);
-                switch (pluralForm) {
-                    case 'one':
-                        return `Enable ${count} rate`;
-                    case 'other':
-                        return `Enable ${count} rates`;
-                    default:
-                        return `Enable ${count} rates`;
-                }
-            },
-            disableRates: ({count}: DistanceRateOperationsParams) => {
-                const pluralForm = enPluralRules.select(count);
-                switch (pluralForm) {
-                    case 'one':
-                        return `Disable ${count} rate`;
-                    case 'other':
-                        return `Disable ${count} rates`;
-                    default:
-                        return `Disable ${count} rates`;
-                }
-            },
-            areYouSureDelete: ({count}: DistanceRateOperationsParams) => {
-                const pluralForm = enPluralRules.select(count);
-                switch (pluralForm) {
-                    case 'one':
-                        return `Are you sure you want to delete this ${count} rate?`;
-                    case 'other':
-                        return `Are you sure you want to delete these ${count} rates?`;
-                    default:
-                        return `Are you sure you want to delete these ${count} rates?`;
-                }
-            },
+            deleteRates: (count: number) => ({
+                zero: `Delete ${count} rates`,
+                one: `Delete ${count} rate`,
+                other: `Delete ${count} rates`,
+            }),
+            enableRates: (count: number) => ({
+                one: `Enable ${count} rate`,
+                other: `Enable ${count} rates`,
+            }),
+            
+            disableRates: (count: number) => ({
+                one: `Disable ${count} rate`,
+                other: `Disable ${count} rates`,
+            }),
+            
+            areYouSureDelete: (count: number) => ({
+                one: `Are you sure you want to delete this ${count} rate?`,
+                other: `Are you sure you want to delete these ${count} rates?`,
+            }),
             enableRate: 'Enable rate',
             status: 'Status',
             unit: 'Unit',

@@ -233,8 +233,7 @@ function ReportPreview({
             return {supportText: formattedDescription ?? moneyRequestComment};
         }
         return {
-            supportText: translate('iou.expenseCount', {
-                count: numberOfRequests - numberOfScanningReceipts - numberOfPendingRequests,
+            supportText: translate('iou.expenseCount', numberOfRequests - numberOfScanningReceipts - numberOfPendingRequests, {
                 scanningReceipts: numberOfScanningReceipts,
                 pendingReceipts: numberOfPendingRequests,
             }),

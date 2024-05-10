@@ -47,7 +47,8 @@ function init() {
     }, {});
 }
 
-type PhraseParameters<T> = T extends (...args: infer A) => string ? A : never[];
+type PluralFormValue = string | ((count: number) => string);
+type PhraseParameters<T> = T extends (count: number, ...args: infer A) => string ? [number, ...A] : [];
 type Phrase<TKey extends TranslationPaths> = TranslationFlatObject[TKey] extends (...args: infer A) => unknown ? (...args: A) => string : string;
 
 /**
@@ -120,10 +121,25 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
     }
 
     const translatedPhrase = translations?.[language]?.[phraseKey] as Phrase<TKey>;
+    const pluralRules = new Intl.PluralRules(language, {type: 'ordinal'});
 
     if (translatedPhrase) {
         if (typeof translatedPhrase === 'function') {
             return translatedPhrase(...phraseParameters);
+        }
+
+        const count = phraseParameters[0];
+        if (typeof translatedPhrase === 'object' && count) {
+            const pluralForm = pluralRules.select(count);
+            const pluralFormValue = translatedPhrase[pluralForm] as PluralFormValue;
+
+            if (typeof pluralFormValue === 'string') {
+                return pluralFormValue;
+            }
+
+            if (typeof pluralFormValue === 'function') {
+                return pluralFormValue(count);
+            }
         }
 
         // We set the translated value in the cache only for the phrases without parameters.
@@ -217,7 +233,7 @@ function translateIfPhraseKey(message: MaybePhraseKey | ReceiptError): string | 
             return phrase;
         }
 
-        return translateLocal(phrase as TranslationPaths, variables as never);
+        return translateLocal(phrase as TranslationPaths);
     } catch (error) {
         return Array.isArray(message) ? message[0] : message;
     }
