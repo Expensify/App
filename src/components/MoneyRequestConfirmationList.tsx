@@ -510,9 +510,9 @@ function MoneyRequestConfirmationList({
     }, [transaction?.splitShares]);
 
     const SplitAmountSectionHeader = useCallback(
-        ({section}: {section: SectionWithIndexOffset<IouListItem>}) => (
+        (sectionWithIndex: {section: SectionWithIndexOffset<IouListItem>}) => (
             <View style={[styles.optionsListSectionHeader, styles.flexRow, styles.justifyContentBetween]}>
-                <Text style={[styles.ph5, styles.textLabelSupporting]}>{section.title}</Text>
+                <Text style={[styles.ph5, styles.textLabelSupporting]}>{sectionWithIndex.section.title}</Text>
                 {!shouldShowReadOnlySplits && isSplitModified && (
                     <PressableWithFeedback
                         onPress={() => IOU.resetSplitShares(transaction)}
@@ -674,13 +674,8 @@ function MoneyRequestConfirmationList({
     /**
      * Navigate to report details or profile of selected user
      */
-    const navigateToReportOrUserDetail = (option: ReportUtils.OptionData) => {
+    const navigateToReportOrUserDetail = (option: IouListItem) => {
         const activeRoute = Navigation.getActiveRouteWithoutParams();
-
-        if (option.isSelfDM) {
-            Navigation.navigate(ROUTES.PROFILE.getRoute(currentUserPersonalDetails.accountID, activeRoute));
-            return;
-        }
 
         if (option.accountID) {
             Navigation.navigate(ROUTES.PROFILE.getRoute(option.accountID, activeRoute));
