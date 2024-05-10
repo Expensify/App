@@ -26,7 +26,7 @@ export default function TextWithIconCell({icon, text, showTooltip}: TextWithIcon
             shouldRender={showTooltip}
             text={text}
         >
-            <View style={[styles.flexRow, styles.flex1, styles.gap1]}>
+            <View style={[styles.flexRow, styles.flexShrink1, styles.gap1]}>
                 <Icon
                     src={icon}
                     fill={theme.icon}
