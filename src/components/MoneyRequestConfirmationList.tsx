@@ -100,9 +100,6 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     /** Callback to parent modal to pay someone */
     onSendMoney?: (paymentMethod: PaymentMethodType | undefined) => void;
 
-    /** Should we request a single or multiple participant selection from user */
-    hasMultipleParticipants: boolean;
-
     /** IOU amount */
     iouAmount: number;
 
@@ -205,7 +202,6 @@ function MoneyRequestConfirmationList({
     policyTags,
     iouCurrencyCode,
     iouMerchant,
-    hasMultipleParticipants,
     selectedParticipants: selectedParticipantsProp,
     payeePersonalDetails: payeePersonalDetailsProp,
     isReadOnly = false,
@@ -461,6 +457,10 @@ function MoneyRequestConfirmationList({
     const shouldShowReadOnlySplits = useMemo(() => isPolicyExpenseChat || isReadOnly || isScanRequest, [isPolicyExpenseChat, isReadOnly, isScanRequest]);
 
     const splitParticipants = useMemo(() => {
+        if (!isTypeSplit) {
+            return [];
+        }
+
         const payeeOption = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails);
         if (shouldShowReadOnlySplits) {
             return [payeeOption, ...selectedParticipants].map((participantOption: Participant) => {
@@ -513,6 +513,7 @@ function MoneyRequestConfirmationList({
             ),
         }));
     }, [
+        isTypeSplit,
         payeePersonalDetails,
         shouldShowReadOnlySplits,
         currencyList,
@@ -575,7 +576,7 @@ function MoneyRequestConfirmationList({
 
     const sections = useMemo(() => {
         const options: Array<SectionListDataType<MoneyRequestConfirmationListItem>> = [];
-        if (hasMultipleParticipants) {
+        if (isTypeSplit) {
             options.push(
                 ...[
                     {
@@ -605,7 +606,7 @@ function MoneyRequestConfirmationList({
         }
 
         return options;
-    }, [hasMultipleParticipants, translate, payeePersonalDetails, getSplitSectionHeader, splitParticipants, selectedParticipants]);
+    }, [isTypeSplit, translate, payeePersonalDetails, getSplitSectionHeader, splitParticipants, selectedParticipants]);
 
     useEffect(() => {
         if (!isDistanceRequest || isMovingTransactionFromTrackExpense) {
