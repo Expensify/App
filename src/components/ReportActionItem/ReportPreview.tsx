@@ -1,3 +1,4 @@
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import React, {useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -20,7 +21,6 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
-import * as ReportActionUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
@@ -120,7 +120,6 @@ function ReportPreview({
     const {totalDisplaySpend, reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(iouReport);
 
     const iouSettled = ReportUtils.isSettled(iouReportID);
-    const numberOfRequests = ReportActionUtils.getNumberOfMoneyRequests(action);
     const moneyRequestComment = action?.childLastMoneyRequestComment ?? '';
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
     const isOpenExpenseReport = isPolicyExpenseChat && ReportUtils.isOpenExpenseReport(iouReport);
@@ -128,6 +127,7 @@ function ReportPreview({
     const isApproved = ReportUtils.isReportApproved(iouReport);
     const canAllowSettlement = ReportUtils.hasUpdatedTotal(iouReport, policy);
     const allTransactions = TransactionUtils.getAllReportTransactions(iouReportID);
+    const numberOfRequests = allTransactions.length;
     const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(iouReportID);
     const numberOfScanningReceipts = transactionsWithReceipts.filter((transaction) => TransactionUtils.isReceiptBeingScanned(transaction)).length;
     const numberOfPendingRequests = transactionsWithReceipts.filter((transaction) => TransactionUtils.isPending(transaction) && TransactionUtils.isCardTransaction(transaction)).length;
@@ -226,11 +226,15 @@ function ReportPreview({
     const shouldShowSubtitle = !isScanning && (shouldShowSingleRequestMerchantOrDescription || numberOfRequests > 1);
 
     const {supportText} = useMemo(() => {
-        if (formattedMerchant) {
-            return {supportText: formattedMerchant};
+        if (formattedMerchant && formattedMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT) {
+            return {isSupportTextHtml: false, supportText: formattedMerchant};
         }
         if (formattedDescription ?? moneyRequestComment) {
-            return {supportText: formattedDescription ?? moneyRequestComment};
+            const parsedSubtitle = new ExpensiMark().replace(formattedDescription ?? moneyRequestComment);
+            return {isSupportTextHtml: !!parsedSubtitle, supportText: parsedSubtitle};
+        }
+        if (formattedMerchant === CONST.TRANSACTION.DEFAULT_MERCHANT) {
+            return {isSupportTextHtml: false, supportText: formattedMerchant};
         }
         return {
             supportText: translate('iou.expenseCount', {
