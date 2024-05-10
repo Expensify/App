@@ -10,7 +10,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SelectedTagOption} from '@components/TagPicker';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import ONYXKEYS from '@src/ONYXKEYS';
+import ONYXKEYS, {OnyxCollectionKey} from '@src/ONYXKEYS';
 import type {
     Beta,
     Login,
@@ -262,32 +262,47 @@ Onyx.connect({
 
 const lastReportActions: ReportActions = {};
 const allSortedReportActions: Record<string, ReportAction[]> = {};
-const allReportActions: Record<string, ReportActions | null> = {};
+let allReportActions: OnyxCollection<ReportActions>;
 const visibleReportActionItems: ReportActions = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    callback: (actions, key) => {
-        if (!key || !actions) {
+    waitForCollectionCallback: true,
+    callback: (actions) => {
+        if (!actions) {
             return;
         }
-        const reportID = CollectionUtils.extractCollectionItemID(key);
-        allReportActions[reportID] = actions;
-        let sortedReportActions = ReportActionUtils.getSortedReportActions(Object.values(actions), true);
-        allSortedReportActions[reportID] = sortedReportActions;
 
-        const transactionThreadReportID = ReportActionUtils.getOneTransactionThreadReportID(reportID, allReportActions[reportID], true);
-        if (transactionThreadReportID) {
-            sortedReportActions = ReportActionUtils.getCombinedReportActions(allSortedReportActions[reportID], allSortedReportActions[transactionThreadReportID]);
-        }
+        allReportActions = actions ?? {};
 
-        lastReportActions[reportID] = sortedReportActions[0];
+        // Iterate over the report actions to build the sorted and lastVisible report actions bjects
+        Object.entries(allReportActions).forEach(reportActions => {
+            let reportActionKey = reportActions[0] as OnyxCollectionKey
+            let reportID = CollectionUtils.extractCollectionItemID(reportActionKey);
+            let reportActionsArray = Object.values(reportActions[1] ?? {});
+            let sortedReportActions = ReportActionUtils.getSortedReportActions(reportActionsArray, true);
+            allSortedReportActions[reportID] = sortedReportActions;
 
-        // The report is only visible if it is the last action not deleted that
-        // does not match a closed or created state.
-        const reportActionsForDisplay = sortedReportActions.filter(
-            (reportAction) => ReportActionUtils.shouldReportActionBeVisibleAsLastAction(reportAction) && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
-        );
-        visibleReportActionItems[reportID] = reportActionsForDisplay[0];
+            // If the report is a one-transaction report and has , we need to return the combined reportActions so that the LHN can display modifications
+            // to the transaction thread or the report itself
+            const transactionThreadReportID = ReportActionUtils.getOneTransactionThreadReportID(reportID, actions[reportActionKey], true);
+            if (transactionThreadReportID) {
+                const transactionThreadReportActionsArray = Object.values(actions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`] ?? {});
+                sortedReportActions = ReportActionUtils.getCombinedReportActions(reportActionsArray, transactionThreadReportActionsArray);
+            }
+
+            lastReportActions[reportID] = sortedReportActions[0];
+
+            // The report is only visible if it is the last action not deleted that
+            // does not match a closed or created state.
+            const reportActionsForDisplay = sortedReportActions.filter(
+                (reportAction, actionKey) =>
+                    ReportActionUtils.shouldReportActionBeVisible(reportAction, actionKey) &&
+                    !ReportActionUtils.isWhisperAction(reportAction) &&
+                    reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED &&
+                    reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            );
+            visibleReportActionItems[reportID] = reportActionsForDisplay[reportActionsForDisplay.length - 1];
+        });
     },
 });
 
@@ -1738,7 +1753,7 @@ function getOptions(
 
         const {parentReportID, parentReportActionID} = report ?? {};
         const canGetParentReport = parentReportID && parentReportActionID && allReportActions;
-        const parentReportAction = canGetParentReport ? allReportActions[parentReportID]?.[parentReportActionID] ?? null : null;
+        const parentReportAction = canGetParentReport ? allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`]?.[parentReportActionID] ?? null : null;
         const doesReportHaveViolations =
             (betas?.includes(CONST.BETAS.VIOLATIONS) && ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction)) ?? false;
 
