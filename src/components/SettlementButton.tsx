@@ -15,7 +15,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {ButtonSizeValue} from '@src/styles/utils/types';
-import type {BankAccountList, FundList, LastPaymentMethod, Policy, ReimbursementAccount, Report} from '@src/types/onyx';
+import type {LastPaymentMethod, Policy, Report} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
@@ -37,15 +37,6 @@ type SettlementButtonOnyxProps = {
 
     /** The policy of the report */
     policy: OnyxEntry<Policy>;
-
-    /** List of user's cards */
-    fundList: OnyxEntry<FundList>;
-
-    /** List of bank accounts */
-    bankAccountList: OnyxEntry<BankAccountList>;
-
-    /** The reimbursement account linked to the Workspace */
-    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
 };
 
 type SettlementButtonProps = SettlementButtonOnyxProps & {
@@ -114,15 +105,6 @@ type SettlementButtonProps = SettlementButtonOnyxProps & {
 
     /** Callback to open confirmation modal if any of the transactions is on HOLD */
     confirmApproval?: () => void;
-
-    /** List of user's cards */
-    fundList: OnyxEntry<FundList>;
-
-    /** List of bank accounts */
-    bankAccountList: OnyxEntry<BankAccountList>;
-
-    /** The reimbursement account linked to the Workspace */
-    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
 };
 
 function SettlementButton({
@@ -158,9 +140,6 @@ function SettlementButton({
     enterKeyEventListenerPriority = 0,
     confirmApproval,
     policy,
-    fundList,
-    bankAccountList = {},
-    reimbursementAccount,
 }: SettlementButtonProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -174,10 +153,6 @@ function SettlementButton({
     const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicyExpenseChat(chatReport);
     const shouldShowPaywithExpensifyOption = !isPaidGroupPolicy || (!shouldHidePaymentOptions && ReportUtils.isPayer(session, iouReport as OnyxEntry<Report>));
     const shouldShowPayElsewhereOption = !isPaidGroupPolicy || policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
-    const isExpenseReport = ReportUtils.isExpenseReport(iouReport ?? null);
-    const paymentCardList = fundList ?? {};
-    const hasBankAccount = isExpenseReport && reimbursementAccount?.achData?.state !== CONST.BANK_ACCOUNT.STATE.OPEN && !isExpenseReport && bankAccountList !== null;
-    const hasPaymentMethod = bankAccountList !== null && PaymentUtils.hasExpensifyPaymentMethod(paymentCardList, bankAccountList, true) && shouldShowPaywithExpensifyOption;
 
     const paymentButtonOptions = useMemo(() => {
         const paymentMethods = {
@@ -207,11 +182,7 @@ function SettlementButton({
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             },
         };
-        const buttonOptions = [
-            paymentMethods[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT],
-            paymentMethods[CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT],
-            paymentMethods[CONST.PAYMENT_METHODS.DEBIT_CARD],
-        ] as Array<DropdownOption<PaymentType>>;
+        const buttonOptions = [paymentMethods[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT], paymentMethods[CONST.PAYMENT_METHODS.DEBIT_CARD]] as Array<DropdownOption<PaymentType>>;
         const approveButtonOption = {
             text: translate('iou.approve'),
             icon: Expensicons.ThumbsUp,
@@ -228,6 +199,10 @@ function SettlementButton({
         // If the user has previously chosen a specific payment option or paid for some expense,
         // let's use the last payment method or use default.
         const paymentMethod = nvpLastPaymentMethod?.[policyID] ?? '';
+
+        if (shouldShowPersonalBankAccountOption) {
+            buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]);
+        }
 
         if (shouldShowPayElsewhereOption) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]);
@@ -247,17 +222,16 @@ function SettlementButton({
     }, [currency, formattedAmount, iouReport, policyID, translate, shouldHidePaymentOptions, shouldShowApproveButton, shouldDisableApproveButton]);
     const selectPaymentType = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
         if (
-            (iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA ||
-                iouPaymentType === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT ||
-                iouPaymentType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) &&
-            !hasBankAccount
+            iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA ||
+            iouPaymentType === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT ||
+            iouPaymentType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT
         ) {
             triggerKYCFlow(event, iouPaymentType);
             BankAccounts.setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
             return;
         }
 
-        if ((iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || iouPaymentType === CONST.PAYMENT_METHODS.DEBIT_CARD) && !hasPaymentMethod) {
+        if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || iouPaymentType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
             triggerKYCFlow(event, iouPaymentType);
             return;
         }
@@ -290,7 +264,6 @@ function SettlementButton({
             chatReportID={chatReportID}
             iouReport={iouReport}
             anchorAlignment={kycWallAnchorAlignment}
-            shouldShowPersonalBankAccountOption={shouldShowPersonalBankAccountOption}
         >
             {(triggerKYCFlow, buttonRef) => (
                 <ButtonWithDropdownMenu<PaymentType>
@@ -321,17 +294,5 @@ export default withOnyx<SettlementButtonProps, SettlementButtonOnyxProps>({
     },
     policy: {
         key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-    },
-    fundList: {
-        key: ONYXKEYS.FUND_LIST,
-        selector: (fundList) => fundList ?? {},
-    },
-    bankAccountList: {
-        key: ONYXKEYS.BANK_ACCOUNT_LIST,
-        selector: (bankAccountList) => bankAccountList ?? {},
-    },
-    reimbursementAccount: {
-        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-        selector: (reimbursementAccount) => reimbursementAccount ?? {},
     },
 })(SettlementButton);
