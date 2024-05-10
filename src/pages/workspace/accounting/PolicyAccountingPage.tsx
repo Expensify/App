@@ -25,7 +25,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {removePolicyConnection} from '@libs/actions/connections';
 import {syncConnection} from '@libs/actions/connections/QuickBooksOnline';
-import {getCurrentXeroOrganizationName, getXeroTenants} from '@libs/PolicyUtils';
+import {findCurrentXeroOrganization, getCurrentXeroOrganizationName, getXeroTenants} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
@@ -120,6 +120,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
     const policyConnectedToXero = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.XERO;
 
     const tenants = useMemo(() => getXeroTenants(policy), [policy]);
+    const currentXeroOrganization = findCurrentXeroOrganization(tenants, policy?.connections?.xero?.config?.tenantID);
     const currentXeroOrganizationName = useMemo(() => getCurrentXeroOrganizationName(policy), [policy]);
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
@@ -245,6 +246,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
     }, [
         connectedIntegration,
         connectionSyncProgress?.stageInProgress,
+        currentXeroOrganization,
         currentXeroOrganizationName,
         tenants,
         isSyncInProgress,
