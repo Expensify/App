@@ -66,7 +66,7 @@ function ConnectionLayout({
     headerTitle,
     children,
     title,
-    headerSubtitle: subtitle,
+    headerSubtitle,
     policyID,
     accessVariants,
     featureName,
@@ -101,7 +101,7 @@ function ConnectionLayout({
             >
                 <HeaderWithBackButton
                     title={translate(headerTitle)}
-                    subtitle={subtitle}
+                    subtitle={headerSubtitle}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 {shouldUseScrollView ? (
