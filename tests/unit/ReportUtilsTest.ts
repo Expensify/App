@@ -5,6 +5,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, Report, ReportAction} from '@src/types/onyx';
+import type {ModifiedExpenseAction} from '@src/types/onyx/ReportAction';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import * as NumberUtils from '../../src/libs/NumberUtils';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
@@ -769,8 +770,10 @@ describe('ReportUtils', () => {
         it("should disable on a whisper action and it's neither a report preview nor IOU action", () => {
             const reportAction = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
-                whisperedToAccountIDs: [123456],
-            } as ReportAction;
+                originalMessage: {
+                    whisperedTo: [123456],
+                },
+            } as ModifiedExpenseAction;
             expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeTruthy();
         });
 
