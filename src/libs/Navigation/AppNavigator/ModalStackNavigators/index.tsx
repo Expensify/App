@@ -28,6 +28,7 @@ import type {
     SplitDetailsNavigatorParamList,
     TaskDetailsNavigatorParamList,
     TeachersUniteNavigatorParamList,
+    TravelNavigatorParamList,
     WalletStatementNavigatorParamList,
     WorkspaceSwitcherNavigatorParamList,
 } from '@navigation/types';
@@ -94,6 +95,11 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNa
     [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: () => require('../../../../pages/settings/Wallet/AddDebitCardPage').default as React.ComponentType,
     [SCREENS.IOU_SEND.ENABLE_PAYMENTS]: () => require('../../../../pages/EnablePayments/EnablePaymentsPage').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.STATE_SELECTOR]: () => require('../../../../pages/settings/Profile/PersonalDetails/StateSelectionPage').default as React.ComponentType,
+});
+
+const TravelModalStackNavigator = createModalStackNavigator<TravelNavigatorParamList>({
+    [SCREENS.TRAVEL.MY_TRIPS]: () => require('../../../../pages/Travel/MyTripsPage').default as React.ComponentType,
+    [SCREENS.TRAVEL.TCS]: () => require('../../../../pages/Travel/TravelTerms').default as React.ComponentType,
 });
 
 const SplitDetailsModalStackNavigator = createModalStackNavigator<SplitDetailsNavigatorParamList>({
@@ -299,9 +305,16 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_ORGANIZATION]: () => require('../../../../pages/workspace/accounting/xero/XeroOrganizationConfigurationPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_CUSTOMER]: () => require('../../../../pages/workspace/accounting/xero/import/XeroCustomerConfigurationPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_TAXES]: () => require('../../../../pages/workspace/accounting/xero/XeroTaxesConfigurationPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.XERO_TRACKING_CATEGORIES]: () =>
+        require('../../../../pages/workspace/accounting/xero/XeroTrackingCategoryConfigurationPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.XERO_MAP_COST_CENTERS]: () => require('../../../../pages/workspace/accounting/xero/XeroMapCostCentersToConfigurationPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.XERO_MAP_REGION]: () => require('../../../../pages/workspace/accounting/xero/XeroMapRegionsToConfigurationPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.XERO_EXPORT]: () => require('../../../../pages/workspace/accounting/xero/export/XeroExportConfigurationPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_ADVANCED]: () => require('../../../../pages/workspace/accounting/xero/advanced/XeroAdvancedPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_BILL_STATUS_SELECTOR]: () =>
         require('../../../../pages/workspace/accounting/xero/advanced/XeroPurchaseBillStatusSelectorPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.XERO_INVOICE_ACCOUNT_SELECTOR]: () =>
+        require('../../../../pages/workspace/accounting/xero/advanced/XeroInvoiceAccountSelectorPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: () => require('../../../../pages/workspace/workflows/WorkspaceAutoReportingFrequencyPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET]: () =>
         require('../../../../pages/workspace/workflows/WorkspaceAutoReportingMonthlyOffsetPage').default as React.ComponentType,
@@ -369,6 +382,7 @@ export {
     PrivateNotesModalStackNavigator,
     ProfileModalStackNavigator,
     ReferralModalStackNavigator,
+    TravelModalStackNavigator,
     WorkspaceSwitcherModalStackNavigator,
     ReimbursementAccountModalStackNavigator,
     ReportDetailsModalStackNavigator,
