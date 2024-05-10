@@ -6,7 +6,6 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import setUserLocation from '@libs/actions/UserLocation';
-import compose from '@libs/compose';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import CONST from '@src/CONST';
 import useLocalize from '@src/hooks/useLocalize';
@@ -196,11 +195,10 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
     },
 );
 
-export default compose(
+export default memo(
     withOnyx<ComponentProps, MapViewOnyxProps>({
         userLocation: {
             key: ONYXKEYS.USER_LOCATION,
         },
-    }),
-    memo,
-)(MapView);
+    })(MapView),
+);
