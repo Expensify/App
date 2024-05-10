@@ -23,13 +23,18 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const xeroConfig = policy?.connections?.xero?.config;
     const {autoSync, pendingFields, sync} = xeroConfig ?? {};
     const {bankAccounts} = policy?.connections?.xero?.data ?? {};
-    const {invoiceCollectionsAccountID} = sync ?? {};
+    const {invoiceCollectionsAccountID, reimbursementAccountID} = sync ?? {};
 
-    const selectedBankAccountName = useMemo(() => {
-        const selectedAccount = (bankAccounts ?? []).find((bank) => bank.id === invoiceCollectionsAccountID);
+    const getSelectedAccountName = useMemo(
+        () => (accountId: string) => {
+            const selectedAccount = (bankAccounts ?? []).find((bank) => bank.id === accountId);
+            return selectedAccount?.name ?? '';
+        },
+        [bankAccounts],
+    );
 
-        return selectedAccount?.name ?? '';
-    }, [bankAccounts, invoiceCollectionsAccountID]);
+    const selectedBankAccountName = getSelectedAccountName(invoiceCollectionsAccountID ?? '');
+    const selectedBillPaymentAccountName = getSelectedAccountName(reimbursementAccountID ?? '');
 
     const tenants = useMemo(() => getXeroTenants(policy ?? undefined), [policy]);
     const currentXeroOrganization = findCurrentXeroOrganization(tenants, policy?.connections?.xero?.config?.tenantID);
@@ -60,16 +65,6 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.AUTO_SYNC)}
                 onCloseError={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.AUTO_SYNC)}
             />
-            <OfflineWithFeedback pendingAction={pendingFields?.export}>
-                <MenuItemWithTopDescription
-                    shouldShowRightIcon
-                    title={xeroConfig?.export?.billStatus?.purchase}
-                    description={translate('workspace.xero.advancedConfig.purchaseBillStatusTitle')}
-                    key={translate('workspace.xero.advancedConfig.purchaseBillStatusTitle')}
-                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                    onPress={() => {}}
-                />
-            </OfflineWithFeedback>
             <ToggleSettingOptionRow
                 key={translate('workspace.xero.advancedConfig.reimbursedReports')}
                 title={translate('workspace.xero.advancedConfig.reimbursedReports')}
@@ -91,11 +86,11 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     <OfflineWithFeedback pendingAction={pendingFields?.sync}>
                         <MenuItemWithTopDescription
                             shouldShowRightIcon
-                            title={String(bankAccounts)}
+                            title={String(selectedBillPaymentAccountName)}
                             description={translate('workspace.xero.advancedConfig.xeroBillPaymentAccount')}
                             key={translate('workspace.xero.advancedConfig.xeroBillPaymentAccount')}
                             wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                            onPress={() => {}}
+                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_BILL_PAYMENT_ACCOUNT_SELECTOR.getRoute(policyID))}
                         />
                     </OfflineWithFeedback>
                     <OfflineWithFeedback pendingAction={pendingFields?.sync}>
