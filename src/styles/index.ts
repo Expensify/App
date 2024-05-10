@@ -3909,7 +3909,6 @@ const styles = (theme: ThemeColors) =>
             position: 'absolute',
             aspectRatio: 335 / 540,
             top: 0,
-            minWidth: 217,
         },
 
         eReceiptContainer: {

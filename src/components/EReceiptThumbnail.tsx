@@ -72,6 +72,7 @@ function EReceiptThumbnail({transaction, borderRadius, fileExtension, isReceiptT
     let receiptMCCSize: number = variables.eReceiptMCCHeightWidth;
     let labelFontSize: number = variables.fontSizeNormal;
     let labelLineHeight: number = variables.lineHeightLarge;
+    let backgroundImageMinWidth: number = variables.eReceiptBackgroundImageMinWidth;
 
     if (iconSize === 'x-small') {
         receiptIconWidth = variables.iconSizeNormal;
@@ -79,6 +80,7 @@ function EReceiptThumbnail({transaction, borderRadius, fileExtension, isReceiptT
         receiptMCCSize = variables.iconSizeXSmall;
         labelFontSize = variables.fontSizeExtraSmall;
         labelLineHeight = variables.lineHeightXSmall;
+        backgroundImageMinWidth = variables.w80;
     } else if (iconSize === 'small') {
         receiptIconWidth = variables.eReceiptIconWidthSmall;
         receiptIconHeight = variables.eReceiptIconHeightSmall;
@@ -106,7 +108,7 @@ function EReceiptThumbnail({transaction, borderRadius, fileExtension, isReceiptT
         >
             <Image
                 source={backgroundImage}
-                style={styles.eReceiptBackgroundThumbnail}
+                style={[styles.eReceiptBackgroundThumbnail, StyleUtils.getMinimumWidth(backgroundImageMinWidth)]}
                 resizeMode="cover"
             />
             <View style={[styles.alignItemsCenter, styles.ph8, styles.pt8, styles.pb8]}>

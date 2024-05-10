@@ -698,7 +698,7 @@ function getMinimumHeight(minHeight: number): ViewStyle {
 /**
  * Get minimum width as style
  */
-function getMinimumWidth(minWidth: number): ViewStyle {
+function getMinimumWidth(minWidth: number): ViewStyle & ImageStyle {
     return {
         minWidth,
     };

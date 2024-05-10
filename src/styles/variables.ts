@@ -231,6 +231,7 @@ export default {
     mushroomTopHatHeight: 128,
     bankButtonMargin: 23,
     textInputAutoGrowMaxHeight: 115,
+    eReceiptBackgroundImageMinWidth: 217,
 
     h36: 36,
     w28: 28,
