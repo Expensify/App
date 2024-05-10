@@ -1,4 +1,4 @@
-import {ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import type {OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
 
 const NotificationType = {
