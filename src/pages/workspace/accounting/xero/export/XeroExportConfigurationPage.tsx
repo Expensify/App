@@ -6,9 +6,11 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 type MenuItem = MenuItemProps & {pendingAction?: OfflineWithFeedbackProps['pendingAction']};
 
@@ -44,7 +46,7 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
         },
         {
             description: translate('workspace.xero.advancedConfig.purchaseBillStatusTitle'),
-            onPress: () => {},
+            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_BILL_STATUS_SELECTOR.getRoute(policyID)),
             title: exportConfiguration?.billStatus?.purchase,
             pendingAction: pendingFields?.export,
             error: errorFields?.purchase ? translate('common.genericErrorMessage') : undefined,
