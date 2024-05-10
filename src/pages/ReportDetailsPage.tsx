@@ -7,7 +7,7 @@ import {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import ChatDetailsQuickActionsBar from '@components/ChatDetailsQuickActionsBar';
+import ChatDetailsQuickActionsBar, {QuickActions} from '@components/ChatDetailsQuickActionsBar';
 import DisplayNames from '@components/DisplayNames';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -337,6 +337,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                             shouldShowLeaveButton
                             shouldShowShareButton={false}
                             report={report}
+                            actionButtons={[QuickActions.leave, QuickActions.leave({onPress: () => {}})]}
                         />
                     )}
                     {menuItems.map((item) => {

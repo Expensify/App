@@ -1,51 +1,47 @@
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
+import {satisfies} from 'semver';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Report from '@userActions/Report';
 import ROUTES from '@src/ROUTES';
 import type {Report as OnyxReportType} from '@src/types/onyx';
+import type IconAsset from '@src/types/utils/IconAsset';
 import Button from './Button';
 import ConfirmModal from './ConfirmModal';
 import * as Expensicons from './Icon/Expensicons';
 
+type QuickAction = {
+    icon: IconAsset;
+    text: string;
+    onPress: (report: OnyxReportType) => void;
+};
+
+type FunctionType = (report: OnyxReportType) => void;
+
+type OnPressOrQuickAction = ((func: FunctionType) => QuickAction) | QuickAction;
+
+const QuickActions = {
+    leave: {
+        icon: Expensicons.Exit,
+        text: 'common.leave',
+        onPress: () => {
+            // Do something
+        },
+    },
+    // ...
+} satisfies Record<string, OnPressOrQuickAction>;
+
 type ChatDetailsQuickActionsBarProps = {
     report: OnyxReportType;
 
-    /**
-     * Whether the 'Leave' button should be displayed, defaults to false.
-     * @deprecated The 'Leave' button is temporary, to be backward-compatible. Components should add the `Leave` button as a MenuItem.
-     */
-    shouldShowLeaveButton?: boolean;
-
-    /** Whether the 'Join' button should be displayed, defaults to false. */
-    shouldShowJoinButton?: boolean;
-
-    onJoinButtonPress?: () => void;
-
-    /** Whether the 'Hold' button should be displayed, defaults to false. */
-    shouldShowHoldButton?: boolean;
-
-    onHoldButtonPress?: () => void;
-
-    /** Whether the 'Pin' button should be displayed, defaults to true. */
-    shouldShowPinButton?: boolean;
-
-    /** Whether the 'Share' button should be displayed, defaults to true. */
-    shouldShowShareButton?: boolean;
+    actionButtons: QuickAction[];
 };
 
-function ChatDetailsQuickActionsBar({
-    report,
-    shouldShowLeaveButton = false,
-    shouldShowJoinButton = false,
-    onJoinButtonPress,
-    shouldShowHoldButton = false,
-    onHoldButtonPress,
-    shouldShowPinButton = true,
-    shouldShowShareButton = true,
-}: ChatDetailsQuickActionsBarProps) {
+// <ChatDetailsQuickActionsBar actionButtons={[QuickActions.leave]} />
+
+function ChatDetailsQuickActionsBar({report, actionButtons, shouldShowLeaveButton}: ChatDetailsQuickActionsBarProps) {
     const styles = useThemeStyles();
     const [isLastMemberLeavingGroupModalVisible, setIsLastMemberLeavingGroupModalVisible] = useState(false);
     const {translate} = useLocalize();
@@ -134,3 +130,5 @@ function ChatDetailsQuickActionsBar({
 ChatDetailsQuickActionsBar.displayName = 'ChatDetailsQuickActionsBar';
 
 export default ChatDetailsQuickActionsBar;
+
+export {QuickActions};
