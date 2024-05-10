@@ -1,21 +1,5 @@
-import type {DownloadItem, SaveDialogOptions} from 'electron';
+import type {SaveDialogOptions} from 'electron';
 
-type File = {
-    // The name of the file being downloaded
-    filename: string;
-
-    // The path where the file is being downloaded to
-    path: string;
-
-    // The size of the file being downloaded, in bytes
-    fileSize: number;
-
-    // The MIME type of the file being downloaded
-    mimeType: string;
-
-    // The URL of the file being downloaded
-    url: string;
-};
 type Options = {
     /**
     Show a `Save As…` dialog instead of downloading immediately.
@@ -44,47 +28,6 @@ type Options = {
     readonly filename?: string;
 
     /**
-    Title of the error dialog. Can be customized for localization.
-
-    Note: Error dialog will not be shown in `electronDownloadManager.download()`. Please handle error manually.
-
-    @default 'Download Error'
-    */
-    readonly errorTitle?: string;
-
-    /**
-    Message of the error dialog. `{filename}` is replaced with the name of the actual file. Can be customized for localization.
-
-    Note: Error dialog will not be shown in `electronDownloadManager.download()`. Please handle error manually.
-
-    @default 'The download of {filename} was interrupted'
-    */
-    readonly errorMessage?: string;
-
-    /**
-    Optional callback that receives the [download item](https://electronjs.org/docs/api/download-item).
-    You can use this for advanced handling such as canceling the item like `item.cancel()`.
-    */
-    readonly onStarted?: (item: DownloadItem) => void;
-
-    /**
-    Optional callback that receives the [download item](https://electronjs.org/docs/api/download-item) for which the download has been cancelled.
-    */
-    readonly onCancel?: (item: DownloadItem) => void;
-
-    /**
-    Optional callback that receives an object with information about an item that has been completed. It is called for each completed item.
-    */
-    readonly onCompleted?: (file: File) => void;
-
-    /**
-    Reveal the downloaded file in the system file manager, and if possible, select the file.
-
-    @default false
-    */
-    readonly openFolderWhenDone?: boolean;
-
-    /**
     Allow downloaded files to overwrite files with the same name in the directory they are saved to.
 
     The default behavior is to append a number to the filename.
@@ -101,9 +44,6 @@ type Options = {
     @default {}
     */
     readonly dialogOptions?: SaveDialogOptions;
-
-    /** Unregister the listener when the download is done. */
-    readonly unregisterWhenDone?: boolean;
 };
 
-export type {Options, File};
+export default Options;

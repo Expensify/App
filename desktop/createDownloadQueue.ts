@@ -4,7 +4,7 @@ import * as path from 'path';
 import createQueue from '@libs/Queue/Queue';
 import CONST from '@src/CONST';
 import ELECTRON_EVENTS from './ELECTRON_EVENTS';
-import type {Options} from './electronDownloadManagerType';
+import type Options from './electronDownloadManagerType';
 
 type DownloadItem = {
     // The window where the download will be initiated
