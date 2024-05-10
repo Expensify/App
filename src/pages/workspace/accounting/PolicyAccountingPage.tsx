@@ -11,7 +11,10 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {MenuItemProps} from '@components/MenuItem';
+import MenuItem from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
+import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
@@ -38,6 +41,8 @@ import type {Policy, PolicyConnectionSyncProgress} from '@src/types/onyx';
 import type {PolicyConnectionName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+type MenuItemData = MenuItemProps & {pendingAction?: OfflineWithFeedbackProps['pendingAction']};
 
 type PolicyAccountingPageOnyxProps = {
     connectionSyncProgress: OnyxEntry<PolicyConnectionSyncProgress>;
@@ -140,7 +145,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
         [translate, policyID, isOffline],
     );
 
-    const connectionsMenuItems: MenuItemProps[] = useMemo(() => {
+    const connectionsMenuItems: MenuItemData[] = useMemo(() => {
         if (isEmptyObject(policy?.connections) && !isSyncInProgress) {
             return accountingIntegrations.map((integration) => {
                 const integrationData = accountingIntegrationData(integration, policyID, translate);
@@ -211,6 +216,8 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                               }
                               Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ORGANIZATION.getRoute(policyID, currentXeroOrganization?.id ?? ''));
                           },
+                          pendingAction: policy?.connections?.xero?.config?.pendingFields?.tenantID,
+                          brickRoadIndicator: policy?.connections?.xero?.config?.errorFields?.tenantID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                       },
                   ]
                 : []),
@@ -334,10 +341,16 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                             titleStyles={styles.accountSettingsSectionTitle}
                             childrenStyles={styles.pt5}
                         >
-                            <MenuItemList
-                                menuItems={connectionsMenuItems}
-                                shouldUseSingleExecution
-                            />
+                            {connectionsMenuItems.map((menuItem) => (
+                                <OfflineWithFeedback pendingAction={menuItem.pendingAction}>
+                                    <MenuItem
+                                        key={menuItem.title}
+                                        brickRoadIndicator={menuItem.brickRoadIndicator}
+                                        // eslint-disable-next-line react/jsx-props-no-spreading
+                                        {...menuItem}
+                                    />
+                                </OfflineWithFeedback>
+                            ))}
                             {otherIntegrationsItems && (
                                 <CollapsibleSection
                                     title={translate('workspace.accounting.other')}

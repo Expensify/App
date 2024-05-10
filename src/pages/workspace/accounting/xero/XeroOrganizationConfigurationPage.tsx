@@ -1,6 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
@@ -10,6 +11,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updatePolicyConnectionConfig} from '@libs/actions/connections';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {findCurrentXeroOrganization, getXeroTenants} from '@libs/PolicyUtils';
@@ -62,14 +64,22 @@ function XeroOrganizationConfigurationPage({
                 testID={XeroOrganizationConfigurationPage.displayName}
             >
                 <HeaderWithBackButton title={translate('workspace.xero.organization')} />
+
                 <ScrollView contentContainerStyle={styles.pb2}>
-                    <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.xero.organizationDescription')}</Text>
-                    <SelectionList
-                        ListItem={RadioListItem}
-                        onSelectRow={saveSelection}
-                        sections={[{data: sections}]}
-                        initiallyFocusedOptionKey={currentXeroOrganization?.id}
-                    />
+                    <OfflineWithFeedback
+                        pendingAction={policy?.connections?.xero?.config?.pendingFields?.tenantID}
+                        errors={ErrorUtils.getLatestErrorField(policy?.connections?.xero?.config ?? {}, 'tenantID')}
+                        errorRowStyles={styles.ph5}
+                        canDismissError={false}
+                    >
+                        <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.xero.organizationDescription')}</Text>
+                        <SelectionList
+                            ListItem={RadioListItem}
+                            onSelectRow={saveSelection}
+                            sections={[{data: sections}]}
+                            initiallyFocusedOptionKey={currentXeroOrganization?.id}
+                        />
+                    </OfflineWithFeedback>
                 </ScrollView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
