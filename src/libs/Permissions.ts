@@ -37,7 +37,6 @@ function canUseWorkflowsDelayedSubmission(betas: OnyxEntry<Beta[]>): boolean {
 }
 
 function canUseSpotnanaTravel(betas: OnyxEntry<Beta[]>): boolean {
-    return true;
     return !!betas?.includes(CONST.BETAS.SPOTNANA_TRAVEL) || canUseAllBetas(betas);
 }
 
