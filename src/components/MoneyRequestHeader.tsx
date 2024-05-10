@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -14,7 +14,7 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report, ReportAction, ReportActions, Session, Transaction} from '@src/types/onyx';
+import type {Policy, Report, ReportAction} from '@src/types/onyx';
 import type {OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import ConfirmModal from './ConfirmModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
@@ -22,25 +22,7 @@ import * as Expensicons from './Icon/Expensicons';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import ProcessMoneyRequestHoldMenu from './ProcessMoneyRequestHoldMenu';
 
-type MoneyRequestHeaderOnyxProps = {
-    /** Session info for the currently logged in user. */
-    session: OnyxEntry<Session>;
-
-    /** The expense report or iou report (only will have a value if this is a transaction thread) */
-    parentReport: OnyxEntry<Report>;
-
-    /** All the data for the transaction */
-    transaction: OnyxEntry<Transaction>;
-
-    /** All report actions */
-    // eslint-disable-next-line react/no-unused-prop-types
-    parentReportActions: OnyxEntry<ReportActions>;
-
-    /** Whether we should show the Hold Interstitial explaining the feature */
-    shownHoldUseExplanation: OnyxEntry<boolean>;
-};
-
-type MoneyRequestHeaderProps = MoneyRequestHeaderOnyxProps & {
+type MoneyRequestHeaderProps = {
     /** The report currently being looked at */
     report: Report;
 
@@ -57,17 +39,12 @@ type MoneyRequestHeaderProps = MoneyRequestHeaderOnyxProps & {
     onBackButtonPress: () => void;
 };
 
-function MoneyRequestHeader({
-    session,
-    parentReport,
-    report,
-    parentReportAction,
-    transaction,
-    shownHoldUseExplanation = false,
-    policy,
-    shouldUseNarrowLayout = false,
-    onBackButtonPress,
-}: MoneyRequestHeaderProps) {
+function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrowLayout = false, onBackButtonPress}: MoneyRequestHeaderProps) {
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${(parentReportAction as ReportAction & OriginalMessageIOU)?.originalMessage?.IOUTransactionID ?? 0}`);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [shownHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_HOLD_USE_EXPLAINED, {initWithStoredValues: false});
+
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
@@ -241,28 +218,4 @@ function MoneyRequestHeader({
 
 MoneyRequestHeader.displayName = 'MoneyRequestHeader';
 
-const MoneyRequestHeaderWithTransaction = withOnyx<MoneyRequestHeaderProps, Pick<MoneyRequestHeaderOnyxProps, 'transaction' | 'shownHoldUseExplanation'>>({
-    transaction: {
-        key: ({report, parentReportActions}) => {
-            const parentReportAction = (report.parentReportActionID && parentReportActions ? parentReportActions[report.parentReportActionID] : {}) as ReportAction & OriginalMessageIOU;
-            return `${ONYXKEYS.COLLECTION.TRANSACTION}${parentReportAction?.originalMessage?.IOUTransactionID ?? 0}`;
-        },
-    },
-    shownHoldUseExplanation: {
-        key: ONYXKEYS.NVP_HOLD_USE_EXPLAINED,
-        initWithStoredValues: true,
-    },
-})(MoneyRequestHeader);
-
-export default withOnyx<Omit<MoneyRequestHeaderProps, 'transaction' | 'shownHoldUseExplanation'>, Omit<MoneyRequestHeaderOnyxProps, 'transaction' | 'shownHoldUseExplanation'>>({
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-    parentReport: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`,
-    },
-    parentReportActions: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID ?? '0'}`,
-        canEvict: false,
-    },
-})(MoneyRequestHeaderWithTransaction);
+export default MoneyRequestHeader;
