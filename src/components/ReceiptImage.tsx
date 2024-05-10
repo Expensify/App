@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -73,6 +74,9 @@ type ReceiptImageProps = (
 
     /** The size of the fallback icon */
     fallbackIconSize?: number;
+
+    /** The MCC Group associated with the transaction */
+    mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
 };
 
 function ReceiptImage({
@@ -89,6 +93,7 @@ function ReceiptImage({
     fallbackIcon,
     fallbackIconSize,
     shouldUseInitialObjectPosition = false,
+    mccGroup,
 }: ReceiptImageProps) {
     const styles = useThemeStyles();
 
@@ -108,6 +113,7 @@ function ReceiptImage({
                 <EReceiptThumbnail
                     transactionID={transactionID ?? ''}
                     iconSize={iconSize}
+                    mccGroup={mccGroup}
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                 />

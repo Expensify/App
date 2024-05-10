@@ -78,6 +78,7 @@ function TransactionListItem<TItem extends ListItem>({
                 fallbackIcon={Expensicons.ReceiptPlus}
                 fallbackIconSize={20}
                 iconSize='x-small'
+                mccGroup={transactionItem.mccGroup}
             />
         </View>
     );

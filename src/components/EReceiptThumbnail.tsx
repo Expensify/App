@@ -1,3 +1,4 @@
+import type {ValueOf} from 'type-fest';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -40,8 +41,11 @@ type EReceiptThumbnailProps = EReceiptThumbnailOnyxProps & {
     /** Center the eReceipt Icon vertically */
     centerIconV?: boolean;
 
-    /** Size of the eReceipt icon. Possible values 'small', 'medium' or 'large' */
+    /** Size of the eReceipt icon. Possible values 'x-small', 'small', 'medium' or 'large' */
     iconSize?: IconSize;
+
+    /** The MCC Group associated with the transaction */
+    mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
 };
 
 const backgroundImages = {
@@ -53,7 +57,7 @@ const backgroundImages = {
     [CONST.ERECEIPT_COLORS.PINK]: eReceiptBGs.EReceiptBG_Pink,
 };
 
-function EReceiptThumbnail({transaction, borderRadius, fileExtension, isReceiptThumbnail = false, centerIconV = true, iconSize = 'large'}: EReceiptThumbnailProps) {
+function EReceiptThumbnail({transaction, borderRadius, fileExtension, isReceiptThumbnail = false, centerIconV = true, iconSize = 'large', mccGroup}: EReceiptThumbnailProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const colorCode = isReceiptThumbnail ? StyleUtils.getFileExtensionColorCode(fileExtension) : StyleUtils.getEReceiptColorCode(transaction);
@@ -64,7 +68,7 @@ function EReceiptThumbnail({transaction, borderRadius, fileExtension, isReceiptT
     const primaryColor = colorStyles?.backgroundColor;
     const secondaryColor = colorStyles?.color;
     const transactionDetails = ReportUtils.getTransactionDetails(transaction);
-    const transactionMCCGroup = transactionDetails?.mccGroup;
+    const transactionMCCGroup = mccGroup ?? transactionDetails?.mccGroup;
     const MCCIcon = transactionMCCGroup ? MCCIcons[`${transactionMCCGroup}`] : undefined;
 
     let receiptIconWidth: number = variables.eReceiptIconWidth;
