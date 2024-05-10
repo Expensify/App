@@ -50,7 +50,7 @@ type AvatarWithImagePickerProps = {
     source?: AvatarSource;
 
     /** Account id of user for which avatar is displayed  */
-    accountID: number | string | undefined;
+    accountID?: number | string;
 
     /** Additional style props */
     style?: StyleProp<ViewStyle>;
