@@ -1,5 +1,5 @@
 import type {ValueOf} from 'type-fest';
-import type TransactionListItem from '@components/SelectionList/TransactionListItem';
+import type TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
 import type CONST from '@src/CONST';
 import type {Receipt} from './Transaction';
 

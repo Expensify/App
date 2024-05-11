@@ -3459,6 +3459,7 @@ const CONST = {
     },
     TAB_SEARCH: {
         ALL: 'all',
+        DRAFTS: 'drafts',
     },
     STATUS_TEXT_MAX_LENGTH: 100,
 

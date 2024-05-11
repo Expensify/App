@@ -1,4 +1,4 @@
-import TransactionListItem from '@components/SelectionList/TransactionListItem';
+import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';

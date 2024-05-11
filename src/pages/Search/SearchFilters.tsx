@@ -37,6 +37,12 @@ function SearchFilters({query}: SearchFiltersProps) {
             icon: Expensicons.Receipt,
             route: ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.ALL),
         },
+        {
+            title: translate('common.group'),
+            query: CONST.TAB_SEARCH.DRAFTS,
+            icon: Expensicons.Pencil,
+            route: ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.DRAFTS),
+        },
     ];
     const activeItemIndex = filterItems.findIndex((item) => item.query === query);
 

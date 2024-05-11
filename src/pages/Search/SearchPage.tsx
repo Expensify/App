@@ -24,6 +24,7 @@ function SearchPage({route}: SearchPageProps) {
 
     const headerContent: {[key in SearchQuery]: {icon: IconAsset; title: string}} = {
         all: {icon: Illustrations.MoneyReceipts, title: translate('common.expenses')},
+        drafts: {icon: Illustrations.Pencil, title: translate('common.group')},
     };
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.ALL));
