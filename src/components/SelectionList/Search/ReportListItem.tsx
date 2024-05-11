@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {ListItem, ReportListItemProps, ReportListItemType} from '@components/SelectionList/types';
+import type {ListItem, ReportListItemProps, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import BaseListItem from '@components/SelectionList/BaseListItem';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -13,6 +13,7 @@ import Button from '@components/Button';
 import useLocalize from '@hooks/useLocalize';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Phrase, PhraseParameters} from '@libs/Localize';
+import TransactionListItem from './TransactionListItem';
 
 const reportNameCell = (showTooltip: boolean, item: ReportListItemType, styles: ThemeStyles) => (
     <TextWithTooltip
@@ -38,7 +39,7 @@ const totalCell = (showTooltip: boolean, item: ReportListItemType, styles: Theme
     />
 )
 
-const actionCell = (showTooltip: boolean, item: ReportListItemType, styles: ThemeStyles, translate: (key: string) => string, onSelectRow: (item: ReportListItemType) => void) => (
+const actionCell = (item: ReportListItemType, styles: ThemeStyles, translate: <TKey extends TranslationPaths>(phraseKey: TKey, ...phraseParameters: PhraseParameters<Phrase<TKey>>) => string, onSelectRow: (item: ReportListItemType) => void) => (
     <Button
         text={translate('common.view')}
         onPress={() => {
@@ -97,16 +98,23 @@ function ReportListItem<TItem extends ListItem>({
             hoverStyle={item.isSelected && styles.activeComponentBG}
         >
             {() => (
-                <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
-                    <View style={[styles.flex1]}>
-                        {reportNameCell(showTooltip, reportItem, styles)}
-                        {groupedExpensesCell(showTooltip, reportItem, styles, translate)}
+                <View>
+                    <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
+                        <View style={[styles.flex1]}>
+                            {reportNameCell(showTooltip, reportItem, styles)}
+                            {groupedExpensesCell(showTooltip, reportItem, styles, translate)}
+                        </View>
+                        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TOTAL)]}>{totalCell(showTooltip, reportItem, styles)}</View>
+                        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.ACTION)]}>{actionCell(reportItem, styles, translate, onSelectRow)}</View>
                     </View>
-                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TOTAL)]}>{totalCell(showTooltip, reportItem, styles)}</View>
-                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.ACTION)]}>{actionCell(showTooltip, reportItem, styles, translate, shouldPreventDefaultFocusOnSelectRow)}</View>
+                    <View>
+                        {item.transactions.map((transaction: TransactionListItemType) => (
+                            <TransactionListItem
+                                item={transaction}
+                            />
+                        ))}
+                    </View>
                 </View>
-                // line separator
-                // transactionlist items
             )}
         </BaseListItem>
     );
