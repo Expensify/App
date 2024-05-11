@@ -464,11 +464,11 @@ function ReportScreen({
         Timing.end(CONST.TIMING.CHAT_RENDER);
         Performance.markEnd(CONST.TIMING.CHAT_RENDER);
 
+        // Call OpenReport only if we are not linking to a message or the report is not available yet
+        if (!reportActionIDFromRoute || !report.reportID) {
+            fetchReportIfNeeded();
+        }
         const interactionTask = InteractionManager.runAfterInteractions(() => {
-            // Call OpenReport only if we are not linking to a message or the report is not available yet
-            if (!reportActionIDFromRoute || !report.reportID) {
-                fetchReportIfNeeded();
-            }
             ComposerActions.setShouldShowComposeInput(true);
         });
         return () => {
