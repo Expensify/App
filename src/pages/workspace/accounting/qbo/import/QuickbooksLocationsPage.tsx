@@ -21,8 +21,8 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
     const {syncLocations, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
-    const shouldLocationImportBeOff = policy?.connections?.quickbooksOnline?.config.reimbursableExpensesExportDestination !== CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY;
-    const isSwitchOn = Boolean(syncLocations && syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE) && !shouldLocationImportBeOff;
+    const shouldBeDisabled = policy?.connections?.quickbooksOnline?.config.reimbursableExpensesExportDestination !== CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY;
+    const isSwitchOn = Boolean(syncLocations && syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
     const isReportFieldsSelected = syncLocations === CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD;
 
     return (
@@ -47,7 +47,7 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
                             <View style={[styles.flex1, styles.alignItemsEnd, styles.pl3]}>
                                 <Switch
                                     accessibilityLabel={translate('workspace.qbo.locations')}
-                                    isOn={!shouldLocationImportBeOff}
+                                    isOn={isSwitchOn}
                                     onToggle={() =>
                                         Connections.updatePolicyConnectionConfig(
                                             policyID,
@@ -56,7 +56,7 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
                                             isSwitchOn ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
                                         )
                                     }
-                                    disabled={shouldLocationImportBeOff}
+                                    disabled={shouldBeDisabled}
                                 />
                             </View>
                         </OfflineWithFeedback>
@@ -71,12 +71,14 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
                             />
                         </OfflineWithFeedback>
                     )}
-                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mt1]}>
-                        {/** Make sure to change the description text to explain why the toggle button is locked and how the user can unlock the toggle button
-                         * @see https://expensify.slack.com/archives/C036QM0SLJK/p1714967365830889?thread_ts=1714400674.229349&cid=C036QM0SLJK
-                         */}
-                        <Text style={styles.mutedTextLabel}>{translate('workspace.qbo.locationsAdditionalDescription')}</Text>
-                    </View>
+                    {shouldBeDisabled && (
+                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mt1]}>
+                            {/** Make sure to change the description text to explain why the toggle button is locked and how the user can unlock the toggle button
+                             * @see https://expensify.slack.com/archives/C036QM0SLJK/p1714967365830889?thread_ts=1714400674.229349&cid=C036QM0SLJK
+                             */}
+                            <Text style={styles.mutedTextLabel}>{translate('workspace.qbo.locationsAdditionalDescription')}</Text>
+                        </View>
+                    )}
                 </ScrollView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
