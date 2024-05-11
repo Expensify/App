@@ -4333,7 +4333,20 @@ const styles = (theme: ThemeColors) =>
         },
 
         emojiStatusLHN: {
-            fontSize: 9,
+            ...(Browser.getBrowser() && {transform: 'scale(.65)', lineHeight: 18, fontSize: 15}),
+            ...(Browser.getBrowser() &&
+                Browser.isSafari() &&
+                !Browser.isMobileSafari() && {
+                    transform: 'scale(0.65)',
+                    fontSize: 13,
+                    lineHeight: 15,
+                }),
+            // transform: 'scale(.65)',
+            // lineHeight: 15,
+            // transform: 'scale(.65)',
+            // lineHeight: 18,
+            // fontSize: 15,
+            // overflow: 'visible',
         },
 
         onboardingVideoPlayer: {
