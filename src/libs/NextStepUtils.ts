@@ -320,30 +320,6 @@ function buildNextStep(
                     },
                 ],
             };
-
-            // Another owner
-            if (!isOwner) {
-                optimisticNextStep.message = [
-                    {
-                        text: 'Waiting for ',
-                    },
-                    {
-                        text: managerDisplayName,
-                        type: 'strong',
-                    },
-                    {
-                        text: ' to ',
-                    },
-                    {
-                        text: 'pay',
-                        type: 'strong',
-                    },
-                    {
-                        text: ' %expenses.',
-                    },
-                ];
-            }
-
             break;
 
         // Generates an optimistic nextStep once a report has been paid
