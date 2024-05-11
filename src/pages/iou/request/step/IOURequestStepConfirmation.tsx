@@ -338,8 +338,6 @@ function IOURequestStepConfirmation({
             if (iouType === CONST.IOU.TYPE.SPLIT && receiptFile) {
                 if (currentUserPersonalDetails.login && !!transaction) {
                     IOU.startSplitBill({
-                        currentUserAccountID: currentUserPersonalDetails.accountID,
-                        currentUserLogin: currentUserPersonalDetails.login,
                         participants: selectedParticipants,
                         comment: trimmedComment,
                         receipt: receiptFile,
@@ -359,8 +357,6 @@ function IOURequestStepConfirmation({
                 if (currentUserPersonalDetails.login && !!transaction) {
                     IOU.splitBill({
                         participants: splitParticipants,
-                        currentUserLogin: currentUserPersonalDetails.login,
-                        currentUserAccountID: currentUserPersonalDetails.accountID,
                         amount: transaction.amount,
                         comment: trimmedComment,
                         currency: transaction.currency,
@@ -383,8 +379,6 @@ function IOURequestStepConfirmation({
                 if (currentUserPersonalDetails.login && !!transaction) {
                     IOU.splitBillAndOpenReport({
                         participants: splitParticipants,
-                        currentUserLogin: currentUserPersonalDetails.login,
-                        currentUserAccountID: currentUserPersonalDetails.accountID,
                         amount: transaction.amount,
                         comment: trimmedComment,
                         currency: transaction.currency,
