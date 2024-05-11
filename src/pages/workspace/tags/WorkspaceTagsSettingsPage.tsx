@@ -60,7 +60,7 @@ function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPag
                         >
                             <View style={[styles.mt2, styles.mh4]}>
                                 <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.tags.requiresTag')}</Text>
+                                    <Text style={[styles.textNormal]}>{translate('workspace.tags.requiresTag')}</Text>
                                     <Switch
                                         isOn={policy?.requiresTag ?? false}
                                         accessibilityLabel={translate('workspace.tags.requiresTag')}
