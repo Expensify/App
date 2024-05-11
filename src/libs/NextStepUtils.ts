@@ -277,7 +277,7 @@ function buildNextStep(
         case CONST.REPORT.STATUS_NUM.APPROVED:
             if (
                 !ReportUtils.isInvoiceReport(report) &&
-                ReportUtils.isPayer(
+                !ReportUtils.isPayer(
                     {
                         accountID: currentUserAccountID,
                         email: currentUserEmail,
