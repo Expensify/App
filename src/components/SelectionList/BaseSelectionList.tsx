@@ -363,7 +363,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     onFocus={() => setFocusedIndex(normalizedIndex)}
                     shouldSyncFocus={!isTextInputFocusedRef.current}
                 />
-                {item.footerComponent ?? item.footerComponent}
+                {item.footerComponent && item.footerComponent}
             </>
         );
     };
