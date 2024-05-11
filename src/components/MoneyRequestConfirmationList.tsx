@@ -46,6 +46,7 @@ import type {DropdownOption} from './ButtonWithDropdownMenu/types';
 import ConfirmedRoute from './ConfirmedRoute';
 import ConfirmModal from './ConfirmModal';
 import FormHelpMessage from './FormHelpMessage';
+import * as Expensicons from './Icon/Expensicons';
 import MenuItem from './MenuItem';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import OptionsSelector from './OptionsSelector';
@@ -532,7 +533,16 @@ function MoneyRequestConfirmationList({
                 ...[
                     {
                         title: translate('moneyRequestConfirmationList.paidBy'),
-                        data: [{...OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails), isSplitPayer: true}],
+                        data: [
+                            {
+                                ...OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails),
+                                isSplitPayer: true,
+                                customIcon: {
+                                    src: Expensicons.ArrowRight,
+                                    containerStyle: {paddingRight: 10},
+                                },
+                            },
+                        ],
                         shouldShow: true,
                     },
                     {

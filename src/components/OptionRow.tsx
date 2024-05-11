@@ -6,6 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getButtonState from '@libs/getButtonState';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -155,55 +156,55 @@ function OptionRow({
     }
 
     return (
-        <Hoverable>
-            {(hovered) => (
-                <OfflineWithFeedback
-                    pendingAction={option.pendingAction}
-                    errors={option.allReportErrors}
-                    shouldShowErrorMessages={false}
-                    needsOffscreenAlphaCompositing
-                >
-                    <PressableWithFeedback
-                        id={keyForList}
-                        ref={pressableRef}
-                        onPress={(e) => {
-                            if (!onSelectRow) {
-                                return;
-                            }
+        <OfflineWithFeedback
+            pendingAction={option.pendingAction}
+            errors={option.allReportErrors}
+            shouldShowErrorMessages={false}
+            needsOffscreenAlphaCompositing
+        >
+            <PressableWithFeedback
+                id={keyForList}
+                ref={pressableRef}
+                onPress={(e) => {
+                    if (!onSelectRow) {
+                        return;
+                    }
 
-                            setIsDisabled(true);
-                            if (e) {
-                                e.preventDefault();
-                            }
-                            let result = onSelectRow(option, pressableRef.current);
-                            if (!(result instanceof Promise)) {
-                                result = Promise.resolve();
-                            }
+                    setIsDisabled(true);
+                    if (e) {
+                        e.preventDefault();
+                    }
+                    let result = onSelectRow(option, pressableRef.current);
+                    if (!(result instanceof Promise)) {
+                        result = Promise.resolve();
+                    }
 
-                            InteractionManager.runAfterInteractions(() => {
-                                result?.finally(() => setIsDisabled(isOptionDisabled));
-                            });
-                        }}
-                        disabled={isDisabled}
-                        style={[
-                            styles.flexRow,
-                            styles.alignItemsCenter,
-                            styles.justifyContentBetween,
-                            styles.sidebarLink,
-                            !isOptionDisabled && styles.cursorPointer,
-                            shouldDisableRowInnerPadding ? null : styles.sidebarLinkInner,
-                            optionIsFocused ? styles.sidebarLinkActive : null,
-                            shouldHaveOptionSeparator && styles.borderTop,
-                            !onSelectRow && !isOptionDisabled ? styles.cursorDefault : null,
-                        ]}
-                        accessibilityLabel={option.text ?? ''}
-                        role={CONST.ROLE.BUTTON}
-                        hoverDimmingValue={1}
-                        hoverStyle={!optionIsFocused ? hoverStyle ?? styles.sidebarLinkHover : undefined}
-                        needsOffscreenAlphaCompositing={(option.icons?.length ?? 0) >= 2}
-                        onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (event) => event.preventDefault() : undefined}
-                        tabIndex={option.tabIndex ?? 0}
-                    >
+                    InteractionManager.runAfterInteractions(() => {
+                        result?.finally(() => setIsDisabled(isOptionDisabled));
+                    });
+                }}
+                disabled={isDisabled}
+                style={[
+                    styles.flexRow,
+                    styles.alignItemsCenter,
+                    styles.justifyContentBetween,
+                    styles.sidebarLink,
+                    !isOptionDisabled && styles.cursorPointer,
+                    shouldDisableRowInnerPadding ? null : styles.sidebarLinkInner,
+                    optionIsFocused ? styles.sidebarLinkActive : null,
+                    shouldHaveOptionSeparator && styles.borderTop,
+                    !onSelectRow && !isOptionDisabled ? styles.cursorDefault : null,
+                ]}
+                accessibilityLabel={option.text ?? ''}
+                role={CONST.ROLE.BUTTON}
+                hoverDimmingValue={1}
+                hoverStyle={!optionIsFocused ? hoverStyle ?? styles.sidebarLinkHover : undefined}
+                needsOffscreenAlphaCompositing={(option.icons?.length ?? 0) >= 2}
+                onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (event) => event.preventDefault() : undefined}
+                tabIndex={option.tabIndex ?? 0}
+            >
+                {({pressed, hovered}) => (
+                    <>
                         <View style={sidebarInnerRowStyle}>
                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                 {!!option.icons?.length &&
@@ -328,18 +329,18 @@ function OptionRow({
                                 style={[styles.flexRow, styles.alignItemsCenter]}
                                 accessible={false}
                             >
-                                <View>
+                                <View style={option.customIcon.containerStyle ?? []}>
                                     <Icon
                                         src={option.customIcon.src}
-                                        fill={option.customIcon.color}
+                                        fill={option.customIcon.color ?? StyleUtils.getIconFillColor(getButtonState(optionIsFocused || hovered, pressed, false, false))}
                                     />
                                 </View>
                             </View>
                         )}
-                    </PressableWithFeedback>
-                </OfflineWithFeedback>
-            )}
-        </Hoverable>
+                    </>
+                )}
+            </PressableWithFeedback>
+        </OfflineWithFeedback>
     );
 }
 
@@ -366,7 +367,7 @@ export default React.memo(
         prevProps.option.ownerAccountID === nextProps.option.ownerAccountID &&
         prevProps.option.subtitle === nextProps.option.subtitle &&
         prevProps.option.pendingAction === nextProps.option.pendingAction &&
-        prevProps.option.customIcon === nextProps.option.customIcon &&
+        lodashIsEqual(prevProps.option.customIcon, nextProps.option.customIcon) &&
         prevProps.option.tabIndex === nextProps.option.tabIndex &&
         lodashIsEqual(prevProps.option.amountInputProps, nextProps.option.amountInputProps),
 );
