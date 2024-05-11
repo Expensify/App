@@ -9,7 +9,6 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {useSession} from '@components/OnyxProvider';
 import {ReceiptAuditHeader, ReceiptAuditMessages} from '@components/ReceiptAudit';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
-import SpacerView from '@components/SpacerView';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import ViolationMessages from '@components/ViolationMessages';
@@ -77,9 +76,6 @@ type MoneyRequestViewPropsWithoutTransaction = MoneyRequestViewOnyxPropsWithoutT
     /** The report currently being looked at */
     report: OnyxTypes.Report;
 
-    /** Whether we should display the horizontal rule below the component */
-    shouldShowHorizontalRule: boolean;
-
     /** Whether we should display the animated banner above the component */
     shouldShowAnimatedBackground: boolean;
 };
@@ -91,7 +87,6 @@ function MoneyRequestView({
     parentReport,
     parentReportActions,
     policyCategories,
-    shouldShowHorizontalRule,
     transaction,
     policyTagList,
     policy,
@@ -226,9 +221,6 @@ function MoneyRequestView({
         if (formattedOriginalAmount) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.original')} ${formattedOriginalAmount}`;
         }
-        if (TransactionUtils.isPending(transaction)) {
-            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.pending')}`;
-        }
         if (isCancelled) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
         }
@@ -241,9 +233,7 @@ function MoneyRequestView({
         } else if (isCancelled) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
         } else if (isSettled) {
-            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.settledExpensify')}`;
-        } else if (report.isWaitingOnBankAccount) {
-            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.pending')}`;
+            amountDescription += ` • ${translate('iou.settledExpensify')}`;
         }
     }
 
@@ -351,7 +341,7 @@ function MoneyRequestView({
                     <OfflineWithFeedback
                         pendingAction={pendingAction}
                         errors={transaction?.errors}
-                        errorRowStyles={[styles.ml4]}
+                        errorRowStyles={[styles.mh4]}
                         onClose={() => {
                             if (!transaction?.transactionID) {
                                 return;
@@ -510,6 +500,7 @@ function MoneyRequestView({
                             description={translate('iou.card')}
                             title={cardProgramName}
                             titleStyle={styles.flex1}
+                            interactive={false}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -566,10 +557,6 @@ function MoneyRequestView({
                     </View>
                 )}
             </View>
-            <SpacerView
-                shouldShow={shouldShowHorizontalRule}
-                style={[shouldShowHorizontalRule ? styles.reportHorizontalRule : {}]}
-            />
         </View>
     );
 }
