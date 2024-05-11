@@ -1,4 +1,5 @@
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
+import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -9,6 +10,8 @@ function getSearchType(search: OnyxTypes.SearchResults['search']): SearchDataTyp
     switch (search.type) {
         case CONST.SEARCH_DATA_TYPES.TRANSACTION:
             return CONST.SEARCH_DATA_TYPES.TRANSACTION;
+        case CONST.SEARCH_DATA_TYPES.REPORT:
+            return CONST.SEARCH_DATA_TYPES.REPORT;
         default:
             return undefined;
     }
@@ -42,9 +45,17 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data']): SearchT
         });
 }
 
+function getReportSections(data: OnyxTypes.SearchResults['data']): SearchTransaction[] {
+    return data;
+}
+
 const searchTypeToItemMap: SearchTypeToItemMap = {
     [CONST.SEARCH_DATA_TYPES.TRANSACTION]: {
         listItem: TransactionListItem,
+        getSections: getTransactionsSections,
+    },
+    [CONST.SEARCH_DATA_TYPES.REPORT]: {
+        listItem: ReportListItem,
         getSections: getTransactionsSections,
     },
 };
