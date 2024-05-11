@@ -187,6 +187,26 @@ type TransactionListItemType = ListItem & {
     shouldShowMerchant: boolean;
 };
 
+type ReportListItemType = ListItem & {
+    /** The ID of the report */
+    reportID: string;
+
+    /** Name of the report */
+    reportName: string;
+
+    /** Report total */
+    total: number;
+
+    /** Report currency */
+    currency: string;
+
+    /** The next step the user can take */
+    action: string;
+
+    /** The number of transactions in this report */
+    transactionsCount: number;
+};
+
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** The section list item */
     item: TItem;
@@ -454,4 +474,5 @@ export type {
     ValidListItem,
     TransactionListItemType,
     ReportListItemProps,
+    ReportListItemType,
 };

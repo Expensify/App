@@ -2670,6 +2670,7 @@ export default {
                 subtitle: 'Por favor intenta crear algo usando el botón verde.',
             },
         },
+        groupedExpenses: (transactionsCount) => `${transactionsCount} grouped expenses`,
     },
     genericErrorPage: {
         title: '¡Oh-oh, algo salió mal!',

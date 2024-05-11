@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {ListItem, ReportListItemProps} from '@components/SelectionList/types';
+import type {ListItem, ReportListItemProps, ReportListItemType} from '@components/SelectionList/types';
 import BaseListItem from '@components/SelectionList/BaseListItem';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -11,24 +11,26 @@ import type {ThemeStyles} from '@styles/index';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Button from '@components/Button';
 import useLocalize from '@hooks/useLocalize';
+import type {TranslationPaths} from '@src/languages/types';
+import type {Phrase, PhraseParameters} from '@libs/Localize';
 
-const reportNameCell = (showTooltip: boolean, item: ReportListItem, styles: ThemeStyles) => (
+const reportNameCell = (showTooltip: boolean, item: ReportListItemType, styles: ThemeStyles) => (
     <TextWithTooltip
         shouldShowTooltip={showTooltip}
-        text={item.name}
+        text={item.reportName}
         style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter]}
     />
 )
 
-const groupedExpensesCell = (showTooltip: boolean, item: ReportListItem, styles: ThemeStyles, translate) => (
+const groupedExpensesCell = (showTooltip: boolean, item: ReportListItemType, styles: ThemeStyles, translate: <TKey extends TranslationPaths>(phraseKey: TKey, ...phraseParameters: PhraseParameters<Phrase<TKey>>) => string) => (
     <TextWithTooltip
         shouldShowTooltip={showTooltip}
-        text={`${item.transactions.length} grouped expenses`}
+        text={translate('search.groupedExpenses', item.transactionsCount)}
         style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter]}
     />
 )
 
-const totalCell = (showTooltip: boolean, item: ReportListItem, styles: ThemeStyles) => (
+const totalCell = (showTooltip: boolean, item: ReportListItemType, styles: ThemeStyles) => (
     <TextWithTooltip
         shouldShowTooltip={showTooltip}
         text={CurrencyUtils.convertToDisplayString(item.total, item.currency)}
@@ -36,7 +38,7 @@ const totalCell = (showTooltip: boolean, item: ReportListItem, styles: ThemeStyl
     />
 )
 
-const actionCell = (showTooltip: boolean, item: ReportListItem, styles: ThemeStyles, translate, onSelectRow) => (
+const actionCell = (showTooltip: boolean, item: ReportListItemType, styles: ThemeStyles, translate: (key: string) => string, onSelectRow: (item: ReportListItemType) => void) => (
     <Button
         text={translate('common.view')}
         onPress={() => {
@@ -60,6 +62,7 @@ function ReportListItem<TItem extends ListItem>({
     onFocus,
     shouldSyncFocus,
 }: ReportListItemProps<TItem>) {
+    const reportItem = item as unknown as ReportListItemType;
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useWindowDimensions();
     const StyleUtils = useStyleUtils();
@@ -96,11 +99,11 @@ function ReportListItem<TItem extends ListItem>({
             {() => (
                 <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
                     <View style={[styles.flex1]}>
-                        {reportNameCell(showTooltip, item, styles)}
-                        {groupedExpensesCell(showTooltip, item, styles, translate)}
+                        {reportNameCell(showTooltip, reportItem, styles)}
+                        {groupedExpensesCell(showTooltip, reportItem, styles, translate)}
                     </View>
-                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TOTAL)]}>{totalCell(showTooltip, item, styles)}</View>
-                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.ACTION)]}>{actionCell(showTooltip, item, styles, translate, shouldPreventDefaultFocusOnSelectRow)}</View>
+                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TOTAL)]}>{totalCell(showTooltip, reportItem, styles)}</View>
+                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.ACTION)]}>{actionCell(showTooltip, reportItem, styles, translate, shouldPreventDefaultFocusOnSelectRow)}</View>
                 </View>
                 // line separator
                 // transactionlist items
