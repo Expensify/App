@@ -1,7 +1,9 @@
 import {useEffect, useRef, useState} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Modal} from '@src/types/onyx';
 import useWindowDimensions from './useWindowDimensions';
 
 type ResponsiveLayoutResult = {
@@ -22,8 +24,7 @@ type ResponsiveLayoutResult = {
 export default function useResponsiveLayout(): ResponsiveLayoutResult {
     const {isSmallScreenWidth, isExtraSmallScreenHeight, isExtraSmallScreenWidth, isMediumScreenWidth, isLargeScreenWidth, isSmallScreen} = useWindowDimensions();
 
-    const [modal] = useOnyx(ONYXKEYS.MODAL);
-    const willAlertModalBecomeVisible = modal?.willAlertModalBecomeVisible ?? false;
+    const [willAlertModalBecomeVisible] = useOnyx(ONYXKEYS.MODAL, {selector: (value: OnyxEntry<Modal>) => value?.willAlertModalBecomeVisible ?? false});
 
     const [isInModal, setIsInModal] = useState(false);
     const hasSetIsInModal = useRef(false);
