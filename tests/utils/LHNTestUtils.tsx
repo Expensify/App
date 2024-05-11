@@ -158,7 +158,6 @@ function getFakeReportAction(actor = 'email1@test.com', millisecondsInThePast = 
                 text: 'Email One',
             },
         ],
-        whisperedToAccountIDs: [],
         automatic: false,
         message: [
             {
@@ -182,6 +181,7 @@ function getFakeReportAction(actor = 'email1@test.com', millisecondsInThePast = 
             },
         ],
         originalMessage: {
+            whisperedTo: [],
             childReportID: `${reportActionID}`,
             emojiReactions: {
                 heart: {
@@ -248,7 +248,7 @@ function getFakePolicy(id = '1', name = 'Workspace-Test-001'): Policy {
         type: 'free',
         owner: 'myuser@gmail.com',
         outputCurrency: 'BRL',
-        avatar: '',
+        avatarURL: '',
         employeeList: {},
         isPolicyExpenseChatEnabled: true,
         lastModified: '1697323926777105',

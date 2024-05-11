@@ -39,8 +39,14 @@ type IOURequestStepConfirmationOnyxProps = {
     /** The policy of the report */
     policy: OnyxEntry<Policy>;
 
+    /** The draft policy of the report */
+    policyDraft: OnyxEntry<Policy>;
+
     /** The category configuration of the report's policy */
     policyCategories: OnyxEntry<PolicyCategories>;
+
+    /** The draft category configuration of the report's policy */
+    policyCategoriesDraft: OnyxEntry<PolicyCategories>;
 
     /** The tag configuration of the report's policy */
     policyTags: OnyxEntry<PolicyTagList>;
@@ -51,10 +57,13 @@ type IOURequestStepConfirmationProps = IOURequestStepConfirmationOnyxProps &
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION>;
 
 function IOURequestStepConfirmation({
-    policy,
+    policy: policyReal,
+    policyDraft,
     policyTags,
-    policyCategories,
-    report,
+    policyCategories: policyCategoriesReal,
+    policyCategoriesDraft,
+    report: reportReal,
+    reportDraft,
     route: {
         params: {iouType, reportID, transactionID, action},
     },
@@ -62,6 +71,10 @@ function IOURequestStepConfirmation({
 }: IOURequestStepConfirmationProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
+
+    const report = reportReal ?? reportDraft;
+    const policy = policyReal ?? policyDraft;
+    const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -78,6 +91,21 @@ function IOURequestStepConfirmation({
     const isSharingTrackExpense = action === CONST.IOU.ACTION.SHARE;
     const isCategorizingTrackExpense = action === CONST.IOU.ACTION.CATEGORIZE;
     const isSubmittingFromTrackExpense = action === CONST.IOU.ACTION.SUBMIT;
+    const payeePersonalDetails = useMemo(() => {
+        if (personalDetails?.[transaction?.splitPayerAccountIDs?.[0] ?? -1]) {
+            return personalDetails?.[transaction?.splitPayerAccountIDs?.[0] ?? -1];
+        }
+
+        const participant = transaction?.participants?.find((val) => val.accountID === (transaction?.splitPayerAccountIDs?.[0] ?? -1));
+
+        return {
+            login: participant?.login ?? '',
+            accountID: participant?.accountID ?? -1,
+            avatar: Expensicons.FallbackAvatar,
+            displayName: participant?.login ?? '',
+            isOptimisticPersonalDetail: true,
+        };
+    }, [personalDetails, transaction?.participants, transaction?.splitPayerAccountIDs]);
 
     const requestType = TransactionUtils.getRequestType(transaction);
 
@@ -114,17 +142,16 @@ function IOURequestStepConfirmation({
                 if (participant.isSender && iouType === CONST.IOU.TYPE.INVOICE) {
                     return participant;
                 }
-
                 return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
             }) ?? [],
         [transaction?.participants, personalDetails, iouType],
     );
-    const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report)), [report]);
+    const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
     const formHasBeenSubmitted = useRef(false);
 
     useEffect(() => {
         const policyExpenseChat = participants?.find((participant) => participant.isPolicyExpenseChat);
-        if (policyExpenseChat?.policyID) {
+        if (policyExpenseChat?.policyID && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
             openDraftWorkspaceRequest(policyExpenseChat.policyID);
         }
     }, [isOffline, participants, transaction?.billable, policy, transactionID]);
@@ -289,6 +316,15 @@ function IOURequestStepConfirmation({
 
     const createTransaction = useCallback(
         (selectedParticipants: Participant[]) => {
+            let splitParticipants = selectedParticipants;
+
+            // Filter out participants with an amount equal to O
+            if (iouType === CONST.IOU.TYPE.SPLIT && transaction?.splitShares) {
+                const participantsWithAmount = Object.keys(transaction.splitShares ?? {})
+                    .filter((accountID: string): boolean => (transaction?.splitShares?.[Number(accountID)]?.amount ?? 0) > 0)
+                    .map((accountID) => Number(accountID));
+                splitParticipants = selectedParticipants.filter((participant) => participantsWithAmount.includes(participant.accountID ?? -1));
+            }
             const trimmedComment = (transaction?.comment.comment ?? '').trim();
 
             // Don't let the form be submitted multiple times while the navigator is waiting to take the user to a different page
@@ -322,7 +358,7 @@ function IOURequestStepConfirmation({
             if (iouType === CONST.IOU.TYPE.SPLIT && !transaction?.isFromGlobalCreate) {
                 if (currentUserPersonalDetails.login && !!transaction) {
                     IOU.splitBill({
-                        participants: selectedParticipants,
+                        participants: splitParticipants,
                         currentUserLogin: currentUserPersonalDetails.login,
                         currentUserAccountID: currentUserPersonalDetails.accountID,
                         amount: transaction.amount,
@@ -335,6 +371,8 @@ function IOURequestStepConfirmation({
                         existingSplitChatReportID: report?.reportID,
                         billable: transaction.billable,
                         iouRequestType: transaction.iouRequestType,
+                        splitShares: transaction.splitShares,
+                        splitPayerAccountIDs: transaction.splitPayerAccountIDs ?? [],
                     });
                 }
                 return;
@@ -344,7 +382,7 @@ function IOURequestStepConfirmation({
             if (iouType === CONST.IOU.TYPE.SPLIT) {
                 if (currentUserPersonalDetails.login && !!transaction) {
                     IOU.splitBillAndOpenReport({
-                        participants: selectedParticipants,
+                        participants: splitParticipants,
                         currentUserLogin: currentUserPersonalDetails.login,
                         currentUserAccountID: currentUserPersonalDetails.accountID,
                         amount: transaction.amount,
@@ -356,6 +394,8 @@ function IOURequestStepConfirmation({
                         tag: transaction.tag,
                         billable: !!transaction.billable,
                         iouRequestType: transaction.iouRequestType,
+                        splitShares: transaction.splitShares,
+                        splitPayerAccountIDs: transaction.splitPayerAccountIDs,
                     });
                 }
                 return;
@@ -383,11 +423,8 @@ function IOURequestStepConfirmation({
                                 trackExpense(selectedParticipants, trimmedComment, receiptFile);
                             },
                             {
-                                // It's OK to get a cached location that is up to an hour old because the only accuracy needed is the country the user is in
-                                maximumAge: 1000 * 60 * 60,
-
-                                // 15 seconds, don't wait too long because the server can always fall back to using the IP address
-                                timeout: 15000,
+                                maximumAge: CONST.GPS.MAX_AGE,
+                                timeout: CONST.GPS.TIMEOUT,
                             },
                         );
                         return;
@@ -417,11 +454,8 @@ function IOURequestStepConfirmation({
                             requestMoney(selectedParticipants, trimmedComment, receiptFile);
                         },
                         {
-                            // It's OK to get a cached location that is up to an hour old because the only accuracy needed is the country the user is in
-                            maximumAge: 1000 * 60 * 60,
-
-                            // 15 seconds, don't wait too long because the server can always fall back to using the IP address
-                            timeout: 15000,
+                            maximumAge: CONST.GPS.MAX_AGE,
+                            timeout: CONST.GPS.TIMEOUT,
                         },
                     );
                     return;
@@ -524,7 +558,6 @@ function IOURequestStepConfirmation({
                     />
                     <MoneyRequestConfirmationList
                         transaction={transaction}
-                        hasMultipleParticipants={iouType === CONST.IOU.TYPE.SPLIT}
                         selectedParticipants={participants}
                         iouAmount={Math.abs(transaction?.amount ?? 0)}
                         iouComment={transaction?.comment.comment ?? ''}
@@ -540,19 +573,14 @@ function IOURequestStepConfirmation({
                         iouType={iouType}
                         reportID={reportID}
                         isPolicyExpenseChat={isPolicyExpenseChat}
-                        // The participants can only be modified when the action is initiated from directly within a group chat and not the floating-action-button.
-                        // This is because when there is a group of people, say they are on a trip, and you have some shared expenses with some of the people,
-                        // but not all of them (maybe someone skipped out on dinner). Then it's nice to be able to select/deselect people from the group chat bill
-                        // split rather than forcing the user to create a new group, just for that expense. The reportID is empty, when the action was initiated from
-                        // the floating-action-button (since it is something that exists outside the context of a report).
-                        canModifyParticipants={!transaction?.isFromGlobalCreate}
-                        policyID={report?.policyID}
+                        policyID={report?.policyID ?? policy?.id}
                         bankAccountRoute={ReportUtils.getBankAccountRoute(report)}
                         iouMerchant={transaction?.merchant}
                         iouCreated={transaction?.created}
                         isDistanceRequest={requestType === CONST.IOU.REQUEST_TYPE.DISTANCE}
                         shouldShowSmartScanFields={IOUUtils.isMovingTransactionFromTrackExpense(action) ? transaction?.amount !== 0 : requestType !== CONST.IOU.REQUEST_TYPE.SCAN}
                         action={action}
+                        payeePersonalDetails={payeePersonalDetails}
                     />
                 </View>
             )}
@@ -566,8 +594,14 @@ const IOURequestStepConfirmationWithOnyx = withOnyx<IOURequestStepConfirmationPr
     policy: {
         key: ({report, transaction}) => `${ONYXKEYS.COLLECTION.POLICY}${IOU.getIOURequestPolicyID(transaction, report)}`,
     },
+    policyDraft: {
+        key: ({reportDraft, transaction}) => `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${IOU.getIOURequestPolicyID(transaction, reportDraft)}`,
+    },
     policyCategories: {
         key: ({report, transaction}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${IOU.getIOURequestPolicyID(transaction, report)}`,
+    },
+    policyCategoriesDraft: {
+        key: ({reportDraft, transaction}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${IOU.getIOURequestPolicyID(transaction, reportDraft)}`,
     },
     policyTags: {
         key: ({report, transaction}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${IOU.getIOURequestPolicyID(transaction, report)}`,
