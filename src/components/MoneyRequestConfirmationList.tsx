@@ -466,8 +466,12 @@ function MoneyRequestConfirmationList({
             return;
         }
         const payeeOption = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails);
+        const currentUserOption = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(currentUserPersonalDetails);
+        const selectedParticipantsWithoutPayeeOption = selectedParticipants.filter((participant) => participant.accountID !== payeeOption.accountID);
+        const participants =
+            payeeOption.accountID === currentUserOption.accountID ? [payeeOption, ...selectedParticipants] : [payeeOption, currentUserOption, ...selectedParticipantsWithoutPayeeOption];
         if (shouldShowReadOnlySplits) {
-            return [payeeOption, ...selectedParticipants].map((participantOption: Participant) => {
+            return participants.map((participantOption: Participant) => {
                 const isPayer = participantOption.accountID === payeeOption.accountID;
                 let amount: number | undefined = 0;
                 if (iouAmount > 0) {
@@ -486,7 +490,7 @@ function MoneyRequestConfirmationList({
         const prefixPadding = StyleUtils.getCharacterPadding(currencySymbol ?? '');
         const formattedTotalAmount = CurrencyUtils.convertToDisplayStringWithoutCurrency(iouAmount, iouCurrencyCode);
         const amountWidth = StyleUtils.getWidthStyle(formattedTotalAmount.length * 9 + prefixPadding);
-        return [payeeOption, ...selectedParticipants].map((participantOption: Participant) => ({
+        return participants.map((participantOption: Participant) => ({
             ...participantOption,
             tabIndex: -1,
             shouldShowAmountInput: true,
@@ -500,7 +504,19 @@ function MoneyRequestConfirmationList({
                 onAmountChange: (value: string) => onSplitShareChange(participantOption.accountID ?? 0, Number(value)),
             },
         }));
-    }, [isTypeSplit, transaction, iouCurrencyCode, onSplitShareChange, payeePersonalDetails, selectedParticipants, currencyList, iouAmount, shouldShowReadOnlySplits, StyleUtils]);
+    }, [
+        isTypeSplit,
+        transaction,
+        iouCurrencyCode,
+        onSplitShareChange,
+        payeePersonalDetails,
+        selectedParticipants,
+        currencyList,
+        iouAmount,
+        shouldShowReadOnlySplits,
+        StyleUtils,
+        currentUserPersonalDetails,
+    ]);
 
     const isSplitModified = useMemo(() => {
         if (!transaction?.splitShares) {
@@ -516,7 +532,7 @@ function MoneyRequestConfirmationList({
                 ...[
                     {
                         title: translate('moneyRequestConfirmationList.paidBy'),
-                        data: [OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails)],
+                        data: [{...OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails), isSplitPayer: true}],
                         shouldShow: true,
                     },
                     {
@@ -625,20 +641,28 @@ function MoneyRequestConfirmationList({
     /**
      * Navigate to report details or profile of selected user
      */
-    const navigateToReportOrUserDetail = (option: ReportUtils.OptionData) => {
-        const activeRoute = Navigation.getActiveRouteWithoutParams();
+    const navigateToReportOrUserDetail = useCallback(
+        (option: ReportUtils.OptionData) => {
+            const activeRoute = Navigation.getActiveRouteWithoutParams();
 
-        if (option.isSelfDM) {
-            Navigation.navigate(ROUTES.PROFILE.getRoute(currentUserPersonalDetails.accountID, activeRoute));
-            return;
-        }
+            if (option.isSplitPayer) {
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SPLIT_PAYER.getRoute(action, iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()));
+                return;
+            }
 
-        if (option.accountID) {
-            Navigation.navigate(ROUTES.PROFILE.getRoute(option.accountID, activeRoute));
-        } else if (option.reportID) {
-            Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(option.reportID, activeRoute));
-        }
-    };
+            if (option.isSelfDM) {
+                Navigation.navigate(ROUTES.PROFILE.getRoute(currentUserPersonalDetails.accountID, activeRoute));
+                return;
+            }
+
+            if (option.accountID) {
+                Navigation.navigate(ROUTES.PROFILE.getRoute(option.accountID, activeRoute));
+            } else if (option.reportID) {
+                Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(option.reportID, activeRoute));
+            }
+        },
+        [action, currentUserPersonalDetails.accountID, transaction?.transactionID, iouType, reportID],
+    );
 
     /**
      * @param {String} paymentMethod
