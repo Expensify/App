@@ -433,7 +433,7 @@ function MoneyRequestConfirmationList({
         const shares: number[] = Object.values(splitSharesMap).map((splitShare) => splitShare?.amount ?? 0);
         const sumOfShares = shares?.reduce((prev, current): number => prev + current, 0);
         if (sumOfShares !== iouAmount) {
-            setFormError(translate('iou.error.invalidSplit'));
+            setFormError('iou.error.invalidSplit');
             return;
         }
 
@@ -443,7 +443,7 @@ function MoneyRequestConfirmationList({
 
         // A split must have at least two participants with amounts bigger than 0
         if (participantsWithAmount.length === 1) {
-            setFormError(translate('iou.error.invalidSplitParticipants'));
+            setFormError('iou.error.invalidSplitParticipants');
             return;
         }
 

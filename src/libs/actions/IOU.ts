@@ -6315,7 +6315,10 @@ function detachReceipt(transactionID: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: transaction,
+            value: {
+                ...transaction,
+                errors: ErrorUtils.getMicroSecondOnyxError('iou.error.receiptDeleteFailureError'),
+            },
         },
     ];
 
