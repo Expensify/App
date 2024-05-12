@@ -13,15 +13,18 @@ import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import DraggableList from '@components/DraggableList';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import useInitialDimensions from '@hooks/useInitialWindowDimensions';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import flex from '@styles/utils/flex';
 import * as IOU from '@userActions/IOU';
 import * as MapboxToken from '@userActions/MapboxToken';
 import * as TransactionAction from '@userActions/Transaction';
@@ -414,6 +417,12 @@ function IOURequestStepDistance({
         ),
         [isLoadingRoute, navigateToWaypointEditPage, waypoints],
     );
+    const {isSmallScreen} = useWindowDimensions();
+    const {initialHeight} = useInitialDimensions();
+    const optimisticOfflineIndicatorHeight = !isOffline ? 50 : 0; // The minimum height of offline indicator
+    const smallScreenHeigthAvailable = 750;
+    const mapHeight = smallScreenHeigthAvailable - optimisticOfflineIndicatorHeight;
+    const mapHeightPercent = (mapHeight / initialHeight) * 100;
 
     return (
         <StepScreenWrapper
@@ -422,8 +431,8 @@ function IOURequestStepDistance({
             testID={IOURequestStepDistance.displayName}
             shouldShowWrapper={!isCreatingNewRequest}
         >
-            <>
-                <View style={styles.flex1}>
+            <View style={{height: '100%'}}>
+                <View style={isSmallScreen ? {height: `${mapHeightPercent}%`} : styles.flex1}>
                     <DraggableList
                         data={waypointsList}
                         keyExtractor={(item) => item}
@@ -460,7 +469,7 @@ function IOURequestStepDistance({
                         isLoading={!isOffline && (isLoadingRoute || shouldFetchRoute || isLoading)}
                     />
                 </View>
-            </>
+            </View>
         </StepScreenWrapper>
     );
 }
