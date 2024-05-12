@@ -284,7 +284,9 @@ Onyx.connect({
 
         // The report is only visible if it is the last action not deleted that
         // does not match a closed or created state.
-        const reportActionsForDisplay = sortedReportActions.filter((reportAction) => ReportActionUtils.shouldReportActionBeVisibleAsLastAction(reportAction));
+        const reportActionsForDisplay = sortedReportActions.filter(
+            (reportAction) => ReportActionUtils.shouldReportActionBeVisibleAsLastAction(reportAction) && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
+        );
         visibleReportActionItems[reportID] = reportActionsForDisplay[0];
     },
 });
@@ -1746,7 +1748,7 @@ function getOptions(
             betas,
             policies,
             doesReportHaveViolations,
-            isInGSDMode: false,
+            isInFocusMode: false,
             excludeEmptyChats: false,
             includeSelfDM,
         });

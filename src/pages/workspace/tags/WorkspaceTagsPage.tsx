@@ -166,6 +166,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const getHeaderButtons = () => {
         const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
+        const isMultiLevelTags = PolicyUtils.isMultiLevelTags(policyTags);
 
         if (selectedTagsArray.length === 0) {
             return (
@@ -195,7 +196,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.TAGS_BULK_ACTION_TYPES>>> = [];
 
-        if (!isThereAnyAccountingConnection) {
+        if (!isThereAnyAccountingConnection && !isMultiLevelTags) {
             options.push({
                 icon: Expensicons.Trashcan,
                 text: translate(selectedTagsArray.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
