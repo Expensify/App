@@ -45,7 +45,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const theme = useTheme();
     const {translate} = useLocalize();
     const [selectedTags, setSelectedTags] = useState<Record<string, boolean>>({});
-    const [deleteTagsConfirmModalVisible, setDeleteTagsConfirmModalVisible] = useState(false);
+    const [isDeleteTagsConfirmModalVisible, setIsDeleteTagsConfirmModalVisible] = useState(false);
     const isFocused = useIsFocused();
     const policyID = route.params.policyID ?? '';
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -159,7 +159,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const deleteTags = () => {
         setSelectedTags({});
         Policy.deletePolicyTags(policyID, selectedTagsArray);
-        setDeleteTagsConfirmModalVisible(false);
+        setIsDeleteTagsConfirmModalVisible(false);
     };
 
     const isLoading = !isOffline && policyTags === undefined;
@@ -201,7 +201,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 icon: Expensicons.Trashcan,
                 text: translate(selectedTagsArray.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
                 value: CONST.POLICY.TAGS_BULK_ACTION_TYPES.DELETE,
-                onSelected: () => setDeleteTagsConfirmModalVisible(true),
+                onSelected: () => setIsDeleteTagsConfirmModalVisible(true),
             });
         }
 
@@ -284,9 +284,9 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     {!isSmallScreenWidth && getHeaderButtons()}
                 </HeaderWithBackButton>
                 <ConfirmModal
-                    isVisible={deleteTagsConfirmModalVisible}
+                    isVisible={isDeleteTagsConfirmModalVisible}
                     onConfirm={deleteTags}
-                    onCancel={() => setDeleteTagsConfirmModalVisible(false)}
+                    onCancel={() => setIsDeleteTagsConfirmModalVisible(false)}
                     title={translate(selectedTagsArray.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags')}
                     prompt={translate(selectedTagsArray.length === 1 ? 'workspace.tags.deleteTagConfirmation' : 'workspace.tags.deleteTagsConfirmation')}
                     confirmText={translate('common.delete')}
