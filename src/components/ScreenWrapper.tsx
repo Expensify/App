@@ -169,6 +169,7 @@ function ScreenWrapper(
     ).current;
 
     useEffect(() => {
+        // On iOS, the transitionEnd event doesn't trigger some times. As such, we need to set a timeout
         const timeout = setTimeout(() => {
             setDidScreenTransitionEnd(true);
             onEntryTransitionEnd?.();
