@@ -114,7 +114,11 @@ type OptionRowLHNDataProps = {
     onLayout?: (event: LayoutChangeEvent) => void;
 };
 
-type OptionRowLHNProps = {
+type OptionRowLHNOnyxProps = {
+    reportActions: OnyxEntry<ReportActions>
+};
+
+type OptionRowLHNProps = OptionRowLHNOnyxProps & {
     /** The ID of the report that the option is for */
     reportID: string;
 
@@ -141,4 +145,4 @@ type OptionRowLHNProps = {
 
 type RenderItemProps = {item: string};
 
-export type {LHNOptionsListProps, OptionRowLHNDataProps, OptionRowLHNProps, LHNOptionsListOnyxProps, RenderItemProps};
+export type {LHNOptionsListProps, OptionRowLHNDataProps, OptionRowLHNProps, OptionRowLHNOnyxProps, LHNOptionsListOnyxProps, RenderItemProps};

@@ -2256,7 +2256,7 @@ function isUnreadWithMention(reportOrOption: OnyxEntry<Report> | OptionData): bo
  * @param option (report or optionItem)
  * @param parentReportAction (the report action the current report is a thread of)
  */
-function requiresAttentionFromCurrentUser(optionOrReport: OnyxEntry<Report> | OptionData, parentReportAction: EmptyObject | OnyxEntry<ReportAction> = {}) {
+function requiresAttentionFromCurrentUser(reportActions: OnyxEntry<ReportActions>, optionOrReport: OnyxEntry<Report> | OptionData, parentReportAction: EmptyObject | OnyxEntry<ReportAction> = {}) {
     if (!optionOrReport) {
         return false;
     }
@@ -2273,12 +2273,29 @@ function requiresAttentionFromCurrentUser(optionOrReport: OnyxEntry<Report> | Op
         return true;
     }
 
-    if (isWaitingForAssigneeToCompleteTask(optionOrReport, parentReportAction)) {
+    if (requiresAttentionFromCurrentUserToAssignedTask(reportActions, optionOrReport, parentReportAction)) {
         return true;
     }
 
     // Has a child report that is awaiting action (e.g. approve, pay, add bank account) from current user
     if (optionOrReport.hasOutstandingChildRequest) {
+        return true;
+    }
+
+    return false;
+}
+
+function requiresAttentionFromCurrentUserToAssignedTask(reportActions: OnyxEntry<ReportActions>, optionOrReport: OnyxEntry<Report> | OptionData, parentReportAction: EmptyObject | OnyxEntry<ReportAction> = {}) {
+    const isChildTask = Object.values(reportActions ?? {}).some((reportAction) => {
+        const childReport = getReport(reportAction?.childReportID ?? undefined)
+        return isWaitingForAssigneeToCompleteTask(childReport, reportAction)
+    })
+
+    if (isChildTask) {
+        return true
+    }
+
+    if (isEmptyObject(parentReportAction) && isWaitingForAssigneeToCompleteTask(optionOrReport, parentReportAction)) {
         return true;
     }
 
@@ -6825,6 +6842,7 @@ export {
     shouldShowMerchantColumn,
     isCurrentUserInvoiceReceiver,
     isDraftReport,
+    requiresAttentionFromCurrentUserToAssignedTask
 };
 
 export type {

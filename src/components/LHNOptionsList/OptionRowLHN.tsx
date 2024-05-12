@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import React, {useCallback, useRef, useState} from 'react';
+import React, {memo, useCallback, useRef, useState} from 'react';
 import type {GestureResponderEvent, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import DisplayNames from '@components/DisplayNames';
@@ -27,11 +27,13 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {OptionRowLHNProps} from './types';
+import type {OptionRowLHNOnyxProps, OptionRowLHNProps} from './types';
+import { withOnyx } from 'react-native-onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const parser = new ExpensiMark();
 
-function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, optionItem, viewMode = 'default', style, onLayout = () => {}, hasDraftComment}: OptionRowLHNProps) {
+function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, optionItem, viewMode = 'default', style, onLayout = () => {}, hasDraftComment, reportActions}: OptionRowLHNProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const popoverAnchor = useRef<View>(null);
@@ -66,7 +68,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     }
 
     const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-    const shouldShowGreenDotIndicator = !hasBrickError && ReportUtils.requiresAttentionFromCurrentUser(optionItem, optionItem.parentReportAction);
+    const shouldShowGreenDotIndicator = !hasBrickError && ReportUtils.requiresAttentionFromCurrentUser(reportActions, optionItem, optionItem.parentReportAction)
     const textStyle = isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
     const textUnreadStyle = optionItem?.isUnread && optionItem.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
     const displayNameStyle = [styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, textUnreadStyle, style];
@@ -293,4 +295,11 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
 
 OptionRowLHN.displayName = 'OptionRowLHN';
 
-export default React.memo(OptionRowLHN);
+export default withOnyx<OptionRowLHNProps, OptionRowLHNOnyxProps>({
+    reportActions: {
+        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID ? reportID : '0'}`,
+        canEvict: false,
+    },
+
+})(memo(OptionRowLHN));
+

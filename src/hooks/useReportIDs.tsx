@@ -14,7 +14,7 @@ import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 
 type ChatReportSelector = OnyxTypes.Report & {isUnreadWithMention: boolean};
 type PolicySelector = Pick<OnyxTypes.Policy, 'type' | 'name' | 'avatarURL' | 'employeeList'>;
-type ReportActionsSelector = Array<Pick<OnyxTypes.ReportAction, 'reportActionID' | 'actionName' | 'errors' | 'message' | 'originalMessage'>>;
+type ReportActionsSelector = Array<Pick<OnyxTypes.ReportAction, 'reportActionID' | 'actionName' | 'errors' | 'message' | 'originalMessage' | 'childReportID'>>;
 
 type ReportIDsContextProviderProps = {
     children: React.ReactNode;
@@ -77,7 +77,7 @@ const chatReportSelector = (report: OnyxEntry<OnyxTypes.Report>): ChatReportSele
 const reportActionsSelector = (reportActions: OnyxEntry<OnyxTypes.ReportActions>): ReportActionsSelector =>
     (reportActions &&
         Object.values(reportActions).map((reportAction) => {
-            const {reportActionID, actionName, errors = [], originalMessage} = reportAction;
+            const {reportActionID, actionName, errors = [], originalMessage, childReportID} = reportAction;
             const decision = reportAction.message?.[0]?.moderationDecision?.decision;
 
             return {
@@ -90,6 +90,7 @@ const reportActionsSelector = (reportActions: OnyxEntry<OnyxTypes.ReportActions>
                     },
                 ] as Message[],
                 originalMessage,
+                childReportID
             };
         })) as ReportActionsSelector;
 

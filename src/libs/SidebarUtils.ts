@@ -121,6 +121,7 @@ function getOrderedReportIDs(
     const draftReports: Array<OnyxEntry<Report>> = [];
     const nonArchivedReports: Array<OnyxEntry<Report>> = [];
     const archivedReports: Array<OnyxEntry<Report>> = [];
+    const assignedTaskReports: Array<OnyxEntry<Report>> = [];
 
     if (currentPolicyID || policyMemberAccountIDs.length > 0) {
         reportsToDisplay = reportsToDisplay.filter(
@@ -137,9 +138,12 @@ function getOrderedReportIDs(
             };
         }
 
+        const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID ?? 0}`] ?? {};
         const isPinned = report?.isPinned ?? false;
         const reportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
-        if (isPinned || ReportUtils.requiresAttentionFromCurrentUser(report, reportAction)) {
+        if (ReportUtils.requiresAttentionFromCurrentUserToAssignedTask(reportActions, report, reportAction)) {
+            assignedTaskReports.push(report);
+        } else if (isPinned || ReportUtils.requiresAttentionFromCurrentUser(reportActions, report, reportAction)) {
             pinnedAndGBRReports.push(report);
         } else if (hasValidDraftComment(report?.reportID ?? '')) {
             draftReports.push(report);
@@ -153,6 +157,7 @@ function getOrderedReportIDs(
     // Sort each group of reports accordingly
     pinnedAndGBRReports.sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
     draftReports.sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
+    assignedTaskReports.sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
 
     if (isInDefaultMode) {
         nonArchivedReports.sort((a, b) => {
@@ -172,7 +177,8 @@ function getOrderedReportIDs(
 
     // Now that we have all the reports grouped and sorted, they must be flattened into an array and only return the reportID.
     // The order the arrays are concatenated in matters and will determine the order that the groups are displayed in the sidebar.
-    const LHNReports = [...pinnedAndGBRReports, ...draftReports, ...nonArchivedReports, ...archivedReports].map((report) => report?.reportID ?? '');
+    const LHNReports = [...assignedTaskReports, ...pinnedAndGBRReports, ...draftReports, ...nonArchivedReports, ...archivedReports].map((report) => report?.reportID ?? '');
+    console.log("assignedTaskReports", assignedTaskReports)
     return LHNReports;
 }
 
