@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {InteractionManager} from 'react-native';
 import {Easing, interpolate, interpolateColor, runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequence, withTiming} from 'react-native-reanimated';
 import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
@@ -48,6 +48,7 @@ export default function useAnimatedHighlightStyle({
     highlightEndDuration = CONST.ANIMATED_HIGHLIGHT_END_DURATION,
     height,
 }: Props) {
+    const [startHighlight, setStartHighlight] = useState(false);
     const repeatableProgress = useSharedValue(0);
     const nonRepeatableProgress = useSharedValue(shouldHighlight ? 0 : 1);
     const {didScreenTransitionEnd} = useScreenWrapperTranstionStatus();
@@ -61,10 +62,17 @@ export default function useAnimatedHighlightStyle({
     }));
 
     React.useEffect(() => {
-        if (!shouldHighlight || !didScreenTransitionEnd) {
+        if (!shouldHighlight || startHighlight) {
             return;
         }
+        setStartHighlight(true);
+    }, [shouldHighlight, startHighlight]);
 
+    React.useEffect(() => {
+        if (!startHighlight || !didScreenTransitionEnd) {
+            return;
+        }
+        setStartHighlight(false);
         InteractionManager.runAfterInteractions(() => {
             runOnJS(() => {
                 nonRepeatableProgress.value = withDelay(
@@ -84,7 +92,7 @@ export default function useAnimatedHighlightStyle({
         });
     }, [
         didScreenTransitionEnd,
-        shouldHighlight,
+        startHighlight,
         itemEnterDelay,
         itemEnterDuration,
         highlightStartDelay,
