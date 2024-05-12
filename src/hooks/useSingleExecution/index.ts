@@ -1,6 +1,12 @@
-import {useCallback} from 'react';
-
 type Action<T extends unknown[]> = (...params: T) => void | Promise<void>;
+
+const singleExecution =
+    <T extends unknown[]>(action?: Action<T>) =>
+    (...params: T) => {
+        action?.(...params);
+    };
+
+const hookValue = {isExecuting: false, singleExecution};
 
 /**
  * This hook was specifically written for native issue
@@ -8,15 +14,7 @@ type Action<T extends unknown[]> = (...params: T) => void | Promise<void>;
  * on web we don't need this mechanism so we just call the action directly.
  */
 export default function useSingleExecution() {
-    const singleExecution = useCallback(
-        <T extends unknown[]>(action?: Action<T>) =>
-            (...params: T) => {
-                action?.(...params);
-            },
-        [],
-    );
-
-    return {isExecuting: false, singleExecution};
+    return hookValue;
 }
 
 export type {Action};
