@@ -61,6 +61,9 @@ type TaxRate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Indicates if the tax rate is disabled. */
     isDisabled?: boolean;
 
+    /** Indicates if the tax rate is selected. */
+    isSelected?: boolean;
+
     /** An error message to display to the user */
     errors?: OnyxCommon.Errors;
 
@@ -205,8 +208,13 @@ type Tenant = {
     value: string;
 };
 
+type XeroTrackingCategory = {
+    id: string;
+    name: string;
+};
+
 type XeroConnectionData = {
-    bankAccounts: unknown[];
+    bankAccounts: Account[];
     countryCode: string;
     organisationID: string;
     revenueAccounts: Array<{
@@ -214,7 +222,13 @@ type XeroConnectionData = {
         name: string;
     }>;
     tenants: Tenant[];
-    trackingCategories: unknown[];
+    trackingCategories: XeroTrackingCategory[];
+};
+
+type XeroMappingType = {
+    customer: string;
+} & {
+    [key in `trackingCategory_${string}`]: string;
 };
 
 /**
@@ -242,9 +256,7 @@ type XeroConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     importTaxRates: boolean;
     importTrackingCategories: boolean;
     isConfigured: boolean;
-    mappings: {
-        customer: string;
-    };
+    mappings: XeroMappingType;
     sync: {
         hasChosenAutoSyncOption: boolean;
         hasChosenSyncReimbursedReportsOption: boolean;
@@ -259,7 +271,7 @@ type XeroConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
 type Connection<ConnectionData, ConnectionConfig> = {
     lastSync?: ConnectionLastSync;
-    data: ConnectionData;
+    data?: ConnectionData;
     config: ConnectionConfig;
 };
 
@@ -561,4 +573,5 @@ export type {
     QBONonReimbursableExportAccountType,
     QBOReimbursableExportAccountType,
     QBOConnectionConfig,
+    XeroTrackingCategory,
 };

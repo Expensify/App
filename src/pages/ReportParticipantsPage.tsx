@@ -87,6 +87,8 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
                 roleBadge = <Badge text={translate('common.admin')} />;
             }
 
+            const pendingAction = pendingChatMember?.pendingAction ?? report.participants?.[accountID]?.pendingAction;
+
             result.push({
                 keyForList: `${accountID}`,
                 accountID,
@@ -96,7 +98,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: formatPhoneNumber(details?.login ?? ''),
                 rightElement: roleBadge,
-                pendingAction: pendingChatMember?.pendingAction,
+                pendingAction,
                 icons: [
                     {
                         source: UserUtils.getAvatar(details?.avatar, accountID),
