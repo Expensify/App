@@ -143,20 +143,22 @@ const isPolicyEmployee = (policyID: string, policies: OnyxCollection<Policy>): b
 /**
  * Checks if the current user is an owner (creator) of the policy.
  */
-const isPolicyOwner = (policy: OnyxEntry<Policy> | EmptyObject, currentUserAccountID: number): boolean => policy?.ownerAccountID === currentUserAccountID;
+const isPolicyOwner = (policy: OnyxEntry<Policy>, currentUserAccountID: number): boolean => policy?.ownerAccountID === currentUserAccountID;
 
 /**
- * Create an object mapping member emails to their accountIDs. Filter for members without errors, and get the login email from the personalDetail object using the accountID.
+ * Create an object mapping member emails to their accountIDs. Filter for members without errors if includeMemberWithErrors is false, and get the login email from the personalDetail object using the accountID.
  *
- * We only return members without errors. Otherwise, the members with errors would immediately be removed before the user has a chance to read the error.
+ * If includeMemberWithErrors is false, We only return members without errors. Otherwise, the members with errors would immediately be removed before the user has a chance to read the error.
  */
-function getMemberAccountIDsForWorkspace(employeeList: PolicyEmployeeList | undefined): MemberEmailsToAccountIDs {
+function getMemberAccountIDsForWorkspace(employeeList: PolicyEmployeeList | undefined, includeMemberWithErrors = false): MemberEmailsToAccountIDs {
     const members = employeeList ?? {};
     const memberEmailsToAccountIDs: MemberEmailsToAccountIDs = {};
     Object.keys(members).forEach((email) => {
-        const member = members?.[email];
-        if (Object.keys(member?.errors ?? {})?.length > 0) {
-            return;
+        if (!includeMemberWithErrors) {
+            const member = members?.[email];
+            if (Object.keys(member?.errors ?? {})?.length > 0) {
+                return;
+            }
         }
         const personalDetail = getPersonalDetailByEmail(email);
         if (!personalDetail?.login) {
@@ -246,6 +248,13 @@ function getCleanedTagName(tag: string) {
  */
 function getCountOfEnabledTagsOfList(policyTags: PolicyTags) {
     return Object.values(policyTags).filter((policyTag) => policyTag.enabled).length;
+}
+
+/**
+ * Whether the policy has multi-level tags
+ */
+function isMultiLevelTags(policyTagList: OnyxEntry<PolicyTagList>): boolean {
+    return Object.keys(policyTagList ?? {}).length > 1;
 }
 
 function isPendingDeletePolicy(policy: OnyxEntry<Policy>): boolean {
@@ -430,6 +439,7 @@ export {
     getTagList,
     getCleanedTagName,
     getCountOfEnabledTagsOfList,
+    isMultiLevelTags,
     isPendingDeletePolicy,
     isPolicyEmployee,
     isPolicyOwner,
