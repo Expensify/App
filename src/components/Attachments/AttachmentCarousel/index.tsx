@@ -19,8 +19,7 @@ import AttachmentCarouselCellRenderer from './AttachmentCarouselCellRenderer';
 import CarouselActions from './CarouselActions';
 import CarouselButtons from './CarouselButtons';
 import CarouselItem from './CarouselItem';
-import extractAttachmentsFromNote from './extractAttachmentsFromNote';
-import extractAttachmentsFromReport from './extractAttachmentsFromReport';
+import extractAttachments from './extractAttachments';
 import type {AttachmentCaraouselOnyxProps, AttachmentCarouselProps, UpdatePageProps} from './types';
 import useCarouselArrows from './useCarouselArrows';
 
@@ -49,12 +48,13 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
 
     useEffect(() => {
         const parentReportAction = report.parentReportActionID && parentReportActions ? parentReportActions[report.parentReportActionID] : undefined;
-        const attachmentsFromReport = extractAttachmentsFromReport(parentReportAction, reportActions ?? undefined);
-        let attachmentsFromNote: Attachment[] = [];
+        let targetAttachments: Attachment[] = [];
         if (type === CONST.ATTACHMENT_TYPE.NOTE && accountID) {
-            attachmentsFromNote = extractAttachmentsFromNote(report.reportID, accountID);
+            targetAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.NOTE, {reportID: report.reportID, accountID});
+        } else {
+            targetAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.REPORT, {parentReportAction, reportActions: reportActions ?? undefined});
         }
-        const targetAttachments = type === CONST.ATTACHMENT_TYPE.REPORT ? attachmentsFromReport : attachmentsFromNote;
+      
 
         if (isEqual(attachments, targetAttachments)) {
             return;

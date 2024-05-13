@@ -12,8 +12,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import CarouselButtons from './CarouselButtons';
-import extractAttachmentsFromNote from './extractAttachmentsFromNote';
-import extractAttachmentsFromReport from './extractAttachmentsFromReport';
+import extractAttachments from './extractAttachments';
 import type {AttachmentCarouselPagerHandle} from './Pager';
 import AttachmentCarouselPager from './Pager';
 import type {AttachmentCaraouselOnyxProps, AttachmentCarouselProps} from './types';
@@ -32,12 +31,13 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
 
     useEffect(() => {
         const parentReportAction = report.parentReportActionID && parentReportActions ? parentReportActions[report.parentReportActionID] : undefined;
-        const attachmentsFromReport = extractAttachmentsFromReport(parentReportAction, reportActions);
-        let attachmentsFromNote: Attachment[] = [];
+        let targetAttachments: Attachment[] = [];
         if (type === CONST.ATTACHMENT_TYPE.NOTE && accountID) {
-            attachmentsFromNote = extractAttachmentsFromNote(report.reportID, accountID);
+            targetAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.NOTE, {reportID: report.reportID, accountID});
+        } else {
+            targetAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.REPORT, {parentReportAction, reportActions});
         }
-        const targetAttachments = type === CONST.ATTACHMENT_TYPE.REPORT ? attachmentsFromReport : attachmentsFromNote;
+
         const initialPage = targetAttachments.findIndex(compareImage);
 
         // Dismiss the modal when deleting an attachment during its display in preview.
