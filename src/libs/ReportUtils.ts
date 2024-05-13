@@ -2983,6 +2983,8 @@ function getModifiedExpenseOriginalMessage(
         originalMessage.tag = transactionChanges?.tag;
     }
 
+    // We only want to display a tax amount update system message when tax amount is updated by user.
+    // Tax amount can change as a result of amount, currency or tax rate update. In such cases, we want to skip displaying a system message, as discussed.
     if ('taxAmount' in transactionChanges && !('amount' in transactionChanges || 'currency' in transactionChanges || 'taxCode' in transactionChanges)) {
         originalMessage.oldTaxAmount = TransactionUtils.getTaxAmount(oldTransaction, isFromExpenseReport);
         originalMessage.taxAmount = transactionChanges?.taxAmount;
