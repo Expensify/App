@@ -4,7 +4,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import type {PersonalDetails} from '@src/types/onyx';
 
-type CurrentUserPersonalDetails = PersonalDetails | Record<string, never>;
+type CurrentUserPersonalDetails = PersonalDetails;
 
 type HOCProps = {
     currentUserPersonalDetails: CurrentUserPersonalDetails;

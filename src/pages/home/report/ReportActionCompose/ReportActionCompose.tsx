@@ -101,7 +101,7 @@ const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 
 function ReportActionCompose({
     blockedFromConcierge,
-    currentUserPersonalDetails = {},
+    currentUserPersonalDetails,
     disabled,
     isComposerFullSize = false,
     onSubmit,

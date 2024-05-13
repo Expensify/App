@@ -794,12 +794,12 @@ function getShareDestination(reportID: string, reports: OnyxCollection<OnyxTypes
 /**
  * Returns the parentReportAction if the given report is a thread/task.
  */
-function getParentReportAction(report: OnyxEntry<OnyxTypes.Report>): ReportAction | Record<string, never> {
+function getParentReportAction(report: OnyxEntry<OnyxTypes.Report>): OnyxEntry<ReportAction> {
     // If the report is not a thread report, then it won't have a parent and an empty object can be returned.
     if (!report?.parentReportID || !report.parentReportActionID) {
-        return {};
+        return null;
     }
-    return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID] ?? {};
+    return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID] ?? null;
 }
 
 /**
@@ -829,7 +829,7 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
     const shouldDeleteTaskReport = !ReportActionsUtils.doesReportHaveVisibleActions(report.reportID ?? '');
     const optimisticReportAction: Partial<ReportUtils.OptimisticTaskReportAction> = {
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-        previousMessage: parentReportAction.message,
+        previousMessage: parentReportAction?.message,
         message: [
             {
                 translationKey: '',
@@ -844,7 +844,7 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
         linkMetadata: [],
     };
     const optimisticReportActions = {
-        [parentReportAction.reportActionID]: optimisticReportAction,
+        [parentReportAction?.reportActionID ?? '']: optimisticReportAction,
     };
 
     const optimisticData: OnyxUpdate[] = [
@@ -910,7 +910,7 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`,
             value: {
-                [parentReportAction.reportActionID]: {
+                [parentReportAction?.reportActionID ?? '']: {
                     pendingAction: null,
                 },
             },
@@ -937,7 +937,7 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`,
             value: {
-                [parentReportAction.reportActionID]: {
+                [parentReportAction?.reportActionID ?? '']: {
                     pendingAction: null,
                 },
             },
@@ -978,7 +978,7 @@ function getTaskAssigneeAccountID(taskReport: OnyxEntry<OnyxTypes.Report>): numb
     }
 
     const reportAction = getParentReportAction(taskReport);
-    return reportAction.childManagerAccountID;
+    return reportAction?.childManagerAccountID;
 }
 
 /**
