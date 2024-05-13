@@ -5594,6 +5594,10 @@ function temporary_getMoneyRequestOptions(
  */
 function canLeaveRoom(report: OnyxEntry<Report>, isPolicyEmployee: boolean): boolean {
     if (isInvoiceRoom(report)) {
+        if (isArchivedRoom(report)) {
+            return false;
+        }
+
         const invoiceReport = getReport(report?.iouReportID ?? '');
 
         if (invoiceReport?.ownerAccountID === currentUserAccountID) {
