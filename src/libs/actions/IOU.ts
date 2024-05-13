@@ -2389,7 +2389,7 @@ function getUpdateMoneyRequestParams(
     let updatedMoneyRequestReport: OnyxTypes.Report | EmptyObject;
     if (!iouReport) {
         updatedMoneyRequestReport = {};
-    } else if (ReportUtils.isExpenseReport(iouReport) && typeof iouReport.total === 'number') {
+    } else if ((ReportUtils.isExpenseReport(iouReport) || ReportUtils.isInvoiceReport(iouReport)) && typeof iouReport.total === 'number') {
         // For expense report, the amount is negative, so we should subtract total from diff
         updatedMoneyRequestReport = {
             ...iouReport,
