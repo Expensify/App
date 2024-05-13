@@ -1,5 +1,4 @@
 import {useFocusEffect} from '@react-navigation/native';
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -30,8 +29,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type TaskDescriptionPageProps = WithReportOrNotFoundProps & WithCurrentUserPersonalDetailsProps;
 
-const parser = new ExpensiMark();
-
 function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescriptionPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -48,7 +45,7 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
 
     const submit = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>) => {
-            if (values.description !== parseHtmlToMarkdown(parser.replace(report?.description ?? '')) && !isEmptyObject(report)) {
+            if (values.description !== parseHtmlToMarkdown(report?.description ?? '') && !isEmptyObject(report)) {
                 // Set the description of the report in the store and then call EditTask API
                 // to update the description of the report on the server
                 Task.editTask(report, {description: values.description});
