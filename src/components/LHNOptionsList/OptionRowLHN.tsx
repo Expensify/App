@@ -182,19 +182,17 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                             size={isInFocusMode ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                                         />
                                     ) : (
-                                        <OfflineWithFeedback pendingAction={report?.pendingFields?.avatar}>
-                                            <MultipleAvatars
-                                                icons={optionItem.icons ?? []}
-                                                isFocusMode={isInFocusMode}
-                                                size={isInFocusMode ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
-                                                secondAvatarStyle={[
-                                                    StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
-                                                    isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
-                                                    hovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
-                                                ]}
-                                                shouldShowTooltip={OptionsListUtils.shouldOptionShowTooltip(optionItem)}
-                                            />
-                                        </OfflineWithFeedback>
+                                        <MultipleAvatars
+                                            icons={optionItem.icons ?? []}
+                                            isFocusMode={isInFocusMode}
+                                            size={isInFocusMode ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
+                                            secondAvatarStyle={[
+                                                StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
+                                                isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
+                                                hovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
+                                            ]}
+                                            shouldShowTooltip={OptionsListUtils.shouldOptionShowTooltip(optionItem)}
+                                        />
                                     ))}
                                 <View style={contentContainerStyles}>
                                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, styles.overflowHidden]}>
