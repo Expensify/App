@@ -7,11 +7,11 @@ const NotificationType = {
 } as const;
 
 type NotificationDataMap = {
-    [NotificationType.REPORT_COMMENT]: ReportCommentPushNotificationData;
+    [NotificationType.REPORT_COMMENT]: ReportActionPushNotificationData;
     [NotificationType.MONEY_REQUEST]: ReportActionPushNotificationData;
 };
 
-type PushNotificationData = ReportCommentPushNotificationData | ReportActionPushNotificationData;
+type PushNotificationData = ReportActionPushNotificationData;
 
 type BasePushNotificationData = {
     title: string;
@@ -24,9 +24,6 @@ type BasePushNotificationData = {
 type ReportActionPushNotificationData = BasePushNotificationData & {
     reportID: number;
     reportActionID: string;
-};
-
-type ReportCommentPushNotificationData = ReportActionPushNotificationData & {
     roomName?: string;
 };
 
@@ -35,4 +32,4 @@ type ReportCommentPushNotificationData = ReportActionPushNotificationData & {
  * types of push notifications sent by our API.
  */
 export default NotificationType;
-export type {NotificationDataMap, PushNotificationData, ReportActionPushNotificationData, ReportCommentPushNotificationData};
+export type {NotificationDataMap, PushNotificationData, ReportActionPushNotificationData};
