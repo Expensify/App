@@ -97,7 +97,6 @@ Over time, Expensify learns how you tag specific merchants and automatically app
 - If you change a tag, Expensify learns that correction over time as well. However, changing a tag on one expense does not change it for other expenses that have already been assigned the tag.
 - Any expense rules for your workspace take priority over Expensify’s automatic tags. 
 - Expensify won’t automatically tag an expense if it is already manually assigned a tag. 
-- Expensify’s automatic tags are specific to each workspace. If you are part of multiple expenses, you’ll want to ensure the right workspace is active before creating an expense. Your active workspace is the most recently selected one. To change the active workspace, click your profile image or icon, then click Workspaces and select the correct workspace before you create the expense.
 
 {% include faq-begin.md %}
 **Can I edit my tags on a submitted expense report?**
