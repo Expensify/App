@@ -228,8 +228,8 @@ function SettlementButton({
             iouPaymentType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT ||
             iouPaymentType === CONST.PAYMENT_METHODS.DEBIT_CARD
         ) {
-            if (iouPaymentType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) BankAccounts.setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
             triggerKYCFlow(event, iouPaymentType);
+            if (iouPaymentType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) BankAccounts.setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
             return;
         }
 
