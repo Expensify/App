@@ -252,6 +252,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.DISTANCE_RATE_EDIT]: () => require('../../../../pages/workspace/distanceRates/PolicyDistanceRateEditPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.TAGS_SETTINGS]: () => require('../../../../pages/workspace/tags/WorkspaceTagsSettingsPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.TAG_SETTINGS]: () => require('../../../../pages/workspace/tags/TagSettingsPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.TAG_LIST_VIEW]: () => require('../../../../pages/workspace/tags/WorkspaceViewTagsPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.TAGS_EDIT]: () => require('../../../../pages/workspace/tags/WorkspaceEditTagsPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.TAG_CREATE]: () => require('../../../../pages/workspace/tags/WorkspaceCreateTagPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.TAG_EDIT]: () => require('../../../../pages/workspace/tags/EditTagPage').default as React.ComponentType,
