@@ -408,7 +408,8 @@ function ReportActionsView({
             reportActions.length >= 1 &&
             !isLoadingInitialReportActions &&
             !isLoadingOlderReportActions &&
-            !isLoadingNewerReportActions;
+            !isLoadingNewerReportActions &&
+            !ReportUtils.isInvoiceRoom(report);
 
         if (shouldOpenReport) {
             Report.openReport(reportID, reportActionID);
@@ -423,6 +424,7 @@ function ReportActionsView({
         isLoadingOlderReportActions,
         isLoadingNewerReportActions,
         isLoadingInitialReportActions,
+        report,
     ]);
 
     // Check if the first report action in the list is the one we're currently linked to

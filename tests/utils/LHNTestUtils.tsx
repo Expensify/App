@@ -158,7 +158,6 @@ function getFakeReportAction(actor = 'email1@test.com', millisecondsInThePast = 
                 text: 'Email One',
             },
         ],
-        whisperedToAccountIDs: [],
         automatic: false,
         message: [
             {
@@ -182,6 +181,7 @@ function getFakeReportAction(actor = 'email1@test.com', millisecondsInThePast = 
             },
         ],
         originalMessage: {
+            whisperedTo: [],
             childReportID: `${reportActionID}`,
             emojiReactions: {
                 heart: {
