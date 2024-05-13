@@ -1621,6 +1621,7 @@ export default {
     },
     termsStep: {
         headerTitle: 'Condiciones y tarifas',
+        headerTitleRefactor: 'Tarifas y condiciones',
         haveReadAndAgree: 'He leído y acepto recibir ',
         electronicDisclosures: 'divulgaciones electrónicas',
         agreeToThe: 'Estoy de acuerdo con el ',
@@ -1631,6 +1632,9 @@ export default {
         noOverdraftOrCredit: 'Sin función de sobregiro/crédito',
         electronicFundsWithdrawal: 'Retiro electrónico de fondos',
         standard: 'Estándar',
+        takeALookAtSomeFees: 'Echa un vistazo a algunas tarifas.',
+        checkPlease: 'Por favor, revisa.',
+        agreeToTerms: 'Debes aceptar los términos y condiciones para continuar.',
         shortTermsForm: {
             expensifyPaymentsAccount: ({walletProgram}: WalletProgramParams) => `La billetera Expensify es emitida por ${walletProgram}.`,
             perPurchase: 'Por compra',
@@ -2274,7 +2278,7 @@ export default {
         accounting: {
             settings: 'configuración',
             title: 'Conexiones',
-            subtitle: 'Conecta a tu sistema de contabilidad para codificar transacciones con tu plan de cuentas, auto-cotejar pagos y mantener tus finanzas sincronizadas.',
+            subtitle: 'Conecta a tu sistema de contabilidad para codificar transacciones con tu plan de cuentas, auto-cotejar pagos, y mantener tus finanzas sincronizadas.',
             qbo: 'Quickbooks Online',
             xero: 'Xero',
             setup: 'Configurar',
@@ -2484,6 +2488,7 @@ export default {
             save: 'Guardar',
             genericFailureMessage: 'Se produjo un error al guardar el espacio de trabajo. Por favor, inténtalo de nuevo.',
             avatarUploadFailureMessage: 'No se pudo subir el avatar. Por favor, inténtalo de nuevo.',
+            addressContext: 'Se requiere una dirección para habilitar Expensify Travel. Por favor, introduce una dirección asociada con tu negocio.',
         },
         bankAccount: {
             continueWithSetup: 'Continuar con la configuración',

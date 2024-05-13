@@ -150,7 +150,7 @@ function IOURequestStepTaxAmountPage({
             <MoneyRequestAmountForm
                 isEditing={Boolean(backTo || isEditing)}
                 currency={currency}
-                amount={transactionDetails?.taxAmount}
+                amount={Math.abs(transactionDetails?.taxAmount ?? 0)}
                 taxAmount={getTaxAmount(transaction, policy, currency, Boolean(backTo || isEditing))}
                 ref={(e) => (textInput.current = e)}
                 onCurrencyButtonPress={navigateToCurrencySelectionPage}

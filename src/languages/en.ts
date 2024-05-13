@@ -1600,6 +1600,7 @@ export default {
     },
     termsStep: {
         headerTitle: 'Terms and fees',
+        headerTitleRefactor: 'Fees and terms',
         haveReadAndAgree: 'I have read and agree to receive ',
         electronicDisclosures: 'electronic disclosures',
         agreeToThe: 'I agree to the',
@@ -1610,6 +1611,9 @@ export default {
         noOverdraftOrCredit: 'No overdraft/credit feature.',
         electronicFundsWithdrawal: 'Electronic funds withdrawal',
         standard: 'Standard',
+        takeALookAtSomeFees: 'Take a look at some fees.',
+        checkPlease: 'Check please.',
+        agreeToTerms: 'Agree to the terms and you’ll be good to go!',
         shortTermsForm: {
             expensifyPaymentsAccount: ({walletProgram}: WalletProgramParams) => `The Expensify Wallet is issued by ${walletProgram}.`,
             perPurchase: 'Per purchase',
@@ -2271,7 +2275,7 @@ export default {
         accounting: {
             settings: 'settings',
             title: 'Connections',
-            subtitle: 'Connect to your accounting system to code transactions with your chart of accounts, auto-match payments and keep your finances in sync.',
+            subtitle: 'Connect to your accounting system to code transactions with your chart of accounts, auto-match payments, and keep your finances in sync.',
             qbo: 'Quickbooks Online',
             xero: 'Xero',
             setup: 'Set up',
@@ -2448,6 +2452,7 @@ export default {
             save: 'Save',
             genericFailureMessage: 'An error occurred updating the workspace, please try again.',
             avatarUploadFailureMessage: 'An error occurred uploading the avatar, please try again.',
+            addressContext: 'A Workspace Address is required to enable Expensify Travel. Please enter an address associated with your business.',
         },
         bankAccount: {
             continueWithSetup: 'Continue with setup',
