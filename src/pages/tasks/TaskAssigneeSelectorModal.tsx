@@ -7,6 +7,7 @@ import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {FallbackAvatar} from '@components/Icon/Expensicons';
 import {useBetas, useSession} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -32,6 +33,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Report, Task} from '@src/types/onyx';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 type TaskAssigneeSelectorModalOnyxProps = {
     /** All reports shared with the user */
@@ -115,9 +117,22 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
         const sectionsList = [];
 
         if (currentUserOption) {
+            // We need to manually recreate icon for current user since OptionsListUtils.getFilteredOptions returns empty icon
+            const currentUserAvatarIcon: OnyxCommon.Icon = {
+                source: currentUserPersonalDetails.avatar ?? FallbackAvatar,
+                id: currentUserPersonalDetails.accountID,
+                type: CONST.ICON_TYPE_AVATAR,
+                name: currentUserPersonalDetails.displayName,
+            };
+
             sectionsList.push({
                 title: translate('newTaskPage.assignMe'),
-                data: [currentUserOption],
+                data: [
+                    {
+                        ...currentUserOption,
+                        icons: [currentUserAvatarIcon],
+                    },
+                ],
                 shouldShow: true,
             });
         }

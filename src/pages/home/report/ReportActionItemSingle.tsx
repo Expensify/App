@@ -110,9 +110,9 @@ function ReportActionItemSingle({
     let secondaryAvatar: Icon;
     const primaryDisplayName = displayName;
     if (displayAllActors) {
-        // The ownerAccountID and actorAccountID can be the same if the a user submits an expense back from the IOU's original creator, in that case we need to use managerID to avoid displaying the same user twice
+        // The ownerAccountID and actorAccountID can be the same if the user submits an expense back from the IOU's original creator, in that case we need to use managerID to avoid displaying the same user twice
         const secondaryAccountId = iouReport?.ownerAccountID === actorAccountID || isInvoiceReport ? iouReport?.managerID : iouReport?.ownerAccountID;
-        const secondaryUserAvatar = personalDetails?.[secondaryAccountId ?? -1]?.avatar ?? '';
+        const secondaryUserAvatar = personalDetails?.[secondaryAccountId ?? -1]?.avatar ?? FallbackAvatar;
         const secondaryDisplayName = ReportUtils.getDisplayNameForParticipant(secondaryAccountId);
 
         if (!isInvoiceReport) {

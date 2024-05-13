@@ -761,7 +761,7 @@ function createOption(
     // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     result.searchText = getSearchText(report, reportName, personalDetailList, !!result.isChatRoom || !!result.isPolicyExpenseChat, !!result.isThread);
-    result.icons = ReportUtils.getIcons(report, personalDetails, personalDetail?.avatar, personalDetail?.login, personalDetail?.accountID);
+    result.icons = ReportUtils.getIcons(report, personalDetails, personalDetail?.avatar, personalDetail?.login, personalDetail?.accountID, null);
     result.subtitle = subtitle;
 
     return result;
@@ -1620,6 +1620,7 @@ function getUserToInviteOption({
     userToInvite.icons = [
         {
             source: FallbackAvatar,
+            id: optimisticAccountID,
             name: searchValue,
             type: CONST.ICON_TYPE_AVATAR,
         },
