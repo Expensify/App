@@ -110,7 +110,7 @@ Approvers can also edit tags on the submitter’s behalf, even after approval. I
 
 Yes. When a tag is manually edited, Expensify will log the change in the related workspace chat. 
 
-If I change tags in my accounting system, what happens to tags in the workspace?
+**If I change tags in my accounting system, what happens to tags in the workspace?**
 
 If a tag is disabled in the accounting system, it will be removed from the workspace’s tags list in the workspace. However, the disabled tag will remain on approved and drafted expense reports that it has been previously added to. An admin can change the tag on an approved or reimbursed expense, and anyone can change the tag on an unapproved expense.
 
