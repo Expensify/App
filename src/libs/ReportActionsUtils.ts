@@ -13,7 +13,6 @@ import type {
     IOUMessage,
     OriginalMessageActionableMentionWhisper,
     OriginalMessageActionableReportMentionWhisper,
-    OriginalMessageActionableTrackedExpenseWhisper,
     OriginalMessageDismissedViolation,
     OriginalMessageIOU,
     OriginalMessageJoinPolicyChangeLog,

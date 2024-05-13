@@ -1480,16 +1480,8 @@ function getDeleteTrackExpenseInformation(
             },
             errors: undefined,
         },
+        ...(actionableWhisperReportActionID && {[actionableWhisperReportActionID]: {originalMessage: {resolution}}}),
     } as OnyxTypes.ReportActions;
-
-    // Resolve actionable whisper message
-    if (actionableWhisperReportActionID) {
-        updatedReportAction[actionableWhisperReportActionID] = {
-            originalMessage: {
-                resolution,
-            },
-        };
-    }
     const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(chatReport?.reportID ?? '', updatedReportAction);
     const {lastMessageText = '', lastMessageHtml = ''} = ReportActionsUtils.getLastVisibleMessage(chatReport?.reportID ?? '', updatedReportAction);
 
