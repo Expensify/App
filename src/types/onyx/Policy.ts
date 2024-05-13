@@ -309,18 +309,25 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** TODO: Doesn't exist in the app */
     markChecksToBePrinted: boolean;
 
+    /** Defines how reimbursable expenses are exported */
     reimbursableExpensesExportDestination: QBOReimbursableExportAccountType;
 
+    /** Defines how non reimbursable expenses are exported */
     nonReimbursableExpensesExportDestination: QBONonReimbursableExportAccountType;
 
+    /** Default vendor of non reimbursable bill */
     nonReimbursableBillDefaultVendor: string;
 
+    /** ID of the invoice collection account */
     collectionAccountID?: string;
 
+    /** ID of the bill payment account */
     reimbursementAccountID?: string;
 
+    /** Account that receives the reimbursable expenses */
     reimbursableExpensesAccount?: Account;
 
+    /** Account that receives the non reimbursable expenses */
     nonReimbursableExpensesAccount?: Account;
 
     /** Account that receives the exported invoices */

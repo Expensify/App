@@ -86,6 +86,7 @@ type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 
 
 type WelcomeMessage = {showReportName: boolean; phrase1?: string; phrase2?: string};
 
+/** TODO: I'd move this to `OriginalMessage.ts` and add it to `OriginalMessageModifiedExpense` type */
 type ExpenseOriginalMessage = {
     oldComment?: string;
     newComment?: string;
