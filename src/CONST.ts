@@ -4750,6 +4750,10 @@ const CONST = {
     SEARCH_DATA_TYPES: {
         TRANSACTION: 'transaction',
     },
+
+    REFERRER: {
+        NOTIFICATION: 'notification',
+    },
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
