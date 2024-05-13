@@ -71,7 +71,7 @@ function XeroOrganizationConfigurationPage({
                     <OfflineWithFeedback
                         errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.TENANT_ID)}
                         errorRowStyles={[styles.ph5, styles.mt2]}
-                        onClose={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.IMPORT_TAX_RATES)}
+                        onClose={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.TENANT_ID)}
                     >
                         <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.xero.organizationDescription')}</Text>
                         <SelectionList
