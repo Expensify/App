@@ -3193,10 +3193,6 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
         formattedName = getDisplayNameForParticipant(currentUserAccountID, undefined, undefined, true);
     }
 
-    if (isInvoiceRoom(report)) {
-        formattedName = getInvoicesChatName(report);
-    }
-
     if (formattedName) {
         return formattedName;
     }
