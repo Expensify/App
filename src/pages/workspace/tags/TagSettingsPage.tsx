@@ -66,8 +66,9 @@ function TagSettingsPage({route, policyTags}: TagSettingsPageProps) {
     };
 
     const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
+    const isMultiLevelTags = PolicyUtils.isMultiLevelTags(policyTags);
     const threeDotsMenuItems = [];
-    if (!isThereAnyAccountingConnection) {
+    if (!isThereAnyAccountingConnection && !isMultiLevelTags) {
         threeDotsMenuItems.push({
             icon: Trashcan,
             text: translate('workspace.tags.deleteTag'),

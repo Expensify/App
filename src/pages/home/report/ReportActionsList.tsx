@@ -496,6 +496,31 @@ function ReportActionsList({
     }, [calculateUnreadMarker, report.lastReadTime, messageManuallyMarkedUnread]);
 
     useEffect(() => {
+        const scrollToFirstUnreadMessage = () => {
+            if (!currentUnreadMarker) {
+                return;
+            }
+
+            const unreadMessageIndex = sortedVisibleReportActions.findIndex((action) => action.reportActionID === currentUnreadMarker);
+
+            // Checking that we have a valid unread message index and the user scroll
+            // offset is less than the threshold since we don't want to auto-scroll when
+            // the report is already open and New Messages marker is shown as user might be reading.
+            if (unreadMessageIndex !== -1 && scrollingVerticalOffset.current < VERTICAL_OFFSET_THRESHOLD) {
+                // We're passing viewPosition: 1 to scroll to the top of the
+                // unread message (marker) since we're using an inverted FlatList.
+                reportScrollManager?.scrollToIndex(unreadMessageIndex, false, 1);
+            }
+        };
+
+        // Call the scroll function after a small delay to ensure all items
+        // have been measured and the list is ready to be scrolled.
+        InteractionManager.runAfterInteractions(scrollToFirstUnreadMessage);
+        // We only want to run this effect once, when we're navigating to a report with unread messages.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [sortedVisibleReportActions]);
+
+    useEffect(() => {
         if (!userActiveSince.current || report.reportID !== prevReportID) {
             return;
         }
