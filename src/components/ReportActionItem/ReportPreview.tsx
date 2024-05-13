@@ -1,4 +1,3 @@
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import React, {useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -227,14 +226,13 @@ function ReportPreview({
 
     const {supportText} = useMemo(() => {
         if (formattedMerchant && formattedMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT) {
-            return {isSupportTextHtml: false, supportText: formattedMerchant};
+            return {supportText: formattedMerchant};
         }
         if (formattedDescription ?? moneyRequestComment) {
-            const parsedSubtitle = new ExpensiMark().replace(formattedDescription ?? moneyRequestComment);
-            return {isSupportTextHtml: !!parsedSubtitle, supportText: parsedSubtitle};
+            return {supportText: formattedDescription ?? moneyRequestComment};
         }
         if (formattedMerchant === CONST.TRANSACTION.DEFAULT_MERCHANT) {
-            return {isSupportTextHtml: false, supportText: formattedMerchant};
+            return {supportText: formattedMerchant};
         }
         return {
             supportText: translate('iou.expenseCount', {
