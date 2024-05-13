@@ -127,7 +127,15 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const getCustomListHeader = () => {
         const header = (
-            <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, canSelectMultiple && styles.pl3, styles.pr9]}>
+            <View
+                style={[
+                    styles.flex1,
+                    styles.flexRow,
+                    styles.justifyContentBetween,
+                    // Required padding accounting for the checkbox and the right arrow in multi-select mode
+                    canSelectMultiple && [styles.pl3, styles.pr9],
+                ]}
+            >
                 <Text style={styles.searchInputStyle}>{translate('common.name')}</Text>
                 <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{translate('statusPage.status')}</Text>
             </View>
