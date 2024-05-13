@@ -54,6 +54,51 @@ const resetDeferralLogicVariables = () => {
     deferredUpdatesProxy.deferredUpdates = {};
 };
 
+/**
+ * Manually processes and applies the updates from the deferred updates queue. (used e.g. for push notifications)
+ */
+function processDeferredUpdates() {
+    if (queryPromise) {
+        queryPromise.finally(OnyxUpdateManagerUtils.validateAndApplyDeferredUpdates);
+    }
+
+    queryPromise = OnyxUpdateManagerUtils.validateAndApplyDeferredUpdates();
+}
+
+/**
+ * Allows adding onyx updates to the deferred updates queue manually.
+ * By default, this will automatically process the updates. Setting "shouldProcessUpdates" to false will prevent this.
+ * @param updates The updates that should be applied (e.g. updates from push notifications)
+ * @param shouldProcessUpdates Whether the updates should be processed immediately
+ * @returns
+ */
+function enqueueDeferredUpdates(updates: OnyxUpdatesFromServer[], shouldProcessUpdates = true) {
+    SequentialQueue.pause();
+
+    updates.forEach((update) => {
+        const lastUpdateID = Number(update.lastUpdateID);
+        if (deferredUpdatesProxy.deferredUpdates[lastUpdateID]) return;
+
+        deferredUpdatesProxy.deferredUpdates[lastUpdateID] = update;
+    });
+
+    if (!shouldProcessUpdates) return;
+
+    processDeferredUpdates();
+}
+
+/**
+ * Clears the deferred updates queue and unpauses the SequentialQueue
+ */
+function clearDeferredUpdates(shouldUnpauseSequentialQueue = true) {
+    resetDeferralLogicVariables();
+
+    if (!shouldUnpauseSequentialQueue) return;
+
+    Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, null);
+    SequentialQueue.unpause();
+}
+
 // This function will reset the query variables, unpause the SequentialQueue and log an info to the user.
 function finalizeUpdatesAndResumeQueue() {
     console.debug('[OnyxUpdateManager] Done applying all updates');
@@ -61,9 +106,7 @@ function finalizeUpdatesAndResumeQueue() {
     resolveQueryPromiseWrapper();
     queryPromiseWrapper = createQueryPromiseWrapper();
 
-    resetDeferralLogicVariables();
-    Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, null);
-    SequentialQueue.unpause();
+    clearDeferredUpdates();
 }
 
 /**
@@ -156,4 +199,4 @@ export default () => {
     });
 };
 
-export {handleOnyxUpdateGap, queryPromiseWrapper as queryPromise, resetDeferralLogicVariables};
+export {handleOnyxUpdateGap, processDeferredUpdates, enqueueDeferredUpdates, clearDeferredUpdates, queryPromiseWrapper as queryPromise, resetDeferralLogicVariables};
