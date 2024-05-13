@@ -12,7 +12,7 @@ type BeneficialOwnerValues = {
     zipCode: string;
 };
 
-function getValuesForBeneficialOwner(beneficialOwnerBeingModifiedID: string, reimbursementAccountDraft: ReimbursementAccountForm | null): BeneficialOwnerValues {
+function getValuesForBeneficialOwner(beneficialOwnerBeingModifiedID: string, reimbursementAccountDraft: ReimbursementAccountForm | null | undefined): BeneficialOwnerValues {
     if (!reimbursementAccountDraft) {
         return {
             firstName: '',

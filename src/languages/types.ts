@@ -40,15 +40,15 @@ type LocalTimeParams = {
 };
 
 type EditActionParams = {
-    action: ReportAction | null;
+    action: ReportAction | null | undefined;
 };
 
 type DeleteActionParams = {
-    action: ReportAction | null;
+    action: ReportAction | null | undefined;
 };
 
 type DeleteConfirmationParams = {
-    action: ReportAction | null;
+    action: ReportAction | null | undefined;
 };
 
 type BeginningOfChatHistoryDomainRoomPartOneParams = {
