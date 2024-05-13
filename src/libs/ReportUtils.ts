@@ -31,7 +31,6 @@ import type {
     ReportMetadata,
     Session,
     Task,
-    TaxRate,
     Transaction,
     TransactionViolation,
     UserWallet,
@@ -43,6 +42,7 @@ import type {
     IOUMessage,
     OriginalMessageActionName,
     OriginalMessageCreated,
+    OriginalMessageDismissedViolation,
     OriginalMessageReimbursementDequeued,
     OriginalMessageRenamed,
     OriginalMessageRoomChangeLog,
@@ -51,7 +51,7 @@ import type {
 } from '@src/types/onyx/OriginalMessage';
 import type {Status} from '@src/types/onyx/PersonalDetails';
 import type {NotificationPreference, Participants, PendingChatMember, Participant as ReportParticipant} from '@src/types/onyx/Report';
-import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
+import type {Message, ReportActionBase, ReportActions, ReportPreviewAction} from '@src/types/onyx/ReportAction';
 import type {Comment, Receipt, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -147,7 +147,6 @@ type OptimisticAddCommentReportAction = Pick<
     | 'childCommenterCount'
     | 'childLastVisibleActionCreated'
     | 'childOldestFourAccountIDs'
-    | 'whisperedToAccountIDs'
 > & {isOptimisticAction: boolean};
 
 type OptimisticReportAction = {
@@ -196,7 +195,6 @@ type OptimisticIOUReportAction = Pick<
     | 'created'
     | 'pendingAction'
     | 'receipt'
-    | 'whisperedToAccountIDs'
     | 'childReportID'
     | 'childVisibleActionCount'
     | 'childCommenterCount'
@@ -252,6 +250,11 @@ type OptimisticEditedTaskReportAction = Pick<
 type OptimisticClosedReportAction = Pick<
     ReportAction,
     'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'created' | 'message' | 'originalMessage' | 'pendingAction' | 'person' | 'reportActionID' | 'shouldShow'
+>;
+
+type OptimisticDismissedViolationReportAction = Pick<
+    ReportAction,
+    'actionName' | 'actorAccountID' | 'avatar' | 'created' | 'message' | 'originalMessage' | 'person' | 'reportActionID' | 'shouldShow' | 'pendingAction'
 >;
 
 type OptimisticCreatedReportAction = OriginalMessageCreated &
@@ -447,7 +450,7 @@ type OptionData = {
     isSelfDM?: boolean;
     reportID?: string;
     enabled?: boolean;
-    data?: Partial<TaxRate>;
+    code?: string;
     transactionThreadReportID?: string | null;
     shouldShowAmountInput?: boolean;
     amountInputProps?: MoneyRequestAmountInputProps;
@@ -3069,6 +3072,12 @@ function getReportActionMessage(reportAction: OnyxEntry<ReportAction>, parentRep
     if (isEmptyObject(reportAction)) {
         return '';
     }
+    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
+        return Localize.translateLocal('iou.heldExpense');
+    }
+    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
+        return Localize.translateLocal('iou.unheldExpense');
+    }
     if (ReportActionsUtils.isApprovedOrSubmittedReportAction(reportAction)) {
         return ReportActionsUtils.getReportActionMessageText(reportAction);
     }
@@ -3893,6 +3902,7 @@ function buildOptimisticIOUReportAction(
         IOUTransactionID: transactionID,
         IOUReportID,
         type,
+        whisperedTo: [CONST.IOU.RECEIPT_STATE.SCANREADY, CONST.IOU.RECEIPT_STATE.SCANNING].some((value) => value === receipt?.state) ? [currentUserAccountID ?? -1] : [],
     };
 
     if (type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
@@ -3946,7 +3956,6 @@ function buildOptimisticIOUReportAction(
         shouldShow: true,
         created,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        whisperedToAccountIDs: [CONST.IOU.RECEIPT_STATE.SCANREADY, CONST.IOU.RECEIPT_STATE.SCANNING].some((value) => value === receipt?.state) ? [currentUserAccountID ?? -1] : [],
     };
 }
 
@@ -4078,6 +4087,7 @@ function buildOptimisticReportPreview(chatReport: OnyxEntry<Report>, iouReport: 
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         originalMessage: {
             linkedReportID: iouReport?.reportID,
+            whisperedTo: isReceiptBeingScanned ? [currentUserAccountID ?? -1] : [],
         },
         message: [
             {
@@ -4095,7 +4105,6 @@ function buildOptimisticReportPreview(chatReport: OnyxEntry<Report>, iouReport: 
         childMoneyRequestCount: 1,
         childLastMoneyRequestComment: comment,
         childRecentReceiptTransactionIDs: hasReceipt && !isEmptyObject(transaction) ? {[transaction?.transactionID ?? '']: created} : undefined,
-        whisperedToAccountIDs: isReceiptBeingScanned ? [currentUserAccountID ?? -1] : [],
     };
 }
 
@@ -4185,7 +4194,13 @@ function buildOptimisticMovedTrackedExpenseModifiedReportAction(transactionThrea
  * @param [transaction] - optimistic newest transaction of a report preview
  *
  */
-function updateReportPreview(iouReport: OnyxEntry<Report>, reportPreviewAction: ReportAction, isPayRequest = false, comment = '', transaction: OnyxEntry<Transaction> = null): ReportAction {
+function updateReportPreview(
+    iouReport: OnyxEntry<Report>,
+    reportPreviewAction: ReportPreviewAction,
+    isPayRequest = false,
+    comment = '',
+    transaction: OnyxEntry<Transaction> = null,
+): ReportPreviewAction {
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const recentReceiptTransactions = reportPreviewAction?.childRecentReceiptTransactionIDs ?? {};
     const transactionsToKeep = TransactionUtils.getRecentTransactions(recentReceiptTransactions);
@@ -4221,7 +4236,10 @@ function updateReportPreview(iouReport: OnyxEntry<Report>, reportPreviewAction: 
             : recentReceiptTransactions,
         // As soon as we add a transaction without a receipt to the report, it will have ready expenses,
         // so we remove the whisper
-        whisperedToAccountIDs: hasReceipt ? reportPreviewAction?.whisperedToAccountIDs : [],
+        originalMessage: {
+            ...(reportPreviewAction.originalMessage ?? {}),
+            whisperedTo: hasReceipt ? reportPreviewAction?.originalMessage?.whisperedTo : [],
+        },
     };
 }
 
@@ -4645,6 +4663,37 @@ function buildOptimisticClosedReportAction(emailClosingReport: string, policyNam
     };
 }
 
+/**
+ * Returns an optimistic Dismissed Violation Report Action. Use the originalMessage customize this to the type of
+ * violation being dismissed.
+ */
+function buildOptimisticDismissedViolationReportAction(originalMessage: OriginalMessageDismissedViolation['originalMessage']): OptimisticDismissedViolationReportAction {
+    return {
+        actionName: CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION,
+        actorAccountID: currentUserAccountID,
+        avatar: getCurrentUserAvatarOrDefault(),
+        created: DateUtils.getDBTime(),
+        message: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'normal',
+                text: ReportActionsUtils.getDismissedViolationMessageText(originalMessage),
+            },
+        ],
+        originalMessage,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        person: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'strong',
+                text: getCurrentUserDisplayNameOrEmail(),
+            },
+        ],
+        reportActionID: NumberUtils.rand64(),
+        shouldShow: true,
+    };
+}
+
 function buildOptimisticWorkspaceChats(policyID: string, policyName: string, expenseReportId?: string): OptimisticWorkspaceChats {
     const announceChatData = buildOptimisticChatReport(
         currentUserAccountID ? [currentUserAccountID] : [],
@@ -4867,11 +4916,23 @@ function buildOptimisticMoneyRequestEntities(
     return [createdActionForChat, createdActionForIOUReport, iouAction, transactionThread, createdActionForTransactionThread];
 }
 
+// Check if the report is empty, meaning it has no visible messages (i.e. only a "created" report action).
+function isEmptyReport(report: OnyxEntry<Report>): boolean {
+    if (!report) {
+        return true;
+    }
+    const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(report.reportID);
+    return !report.lastMessageText && !report.lastMessageTranslationKey && !lastVisibleMessage.lastMessageText && !lastVisibleMessage.lastMessageTranslationKey;
+}
+
 function isUnread(report: OnyxEntry<Report>): boolean {
     if (!report) {
         return false;
     }
 
+    if (isEmptyReport(report)) {
+        return false;
+    }
     // lastVisibleActionCreated and lastReadTime are both datetime strings and can be compared directly
     const lastVisibleActionCreated = report.lastVisibleActionCreated ?? '';
     const lastReadTime = report.lastReadTime ?? '';
@@ -5004,7 +5065,7 @@ function hasViolations(reportID: string, transactionViolations: OnyxCollection<T
 function shouldReportBeInOptionList({
     report,
     currentReportId,
-    isInGSDMode,
+    isInFocusMode,
     betas,
     policies,
     excludeEmptyChats,
@@ -5013,14 +5074,14 @@ function shouldReportBeInOptionList({
 }: {
     report: OnyxEntry<Report>;
     currentReportId: string;
-    isInGSDMode: boolean;
+    isInFocusMode: boolean;
     betas: OnyxEntry<Beta[]>;
     policies: OnyxCollection<Policy>;
     excludeEmptyChats: boolean;
     doesReportHaveViolations: boolean;
     includeSelfDM?: boolean;
 }) {
-    const isInDefaultMode = !isInGSDMode;
+    const isInDefaultMode = !isInFocusMode;
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
     // This can happen if data is currently loading from the server or a report is in various stages of being created.
     // This can also happen for anyone accessing a public room or archived room for which they don't have access to the underlying policy.
@@ -5071,8 +5132,8 @@ function shouldReportBeInOptionList({
     if (hasDraftComment || requiresAttentionFromCurrentUser(report)) {
         return true;
     }
-    const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(report.reportID);
-    const isEmptyChat = !report.lastMessageText && !report.lastMessageTranslationKey && !lastVisibleMessage.lastMessageText && !lastVisibleMessage.lastMessageTranslationKey;
+
+    const isEmptyChat = isEmptyReport(report);
     const canHideReport = shouldHideReport(report, currentReportId);
 
     // Include reports if they are pinned
@@ -5099,7 +5160,7 @@ function shouldReportBeInOptionList({
     }
 
     // All unread chats (even archived ones) in GSD mode will be shown. This is because GSD mode is specifically for focusing the user on the most relevant chats, primarily, the unread ones
-    if (isInGSDMode) {
+    if (isInFocusMode) {
         return isUnread(report) && report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE;
     }
 
@@ -6510,6 +6571,7 @@ export {
     buildOptimisticChatReport,
     buildOptimisticClosedReportAction,
     buildOptimisticCreatedReportAction,
+    buildOptimisticDismissedViolationReportAction,
     buildOptimisticEditedTaskFieldReportAction,
     buildOptimisticExpenseReport,
     buildOptimisticGroupChatReport,
@@ -6680,6 +6742,7 @@ export {
     isExpensifyOnlyParticipantInReport,
     isGroupChat,
     isGroupChatAdmin,
+    isGroupPolicy,
     isReportInGroupPolicy,
     isHoldCreator,
     isIOUOwnedByCurrentUser,

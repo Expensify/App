@@ -85,9 +85,9 @@ function IOURequestStepConfirmation({
     const receiptFilename = transaction?.filename;
     const receiptPath = transaction?.receipt?.source;
     const receiptType = transaction?.receipt?.type;
-    const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
-    const transactionTaxCode = transaction?.taxRate ? transaction.taxRate.data?.code : foreignTaxDefault;
-    const transactionTaxAmount = transaction?.taxAmount;
+    const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction);
+    const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
+    const transactionTaxAmount = transaction?.taxAmount ?? 0;
     const isSharingTrackExpense = action === CONST.IOU.ACTION.SHARE;
     const isCategorizingTrackExpense = action === CONST.IOU.ACTION.CATEGORIZE;
     const isSubmittingFromTrackExpense = action === CONST.IOU.ACTION.SUBMIT;
@@ -146,7 +146,7 @@ function IOURequestStepConfirmation({
             }) ?? [],
         [transaction?.participants, personalDetails, iouType],
     );
-    const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report)), [report]);
+    const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
     const formHasBeenSubmitted = useRef(false);
 
     useEffect(() => {
@@ -300,6 +300,8 @@ function IOURequestStepConfirmation({
                 transaction.created,
                 transaction.category,
                 transaction.tag,
+                transactionTaxCode,
+                transactionTaxAmount,
                 transaction.amount,
                 transaction.currency,
                 transaction.merchant,
@@ -311,7 +313,7 @@ function IOURequestStepConfirmation({
                 customUnitRateID,
             );
         },
-        [policy, policyCategories, policyTags, report, transaction],
+        [policy, policyCategories, policyTags, report, transaction, transactionTaxCode, transactionTaxAmount],
     );
 
     const createTransaction = useCallback(
@@ -558,7 +560,6 @@ function IOURequestStepConfirmation({
                     />
                     <MoneyRequestConfirmationList
                         transaction={transaction}
-                        hasMultipleParticipants={iouType === CONST.IOU.TYPE.SPLIT}
                         selectedParticipants={participants}
                         iouAmount={Math.abs(transaction?.amount ?? 0)}
                         iouComment={transaction?.comment.comment ?? ''}
@@ -574,7 +575,7 @@ function IOURequestStepConfirmation({
                         iouType={iouType}
                         reportID={reportID}
                         isPolicyExpenseChat={isPolicyExpenseChat}
-                        policyID={report?.policyID}
+                        policyID={report?.policyID ?? policy?.id}
                         bankAccountRoute={ReportUtils.getBankAccountRoute(report)}
                         iouMerchant={transaction?.merchant}
                         iouCreated={transaction?.created}

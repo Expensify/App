@@ -68,8 +68,8 @@ export default function createRandomReportAction(index: number): ReportAction {
         originalMessage: {
             html: randWord(),
             lastModified: getRandomDate(),
+            whisperedTo: randAggregation(),
         },
-        whisperedToAccountIDs: randAggregation(),
         avatar: randWord(),
         automatic: randBoolean(),
         shouldShow: randBoolean(),
