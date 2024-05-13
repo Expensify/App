@@ -6352,7 +6352,7 @@ function payInvoice(paymentMethodType: PaymentMethodType, chatReport: OnyxTypes.
     } = getPayMoneyRequestParams(chatReport, invoiceReport, recipient, paymentMethodType, true);
 
     const params: PayInvoiceParams = {
-        reportID: chatReport.reportID,
+        reportID: invoiceReport.reportID,
         reportActionID,
         paymentMethodType,
     };
