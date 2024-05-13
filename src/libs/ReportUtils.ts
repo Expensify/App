@@ -4545,7 +4545,7 @@ function buildOptimisticEditedTaskFieldReportAction({title, description}: Task):
             {
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
                 text: changelog,
-                html: changelog,
+                html: description ? getParsedComment(changelog) : changelog,
             },
         ],
         person: [
