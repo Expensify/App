@@ -1,3 +1,4 @@
+import {useCallback} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import * as User from '@userActions/User';
 import type CONST from '@src/CONST';
@@ -15,13 +16,13 @@ function useDismissedReferralBanners({referralContentType}: UseDismissedReferral
     const [dismissedReferralBanners] = useOnyx(ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS);
     const isDismissed = dismissedReferralBanners?.[referralContentType] ?? false;
 
-    const setAsDismissed = () => {
+    const setAsDismissed = useCallback(() => {
         if (!referralContentType) {
             return;
         }
         // Set the banner as dismissed
         User.dismissReferralBanner(referralContentType);
-    };
+    }, [referralContentType]);
 
     return {isDismissed, setAsDismissed};
 }
