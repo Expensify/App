@@ -40,7 +40,10 @@ function TextSelectorModal({value, description = '', onValueSelected, isVisible,
                     title={description}
                     onBackButtonPress={onClose}
                 />
-                <ScrollView contentContainerStyle={[styles.flex1, styles.mh5, styles.mb5]}>
+                <ScrollView
+                    contentContainerStyle={[styles.flex1, styles.mh5, styles.mb5]}
+                    keyboardShouldPersistTaps="handled"
+                >
                     <View style={styles.flex1}>
                         <TextInput
                             // eslint-disable-next-line react/jsx-props-no-spreading
