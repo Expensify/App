@@ -199,7 +199,7 @@ function MoneyRequestPreviewContent({
     const getDisplayDeleteAmountText = (): string => {
         const iouOriginalMessage: OnyxEntry<IOUMessage> = action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? action.originalMessage : null;
 
-        return CurrencyUtils.convertToDisplayString(iouOriginalMessage?.amount ?? 0, iouOriginalMessage?.currency ?? CONST.CURRENCY.USD);
+        return CurrencyUtils.convertToDisplayString(iouOriginalMessage?.amount, iouOriginalMessage?.currency);
     };
 
     const displayAmount = isDeleted ? getDisplayDeleteAmountText() : getDisplayAmountText();

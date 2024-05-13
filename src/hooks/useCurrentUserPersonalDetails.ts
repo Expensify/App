@@ -3,7 +3,7 @@ import {usePersonalDetails, useSession} from '@components/OnyxProvider';
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
 
-type CurrentUserPersonalDetails = PersonalDetails | Record<string, never>;
+type CurrentUserPersonalDetails = PersonalDetails;
 
 function useCurrentUserPersonalDetails() {
     const session = useSession();
