@@ -47,6 +47,20 @@ Onyx.connect({
 
 let wasTheLeader = false;
 
+/**
+ * The last GUID is the most recent GUID, so that should be the leader
+ */
+
+const isClientTheLeader: IsClientTheLeader = () => {
+    if (wasTheLeader) {
+        return true;
+    }
+
+    const lastActiveClient = activeClients.length && activeClients[activeClients.length - 1];
+
+    return lastActiveClient === clientID;
+};
+
 const cleanUpClientId = () => {
     wasTheLeader = isClientTheLeader();
     activeClients = activeClients.filter((id) => id !== clientID);
@@ -63,19 +77,6 @@ const init: Init = () => {
     ActiveClients.setActiveClients(activeClients).then(resolveSavedSelfPromise);
 
     window.addEventListener('beforeunload', cleanUpClientId);
-};
-
-/**
- * The last GUID is the most recent GUID, so that should be the leader
- */
-const isClientTheLeader: IsClientTheLeader = () => {
-    if (wasTheLeader) {
-        return true;
-    }
-
-    const lastActiveClient = activeClients.length && activeClients[activeClients.length - 1];
-
-    return lastActiveClient === clientID;
 };
 
 export {init, isClientTheLeader, isReady};
