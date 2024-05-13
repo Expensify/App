@@ -3270,7 +3270,15 @@ function getParentNavigationSubtitle(report: OnyxEntry<Report>): ParentNavigatio
     }
 
     if (isInvoiceReport(report) || isInvoiceRoom(parentReport)) {
-        return {reportName: `${getPolicyName(parentReport)} & ${getInvoicePayerName(parentReport)}`};
+        let reportName = `${getPolicyName(parentReport)} & ${getInvoicePayerName(parentReport)}`;
+
+        if (isArchivedRoom(parentReport)) {
+            reportName += ` (${Localize.translateLocal('common.archived')})`;
+        }
+
+        return {
+            reportName,
+        };
     }
 
     return {
