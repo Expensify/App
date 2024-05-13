@@ -38,8 +38,6 @@ function AnimatedEmptyStateBackground() {
         xOffset.value = clamp(xOffset.value + y * CONST.ANIMATION_GYROSCOPE_VALUE, -IMAGE_OFFSET_X, IMAGE_OFFSET_X);
         yOffset.value = clamp(yOffset.value - x * CONST.ANIMATION_GYROSCOPE_VALUE, -IMAGE_OFFSET_Y, IMAGE_OFFSET_Y);
         return {
-            // On Android, scroll view sub views gets clipped beyond container bounds. Set the top position so that image wouldn't get clipped
-            top: IMAGE_OFFSET_Y,
             transform: [{translateX: withSpring(xOffset.value)}, {translateY: withSpring(yOffset.value, {overshootClamping: true})}, {scale: 1.15}],
         };
     }, [isReducedMotionEnabled]);
