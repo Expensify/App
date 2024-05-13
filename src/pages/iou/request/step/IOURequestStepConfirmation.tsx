@@ -375,6 +375,8 @@ function IOURequestStepConfirmation({
                         iouRequestType: transaction.iouRequestType,
                         splitShares: transaction.splitShares,
                         splitPayerAccountIDs: transaction.splitPayerAccountIDs ?? [],
+                        taxCode: transaction.taxCode,
+                        taxAmount: transaction.taxAmount,
                     });
                 }
                 return;
@@ -398,6 +400,8 @@ function IOURequestStepConfirmation({
                         iouRequestType: transaction.iouRequestType,
                         splitShares: transaction.splitShares,
                         splitPayerAccountIDs: transaction.splitPayerAccountIDs,
+                        taxCode: transaction.taxCode,
+                        taxAmount: transaction.taxAmount,
                     });
                 }
                 return;
