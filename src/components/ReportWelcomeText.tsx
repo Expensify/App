@@ -10,6 +10,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
+import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList, Policy, Report} from '@src/types/onyx';
@@ -46,7 +47,10 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
     const isUserPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
     const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(report, isUserPolicyAdmin);
     const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, policy, participantAccountIDs, canUseTrackExpense);
-    const additionalText = moneyRequestOptions.map((item) => translate(`reportActionsView.iouTypes.${item}`)).join(', ');
+    const additionalText = moneyRequestOptions
+        .filter((item): item is Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.INVOICE> => item !== CONST.IOU.TYPE.INVOICE)
+        .map((item) => translate(`reportActionsView.iouTypes.${item}`))
+        .join(', ');
     const canEditPolicyDescription = ReportUtils.canEditPolicyDescription(policy);
     const reportName = ReportUtils.getReportName(report);
 
@@ -141,9 +145,9 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                 {isDefault && (
                     <Text>
                         <Text>{translate('reportActionsView.beginningOfChatHistory')}</Text>
-                        {displayNamesWithTooltips.map(({displayName, pronouns, accountID}, index) => (
+                        {displayNamesWithTooltips.map(({displayName, accountID}, index) => (
                             // eslint-disable-next-line react/no-array-index-key
-                            <Text key={`${displayName}${pronouns}${index}`}>
+                            <Text key={`${displayName}${index}`}>
                                 <UserDetailsTooltip accountID={accountID}>
                                     {ReportUtils.isOptimisticPersonalDetail(accountID) ? (
                                         <Text style={[styles.textStrong]}>{displayName}</Text>
@@ -157,7 +161,6 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                                         </Text>
                                     )}
                                 </UserDetailsTooltip>
-                                {!!pronouns && <Text>{` (${pronouns})`}</Text>}
                                 {index === displayNamesWithTooltips.length - 1 && <Text>.</Text>}
                                 {index === displayNamesWithTooltips.length - 2 && <Text>{` ${translate('common.and')} `}</Text>}
                                 {index < displayNamesWithTooltips.length - 2 && <Text>, </Text>}

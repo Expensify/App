@@ -11,7 +11,7 @@ import type {
     TextInputKeyPressEventData,
     TextInputSelectionChangeEventData,
 } from 'react-native';
-import {findNodeHandle, InteractionManager, NativeModules, View} from 'react-native';
+import {DeviceEventEmitter, findNodeHandle, InteractionManager, NativeModules, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {useAnimatedRef} from 'react-native-reanimated';
@@ -44,6 +44,7 @@ import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutsi
 import type {ComposerRef, SuggestionsRef} from '@pages/home/report/ReportActionCompose/ReportActionCompose';
 import SilentCommentUpdater from '@pages/home/report/ReportActionCompose/SilentCommentUpdater';
 import Suggestions from '@pages/home/report/ReportActionCompose/Suggestions';
+import variables from '@styles/variables';
 import * as EmojiPickerActions from '@userActions/EmojiPickerAction';
 import * as InputFocus from '@userActions/InputFocus';
 import * as Report from '@userActions/Report';
@@ -63,9 +64,6 @@ type AnimatedRef = ReturnType<typeof useAnimatedRef>;
 type NewlyAddedChars = {startIndex: number; endIndex: number; diff: string};
 
 type ComposerWithSuggestionsOnyxProps = {
-    /** The number of lines the comment should take up */
-    numberOfLines: OnyxEntry<number>;
-
     /** The parent report actions for the report */
     parentReportActions: OnyxEntry<OnyxTypes.ReportActions>;
 
@@ -215,7 +213,6 @@ function ComposerWithSuggestions(
         modal,
         preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE,
         parentReportActions,
-        numberOfLines,
 
         // Props: Report
         reportID,
@@ -347,6 +344,20 @@ function ComposerWithSuggestions(
         [],
     );
 
+    useEffect(() => {
+        const switchToCurrentReport = DeviceEventEmitter.addListener(`switchToPreExistingReport_${reportID}`, ({preexistingReportID, callback}) => {
+            if (!commentRef.current) {
+                callback();
+                return;
+            }
+            Report.saveReportDraftComment(preexistingReportID, commentRef.current, callback);
+        });
+
+        return () => {
+            switchToCurrentReport.remove();
+        };
+    }, [reportID]);
+
     /**
      * Find the newly added characters between the previous text and the new text based on the selection.
      *
@@ -459,22 +470,9 @@ function ComposerWithSuggestions(
         ],
     );
 
-    /**
-     * Update the number of lines for a comment in Onyx
-     */
-    const updateNumberOfLines = useCallback(
-        (newNumberOfLines: number) => {
-            if (newNumberOfLines === numberOfLines) {
-                return;
-            }
-            Report.saveReportCommentNumberOfLines(reportID, newNumberOfLines);
-        },
-        [reportID, numberOfLines],
-    );
-
     const prepareCommentAndResetComposer = useCallback((): string => {
         const trimmedComment = commentRef.current.trim();
-        const commentLength = ReportUtils.getCommentLength(trimmedComment);
+        const commentLength = ReportUtils.getCommentLength(trimmedComment, {reportID});
 
         // Don't submit empty comments or comments that exceed the character limit
         if (!commentLength || commentLength > CONST.MAX_COMMENT_LENGTH) {
@@ -729,6 +727,11 @@ function ComposerWithSuggestions(
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    const isOnlyEmojiLineHeight = useMemo(() => {
+        const isOnlyEmoji = EmojiUtils.containsOnlyEmojis(value);
+        return isOnlyEmoji ? {lineHeight: variables.fontSizeOnlyEmojisHeight} : {};
+    }, [value]);
+
     return (
         <>
             <View style={[StyleUtils.getContainerComposeStyles(), styles.textInputComposeBorder]}>
@@ -742,7 +745,7 @@ function ComposerWithSuggestions(
                     onChangeText={onChangeText}
                     onKeyPress={triggerHotkeyActions}
                     textAlignVertical="top"
-                    style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.textInputCollapseCompose]}
+                    style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.textInputCollapseCompose, isOnlyEmojiLineHeight]}
                     maxLines={maxComposerLines}
                     onFocus={onFocus}
                     onBlur={onBlur}
@@ -759,8 +762,6 @@ function ComposerWithSuggestions(
                     isComposerFullSize={isComposerFullSize}
                     value={value}
                     testID="composer"
-                    numberOfLines={numberOfLines ?? undefined}
-                    onNumberOfLinesChange={updateNumberOfLines}
                     shouldCalculateCaretPosition
                     onLayout={onLayout}
                     onScroll={hideSuggestionMenu}
@@ -807,12 +808,6 @@ ComposerWithSuggestions.displayName = 'ComposerWithSuggestions';
 const ComposerWithSuggestionsWithRef = forwardRef(ComposerWithSuggestions);
 
 export default withOnyx<ComposerWithSuggestionsProps & RefAttributes<ComposerRef>, ComposerWithSuggestionsOnyxProps>({
-    numberOfLines: {
-        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES}${reportID}`,
-        // We might not have number of lines in onyx yet, for which the composer would be rendered as null
-        // during the first render, which we want to avoid:
-        initWithStoredValues: false,
-    },
     modal: {
         key: ONYXKEYS.MODAL,
     },

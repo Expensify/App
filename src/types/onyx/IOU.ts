@@ -22,6 +22,8 @@ type Participant = {
     text?: string;
     isSelected?: boolean;
     isSelfDM?: boolean;
+    isSender?: boolean;
+    iouType?: string;
 };
 
 type Split = {

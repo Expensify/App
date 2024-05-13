@@ -5,12 +5,14 @@ import React, {useCallback, useEffect, useMemo, useReducer, useState} from 'reac
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
@@ -25,6 +27,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import {isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
@@ -37,11 +40,13 @@ import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import type {SplitShares} from '@src/types/onyx/Transaction';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {DropdownOption} from './ButtonWithDropdownMenu/types';
 import ConfirmedRoute from './ConfirmedRoute';
 import ConfirmModal from './ConfirmModal';
 import FormHelpMessage from './FormHelpMessage';
+import MenuItem from './MenuItem';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import OptionsSelector from './OptionsSelector';
 import PDFThumbnail from './PDFThumbnail';
@@ -56,11 +61,17 @@ type MoneyRequestConfirmationListOnyxProps = {
     /** Collection of categories attached to a policy */
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
 
+    /** Collection of draft categories attached to a policy */
+    policyCategoriesDraft: OnyxEntry<OnyxTypes.PolicyCategories>;
+
     /** Collection of tags attached to a policy */
     policyTags: OnyxEntry<OnyxTypes.PolicyTagList>;
 
     /** The policy of the report */
     policy: OnyxEntry<OnyxTypes.Policy>;
+
+    /** The draft policy of the report */
+    policyDraft: OnyxEntry<OnyxTypes.Policy>;
 
     /** The session of the logged in user */
     session: OnyxEntry<OnyxTypes.Session>;
@@ -73,6 +84,12 @@ type MoneyRequestConfirmationListOnyxProps = {
 
     /** Last selected distance rates */
     lastSelectedDistanceRates: OnyxEntry<Record<string, string>>;
+
+    /** The list of all policies */
+    allPolicies: OnyxCollection<OnyxTypes.Policy>;
+
+    /** List of currencies */
+    currencyList: OnyxEntry<OnyxTypes.CurrencyList>;
 };
 
 type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps & {
@@ -84,9 +101,6 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
 
     /** Callback to inform a participant is selected */
     onSelectParticipant?: (option: Participant) => void;
-
-    /** Should we request a single or multiple participant selection from user */
-    hasMultipleParticipants: boolean;
 
     /** IOU amount */
     iouAmount: number;
@@ -121,9 +135,6 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     /** Payee of the expense with login */
     payeePersonalDetails?: OnyxEntry<OnyxTypes.PersonalDetails>;
 
-    /** Can the participants be modified or not */
-    canModifyParticipants?: boolean;
-
     /** Should the list be read only, and not editable? */
     isReadOnly?: boolean;
 
@@ -151,9 +162,6 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     /** Whether the expense is a distance expense */
     isDistanceRequest?: boolean;
 
-    /** Whether the expense is a scan expense */
-    isScanRequest?: boolean;
-
     /** Whether we're editing a split expense */
     isEditingSplitBill?: boolean;
 
@@ -173,9 +181,11 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     action?: IOUAction;
 };
 
-const getTaxAmount = (transaction: OnyxEntry<OnyxTypes.Transaction>, defaultTaxValue: string) => {
-    const percentage = (transaction?.taxRate ? transaction?.taxRate?.data?.value : defaultTaxValue) ?? '';
-    return TransactionUtils.calculateTaxAmount(percentage, transaction?.amount ?? 0);
+const getTaxAmount = (transaction: OnyxEntry<OnyxTypes.Transaction>, policy: OnyxEntry<OnyxTypes.Policy>) => {
+    const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction) ?? '';
+
+    const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, transaction?.taxCode ?? defaultTaxCode) ?? '';
+    return TransactionUtils.calculateTaxAmount(taxPercentage, transaction?.amount ?? 0);
 };
 
 function MoneyRequestConfirmationList({
@@ -184,12 +194,13 @@ function MoneyRequestConfirmationList({
     onConfirm,
     onSelectParticipant,
     iouType = CONST.IOU.TYPE.SUBMIT,
-    isScanRequest = false,
     iouAmount,
-    policyCategories,
+    policyCategories: policyCategoriesReal,
+    policyCategoriesDraft,
     mileageRates,
     isDistanceRequest = false,
-    policy,
+    policy: policyReal,
+    policyDraft,
     isPolicyExpenseChat = false,
     iouCategory = '',
     shouldShowSmartScanFields = true,
@@ -197,10 +208,8 @@ function MoneyRequestConfirmationList({
     policyTags,
     iouCurrencyCode,
     iouMerchant,
-    hasMultipleParticipants,
     selectedParticipants: selectedParticipantsProp,
     payeePersonalDetails: payeePersonalDetailsProp,
-    canModifyParticipants: canModifyParticipantsProp = false,
     session,
     isReadOnly = false,
     bankAccountRoute = '',
@@ -217,10 +226,15 @@ function MoneyRequestConfirmationList({
     reportActionID,
     defaultMileageRate,
     lastSelectedDistanceRates,
+    allPolicies,
     action = CONST.IOU.ACTION.CREATE,
+    currencyList,
 }: MoneyRequestConfirmationListProps) {
+    const policy = policyReal ?? policyDraft;
+    const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate, toLocaleDigit} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {canUseP2PDistanceRequests, canUseViolations} = usePermissions(iouType);
@@ -230,6 +244,8 @@ function MoneyRequestConfirmationList({
     const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isTypeSend = iouType === CONST.IOU.TYPE.PAY;
     const isTypeTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
+    const isTypeInvoice = iouType === CONST.IOU.TYPE.INVOICE;
+    const isScanRequest = useMemo(() => TransactionUtils.isScanRequest(transaction), [transaction]);
 
     const transactionID = transaction?.transactionID ?? '';
     const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '';
@@ -252,12 +268,13 @@ function MoneyRequestConfirmationList({
 
     const {unit, rate} = mileageRate ?? {};
 
+    const distance = TransactionUtils.getDistance(transaction);
     const prevRate = usePrevious(rate);
-    const shouldCalculateDistanceAmount = isDistanceRequest && (iouAmount === 0 || prevRate !== rate);
+    const prevDistance = usePrevious(distance);
+    const shouldCalculateDistanceAmount = isDistanceRequest && (iouAmount === 0 || prevRate !== rate || prevDistance !== distance);
 
     const currency = (mileageRate as MileageRate)?.currency ?? policyCurrency;
 
-    const distance = transaction?.routes?.route0?.distance ?? 0;
     const taxRates = policy?.taxRates ?? null;
 
     // A flag for showing the categories field
@@ -275,11 +292,20 @@ function MoneyRequestConfirmationList({
 
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
 
+    const senderWorkspace = useMemo(() => {
+        const senderWorkspaceParticipant = selectedParticipantsProp.find((participant) => participant.isSender);
+        return allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${senderWorkspaceParticipant?.policyID}`];
+    }, [allPolicies, selectedParticipantsProp]);
+
+    const canUpdateSenderWorkspace = useMemo(() => PolicyUtils.canSendInvoice(allPolicies) && !!transaction?.isFromGlobalCreate, [allPolicies, transaction?.isFromGlobalCreate]);
+
     // A flag for showing the tags field
-    const shouldShowTags = useMemo(() => isPolicyExpenseChat && OptionsListUtils.hasEnabledTags(policyTagLists), [isPolicyExpenseChat, policyTagLists]);
+    // TODO: remove the !isTypeInvoice from this condition after BE supports tags for invoices: https://github.com/Expensify/App/issues/41281
+    const shouldShowTags = useMemo(() => isPolicyExpenseChat && OptionsListUtils.hasEnabledTags(policyTagLists) && !isTypeInvoice, [isPolicyExpenseChat, policyTagLists, isTypeInvoice]);
 
     // A flag for showing tax rate
-    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy);
+    // TODO: remove the !isTypeInvoice from this condition after BE supports tax for invoices: https://github.com/Expensify/App/issues/41281
+    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy) && !isTypeInvoice;
 
     // A flag for showing the billable field
     const shouldShowBillable = policy?.disabledFields?.defaultBillable === false;
@@ -293,12 +319,13 @@ function MoneyRequestConfirmationList({
               isDistanceRequest ? currency : iouCurrencyCode,
           );
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transaction?.taxAmount, iouCurrencyCode);
-    const taxRateTitle = taxRates && transaction ? TransactionUtils.getDefaultTaxName(taxRates, transaction) : '';
+    const taxRateTitle = TransactionUtils.getTaxName(policy, transaction);
 
     const previousTransactionAmount = usePrevious(transaction?.amount);
+    const previousTransactionCurrency = usePrevious(transaction?.currency);
 
     const isFocused = useIsFocused();
-    const [formError, setFormError] = useState('');
+    const [formError, debouncedFormError, setFormError] = useDebouncedState('');
 
     const [didConfirm, setDidConfirm] = useState(false);
     const [didConfirmSplit, setDidConfirmSplit] = useState(false);
@@ -317,9 +344,8 @@ function MoneyRequestConfirmationList({
         return (!!hasSmartScanFailed && TransactionUtils.hasMissingSmartscanFields(transaction)) || (didConfirmSplit && TransactionUtils.areRequiredFieldsEmpty(transaction));
     }, [isEditingSplitBill, hasSmartScanFailed, transaction, didConfirmSplit]);
 
-    const isMerchantEmpty = !iouMerchant || iouMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
-    const isMerchantRequired = isPolicyExpenseChat && !isScanRequest && shouldShowMerchant;
-
+    const isMerchantEmpty = useMemo(() => !iouMerchant || TransactionUtils.isMerchantMissing(transaction), [transaction, iouMerchant]);
+    const isMerchantRequired = isPolicyExpenseChat && (!isScanRequest || isEditingSplitBill) && shouldShowMerchant;
     const shouldDisplayMerchantError = isMerchantRequired && (shouldDisplayFieldError || formError === 'iou.error.invalidMerchant') && isMerchantEmpty;
 
     const isCategoryRequired = canUseViolations && !!policy?.requiresCategory;
@@ -335,6 +361,8 @@ function MoneyRequestConfirmationList({
         }
         // reset the form error whenever the screen gains or loses focus
         setFormError('');
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run if it's just setFormError that changes
     }, [isFocused, transaction, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit]);
 
     useEffect(() => {
@@ -348,26 +376,15 @@ function MoneyRequestConfirmationList({
 
     // Calculate and set tax amount in transaction draft
     useEffect(() => {
-        const taxAmount = getTaxAmount(transaction, taxRates?.defaultValue ?? '').toString();
+        const taxAmount = getTaxAmount(transaction, policy).toString();
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount));
 
-        if (transaction?.taxAmount && previousTransactionAmount === transaction?.amount) {
+        if (transaction?.taxAmount && previousTransactionAmount === transaction?.amount && previousTransactionCurrency === transaction?.currency) {
             return IOU.setMoneyRequestTaxAmount(transaction?.transactionID, transaction?.taxAmount, true);
         }
 
         IOU.setMoneyRequestTaxAmount(transactionID, amountInSmallestCurrencyUnits, true);
-    }, [taxRates?.defaultValue, transaction, transactionID, previousTransactionAmount]);
-
-    /**
-     * Returns the participants with amount
-     */
-    const getParticipantsWithAmount = useCallback(
-        (participantsList: Participant[]) => {
-            const amount = IOUUtils.calculateAmount(participantsList.length, iouAmount, iouCurrencyCode ?? '');
-            return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(participantsList, amount > 0 ? CurrencyUtils.convertToDisplayString(amount, iouCurrencyCode) : '');
-        },
-        [iouAmount, iouCurrencyCode],
-    );
+    }, [policy, transaction, transactionID, previousTransactionAmount, previousTransactionCurrency]);
 
     // If completing a split expense fails, set didConfirm to false to allow the user to edit the fields again
     if (isEditingSplitBill && didConfirm) {
@@ -376,7 +393,9 @@ function MoneyRequestConfirmationList({
 
     const splitOrRequestOptions: Array<DropdownOption<string>> = useMemo(() => {
         let text;
-        if (isTypeTrackExpense) {
+        if (isTypeInvoice) {
+            text = translate('iou.sendInvoice', {amount: formattedAmount});
+        } else if (isTypeTrackExpense) {
             text = translate('iou.trackExpense');
         } else if (isTypeSplit && iouAmount === 0) {
             text = translate('iou.splitExpense');
@@ -395,49 +414,129 @@ function MoneyRequestConfirmationList({
                 value: iouType,
             },
         ];
-    }, [isTypeTrackExpense, isTypeSplit, iouAmount, receiptPath, isTypeRequest, isDistanceRequestWithPendingRoute, iouType, translate, formattedAmount]);
+    }, [isTypeTrackExpense, isTypeSplit, iouAmount, receiptPath, isTypeRequest, isDistanceRequestWithPendingRoute, iouType, translate, formattedAmount, isTypeInvoice]);
 
-    const selectedParticipants = useMemo(() => selectedParticipantsProp.filter((participant) => participant.selected), [selectedParticipantsProp]);
+    const onSplitShareChange = useCallback(
+        (accountID: number, value: number) => {
+            if (!transaction?.transactionID) {
+                return;
+            }
+            const amountInCents = CurrencyUtils.convertToBackendAmount(value);
+            IOU.setIndividualShare(transaction?.transactionID, accountID, amountInCents);
+        },
+        [transaction],
+    );
+
+    useEffect(() => {
+        if (!isTypeSplit || !transaction?.splitShares) {
+            return;
+        }
+
+        const splitSharesMap: SplitShares = transaction.splitShares;
+        const shares: number[] = Object.values(splitSharesMap).map((splitShare) => splitShare?.amount ?? 0);
+        const sumOfShares = shares?.reduce((prev, current): number => prev + current, 0);
+        if (sumOfShares !== iouAmount) {
+            setFormError('iou.error.invalidSplit');
+            return;
+        }
+
+        const participantsWithAmount = Object.keys(transaction?.splitShares ?? {})
+            .filter((accountID: string): boolean => (transaction?.splitShares?.[Number(accountID)]?.amount ?? 0) > 0)
+            .map((accountID) => Number(accountID));
+
+        // A split must have at least two participants with amounts bigger than 0
+        if (participantsWithAmount.length === 1) {
+            setFormError('iou.error.invalidSplitParticipants');
+            return;
+        }
+
+        setFormError('');
+    }, [isTypeSplit, transaction?.splitShares, iouAmount, iouCurrencyCode, setFormError, translate]);
+
+    useEffect(() => {
+        if (!isTypeSplit || !transaction?.splitShares) {
+            return;
+        }
+        IOU.adjustRemainingSplitShares(transaction);
+    }, [isTypeSplit, transaction]);
+
     const payeePersonalDetails = useMemo(() => payeePersonalDetailsProp ?? currentUserPersonalDetails, [payeePersonalDetailsProp, currentUserPersonalDetails]);
-    const canModifyParticipants = !isReadOnly && canModifyParticipantsProp && hasMultipleParticipants;
-    const shouldDisablePaidBySection = canModifyParticipants;
+    const selectedParticipants = useMemo(() => selectedParticipantsProp.filter((participant) => participant.selected), [selectedParticipantsProp]);
+    const shouldShowReadOnlySplits = useMemo(() => isPolicyExpenseChat || isReadOnly || isScanRequest, [isPolicyExpenseChat, isReadOnly, isScanRequest]);
+
+    const splitParticipants = useMemo(() => {
+        if (!isTypeSplit) {
+            return;
+        }
+        const payeeOption = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails);
+        if (shouldShowReadOnlySplits) {
+            return [payeeOption, ...selectedParticipants].map((participantOption: Participant) => {
+                const isPayer = participantOption.accountID === payeeOption.accountID;
+                let amount: number | undefined = 0;
+                if (iouAmount > 0) {
+                    amount =
+                        transaction?.comment?.splits?.find((split) => split.accountID === participantOption.accountID)?.amount ??
+                        IOUUtils.calculateAmount(selectedParticipants.length, iouAmount, iouCurrencyCode ?? '', isPayer);
+                }
+                return {
+                    ...participantOption,
+                    descriptiveText: amount ? CurrencyUtils.convertToDisplayString(amount, iouCurrencyCode) : '',
+                };
+            });
+        }
+
+        const currencySymbol = currencyList?.[iouCurrencyCode ?? '']?.symbol ?? iouCurrencyCode;
+        const prefixPadding = StyleUtils.getCharacterPadding(currencySymbol ?? '');
+        const formattedTotalAmount = CurrencyUtils.convertToDisplayStringWithoutCurrency(iouAmount, iouCurrencyCode);
+        const amountWidth = StyleUtils.getWidthStyle(formattedTotalAmount.length * 9 + prefixPadding);
+        return [payeeOption, ...selectedParticipants].map((participantOption: Participant) => ({
+            ...participantOption,
+            tabIndex: -1,
+            shouldShowAmountInput: true,
+            amountInputProps: {
+                amount: transaction?.splitShares?.[participantOption.accountID ?? 0]?.amount,
+                currency: iouCurrencyCode,
+                prefixCharacter: currencySymbol,
+                containerStyle: [amountWidth],
+                inputStyle: [amountWidth],
+                maxLength: formattedTotalAmount.length,
+                onAmountChange: (value: string) => onSplitShareChange(participantOption.accountID ?? 0, Number(value)),
+            },
+        }));
+    }, [isTypeSplit, transaction, iouCurrencyCode, onSplitShareChange, payeePersonalDetails, selectedParticipants, currencyList, iouAmount, shouldShowReadOnlySplits, StyleUtils]);
+
+    const isSplitModified = useMemo(() => {
+        if (!transaction?.splitShares) {
+            return;
+        }
+        return Object.keys(transaction.splitShares).some((key) => transaction.splitShares?.[Number(key) ?? -1]?.isModified);
+    }, [transaction?.splitShares]);
+
     const optionSelectorSections = useMemo(() => {
         const sections = [];
-        const unselectedParticipants = selectedParticipantsProp.filter((participant) => !participant.selected);
-        if (hasMultipleParticipants) {
-            const formattedSelectedParticipants = getParticipantsWithAmount(selectedParticipants);
-            let formattedParticipantsList = [...new Set([...formattedSelectedParticipants, ...unselectedParticipants])];
-
-            if (!canModifyParticipants) {
-                formattedParticipantsList = formattedParticipantsList.map((participant) => ({
-                    ...participant,
-                    isDisabled: ReportUtils.isOptimisticPersonalDetail(participant.accountID ?? -1),
-                }));
-            }
-
-            const myIOUAmount = IOUUtils.calculateAmount(selectedParticipants.length, iouAmount, iouCurrencyCode ?? '', true);
-            const formattedPayeeOption = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(
-                payeePersonalDetails,
-                iouAmount > 0 ? CurrencyUtils.convertToDisplayString(myIOUAmount, iouCurrencyCode) : '',
-            );
-
+        if (isTypeSplit) {
             sections.push(
-                {
-                    title: translate('moneyRequestConfirmationList.paidBy'),
-                    data: [formattedPayeeOption],
-                    shouldShow: true,
-                    isDisabled: shouldDisablePaidBySection,
-                },
-                {
-                    title: translate('moneyRequestConfirmationList.splitWith'),
-                    data: formattedParticipantsList,
-                    shouldShow: true,
-                },
+                ...[
+                    {
+                        title: translate('moneyRequestConfirmationList.paidBy'),
+                        data: [OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails)],
+                        shouldShow: true,
+                    },
+                    {
+                        title: translate('moneyRequestConfirmationList.splitAmounts'),
+                        data: splitParticipants,
+                        shouldShow: true,
+                        shouldShowActionButton: !shouldShowReadOnlySplits && isSplitModified,
+                        onActionButtonPress: () => IOU.resetSplitShares(transaction),
+                        actionButtonTitle: translate('common.reset'),
+                    },
+                ],
             );
+            sections.push();
         } else {
             const formattedSelectedParticipants = selectedParticipants.map((participant) => ({
-                ...participant,
                 isDisabled: !participant.isPolicyExpenseChat && !participant.isSelfDM && ReportUtils.isOptimisticPersonalDetail(participant.accountID ?? -1),
+                ...participant,
             }));
             sections.push({
                 title: translate('common.to'),
@@ -446,25 +545,14 @@ function MoneyRequestConfirmationList({
             });
         }
         return sections;
-    }, [
-        selectedParticipants,
-        selectedParticipantsProp,
-        hasMultipleParticipants,
-        iouAmount,
-        iouCurrencyCode,
-        getParticipantsWithAmount,
-        payeePersonalDetails,
-        translate,
-        shouldDisablePaidBySection,
-        canModifyParticipants,
-    ]);
+    }, [selectedParticipants, isTypeSplit, translate, splitParticipants, transaction, shouldShowReadOnlySplits, isSplitModified, payeePersonalDetails]);
 
     const selectedOptions = useMemo(() => {
-        if (!hasMultipleParticipants) {
+        if (!isTypeSplit) {
             return [];
         }
         return [...selectedParticipants, OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails)];
-    }, [selectedParticipants, hasMultipleParticipants, payeePersonalDetails]);
+    }, [selectedParticipants, isTypeSplit, payeePersonalDetails]);
 
     useEffect(() => {
         if (!isDistanceRequest || isMovingTransactionFromTrackExpense) {
@@ -503,6 +591,7 @@ function MoneyRequestConfirmationList({
             return;
         }
         IOU.setMoneyRequestCategory(transactionID, enabledCategories[0].name);
+        // Keep 'transaction' out to ensure that we autoselect the option only once
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [shouldShowCategories, policyCategories, isCategoryRequired]);
 
@@ -520,7 +609,9 @@ function MoneyRequestConfirmationList({
         if (updatedTagsString !== TransactionUtils.getTag(transaction) && updatedTagsString) {
             IOU.setMoneyRequestTag(transactionID, updatedTagsString);
         }
-    }, [policyTagLists, transaction, transactionID, policyTags, canUseViolations]);
+        // Keep 'transaction' out to ensure that we autoselect the option only once
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [policyTagLists, policyTags, canUseViolations]);
 
     /**
      */
@@ -570,6 +661,10 @@ function MoneyRequestConfirmationList({
                 return;
             }
 
+            if (formError) {
+                return;
+            }
+
             if (iouType === CONST.IOU.TYPE.PAY) {
                 if (!paymentMethod) {
                     return;
@@ -612,6 +707,8 @@ function MoneyRequestConfirmationList({
             isDistanceRequestWithPendingRoute,
             iouAmount,
             isEditingSplitBill,
+            formError,
+            setFormError,
             onConfirm,
         ],
     );
@@ -663,14 +760,28 @@ function MoneyRequestConfirmationList({
                     <FormHelpMessage
                         style={[styles.ph1, styles.mb2]}
                         isError
-                        message={formError}
+                        message={!shouldShowReadOnlySplits ? debouncedFormError : formError}
                     />
                 )}
 
                 {button}
             </>
         );
-    }, [isReadOnly, iouType, selectedParticipants.length, confirm, bankAccountRoute, iouCurrencyCode, policyID, splitOrRequestOptions, formError, styles.ph1, styles.mb2]);
+    }, [
+        isReadOnly,
+        iouType,
+        selectedParticipants.length,
+        confirm,
+        bankAccountRoute,
+        iouCurrencyCode,
+        policyID,
+        splitOrRequestOptions,
+        formError,
+        debouncedFormError,
+        shouldShowReadOnlySplits,
+        styles.ph1,
+        styles.mb2,
+    ]);
 
     // An intermediate structure that helps us classify the fields as "primary" and "supplementary".
     // The primary fields are always shown to the user, while an extra action is needed to reveal the supplementary ones.
@@ -808,7 +919,7 @@ function MoneyRequestConfirmationList({
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() => {
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams(), reportActionID));
                     }}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
@@ -933,48 +1044,61 @@ function MoneyRequestConfirmationList({
     const resolvedReceiptImage = isLocalFile ? receiptImage : tryResolveUrlFromApiRoot(receiptImage ?? '');
 
     const receiptThumbnailContent = useMemo(
-        () =>
-            isLocalFile && Str.isPDF(receiptFilename) ? (
-                <PDFThumbnail
-                    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                    previewSourceURL={resolvedReceiptImage as string}
-                    style={styles.moneyRequestImage}
-                    // We don't support scaning password protected PDF receipt
-                    enabled={!isAttachmentInvalid}
-                    onPassword={() => setIsAttachmentInvalid(true)}
-                />
-            ) : (
-                <ReceiptImage
-                    style={styles.moneyRequestImage}
-                    isThumbnail={isThumbnail}
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    source={resolvedThumbnail || resolvedReceiptImage || ''}
-                    // AuthToken is required when retrieving the image from the server
-                    // but we don't need it to load the blob:// or file:// image when starting an expense/split
-                    // So if we have a thumbnail, it means we're retrieving the image from the server
-                    isAuthTokenRequired={!!receiptThumbnail}
-                    fileExtension={fileExtension}
-                />
-            ),
-        [isLocalFile, receiptFilename, resolvedThumbnail, styles.moneyRequestImage, isAttachmentInvalid, isThumbnail, resolvedReceiptImage, receiptThumbnail, fileExtension],
+        () => (
+            <View style={styles.moneyRequestImage}>
+                {isLocalFile && Str.isPDF(receiptFilename) ? (
+                    <PDFThumbnail
+                        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+                        previewSourceURL={resolvedReceiptImage as string}
+                        // We don't support scaning password protected PDF receipt
+                        enabled={!isAttachmentInvalid}
+                        onPassword={() => setIsAttachmentInvalid(true)}
+                    />
+                ) : (
+                    <ReceiptImage
+                        isThumbnail={isThumbnail}
+                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                        source={resolvedThumbnail || resolvedReceiptImage || ''}
+                        // AuthToken is required when retrieving the image from the server
+                        // but we don't need it to load the blob:// or file:// image when starting an expense/split
+                        // So if we have a thumbnail, it means we're retrieving the image from the server
+                        isAuthTokenRequired={!!receiptThumbnail && !isLocalFile}
+                        fileExtension={fileExtension}
+                        shouldUseThumbnailImage
+                        shouldUseInitialObjectPosition={isDistanceRequest}
+                    />
+                )}
+            </View>
+        ),
+        [
+            isLocalFile,
+            receiptFilename,
+            resolvedThumbnail,
+            styles.moneyRequestImage,
+            isAttachmentInvalid,
+            isThumbnail,
+            resolvedReceiptImage,
+            receiptThumbnail,
+            fileExtension,
+            isDistanceRequest,
+        ],
     );
 
     return (
-        // @ts-expect-error This component is deprecated and will not be migrated to TypeScript (context: https://expensify.slack.com/archives/C01GTK53T8Q/p1709232289899589?thread_ts=1709156803.359359&cid=C01GTK53T8Q)
+        /** @ts-expect-error This component is deprecated and will not be migrated to TypeScript (context: https://expensify.slack.com/archives/C01GTK53T8Q/p1709232289899589?thread_ts=1709156803.359359&cid=C01GTK53T8Q) */
         <OptionsSelector
             sections={optionSelectorSections}
-            onSelectRow={canModifyParticipants ? selectParticipant : navigateToReportOrUserDetail}
+            onSelectRow={navigateToReportOrUserDetail}
             onAddToSelection={selectParticipant}
             onConfirmSelection={confirm}
             selectedOptions={selectedOptions}
-            canSelectMultipleOptions={canModifyParticipants}
-            disableArrowKeysActions={!canModifyParticipants}
+            disableArrowKeysActions
+            disableFocusOptions
             boldStyle
             showTitleTooltip
             shouldTextInputAppearBelowOptions
             shouldShowTextInput={false}
             shouldUseStyleForChildren={false}
-            optionHoveredStyle={canModifyParticipants ? styles.hoveredComponentBG : {}}
             footerContent={footerContent}
             listStyles={listStyles}
             shouldAllowScrollingChildren
@@ -983,6 +1107,26 @@ function MoneyRequestConfirmationList({
                 <View style={styles.confirmationListMapItem}>
                     <ConfirmedRoute transaction={transaction ?? ({} as OnyxTypes.Transaction)} />
                 </View>
+            )}
+            {isTypeInvoice && (
+                <MenuItem
+                    key={translate('workspace.invoices.sendFrom')}
+                    shouldShowRightIcon={!isReadOnly && canUpdateSenderWorkspace}
+                    title={senderWorkspace?.name}
+                    icon={senderWorkspace?.avatarURL ? senderWorkspace?.avatarURL : getDefaultWorkspaceAvatar(senderWorkspace?.name)}
+                    iconType={CONST.ICON_TYPE_WORKSPACE}
+                    description={translate('workspace.common.workspace')}
+                    label={translate('workspace.invoices.sendFrom')}
+                    isLabelHoverable={false}
+                    interactive={!isReadOnly && canUpdateSenderWorkspace}
+                    onPress={() => {
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SEND_FROM.getRoute(iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()));
+                    }}
+                    style={styles.moneyRequestMenuItem}
+                    labelStyle={styles.mt2}
+                    titleStyle={styles.flex1}
+                    disabled={didConfirm || !canUpdateSenderWorkspace}
+                />
             )}
             {!isDistanceRequest &&
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -1030,6 +1174,9 @@ export default withOnyx<MoneyRequestConfirmationListProps, MoneyRequestConfirmat
     policyCategories: {
         key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
     },
+    policyCategoriesDraft: {
+        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`,
+    },
     policyTags: {
         key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
     },
@@ -1044,7 +1191,16 @@ export default withOnyx<MoneyRequestConfirmationListProps, MoneyRequestConfirmat
     policy: {
         key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
     },
+    policyDraft: {
+        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`,
+    },
     lastSelectedDistanceRates: {
         key: ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES,
+    },
+    allPolicies: {
+        key: ONYXKEYS.COLLECTION.POLICY,
+    },
+    currencyList: {
+        key: ONYXKEYS.CURRENCY_LIST,
     },
 })(MoneyRequestConfirmationList);
