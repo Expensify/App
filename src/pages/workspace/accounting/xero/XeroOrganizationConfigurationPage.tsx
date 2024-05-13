@@ -1,9 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ConnectionLayout from '@components/ConnectionLayout';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
@@ -15,7 +13,6 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {findCurrentXeroOrganization, getXeroTenants} from '@libs/PolicyUtils';
-import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import * as Policy from '@userActions/Policy';
@@ -55,35 +52,27 @@ function XeroOrganizationConfigurationPage({
     };
 
     return (
-        <AccessOrNotFoundWrapper
+        <ConnectionLayout
+            displayName={XeroOrganizationConfigurationPage.displayName}
+            headerTitle="workspace.xero.organization"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
         >
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
-                shouldEnableMaxHeight
-                testID={XeroOrganizationConfigurationPage.displayName}
+            <OfflineWithFeedback
+                errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.TENANT_ID)}
+                errorRowStyles={[styles.ph5, styles.mt2]}
+                onClose={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.TENANT_ID)}
             >
-                <HeaderWithBackButton title={translate('workspace.xero.organization')} />
-
-                <ScrollView contentContainerStyle={styles.pb2}>
-                    <OfflineWithFeedback
-                        errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.TENANT_ID)}
-                        errorRowStyles={[styles.ph5, styles.mt2]}
-                        onClose={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.TENANT_ID)}
-                    >
-                        <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.xero.organizationDescription')}</Text>
-                        <SelectionList
-                            ListItem={RadioListItem}
-                            onSelectRow={saveSelection}
-                            sections={[{data: sections}]}
-                            initiallyFocusedOptionKey={currentXeroOrganization?.id}
-                        />
-                    </OfflineWithFeedback>
-                </ScrollView>
-            </ScreenWrapper>
-        </AccessOrNotFoundWrapper>
+                <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.xero.organizationDescription')}</Text>
+                <SelectionList
+                    ListItem={RadioListItem}
+                    onSelectRow={saveSelection}
+                    sections={[{data: sections}]}
+                    initiallyFocusedOptionKey={currentXeroOrganization?.id}
+                />
+            </OfflineWithFeedback>
+        </ConnectionLayout>
     );
 }
 
