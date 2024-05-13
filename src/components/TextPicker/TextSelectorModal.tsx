@@ -1,5 +1,7 @@
-import React, {useState} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useRef, useState} from 'react';
 import {View} from 'react-native';
+import type {TextInput as RNTextInput} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
@@ -18,6 +20,25 @@ function TextSelectorModal({value, description = '', onValueSelected, isVisible,
 
     const [currentValue, setValue] = useState(value);
     const paddingStyle = usePaddingStyle();
+
+    const inputRef = useRef<RNTextInput | null>(null);
+    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    useFocusEffect(
+        useCallback(() => {
+            focusTimeoutRef.current = setTimeout(() => {
+                if (inputRef.current && isVisible) {
+                    inputRef.current.focus();
+                }
+                return () => {
+                    if (!focusTimeoutRef.current || !isVisible) {
+                        return;
+                    }
+                    clearTimeout(focusTimeoutRef.current);
+                };
+            }, CONST.ANIMATED_TRANSITION);
+        }, [isVisible]),
+    );
 
     return (
         <Modal
