@@ -102,9 +102,6 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     /** Callback to inform a participant is selected */
     onSelectParticipant?: (option: Participant) => void;
 
-    /** Should we request a single or multiple participant selection from user */
-    hasMultipleParticipants: boolean;
-
     /** IOU amount */
     iouAmount: number;
 
@@ -184,9 +181,11 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     action?: IOUAction;
 };
 
-const getTaxAmount = (transaction: OnyxEntry<OnyxTypes.Transaction>, defaultTaxValue: string) => {
-    const percentage = (transaction?.taxRate ? transaction?.taxRate?.data?.value : defaultTaxValue) ?? '';
-    return TransactionUtils.calculateTaxAmount(percentage, transaction?.amount ?? 0);
+const getTaxAmount = (transaction: OnyxEntry<OnyxTypes.Transaction>, policy: OnyxEntry<OnyxTypes.Policy>) => {
+    const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction) ?? '';
+
+    const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, transaction?.taxCode ?? defaultTaxCode) ?? '';
+    return TransactionUtils.calculateTaxAmount(taxPercentage, transaction?.amount ?? 0);
 };
 
 function MoneyRequestConfirmationList({
@@ -209,7 +208,6 @@ function MoneyRequestConfirmationList({
     policyTags,
     iouCurrencyCode,
     iouMerchant,
-    hasMultipleParticipants,
     selectedParticipants: selectedParticipantsProp,
     payeePersonalDetails: payeePersonalDetailsProp,
     session,
@@ -321,9 +319,10 @@ function MoneyRequestConfirmationList({
               isDistanceRequest ? currency : iouCurrencyCode,
           );
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transaction?.taxAmount, iouCurrencyCode);
-    const taxRateTitle = taxRates && transaction ? TransactionUtils.getDefaultTaxName(taxRates, transaction) : '';
+    const taxRateTitle = TransactionUtils.getTaxName(policy, transaction);
 
     const previousTransactionAmount = usePrevious(transaction?.amount);
+    const previousTransactionCurrency = usePrevious(transaction?.currency);
 
     const isFocused = useIsFocused();
     const [formError, debouncedFormError, setFormError] = useDebouncedState('');
@@ -377,15 +376,15 @@ function MoneyRequestConfirmationList({
 
     // Calculate and set tax amount in transaction draft
     useEffect(() => {
-        const taxAmount = getTaxAmount(transaction, taxRates?.defaultValue ?? '').toString();
+        const taxAmount = getTaxAmount(transaction, policy).toString();
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount));
 
-        if (transaction?.taxAmount && previousTransactionAmount === transaction?.amount) {
+        if (transaction?.taxAmount && previousTransactionAmount === transaction?.amount && previousTransactionCurrency === transaction?.currency) {
             return IOU.setMoneyRequestTaxAmount(transaction?.transactionID, transaction?.taxAmount, true);
         }
 
         IOU.setMoneyRequestTaxAmount(transactionID, amountInSmallestCurrencyUnits, true);
-    }, [taxRates?.defaultValue, transaction, transactionID, previousTransactionAmount]);
+    }, [policy, transaction, transactionID, previousTransactionAmount, previousTransactionCurrency]);
 
     // If completing a split expense fails, set didConfirm to false to allow the user to edit the fields again
     if (isEditingSplitBill && didConfirm) {
@@ -437,7 +436,7 @@ function MoneyRequestConfirmationList({
         const shares: number[] = Object.values(splitSharesMap).map((splitShare) => splitShare?.amount ?? 0);
         const sumOfShares = shares?.reduce((prev, current): number => prev + current, 0);
         if (sumOfShares !== iouAmount) {
-            setFormError(translate('iou.error.invalidSplit'));
+            setFormError('iou.error.invalidSplit');
             return;
         }
 
@@ -447,7 +446,7 @@ function MoneyRequestConfirmationList({
 
         // A split must have at least two participants with amounts bigger than 0
         if (participantsWithAmount.length === 1) {
-            setFormError(translate('iou.error.invalidSplitParticipants'));
+            setFormError('iou.error.invalidSplitParticipants');
             return;
         }
 
@@ -466,6 +465,9 @@ function MoneyRequestConfirmationList({
     const shouldShowReadOnlySplits = useMemo(() => isPolicyExpenseChat || isReadOnly || isScanRequest, [isPolicyExpenseChat, isReadOnly, isScanRequest]);
 
     const splitParticipants = useMemo(() => {
+        if (!isTypeSplit) {
+            return;
+        }
         const payeeOption = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails);
         if (shouldShowReadOnlySplits) {
             return [payeeOption, ...selectedParticipants].map((participantOption: Participant) => {
@@ -473,9 +475,8 @@ function MoneyRequestConfirmationList({
                 let amount: number | undefined = 0;
                 if (iouAmount > 0) {
                     amount =
-                        isPolicyExpenseChat || !transaction?.comment?.splits
-                            ? IOUUtils.calculateAmount(selectedParticipants.length, iouAmount, iouCurrencyCode ?? '', isPayer)
-                            : transaction.comment.splits.find((split) => split.accountID === participantOption.accountID)?.amount;
+                        transaction?.comment?.splits?.find((split) => split.accountID === participantOption.accountID)?.amount ??
+                        IOUUtils.calculateAmount(selectedParticipants.length, iouAmount, iouCurrencyCode ?? '', isPayer);
                 }
                 return {
                     ...participantOption,
@@ -502,7 +503,7 @@ function MoneyRequestConfirmationList({
                 onAmountChange: (value: string) => onSplitShareChange(participantOption.accountID ?? 0, Number(value)),
             },
         }));
-    }, [transaction, iouCurrencyCode, isPolicyExpenseChat, onSplitShareChange, payeePersonalDetails, selectedParticipants, currencyList, iouAmount, shouldShowReadOnlySplits, StyleUtils]);
+    }, [isTypeSplit, transaction, iouCurrencyCode, onSplitShareChange, payeePersonalDetails, selectedParticipants, currencyList, iouAmount, shouldShowReadOnlySplits, StyleUtils]);
 
     const isSplitModified = useMemo(() => {
         if (!transaction?.splitShares) {
@@ -513,7 +514,7 @@ function MoneyRequestConfirmationList({
 
     const optionSelectorSections = useMemo(() => {
         const sections = [];
-        if (hasMultipleParticipants) {
+        if (isTypeSplit) {
             sections.push(
                 ...[
                     {
@@ -544,14 +545,14 @@ function MoneyRequestConfirmationList({
             });
         }
         return sections;
-    }, [selectedParticipants, hasMultipleParticipants, translate, splitParticipants, transaction, shouldShowReadOnlySplits, isSplitModified, payeePersonalDetails]);
+    }, [selectedParticipants, isTypeSplit, translate, splitParticipants, transaction, shouldShowReadOnlySplits, isSplitModified, payeePersonalDetails]);
 
     const selectedOptions = useMemo(() => {
-        if (!hasMultipleParticipants) {
+        if (!isTypeSplit) {
             return [];
         }
         return [...selectedParticipants, OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails)];
-    }, [selectedParticipants, hasMultipleParticipants, payeePersonalDetails]);
+    }, [selectedParticipants, isTypeSplit, payeePersonalDetails]);
 
     useEffect(() => {
         if (!isDistanceRequest || isMovingTransactionFromTrackExpense) {
@@ -1092,6 +1093,7 @@ function MoneyRequestConfirmationList({
             onConfirmSelection={confirm}
             selectedOptions={selectedOptions}
             disableArrowKeysActions
+            disableFocusOptions
             boldStyle
             showTitleTooltip
             shouldTextInputAppearBelowOptions

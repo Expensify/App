@@ -221,3 +221,4 @@ export type {default as OpenPolicyAccountingPageParams} from './OpenPolicyAccoun
 export type {default as SearchParams} from './Search';
 export type {default as SendInvoiceParams} from './SendInvoiceParams';
 export type {default as PayInvoiceParams} from './PayInvoiceParams';
+export type {default as MarkAsCashParams} from './MarkAsCashParams';
