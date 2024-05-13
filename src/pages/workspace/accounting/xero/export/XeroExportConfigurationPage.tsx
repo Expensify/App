@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
 import type {MenuItemProps} from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -7,6 +7,7 @@ import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import {getCurrentXeroOrganizationName} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
@@ -21,6 +22,8 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const policyOwner = policy?.owner ?? '';
 
     const {export: exportConfiguration, errorFields, pendingFields} = policy?.connections?.xero?.config ?? {};
+    const currentXeroOrganizationName = useMemo(() => getCurrentXeroOrganizationName(policy ?? undefined), [policy]);
+
     const menuItems: MenuItem[] = [
         {
             description: translate('workspace.xero.preferredExporter'),
@@ -82,6 +85,7 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
         <ConnectionLayout
             displayName={XeroExportConfigurationPage.displayName}
             headerTitle="workspace.xero.export"
+            headerSubtitle={currentXeroOrganizationName}
             title="workspace.xero.exportDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
