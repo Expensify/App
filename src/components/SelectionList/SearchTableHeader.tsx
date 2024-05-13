@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -6,8 +6,75 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as SearchUtils from '@libs/SearchUtils';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import type * as OnyxTypes from '@src/types/onyx';
-import SearchTableHeaderColumn from './SearchTableHeaderColumn';
+import SortableHeaderText from './SortableHeaderText';
+
+type SearchColumnConfig = {
+    columnName: (typeof CONST.SEARCH_TABLE_COLUMNS)[keyof typeof CONST.SEARCH_TABLE_COLUMNS];
+    translationKey: TranslationPaths;
+    isSortable?: boolean;
+    shouldShowFn: (data: OnyxTypes.SearchResults['data']) => boolean;
+};
+
+const SearchColumns: SearchColumnConfig[] = [
+    {
+        columnName: CONST.SEARCH_TABLE_COLUMNS.DATE,
+        translationKey: 'common.date',
+        shouldShowFn: () => true,
+    },
+    {
+        columnName: CONST.SEARCH_TABLE_COLUMNS.MERCHANT,
+        translationKey: 'common.merchant',
+        shouldShowFn: (data: OnyxTypes.SearchResults['data']) => SearchUtils.getShouldShowMerchant(data),
+    },
+    {
+        columnName: CONST.SEARCH_TABLE_COLUMNS.DESCRIPTION,
+        translationKey: 'common.description',
+        shouldShowFn: (data: OnyxTypes.SearchResults['data']) => !SearchUtils.getShouldShowMerchant(data),
+    },
+    {
+        columnName: CONST.SEARCH_TABLE_COLUMNS.FROM,
+        translationKey: 'common.from',
+        shouldShowFn: () => true,
+    },
+    {
+        columnName: CONST.SEARCH_TABLE_COLUMNS.TO,
+        translationKey: 'common.to',
+        shouldShowFn: () => true,
+    },
+    {
+        columnName: CONST.SEARCH_TABLE_COLUMNS.CATEGORY,
+        translationKey: 'common.category',
+        shouldShowFn: (data: OnyxTypes.SearchResults['data']) => SearchUtils.getShouldShowColumn(data, CONST.SEARCH_TABLE_COLUMNS.CATEGORY),
+    },
+    {
+        columnName: CONST.SEARCH_TABLE_COLUMNS.TAG,
+        translationKey: 'common.tag',
+        shouldShowFn: (data: OnyxTypes.SearchResults['data']) => SearchUtils.getShouldShowColumn(data, CONST.SEARCH_TABLE_COLUMNS.TAG),
+    },
+    {
+        columnName: CONST.SEARCH_TABLE_COLUMNS.TAX_AMOUNT,
+        translationKey: 'common.tax',
+        shouldShowFn: (data: OnyxTypes.SearchResults['data']) => SearchUtils.getShouldShowColumn(data, CONST.SEARCH_TABLE_COLUMNS.TAX_AMOUNT),
+    },
+    {
+        columnName: CONST.SEARCH_TABLE_COLUMNS.TOTAL,
+        translationKey: 'common.total',
+        shouldShowFn: () => true,
+    },
+    {
+        columnName: CONST.SEARCH_TABLE_COLUMNS.TYPE,
+        translationKey: 'common.type',
+        shouldShowFn: () => true,
+    },
+    {
+        columnName: CONST.SEARCH_TABLE_COLUMNS.ACTION,
+        translationKey: 'common.action',
+        isSortable: false,
+        shouldShowFn: () => true,
+    },
+];
 
 type SearchTableHeaderProps = {
     data: OnyxTypes.SearchResults['data'];
@@ -20,62 +87,36 @@ function SearchTableHeader({data}: SearchTableHeaderProps) {
     const {translate} = useLocalize();
     const displayNarrowVersion = isMediumScreenWidth || isSmallScreenWidth;
 
-    const shouldShowCategoryColumn = SearchUtils.getShouldShowColumn(data, CONST.SEARCH_TABLE_COLUMNS.CATEGORY);
-    const shouldShowTagColumn = SearchUtils.getShouldShowColumn(data, CONST.SEARCH_TABLE_COLUMNS.TAG);
-    const shouldShowTaxColumn = SearchUtils.getShouldShowColumn(data, CONST.SEARCH_TABLE_COLUMNS.TAX_AMOUNT);
-    const shouldShowMerchant = SearchUtils.getShouldShowMerchant(data);
+    const [sortColumn, setSortColumn] = useState<SearchColumnConfig['columnName'] | undefined>();
+    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
     if (displayNarrowVersion) {
         return;
     }
 
+    const onSortPress = (columnName: SearchColumnConfig['columnName'], order: 'asc' | 'desc') => {
+        setSortColumn(columnName);
+        setSortOrder(order);
+    };
+
     return (
         <View style={[styles.ph5, styles.pb3]}>
             <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.ph4]}>
-                <SearchTableHeaderColumn
-                    containerStyle={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DATE)]}
-                    text={translate('common.date')}
-                />
-                <SearchTableHeaderColumn
-                    containerStyle={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.MERCHANT)]}
-                    text={translate(shouldShowMerchant ? 'common.merchant' : 'common.description')}
-                />
-                <SearchTableHeaderColumn
-                    containerStyle={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.FROM)]}
-                    text={translate('common.from')}
-                />
-                <SearchTableHeaderColumn
-                    containerStyle={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TO)]}
-                    text={translate('common.to')}
-                />
-                <SearchTableHeaderColumn
-                    shouldShow={shouldShowCategoryColumn}
-                    containerStyle={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.CATEGORY)]}
-                    text={translate('common.category')}
-                />
-                <SearchTableHeaderColumn
-                    shouldShow={shouldShowTagColumn}
-                    containerStyle={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TAG)]}
-                    text={translate('common.tag')}
-                />
-                <SearchTableHeaderColumn
-                    shouldShow={shouldShowTaxColumn}
-                    containerStyle={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TAX_AMOUNT)]}
-                    text={translate('common.tax')}
-                />
-                <SearchTableHeaderColumn
-                    containerStyle={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TOTAL)]}
-                    text={translate('common.total')}
-                />
-                <SearchTableHeaderColumn
-                    containerStyle={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TYPE)]}
-                    text={translate('common.type')}
-                />
-                <SearchTableHeaderColumn
-                    containerStyle={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.ACTION)]}
-                    text={translate('common.action')}
-                    textStyle={styles.textAlignCenter}
-                />
+                {SearchColumns.map(({columnName, translationKey, shouldShowFn, isSortable}) => {
+                    const isActive = sortColumn === columnName;
+
+                    return (
+                        <SortableHeaderText
+                            text={translate(translationKey)}
+                            sortOrder={sortOrder}
+                            isActive={isActive}
+                            containerStyle={[StyleUtils.getSearchTableColumnStyles(columnName)]}
+                            shouldShow={shouldShowFn(data)}
+                            isSortable={isSortable}
+                            onPress={(order: 'asc' | 'desc') => onSortPress(columnName, order)}
+                        />
+                    );
+                })}
             </View>
         </View>
     );
