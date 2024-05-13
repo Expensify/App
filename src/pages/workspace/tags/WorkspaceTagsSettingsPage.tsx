@@ -35,7 +35,6 @@ function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPag
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
     const doesPolicyContainOnlyOneTagList = policyTagLists.length === 1;
     const hasEnabledOptions = OptionsListUtils.hasEnabledOptions(Object.values(policyTags ?? {}).flatMap(({tags}) => Object.values(tags)));
-    const doesPolicyContainOnlyOneTagList = policyTagLists.length === 1;
 
     const updateWorkspaceRequiresTag = useCallback(
         (value: boolean) => {
