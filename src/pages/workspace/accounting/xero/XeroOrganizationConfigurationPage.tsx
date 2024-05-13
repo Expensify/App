@@ -18,6 +18,7 @@ import {findCurrentXeroOrganization, getXeroTenants} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -32,7 +33,8 @@ function XeroOrganizationConfigurationPage({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const tenants = useMemo(() => getXeroTenants(policy ?? undefined), [policy]);
-    const currentXeroOrganization = findCurrentXeroOrganization(tenants, policy?.connections?.xero?.config?.tenantID);
+    const xeroConfig = policy?.connections?.xero?.config;
+    const currentXeroOrganization = findCurrentXeroOrganization(tenants, xeroConfig?.tenantID);
 
     const policyID = policy?.id ?? '';
 
@@ -48,7 +50,7 @@ function XeroOrganizationConfigurationPage({
             return;
         }
 
-        updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, 'tenantID', keyForList);
+        updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.TENANT_ID, keyForList);
         Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID));
     };
 
@@ -67,10 +69,9 @@ function XeroOrganizationConfigurationPage({
 
                 <ScrollView contentContainerStyle={styles.pb2}>
                     <OfflineWithFeedback
-                        pendingAction={policy?.connections?.xero?.config?.pendingFields?.tenantID}
-                        errors={ErrorUtils.getLatestErrorField(policy?.connections?.xero?.config ?? {}, 'tenantID')}
-                        errorRowStyles={styles.ph5}
-                        canDismissError={false}
+                        errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.TENANT_ID)}
+                        errorRowStyles={[styles.ph5, styles.mt2]}
+                        onClose={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.IMPORT_TAX_RATES)}
                     >
                         <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.xero.organizationDescription')}</Text>
                         <SelectionList
