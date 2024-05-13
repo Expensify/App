@@ -296,32 +296,31 @@ function AvatarWithImagePicker({
 
     return (
         <View style={StyleSheet.flatten([styles.alignItemsCenter, style])}>
-            <View style={styles.w100}>
-                <OfflineWithFeedback
-                    pendingAction={pendingAction}
-                    errors={errors}
-                    errorRowStyles={errorRowStyles}
-                    style={type === CONST.ICON_TYPE_AVATAR && styles.alignItemsCenter}
-                    onClose={onErrorClose}
+            <View style={styles.w100 && type === CONST.ICON_TYPE_AVATAR && styles.alignItemsCenter}>
+                <Tooltip
+                    shouldRender={!disabled}
+                    text={translate('avatarWithImagePicker.editImage')}
                 >
-                    <Tooltip
-                        shouldRender={!disabled}
-                        text={translate('avatarWithImagePicker.editImage')}
+                    <PressableWithoutFeedback
+                        onPress={() => {
+                            if (disabled && enablePreview && onViewPhotoPress) {
+                                onViewPhotoPress();
+                                return;
+                            }
+                            setIsMenuVisible((prev) => !prev);
+                        }}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                        accessibilityLabel={translate('avatarWithImagePicker.editImage')}
+                        disabled={isAvatarCropModalOpen || (disabled && !enablePreview)}
+                        disabledStyle={disabledStyle}
+                        style={[styles.pRelative, avatarStyle]}
+                        ref={anchorRef}
                     >
-                        <PressableWithoutFeedback
-                            onPress={() => {
-                                if (disabled && enablePreview && onViewPhotoPress) {
-                                    onViewPhotoPress();
-                                    return;
-                                }
-                                setIsMenuVisible((prev) => !prev);
-                            }}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
-                            accessibilityLabel={translate('avatarWithImagePicker.editImage')}
-                            disabled={isAvatarCropModalOpen || (disabled && !enablePreview)}
-                            disabledStyle={disabledStyle}
-                            style={[styles.pRelative, avatarStyle]}
-                            ref={anchorRef}
+                        <OfflineWithFeedback
+                            pendingAction={pendingAction}
+                            errors={errors}
+                            errorRowStyles={errorRowStyles}
+                            onClose={onErrorClose}
                         >
                             <View>
                                 {source ? (
@@ -337,19 +336,19 @@ function AvatarWithImagePicker({
                                     <DefaultAvatar />
                                 )}
                             </View>
-                            {!disabled && (
-                                <View style={StyleSheet.flatten([styles.smallEditIcon, styles.smallAvatarEditIcon, editIconStyle])}>
-                                    <Icon
-                                        src={editIcon}
-                                        width={variables.iconSizeSmall}
-                                        height={variables.iconSizeSmall}
-                                        fill={theme.icon}
-                                    />
-                                </View>
-                            )}
-                        </PressableWithoutFeedback>
-                    </Tooltip>
-                </OfflineWithFeedback>
+                        </OfflineWithFeedback>
+                        {!disabled && (
+                            <View style={StyleSheet.flatten([styles.smallEditIcon, styles.smallAvatarEditIcon, editIconStyle])}>
+                                <Icon
+                                    src={editIcon}
+                                    width={variables.iconSizeSmall}
+                                    height={variables.iconSizeSmall}
+                                    fill={theme.icon}
+                                />
+                            </View>
+                        )}
+                    </PressableWithoutFeedback>
+                </Tooltip>
                 <AttachmentModal
                     headerTitle={headerTitle}
                     source={previewSource}
