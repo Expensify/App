@@ -52,6 +52,7 @@ import type RecentlyUsedTags from './RecentlyUsedTags';
 import type RecentWaypoint from './RecentWaypoint';
 import type ReimbursementAccount from './ReimbursementAccount';
 import type Report from './Report';
+import type ReportNameValuePairs from './ReportNameValuePairs';
 import type {ReportActionBase, ReportActions} from './ReportAction';
 import type ReportAction from './ReportAction';
 import type ReportActionReactions from './ReportActionReactions';
@@ -134,6 +135,7 @@ export type {
     RecentlyUsedTags,
     ReimbursementAccount,
     Report,
+    ReportNameValuePairs,
     ReportAction,
     ReportActionReactions,
     ReportActions,
