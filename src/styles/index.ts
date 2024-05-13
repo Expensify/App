@@ -19,6 +19,7 @@ import codeStyles from './utils/codeStyles';
 import cursor from './utils/cursor';
 import display from './utils/display';
 import editedLabelStyles from './utils/editedLabelStyles';
+import emojiDefaultStyles from './utils/emojiDefaultStyles';
 import flex from './utils/flex';
 import FontUtils from './utils/FontUtils';
 import getPopOverVerticalOffset from './utils/getPopOverVerticalOffset';
@@ -212,7 +213,6 @@ const webViewStyles = (theme: ThemeColors) =>
                 minWidth: CONST.VIDEO_PLAYER.MIN_WIDTH,
                 minHeight: CONST.VIDEO_PLAYER.MIN_HEIGHT,
                 borderRadius: variables.componentBorderRadiusNormal,
-                overflow: 'hidden',
                 backgroundColor: theme.highlightBG,
                 ...touchCalloutNone,
             },
@@ -256,6 +256,7 @@ const styles = (theme: ThemeColors) =>
         ...objectFit,
         ...textDecorationLine,
         editedLabelStyles,
+        emojiDefaultStyles,
 
         autoCompleteSuggestionsContainer: {
             backgroundColor: theme.appBG,
@@ -798,6 +799,7 @@ const styles = (theme: ThemeColors) =>
                     fontSize: 17,
                 },
                 modalViewMiddle: {
+                    position: 'relative',
                     backgroundColor: theme.border,
                     borderTopWidth: 0,
                 },
@@ -839,6 +841,10 @@ const styles = (theme: ThemeColors) =>
                 icon: {
                     width: variables.iconSizeExtraSmall,
                     height: variables.iconSizeExtraSmall,
+                },
+                chevronContainer: {
+                    pointerEvents: 'none',
+                    opacity: 0,
                 },
             } satisfies CustomPickerStyle),
 
@@ -1136,9 +1142,8 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.border,
         },
 
-        textInputContainerBorder: {
-            borderBottomWidth: 2,
-            borderColor: theme.border,
+        optionRowAmountInput: {
+            textAlign: 'right',
         },
 
         textInputLabel: {
@@ -1867,6 +1872,11 @@ const styles = (theme: ThemeColors) =>
             marginBottom: -20,
         },
 
+        travelIllustrationStyle: {
+            marginTop: 16,
+            marginBottom: -16,
+        },
+
         overlayStyles: (current: OverlayStylesParams, isModalOnTheLeft: boolean) =>
             ({
                 ...positioning.pFixed,
@@ -2341,6 +2351,7 @@ const styles = (theme: ThemeColors) =>
             lineHeight: undefined,
             marginLeft: -2,
             textAlign: 'center',
+            zIndex: 10,
         },
 
         emptyAvatar: {
@@ -2814,6 +2825,18 @@ const styles = (theme: ThemeColors) =>
             left: 0,
             width: '100%',
             height: 20,
+            paddingHorizontal: 20,
+            flexDirection: 'row',
+            alignItems: 'center',
+            zIndex: 1,
+            ...cursor.cursorDefault,
+        },
+
+        topUnreadIndicatorContainer: {
+            position: 'relative',
+            width: '100%',
+            /** 17 = height of the indicator 1px + 8px top and bottom */
+            height: 17,
             paddingHorizontal: 20,
             flexDirection: 'row',
             alignItems: 'center',
@@ -4191,6 +4214,7 @@ const styles = (theme: ThemeColors) =>
             height: 200,
             borderRadius: 16,
             margin: 20,
+            overflow: 'hidden',
         },
 
         reportPreviewBox: {
@@ -4512,6 +4536,10 @@ const styles = (theme: ThemeColors) =>
             paddingVertical: 4,
         },
 
+        headerStatusBarContainer: {
+            minHeight: variables.componentSizeNormal,
+        },
+
         walletCardLimit: {
             color: theme.text,
             fontSize: variables.fontSizeNormal,
@@ -4702,6 +4730,13 @@ const styles = (theme: ThemeColors) =>
             color: theme.heading,
             fontSize: variables.fontSizeXLarge,
             lineHeight: variables.lineHeightXXLarge,
+        },
+
+        videoPlayerPreview: {
+            width: '100%',
+            height: '100%',
+            borderRadius: variables.componentBorderRadiusNormal,
+            backgroundColor: theme.highlightBG,
         },
 
         videoPlayerControlsContainer: {

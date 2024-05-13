@@ -73,7 +73,7 @@ const shouldUseForcedSelectionRange = shouldUseEmojiPickerSelection();
 
 function ReportActionItemMessageEdit(
     {action, draftMessage, reportID, index, shouldDisableEmojiPicker = false, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE}: ReportActionItemMessageEditProps,
-    forwardedRef: ForwardedRef<(TextInput & HTMLTextAreaElement) | undefined>,
+    forwardedRef: ForwardedRef<TextInput | HTMLTextAreaElement | undefined>,
 ) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -450,7 +450,7 @@ function ReportActionItemMessageEdit(
                                 setIsFocused(false);
                                 // @ts-expect-error TODO: TextInputFocusEventData doesn't contain relatedTarget.
                                 const relatedTargetId = event.nativeEvent?.relatedTarget?.id;
-                                if (relatedTargetId && [messageEditInput, emojiButtonID].includes(relatedTargetId)) {
+                                if ((relatedTargetId && [messageEditInput, emojiButtonID].includes(relatedTargetId)) || EmojiPickerAction.isEmojiPickerVisible()) {
                                     return;
                                 }
                                 setShouldShowComposeInputKeyboardAware(true);
