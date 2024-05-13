@@ -1,13 +1,13 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useRef, useState} from 'react';
 import {View} from 'react-native';
-import type {TextInput as RNTextInput} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import TextInput from '@components/TextInput';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -21,7 +21,7 @@ function TextSelectorModal({value, description = '', onValueSelected, isVisible,
     const [currentValue, setValue] = useState(value);
     const paddingStyle = usePaddingStyle();
 
-    const inputRef = useRef<RNTextInput | null>(null);
+    const inputRef = useRef<BaseTextInputRef | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     useFocusEffect(
@@ -68,6 +68,12 @@ function TextSelectorModal({value, description = '', onValueSelected, isVisible,
                             {...rest}
                             value={currentValue}
                             onInputChange={setValue}
+                            ref={(ref) => {
+                                if (!ref) {
+                                    return;
+                                }
+                                inputRef.current = ref;
+                            }}
                         />
                     </View>
                     <Button
