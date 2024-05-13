@@ -173,11 +173,6 @@ function SettlementButton({
                 icon: Expensicons.Cash,
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             },
-            [CONST.IOU.PAYMENT_TYPE.PERSONAL]: {
-                text: translate('iou.settlePersonal', {formattedAmount}),
-                icon: Expensicons.User,
-                value: CONST.IOU.PAYMENT_TYPE.PERSONAL,
-            },
         };
         const approveButtonOption = {
             text: translate('iou.approve'),
@@ -207,7 +202,11 @@ function SettlementButton({
         }
 
         if (isInvoiceReport) {
-            buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.PERSONAL]);
+            buttonOptions.push({
+                text: translate('iou.settlePersonal', {formattedAmount}),
+                icon: Expensicons.User,
+                value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+            });
         }
 
         if (shouldShowApproveButton) {

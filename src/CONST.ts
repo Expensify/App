@@ -1522,8 +1522,6 @@ const CONST = {
             ELSEWHERE: 'Elsewhere',
             EXPENSIFY: 'Expensify',
             VBBA: 'ACH',
-            PERSONAL: 'PERSONAL',
-            BUSINESS: 'BUSINESS',
         },
         ACTION: {
             EDIT: 'edit',
