@@ -94,7 +94,7 @@ function HeaderView({
     // For 1:1 chat, we don't want to include currentUser as participants in order to not mark 1:1 chats as having multiple participants
     const participants = Object.keys(report?.participants ?? {})
         .map(Number)
-        .filter((accountID) => !isOneOnOneChat || accountID !== session?.accountID)
+        .filter((accountID) => accountID !== session?.accountID || !isOneOnOneChat)
         .slice(0, 5);
     const isMultipleParticipant = participants.length > 1;
 

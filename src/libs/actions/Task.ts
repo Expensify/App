@@ -776,7 +776,7 @@ function getShareDestination(reportID: string, reports: OnyxCollection<OnyxTypes
 
     const participants = Object.keys(report?.participants ?? {})
         .map(Number)
-        .filter((accountID) => !isOneOnOneChat || accountID !== currentUserAccountID);
+        .filter((accountID) => accountID !== currentUserAccountID || !isOneOnOneChat);
 
     const isMultipleParticipant = participants.length > 1;
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs(participants, personalDetails), isMultipleParticipant);

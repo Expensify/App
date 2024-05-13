@@ -245,11 +245,11 @@ function getOptionData({
     const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
     const participantAccountIDs = Object.keys(report.participants ?? {})
         .map(Number)
-        .filter((accountID) => !isOneOnOneChat || accountID !== currentUserAccountID);
+        .filter((accountID) => accountID !== currentUserAccountID || !isOneOnOneChat);
     const visibleParticipantAccountIDs = Object.entries(report.participants ?? {})
         .filter(([, participant]) => participant && !participant.hidden)
         .map(([accountID]) => Number(accountID))
-        .filter((accountID) => !isOneOnOneChat || accountID !== currentUserAccountID);
+        .filter((accountID) => accountID !== currentUserAccountID || !isOneOnOneChat);
 
     const participantPersonalDetailList = Object.values(OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails)) as PersonalDetails[];
     const personalDetail = participantPersonalDetailList[0] ?? {};
