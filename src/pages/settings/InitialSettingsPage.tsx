@@ -407,10 +407,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                             </PressableWithFeedback>
                         </Tooltip>
                     </View>
-                    <OfflineWithFeedback
-                        pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
-                        style={[styles.mb3, styles.w100]}
-                    >
+                    <View style={[styles.mb3, styles.w100]}>
                         <AvatarWithImagePicker
                             isUsingDefaultAvatar={UserUtils.isDefaultAvatar(currentUserDetails?.avatar ?? '')}
                             source={UserUtils.getAvatar(avatarURL, accountID)}
@@ -429,7 +426,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                             fallbackIcon={currentUserDetails?.fallbackIcon}
                             editIconStyle={styles.smallEditIconAccount}
                         />
-                    </OfflineWithFeedback>
+                    </View>
                     <Text
                         style={[styles.textHeadline, styles.pre, styles.textAlignCenter]}
                         numberOfLines={1}
