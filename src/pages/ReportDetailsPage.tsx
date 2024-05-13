@@ -104,7 +104,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         return !pendingMember || pendingMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? accountID : [];
     });
 
-    const isGroupDMChat = useMemo(() => ReportUtils.isDM(report) && participants.length > 1, [report, participants.length]);
     const isPrivateNotesFetchTriggered = report?.isLoadingPrivateNotes !== undefined;
 
     const isSelfDM = useMemo(() => ReportUtils.isSelfDM(report), [report]);
@@ -348,7 +347,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     {shouldShowReportDescription && (
                         <OfflineWithFeedback
                             pendingAction={report.pendingFields?.description}
-                            style={!isGroupDMChat && styles.mb5}
+                            style={styles.mb5}
                         >
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon={canEditReportDescription}
@@ -361,7 +360,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                             />
                         </OfflineWithFeedback>
                     )}
-                    {!isGroupDMChat && <ChatDetailsQuickActionsBar report={report} />}
+                    <ChatDetailsQuickActionsBar report={report} />
                     {menuItems.map((item) => {
                         const brickRoadIndicator =
                             ReportUtils.hasReportNameError(report) && item.key === CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
