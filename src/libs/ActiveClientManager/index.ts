@@ -50,7 +50,6 @@ let wasTheLeader = false;
 /**
  * The last GUID is the most recent GUID, so that should be the leader
  */
-
 const isClientTheLeader: IsClientTheLeader = () => {
     if (wasTheLeader) {
         return true;
