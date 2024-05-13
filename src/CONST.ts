@@ -347,7 +347,6 @@ const CONST = {
         DEFAULT_ROOMS: 'defaultRooms',
         VIOLATIONS: 'violations',
         REPORT_FIELDS: 'reportFields',
-        TRACK_EXPENSE: 'trackExpense',
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
         WORKFLOWS_DELAYED_SUBMISSION: 'workflowsDelayedSubmission',
         SPOTNANA_TRAVEL: 'spotnanaTravel',
@@ -4734,6 +4733,10 @@ const CONST = {
 
     SEARCH_DATA_TYPES: {
         TRANSACTION: 'transaction',
+    },
+
+    REFERRER: {
+        NOTIFICATION: 'notification',
     },
 } as const;
 

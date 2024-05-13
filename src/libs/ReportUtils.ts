@@ -5348,6 +5348,7 @@ function parseReportRouteParams(route: string): ReportRouteParams {
     const pathSegments = parsingRoute.split('/');
 
     const reportIDSegment = pathSegments[1];
+    const hasRouteReportActionID = !Number.isNaN(Number(reportIDSegment));
 
     // Check for "undefined" or any other unwanted string values
     if (!reportIDSegment || reportIDSegment === 'undefined') {
@@ -5356,7 +5357,7 @@ function parseReportRouteParams(route: string): ReportRouteParams {
 
     return {
         reportID: reportIDSegment,
-        isSubReportPageRoute: pathSegments.length > 2,
+        isSubReportPageRoute: pathSegments.length > 2 && !hasRouteReportActionID,
     };
 }
 
@@ -5469,9 +5470,9 @@ function isGroupChatAdmin(report: OnyxEntry<Report>, accountID: number) {
  * None of the options should show in chat threads or if there is some special Expensify account
  * as a participant of the report.
  */
-function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, reportParticipants: number[], canUseTrackExpense = true, filterDeprecatedTypes = false): IOUType[] {
+function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, reportParticipants: number[], filterDeprecatedTypes = false): IOUType[] {
     // In any thread or task report, we do not allow any new expenses yet
-    if (isChatThread(report) || isTaskReport(report) || (!canUseTrackExpense && isSelfDM(report)) || isInvoiceRoom(report) || isInvoiceReport(report)) {
+    if (isChatThread(report) || isTaskReport(report) || isInvoiceRoom(report) || isInvoiceReport(report)) {
         return [];
     }
 
@@ -5510,7 +5511,7 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
         }
 
         // If the user can request money from the workspace report, they can also track expenses
-        if (canUseTrackExpense && (isPolicyExpenseChat(report) || isExpenseReport(report))) {
+        if (isPolicyExpenseChat(report) || isExpenseReport(report)) {
             options = [...options, CONST.IOU.TYPE.TRACK];
         }
     }
@@ -5535,9 +5536,42 @@ function temporary_getMoneyRequestOptions(
     report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
     reportParticipants: number[],
-    canUseTrackExpense = true,
 ): Array<Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>> {
-    return getMoneyRequestOptions(report, policy, reportParticipants, canUseTrackExpense, true) as Array<Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>>;
+    return getMoneyRequestOptions(report, policy, reportParticipants, true) as Array<Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>>;
+}
+
+/**
+ * Invoice sender, invoice receiver and auto-invited admins cannot leave
+ */
+function canLeaveInvoiceRoom(report: OnyxEntry<Report>): boolean {
+    if (!isInvoiceRoom(report)) {
+        return false;
+    }
+
+    const invoiceReport = getReport(report?.iouReportID ?? '');
+
+    if (invoiceReport?.ownerAccountID === currentUserAccountID) {
+        return false;
+    }
+
+    if (invoiceReport?.managerID === currentUserAccountID) {
+        return false;
+    }
+
+    const isSenderPolicyAdmin = getPolicy(report?.policyID)?.role === CONST.POLICY.ROLE.ADMIN;
+
+    if (isSenderPolicyAdmin) {
+        return false;
+    }
+
+    const isReceiverPolicyAdmin =
+        report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS ? getPolicy(report?.invoiceReceiver?.policyID)?.role === CONST.POLICY.ROLE.ADMIN : false;
+
+    if (isReceiverPolicyAdmin) {
+        return false;
+    }
+
+    return true;
 }
 
 /**
@@ -5710,12 +5744,10 @@ function getOriginalReportID(reportID: string, reportAction: OnyxEntry<ReportAct
     const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
     const currentReportAction = reportActions?.[reportAction?.reportActionID ?? ''] ?? null;
     const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(reportID, reportActions ?? ([] as ReportAction[]));
-    if (transactionThreadReportID !== null) {
-        return Object.keys(currentReportAction ?? {}).length === 0 ? transactionThreadReportID : reportID;
+    if (Object.keys(currentReportAction ?? {}).length === 0) {
+        return isThreadFirstChat(reportAction, reportID) ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.parentReportID : transactionThreadReportID ?? reportID;
     }
-    return isThreadFirstChat(reportAction, reportID) && Object.keys(currentReportAction ?? {}).length === 0
-        ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.parentReportID
-        : reportID;
+    return reportID;
 }
 
 /**
@@ -6000,6 +6032,13 @@ function isDeprecatedGroupDM(report: OnyxEntry<Report>): boolean {
             !Object.values(CONST.REPORT.CHAT_TYPE).some((chatType) => chatType === getChatType(report)) &&
             (report.participantAccountIDs?.length ?? 0) > 1,
     );
+}
+
+/**
+ * A "root" group chat is the top level group chat and does not refer to any threads off of a Group Chat
+ */
+function isRootGroupChat(report: OnyxEntry<Report>): boolean {
+    return !isChatThread(report) && (isGroupChat(report) || isDeprecatedGroupDM(report));
 }
 
 /**
@@ -6418,8 +6457,61 @@ function hasActionsWithErrors(reportID: string): boolean {
     return Object.values(reportActions).some((action) => !isEmptyObject(action.errors));
 }
 
-function canLeavePolicyExpenseChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
+function isNonAdminOrOwnerOfPolicyExpenseChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
     return isPolicyExpenseChat(report) && !(PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPolicyOwner(policy, currentUserAccountID ?? -1) || isReportOwner(report));
+}
+
+/**
+ * Whether the user can join a report
+ */
+function canJoinChat(report: OnyxEntry<Report>, parentReportAction: OnyxEntry<ReportAction>, policy: OnyxEntry<Policy>): boolean {
+    // We disabled thread functions for whisper action
+    // So we should not show join option for existing thread on whisper message that has already been left, or manually leave it
+    if (ReportActionsUtils.isWhisperAction(parentReportAction)) {
+        return false;
+    }
+
+    // If the notification preference of the chat is not hidden that means we have already joined the chat
+    if (report?.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
+        return false;
+    }
+
+    // Anyone viewing these chat types is already a participant and therefore cannot join
+    if (isRootGroupChat(report) || isSelfDM(report) || isInvoiceRoom(report)) {
+        return false;
+    }
+
+    // The user who is a member of the workspace has already joined the public announce room.
+    if (isPublicAnnounceRoom(report) && !isEmptyObject(policy)) {
+        return false;
+    }
+
+    return isChatThread(report) || isUserCreatedPolicyRoom(report) || isNonAdminOrOwnerOfPolicyExpenseChat(report, policy);
+}
+
+/**
+ * Whether the user can leave a report
+ */
+function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
+    if (report?.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
+        return false;
+    }
+
+    // Anyone viewing these chat types is already a participant and therefore cannot leave
+    if (isSelfDM(report) || isRootGroupChat(report)) {
+        return false;
+    }
+
+    // The user who is a member of the workspace cannot leave the public announce room.
+    if (isPublicAnnounceRoom(report) && !isEmptyObject(policy)) {
+        return false;
+    }
+
+    if (canLeaveInvoiceRoom(report)) {
+        return true;
+    }
+
+    return (isChatThread(report) && !!report?.notificationPreference?.length) || isUserCreatedPolicyRoom(report) || isNonAdminOrOwnerOfPolicyExpenseChat(report, policy);
 }
 
 function getReportActionActorAccountID(reportAction: OnyxEntry<ReportAction>, iouReport: OnyxEntry<Report> | undefined): number | undefined {
@@ -6578,8 +6670,10 @@ export {
     canEditRoomVisibility,
     canEditWriteCapability,
     canFlagReportAction,
-    canLeavePolicyExpenseChat,
+    isNonAdminOrOwnerOfPolicyExpenseChat,
     canLeaveRoom,
+    canJoinChat,
+    canLeaveChat,
     canReportBeMentionedWithinPolicy,
     canRequestMoney,
     canSeeDefaultRoom,
@@ -6707,6 +6801,7 @@ export {
     isDM,
     isDefaultRoom,
     isDeprecatedGroupDM,
+    isRootGroupChat,
     isExpenseReport,
     isExpenseRequest,
     isExpensifyOnlyParticipantInReport,

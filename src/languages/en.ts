@@ -2452,6 +2452,7 @@ export default {
             save: 'Save',
             genericFailureMessage: 'An error occurred updating the workspace, please try again.',
             avatarUploadFailureMessage: 'An error occurred uploading the avatar, please try again.',
+            addressContext: 'A Workspace Address is required to enable Expensify Travel. Please enter an address associated with your business.',
         },
         bankAccount: {
             continueWithSetup: 'Continue with setup',
