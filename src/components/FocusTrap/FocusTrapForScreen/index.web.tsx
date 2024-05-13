@@ -17,7 +17,7 @@ function FocusTrap({children}: FocusTrapProps) {
 
     const isActive = useMemo(() => {
         // Focus trap can't be active on bottom tab screens because it would block access to the tab bar.
-        if (BOTTOM_TAB_SCREENS.includes(route.name)) {
+        if (BOTTOM_TAB_SCREENS.find((screen) => screen === route.name)) {
             return false;
         }
 
