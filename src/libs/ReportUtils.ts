@@ -3926,7 +3926,7 @@ function buildOptimisticIOUReportAction(
 /**
  * Builds an optimistic APPROVED report action with a randomly generated reportActionID.
  */
-function buildOptimisticApprovedReportAction(amount: number, currency: string, expenseReportID = ''): OptimisticApprovedReportAction {
+function buildOptimisticApprovedReportAction(amount: number, currency: string, expenseReportID: string): OptimisticApprovedReportAction {
     const originalMessage = {
         amount,
         currency,
@@ -6300,7 +6300,7 @@ function getAllAncestorReportActionIDs(report: Report | null | undefined, includ
  * @param lastVisibleActionCreated Last visible action created of the child report
  * @param type The type of action in the child report
  */
-function getOptimisticDataForParentReportAction(reportID: string, lastVisibleActionCreated: string, type: string): Array<OnyxEntry<OnyxUpdate>> {
+function getOptimisticDataForParentReportAction(reportID: string, lastVisibleActionCreated: string, type: string): Array<OnyxUpdate | null> {
     const report = getReport(reportID);
 
     if (!report || isEmptyObject(report)) {

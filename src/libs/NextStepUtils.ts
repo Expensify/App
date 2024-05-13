@@ -75,12 +75,12 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
         return null;
     }
 
-    // const {policyID = '', ownerAccountID = -1, managerID = -1} = report;
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? ''}`] ?? ({} as Policy);
+    const {policyID = '', ownerAccountID = -1, managerID = -1} = report ?? {};
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID ?? ''}`] ?? ({} as Policy);
     const {harvesting, preventSelfApproval, autoReportingFrequency, autoReportingOffset} = policy;
     const submitToAccountID = PolicyUtils.getSubmitToAccountID(policy, report?.ownerAccountID ?? -1);
-    const isOwner = currentUserAccountID === report?.ownerAccountID ?? -1;
-    const isManager = currentUserAccountID === report?.managerID ?? -1;
+    const isOwner = currentUserAccountID === ownerAccountID ?? -1;
+    const isManager = currentUserAccountID === managerID ?? -1;
     const isSelfApproval = currentUserAccountID === submitToAccountID;
     const ownerLogin = PersonalDetailsUtils.getLoginsByAccountIDs([report?.ownerAccountID ?? -1])[0] ?? '';
     const managerDisplayName = isSelfApproval ? 'you' : ReportUtils.getDisplayNameForParticipant(submitToAccountID) ?? '';

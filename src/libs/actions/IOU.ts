@@ -426,7 +426,7 @@ function updateDistanceRequestRate(transactionID: string, rateID: string, policy
 }
 
 /** Helper function to get the receipt error for expenses, or the generic error if there's no receipt */
-function getReceiptError(receipt?: OnyxEntry<Receipt>, filename?: string, isScanRequest = true, errorKey?: number): Errors | ErrorFields {
+function getReceiptError(receipt: OnyxEntry<Receipt>, filename?: string, isScanRequest = true, errorKey?: number): Errors | ErrorFields {
     return isEmptyObject(receipt) || !isScanRequest
         ? ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage', false, errorKey)
         : ErrorUtils.getMicroSecondOnyxErrorObject({error: CONST.IOU.RECEIPT_ERROR, source: receipt.source?.toString() ?? '', filename: filename ?? ''}, errorKey);
@@ -739,7 +739,7 @@ function buildOnyxDataForMoneyRequest(
             value: {
                 // Disabling this line since transaction.filename can be an empty string
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt?.filename, isScanRequest, errorKey),
+                errors: getReceiptError(transaction?.receipt ?? null, transaction.filename || transaction.receipt?.filename, isScanRequest, errorKey),
                 pendingAction: null,
                 pendingFields: clearedPendingFields,
             },
@@ -753,7 +753,7 @@ function buildOnyxDataForMoneyRequest(
                           [iouCreatedAction.reportActionID]: {
                               // Disabling this line since transaction.filename can be an empty string
                               // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                              errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt?.filename, isScanRequest, errorKey),
+                              errors: getReceiptError(transaction?.receipt ?? null, transaction.filename || transaction.receipt?.filename, isScanRequest, errorKey),
                           },
                           [iouAction.reportActionID]: {
                               errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
@@ -763,7 +763,7 @@ function buildOnyxDataForMoneyRequest(
                           [iouAction.reportActionID]: {
                               // Disabling this line since transaction.filename can be an empty string
                               // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                              errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt?.filename, isScanRequest, errorKey),
+                              errors: getReceiptError(transaction?.receipt ?? null, transaction.filename || transaction.receipt?.filename, isScanRequest, errorKey),
                           },
                       }),
             },
@@ -1057,7 +1057,7 @@ function buildOnyxDataForInvoice(
                 [iouCreatedAction.reportActionID]: {
                     // Disabling this line since transaction.filename can be an empty string
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt?.filename, false, errorKey),
+                    errors: getReceiptError(transaction?.receipt ?? null, transaction.filename || transaction.receipt?.filename, false, errorKey),
                 },
                 [iouAction.reportActionID]: {
                     errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateInvoiceFailureMessage'),
@@ -1339,7 +1339,7 @@ function buildOnyxDataForTrackExpense(
                               [iouCreatedAction.reportActionID]: {
                                   // Disabling this line since transaction.filename can be an empty string
                                   // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                                  errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt?.filename, isScanRequest),
+                                  errors: getReceiptError(transaction?.receipt ?? null, transaction.filename || transaction.receipt?.filename, isScanRequest),
                               },
                               [iouAction.reportActionID]: {
                                   errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
@@ -1349,7 +1349,7 @@ function buildOnyxDataForTrackExpense(
                               [iouAction.reportActionID]: {
                                   // Disabling this line since transaction.filename can be an empty string
                                   // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                                  errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt?.filename, isScanRequest),
+                                  errors: getReceiptError(transaction?.receipt ?? null, transaction.filename || transaction.receipt?.filename, isScanRequest),
                               },
                           }),
                 },
@@ -1363,7 +1363,7 @@ function buildOnyxDataForTrackExpense(
                 [iouAction.reportActionID]: {
                     // Disabling this line since transaction.filename can be an empty string
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt?.filename, isScanRequest),
+                    errors: getReceiptError(transaction?.receipt ?? null, transaction.filename || transaction.receipt?.filename, isScanRequest),
                 },
             },
         });
@@ -1397,7 +1397,7 @@ function buildOnyxDataForTrackExpense(
             value: {
                 // Disabling this line since transaction.filename can be an empty string
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt?.filename, isScanRequest),
+                errors: getReceiptError(transaction?.receipt ?? null, transaction.filename || transaction.receipt?.filename, isScanRequest),
                 pendingAction: null,
                 pendingFields: clearedPendingFields,
             },
@@ -1600,8 +1600,8 @@ function getDeleteTrackExpenseInformation(
 function getSendInvoiceInformation(
     transaction: OnyxEntry<OnyxTypes.Transaction>,
     currentUserAccountID: number,
+    receipt: OnyxEntry<Receipt>,
     invoiceChatReport?: OnyxEntry<OnyxTypes.Report>,
-    receipt?: OnyxEntry<Receipt>,
     policy?: OnyxEntry<OnyxTypes.Policy>,
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
@@ -2123,7 +2123,7 @@ function getTrackExpenseInformation(
         iouAction,
         reportPreviewAction,
         optimisticTransactionThread ?? {},
-        optimisticCreatedActionForTransactionThread ?? null, // Add type assertion here
+        optimisticCreatedActionForTransactionThread ?? null,
         shouldCreateNewMoneyRequestReport,
         policy,
         policyTagList,
@@ -3118,7 +3118,7 @@ function categorizeTrackedExpense(
     taxCode = '',
     taxAmount = 0,
     billable?: boolean,
-    receipt: OnyxEntry<Receipt> = null,
+    receipt: Receipt | null = null,
     createdWorkspaceParams?: CreateWorkspaceParams,
 ) {
     const {optimisticData, successData, failureData} = onyxData ?? {};
@@ -3195,7 +3195,7 @@ function shareTrackedExpense(
     taxCode = '',
     taxAmount = 0,
     billable?: boolean,
-    receipt: OnyxEntry<Receipt> = null,
+    receipt: Receipt | null = null,
     createdWorkspaceParams?: CreateWorkspaceParams,
 ) {
     const {optimisticData, successData, failureData} = onyxData ?? {};
@@ -3397,13 +3397,13 @@ function sendInvoice(
     currentUserAccountID: number,
     transaction: OnyxEntry<OnyxTypes.Transaction>,
     invoiceChatReport?: OnyxEntry<OnyxTypes.Report>,
-    receiptFile?: OnyxEntry<Receipt>,
+    receiptFile?: Receipt | null,
     policy?: OnyxEntry<OnyxTypes.Policy>,
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
     const {senderWorkspaceID, receiver, invoiceRoomReportID, createdChatReportActionID, invoiceReportID, reportPreviewReportActionID, transactionID, transactionThreadReportID, onyxData} =
-        getSendInvoiceInformation(transaction, currentUserAccountID, invoiceChatReport, receiptFile, policy, policyTagList, policyCategories);
+        getSendInvoiceInformation(transaction, currentUserAccountID, receiptFile ?? null, invoiceChatReport, policy, policyTagList, policyCategories);
 
     let parameters: SendInvoiceParams = {
         senderWorkspaceID,
@@ -3453,7 +3453,7 @@ function trackExpense(
     payeeAccountID: number,
     participant: Participant,
     comment: string,
-    receipt: OnyxEntry<Receipt> = null,
+    receipt: Receipt | null = null,
     category?: string,
     tag?: string,
     taxCode = '',
@@ -5967,7 +5967,7 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
     if (hasHeldExpenses && !full && !!expenseReport?.unheldTotal) {
         total = expenseReport?.unheldTotal;
     }
-    const optimisticApprovedReportAction = ReportUtils.buildOptimisticApprovedReportAction(total, expenseReport?.currency ?? '', expenseReport?.reportID);
+    const optimisticApprovedReportAction = ReportUtils.buildOptimisticApprovedReportAction(total, expenseReport?.currency ?? '', expenseReport?.reportID ?? '');
     const optimisticNextStep = NextStepUtils.buildNextStep(expenseReport, CONST.REPORT.STATUS_NUM.APPROVED);
     const chatReport = ReportUtils.getReport(expenseReport?.chatReportID);
 
