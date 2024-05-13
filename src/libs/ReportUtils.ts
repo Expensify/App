@@ -31,7 +31,6 @@ import type {
     ReportMetadata,
     Session,
     Task,
-    TaxRate,
     Transaction,
     TransactionViolation,
     UserWallet,
@@ -43,9 +42,9 @@ import type {
     IOUMessage,
     OriginalMessageActionName,
     OriginalMessageCreated,
+    OriginalMessageDismissedViolation,
     OriginalMessageReimbursementDequeued,
     OriginalMessageRenamed,
-    OriginalMessageRoomChangeLog,
     PaymentMethodType,
     ReimbursementDeQueuedMessage,
 } from '@src/types/onyx/OriginalMessage';
@@ -117,8 +116,6 @@ type SpendBreakdown = {
 };
 
 type ParticipantDetails = [number, string, UserUtils.AvatarSource, UserUtils.AvatarSource];
-
-type OptimisticInviteReportAction = ReportActionBase & OriginalMessageRoomChangeLog;
 
 type OptimisticAddCommentReportAction = Pick<
     ReportAction,
@@ -251,6 +248,11 @@ type OptimisticEditedTaskReportAction = Pick<
 type OptimisticClosedReportAction = Pick<
     ReportAction,
     'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'created' | 'message' | 'originalMessage' | 'pendingAction' | 'person' | 'reportActionID' | 'shouldShow'
+>;
+
+type OptimisticDismissedViolationReportAction = Pick<
+    ReportAction,
+    'actionName' | 'actorAccountID' | 'avatar' | 'created' | 'message' | 'originalMessage' | 'person' | 'reportActionID' | 'shouldShow' | 'pendingAction'
 >;
 
 type OptimisticCreatedReportAction = OriginalMessageCreated &
@@ -447,7 +449,7 @@ type OptionData = {
     isSelfDM?: boolean;
     reportID?: string;
     enabled?: boolean;
-    data?: Partial<TaxRate>;
+    code?: string;
     transactionThreadReportID?: string | null;
     shouldShowAmountInput?: boolean;
     amountInputProps?: MoneyRequestAmountInputProps;
@@ -3073,6 +3075,12 @@ function getReportActionMessage(reportAction: ReportAction | EmptyObject, parent
     if (isEmptyObject(reportAction)) {
         return '';
     }
+    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
+        return Localize.translateLocal('iou.heldExpense');
+    }
+    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
+        return Localize.translateLocal('iou.unheldExpense');
+    }
     if (ReportActionsUtils.isApprovedOrSubmittedReportAction(reportAction)) {
         return ReportActionsUtils.getReportActionMessageText(reportAction);
     }
@@ -3351,6 +3359,9 @@ function getParsedComment(text: string, parsingDetails?: ParsingDetails): string
 
     const parser = new ExpensiMark();
     const textWithMention = text.replace(CONST.REGEX.SHORT_MENTION, (match) => {
+        if (!Str.isValidMention(match)) {
+            return match;
+        }
         const mention = match.substring(1);
         const mentionWithDomain = addDomainToShortMention(mention);
         return mentionWithDomain ? `@${mentionWithDomain}` : match;
@@ -3377,44 +3388,6 @@ function getPolicyDescriptionText(policy: OnyxEntry<Policy>): string {
 
     const parser = new ExpensiMark();
     return parser.htmlToText(policy.description);
-}
-
-/** Builds an optimistic reportAction for the invite message */
-function buildOptimisticInviteReportAction(invitedUserDisplayName: string, invitedUserID: number): OptimisticInviteReportAction {
-    const text = `${Localize.translateLocal('workspace.invite.invited')} ${invitedUserDisplayName}`;
-    const commentText = getParsedComment(text);
-    const parser = new ExpensiMark();
-    const currentUser = allPersonalDetails?.[currentUserAccountID ?? -1];
-
-    return {
-        reportActionID: NumberUtils.rand64(),
-        actionName: CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM,
-        actorAccountID: currentUserAccountID,
-        person: [
-            {
-                style: 'strong',
-                text: currentUser?.displayName ?? currentUserEmail,
-                type: 'TEXT',
-            },
-        ],
-        automatic: false,
-        avatar: currentUser?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
-        created: DateUtils.getDBTime(),
-        message: [
-            {
-                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                html: commentText,
-                text: parser.htmlToText(commentText),
-            },
-        ],
-        originalMessage: {
-            targetAccountIDs: [invitedUserID],
-        },
-        isFirstItem: false,
-        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        shouldShow: true,
-        isOptimisticAction: true,
-    };
 }
 
 function buildOptimisticAddCommentReportAction(
@@ -4573,7 +4546,7 @@ function buildOptimisticEditedTaskFieldReportAction({title, description}: Task):
             {
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
                 text: changelog,
-                html: changelog,
+                html: description ? getParsedComment(changelog) : changelog,
             },
         ],
         person: [
@@ -4645,6 +4618,37 @@ function buildOptimisticClosedReportAction(emailClosingReport: string, policyNam
             policyName,
             reason,
         },
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        person: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'strong',
+                text: getCurrentUserDisplayNameOrEmail(),
+            },
+        ],
+        reportActionID: NumberUtils.rand64(),
+        shouldShow: true,
+    };
+}
+
+/**
+ * Returns an optimistic Dismissed Violation Report Action. Use the originalMessage customize this to the type of
+ * violation being dismissed.
+ */
+function buildOptimisticDismissedViolationReportAction(originalMessage: OriginalMessageDismissedViolation['originalMessage']): OptimisticDismissedViolationReportAction {
+    return {
+        actionName: CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION,
+        actorAccountID: currentUserAccountID,
+        avatar: getCurrentUserAvatarOrDefault(),
+        created: DateUtils.getDBTime(),
+        message: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'normal',
+                text: ReportActionsUtils.getDismissedViolationMessageText(originalMessage),
+            },
+        ],
+        originalMessage,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         person: [
             {
@@ -4880,11 +4884,23 @@ function buildOptimisticMoneyRequestEntities(
     return [createdActionForChat, createdActionForIOUReport, iouAction, transactionThread, createdActionForTransactionThread];
 }
 
+// Check if the report is empty, meaning it has no visible messages (i.e. only a "created" report action).
+function isEmptyReport(report: OnyxEntry<Report>): boolean {
+    if (!report) {
+        return true;
+    }
+    const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(report.reportID);
+    return !report.lastMessageText && !report.lastMessageTranslationKey && !lastVisibleMessage.lastMessageText && !lastVisibleMessage.lastMessageTranslationKey;
+}
+
 function isUnread(report: OnyxEntry<Report>): boolean {
     if (!report) {
         return false;
     }
 
+    if (isEmptyReport(report)) {
+        return false;
+    }
     // lastVisibleActionCreated and lastReadTime are both datetime strings and can be compared directly
     const lastVisibleActionCreated = report.lastVisibleActionCreated ?? '';
     const lastReadTime = report.lastReadTime ?? '';
@@ -5017,7 +5033,7 @@ function hasViolations(reportID: string, transactionViolations: OnyxCollection<T
 function shouldReportBeInOptionList({
     report,
     currentReportId,
-    isInGSDMode,
+    isInFocusMode,
     betas,
     policies,
     excludeEmptyChats,
@@ -5026,14 +5042,14 @@ function shouldReportBeInOptionList({
 }: {
     report: OnyxEntry<Report>;
     currentReportId: string;
-    isInGSDMode: boolean;
+    isInFocusMode: boolean;
     betas: OnyxEntry<Beta[]>;
     policies: OnyxCollection<Policy>;
     excludeEmptyChats: boolean;
     doesReportHaveViolations: boolean;
     includeSelfDM?: boolean;
 }) {
-    const isInDefaultMode = !isInGSDMode;
+    const isInDefaultMode = !isInFocusMode;
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
     // This can happen if data is currently loading from the server or a report is in various stages of being created.
     // This can also happen for anyone accessing a public room or archived room for which they don't have access to the underlying policy.
@@ -5084,8 +5100,8 @@ function shouldReportBeInOptionList({
     if (hasDraftComment || requiresAttentionFromCurrentUser(report)) {
         return true;
     }
-    const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(report.reportID);
-    const isEmptyChat = !report.lastMessageText && !report.lastMessageTranslationKey && !lastVisibleMessage.lastMessageText && !lastVisibleMessage.lastMessageTranslationKey;
+
+    const isEmptyChat = isEmptyReport(report);
     const canHideReport = shouldHideReport(report, currentReportId);
 
     // Include reports if they are pinned
@@ -5112,7 +5128,7 @@ function shouldReportBeInOptionList({
     }
 
     // All unread chats (even archived ones) in GSD mode will be shown. This is because GSD mode is specifically for focusing the user on the most relevant chats, primarily, the unread ones
-    if (isInGSDMode) {
+    if (isInFocusMode) {
         return isUnread(report) && report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE;
     }
 
@@ -6532,6 +6548,7 @@ export {
     buildOptimisticChatReport,
     buildOptimisticClosedReportAction,
     buildOptimisticCreatedReportAction,
+    buildOptimisticDismissedViolationReportAction,
     buildOptimisticEditedTaskFieldReportAction,
     buildOptimisticExpenseReport,
     buildOptimisticGroupChatReport,
@@ -6773,7 +6790,6 @@ export {
     updateReportPreview,
     temporary_getMoneyRequestOptions,
     buildOptimisticInvoiceReport,
-    buildOptimisticInviteReportAction,
     getInvoiceChatByParticipants,
     shouldShowMerchantColumn,
     isCurrentUserInvoiceReceiver,
@@ -6792,6 +6808,5 @@ export type {
     OptimisticTaskReportAction,
     OptionData,
     TransactionDetails,
-    OptimisticInviteReportAction,
     ParsingDetails,
 };

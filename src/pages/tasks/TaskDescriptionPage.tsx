@@ -47,7 +47,7 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
 
     const submit = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>) => {
-            if (parser.htmlToMarkdown(parser.replace(values.description)) !== parser.htmlToMarkdown(parser.replace(report?.description ?? '')) && !isEmptyObject(report)) {
+            if (values.description !== parser.htmlToMarkdown(report?.description ?? '') && !isEmptyObject(report)) {
                 // Set the description of the report in the store and then call EditTask API
                 // to update the description of the report on the server
                 Task.editTask(report, {description: values.description});
@@ -110,7 +110,7 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
                             name={INPUT_IDS.DESCRIPTION}
                             label={translate('newTaskPage.descriptionOptional')}
                             accessibilityLabel={translate('newTaskPage.descriptionOptional')}
-                            defaultValue={parser.htmlToMarkdown((report && parser.replace(report?.description ?? '')) || '')}
+                            defaultValue={parser.htmlToMarkdown(report?.description ?? '')}
                             ref={(element: AnimatedTextInputRef) => {
                                 if (!element) {
                                     return;

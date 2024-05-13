@@ -106,7 +106,7 @@ type TaxRatesOption = {
     tooltipText?: string;
     isDisabled?: boolean;
     keyForList?: string;
-    data: Partial<TaxRate>;
+    isSelected?: boolean;
 };
 
 type TaxSection = {
@@ -165,6 +165,8 @@ type GetOptionsConfig = {
     includeSelectedOptions?: boolean;
     includeTaxRates?: boolean;
     taxRates?: TaxRatesWithDefault;
+    policy?: OnyxEntry<Policy>;
+    transaction?: OnyxEntry<Transaction>;
     includePolicyReportFieldOptions?: boolean;
     policyReportFieldOptions?: string[];
     recentlyUsedPolicyReportFieldOptions?: string[];
@@ -285,13 +287,9 @@ Onyx.connect({
         // The report is only visible if it is the last action not deleted that
         // does not match a closed or created state.
         const reportActionsForDisplay = sortedReportActions.filter(
-            (reportAction, actionKey) =>
-                ReportActionUtils.shouldReportActionBeVisible(reportAction, actionKey) &&
-                !ReportActionUtils.isWhisperAction(reportAction) &&
-                reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED &&
-                reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            (reportAction) => ReportActionUtils.shouldReportActionBeVisibleAsLastAction(reportAction) && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
         );
-        visibleReportActionItems[reportID] = reportActionsForDisplay[reportActionsForDisplay.length - 1];
+        visibleReportActionItems[reportID] = reportActionsForDisplay[0];
     },
 });
 
@@ -568,7 +566,7 @@ function getAlternateText(option: ReportUtils.OptionData, {showChatPreviewLine =
  * Get the last message text from the report directly or from other sources for special cases.
  */
 function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null, policy?: OnyxEntry<Policy>): string {
-    const lastReportAction = allSortedReportActions[report?.reportID ?? '']?.find((reportAction) => ReportActionUtils.shouldReportActionBeVisibleAsLastAction(reportAction)) ?? null;
+    const lastReportAction = visibleReportActionItems[report?.reportID ?? ''] ?? null;
 
     // some types of actions are filtered out for lastReportAction, in some cases we need to check the actual last action
     const lastOriginalReportAction = lastReportActions[report?.reportID ?? ''] ?? null;
@@ -1344,20 +1342,6 @@ function getReportFieldOptionsSection(options: string[], recentlyUsedOptions: st
 }
 
 /**
- * Transforms tax rates to a new object format - to add codes and new name with concatenated name and value.
- *
- * @param  taxRates - The original tax rates object.
- * @returns The transformed tax rates object.g
- */
-function transformedTaxRates(taxRates: TaxRatesWithDefault | undefined): Record<string, TaxRate> {
-    const defaultTaxKey = taxRates?.defaultExternalID;
-    const getModifiedName = (data: TaxRate, code: string) =>
-        `${data.name} (${data.value})${defaultTaxKey === code ? ` ${CONST.DOT_SEPARATOR} ${Localize.translateLocal('common.default')}` : ''}`;
-    const taxes = Object.fromEntries(Object.entries(taxRates?.taxes ?? {}).map(([code, data]) => [code, {...data, code, modifiedName: getModifiedName(data, code), name: data.name}]));
-    return taxes;
-}
-
-/**
  * Sorts tax rates alphabetically by name.
  */
 function sortTaxRates(taxRates: TaxRates): TaxRate[] {
@@ -1369,24 +1353,24 @@ function sortTaxRates(taxRates: TaxRates): TaxRate[] {
  * Builds the options for taxRates
  */
 function getTaxRatesOptions(taxRates: Array<Partial<TaxRate>>): TaxRatesOption[] {
-    return taxRates.map((taxRate) => ({
-        text: taxRate.modifiedName,
-        keyForList: taxRate.modifiedName,
-        searchText: taxRate.modifiedName,
-        tooltipText: taxRate.modifiedName,
-        isDisabled: taxRate.isDisabled,
-        data: taxRate,
-        isSelected: taxRate.isSelected,
+    return taxRates.map(({code, modifiedName, isDisabled, isSelected}) => ({
+        code,
+        text: modifiedName,
+        keyForList: modifiedName,
+        searchText: modifiedName,
+        tooltipText: modifiedName,
+        isDisabled,
+        isSelected,
     }));
 }
 
 /**
  * Builds the section list for tax rates
  */
-function getTaxRatesSection(taxRates: TaxRatesWithDefault | undefined, selectedOptions: Tax[], searchInputValue: string): TaxSection[] {
+function getTaxRatesSection(policy: OnyxEntry<Policy> | undefined, selectedOptions: Tax[], searchInputValue: string, transaction?: OnyxEntry<Transaction>): TaxSection[] {
     const policyRatesSections = [];
 
-    const taxes = transformedTaxRates(taxRates);
+    const taxes = TransactionUtils.transformedTaxRates(policy, transaction);
 
     const sortedTaxRates = sortTaxRates(taxes);
     const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.modifiedName);
@@ -1673,7 +1657,8 @@ function getOptions(
         includeSelectedOptions = false,
         transactionViolations = {},
         includeTaxRates,
-        taxRates,
+        policy,
+        transaction,
         includeSelfDM = false,
         includePolicyReportFieldOptions = false,
         policyReportFieldOptions = [],
@@ -1709,7 +1694,7 @@ function getOptions(
     }
 
     if (includeTaxRates) {
-        const taxRatesOptions = getTaxRatesSection(taxRates, selectedOptions as Tax[], searchInputValue);
+        const taxRatesOptions = getTaxRatesSection(policy, selectedOptions as Tax[], searchInputValue, transaction);
 
         return {
             recentReports: [],
@@ -1756,7 +1741,7 @@ function getOptions(
             betas,
             policies,
             doesReportHaveViolations,
-            isInGSDMode: false,
+            isInFocusMode: false,
             excludeEmptyChats: false,
             includeSelfDM,
         });
@@ -2439,7 +2424,6 @@ export {
     hasEnabledTags,
     formatMemberForList,
     formatSectionsFromSearchTerm,
-    transformedTaxRates,
     getShareLogOptions,
     filterOptions,
     createOptionList,
