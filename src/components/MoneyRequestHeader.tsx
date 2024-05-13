@@ -64,16 +64,16 @@ type MoneyRequestHeaderProps = MoneyRequestHeaderOnyxProps & {
     onBackButtonPress: () => void;
 };
 
-type NoPendingStatusBarProps = {isPending: false};
+type NoPendingStatusBarProps = {shouldShowStatusBar: false};
 
 type PendingStatusBarProps = {
-    isPending: true;
+    shouldShowStatusBar: true;
 
     /** The icon to be displayed in status bar */
-    pendingIcon: React.FC<SvgProps>;
+    statusBarIcon: React.FC<SvgProps>;
 
     /** The description to be displayed in status bar */
-    pendingDescription: string;
+    statusBarDescription: string;
 };
 
 type StatusBarProps = NoPendingStatusBarProps | PendingStatusBarProps;
@@ -140,15 +140,15 @@ function MoneyRequestHeader({
 
     const getStatusBarProps: () => StatusBarProps = () => {
         if (TransactionUtils.isExpensifyCardTransaction(transaction) && TransactionUtils.isPending(transaction)) {
-            return {isPending: true, pendingIcon: Expensicons.CreditCardHourglass, pendingDescription: translate('iou.transactionPendingDescription')};
+            return {shouldShowStatusBar: true, statusBarIcon: Expensicons.CreditCardHourglass, statusBarDescription: translate('iou.transactionPendingDescription')};
         }
         if (isScanning) {
-            return {isPending: true, pendingIcon: Expensicons.ReceiptScan, pendingDescription: translate('iou.receiptScanInProgressDescription')};
+            return {shouldShowStatusBar: true, statusBarIcon: Expensicons.ReceiptScan, statusBarDescription: translate('iou.receiptScanInProgressDescription')};
         }
         if (TransactionUtils.hasPendingRTERViolation(TransactionUtils.getTransactionViolations(transaction?.transactionID ?? '', transactionViolations))) {
-            return {isPending: true, pendingIcon: Expensicons.Hourglass, pendingDescription: translate('iou.pendingMatchWithCreditCardDescription')};
+            return {shouldShowStatusBar: true, statusBarIcon: Expensicons.Hourglass, statusBarDescription: translate('iou.pendingMatchWithCreditCardDescription')};
         }
-        return {isPending: false};
+        return {shouldShowStatusBar: false};
     };
 
     const statusBarProps = getStatusBarProps();
@@ -217,7 +217,7 @@ function MoneyRequestHeader({
         <>
             <View style={[styles.pl0]}>
                 <HeaderWithBackButton
-                    shouldShowBorderBottom={!statusBarProps.isPending && !isOnHold}
+                    shouldShowBorderBottom={!statusBarProps.shouldShowStatusBar && !isOnHold}
                     shouldShowReportAvatarWithDisplay
                     shouldEnableDetailPageNavigation
                     shouldShowPinButton={false}
@@ -232,17 +232,17 @@ function MoneyRequestHeader({
                     shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={onBackButtonPress}
                 />
-                {statusBarProps.isPending && (
+                {statusBarProps.shouldShowStatusBar && (
                     <MoneyRequestHeaderStatusBar
                         title={
                             <Icon
-                                src={statusBarProps.pendingIcon}
+                                src={statusBarProps.statusBarIcon}
                                 height={variables.iconSizeSmall}
                                 width={variables.iconSizeSmall}
-                                fill={theme.textSupporting}
+                                fill={theme.icon}
                             />
                         }
-                        description={statusBarProps.pendingDescription}
+                        description={statusBarProps.statusBarDescription}
                         shouldShowBorderBottom={!isOnHold}
                     />
                 )}
