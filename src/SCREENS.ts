@@ -27,7 +27,6 @@ const SCREENS = {
         MY_TRIPS: 'Travel_MyTrips',
         TCS: 'Travel_TCS',
     },
-    WORKSPACES_CENTRAL_PANE: 'WorkspacesCentralPane',
     SEARCH: {
         CENTRAL_PANE: 'Search_Central_Pane',
         REPORT_RHP: 'Search_Report_RHP',

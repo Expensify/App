@@ -15,7 +15,6 @@ type ScreenOptions = {
     leftModalNavigator: StackNavigationOptions;
     homeScreen: StackNavigationOptions;
     fullScreen: StackNavigationOptions;
-    fullScreenInner: StackNavigationOptions;
     centralPaneNavigator: StackNavigationOptions;
     bottomTab: StackNavigationOptions;
 };
@@ -108,12 +107,6 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
                 // This is necessary to cover whole screen. Including translated sidebar.
                 marginLeft: isSmallScreenWidth ? 0 : -variables.sideBarWidth,
             },
-        },
-        // The style object used in src/libs/Navigation/AppNavigator/Navigators/FullScreenNavigator.tsx to display properly an animation when navigating between screens.
-        fullScreenInner: {
-            ...commonScreenOptions,
-            cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, true, false, props),
-            cardStyle: StyleUtils.getNavigationModalCardStyle(),
         },
 
         centralPaneNavigator: {
