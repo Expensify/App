@@ -100,7 +100,6 @@ module.exports = {
         __DEV__: 'readonly',
     },
     rules: {
-        // TODO: Remove the following rules after TypeScript migration is complete.
         '@typescript-eslint/no-unsafe-argument': 'off',
         '@typescript-eslint/no-unsafe-call': 'off',
         '@typescript-eslint/no-unsafe-member-access': 'off',
