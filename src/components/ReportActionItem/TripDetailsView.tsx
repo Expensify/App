@@ -131,7 +131,7 @@ function ReservationView({reservation}: ReservationViewProps) {
     }`;
 
     const titleComponent = (
-        <View style={styles.gap2}>
+        <View style={styles.gap1}>
             {reservation.type === CONST.RESERVATION_TYPE.FLIGHT ? (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
                     <Text style={[styles.textNormalBold, styles.lh20]}>{formatAirportInfo(reservation.start)}</Text>
@@ -172,7 +172,7 @@ function ReservationView({reservation}: ReservationViewProps) {
             onSecondaryInteraction={() => {}}
             iconHeight={20}
             iconWidth={20}
-            iconStyles={[styles.tripReservationIconContainer(true), styles.mr2]}
+            iconStyles={[styles.tripReservationIconContainer(true), styles.mr3]}
             secondaryIconFill={theme.icon}
         />
     );
