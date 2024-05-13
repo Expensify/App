@@ -2488,6 +2488,7 @@ export default {
             save: 'Guardar',
             genericFailureMessage: 'Se produjo un error al guardar el espacio de trabajo. Por favor, inténtalo de nuevo.',
             avatarUploadFailureMessage: 'No se pudo subir el avatar. Por favor, inténtalo de nuevo.',
+            addressContext: 'Se requiere una dirección para habilitar Expensify Travel. Por favor, introduce una dirección asociada con tu negocio.',
         },
         bankAccount: {
             continueWithSetup: 'Continuar con la configuración',
