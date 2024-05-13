@@ -17,7 +17,6 @@ export default function useAutoFocusInput(): UseAutoFocusInput {
     const {isSplashHidden} = useContext(Expensify.SplashScreenHiddenContext);
 
     const inputRef = useRef<TextInput | null>(null);
-    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
         if (!isScreenTransitionEnded || !isInputInitialized || !inputRef.current || !isSplashHidden) {
@@ -35,23 +34,20 @@ export default function useAutoFocusInput(): UseAutoFocusInput {
 
     useFocusEffect(
         useCallback(() => {
-            focusTimeoutRef.current = setTimeout(() => {
+            const timeoutRef = setTimeout(() => {
                 setIsScreenTransitionEnded(true);
             }, CONST.ANIMATED_TRANSITION);
             return () => {
                 setIsScreenTransitionEnded(false);
-                if (!focusTimeoutRef.current) {
-                    return;
-                }
-                clearTimeout(focusTimeoutRef.current);
+                clearTimeout(timeoutRef);
             };
         }, []),
     );
 
-    const inputCallbackRef = (ref: TextInput | null) => {
+    const inputCallbackRef = useCallback((ref: TextInput | null) => {
         inputRef.current = ref;
         setIsInputInitialized(true);
-    };
+    }, []);
 
     return {inputCallbackRef};
 }
