@@ -19,15 +19,15 @@ import TableListItemSkeleton from './Skeletons/TableListItemSkeleton';
 
 type SearchProps = {
     query: string;
-    policyID?: string;
+    policyIDs?: string;
 };
 
-function Search({query, policyID}: SearchProps) {
+function Search({query, policyIDs}: SearchProps) {
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     useCustomBackHandler();
 
-    const hash = SearchUtils.getQueryHash(query, policyID);
+    const hash = SearchUtils.getQueryHash(query, policyIDs);
     const [searchResults, searchResultsMeta] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
 
     useEffect(() => {
@@ -35,7 +35,7 @@ function Search({query, policyID}: SearchProps) {
             return;
         }
 
-        SearchActions.search(hash, query, policyID);
+        SearchActions.search(hash, query, policyIDs);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [hash, isOffline]);
 

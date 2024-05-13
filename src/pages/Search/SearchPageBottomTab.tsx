@@ -44,7 +44,7 @@ function SearchPageBottomTab() {
                 <SearchFilters query={query} />
                 {isSmallScreenWidth && (
                     <Search
-                        policyID={activeWorkspaceID}
+                        policyIDs={activeWorkspaceID}
                         query={query}
                     />
                 )}

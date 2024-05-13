@@ -53,7 +53,7 @@ function SearchPage({route}: SearchPageProps) {
                     shouldShowBackButton={false}
                 />
                 <Search
-                    policyID={activeWorkspaceID}
+                    policyIDs={activeWorkspaceID}
                     query={query}
                 />
             </FullPageNotFoundView>
