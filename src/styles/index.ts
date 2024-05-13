@@ -4498,13 +4498,22 @@ const styles = (theme: ThemeColors) =>
             top: -36,
         },
 
-        chatBottomLoader: {
+        listBoundaryLoader: {
             position: 'absolute',
             top: 0,
             bottom: 0,
             left: 0,
             right: 0,
             height: CONST.CHAT_HEADER_LOADER_HEIGHT,
+        },
+        listBoundaryError: {
+            paddingVertical: 15,
+            paddingHorizontal: 20,
+        },
+        listBoundaryErrorText: {
+            color: theme.textSupporting,
+            fontSize: variables.fontSizeLabel,
+            marginBottom: 10,
         },
 
         videoContainer: {
