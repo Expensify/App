@@ -15,7 +15,7 @@ function XeroTaxesConfigurationPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
     const xeroConfig = policy?.connections?.xero?.config;
-    const {importTaxRates, pendingFields} = xeroConfig ?? {};
+    const {importTaxRates} = xeroConfig ?? {};
     const isSwitchOn = Boolean(importTaxRates);
 
     return (
@@ -33,7 +33,6 @@ function XeroTaxesConfigurationPage({policy}: WithPolicyProps) {
                 switchAccessibilityLabel={translate('workspace.xero.customers')}
                 isActive={!!isSwitchOn}
                 onToggle={() => Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.IMPORT_TAX_RATES, !importTaxRates)}
-                pendingAction={pendingFields?.importCustomers}
                 errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.IMPORT_TAX_RATES)}
                 onCloseError={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.IMPORT_TAX_RATES)}
             />

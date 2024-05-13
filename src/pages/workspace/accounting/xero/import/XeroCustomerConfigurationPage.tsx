@@ -16,7 +16,7 @@ function XeroCustomerConfigurationPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
     const xeroConfig = policy?.connections?.xero?.config;
-    const {importCustomers, pendingFields} = xeroConfig ?? {};
+    const {importCustomers} = xeroConfig ?? {};
 
     const isSwitchOn = Boolean(importCustomers);
 
@@ -43,7 +43,6 @@ function XeroCustomerConfigurationPage({policy}: WithPolicyProps) {
                 }
                 isActive={!!isSwitchOn}
                 onToggle={() => Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.IMPORT_CUSTOMERS, !importCustomers)}
-                pendingAction={pendingFields?.importCustomers}
                 errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.IMPORT_CUSTOMERS)}
                 onCloseError={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.IMPORT_CUSTOMERS)}
             />

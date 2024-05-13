@@ -22,7 +22,7 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
     const xeroConfig = policy?.connections?.xero?.config;
-    const {importTrackingCategories, pendingFields} = policy?.connections?.xero?.config ?? {};
+    const {importTrackingCategories} = policy?.connections?.xero?.config ?? {};
 
     const isSwitchOn = Boolean(importTrackingCategories);
 
@@ -68,7 +68,6 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
                 onToggle={() =>
                     Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.IMPORT_TRACKING_CATEGORIES, !importTrackingCategories)
                 }
-                pendingAction={pendingFields?.importTrackingCategories}
                 errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.IMPORT_TRACKING_CATEGORIES)}
                 onCloseError={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.IMPORT_TRACKING_CATEGORIES)}
             />
