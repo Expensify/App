@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "1.4.72-1",
+  "version": "1.4.73-1",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -34,7 +34,7 @@
     "android-build": "fastlane android build",
     "android-build-e2e": "bundle exec fastlane android build_e2e",
     "android-build-e2edelta": "bundle exec fastlane android build_e2edelta",
-    "test": "TZ=utc jest",
+    "test": "TZ=utc NODE_OPTIONS=--experimental-vm-modules jest",
     "typecheck": "tsc",
     "lint": "eslint . --max-warnings=0 --cache --cache-location=node_modules/.cache/eslint",
     "lint-changed": "eslint --fix $(git diff --diff-filter=AM --name-only main -- \"*.js\" \"*.ts\" \"*.tsx\")",
