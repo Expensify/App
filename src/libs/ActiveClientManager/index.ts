@@ -45,7 +45,10 @@ Onyx.connect({
     },
 });
 
+let wasTheLeader = false;
+
 const cleanUpClientId = () => {
+    wasTheLeader = isClientTheLeader();
     activeClients = activeClients.filter((id) => id !== clientID);
     ActiveClients.setActiveClients(activeClients);
 };
@@ -66,6 +69,10 @@ const init: Init = () => {
  * The last GUID is the most recent GUID, so that should be the leader
  */
 const isClientTheLeader: IsClientTheLeader = () => {
+    if (wasTheLeader) {
+        return true;
+    }
+
     const lastActiveClient = activeClients.length && activeClients[activeClients.length - 1];
 
     return lastActiveClient === clientID;
