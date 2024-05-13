@@ -104,6 +104,8 @@ function IOURequestStepTaxAmountPage({
     const updateTaxAmount = (currentAmount: CurrentMoney) => {
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount.amount));
 
+        console.log(`amountInSmallestCurrencyUnits ${amountInSmallestCurrencyUnits}`)
+
         if (isEditing) {
             if (amountInSmallestCurrencyUnits === TransactionUtils.getTaxAmount(transaction, false)) {
                 navigateBack();
@@ -155,7 +157,7 @@ function IOURequestStepTaxAmountPage({
                 ref={(e) => (textInput.current = e)}
                 onCurrencyButtonPress={navigateToCurrencySelectionPage}
                 onSubmitButtonPress={updateTaxAmount}
-                isCurrencyPressable={!isEditing}
+                isCurrencyPressable={false}
             />
         </StepScreenWrapper>
     );
