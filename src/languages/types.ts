@@ -1,3 +1,4 @@
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ReportAction} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import type en from './en';
@@ -40,15 +41,15 @@ type LocalTimeParams = {
 };
 
 type EditActionParams = {
-    action: ReportAction | null | undefined;
+    action: OnyxEntry<ReportAction>;
 };
 
 type DeleteActionParams = {
-    action: ReportAction | null | undefined;
+    action: OnyxEntry<ReportAction>;
 };
 
 type DeleteConfirmationParams = {
-    action: ReportAction | null | undefined;
+    action: OnyxEntry<ReportAction>;
 };
 
 type BeginningOfChatHistoryDomainRoomPartOneParams = {
@@ -299,11 +300,10 @@ type DistanceRateOperationsParams = {count: number};
 type ReimbursementRateParams = {unit: Unit};
 
 export type {
-    AdminCanceledRequestParams,
-    ApprovedAmountParams,
     AddressLineParams,
+    AdminCanceledRequestParams,
     AlreadySignedInParams,
-    UserSplitParams,
+    ApprovedAmountParams,
     BeginningOfChatHistoryAdminRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartTwo,
@@ -324,8 +324,10 @@ export type {
     FormattedMaxLengthParams,
     GoBackMessageParams,
     GoToRoomParams,
+    HeldRequestParams,
     InstantSummaryParams,
     LocalTimeParams,
+    LogSizeParams,
     LoggedInAsParams,
     ManagerApprovedAmountParams,
     ManagerApprovedParams,
@@ -339,11 +341,13 @@ export type {
     PaidElsewhereWithAmountParams,
     PaidWithExpensifyWithAmountParams,
     ParentNavigationSummaryParams,
+    PaySomeoneParams,
     PayerOwesAmountParams,
     PayerOwesParams,
     PayerPaidAmountParams,
     PayerPaidParams,
     PayerSettledParams,
+    ReimbursementRateParams,
     RemovedTheRequestParams,
     RenamedRoomActionParams,
     ReportArchiveReasonsClosedParams,
@@ -375,7 +379,9 @@ export type {
     UntilTimeParams,
     UpdatedTheDistanceParams,
     UpdatedTheRequestParams,
+    UsePlusButtonParams,
     UserIsAlreadyMemberParams,
+    UserSplitParams,
     ViolationsAutoReportedRejectedExpenseParams,
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,
@@ -392,14 +398,9 @@ export type {
     ViolationsTaxOutOfPolicyParams,
     WaitingOnBankAccountParams,
     WalletProgramParams,
-    UsePlusButtonParams,
     WeSentYouMagicSignInLinkParams,
     WelcomeEnterMagicCodeParams,
     WelcomeNoteParams,
     WelcomeToRoomParams,
     ZipCodeExampleFormatParams,
-    LogSizeParams,
-    HeldRequestParams,
-    PaySomeoneParams,
-    ReimbursementRateParams,
 };

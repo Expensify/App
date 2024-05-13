@@ -133,7 +133,8 @@ function ReportIDsContextProvider({
             SidebarUtils.getOrderedReportIDs(
                 currentReportID ?? null,
                 chatReports,
-                betas,
+                // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+                betas as OnyxEntry<OnyxTypes.Beta[]>,
                 policies,
                 priorityMode,
                 allReportActions,

@@ -465,7 +465,7 @@ describe('actions/IOU', () => {
             fetch.pause();
             return (
                 Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, chatReport)
-                    .then(() => Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport))
+                    .then(() => Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport ?? null))
                     .then(() =>
                         Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {
                             [createdAction.reportActionID]: createdAction,
@@ -786,7 +786,7 @@ describe('actions/IOU', () => {
                     .then(
                         () =>
                             new Promise<void>((resolve) => {
-                                ReportActions.clearAllRelatedReportActionErrors(iouReportID ?? '', iouAction);
+                                ReportActions.clearAllRelatedReportActionErrors(iouReportID ?? '', iouAction ?? null);
                                 resolve();
                             }),
                     )
