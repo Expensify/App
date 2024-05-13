@@ -203,7 +203,7 @@ function setPersonalDetails(login: string, accountID: number) {
 function buildTestReportComment(created: string, actorAccountID: number, actionID: string | null = null, previousReportActionID: string | null = null) {
     const reportActionID = actionID ?? NumberUtils.rand64().toString();
     return {
-        actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
         person: [{type: 'TEXT', style: 'strong', text: 'User B'}],
         created,
         message: [{type: 'COMMENT', html: `Comment ${actionID}`, text: `Comment ${actionID}`}],

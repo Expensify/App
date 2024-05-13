@@ -2,7 +2,7 @@
 import type {AVPlaybackStatus, VideoFullscreenUpdateEvent} from 'expo-av';
 import {ResizeMode, Video, VideoFullscreenUpdate} from 'expo-av';
 import type {MutableRefObject} from 'react';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -10,6 +10,7 @@ import Hoverable from '@components/Hoverable';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {useFullScreenContext} from '@components/VideoPlayerContexts/FullScreenContext';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
+import {useVideoPopoverMenuContext} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
 import {useVolumeContext} from '@components/VideoPlayerContexts/VolumeContext';
 import VideoPopoverMenu from '@components/VideoPopoverMenu';
 import useNetwork from '@hooks/useNetwork';
@@ -79,6 +80,7 @@ function BaseVideoPlayer({
     const isUploading = CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => url.startsWith(prefix));
     const videoStateRef = useRef<AVPlaybackStatus | null>(null);
     const {updateVolume} = useVolumeContext();
+    const {videoPopoverMenuPlayerRef} = useVideoPopoverMenuContext();
 
     const togglePlayCurrentVideo = useCallback(() => {
         videoResumeTryNumber.current = 0;
@@ -93,6 +95,7 @@ function BaseVideoPlayer({
 
     const showPopoverMenu = (event?: GestureResponderEvent | KeyboardEvent) => {
         setIsPopoverVisible(true);
+        videoPopoverMenuPlayerRef.current = videoPlayerRef.current;
         if (!event || !('nativeEvent' in event)) {
             return;
         }
@@ -194,6 +197,18 @@ function BaseVideoPlayer({
         });
     }, [currentVideoPlayerRef, handleFullscreenUpdate, handlePlaybackStatusUpdate]);
 
+    // use `useLayoutEffect` instead of `useEffect` because ref is null when unmount in `useEffect` hook
+    // ref url: https://reactjs.org/blog/2020/08/10/react-v17-rc.html#effect-cleanup-timing
+    useLayoutEffect(
+        () => () => {
+            if (shouldUseSharedVideoElement || videoPlayerRef.current !== currentVideoPlayerRef.current) {
+                return;
+            }
+            currentVideoPlayerRef.current = null;
+        },
+        [currentVideoPlayerRef, shouldUseSharedVideoElement],
+    );
+
     useEffect(() => {
         if (!isUploading || !videoPlayerRef.current) {
             return;
@@ -273,7 +288,7 @@ function BaseVideoPlayer({
                 accessible={false}
                 style={[styles.cursorDefault, style]}
             >
-                <Hoverable>
+                <Hoverable shouldFreezeCapture={isPopoverVisible}>
                     {(isHovered) => (
                         <View style={[styles.w100, styles.h100]}>
                             <PressableWithoutFeedback
@@ -285,7 +300,7 @@ function BaseVideoPlayer({
                                     }
                                     togglePlayCurrentVideo();
                                 }}
-                                style={styles.flex1}
+                                style={[styles.flex1, styles.noSelect]}
                             >
                                 {shouldUseSharedVideoElement ? (
                                     <>

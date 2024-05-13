@@ -17,6 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
+import variables from '@styles/variables';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -50,7 +51,7 @@ type IOURequestStepDescriptionOnyxProps = {
 
 type IOURequestStepDescriptionProps = IOURequestStepDescriptionOnyxProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DESCRIPTION> & {
-        /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
+        /** Holds data related to Expense view state, rather than the underlying Expense data. */
         transaction: OnyxEntry<OnyxTypes.Transaction>;
     };
 
@@ -176,8 +177,9 @@ function IOURequestStepDescription({
                             updateMultilineInputRange(inputRef.current);
                         }}
                         autoGrowHeight
-                        containerStyles={[styles.autoGrowHeightMultilineInput]}
+                        maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                         shouldSubmitForm
+                        isMarkdownEnabled
                     />
                 </View>
             </FormProvider>

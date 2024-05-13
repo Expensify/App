@@ -9,6 +9,7 @@ import type CONST from '@src/CONST';
 type PlaybackContext = {
     updateCurrentlyPlayingURL: (url: string | null) => void;
     currentlyPlayingURL: string | null;
+    currentlyPlayingURLReportID: string | undefined;
     originalParent: View | HTMLDivElement | null;
     sharedElement: View | HTMLDivElement | null;
     videoResumeTryNumber: MutableRefObject<number>;
@@ -27,6 +28,7 @@ type VolumeContext = {
 
 type VideoPopoverMenuContext = {
     menuItems: PopoverMenuItem[];
+    videoPopoverMenuPlayerRef: MutableRefObject<VideoWithOnFullScreenUpdate | null>;
     updatePlaybackSpeed: (speed: PlaybackSpeed) => void;
 };
 
