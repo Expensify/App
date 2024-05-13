@@ -17,6 +17,7 @@ import NetworkConnection from '@libs/NetworkConnection';
 import * as Pusher from '@libs/Pusher/pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 import * as SessionUtils from '@libs/SessionUtils';
+import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import DesktopSignInRedirectPage from '@pages/signin/DesktopSignInRedirectPage';
 import SearchInputManager from '@pages/workspace/SearchInputManager';
@@ -42,6 +43,7 @@ import defaultScreenOptions from './defaultScreenOptions';
 import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
 import BottomTabNavigator from './Navigators/BottomTabNavigator';
 import CentralPaneNavigator from './Navigators/CentralPaneNavigator';
+import FeatureTrainingModalNavigator from './Navigators/FeatureTrainingModalNavigator';
 import FullScreenNavigator from './Navigators/FullScreenNavigator';
 import LeftModalNavigator from './Navigators/LeftModalNavigator';
 import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
@@ -368,6 +370,12 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         component={DesktopSignInRedirectPage}
                     />
                     <RootStack.Screen
+                        name={NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR}
+                        options={onboardingModalScreenOptions}
+                        component={FeatureTrainingModalNavigator}
+                        listeners={modalScreenListeners}
+                    />
+                    <RootStack.Screen
                         name={NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR}
                         options={onboardingModalScreenOptions}
                         component={WelcomeVideoModalNavigator}
@@ -394,6 +402,11 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         }}
                         getComponent={loadReceiptView}
                         listeners={modalScreenListeners}
+                    />
+                    <RootStack.Screen
+                        name={SCREENS.CONNECTION_COMPLETE}
+                        options={defaultScreenOptions}
+                        component={ConnectionCompletePage}
                     />
                 </RootStack.Navigator>
             </View>

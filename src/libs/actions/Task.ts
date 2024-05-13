@@ -14,6 +14,7 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
+import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -437,7 +438,7 @@ function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task
     const reportName = (title ?? report?.reportName)?.trim();
 
     // Description can be unset, so we default to an empty string if so
-    const reportDescription = (description ?? report.description ?? '').trim();
+    const reportDescription = ReportUtils.getParsedComment((description ?? report.description ?? '').trim());
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -649,6 +650,26 @@ function setAssigneeChatReport(chatReport: OnyxTypes.Report) {
     Onyx.merge(ONYXKEYS.TASK, {assigneeChatReport: chatReport});
 }
 
+function setNewOptimisticAssignee(assigneeLogin: string, assigneeAccountID: number) {
+    const report: ReportUtils.OptimisticChatReport = ReportUtils.buildOptimisticChatReport([assigneeAccountID]);
+
+    // When assigning a task to a new user, by default we share the task in their DM
+    // However, the DM doesn't exist yet - and will be created optimistically once the task is created
+    // We don't want to show the new DM yet, because if you select an assignee and then change the assignee, the previous DM will still be shown
+    // So here, we create it optimistically to share it with the assignee, but we have to hide it until the task is created
+    report.isHidden = true;
+    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+
+    const optimisticPersonalDetailsListAction: OnyxTypes.PersonalDetails = {
+        accountID: assigneeAccountID,
+        avatar: allPersonalDetails?.[assigneeAccountID]?.avatar ?? UserUtils.getDefaultAvatarURL(assigneeAccountID),
+        displayName: allPersonalDetails?.[assigneeAccountID]?.displayName ?? assigneeLogin,
+        login: assigneeLogin,
+    };
+    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[assigneeAccountID]: optimisticPersonalDetailsListAction});
+    return {assignee: optimisticPersonalDetailsListAction, assigneeReport: report};
+}
+
 /**
  * Sets the assignee value for the task and checks for an existing chat with the assignee
  * If there is no existing chat, it creates an optimistic chat report
@@ -660,6 +681,7 @@ function setAssigneeValue(
     shareToReportID?: string,
     chatReport?: OnyxEntry<OnyxTypes.Report>,
     isCurrentUser = false,
+    skipShareDestination = false,
 ): OnyxEntry<OnyxTypes.Report> | undefined {
     let report: OnyxEntry<OnyxTypes.Report> | undefined = chatReport;
     if (!isCurrentUser) {
@@ -669,26 +691,7 @@ function setAssigneeValue(
         }
         // If chat report is still not found we need to build new optimistic chat report
         if (!report) {
-            report = ReportUtils.buildOptimisticChatReport([assigneeAccountID]);
-            report.isOptimisticReport = true;
-
-            // When assigning a task to a new user, by default we share the task in their DM
-            // However, the DM doesn't exist yet - and will be created optimistically once the task is created
-            // We don't want to show the new DM yet, because if you select an assignee and then change the assignee, the previous DM will still be shown
-            // So here, we create it optimistically to share it with the assignee, but we have to hide it until the task is created
-            if (report) {
-                report.isHidden = true;
-            }
-            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-
-            // If this is an optimistic report, we likely don't have their personal details yet so we set it here optimistically as well
-            const optimisticPersonalDetailsListAction = {
-                accountID: assigneeAccountID,
-                avatar: allPersonalDetails?.[assigneeAccountID]?.avatar,
-                displayName: allPersonalDetails?.[assigneeAccountID]?.displayName ?? assigneeEmail,
-                login: assigneeEmail,
-            };
-            Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[assigneeAccountID]: optimisticPersonalDetailsListAction});
+            report = setNewOptimisticAssignee(assigneeEmail, assigneeAccountID).assigneeReport;
         }
 
         // The optimistic field may not exist in the existing report and it can be overridden by the optimistic field of previous report data when merging the assignee chat report
@@ -702,7 +705,7 @@ function setAssigneeValue(
 
         // If there is no share destination set, automatically set it to the assignee chat report
         // This allows for a much quicker process when creating a new task and is likely the desired share destination most times
-        if (!shareToReportID) {
+        if (!shareToReportID && !skipShareDestination) {
             setShareDestinationValue(report?.reportID ?? '');
         }
     }
@@ -734,7 +737,7 @@ function clearOutTaskInfoAndNavigate(reportID?: string, chatReport?: OnyxEntry<O
     }
     if (accountID > 0) {
         const accountLogin = allPersonalDetails?.[accountID]?.login ?? '';
-        setAssigneeValue(accountLogin, accountID, reportID, chatReport);
+        setAssigneeValue(accountLogin, accountID, reportID, chatReport, false, skipConfirmation);
     }
     Navigation.navigate(ROUTES.NEW_TASK_DETAILS);
 }
@@ -959,7 +962,7 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
  * Closes the current open task modal and clears out the task info from the store.
  */
 function dismissModalAndClearOutTaskInfo() {
-    Navigation.dismissModal();
+    Navigation.closeRHPFlow();
     clearOutTaskInfo();
 }
 
@@ -1001,6 +1004,10 @@ function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
 
     if (sessionAccountID === getTaskOwnerAccountID(taskReport) || sessionAccountID === getTaskAssigneeAccountID(taskReport)) {
         return true;
+    }
+
+    if (!ReportUtils.canWriteInReport(ReportUtils.getReport(taskReport?.reportID))) {
+        return false;
     }
 
     return !isEmptyObject(taskReport) && ReportUtils.isAllowedToComment(taskReport);
@@ -1046,6 +1053,7 @@ export {
     getTaskAssigneeAccountID,
     clearTaskErrors,
     canModifyTask,
+    setNewOptimisticAssignee,
 };
 
 export type {PolicyValue, Assignee, ShareDestination};

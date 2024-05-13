@@ -1,16 +1,19 @@
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
+import FormHelpMessage from '@components/FormHelpMessage';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyTemporaryForRefactorRequestParticipantsSelector';
+import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Transaction} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import StepScreenWrapper from './StepScreenWrapper';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
@@ -19,8 +22,8 @@ import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotF
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 type IOURequestStepParticipantsOnyxProps = {
-    /** The transaction object being modified in Onyx */
-    transaction: OnyxEntry<Transaction>;
+    /** Whether the confirmation step should be skipped */
+    skipConfirmation: OnyxEntry<boolean>;
 };
 
 type IOURequestStepParticipantsProps = IOURequestStepParticipantsOnyxProps &
@@ -32,9 +35,11 @@ function IOURequestStepParticipants({
         params: {iouType, reportID, transactionID, action},
     },
     transaction,
+    skipConfirmation,
 }: IOURequestStepParticipantsProps) {
     const participants = transaction?.participants;
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
     const selectedReportID = useRef<string>(reportID);
     const numberOfParticipants = useRef(participants?.length ?? 0);
     const iouRequestType = TransactionUtils.getRequestType(transaction);
@@ -54,6 +59,9 @@ function IOURequestStepParticipants({
         }
         if (iouType === CONST.IOU.TYPE.PAY) {
             return translate('iou.paySomeone', {});
+        }
+        if (iouType === CONST.IOU.TYPE.INVOICE) {
+            return translate('workspace.invoices.sendInvoice');
         }
         return translate('iou.submitExpense');
     }, [iouType, translate, isSplitRequest, action]);
@@ -75,7 +83,7 @@ function IOURequestStepParticipants({
 
     const addParticipant = useCallback(
         (val: Participant[]) => {
-            IOU.setMoneyRequestParticipants_temporaryForRefactor(transactionID, val);
+            IOU.setMoneyRequestParticipants(transactionID, val);
             const rateID = DistanceRequestUtils.getCustomUnitRateID(val[0]?.reportID ?? '');
             IOU.setCustomUnitRateID(transactionID, rateID);
 
@@ -97,6 +105,12 @@ function IOURequestStepParticipants({
     const goToNextStep = useCallback(() => {
         const isCategorizing = action === CONST.IOU.ACTION.CATEGORIZE;
 
+        const isPolicyExpenseChat = participants?.some((participant) => participant.isPolicyExpenseChat);
+        if (iouType === CONST.IOU.TYPE.SPLIT && !isPolicyExpenseChat && transaction?.amount && transaction?.currency) {
+            const participantAccountIDs = participants?.map((participant) => participant.accountID) as number[];
+            IOU.setSplitShares(transaction, transaction.amount, transaction.currency, participantAccountIDs);
+        }
+
         IOU.setMoneyRequestTag(transactionID, '');
         IOU.setMoneyRequestCategory(transactionID, '');
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, selectedReportID.current || reportID);
@@ -105,7 +119,7 @@ function IOURequestStepParticipants({
         } else {
             Navigation.navigate(iouConfirmationPageRoute);
         }
-    }, [iouType, transactionID, reportID, action]);
+    }, [iouType, transactionID, transaction, reportID, action, participants]);
 
     const navigateBack = useCallback(() => {
         IOUUtils.navigateToStartMoneyRequestStep(iouRequestType, iouType, transactionID, reportID, action);
@@ -119,6 +133,14 @@ function IOURequestStepParticipants({
             testID={IOURequestStepParticipants.displayName}
             includeSafeAreaPaddingBottom={false}
         >
+            {skipConfirmation && (
+                <FormHelpMessage
+                    style={[styles.ph4, styles.mb4]}
+                    isError={false}
+                    shouldShowRedDotIndicator={false}
+                    message={translate('quickAction.noLongerHaveReportAccess')}
+                />
+            )}
             <MoneyRequestParticipantsSelector
                 participants={isSplitRequest ? participants : []}
                 onParticipantsAdded={addParticipant}
@@ -133,4 +155,13 @@ function IOURequestStepParticipants({
 
 IOURequestStepParticipants.displayName = 'IOURequestStepParticipants';
 
-export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepParticipants));
+const IOURequestStepParticipantsWithOnyx = withOnyx<IOURequestStepParticipantsProps, IOURequestStepParticipantsOnyxProps>({
+    skipConfirmation: {
+        key: ({route}) => {
+            const transactionID = route.params.transactionID ?? 0;
+            return `${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`;
+        },
+    },
+})(IOURequestStepParticipants);
+
+export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepParticipantsWithOnyx));

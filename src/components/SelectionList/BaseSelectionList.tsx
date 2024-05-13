@@ -75,6 +75,7 @@ function BaseSelectionList<TItem extends ListItem>(
         textInputIconLeft,
         sectionTitleStyles,
         textInputAutoFocus = true,
+        shouldTextInputInterceptSwipe = false,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -130,7 +131,7 @@ function BaseSelectionList<TItem extends ListItem>(
 
                 // If disabled, add to the disabled indexes array
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                if (!!section.isDisabled || item.isDisabled || item.isDisabledCheckbox) {
+                if (!!section.isDisabled || (item.isDisabled && !item.isSelected) || item.isDisabledCheckbox) {
                     disabledOptionsIndexes.push(disabledIndex);
                 }
                 disabledIndex += 1;
@@ -228,7 +229,8 @@ function BaseSelectionList<TItem extends ListItem>(
     // If `initiallyFocusedOptionKey` is not passed, we fall back to `-1`, to avoid showing the highlight on the first member
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: flattenedSections.allOptions.findIndex((option) => option.keyForList === initiallyFocusedOptionKey),
-        maxIndex: Math.min(flattenedSections.allOptions.length, CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * currentPage - 1),
+        maxIndex: Math.min(flattenedSections.allOptions.length - 1, CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * currentPage - 1),
+        disabledIndexes: flattenedSections.disabledOptionsIndexes,
         isActive: true,
         onFocusedIndexChange: (index: number) => {
             scrollToIndex(index, true);
@@ -275,7 +277,7 @@ function BaseSelectionList<TItem extends ListItem>(
     const selectFocusedOption = () => {
         const focusedOption = flattenedSections.allOptions[focusedIndex];
 
-        if (!focusedOption || focusedOption.isDisabled) {
+        if (!focusedOption || (focusedOption.isDisabled && !focusedOption.isSelected)) {
             return;
         }
 
@@ -337,7 +339,7 @@ function BaseSelectionList<TItem extends ListItem>(
     const renderItem = ({item, index, section}: SectionListRenderItemInfo<TItem, SectionWithIndexOffset<TItem>>) => {
         const normalizedIndex = index + (section?.indexOffset ?? 0);
         const isDisabled = !!section.isDisabled || item.isDisabled;
-        const isItemFocused = !isDisabled && (focusedIndex === normalizedIndex || itemsToHighlight?.has(item.keyForList ?? ''));
+        const isItemFocused = (!isDisabled || item.isSelected) && (focusedIndex === normalizedIndex || itemsToHighlight?.has(item.keyForList ?? ''));
         // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
         const showTooltip = shouldShowTooltips && normalizedIndex < 10;
 
@@ -549,6 +551,7 @@ function BaseSelectionList<TItem extends ListItem>(
                                 blurOnSubmit={!!flattenedSections.allOptions.length}
                                 isLoading={isLoadingNewOptions}
                                 testID="selection-list-text-input"
+                                shouldInterceptSwipe={shouldTextInputInterceptSwipe}
                             />
                         </View>
                     )}

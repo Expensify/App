@@ -211,7 +211,7 @@ export default {
     hoverDimValue: 1,
     pressDimValue: 0.8,
     qrShareHorizontalPadding: 32,
-    purposeMenuIconSize: 48,
+    menuIconSize: 48,
 
     moneyRequestSkeletonHeight: 107,
 
@@ -229,4 +229,10 @@ export default {
     mushroomTopHatWidth: 138,
     mushroomTopHatHeight: 128,
     bankButtonMargin: 23,
+    textInputAutoGrowMaxHeight: 115,
+
+    w28: 28,
+    w44: 44,
+    w80: 80,
+    w96: 96,
 } as const;
