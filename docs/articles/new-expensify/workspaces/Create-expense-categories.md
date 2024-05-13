@@ -89,7 +89,7 @@ You can enable, disable, or delete categories in bulk by selecting the checkbox 
 
 # Automatic Expensify categories
 
-Over time, Expensify learns how you category specific merchants and automatically applies that category to the merchant in the future. 
+Over time, Expensify learns how you categorize specific merchants and automatically applies that category to the merchant in the future. 
 - If you change a category, Expensify learns that correction over time as well. However, changing a category on one expense does not change it for other expenses that have already been assigned the category.
 - Any expense rules for your workspace take priority over Expensify’s automatic categories. 
 - Expensify won’t automatically add a category to an expense if it is already manually assigned a category. 
