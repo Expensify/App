@@ -260,7 +260,7 @@
     "eslint-config-expensify": "^2.0.47",
     "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-import": "^2.29.1",
-    "eslint-plugin-jest": "^24.1.0",
+    "eslint-plugin-jest": "^25.0.4",
     "eslint-plugin-jsdoc": "^46.2.6",
     "eslint-plugin-jsx-a11y": "^6.6.1",
     "eslint-plugin-react-native-a11y": "^3.3.0",
