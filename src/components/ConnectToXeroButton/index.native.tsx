@@ -11,7 +11,8 @@ import Modal from '@components/Modal';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {removePolicyConnection} from '@libs/actions/connections';
-import getXeroSetupLink from '@libs/actions/connections/ConnectToXero';
+import {getXeroSetupLink} from '@libs/actions/connections/ConnectToXero';
+import getUAForWebView from '@libs/getUAForWebView';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session} from '@src/types/onyx';
@@ -82,6 +83,7 @@ function ConnectToXeroButton({policyID, session, shouldDisconnectIntegrationBefo
                                 Cookie: `authToken=${authToken}`,
                             },
                         }}
+                        userAgent={getUAForWebView()}
                         incognito
                         startInLoadingState
                         renderLoading={renderLoading}
