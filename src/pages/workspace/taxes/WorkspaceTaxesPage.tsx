@@ -11,7 +11,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RightElementEnabledStatus from '@components/SelectionList/RightElementEnabledStatus';
+import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRightCaretWithLabel';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
@@ -104,10 +104,10 @@ function WorkspaceTaxesPage({
                 isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 pendingAction: value.pendingAction ?? (Object.keys(value.pendingFields ?? {}).length > 0 ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : null),
                 errors: value.errors ?? ErrorUtils.getLatestErrorFieldForAnyField(value),
-                rightElement: <RightElementEnabledStatus enabled={!value.isDisabled} />,
+                rightElement: <ListItemRightCaretWithLabel labelText={!value.isDisabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
             }))
             .sort((a, b) => (a.text ?? a.keyForList ?? '').localeCompare(b.text ?? b.keyForList ?? ''));
-    }, [policy, textForDefault, selectedTaxesIDs]);
+    }, [policy, textForDefault, selectedTaxesIDs, translate]);
 
     const isLoading = !isOffline && taxesList === undefined;
 
