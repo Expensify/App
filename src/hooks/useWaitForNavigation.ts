@@ -1,5 +1,5 @@
 import {useNavigation} from '@react-navigation/native';
-import {useEffect, useRef} from 'react';
+import {useCallback, useEffect, useRef} from 'react';
 
 type UseWaitForNavigation = (navigate: () => void) => () => Promise<void>;
 
@@ -24,10 +24,13 @@ export default function useWaitForNavigation(): UseWaitForNavigation {
         };
     }, [navigation]);
 
-    return (navigate: () => void) => () => {
-        navigate();
-        return new Promise<void>((resolve) => {
-            resolvePromises.current.push(resolve);
-        });
-    };
+    return useCallback(
+        (navigate: () => void) => () => {
+            navigate();
+            return new Promise<void>((resolve) => {
+                resolvePromises.current.push(resolve);
+            });
+        },
+        [],
+    );
 }
