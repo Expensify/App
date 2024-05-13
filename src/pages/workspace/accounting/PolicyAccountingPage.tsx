@@ -1,3 +1,4 @@
+import {formatDistanceToNow} from 'date-fns';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -25,7 +26,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {removePolicyConnection} from '@libs/actions/connections';
 import {syncConnection} from '@libs/actions/connections/QuickBooksOnline';
-import DateUtils from '@libs/DateUtils';
 import {findCurrentXeroOrganization, getXeroTenants} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -120,7 +120,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress, preferredLocale}:
     const connectedIntegration = accountingIntegrations.find((integration) => !!policy?.connections?.[integration]) ?? connectionSyncProgress?.connectionName;
     const policyID = policy?.id ?? '';
     const successfulDate = policy?.connections?.quickbooksOnline?.lastSync?.successfulDate;
-    const formattedDate = successfulDate ? new Date(successfulDate).toISOString().replace('Z', '') : '';
+    const formattedDate = successfulDate ? new Date(successfulDate) : new Date();
 
     const policyConnectedToXero = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.XERO;
 
@@ -146,16 +146,15 @@ function PolicyAccountingPage({policy, connectionSyncProgress, preferredLocale}:
     );
 
     useEffect(() => {
-        const locale = preferredLocale ?? CONST.LOCALES.DEFAULT;
-        setDateTimeToRelative(DateUtils.datetimeToRelative(locale, formattedDate));
+        setDateTimeToRelative(formatDistanceToNow(formattedDate, {addSuffix: true}));
         const interval = setInterval(() => {
-            setDateTimeToRelative(DateUtils.datetimeToRelative(locale, formattedDate));
+            setDateTimeToRelative(formatDistanceToNow(formattedDate, {addSuffix: true}));
         }, 60 * 1000);
 
         return () => {
             clearInterval(interval);
         };
-    }, [formattedDate, preferredLocale]);
+    }, [formattedDate]);
 
     const connectionsMenuItems: MenuItemProps[] = useMemo(() => {
         if (isEmptyObject(policy?.connections) && !isSyncInProgress) {
