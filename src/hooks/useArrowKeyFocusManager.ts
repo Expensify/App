@@ -1,3 +1,4 @@
+import {noop} from 'lodash';
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import CONST from '@src/CONST';
 import useKeyboardShortcut from './useKeyboardShortcut';
@@ -36,7 +37,7 @@ type UseArrowKeyFocusManager = [number, (index: number) => void];
  */
 export default function useArrowKeyFocusManager({
     maxIndex,
-    onFocusedIndexChange = () => {},
+    onFocusedIndexChange = noop,
     initialFocusedIndex = 0,
 
     // The "disabledIndexes" array needs to be stable to prevent the "useCallback" hook from being recreated unnecessarily.
