@@ -109,6 +109,9 @@ type TaxRate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Indicates if the tax rate is disabled. */
     isDisabled?: boolean;
 
+    /** Indicates if the tax rate is selected. */
+    isSelected?: boolean;
+
     /** An error message to display to the user */
     errors?: OnyxCommon.Errors;
 
@@ -397,6 +400,11 @@ type Tenant = {
     value: string;
 };
 
+type XeroTrackingCategory = {
+    id: string;
+    name: string;
+};
+
 /**
  * Data imported from Xero
  */
@@ -418,9 +426,13 @@ type XeroConnectionData = {
 
     /** Collection of organizations */
     tenants: Tenant[];
+    trackingCategories: XeroTrackingCategory[];
+};
 
-    /** TODO: Doesn't exist in the app */
-    trackingCategories: unknown[];
+type XeroMappingType = {
+    customer: string;
+} & {
+    [key in `trackingCategory_${string}`]: string;
 };
 
 /**
@@ -479,11 +491,7 @@ type XeroConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** TODO: Doesn't exist in the app */
     isConfigured: boolean;
-
-    /** TODO: Doesn't exist in the app */
-    mappings: {
-        customer: string;
-    };
+    mappings: XeroMappingType;
     sync: {
         /** TODO: Doesn't exist in the app */
         hasChosenAutoSyncOption: boolean;
@@ -518,7 +526,7 @@ type Connection<ConnectionData, ConnectionConfig> = {
     lastSync?: ConnectionLastSync;
 
     /** Data imported from integration */
-    data: ConnectionData;
+    data?: ConnectionData;
 
     /** Configuration of the connection */
     config: ConnectionConfig;
@@ -867,4 +875,5 @@ export type {
     QBONonReimbursableExportAccountType,
     QBOReimbursableExportAccountType,
     QBOConnectionConfig,
+    XeroTrackingCategory,
 };

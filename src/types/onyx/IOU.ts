@@ -61,6 +61,7 @@ type Participant = {
     /** Is IOU participant the current user */
     isSelfDM?: boolean;
     isSender?: boolean;
+    iouType?: string;
 };
 
 /** Model of IOU split */

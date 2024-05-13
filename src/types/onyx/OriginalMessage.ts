@@ -114,6 +114,7 @@ type IOUMessage = {
 
     /** Only exists when we are sending money */
     IOUDetails?: IOUDetails;
+    whisperedTo?: number[];
 };
 
 /** Model of original message of `reimbursed dequeued` report action */
@@ -413,6 +414,7 @@ type OriginalMessageReportPreview = {
 
         /** TODO: Only used in tests */
         lastModified?: string;
+        whisperedTo?: number[];
     };
 };
 
@@ -486,6 +488,7 @@ type OriginalMessageModifiedExpense = {
         taxRate?: string;
         oldBillable?: string;
         billable?: string;
+        whisperedTo?: number[];
     };
 };
 
@@ -607,6 +610,8 @@ export type {
     OriginalMessageJoinPolicyChangeLog,
     OriginalMessageActionableMentionWhisper,
     OriginalMessageActionableReportMentionWhisper,
+    OriginalMessageReportPreview,
+    OriginalMessageModifiedExpense,
     OriginalMessageChronosOOOList,
     OriginalMessageRoomChangeLog,
     OriginalMessageSource,

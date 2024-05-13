@@ -6,10 +6,14 @@ import type ONYXKEYS from '@src/ONYXKEYS';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import type * as OnyxCommon from './OnyxCommon';
-import type {Decision, Reaction} from './OriginalMessage';
+import type {Decision, OriginalMessageModifiedExpense, OriginalMessageReportPreview, Reaction} from './OriginalMessage';
 import type OriginalMessage from './OriginalMessage';
 import type {NotificationPreference} from './Report';
 import type {Receipt} from './Transaction';
+
+type ReportActionMessageJSON = {
+    whisperedTo?: number[];
+};
 
 /** Model of report action message */
 type Message = {
@@ -165,9 +169,6 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether we have received a response back from the server */
     isLoading?: boolean;
 
-    /** accountIDs of the people to which the whisper was sent to (if any). Returns empty array if it is not a whisper */
-    whisperedToAccountIDs?: number[];
-
     /** Avatar data to display on the report action */
     avatar?: AvatarSource;
 
@@ -282,6 +283,8 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
 /** Model of report action */
 type ReportAction = ReportActionBase & OriginalMessage;
+type ReportPreviewAction = ReportActionBase & OriginalMessageReportPreview;
+type ModifiedExpenseAction = ReportActionBase & OriginalMessageModifiedExpense;
 
 /** Record of report actions, indexed by report action ID */
 type ReportActions = Record<string, ReportAction>;
@@ -290,4 +293,4 @@ type ReportActions = Record<string, ReportAction>;
 type ReportActionsCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>;
 
 export default ReportAction;
-export type {ReportActions, ReportActionBase, Message, LinkMetadata, OriginalMessage, ReportActionsCollectionDataSet};
+export type {ReportActions, ReportActionBase, Message, LinkMetadata, OriginalMessage, ReportActionsCollectionDataSet, ReportPreviewAction, ModifiedExpenseAction, ReportActionMessageJSON};

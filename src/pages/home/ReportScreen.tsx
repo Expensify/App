@@ -137,7 +137,9 @@ function ReportScreen({
     reportMetadata = {
         isLoadingInitialReportActions: true,
         isLoadingOlderReportActions: false,
+        hasLoadingOlderReportActionsError: false,
         isLoadingNewerReportActions: false,
+        hasLoadingNewerReportActionsError: false,
     },
     parentReportActions,
     accountManagerReportID,
@@ -197,7 +199,7 @@ function ReportScreen({
             ownerAccountID: reportProp?.ownerAccountID,
             currency: reportProp?.currency,
             unheldTotal: reportProp?.unheldTotal,
-            participantAccountIDs: reportProp?.participantAccountIDs,
+            participants: reportProp?.participants,
             isWaitingOnBankAccount: reportProp?.isWaitingOnBankAccount,
             iouReportID: reportProp?.iouReportID,
             isOwnPolicyExpenseChat: reportProp?.isOwnPolicyExpenseChat,
@@ -238,7 +240,7 @@ function ReportScreen({
             reportProp?.ownerAccountID,
             reportProp?.currency,
             reportProp?.unheldTotal,
-            reportProp?.participantAccountIDs,
+            reportProp?.participants,
             reportProp?.isWaitingOnBankAccount,
             reportProp?.iouReportID,
             reportProp?.isOwnPolicyExpenseChat,
@@ -709,7 +711,9 @@ function ReportScreen({
                                         parentReportAction={parentReportAction}
                                         isLoadingInitialReportActions={reportMetadata?.isLoadingInitialReportActions}
                                         isLoadingNewerReportActions={reportMetadata?.isLoadingNewerReportActions}
+                                        hasLoadingNewerReportActionsError={reportMetadata?.hasLoadingNewerReportActionsError}
                                         isLoadingOlderReportActions={reportMetadata?.isLoadingOlderReportActions}
+                                        hasLoadingOlderReportActionsError={reportMetadata?.hasLoadingOlderReportActionsError}
                                         isReadyForCommentLinking={!shouldShowSkeleton}
                                         transactionThreadReportID={transactionThreadReportID}
                                     />
@@ -766,7 +770,9 @@ export default withCurrentReportID(
                 initialValue: {
                     isLoadingInitialReportActions: true,
                     isLoadingOlderReportActions: false,
+                    hasLoadingOlderReportActionsError: false,
                     isLoadingNewerReportActions: false,
+                    hasLoadingNewerReportActionsError: false,
                 },
             },
             isComposerFullSize: {

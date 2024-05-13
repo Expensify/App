@@ -203,12 +203,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Collection of report participants, indexed by their accountID */
         participants?: Participants;
 
-        /** Collection of report participants account IDs */
-        participantAccountIDs?: number[];
-
-        /** Collection of visible chat members account IDs  */
-        visibleChatMemberAccountIDs?: number[];
-
         /** For expense reports, this is the total amount approved */
         total?: number;
 
