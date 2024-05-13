@@ -1621,6 +1621,7 @@ export default {
     },
     termsStep: {
         headerTitle: 'Condiciones y tarifas',
+        headerTitleRefactor: 'Tarifas y condiciones',
         haveReadAndAgree: 'He leído y acepto recibir ',
         electronicDisclosures: 'divulgaciones electrónicas',
         agreeToThe: 'Estoy de acuerdo con el ',
@@ -1631,6 +1632,9 @@ export default {
         noOverdraftOrCredit: 'Sin función de sobregiro/crédito',
         electronicFundsWithdrawal: 'Retiro electrónico de fondos',
         standard: 'Estándar',
+        takeALookAtSomeFees: 'Echa un vistazo a algunas tarifas.',
+        checkPlease: 'Por favor, revisa.',
+        agreeToTerms: 'Debes aceptar los términos y condiciones para continuar.',
         shortTermsForm: {
             expensifyPaymentsAccount: ({walletProgram}: WalletProgramParams) => `La billetera Expensify es emitida por ${walletProgram}.`,
             perPurchase: 'Por compra',

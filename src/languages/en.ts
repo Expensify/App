@@ -1600,6 +1600,7 @@ export default {
     },
     termsStep: {
         headerTitle: 'Terms and fees',
+        headerTitleRefactor: 'Fees and terms',
         haveReadAndAgree: 'I have read and agree to receive ',
         electronicDisclosures: 'electronic disclosures',
         agreeToThe: 'I agree to the',
@@ -1610,6 +1611,9 @@ export default {
         noOverdraftOrCredit: 'No overdraft/credit feature.',
         electronicFundsWithdrawal: 'Electronic funds withdrawal',
         standard: 'Standard',
+        takeALookAtSomeFees: 'Take a look at some fees.',
+        checkPlease: 'Check please.',
+        agreeToTerms: 'Agree to the terms and you’ll be good to go!',
         shortTermsForm: {
             expensifyPaymentsAccount: ({walletProgram}: WalletProgramParams) => `The Expensify Wallet is issued by ${walletProgram}.`,
             perPurchase: 'Per purchase',

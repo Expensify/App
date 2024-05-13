@@ -3378,6 +3378,7 @@ const styles = (theme: ThemeColors) =>
         shortTermsBorder: {
             borderWidth: 1,
             borderColor: theme.border,
+            borderRadius: variables.componentBorderRadius,
         },
 
         shortTermsHorizontalRule: {
@@ -3412,8 +3413,8 @@ const styles = (theme: ThemeColors) =>
             ...headlineFont,
             ...whiteSpace.preWrap,
             color: theme.heading,
-            fontSize: variables.fontSizeXXXLarge,
-            lineHeight: variables.lineHeightXXXLarge,
+            fontSize: variables.fontSizeXLarge,
+            lineHeight: variables.lineHeightXXLarge,
         },
 
         longTermsRow: {
