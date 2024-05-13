@@ -5470,9 +5470,9 @@ function isGroupChatAdmin(report: OnyxEntry<Report>, accountID: number) {
  * None of the options should show in chat threads or if there is some special Expensify account
  * as a participant of the report.
  */
-function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, reportParticipants: number[], canUseTrackExpense = true, filterDeprecatedTypes = false): IOUType[] {
+function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, reportParticipants: number[], filterDeprecatedTypes = false): IOUType[] {
     // In any thread or task report, we do not allow any new expenses yet
-    if (isChatThread(report) || isTaskReport(report) || (!canUseTrackExpense && isSelfDM(report)) || isInvoiceRoom(report) || isInvoiceReport(report)) {
+    if (isChatThread(report) || isTaskReport(report) || isInvoiceRoom(report) || isInvoiceReport(report)) {
         return [];
     }
 
@@ -5511,7 +5511,7 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
         }
 
         // If the user can request money from the workspace report, they can also track expenses
-        if (canUseTrackExpense && (isPolicyExpenseChat(report) || isExpenseReport(report))) {
+        if (isPolicyExpenseChat(report) || isExpenseReport(report)) {
             options = [...options, CONST.IOU.TYPE.TRACK];
         }
     }
@@ -5536,9 +5536,8 @@ function temporary_getMoneyRequestOptions(
     report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
     reportParticipants: number[],
-    canUseTrackExpense = true,
 ): Array<Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>> {
-    return getMoneyRequestOptions(report, policy, reportParticipants, canUseTrackExpense, true) as Array<Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>>;
+    return getMoneyRequestOptions(report, policy, reportParticipants, true) as Array<Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>>;
 }
 
 /**
