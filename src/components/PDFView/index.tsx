@@ -85,21 +85,6 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, max
         }
     }, [isKeyboardOpen, prevWindowHeight, toggleKeyboardOnSmallScreens, windowHeight]);
 
-    const renderLoadingIndicator = () => {
-        if (isUsedAsChatAttachment) {
-            return (
-                <View style={[styles.chatItemPDFAttachmentLoading, StyleUtils.getWidthAndHeightStyle(LOADING_THUMBNAIL_WIDTH, LOADING_THUMBNAIL_HEIGHT)]}>
-                    <ActivityIndicator
-                        color={theme.spinner}
-                        size="large"
-                    />
-                </View>
-            );
-        }
-
-        return <FullScreenLoadingIndicator />;
-    };
-
     const renderPDFView = () => {
         const outerContainerStyle = [styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter];
 
@@ -116,7 +101,7 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, max
                     maxCanvasWidth={maxCanvasWidth}
                     maxCanvasHeight={maxCanvasHeight}
                     maxCanvasArea={maxCanvasArea}
-                    LoadingComponent={renderLoadingIndicator()}
+                    LoadingComponent={<FullScreenLoadingIndicator style={isUsedAsChatAttachment && [styles.chatItemPDFAttachmentLoading, StyleUtils.getWidthAndHeightStyle(LOADING_THUMBNAIL_WIDTH, LOADING_THUMBNAIL_HEIGHT), styles.pRelative]} />}
                     shouldShowErrorComponent={false}
                     onLoadError={onLoadError}
                     renderPasswordForm={({isPasswordInvalid, onSubmit, onPasswordChange}) => (
