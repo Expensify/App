@@ -94,8 +94,6 @@ Over time, Expensify learns how you categorize specific merchants and automatica
 - Any expense rules for your workspace take priority over Expensify’s automatic categories. 
 - Expensify won’t automatically add a category to an expense if it is already manually assigned a category. 
 
-Expensify’s automatic categories are specific to each workspace. If you are part of multiple workspaces, you’ll want to ensure the right workspace is active before creating an expense. Your active workspace is the most recently selected one. To change the active workspace, click your profile image or icon, then click Workspaces and select the correct workspace before you create the expense.
-
 {% include faq-begin.md %}
 **Can I edit my categories on a submitted expense report?**
 
