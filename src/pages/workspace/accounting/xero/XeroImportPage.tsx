@@ -33,7 +33,6 @@ function XeroImportPage({policy}: WithPolicyProps) {
                 hasError: !!errorFields?.enableNewCategories,
                 title: translate('workspace.accounting.imported'),
                 pendingAction: pendingFields?.enableNewCategories,
-                errorText: errorFields?.enableNewCategories ? translate('common.genericErrorMessage') : undefined,
             },
             {
                 description: translate('workspace.xero.trackingCategories'),
@@ -41,7 +40,6 @@ function XeroImportPage({policy}: WithPolicyProps) {
                 hasError: !!errorFields?.importTrackingCategories,
                 title: importTrackingCategories ? translate('workspace.accounting.importTypes.TAG') : translate('workspace.xero.notImported'),
                 pendingAction: pendingFields?.importTrackingCategories,
-                errorText: errorFields?.importTrackingCategories ? translate('common.genericErrorMessage') : undefined,
             },
             {
                 description: translate('workspace.xero.customers'),
@@ -51,15 +49,13 @@ function XeroImportPage({policy}: WithPolicyProps) {
                 hasError: !!errorFields?.importCustomers,
                 title: importCustomers ? translate('workspace.accounting.importTypes.TAG') : translate('workspace.xero.notImported'),
                 pendingAction: pendingFields?.importCustomers,
-                errorText: errorFields?.importCustomers ? translate('common.genericErrorMessage') : undefined,
             },
             {
                 description: translate('workspace.accounting.taxes'),
                 action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_TAXES.getRoute(policyID)),
-                hasError: !!errorFields?.importTaxes,
+                hasError: !!errorFields?.importTaxRates,
                 title: importTaxRates ? translate('workspace.accounting.imported') : translate('workspace.xero.notImported'),
                 pendingAction: pendingFields?.importTaxRates,
-                errorText: errorFields?.importTaxes ? translate('common.genericErrorMessage') : undefined,
             },
         ],
         [
@@ -107,7 +103,6 @@ function XeroImportPage({policy}: WithPolicyProps) {
                                 shouldShowRightIcon
                                 onPress={section.action}
                                 brickRoadIndicator={section.hasError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                error={section.errorText}
                             />
                         </OfflineWithFeedback>
                     ))}
