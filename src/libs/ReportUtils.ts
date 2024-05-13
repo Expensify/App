@@ -14,6 +14,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
+import * as ReportUtils from '@libs/ReportUtils';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams, TranslationPaths} from '@src/languages/types';
@@ -2688,6 +2689,89 @@ function canEditReportAction(reportAction: OnyxEntry<ReportAction>): boolean {
             reportAction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
     );
 }
+
+function getParentReportAction(parentReportActions: ReportActions | null | undefined, parentReportActionID: string | undefined): ReportAction | null {
+    if (!parentReportActions || !parentReportActionID) {
+        return null;
+    }
+    return parentReportActions[parentReportActionID ?? '0'];
+}
+
+function canHoldUnholdReportAction(reportAction: OnyxEntry<ReportAction>): {canHoldRequest: boolean; canUnholdRequest: boolean} {
+    if (reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
+        return {canHoldRequest: false, canUnholdRequest: false};
+    }
+    const moneyRequestReportID = reportAction?.originalMessage?.IOUReportID ?? 0;
+
+    if (!moneyRequestReportID) {
+        return {canHoldRequest: false, canUnholdRequest: false};
+    }
+
+    const moneyRequestReport = getReport(String(moneyRequestReportID));
+
+    if (!moneyRequestReport) {
+        return {canHoldRequest: false, canUnholdRequest: false};
+    }
+
+    const isSettled = ReportUtils.isSettled(moneyRequestReport?.reportID);
+    const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
+    const transactionID = moneyRequestReport ? reportAction?.originalMessage?.IOUTransactionID : 0;
+    const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? ({} as Transaction);
+    const parentReportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport.parentReportID}`;
+    const parentReportActions = allReportActions?.[parentReportActionsKey];
+    const parentReport = getReport(String(moneyRequestReport.parentReportID));
+    const parentReportAction = getParentReportAction(parentReportActions, moneyRequestReport?.parentReportActionID);
+
+    const isRequestIOU = parentReport?.type === 'iou';
+    const isHoldCreator = ReportUtils.isHoldCreator(transaction, moneyRequestReport?.reportID) && isRequestIOU;
+    const isTrackExpenseReport = ReportUtils.isTrackExpenseReport(moneyRequestReport);
+    const isActionOwner =
+        typeof parentReportAction?.actorAccountID === 'number' &&
+        typeof currentUserPersonalDetails?.accountID === 'number' &&
+        parentReportAction.actorAccountID === currentUserPersonalDetails?.accountID;
+    const isApprover =
+        ReportUtils.isMoneyRequestReport(moneyRequestReport) && moneyRequestReport?.managerID !== null && currentUserPersonalDetails?.accountID === moneyRequestReport?.managerID;
+    const isOnHold = TransactionUtils.isOnHold(transaction);
+    const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
+
+    const canModifyStatus = !isTrackExpenseReport && (isPolicyAdmin || isActionOwner || isApprover);
+    const isDeletedParentAction = ReportActionsUtils.isDeletedAction(parentReportAction);
+
+    const canHoldOrUnholdRequest = !isSettled && !isApproved && !isDeletedParentAction;
+    const canHoldRequest = canHoldOrUnholdRequest && !isOnHold && (isHoldCreator || (!isRequestIOU && canModifyStatus)) && !isScanning;
+    const canUnholdRequest = Boolean(canHoldOrUnholdRequest && isOnHold && (isHoldCreator || (!isRequestIOU && canModifyStatus)));
+
+    return {canHoldRequest, canUnholdRequest};
+}
+
+const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>): void => {
+    if (reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
+        return;
+    }
+    const moneyRequestReportID = reportAction?.originalMessage?.IOUReportID ?? 0;
+
+    const moneyRequestReport = getReport(String(moneyRequestReportID));
+    if (!moneyRequestReportID || !moneyRequestReport) {
+        return;
+    }
+
+    const parentReportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport.parentReportID}`;
+    const parentReportActions = allReportActions?.[parentReportActionsKey];
+    const parentReportAction = getParentReportAction(parentReportActions, moneyRequestReport?.parentReportActionID);
+    const transactionID = moneyRequestReport ? reportAction?.originalMessage?.IOUTransactionID : 0;
+    const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? ({} as Transaction);
+    const isOnHold = TransactionUtils.isOnHold(transaction);
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport.policyID}`] ?? null;
+
+    // const iouTransactionID = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction.originalMessage?.IOUTransactionID ?? '' : '';
+
+    if (isOnHold) {
+        IOU.unholdRequest(transactionID, reportAction.childReportID);
+    } else {
+        const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
+        Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy?.type ?? CONST.POLICY.TYPE.PERSONAL, transactionID, reportAction.childReportID, activeRoute));
+    }
+};
 
 /**
  * Gets all transactions on an IOU report with a receipt
@@ -6607,6 +6691,7 @@ export {
     canCreateTaskInReport,
     canCurrentUserOpenReport,
     canDeleteReportAction,
+    canHoldUnholdReportAction,
     canEditFieldOfMoneyRequest,
     canEditMoneyRequest,
     canEditPolicyDescription,
@@ -6825,6 +6910,7 @@ export {
     shouldShowMerchantColumn,
     isCurrentUserInvoiceReceiver,
     isDraftReport,
+    changeMoneyRequestHoldStatus,
 };
 
 export type {
