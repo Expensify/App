@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import type {ComponentType} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -27,16 +27,20 @@ function withPolicyConnections<TProps extends WithPolicyConnectionsProps>(Wrappe
         const [hasConnectionsDataBeenFetched] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${props.policy?.id ?? '0'}`, {
             initWithStoredValues: false,
         });
+        const isConnectionDataFetched = useMemo(
+            () => isOffline || !props.policy || !props.policy.areConnectionsEnabled || !!hasConnectionsDataBeenFetched || !!props.policy.connections,
+            [hasConnectionsDataBeenFetched, props.policy, isOffline],
+        );
 
         useEffect(() => {
             // When the accounting feature is not enabled, or if the connections data already exists,
             // there is no need to fetch the connections data.
-            if (!props.policy || !props.policy.areConnectionsEnabled || !!hasConnectionsDataBeenFetched || !!props.policy.connections) {
+            if (isConnectionDataFetched || !props?.policy?.id) {
                 return;
             }
 
             openPolicyAccountingPage(props.policy.id);
-        }, [hasConnectionsDataBeenFetched, props.policy, isOffline]);
+        }, [hasConnectionsDataBeenFetched, props.policy, isOffline, isConnectionDataFetched]);
 
         if (props.policy?.areConnectionsEnabled && !props.policy) {
             return (
@@ -50,6 +54,7 @@ function withPolicyConnections<TProps extends WithPolicyConnectionsProps>(Wrappe
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
+                isConnectionDataFetched={isConnectionDataFetched}
             />
         );
     }

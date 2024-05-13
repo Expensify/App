@@ -1,6 +1,6 @@
 import React, {useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import AccountingListSkeletonView from '@components/AccountingListSkeletonView';
 import CollapsibleSection from '@components/CollapsibleSection';
@@ -48,6 +48,7 @@ type PolicyAccountingPageProps = WithPolicyProps &
     PolicyAccountingPageOnyxProps & {
         // This is not using OnyxEntry<OnyxTypes.Policy> because the HOC withPolicyConnections will only render this component if there is a policy
         policy: Policy;
+        isConnectionDataFetched: boolean;
     };
 
 type AccountingIntegration = {
@@ -101,7 +102,7 @@ function accountingIntegrationData(
     }
 }
 
-function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccountingPageProps) {
+function PolicyAccountingPage({policy, connectionSyncProgress, isConnectionDataFetched}: PolicyAccountingPageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -111,10 +112,6 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
     const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
     const threeDotsMenuContainerRef = useRef<View>(null);
-    const [hasConnectionsDataBeenFetched] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${policy?.id ?? '0'}`, {
-        initWithStoredValues: true,
-    });
-    const isConnectionDataFetched = isOffline || !policy || !policy.areConnectionsEnabled || !!hasConnectionsDataBeenFetched || !!policy.connections;
 
     const isSyncInProgress = !!connectionSyncProgress?.stageInProgress && connectionSyncProgress.stageInProgress !== CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE;
 
@@ -161,7 +158,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
             });
         }
 
-        if (!connectedIntegration || !hasConnectionsDataBeenFetched) {
+        if (!connectedIntegration) {
             return [];
         }
         const integrationData = accountingIntegrationData(connectedIntegration, policyID, translate);
@@ -263,7 +260,6 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
         threeDotsMenuPosition,
         translate,
         accountingIntegrations,
-        hasConnectionsDataBeenFetched,
     ]);
 
     const otherIntegrationsItems = useMemo(() => {
