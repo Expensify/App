@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 
 type ThrottledButtonState = [boolean, () => void];
 
@@ -17,5 +17,7 @@ export default function useThrottledButtonState(): ThrottledButtonState {
         return () => clearTimeout(timer);
     }, [isButtonActive]);
 
-    return [isButtonActive, () => setIsButtonActive(false)];
+    const setButtonInactive = useCallback(() => setIsButtonActive(false), []);
+
+    return [isButtonActive, setButtonInactive];
 }
