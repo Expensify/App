@@ -22,6 +22,7 @@ import type {IOUMessage, OriginalMessageIOU} from '@src/types/onyx/OriginalMessa
 import type {ReportActionBase} from '@src/types/onyx/ReportAction';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type NonUndefined from '@src/types/utils/NonUndefined';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -435,7 +436,7 @@ describe('actions/IOU', () => {
                 merchant: '',
                 reportID: '',
             };
-            let iouReport: OnyxEntry<OnyxTypes.Report> = {
+            let iouReport: NonUndefined<OnyxEntry<OnyxTypes.Report>> = {
                 reportID: iouReportID,
                 chatReportID,
                 type: CONST.REPORT.TYPE.IOU,
@@ -444,7 +445,7 @@ describe('actions/IOU', () => {
                 currency: CONST.CURRENCY.USD,
                 total: existingTransaction.amount,
             };
-            const iouAction: OnyxEntry<OnyxTypes.ReportAction> = {
+            const iouAction: NonUndefined<OnyxEntry<OnyxTypes.ReportAction>> = {
                 reportActionID: NumberUtils.rand64(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 actorAccountID: RORY_ACCOUNT_ID,
