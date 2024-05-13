@@ -2,6 +2,7 @@ import {PortalProvider} from '@gorhom/portal';
 import React from 'react';
 import {LogBox} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import {KeyboardProvider} from 'react-native-keyboard-controller';
 import {PickerStateProvider} from 'react-native-picker-select';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import '../wdyr';
@@ -86,12 +87,14 @@ function App({url}: AppProps) {
                         VideoPopoverMenuContextProvider,
                     ]}
                 >
-                    <CustomStatusBarAndBackground />
-                    <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
-                        <ColorSchemeWrapper>
-                            <Expensify />
-                        </ColorSchemeWrapper>
-                    </ErrorBoundary>
+                    <KeyboardProvider>
+                        <CustomStatusBarAndBackground />
+                        <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
+                            <ColorSchemeWrapper>
+                                <Expensify />
+                            </ColorSchemeWrapper>
+                        </ErrorBoundary>
+                    </KeyboardProvider>
                 </ComposeProviders>
             </GestureHandlerRootView>
         </InitialURLContextProvider>
