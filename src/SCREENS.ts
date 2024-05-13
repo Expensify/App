@@ -283,6 +283,7 @@ const SCREENS = {
         TAX_CREATE: 'Workspace_Tax_Create',
         TAG_CREATE: 'Tag_Create',
         TAG_SETTINGS: 'Tag_Settings',
+        TAG_LIST_VIEW: 'Tag_List_View',
         CURRENCY: 'Workspace_Profile_Currency',
         ADDRESS: 'Workspace_Profile_Address',
         WORKFLOWS: 'Workspace_Workflows',
