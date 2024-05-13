@@ -41,7 +41,6 @@ describe('Sidebar', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                lastMessageText: 'test',
             };
 
             const action = {
@@ -94,7 +93,6 @@ describe('Sidebar', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                lastMessageText: 'test',
             };
             const action = {
                 ...LHNTestUtils.getFakeReportAction('email1@test.com', 3),

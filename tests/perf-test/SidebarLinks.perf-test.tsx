@@ -21,7 +21,7 @@ const getMockedReportsMap = (length = 100) => {
             const reportID = index + 1;
             const participants = [1, 2];
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
-            const report = {...LHNTestUtils.getFakeReport(participants, 1, true), lastMessageText: 'hey'};
+            const report = LHNTestUtils.getFakeReport(participants, 1, true);
 
             return [reportKey, report];
         }),

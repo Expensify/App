@@ -1737,7 +1737,7 @@ function getOptions(
             betas,
             policies,
             doesReportHaveViolations,
-            isInFocusMode: false,
+            isInGSDMode: false,
             excludeEmptyChats: false,
             includeSelfDM,
         });

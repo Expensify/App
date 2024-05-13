@@ -4885,23 +4885,11 @@ function buildOptimisticMoneyRequestEntities(
     return [createdActionForChat, createdActionForIOUReport, iouAction, transactionThread, createdActionForTransactionThread];
 }
 
-// Check if the report is empty, meaning it has no visible messages (i.e. only a "created" report action).
-function isEmptyReport(report: OnyxEntry<Report>): boolean {
-    if (!report) {
-        return true;
-    }
-    const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(report.reportID);
-    return !report.lastMessageText && !report.lastMessageTranslationKey && !lastVisibleMessage.lastMessageText && !lastVisibleMessage.lastMessageTranslationKey;
-}
-
 function isUnread(report: OnyxEntry<Report>): boolean {
     if (!report) {
         return false;
     }
 
-    if (isEmptyReport(report)) {
-        return false;
-    }
     // lastVisibleActionCreated and lastReadTime are both datetime strings and can be compared directly
     const lastVisibleActionCreated = report.lastVisibleActionCreated ?? '';
     const lastReadTime = report.lastReadTime ?? '';
@@ -5034,7 +5022,7 @@ function hasViolations(reportID: string, transactionViolations: OnyxCollection<T
 function shouldReportBeInOptionList({
     report,
     currentReportId,
-    isInFocusMode,
+    isInGSDMode,
     betas,
     policies,
     excludeEmptyChats,
@@ -5043,14 +5031,14 @@ function shouldReportBeInOptionList({
 }: {
     report: OnyxEntry<Report>;
     currentReportId: string;
-    isInFocusMode: boolean;
+    isInGSDMode: boolean;
     betas: OnyxEntry<Beta[]>;
     policies: OnyxCollection<Policy>;
     excludeEmptyChats: boolean;
     doesReportHaveViolations: boolean;
     includeSelfDM?: boolean;
 }) {
-    const isInDefaultMode = !isInFocusMode;
+    const isInDefaultMode = !isInGSDMode;
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
     // This can happen if data is currently loading from the server or a report is in various stages of being created.
     // This can also happen for anyone accessing a public room or archived room for which they don't have access to the underlying policy.
@@ -5101,8 +5089,8 @@ function shouldReportBeInOptionList({
     if (hasDraftComment || requiresAttentionFromCurrentUser(report)) {
         return true;
     }
-
-    const isEmptyChat = isEmptyReport(report);
+    const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(report.reportID);
+    const isEmptyChat = !report.lastMessageText && !report.lastMessageTranslationKey && !lastVisibleMessage.lastMessageText && !lastVisibleMessage.lastMessageTranslationKey;
     const canHideReport = shouldHideReport(report, currentReportId);
 
     // Include reports if they are pinned
@@ -5129,7 +5117,7 @@ function shouldReportBeInOptionList({
     }
 
     // All unread chats (even archived ones) in GSD mode will be shown. This is because GSD mode is specifically for focusing the user on the most relevant chats, primarily, the unread ones
-    if (isInFocusMode) {
+    if (isInGSDMode) {
         return isUnread(report) && report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE;
     }
 

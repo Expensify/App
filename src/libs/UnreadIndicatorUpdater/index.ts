@@ -19,7 +19,7 @@ export default function getUnreadReportsForUnreadIndicator(reports: OnyxCollecti
                 betas: [],
                 policies: {},
                 doesReportHaveViolations: false,
-                isInFocusMode: false,
+                isInGSDMode: false,
                 excludeEmptyChats: false,
             }) &&
             /**
