@@ -226,10 +226,11 @@ function SettlementButton({
             iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA ||
             iouPaymentType === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT ||
             iouPaymentType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT ||
-            iouPaymentType === CONST.PAYMENT_METHODS.DEBIT_CARD
+            iouPaymentType === CONST.PAYMENT_METHODS.DEBIT_CARD || 
+            iouPaymentType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE
         ) {
             triggerKYCFlow(event, iouPaymentType);
-            if (iouPaymentType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) BankAccounts.setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
+            BankAccounts.setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
             return;
         }
 
