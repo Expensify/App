@@ -74,6 +74,22 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
         return DateUtils.isTimeAtLeastOneMinuteInFuture({dateTimeString: clearAfterTime});
     }, [draftClearAfter, currentUserClearAfter]);
 
+    const navigateBackToPreviousScreenTask = useRef<{
+        then: (onfulfilled?: () => any, onrejected?: () => any) => Promise<any>;
+        done: (...args: any[]) => any;
+        cancel: () => void;
+    } | null>(null);
+
+    useEffect(() => {
+        return () => {
+            if (!navigateBackToPreviousScreenTask.current) {
+                return;
+            }
+
+            navigateBackToPreviousScreenTask.current.cancel();
+        };
+    }, []);
+
     const navigateBackToPreviousScreen = useCallback(() => Navigation.goBack(), []);
     const updateStatus = useCallback(
         ({emojiCode, statusText}: FormOnyxValues<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM>) => {
@@ -90,7 +106,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
                 clearAfter: clearAfterTime !== CONST.CUSTOM_STATUS_TYPES.NEVER ? clearAfterTime : '',
             });
             User.clearDraftCustomStatus();
-            InteractionManager.runAfterInteractions(() => {
+            navigateBackToPreviousScreenTask.current = InteractionManager.runAfterInteractions(() => {
                 navigateBackToPreviousScreen();
             });
         },
@@ -106,12 +122,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
         });
         formRef.current?.resetForm({[INPUT_IDS.EMOJI_CODE]: ''});
 
-        InteractionManager.runAfterInteractions(() => {
-            // We only want to navigate back if the status RHP modal is still open
-            if (!Navigation.isDisplayedInModal()) {
-                return; // Early return if not displayed in modal
-            }
-
+        navigateBackToPreviousScreenTask.current = InteractionManager.runAfterInteractions(() => {
             navigateBackToPreviousScreen();
         });
     };
