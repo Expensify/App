@@ -61,7 +61,7 @@ type OnyxDataWithErrors = {
     errors?: Errors | null;
 };
 
-function getLatestErrorMessage<TOnyxData extends OnyxDataWithErrors>(onyxData: TOnyxData | null): Localize.MaybePhraseKey {
+function getLatestErrorMessage<TOnyxData extends OnyxDataWithErrors>(onyxData: TOnyxData | null | undefined): Localize.MaybePhraseKey {
     const errors = onyxData?.errors ?? {};
 
     if (Object.keys(errors).length === 0) {
