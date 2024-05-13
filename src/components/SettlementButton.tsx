@@ -221,7 +221,7 @@ function SettlementButton({
             if (confirmApproval) {
                 confirmApproval();
             } else {
-                IOU.approveMoneyRequest(iouReport ?? null);
+                IOU.approveMoneyRequest(iouReport);
             }
             return;
         }
