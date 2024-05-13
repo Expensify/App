@@ -53,7 +53,6 @@ function XeroChartOfAccountsPage({policy}: WithPolicyProps) {
             />
             <Text style={styles.pv5}>{translate('workspace.xero.accountsSwitchTitle')}</Text>
             <ToggleSettingOptionRow
-                key={translate('workspace.xero.accountsSwitchTitle')}
                 title={translate('workspace.common.enabled')}
                 subtitle={translate('workspace.xero.accountsSwitchDescription')}
                 shouldPlaceSubtitleBelowSwitch
