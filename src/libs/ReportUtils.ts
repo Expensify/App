@@ -2983,7 +2983,7 @@ function getModifiedExpenseOriginalMessage(
         originalMessage.tag = transactionChanges?.tag;
     }
 
-    if ('taxAmount' in transactionChanges) {
+    if ('taxAmount' in transactionChanges && !('amount' in transactionChanges || 'currency' in transactionChanges || 'taxCode' in transactionChanges)) {
         originalMessage.oldTaxAmount = TransactionUtils.getTaxAmount(oldTransaction, isFromExpenseReport);
         originalMessage.taxAmount = transactionChanges?.taxAmount;
         originalMessage.currency = TransactionUtils.getCurrency(oldTransaction);
