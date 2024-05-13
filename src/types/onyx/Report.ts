@@ -202,7 +202,7 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         transactionThreadReportID?: string;
 
         fieldList?: Record<string, PolicyReportField>;
-        
+
         permissions?: Array<ValueOf<typeof CONST.REPORT.PERMISSIONS>>;
     },
     PolicyReportField['fieldID']
