@@ -989,7 +989,6 @@ function getColorStyle(color: string): TextColorStyle {
  */
 function getCheckboxPressableStyle(borderRadius = 6): ViewStyle {
     return {
-        padding: 2,
         justifyContent: 'center',
         alignItems: 'center',
         // eslint-disable-next-line object-shorthand

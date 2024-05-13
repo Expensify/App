@@ -1,5 +1,19 @@
 import type {ValueOf} from 'type-fest';
+import type TransactionListItem from '@components/SelectionList/TransactionListItem';
 import type CONST from '@src/CONST';
+
+type SearchDataTypes = ValueOf<typeof CONST.SEARCH_DATA_TYPES>;
+
+type ListItemType<T extends SearchDataTypes> = T extends typeof CONST.SEARCH_DATA_TYPES.TRANSACTION ? typeof TransactionListItem : never;
+
+type SectionsType<T extends SearchDataTypes> = T extends typeof CONST.SEARCH_DATA_TYPES.TRANSACTION ? SearchTransaction[] : never;
+
+type SearchTypeToItemMap = {
+    [K in SearchDataTypes]: {
+        listItem: ListItemType<K>;
+        getSections: (data: SearchResults['data']) => SectionsType<K>;
+    };
+};
 
 type SearchResultsInfo = {
     offset: number;
@@ -113,4 +127,4 @@ type SearchResults = {
 
 export default SearchResults;
 
-export type {SearchQuery, SearchTransaction, SearchTransactionType, SearchPersonalDetails, SearchPolicyDetails, SearchAccountDetails};
+export type {SearchQuery, SearchTransaction, SearchTransactionType, SearchPersonalDetails, SearchPolicyDetails, SearchAccountDetails, SearchDataTypes, SearchTypeToItemMap};
