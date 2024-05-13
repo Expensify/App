@@ -422,7 +422,6 @@ export default {
         getStarted: 'Get started below.',
         anotherLoginPageIsOpen: 'Another login page is open.',
         anotherLoginPageIsOpenExplanation: "You've opened the login page in a separate tab, please login from that specific tab.",
-        welcomeBack: 'Welcome back!',
         welcome: 'Welcome!',
         phrase2: "Money talks. And now that chat and payments are in one place, it's also easy.",
         phrase3: 'Your payments get to you as fast as you can get your point across.',
@@ -3030,6 +3029,10 @@ export default {
         offlineTitle: "Looks like you're stuck here...",
         offline:
             "You appear to be offline. Unfortunately, Expensify Classic doesn't work offline, but New Expensify does. If you prefer to use Expensify Classic, try again when you have an internet connection.",
+    },
+    listBoundary: {
+        errorMessage: 'There was an error loading more messages.',
+        tryAgain: 'Try again',
     },
     systemMessage: {
         mergedWithCashTransaction: 'matched a receipt to this transaction.',

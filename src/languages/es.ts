@@ -413,7 +413,6 @@ export default {
         getStarted: 'Comience a continuación.',
         anotherLoginPageIsOpen: 'Otra página de inicio de sesión está abierta.',
         anotherLoginPageIsOpenExplanation: 'Ha abierto la página de inicio de sesión en una pestaña separada, inicie sesión desde esa pestaña específica.',
-        welcomeBack: '¡Bienvenido de nuevo!',
         welcome: '¡Bienvenido!',
         phrase2: 'El dinero habla. Y ahora que chat y pagos están en un mismo lugar, es también fácil.',
         phrase3: 'Tus pagos llegan tan rápido como tus mensajes.',
@@ -3533,6 +3532,10 @@ export default {
         offlineTitle: 'Parece que estás atrapado aquí...',
         offline:
             'Parece que estás desconectado. Desafortunadamente, Expensify Classic no funciona sin conexión, pero New Expensify sí. Si prefieres utilizar Expensify Classic, inténtalo de nuevo cuando tengas conexión a internet.',
+    },
+    listBoundary: {
+        errorMessage: 'Se produjo un error al cargar más mensajes.',
+        tryAgain: 'Inténtalo de nuevo',
     },
     systemMessage: {
         mergedWithCashTransaction: 'encontró un recibo para esta transacción.',
