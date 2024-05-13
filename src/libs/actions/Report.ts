@@ -639,6 +639,9 @@ function updateGroupChatName(reportID: string, reportName: string) {
                 pendingFields: {
                     reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
+                errorFields: {
+                    reportName: null,
+                },
             },
         },
     ];
@@ -659,9 +662,12 @@ function updateGroupChatName(reportID: string, reportName: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                reportName: ReportUtils.getReport(reportID)?.reportName,
+                reportName: currentReportData?.[reportID]?.reportName,
                 errors: {
                     reportName: Localize.translateLocal('groupChat.invalidGroupChatName'),
+                },
+                pendingFields: {
+                    reportName: null,
                 },
             },
         },
