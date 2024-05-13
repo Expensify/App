@@ -13,6 +13,7 @@ description: Change your mailing address for your Expensify Card
 If you’re updating your address to receive your new Expensify Visa® Commercial Card, you’ll still select **I lost my card** even though you have not lost a card. 
 {% include end-info.html %}
 
+{:start="5"}
 5. Confirm your details and click **Continue**.
 6. Update your address and click **Continue**.
 
