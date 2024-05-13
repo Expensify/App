@@ -12,15 +12,15 @@ import ConfirmModal from './ConfirmModal';
 import type {ThreeDotsMenuItem} from './HeaderWithBackButton/types';
 import * as Expensicons from './Icon/Expensicons';
 
-type QuickAction = {
+type PromotedAction = {
     key: string;
 } & ThreeDotsMenuItem;
 
-type QuickActionsParams = {
+type PromotedActionsParams = {
     report: OnyxReportType;
 };
 
-function useQuickActions({report}: QuickActionsParams): Record<string, QuickAction> {
+function usePromotedActions({report}: PromotedActionsParams): Record<string, PromotedAction> {
     const {translate} = useLocalize();
     const onShareButtonPress = useCallback(() => Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.getRoute(report?.reportID ?? '')), [report?.reportID]);
 
@@ -57,10 +57,10 @@ function useQuickActions({report}: QuickActionsParams): Record<string, QuickActi
     );
 }
 
-type ChatDetailsQuickActionsBarProps = {
+type PromotedActionsBarProps = {
     report: OnyxReportType;
 
-    actionButtons: QuickAction[];
+    promotedActions: PromotedAction[];
 
     /**
      * Whether to show the `Leave` button.
@@ -69,17 +69,18 @@ type ChatDetailsQuickActionsBarProps = {
     shouldShowLeaveButton: boolean;
 };
 
-function ChatDetailsQuickActionsBar({report, actionButtons, shouldShowLeaveButton}: ChatDetailsQuickActionsBarProps) {
+function PromotedActionsBar({report, promotedActions, shouldShowLeaveButton}: PromotedActionsBarProps) {
     const styles = useThemeStyles();
     const [isLastMemberLeavingGroupModalVisible, setIsLastMemberLeavingGroupModalVisible] = useState(false);
     const {translate} = useLocalize();
 
     return (
         <View style={[styles.flexRow, styles.ph5, styles.mb5, styles.gap3]}>
-            {actionButtons.map(({key, ...props}) => (
+            {promotedActions.map(({key, onSelected, ...props}) => (
                 <View style={[styles.flex1]}>
                     <Button
                         key={key}
+                        onPress={onSelected}
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}
                     />
@@ -120,8 +121,8 @@ function ChatDetailsQuickActionsBar({report, actionButtons, shouldShowLeaveButto
     );
 }
 
-ChatDetailsQuickActionsBar.displayName = 'ChatDetailsQuickActionsBar';
+PromotedActionsBar.displayName = 'PromotedActionsBar';
 
-export default ChatDetailsQuickActionsBar;
+export default PromotedActionsBar;
 
-export {useQuickActions};
+export {usePromotedActions};

@@ -7,7 +7,6 @@ import {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import ChatDetailsQuickActionsBar, {useQuickActions} from '@components/ChatDetailsQuickActionsBar';
 import DisplayNames from '@components/DisplayNames';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -17,6 +16,7 @@ import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import PromotedActionsBar, {usePromotedActions} from '@components/PromotedActionsBar';
 import RoomHeaderAvatars from '@components/RoomHeaderAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -104,7 +104,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
     const isSelfDM = useMemo(() => ReportUtils.isSelfDM(report), [report]);
 
-    const QuickActions = useQuickActions({report});
+    const PromotedActions = usePromotedActions({report});
 
     useEffect(() => {
         // Do not fetch private notes if isLoadingPrivateNotes is already defined, or if the network is offline, or if the report is a self DM.
@@ -335,9 +335,9 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                         </OfflineWithFeedback>
                     )}
                     {isGroupChat && (
-                        <ChatDetailsQuickActionsBar
+                        <PromotedActionsBar
                             report={report}
-                            actionButtons={[QuickActions.share, QuickActions.pin]}
+                            promotedActions={[PromotedActions.share, PromotedActions.pin]}
                             shouldShowLeaveButton
                         />
                     )}
