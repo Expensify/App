@@ -32,8 +32,14 @@ type IOURequestStepCategoryOnyxProps = {
     /** The policy of the report */
     policy: OnyxEntry<Policy>;
 
+    /** The draft policy of the report */
+    policyDraft: OnyxEntry<Policy>;
+
     /** Collection of categories attached to a policy */
     policyCategories: OnyxEntry<PolicyCategories>;
+
+    /** Collection of draft categories attached to a policy */
+    policyCategoriesDraft: OnyxEntry<PolicyCategories>;
 
     /** Collection of tags attached to a policy */
     policyTags: OnyxEntry<PolicyTagList>;
@@ -50,18 +56,24 @@ type IOURequestStepCategoryProps = IOURequestStepCategoryOnyxProps &
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CATEGORY>;
 
 function IOURequestStepCategory({
-    report,
+    report: reportReal,
+    reportDraft,
     route: {
         params: {transactionID, backTo, action, iouType, reportActionID},
     },
     transaction,
     splitDraftTransaction,
-    policy,
+    policy: policyReal,
+    policyDraft,
     policyTags,
-    policyCategories,
+    policyCategories: policyCategoriesReal,
+    policyCategoriesDraft,
     reportActions,
     session,
 }: IOURequestStepCategoryProps) {
+    const report = reportReal ?? reportDraft;
+    const policy = policyReal ?? policyDraft;
+    const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isEditing = action === CONST.IOU.ACTION.EDIT;
@@ -89,6 +101,7 @@ function IOURequestStepCategory({
 
         PolicyActions.openDraftWorkspaceRequest(report?.policyID ?? '');
     };
+
     useNetwork({onReconnect: fetchData});
 
     useEffect(() => {
@@ -161,8 +174,14 @@ const IOURequestStepCategoryWithOnyx = withOnyx<IOURequestStepCategoryProps, IOU
     policy: {
         key: ({report, transaction}) => `${ONYXKEYS.COLLECTION.POLICY}${IOU.getIOURequestPolicyID(transaction, report)}`,
     },
+    policyDraft: {
+        key: ({reportDraft, transaction}) => `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${IOU.getIOURequestPolicyID(transaction, reportDraft)}`,
+    },
     policyCategories: {
         key: ({report, transaction}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${IOU.getIOURequestPolicyID(transaction, report)}`,
+    },
+    policyCategoriesDraft: {
+        key: ({reportDraft, transaction}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${IOU.getIOURequestPolicyID(transaction, reportDraft)}`,
     },
     policyTags: {
         key: ({report, transaction}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${IOU.getIOURequestPolicyID(transaction, report)}`,
