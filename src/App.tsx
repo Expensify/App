@@ -101,4 +101,7 @@ function App({url}: AppProps) {
 
 App.displayName = 'App';
 
+// TSX View Component properties extended
+fullstory?.LogLevel?.Log;
+
 export default App;

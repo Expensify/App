@@ -3,6 +3,7 @@ import type {ChannelAuthorizationData} from 'pusher-js/types/src/core/auth/optio
 import type {ChannelAuthorizationCallback} from 'pusher-js/with-encryption';
 import {InteractionManager, Linking, NativeModules} from 'react-native';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import Fullstory from '@libs/Fullstory';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as PersistedRequests from '@libs/actions/PersistedRequests';
@@ -62,6 +63,11 @@ Onyx.connect({
             authPromiseResolver = null;
         }
     },
+});
+
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: Fullstory.consentAndIdentify,
 });
 
 let stashedSession: Session = {};
