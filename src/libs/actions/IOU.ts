@@ -36,7 +36,6 @@ import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as NextStepUtils from '@libs/NextStepUtils';
-import type {TaxRatesOption} from '@libs/OptionsListUtils';
 import Permissions from '@libs/Permissions';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -739,7 +738,9 @@ function buildOnyxDataForMoneyRequest(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
-                errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
+                // Disabling this line since transaction.filename can be an empty string
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt?.filename, isScanRequest, errorKey),
                 pendingAction: null,
                 pendingFields: clearedPendingFields,
             },
@@ -1397,7 +1398,9 @@ function buildOnyxDataForTrackExpense(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
-                errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
+                // Disabling this line since transaction.filename can be an empty string
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt?.filename, isScanRequest),
                 pendingAction: null,
                 pendingFields: clearedPendingFields,
             },
@@ -1630,7 +1633,7 @@ function getSendInvoiceInformation(
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
 ): SendInvoiceInformation {
-    const {amount = 0, currency = '', created = '', merchant = '', category = '', tag = '', billable, comment, participants} = transaction ?? {};
+    const {amount = 0, currency = '', created = '', merchant = '', category = '', tag = '', taxCode = '', taxAmount = 0, billable, comment, participants} = transaction ?? {};
     const trimmedComment = (comment?.comment ?? '').trim();
     const senderWorkspaceID = participants?.find((participant) => participant?.isSender)?.policyID ?? '';
     const receiverParticipant = participants?.find((participant) => participant?.accountID);
@@ -1676,6 +1679,8 @@ function getSendInvoiceInformation(
         undefined,
         category,
         tag,
+        taxCode,
+        taxAmount,
         billable,
     );
 
@@ -1773,6 +1778,8 @@ function getMoneyRequestInformation(
     existingTransactionID: string | undefined,
     category: string | undefined,
     tag: string | undefined,
+    taxCode: string | undefined,
+    taxAmount: number | undefined,
     billable: boolean | undefined,
     policy: OnyxEntry<OnyxTypes.Policy> | undefined,
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagList> | undefined,
@@ -1854,6 +1861,8 @@ function getMoneyRequestInformation(
         existingTransactionID,
         category,
         tag,
+        taxCode,
+        ReportUtils.isExpenseReport(iouReport) ? -(taxAmount ?? 0) : taxAmount,
         billable,
         isDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
     );
@@ -1984,6 +1993,8 @@ function getTrackExpenseInformation(
     receipt: Receipt | undefined,
     category: string | undefined,
     tag: string | undefined,
+    taxCode: string | undefined,
+    taxAmount: number | undefined,
     billable: boolean | undefined,
     policy: OnyxEntry<OnyxTypes.Policy> | undefined,
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagList> | undefined,
@@ -2081,6 +2092,8 @@ function getTrackExpenseInformation(
         existingTransactionID ?? null,
         category,
         tag,
+        taxCode,
+        taxAmount,
         billable,
         isDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
         false,
@@ -2176,6 +2189,8 @@ function createDistanceRequest(
     created: string,
     category: string | undefined,
     tag: string | undefined,
+    taxCode: string | undefined,
+    taxAmount: number | undefined,
     amount: number,
     currency: string,
     merchant: string,
@@ -2220,6 +2235,8 @@ function createDistanceRequest(
         undefined,
         category,
         tag,
+        taxCode,
+        taxAmount,
         billable,
         policy,
         policyTagList,
@@ -2243,6 +2260,8 @@ function createDistanceRequest(
         created: currentCreated,
         category,
         tag,
+        taxCode,
+        taxAmount,
         billable,
         transactionThreadReportID,
         createdReportActionIDForThread,
@@ -2409,7 +2428,7 @@ function getUpdateMoneyRequestParams(
     let updatedMoneyRequestReport: OnyxTypes.Report | EmptyObject;
     if (!iouReport) {
         updatedMoneyRequestReport = {};
-    } else if (ReportUtils.isExpenseReport(iouReport) && typeof iouReport.total === 'number') {
+    } else if ((ReportUtils.isExpenseReport(iouReport) || ReportUtils.isInvoiceReport(iouReport)) && typeof iouReport.total === 'number') {
         // For expense report, the amount is negative, so we should subtract total from diff
         updatedMoneyRequestReport = {
             ...iouReport,
@@ -2855,17 +2874,21 @@ function updateMoneyRequestTaxAmount(
     API.write('UpdateMoneyRequestTaxAmount', params, onyxData);
 }
 
+type UpdateMoneyRequestTaxRateParams = {
+    transactionID: string;
+    optimisticReportActionID: string;
+    taxCode: string;
+    taxAmount?: number;
+    policy: OnyxEntry<OnyxTypes.Policy>;
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>;
+    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
+};
+
 /** Updates the created tax rate of an expense */
-function updateMoneyRequestTaxRate(
-    transactionID: string,
-    optimisticReportActionID: string,
-    taxCode: string,
-    policy: OnyxEntry<OnyxTypes.Policy>,
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>,
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
-) {
+function updateMoneyRequestTaxRate({transactionID, optimisticReportActionID, taxCode, taxAmount, policy, policyTagList, policyCategories}: UpdateMoneyRequestTaxRateParams) {
     const transactionChanges = {
         taxCode,
+        ...(taxAmount && {taxAmount}),
     };
     const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, optimisticReportActionID, transactionChanges, policy, policyTagList, policyCategories, true);
     API.write('UpdateMoneyRequestTaxRate', params, onyxData);
@@ -3292,6 +3315,8 @@ function requestMoney(
         isMovingTransactionFromTrackExpense ? (linkedTrackedExpenseReportAction?.originalMessage as IOUMessage)?.IOUTransactionID : undefined,
         category,
         tag,
+        taxCode,
+        taxAmount,
         billable,
         policy,
         policyTagList,
@@ -3477,6 +3502,8 @@ function trackExpense(
         receipt,
         category,
         tag,
+        taxCode,
+        taxAmount,
         billable,
         policy,
         policyTagList,
@@ -3686,6 +3713,8 @@ function createSplitsAndOnyxData(
         undefined,
         category,
         tag,
+        undefined,
+        undefined,
         billable,
     );
 
@@ -3917,6 +3946,8 @@ function createSplitsAndOnyxData(
             undefined,
             category,
             tag,
+            undefined,
+            undefined,
             billable,
         );
 
@@ -4237,6 +4268,8 @@ function startSplitBill({
         undefined,
         category,
         tag,
+        undefined,
+        undefined,
         billable,
     );
 
@@ -4626,6 +4659,8 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
             undefined,
             updatedTransaction?.category,
             updatedTransaction?.tag,
+            undefined,
+            undefined,
             updatedTransaction?.billable,
         );
 
@@ -5012,6 +5047,7 @@ type UpdateMoneyRequestAmountAndCurrencyParams = {
     transactionThreadReportID: string;
     currency: string;
     amount: number;
+    taxAmount?: number;
     policy?: OnyxEntry<OnyxTypes.Policy>;
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>;
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
@@ -5023,6 +5059,7 @@ function updateMoneyRequestAmountAndCurrency({
     transactionThreadReportID,
     currency,
     amount,
+    taxAmount,
     policy,
     policyTagList,
     policyCategories,
@@ -5030,6 +5067,7 @@ function updateMoneyRequestAmountAndCurrency({
     const transactionChanges = {
         amount,
         currency,
+        ...(taxAmount && {taxAmount}),
     };
     const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.parentReportID}`] ?? null;
@@ -6399,8 +6437,8 @@ function setMoneyRequestParticipantsFromReport(transactionID: string, report: On
     return participants;
 }
 
-function setMoneyRequestTaxRate(transactionID: string, taxRate: TaxRatesOption) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {taxRate});
+function setMoneyRequestTaxRate(transactionID: string, taxCode: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {taxCode});
 }
 
 function setMoneyRequestTaxAmount(transactionID: string, taxAmount: number, isDraft: boolean) {

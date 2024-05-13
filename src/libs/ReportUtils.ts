@@ -31,7 +31,6 @@ import type {
     ReportMetadata,
     Session,
     Task,
-    TaxRate,
     Transaction,
     TransactionViolation,
     UserWallet,
@@ -452,7 +451,7 @@ type OptionData = {
     isSelfDM?: boolean;
     reportID?: string;
     enabled?: boolean;
-    data?: Partial<TaxRate>;
+    code?: string;
     transactionThreadReportID?: string | null;
     shouldShowAmountInput?: boolean;
     amountInputProps?: MoneyRequestAmountInputProps;
