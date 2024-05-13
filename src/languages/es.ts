@@ -413,7 +413,6 @@ export default {
         getStarted: 'Comience a continuación.',
         anotherLoginPageIsOpen: 'Otra página de inicio de sesión está abierta.',
         anotherLoginPageIsOpenExplanation: 'Ha abierto la página de inicio de sesión en una pestaña separada, inicie sesión desde esa pestaña específica.',
-        welcomeBack: '¡Bienvenido de nuevo!',
         welcome: '¡Bienvenido!',
         phrase2: 'El dinero habla. Y ahora que chat y pagos están en un mismo lugar, es también fácil.',
         phrase3: 'Tus pagos llegan tan rápido como tus mensajes.',
@@ -1622,6 +1621,7 @@ export default {
     },
     termsStep: {
         headerTitle: 'Condiciones y tarifas',
+        headerTitleRefactor: 'Tarifas y condiciones',
         haveReadAndAgree: 'He leído y acepto recibir ',
         electronicDisclosures: 'divulgaciones electrónicas',
         agreeToThe: 'Estoy de acuerdo con el ',
@@ -1632,6 +1632,9 @@ export default {
         noOverdraftOrCredit: 'Sin función de sobregiro/crédito',
         electronicFundsWithdrawal: 'Retiro electrónico de fondos',
         standard: 'Estándar',
+        takeALookAtSomeFees: 'Echa un vistazo a algunas tarifas.',
+        checkPlease: 'Por favor, revisa.',
+        agreeToTerms: 'Debes aceptar los términos y condiciones para continuar.',
         shortTermsForm: {
             expensifyPaymentsAccount: ({walletProgram}: WalletProgramParams) => `La billetera Expensify es emitida por ${walletProgram}.`,
             perPurchase: 'Por compra',
@@ -3533,6 +3536,10 @@ export default {
         offlineTitle: 'Parece que estás atrapado aquí...',
         offline:
             'Parece que estás desconectado. Desafortunadamente, Expensify Classic no funciona sin conexión, pero New Expensify sí. Si prefieres utilizar Expensify Classic, inténtalo de nuevo cuando tengas conexión a internet.',
+    },
+    listBoundary: {
+        errorMessage: 'Se produjo un error al cargar más mensajes.',
+        tryAgain: 'Inténtalo de nuevo',
     },
     systemMessage: {
         mergedWithCashTransaction: 'encontró un recibo para esta transacción.',

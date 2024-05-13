@@ -745,7 +745,9 @@ function openReport(
             value: {
                 isLoadingInitialReportActions: true,
                 isLoadingOlderReportActions: false,
+                hasLoadingOlderReportActionsError: false,
                 isLoadingNewerReportActions: false,
+                hasLoadingNewerReportActionsError: false,
                 lastVisitTime: DateUtils.getDBTime(),
             },
         },
@@ -1037,6 +1039,7 @@ function getOlderActions(reportID: string, reportActionID: string) {
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
             value: {
                 isLoadingOlderReportActions: true,
+                hasLoadingOlderReportActionsError: false,
             },
         },
     ];
@@ -1057,6 +1060,7 @@ function getOlderActions(reportID: string, reportActionID: string) {
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
             value: {
                 isLoadingOlderReportActions: false,
+                hasLoadingOlderReportActionsError: true,
             },
         },
     ];
@@ -1080,6 +1084,7 @@ function getNewerActions(reportID: string, reportActionID: string) {
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
             value: {
                 isLoadingNewerReportActions: true,
+                hasLoadingNewerReportActionsError: false,
             },
         },
     ];
@@ -1100,6 +1105,7 @@ function getNewerActions(reportID: string, reportActionID: string) {
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
             value: {
                 isLoadingNewerReportActions: false,
+                hasLoadingNewerReportActionsError: true,
             },
         },
     ];
