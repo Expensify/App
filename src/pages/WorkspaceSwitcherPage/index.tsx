@@ -20,6 +20,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import WorkspacesSectionHeader from './WorkspacesSectionHeader';
+import sortWorkspacesBySelected from "@src/utils/sortWorkspacesBySelected";
 
 type WorkspaceListItem = {
     text: string;
@@ -27,16 +28,6 @@ type WorkspaceListItem = {
     isPolicyAdmin?: boolean;
     brickRoadIndicator?: BrickRoad;
 } & ListItem;
-
-const sortWorkspacesBySelected = (workspace1: WorkspaceListItem, workspace2: WorkspaceListItem, selectedWorkspaceID: string | undefined): number => {
-    if (workspace1.policyID === selectedWorkspaceID) {
-        return -1;
-    }
-    if (workspace2.policyID === selectedWorkspaceID) {
-        return 1;
-    }
-    return workspace1.text?.toLowerCase().localeCompare(workspace2.text?.toLowerCase() ?? '') ?? 0;
-};
 
 const WorkspaceCardCreateAWorkspaceInstance = <WorkspaceCardCreateAWorkspace />;
 
@@ -132,7 +123,7 @@ function WorkspaceSwitcherPage() {
         () =>
             usersWorkspaces
                 .filter((policy) => policy.text?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase() ?? ''))
-                .sort((policy1, policy2) => sortWorkspacesBySelected(policy1, policy2, activeWorkspaceID)),
+                .sort((policy1, policy2) => sortWorkspacesBySelected({policyID: policy1.policyID, name: policy1.text}, {policyID: policy1.policyID, name: policy1.text}, activeWorkspaceID)),
         [debouncedSearchTerm, usersWorkspaces, activeWorkspaceID],
     );
 
