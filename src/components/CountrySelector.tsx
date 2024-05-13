@@ -33,7 +33,7 @@ type CountrySelectorProps = {
 function CountrySelector({errorText = '', value: countryCode, onInputChange = () => {}, onBlur}: CountrySelectorProps, ref: ForwardedRef<View>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const countryFromUrl = useGeographicalStateAndCountryFromRoute()?.country;
+    const {country: countryFromUrl} = useGeographicalStateAndCountryFromRoute();
 
     const title = countryCode ? translate(`allCountries.${countryCode}`) : '';
     const countryTitleDescStyle = title.length === 0 ? styles.textNormal : null;

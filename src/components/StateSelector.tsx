@@ -44,7 +44,7 @@ function StateSelector(
 ) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const stateFromUrl = useGeographicalStateAndCountryFromRoute()?.state;
+    const {state: stateFromUrl} = useGeographicalStateAndCountryFromRoute();
 
     const didOpenStateSelector = useRef(false);
     const isFocused = useIsFocused();
