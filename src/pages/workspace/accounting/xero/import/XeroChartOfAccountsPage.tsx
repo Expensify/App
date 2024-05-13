@@ -2,22 +2,25 @@ import React from 'react';
 import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import variables from '@styles/variables';
+import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 
 function XeroChartOfAccountsPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
-    const {enableNewCategories, pendingFields} = policy?.connections?.xero?.config ?? {};
+    const xeroConfig = policy?.connections?.xero?.config;
+    const {enableNewCategories, pendingFields} = xeroConfig ?? {};
 
     return (
         <ConnectionLayout
@@ -49,25 +52,18 @@ function XeroChartOfAccountsPage({policy}: WithPolicyProps) {
                 wrapperStyle={styles.sectionMenuItemTopDescription}
             />
             <Text style={styles.pv5}>{translate('workspace.xero.accountsSwitchTitle')}</Text>
-            <View style={[styles.flexRow, styles.mb2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                <View style={styles.flex1}>
-                    <Text fontSize={variables.fontSizeNormal}>{translate('workspace.common.enabled')}</Text>
-                </View>
-                <OfflineWithFeedback pendingAction={pendingFields?.enableNewCategories}>
-                    <View style={[styles.flex1, styles.alignItemsEnd, styles.pl3]}>
-                        <Switch
-                            accessibilityLabel={translate('workspace.accounting.accounts')}
-                            isOn={!!enableNewCategories}
-                            onToggle={() =>
-                                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.ENABLE_NEW_CATEGORIES, !enableNewCategories)
-                            }
-                        />
-                    </View>
-                </OfflineWithFeedback>
-            </View>
-            <View style={styles.flex1}>
-                <Text style={styles.mutedTextLabel}>{translate('workspace.xero.accountsSwitchDescription')}</Text>
-            </View>
+            <ToggleSettingOptionRow
+                key={translate('workspace.xero.accountsSwitchTitle')}
+                title={translate('workspace.common.enabled')}
+                subtitle={translate('workspace.xero.accountsSwitchDescription')}
+                shouldPlaceSubtitleBelowSwitch
+                wrapperStyle={styles.mv3}
+                isActive={!!enableNewCategories}
+                onToggle={() => Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.ENABLE_NEW_CATEGORIES, !enableNewCategories)}
+                pendingAction={pendingFields?.enableNewCategories}
+                errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.ENABLE_NEW_CATEGORIES)}
+                onCloseError={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.ENABLE_NEW_CATEGORIES)}
+            />
         </ConnectionLayout>
     );
 }
