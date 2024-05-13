@@ -146,7 +146,7 @@ function isModifiedExpenseAction(reportAction: OnyxEntry<ReportAction> | ReportA
  * We are in the process of deprecating reportAction.originalMessage and will be setting the db version of "message" to reportAction.message in the future see: https://github.com/Expensify/App/issues/39797
  * In the interim, we must check to see if we have an object or array for the reportAction.message, if we have an array we will use the originalMessage as this means we have not yet migrated.
  */
-function getWhisperedTo(reportAction: OnyxEntry<ReportAction> | EmptyObject): number[] {
+function getWhisperedTo(reportAction: OnyxEntry<ReportAction>): number[] {
     const originalMessage = reportAction?.originalMessage;
     const message = reportAction?.message;
 

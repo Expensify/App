@@ -1979,7 +1979,7 @@ function getTrackExpenseInformation(
     moneyRequestReportID = '',
     linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction,
     existingTransactionID?: string,
-): OnyxEntry<TrackExpenseInformation> {
+): TrackExpenseInformation | null {
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
@@ -3493,30 +3493,31 @@ function trackExpense(
         transactionThreadReportID,
         createdReportActionIDForThread,
         onyxData,
-    } = getTrackExpenseInformation(
-        currentChatReport,
-        participant,
-        comment,
-        amount,
-        currency,
-        currentCreated,
-        merchant,
-        receipt,
-        category,
-        tag,
-        taxCode,
-        taxAmount,
-        billable,
-        policy,
-        policyTagList,
-        policyCategories,
-        payeeEmail,
-        payeeAccountID,
-        moneyRequestReportID,
-        linkedTrackedExpenseReportAction,
-        isMovingTransactionFromTrackExpense ? (linkedTrackedExpenseReportAction?.originalMessage as IOUMessage)?.IOUTransactionID : undefined,
-    );
-    const activeReportID = isMoneyRequestReport ? report.reportID : chatReport.reportID;
+    } =
+        getTrackExpenseInformation(
+            currentChatReport,
+            participant,
+            comment,
+            amount,
+            currency,
+            currentCreated,
+            merchant,
+            receipt,
+            category,
+            tag,
+            taxCode,
+            taxAmount,
+            billable,
+            policy,
+            policyTagList,
+            policyCategories,
+            payeeEmail,
+            payeeAccountID,
+            moneyRequestReportID,
+            linkedTrackedExpenseReportAction,
+            isMovingTransactionFromTrackExpense ? (linkedTrackedExpenseReportAction?.originalMessage as IOUMessage)?.IOUTransactionID : undefined,
+        ) ?? {};
+    const activeReportID = isMoneyRequestReport ? report.reportID : chatReport?.reportID;
 
     switch (action) {
         case CONST.IOU.ACTION.CATEGORIZE: {
