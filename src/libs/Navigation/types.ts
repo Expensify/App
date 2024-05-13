@@ -164,7 +164,10 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_DATE]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: undefined;
     [SCREENS.WORKSPACE.CURRENCY]: undefined;
-    [SCREENS.WORKSPACE.ADDRESS]: undefined;
+    [SCREENS.WORKSPACE.ADDRESS]: {
+        policyID: string;
+        country?: Country | '';
+    };
     [SCREENS.WORKSPACE.NAME]: undefined;
     [SCREENS.WORKSPACE.DESCRIPTION]: undefined;
     [SCREENS.WORKSPACE.SHARE]: undefined;
@@ -215,9 +218,13 @@ type SettingsNavigatorParamList = {
         policyID: string;
         tagName: string;
     };
+    [SCREENS.WORKSPACE.TAG_LIST_VIEW]: {
+        policyID: string;
+        orderWeight: number;
+    };
     [SCREENS.WORKSPACE.TAGS_EDIT]: {
         policyID: string;
-        tagName: string;
+        orderWeight: number;
     };
     [SCREENS.WORKSPACE.TAG_EDIT]: {
         policyID: string;
@@ -323,6 +330,15 @@ type SettingsNavigatorParamList = {
         organizationID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_TAXES]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.XERO_TRACKING_CATEGORIES]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.XERO_MAP_COST_CENTERS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.XERO_MAP_REGION]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_EXPORT]: {
