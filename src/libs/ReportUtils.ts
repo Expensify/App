@@ -4638,7 +4638,7 @@ function buildOptimisticDismissedViolationReportAction(originalMessage: Original
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION,
         actorAccountID: currentUserAccountID,
-        avatar: getCurrentUserAvatarOrDefault(),
+        avatar: getCurrentUserAvatar(),
         created: DateUtils.getDBTime(),
         message: [
             {
