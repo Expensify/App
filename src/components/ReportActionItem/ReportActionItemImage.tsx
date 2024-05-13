@@ -73,7 +73,7 @@ function ReportActionItemImage({
 }: ReportActionItemImageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const isDistanceRequest = Boolean(transaction && TransactionUtils.isDistanceRequest(transaction));
+    const isDistanceRequest = !!transaction && TransactionUtils.isDistanceRequest(transaction);
     const hasPendingWaypoints = transaction && TransactionUtils.isFetchingWaypointsFromServer(transaction);
     const showMapAsImage = isDistanceRequest && hasPendingWaypoints;
 
