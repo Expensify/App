@@ -3,14 +3,13 @@ import 'core-js/features/array/at';
 import type {CSSProperties} from 'react';
 import React, {memo, useCallback, useEffect, useState} from 'react';
 import {PDFPreviewer} from 'react-fast-pdf';
-import {ActivityIndicator, View} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import variables from '@styles/variables';
@@ -27,7 +26,6 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, max
     const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const theme = useTheme();
     const {windowHeight, isSmallScreenWidth} = useWindowDimensions();
     const prevWindowHeight = usePrevious(windowHeight);
     const {translate} = useLocalize();
@@ -101,7 +99,17 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, max
                     maxCanvasWidth={maxCanvasWidth}
                     maxCanvasHeight={maxCanvasHeight}
                     maxCanvasArea={maxCanvasArea}
-                    LoadingComponent={<FullScreenLoadingIndicator style={isUsedAsChatAttachment && [styles.chatItemPDFAttachmentLoading, StyleUtils.getWidthAndHeightStyle(LOADING_THUMBNAIL_WIDTH, LOADING_THUMBNAIL_HEIGHT), styles.pRelative]} />}
+                    LoadingComponent={
+                        <FullScreenLoadingIndicator
+                            style={
+                                isUsedAsChatAttachment && [
+                                    styles.chatItemPDFAttachmentLoading,
+                                    StyleUtils.getWidthAndHeightStyle(LOADING_THUMBNAIL_WIDTH, LOADING_THUMBNAIL_HEIGHT),
+                                    styles.pRelative,
+                                ]
+                            }
+                        />
+                    }
                     shouldShowErrorComponent={false}
                     onLoadError={onLoadError}
                     renderPasswordForm={({isPasswordInvalid, onSubmit, onPasswordChange}) => (
