@@ -221,9 +221,6 @@ function MoneyRequestView({
         if (formattedOriginalAmount) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.original')} ${formattedOriginalAmount}`;
         }
-        if (TransactionUtils.isPending(transaction)) {
-            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.pending')}`;
-        }
         if (isCancelled) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
         }
@@ -236,9 +233,7 @@ function MoneyRequestView({
         } else if (isCancelled) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
         } else if (isSettled) {
-            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.settledExpensify')}`;
-        } else if (report.isWaitingOnBankAccount) {
-            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.pending')}`;
+            amountDescription += ` • ${translate('iou.settledExpensify')}`;
         }
     }
 
@@ -346,7 +341,7 @@ function MoneyRequestView({
                     <OfflineWithFeedback
                         pendingAction={pendingAction}
                         errors={transaction?.errors}
-                        errorRowStyles={[styles.ml4]}
+                        errorRowStyles={[styles.mh4]}
                         onClose={() => {
                             if (!transaction?.transactionID) {
                                 return;
@@ -505,6 +500,7 @@ function MoneyRequestView({
                             description={translate('iou.card')}
                             title={cardProgramName}
                             titleStyle={styles.flex1}
+                            interactive={false}
                         />
                     </OfflineWithFeedback>
                 )}

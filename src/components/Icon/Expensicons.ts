@@ -44,6 +44,7 @@ import Concierge from '@assets/images/concierge.svg';
 import Connect from '@assets/images/connect.svg';
 import ConnectionComplete from '@assets/images/connection-complete.svg';
 import Copy from '@assets/images/copy.svg';
+import CreditCardHourglass from '@assets/images/credit-card-hourglass.svg';
 import CreditCard from '@assets/images/creditcard.svg';
 import DocumentPlus from '@assets/images/document-plus.svg';
 import DocumentSlash from '@assets/images/document-slash.svg';
@@ -144,6 +145,7 @@ import Podcast from '@assets/images/social-podcast.svg';
 import Twitter from '@assets/images/social-twitter.svg';
 import Youtube from '@assets/images/social-youtube.svg';
 import Stopwatch from '@assets/images/stopwatch.svg';
+import Suitcase from '@assets/images/suitcase.svg';
 import Sync from '@assets/images/sync.svg';
 import Tag from '@assets/images/tag.svg';
 import Task from '@assets/images/task.svg';
@@ -206,6 +208,7 @@ export {
     ConnectionComplete,
     Copy,
     CreditCard,
+    CreditCardHourglass,
     DeletedRoomAvatar,
     Document,
     DocumentSlash,
@@ -303,6 +306,7 @@ export {
     Send,
     Shield,
     Stopwatch,
+    Suitcase,
     Sync,
     Task,
     ThumbsUp,
