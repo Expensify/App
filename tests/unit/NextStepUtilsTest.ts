@@ -519,11 +519,16 @@ describe('libs/NextStepUtils', () => {
                         text: ' %expenses.',
                     },
                 ];
+                // mock the report as approved
                 const originalState = {stateNum: report.stateNum, statusNum: report.statusNum};
                 report.stateNum = CONST.REPORT.STATE_NUM.APPROVED;
                 report.statusNum = CONST.REPORT.STATUS_NUM.APPROVED;
+
                 const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
+
                 expect(result).toMatchObject(optimisticNextStep);
+
+                // restore
                 report.stateNum = originalState.stateNum;
                 report.statusNum = originalState.statusNum;
             });
