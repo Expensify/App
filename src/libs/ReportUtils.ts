@@ -31,7 +31,6 @@ import type {
     ReportMetadata,
     Session,
     Task,
-    TaxRate,
     Transaction,
     TransactionViolation,
     UserWallet,
@@ -43,6 +42,7 @@ import type {
     IOUMessage,
     OriginalMessageActionName,
     OriginalMessageCreated,
+    OriginalMessageDismissedViolation,
     OriginalMessageReimbursementDequeued,
     OriginalMessageRenamed,
     OriginalMessageRoomChangeLog,
@@ -253,6 +253,11 @@ type OptimisticClosedReportAction = Pick<
     'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'created' | 'message' | 'originalMessage' | 'pendingAction' | 'person' | 'reportActionID' | 'shouldShow'
 >;
 
+type OptimisticDismissedViolationReportAction = Pick<
+    ReportAction,
+    'actionName' | 'actorAccountID' | 'avatar' | 'created' | 'message' | 'originalMessage' | 'person' | 'reportActionID' | 'shouldShow' | 'pendingAction'
+>;
+
 type OptimisticCreatedReportAction = OriginalMessageCreated &
     Pick<ReportActionBase, 'actorAccountID' | 'automatic' | 'avatar' | 'created' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'pendingAction'>;
 
@@ -446,7 +451,7 @@ type OptionData = {
     isSelfDM?: boolean;
     reportID?: string;
     enabled?: boolean;
-    data?: Partial<TaxRate>;
+    code?: string;
     transactionThreadReportID?: string | null;
     shouldShowAmountInput?: boolean;
     amountInputProps?: MoneyRequestAmountInputProps;
@@ -4663,6 +4668,37 @@ function buildOptimisticClosedReportAction(emailClosingReport: string, policyNam
     };
 }
 
+/**
+ * Returns an optimistic Dismissed Violation Report Action. Use the originalMessage customize this to the type of
+ * violation being dismissed.
+ */
+function buildOptimisticDismissedViolationReportAction(originalMessage: OriginalMessageDismissedViolation['originalMessage']): OptimisticDismissedViolationReportAction {
+    return {
+        actionName: CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION,
+        actorAccountID: currentUserAccountID,
+        avatar: getCurrentUserAvatarOrDefault(),
+        created: DateUtils.getDBTime(),
+        message: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'normal',
+                text: ReportActionsUtils.getDismissedViolationMessageText(originalMessage),
+            },
+        ],
+        originalMessage,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        person: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'strong',
+                text: getCurrentUserDisplayNameOrEmail(),
+            },
+        ],
+        reportActionID: NumberUtils.rand64(),
+        shouldShow: true,
+    };
+}
+
 function buildOptimisticWorkspaceChats(policyID: string, policyName: string, expenseReportId?: string): OptimisticWorkspaceChats {
     const announceChatData = buildOptimisticChatReport(
         currentUserAccountID ? [currentUserAccountID] : [],
@@ -6541,6 +6577,7 @@ export {
     buildOptimisticChatReport,
     buildOptimisticClosedReportAction,
     buildOptimisticCreatedReportAction,
+    buildOptimisticDismissedViolationReportAction,
     buildOptimisticEditedTaskFieldReportAction,
     buildOptimisticExpenseReport,
     buildOptimisticGroupChatReport,
