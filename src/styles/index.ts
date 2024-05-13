@@ -2697,7 +2697,6 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeXLarge,
             ...FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM,
             textAlign: 'center',
-            fontWeight: FontUtils.fontWeight.normal,
             position: 'absolute',
             width: 88,
             left: -16,
