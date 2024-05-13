@@ -185,10 +185,10 @@ type IouListItem = {
 } & ListItem;
 
 const getTaxAmount = (transaction: OnyxEntry<OnyxTypes.Transaction>, policy: OnyxEntry<OnyxTypes.Policy>) => {
-  const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction) ?? '';
+    const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction) ?? '';
 
-  const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, transaction?.taxCode ?? defaultTaxCode) ?? '';
-  return TransactionUtils.calculateTaxAmount(taxPercentage, transaction?.amount ?? 0);
+    const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, transaction?.taxCode ?? defaultTaxCode) ?? '';
+    return TransactionUtils.calculateTaxAmount(taxPercentage, transaction?.amount ?? 0);
 };
 
 function MoneyRequestConfirmationList({
@@ -464,11 +464,11 @@ function MoneyRequestConfirmationList({
     const selectedParticipants = useMemo(() => selectedParticipantsProp.filter((participant) => participant.selected), [selectedParticipantsProp]);
     const shouldShowReadOnlySplits = useMemo(() => isPolicyExpenseChat || isReadOnly || isScanRequest, [isPolicyExpenseChat, isReadOnly, isScanRequest]);
 
-    const splitParticipants: IouListItem[] = useMemo(() => {
-      if (!isTypeSplit) {
-        return;
-      }
-      const payeeOption = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails);
+    const splitParticipants: IouListItem[] | undefined = useMemo(() => {
+        if (!isTypeSplit) {
+            return;
+        }
+        const payeeOption = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails);
         if (shouldShowReadOnlySplits) {
             return [payeeOption, ...selectedParticipants].map((participantOption: Participant) => {
                 const isPayer = participantOption.accountID === payeeOption.accountID;
@@ -545,7 +545,7 @@ function MoneyRequestConfirmationList({
 
     const selectionListSections = useMemo(() => {
         const sections: Array<SectionListDataType<IouListItem>> = [];
-      if (isTypeSplit) {
+        if (isTypeSplit) {
             sections.push(
                 ...[
                     {
@@ -556,33 +556,34 @@ function MoneyRequestConfirmationList({
                     {
                         title: translate('moneyRequestConfirmationList.splitAmounts'),
                         CustomSectionHeader: SplitAmountSectionHeader,
-                        data: splitParticipants.map((participant) => ({
-                            ...participant,
-                            rightElement:
-                                participant.shouldShowAmountInput && participant.amountInputProps ? (
-                                    <MoneyRequestAmountInput
-                                        amount={participant.amountInputProps.amount}
-                                        currency={participant.amountInputProps.currency}
-                                        prefixCharacter={participant.amountInputProps.prefixCharacter}
-                                        disableKeyboard={false}
-                                        isCurrencyPressable={false}
-                                        hideCurrencySymbol
-                                        formatAmountOnBlur
-                                        touchableInputWrapperStyle={[styles.optionRowAmountInputWrapper, participant.amountInputProps.containerStyle]}
-                                        prefixContainerStyle={[styles.pv0]}
-                                        inputStyle={[
-                                            styles.optionRowAmountInput,
-                                            StyleUtils.getPaddingLeft(
-                                                StyleUtils.getCharacterPadding(participant.amountInputProps.prefixCharacter ?? '') + styles.pl1.paddingLeft,
-                                            ) as TextStyle,
-                                            participant.amountInputProps.inputStyle,
-                                        ]}
-                                        containerStyle={styles.iouAmountTextInputContainer}
-                                        onAmountChange={participant.amountInputProps.onAmountChange}
-                                        maxLength={participant.amountInputProps.maxLength}
-                                    />
-                                ) : null,
-                        })),
+                        data:
+                            splitParticipants?.map((participant) => ({
+                                ...participant,
+                                rightElement:
+                                    participant.shouldShowAmountInput && participant.amountInputProps ? (
+                                        <MoneyRequestAmountInput
+                                            amount={participant.amountInputProps.amount}
+                                            currency={participant.amountInputProps.currency}
+                                            prefixCharacter={participant.amountInputProps.prefixCharacter}
+                                            disableKeyboard={false}
+                                            isCurrencyPressable={false}
+                                            hideFocusedState={false}
+                                            hideCurrencySymbol
+                                            formatAmountOnBlur
+                                            prefixContainerStyle={[styles.pv0]}
+                                            containerStyle={[styles.textInputContainer]}
+                                            inputStyle={[
+                                                styles.optionRowAmountInput,
+                                                StyleUtils.getPaddingLeft(
+                                                    StyleUtils.getCharacterPadding(participant.amountInputProps.prefixCharacter ?? '') + styles.pl1.paddingLeft,
+                                                ) as TextStyle,
+                                                participant.amountInputProps.inputStyle,
+                                            ]}
+                                            onAmountChange={participant.amountInputProps.onAmountChange}
+                                            maxLength={participant.amountInputProps.maxLength}
+                                        />
+                                    ) : null,
+                            })) ?? [],
                         shouldShow: true,
                     },
                 ],
@@ -602,17 +603,16 @@ function MoneyRequestConfirmationList({
         return sections;
     }, [
         selectedParticipants,
-      isTypeSplit,
+        isTypeSplit,
         translate,
         splitParticipants,
         payeePersonalDetails,
         StyleUtils,
-        styles.iouAmountTextInputContainer,
         styles.optionRowAmountInput,
-        styles.optionRowAmountInputWrapper,
         styles.pl1.paddingLeft,
         styles.pv0,
         SplitAmountSectionHeader,
+        styles.textInputContainer,
     ]);
 
     useEffect(() => {
