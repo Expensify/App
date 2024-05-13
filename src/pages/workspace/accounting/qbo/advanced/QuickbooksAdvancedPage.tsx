@@ -73,6 +73,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
         {
             title: translate('workspace.qbo.advancedConfig.autoSync'),
             subtitle: translate('workspace.qbo.advancedConfig.autoSyncDescription'),
+            switchAccessibilityLabel: translate('workspace.qbo.advancedConfig.autoSyncDescription'),
             isActive: Boolean(autoSync?.enabled),
             onToggle: () =>
                 Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.AUTO_SYNC, {
@@ -86,6 +87,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
         {
             title: translate('workspace.qbo.advancedConfig.inviteEmployees'),
             subtitle: translate('workspace.qbo.advancedConfig.inviteEmployeesDescription'),
+            switchAccessibilityLabel: translate('workspace.qbo.advancedConfig.inviteEmployeesDescription'),
             isActive: Boolean(syncPeople),
             onToggle: () => Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.SYNC_PEOPLE, !syncPeople),
             pendingAction: pendingFields?.syncPeople,
@@ -96,6 +98,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
         {
             title: translate('workspace.qbo.advancedConfig.createEntities'),
             subtitle: translate('workspace.qbo.advancedConfig.createEntitiesDescription'),
+            switchAccessibilityLabel: translate('workspace.qbo.advancedConfig.createEntitiesDescription'),
             isActive: Boolean(autoCreateVendor),
             onToggle: () => Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR, !autoCreateVendor),
             pendingAction: pendingFields?.autoCreateVendor,
@@ -106,6 +109,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
         {
             title: translate('workspace.qbo.advancedConfig.reimbursedReports'),
             subtitle: translate('workspace.qbo.advancedConfig.reimbursedReportsDescription'),
+            switchAccessibilityLabel: translate('workspace.qbo.advancedConfig.reimbursedReportsDescription'),
             isActive: isSyncReimbursedSwitchOn,
             onToggle: () =>
                 Connections.updatePolicyConnectionConfig(
@@ -143,6 +147,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                             onCloseError={item.onCloseError}
                             title={item.title}
                             subtitle={item.subtitle}
+                            switchAccessibilityLabel={item.switchAccessibilityLabel}
                             shouldPlaceSubtitleBelowSwitch
                             wrapperStyle={item.wrapperStyle}
                             isActive={item.isActive}
