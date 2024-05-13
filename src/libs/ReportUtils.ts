@@ -45,7 +45,6 @@ import type {
     OriginalMessageDismissedViolation,
     OriginalMessageReimbursementDequeued,
     OriginalMessageRenamed,
-    OriginalMessageRoomChangeLog,
     PaymentMethodType,
     ReimbursementDeQueuedMessage,
 } from '@src/types/onyx/OriginalMessage';
@@ -118,8 +117,6 @@ type SpendBreakdown = {
 };
 
 type ParticipantDetails = [number, string, UserUtils.AvatarSource, UserUtils.AvatarSource];
-
-type OptimisticInviteReportAction = ReportActionBase & OriginalMessageRoomChangeLog;
 
 type OptimisticAddCommentReportAction = Pick<
     ReportAction,
@@ -3391,43 +3388,6 @@ function getPolicyDescriptionText(policy: OnyxEntry<Policy>): string {
     return parseHtmlToText(policy.description);
 }
 
-/** Builds an optimistic reportAction for the invite message */
-function buildOptimisticInviteReportAction(invitedUserDisplayName: string, invitedUserID: number): OptimisticInviteReportAction {
-    const text = `${Localize.translateLocal('workspace.invite.invited')} ${invitedUserDisplayName}`;
-    const commentText = getParsedComment(text);
-    const currentUser = allPersonalDetails?.[currentUserAccountID ?? -1];
-
-    return {
-        reportActionID: NumberUtils.rand64(),
-        actionName: CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM,
-        actorAccountID: currentUserAccountID,
-        person: [
-            {
-                style: 'strong',
-                text: currentUser?.displayName ?? currentUserEmail,
-                type: 'TEXT',
-            },
-        ],
-        automatic: false,
-        avatar: currentUser?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
-        created: DateUtils.getDBTime(),
-        message: [
-            {
-                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                html: commentText,
-                text: parseHtmlToText(commentText),
-            },
-        ],
-        originalMessage: {
-            targetAccountIDs: [invitedUserID],
-        },
-        isFirstItem: false,
-        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        shouldShow: true,
-        isOptimisticAction: true,
-    };
-}
-
 function buildOptimisticAddCommentReportAction(
     text?: string,
     file?: FileObject,
@@ -4583,7 +4543,7 @@ function buildOptimisticEditedTaskFieldReportAction({title, description}: Task):
             {
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
                 text: changelog,
-                html: changelog,
+                html: description ? getParsedComment(changelog) : changelog,
             },
         ],
         person: [
@@ -6819,7 +6779,6 @@ export {
     updateReportPreview,
     temporary_getMoneyRequestOptions,
     buildOptimisticInvoiceReport,
-    buildOptimisticInviteReportAction,
     getInvoiceChatByParticipants,
     shouldShowMerchantColumn,
     isCurrentUserInvoiceReceiver,
@@ -6838,6 +6797,5 @@ export type {
     OptimisticTaskReportAction,
     OptionData,
     TransactionDetails,
-    OptimisticInviteReportAction,
     ParsingDetails,
 };
