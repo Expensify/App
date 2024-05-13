@@ -5710,12 +5710,10 @@ function getOriginalReportID(reportID: string, reportAction: OnyxEntry<ReportAct
     const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
     const currentReportAction = reportActions?.[reportAction?.reportActionID ?? ''] ?? null;
     const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(reportID, reportActions ?? ([] as ReportAction[]));
-    if (transactionThreadReportID !== null) {
-        return Object.keys(currentReportAction ?? {}).length === 0 ? transactionThreadReportID : reportID;
+    if (Object.keys(currentReportAction ?? {}).length === 0) {
+        return isThreadFirstChat(reportAction, reportID) ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.parentReportID : transactionThreadReportID ?? reportID;
     }
-    return isThreadFirstChat(reportAction, reportID) && Object.keys(currentReportAction ?? {}).length === 0
-        ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.parentReportID
-        : reportID;
+    return reportID;
 }
 
 /**
