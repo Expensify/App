@@ -7,6 +7,7 @@ import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import {getCurrentXeroOrganizationName} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
@@ -27,6 +28,8 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
         const selectedAccount = (bankAccounts ?? []).find((bank) => bank.id === exportConfiguration?.nonReimbursableAccount);
         return selectedAccount?.name ?? '';
     }, [bankAccounts, exportConfiguration?.nonReimbursableAccount]);
+    
+    const currentXeroOrganizationName = useMemo(() => getCurrentXeroOrganizationName(policy ?? undefined), [policy]);
 
     const menuItems: MenuItem[] = [
         {
@@ -89,6 +92,7 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
         <ConnectionLayout
             displayName={XeroExportConfigurationPage.displayName}
             headerTitle="workspace.xero.export"
+            headerSubtitle={currentXeroOrganizationName}
             title="workspace.xero.exportDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
