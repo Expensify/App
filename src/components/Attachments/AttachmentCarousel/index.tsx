@@ -54,7 +54,6 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
         } else {
             targetAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.REPORT, {parentReportAction, reportActions: reportActions ?? undefined});
         }
-      
 
         if (isEqual(attachments, targetAttachments)) {
             return;
