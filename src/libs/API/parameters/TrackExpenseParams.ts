@@ -16,7 +16,7 @@ type TrackExpenseParams = {
     createdChatReportActionID: string;
     createdIOUReportActionID?: string;
     reportPreviewReportActionID?: string;
-    receipt?: OnyxEntry<Receipt>;
+    receipt: Receipt | null;
     receiptState?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
     category?: string;
     tag?: string;
