@@ -574,30 +574,32 @@ function MenuItem(
                                                     {description}
                                                 </Text>
                                             )}
-                                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                                {!!title && (shouldRenderAsHTML || (shouldParseTitle && !!html.length)) && (
-                                                    <View style={styles.renderHTMLTitle}>
-                                                        <RenderHTML html={processedTitle} />
-                                                    </View>
-                                                )}
-                                                {!shouldRenderAsHTML && !shouldParseTitle && !!title && (
-                                                    <Text
-                                                        style={combinedTitleTextStyle}
-                                                        numberOfLines={numberOfLinesTitle || undefined}
-                                                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: interactive && disabled}}
-                                                    >
-                                                        {renderTitleContent()}
-                                                    </Text>
-                                                )}
-                                                {shouldShowTitleIcon && titleIcon && (
-                                                    <View style={[styles.ml2]}>
-                                                        <Icon
-                                                            src={titleIcon}
-                                                            fill={theme.iconSuccessFill}
-                                                        />
-                                                    </View>
-                                                )}
-                                            </View>
+                                            {(!!title || !!shouldShowTitleIcon) && (
+                                                <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                                    {!!title && (shouldRenderAsHTML || (shouldParseTitle && !!html.length)) && (
+                                                        <View style={styles.renderHTMLTitle}>
+                                                            <RenderHTML html={processedTitle} />
+                                                        </View>
+                                                    )}
+                                                    {!shouldRenderAsHTML && !shouldParseTitle && !!title && (
+                                                        <Text
+                                                            style={combinedTitleTextStyle}
+                                                            numberOfLines={numberOfLinesTitle || undefined}
+                                                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: interactive && disabled}}
+                                                        >
+                                                            {renderTitleContent()}
+                                                        </Text>
+                                                    )}
+                                                    {shouldShowTitleIcon && titleIcon && (
+                                                        <View style={[styles.ml2]}>
+                                                            <Icon
+                                                                src={titleIcon}
+                                                                fill={theme.iconSuccessFill}
+                                                            />
+                                                        </View>
+                                                    )}
+                                                </View>
+                                            )}
                                             {!!description && !shouldShowDescriptionOnTop && (
                                                 <Text
                                                     style={descriptionTextStyles}
