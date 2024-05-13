@@ -31,7 +31,6 @@ import type {
     ReportMetadata,
     Session,
     Task,
-    TaxRate,
     Transaction,
     TransactionViolation,
     UserWallet,
@@ -46,7 +45,6 @@ import type {
     OriginalMessageDismissedViolation,
     OriginalMessageReimbursementDequeued,
     OriginalMessageRenamed,
-    OriginalMessageRoomChangeLog,
     PaymentMethodType,
     ReimbursementDeQueuedMessage,
 } from '@src/types/onyx/OriginalMessage';
@@ -118,8 +116,6 @@ type SpendBreakdown = {
 };
 
 type ParticipantDetails = [number, string, UserUtils.AvatarSource, UserUtils.AvatarSource];
-
-type OptimisticInviteReportAction = ReportActionBase & OriginalMessageRoomChangeLog;
 
 type OptimisticAddCommentReportAction = Pick<
     ReportAction,
@@ -452,7 +448,7 @@ type OptionData = {
     isSelfDM?: boolean;
     reportID?: string;
     enabled?: boolean;
-    data?: Partial<TaxRate>;
+    code?: string;
     transactionThreadReportID?: string | null;
     shouldShowAmountInput?: boolean;
     amountInputProps?: MoneyRequestAmountInputProps;
@@ -2987,7 +2983,9 @@ function getModifiedExpenseOriginalMessage(
         originalMessage.tag = transactionChanges?.tag;
     }
 
-    if ('taxAmount' in transactionChanges) {
+    // We only want to display a tax amount update system message when tax amount is updated by user.
+    // Tax amount can change as a result of amount, currency or tax rate update. In such cases, we want to skip displaying a system message, as discussed.
+    if ('taxAmount' in transactionChanges && !('amount' in transactionChanges || 'currency' in transactionChanges || 'taxCode' in transactionChanges)) {
         originalMessage.oldTaxAmount = TransactionUtils.getTaxAmount(oldTransaction, isFromExpenseReport);
         originalMessage.taxAmount = transactionChanges?.taxAmount;
         originalMessage.currency = TransactionUtils.getCurrency(oldTransaction);
@@ -3362,6 +3360,9 @@ function getParsedComment(text: string, parsingDetails?: ParsingDetails): string
 
     const parser = new ExpensiMark();
     const textWithMention = text.replace(CONST.REGEX.SHORT_MENTION, (match) => {
+        if (!Str.isValidMention(match)) {
+            return match;
+        }
         const mention = match.substring(1);
         const mentionWithDomain = addDomainToShortMention(mention);
         return mentionWithDomain ? `@${mentionWithDomain}` : match;
@@ -3388,44 +3389,6 @@ function getPolicyDescriptionText(policy: OnyxEntry<Policy>): string {
 
     const parser = new ExpensiMark();
     return parser.htmlToText(policy.description);
-}
-
-/** Builds an optimistic reportAction for the invite message */
-function buildOptimisticInviteReportAction(invitedUserDisplayName: string, invitedUserID: number): OptimisticInviteReportAction {
-    const text = `${Localize.translateLocal('workspace.invite.invited')} ${invitedUserDisplayName}`;
-    const commentText = getParsedComment(text);
-    const parser = new ExpensiMark();
-    const currentUser = allPersonalDetails?.[currentUserAccountID ?? -1];
-
-    return {
-        reportActionID: NumberUtils.rand64(),
-        actionName: CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM,
-        actorAccountID: currentUserAccountID,
-        person: [
-            {
-                style: 'strong',
-                text: currentUser?.displayName ?? currentUserEmail,
-                type: 'TEXT',
-            },
-        ],
-        automatic: false,
-        avatar: currentUser?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
-        created: DateUtils.getDBTime(),
-        message: [
-            {
-                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                html: commentText,
-                text: parser.htmlToText(commentText),
-            },
-        ],
-        originalMessage: {
-            targetAccountIDs: [invitedUserID],
-        },
-        isFirstItem: false,
-        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        shouldShow: true,
-        isOptimisticAction: true,
-    };
 }
 
 function buildOptimisticAddCommentReportAction(
@@ -4584,7 +4547,7 @@ function buildOptimisticEditedTaskFieldReportAction({title, description}: Task):
             {
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
                 text: changelog,
-                html: changelog,
+                html: description ? getParsedComment(changelog) : changelog,
             },
         ],
         person: [
@@ -6820,7 +6783,6 @@ export {
     updateReportPreview,
     temporary_getMoneyRequestOptions,
     buildOptimisticInvoiceReport,
-    buildOptimisticInviteReportAction,
     getInvoiceChatByParticipants,
     shouldShowMerchantColumn,
     isCurrentUserInvoiceReceiver,
@@ -6839,6 +6801,5 @@ export type {
     OptimisticTaskReportAction,
     OptionData,
     TransactionDetails,
-    OptimisticInviteReportAction,
     ParsingDetails,
 };

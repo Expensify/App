@@ -413,7 +413,6 @@ export default {
         getStarted: 'Comience a continuación.',
         anotherLoginPageIsOpen: 'Otra página de inicio de sesión está abierta.',
         anotherLoginPageIsOpenExplanation: 'Ha abierto la página de inicio de sesión en una pestaña separada, inicie sesión desde esa pestaña específica.',
-        welcomeBack: '¡Bienvenido de nuevo!',
         welcome: '¡Bienvenido!',
         phrase2: 'El dinero habla. Y ahora que chat y pagos están en un mismo lugar, es también fácil.',
         phrase3: 'Tus pagos llegan tan rápido como tus mensajes.',
@@ -1622,6 +1621,7 @@ export default {
     },
     termsStep: {
         headerTitle: 'Condiciones y tarifas',
+        headerTitleRefactor: 'Tarifas y condiciones',
         haveReadAndAgree: 'He leído y acepto recibir ',
         electronicDisclosures: 'divulgaciones electrónicas',
         agreeToThe: 'Estoy de acuerdo con el ',
@@ -1632,6 +1632,9 @@ export default {
         noOverdraftOrCredit: 'Sin función de sobregiro/crédito',
         electronicFundsWithdrawal: 'Retiro electrónico de fondos',
         standard: 'Estándar',
+        takeALookAtSomeFees: 'Echa un vistazo a algunas tarifas.',
+        checkPlease: 'Por favor, revisa.',
+        agreeToTerms: 'Debes aceptar los términos y condiciones para continuar.',
         shortTermsForm: {
             expensifyPaymentsAccount: ({walletProgram}: WalletProgramParams) => `La billetera Expensify es emitida por ${walletProgram}.`,
             perPurchase: 'Por compra',
@@ -2275,7 +2278,7 @@ export default {
         accounting: {
             settings: 'configuración',
             title: 'Conexiones',
-            subtitle: 'Conecta a tu sistema de contabilidad para codificar transacciones con tu plan de cuentas, auto-cotejar pagos y mantener tus finanzas sincronizadas.',
+            subtitle: 'Conecta a tu sistema de contabilidad para codificar transacciones con tu plan de cuentas, auto-cotejar pagos, y mantener tus finanzas sincronizadas.',
             qbo: 'Quickbooks Online',
             xero: 'Xero',
             setup: 'Configurar',
@@ -2514,7 +2517,7 @@ export default {
             updateToUSD: 'Actualizar a USD',
         },
         changeOwner: {
-            changeOwnerPageTitle: 'Dueño de la transferencia',
+            changeOwnerPageTitle: 'Transferir la propiedad',
             addPaymentCardTitle: 'Ingrese tu tarjeta de pago para transferir la propiedad',
             addPaymentCardButtonText: 'Aceptar términos y agregar tarjeta de pago',
             addPaymentCardReadAndAcceptTextPart1: 'Lea y acepte',
@@ -2527,7 +2530,6 @@ export default {
             addPaymentCardRedundant: 'Infraestructura redundante',
             addPaymentCardLearnMore: 'Conozca más sobre nuestra',
             addPaymentCardSecurity: 'seguridad',
-            // TODO: add spanish translations below
             amountOwedTitle: 'Saldo pendiente',
             amountOwedButtonText: 'OK',
             amountOwedText: 'Esta cuenta tiene un saldo pendiente de un mes anterior.\n\n¿Quiere liquidar el saldo y hacerse cargo de la facturación de este espacio de trabajo?',
@@ -2547,9 +2549,9 @@ export default {
             hasFailedSettlementsButtonText: 'Entiendo',
             hasFailedSettlementsText: ({email}) =>
                 `No puede hacerse cargo de la facturación porque ${email} tiene una liquidación vencida de la tarjeta Expensify. Avíseles que se comuniquen con concierge@expensify.com para resolver el problema. Luego, podrá hacerse cargo de la facturación de este espacio de trabajo.`,
-            failedToClearBalanceTitle: 'Failed to clear balance',
+            failedToClearBalanceTitle: 'Fallo al liquidar el saldo',
             failedToClearBalanceButtonText: 'OK',
-            failedToClearBalanceText: 'We were unable to clear the balance. Please try again later.',
+            failedToClearBalanceText: 'No hemos podido liquidar el saldo, por favor, inténtalo más tarde.',
             successTitle: '¡Guau! Todo listo.',
             successDescription: 'Ahora eres el propietario de este espacio de trabajo.',
             errorTitle: '¡Ups! No tan rapido...',
@@ -3534,6 +3536,10 @@ export default {
         offlineTitle: 'Parece que estás atrapado aquí...',
         offline:
             'Parece que estás desconectado. Desafortunadamente, Expensify Classic no funciona sin conexión, pero New Expensify sí. Si prefieres utilizar Expensify Classic, inténtalo de nuevo cuando tengas conexión a internet.',
+    },
+    listBoundary: {
+        errorMessage: 'Se produjo un error al cargar más mensajes.',
+        tryAgain: 'Inténtalo de nuevo',
     },
     systemMessage: {
         mergedWithCashTransaction: 'encontró un recibo para esta transacción.',
