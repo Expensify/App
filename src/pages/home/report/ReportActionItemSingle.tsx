@@ -205,7 +205,7 @@ function ReportActionItemSingle({
                         source={icon.source}
                         type={icon.type}
                         name={icon.name}
-                        accountID={icon.id}
+                        avatarID={icon.id}
                         fallbackIcon={fallbackIcon}
                     />
                 </View>

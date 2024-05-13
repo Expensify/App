@@ -96,7 +96,7 @@ function TransactionListItem<TItem extends ListItem>({
                     source={avatarURL}
                     name={displayName}
                     type={iconType}
-                    accountID={isWorkspace ? participant?.id : participant?.accountID}
+                    avatarID={isWorkspace ? participant?.id : participant?.accountID}
                 />
                 <Text
                     numberOfLines={1}
