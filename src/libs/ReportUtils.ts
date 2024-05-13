@@ -3367,7 +3367,7 @@ function getParsedComment(text: string, parsingDetails?: ParsingDetails): string
     });
 
     return text.length <= CONST.MAX_MARKUP_LENGTH
-        ? parser.replace(textWithMention, {shouldEscapeText: parsingDetails?.shouldEscapeText, disabledRules: isGroupPolicyReport ? [] : ['reportMentions']})
+        ? parser.replace(textWithMention, {shouldEscapeText: parsingDetails?.shouldEscapeText, filterRules: isGroupPolicyReport ? [] : ['reportMentions']})
         : lodashEscape(text);
 }
 

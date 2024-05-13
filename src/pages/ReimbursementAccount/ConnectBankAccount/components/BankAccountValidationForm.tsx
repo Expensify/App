@@ -26,7 +26,7 @@ type BankAccountValidationFormProps = {
     requiresTwoFactorAuth: boolean;
 
     /** The policy which the user has access to and which the report is tied to */
-    policy: Policy | null;
+    policy: Policy | null | undefined;
 };
 
 type AmountValues = {

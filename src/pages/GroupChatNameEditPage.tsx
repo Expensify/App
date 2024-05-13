@@ -24,7 +24,7 @@ import type NewGroupChatDraft from '@src/types/onyx/NewGroupChatDraft';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type GroupChatNameEditPageOnyxProps = {
-    groupChatDraft: NewGroupChatDraft | null;
+    groupChatDraft: NewGroupChatDraft | null | undefined;
 };
 
 type GroupChatNameEditPageProps = StackScreenProps<NewChatNavigatorParamList, typeof SCREENS.NEW_CHAT.NEW_CHAT_EDIT_NAME> & GroupChatNameEditPageOnyxProps;
