@@ -211,7 +211,7 @@ function getTagListName(policyTagList: OnyxEntry<PolicyTagList>, orderWeight: nu
 /**
  * Gets all tag lists of a policy
  */
-function getTagLists(policyTagList: OnyxEntry<PolicyTagList>): Array<PolicyTagList[keyof PolicyTagList]> {
+function getTagLists(policyTagList: OnyxEntry<PolicyTagList>): Array<ValueOf<PolicyTagList>> {
     if (isEmptyObject(policyTagList)) {
         return [];
     }
@@ -224,7 +224,7 @@ function getTagLists(policyTagList: OnyxEntry<PolicyTagList>): Array<PolicyTagLi
 /**
  * Gets a tag list of a policy by a tag index
  */
-function getTagList(policyTagList: OnyxEntry<PolicyTagList>, tagIndex: number): PolicyTagList[keyof PolicyTagList] {
+function getTagList(policyTagList: OnyxEntry<PolicyTagList>, tagIndex: number): ValueOf<PolicyTagList> {
     const tagLists = getTagLists(policyTagList);
 
     return (

@@ -422,7 +422,6 @@ export default {
         getStarted: 'Get started below.',
         anotherLoginPageIsOpen: 'Another login page is open.',
         anotherLoginPageIsOpenExplanation: "You've opened the login page in a separate tab, please login from that specific tab.",
-        welcomeBack: 'Welcome back!',
         welcome: 'Welcome!',
         phrase2: "Money talks. And now that chat and payments are in one place, it's also easy.",
         phrase3: 'Your payments get to you as fast as you can get your point across.',
@@ -1601,6 +1600,7 @@ export default {
     },
     termsStep: {
         headerTitle: 'Terms and fees',
+        headerTitleRefactor: 'Fees and terms',
         haveReadAndAgree: 'I have read and agree to receive ',
         electronicDisclosures: 'electronic disclosures',
         agreeToThe: 'I agree to the',
@@ -1611,6 +1611,9 @@ export default {
         noOverdraftOrCredit: 'No overdraft/credit feature.',
         electronicFundsWithdrawal: 'Electronic funds withdrawal',
         standard: 'Standard',
+        takeALookAtSomeFees: 'Take a look at some fees.',
+        checkPlease: 'Check please.',
+        agreeToTerms: 'Agree to the terms and you’ll be good to go!',
         shortTermsForm: {
             expensifyPaymentsAccount: ({walletProgram}: WalletProgramParams) => `The Expensify Wallet is issued by ${walletProgram}.`,
             perPurchase: 'Per purchase',
@@ -2272,7 +2275,7 @@ export default {
         accounting: {
             settings: 'settings',
             title: 'Connections',
-            subtitle: 'Connect to your accounting system to code transactions with your chart of accounts, auto-match payments and keep your finances in sync.',
+            subtitle: 'Connect to your accounting system to code transactions with your chart of accounts, auto-match payments, and keep your finances in sync.',
             qbo: 'Quickbooks Online',
             xero: 'Xero',
             setup: 'Set up',
@@ -2449,6 +2452,7 @@ export default {
             save: 'Save',
             genericFailureMessage: 'An error occurred updating the workspace, please try again.',
             avatarUploadFailureMessage: 'An error occurred uploading the avatar, please try again.',
+            addressContext: 'A Workspace Address is required to enable Expensify Travel. Please enter an address associated with your business.',
         },
         bankAccount: {
             continueWithSetup: 'Continue with setup',
@@ -3030,6 +3034,10 @@ export default {
         offlineTitle: "Looks like you're stuck here...",
         offline:
             "You appear to be offline. Unfortunately, Expensify Classic doesn't work offline, but New Expensify does. If you prefer to use Expensify Classic, try again when you have an internet connection.",
+    },
+    listBoundary: {
+        errorMessage: 'There was an error loading more messages.',
+        tryAgain: 'Try again',
     },
     systemMessage: {
         mergedWithCashTransaction: 'matched a receipt to this transaction.',

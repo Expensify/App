@@ -31,7 +31,6 @@ import type {
     ReportMetadata,
     Session,
     Task,
-    TaxRate,
     Transaction,
     TransactionViolation,
     UserWallet,
@@ -46,7 +45,6 @@ import type {
     OriginalMessageDismissedViolation,
     OriginalMessageReimbursementDequeued,
     OriginalMessageRenamed,
-    OriginalMessageRoomChangeLog,
     PaymentMethodType,
     ReimbursementDeQueuedMessage,
 } from '@src/types/onyx/OriginalMessage';
@@ -118,8 +116,6 @@ type SpendBreakdown = {
 };
 
 type ParticipantDetails = [number, string, UserUtils.AvatarSource, UserUtils.AvatarSource];
-
-type OptimisticInviteReportAction = ReportActionBase & OriginalMessageRoomChangeLog;
 
 type OptimisticAddCommentReportAction = Pick<
     ReportAction,
@@ -452,7 +448,7 @@ type OptionData = {
     isSelfDM?: boolean;
     reportID?: string;
     enabled?: boolean;
-    data?: Partial<TaxRate>;
+    code?: string;
     transactionThreadReportID?: string | null;
     shouldShowAmountInput?: boolean;
     amountInputProps?: MoneyRequestAmountInputProps;
@@ -2987,7 +2983,9 @@ function getModifiedExpenseOriginalMessage(
         originalMessage.tag = transactionChanges?.tag;
     }
 
-    if ('taxAmount' in transactionChanges) {
+    // We only want to display a tax amount update system message when tax amount is updated by user.
+    // Tax amount can change as a result of amount, currency or tax rate update. In such cases, we want to skip displaying a system message, as discussed.
+    if ('taxAmount' in transactionChanges && !('amount' in transactionChanges || 'currency' in transactionChanges || 'taxCode' in transactionChanges)) {
         originalMessage.oldTaxAmount = TransactionUtils.getTaxAmount(oldTransaction, isFromExpenseReport);
         originalMessage.taxAmount = transactionChanges?.taxAmount;
         originalMessage.currency = TransactionUtils.getCurrency(oldTransaction);
@@ -3362,6 +3360,9 @@ function getParsedComment(text: string, parsingDetails?: ParsingDetails): string
 
     const parser = new ExpensiMark();
     const textWithMention = text.replace(CONST.REGEX.SHORT_MENTION, (match) => {
+        if (!Str.isValidMention(match)) {
+            return match;
+        }
         const mention = match.substring(1);
         const mentionWithDomain = addDomainToShortMention(mention);
         return mentionWithDomain ? `@${mentionWithDomain}` : match;
@@ -3388,44 +3389,6 @@ function getPolicyDescriptionText(policy: OnyxEntry<Policy>): string {
 
     const parser = new ExpensiMark();
     return parser.htmlToText(policy.description);
-}
-
-/** Builds an optimistic reportAction for the invite message */
-function buildOptimisticInviteReportAction(invitedUserDisplayName: string, invitedUserID: number): OptimisticInviteReportAction {
-    const text = `${Localize.translateLocal('workspace.invite.invited')} ${invitedUserDisplayName}`;
-    const commentText = getParsedComment(text);
-    const parser = new ExpensiMark();
-    const currentUser = allPersonalDetails?.[currentUserAccountID ?? -1];
-
-    return {
-        reportActionID: NumberUtils.rand64(),
-        actionName: CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM,
-        actorAccountID: currentUserAccountID,
-        person: [
-            {
-                style: 'strong',
-                text: currentUser?.displayName ?? currentUserEmail,
-                type: 'TEXT',
-            },
-        ],
-        automatic: false,
-        avatar: currentUser?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
-        created: DateUtils.getDBTime(),
-        message: [
-            {
-                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                html: commentText,
-                text: parser.htmlToText(commentText),
-            },
-        ],
-        originalMessage: {
-            targetAccountIDs: [invitedUserID],
-        },
-        isFirstItem: false,
-        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        shouldShow: true,
-        isOptimisticAction: true,
-    };
 }
 
 function buildOptimisticAddCommentReportAction(
@@ -4584,7 +4547,7 @@ function buildOptimisticEditedTaskFieldReportAction({title, description}: Task):
             {
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
                 text: changelog,
-                html: changelog,
+                html: description ? getParsedComment(changelog) : changelog,
             },
         ],
         person: [
@@ -5385,6 +5348,7 @@ function parseReportRouteParams(route: string): ReportRouteParams {
     const pathSegments = parsingRoute.split('/');
 
     const reportIDSegment = pathSegments[1];
+    const hasRouteReportActionID = !Number.isNaN(Number(reportIDSegment));
 
     // Check for "undefined" or any other unwanted string values
     if (!reportIDSegment || reportIDSegment === 'undefined') {
@@ -5393,7 +5357,7 @@ function parseReportRouteParams(route: string): ReportRouteParams {
 
     return {
         reportID: reportIDSegment,
-        isSubReportPageRoute: pathSegments.length > 2,
+        isSubReportPageRoute: pathSegments.length > 2 && !hasRouteReportActionID,
     };
 }
 
@@ -5506,9 +5470,9 @@ function isGroupChatAdmin(report: OnyxEntry<Report>, accountID: number) {
  * None of the options should show in chat threads or if there is some special Expensify account
  * as a participant of the report.
  */
-function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, reportParticipants: number[], canUseTrackExpense = true, filterDeprecatedTypes = false): IOUType[] {
+function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, reportParticipants: number[], filterDeprecatedTypes = false): IOUType[] {
     // In any thread or task report, we do not allow any new expenses yet
-    if (isChatThread(report) || isTaskReport(report) || (!canUseTrackExpense && isSelfDM(report)) || isInvoiceRoom(report) || isInvoiceReport(report)) {
+    if (isChatThread(report) || isTaskReport(report) || isInvoiceRoom(report) || isInvoiceReport(report)) {
         return [];
     }
 
@@ -5547,7 +5511,7 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
         }
 
         // If the user can request money from the workspace report, they can also track expenses
-        if (canUseTrackExpense && (isPolicyExpenseChat(report) || isExpenseReport(report))) {
+        if (isPolicyExpenseChat(report) || isExpenseReport(report)) {
             options = [...options, CONST.IOU.TYPE.TRACK];
         }
     }
@@ -5572,9 +5536,8 @@ function temporary_getMoneyRequestOptions(
     report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
     reportParticipants: number[],
-    canUseTrackExpense = true,
 ): Array<Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>> {
-    return getMoneyRequestOptions(report, policy, reportParticipants, canUseTrackExpense, true) as Array<Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>>;
+    return getMoneyRequestOptions(report, policy, reportParticipants, true) as Array<Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>>;
 }
 
 /**
@@ -5747,12 +5710,10 @@ function getOriginalReportID(reportID: string, reportAction: OnyxEntry<ReportAct
     const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
     const currentReportAction = reportActions?.[reportAction?.reportActionID ?? ''] ?? null;
     const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(reportID, reportActions ?? ([] as ReportAction[]));
-    if (transactionThreadReportID !== null) {
-        return Object.keys(currentReportAction ?? {}).length === 0 ? transactionThreadReportID : reportID;
+    if (Object.keys(currentReportAction ?? {}).length === 0) {
+        return isThreadFirstChat(reportAction, reportID) ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.parentReportID : transactionThreadReportID ?? reportID;
     }
-    return isThreadFirstChat(reportAction, reportID) && Object.keys(currentReportAction ?? {}).length === 0
-        ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.parentReportID
-        : reportID;
+    return reportID;
 }
 
 /**
@@ -6820,7 +6781,6 @@ export {
     updateReportPreview,
     temporary_getMoneyRequestOptions,
     buildOptimisticInvoiceReport,
-    buildOptimisticInviteReportAction,
     getInvoiceChatByParticipants,
     shouldShowMerchantColumn,
     isCurrentUserInvoiceReceiver,
@@ -6839,6 +6799,5 @@ export type {
     OptimisticTaskReportAction,
     OptionData,
     TransactionDetails,
-    OptimisticInviteReportAction,
     ParsingDetails,
 };
