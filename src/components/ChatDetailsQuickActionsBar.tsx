@@ -2,21 +2,19 @@ import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as HeaderUtils from '@libs/HeaderUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Report from '@userActions/Report';
 import ROUTES from '@src/ROUTES';
 import type {Report as OnyxReportType} from '@src/types/onyx';
-import type IconAsset from '@src/types/utils/IconAsset';
 import Button from './Button';
 import ConfirmModal from './ConfirmModal';
+import type {ThreeDotsMenuItem} from './HeaderWithBackButton/types';
 import * as Expensicons from './Icon/Expensicons';
 
 type QuickAction = {
     key: string;
-    icon: IconAsset;
-    text: string;
-    onPress: () => void;
-};
+} & ThreeDotsMenuItem;
 
 type QuickActionsParams = {
     report: OnyxReportType;
@@ -24,22 +22,19 @@ type QuickActionsParams = {
 
 function useQuickActions({report}: QuickActionsParams): Record<string, QuickAction> {
     const {translate} = useLocalize();
-    const onPinButtonPress = useCallback(() => Report.togglePinnedState(report.reportID, !!report.isPinned), [report.isPinned, report.reportID]);
     const onShareButtonPress = useCallback(() => Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.getRoute(report?.reportID ?? '')), [report?.reportID]);
 
     return useMemo(
         () => ({
             pin: {
                 key: 'pin',
-                icon: Expensicons.Pin,
-                text: report.isPinned ? translate('common.unPin') : translate('common.pin'),
-                onPress: onPinButtonPress,
+                ...HeaderUtils.getPinMenuItem(report),
             },
             join: {
                 key: 'join',
                 icon: Expensicons.Pin,
                 text: translate('common.join'),
-                onPress: () => {
+                onSelected: () => {
                     console.log('todo: join');
                 },
             },
@@ -47,18 +42,18 @@ function useQuickActions({report}: QuickActionsParams): Record<string, QuickActi
                 key: 'share',
                 icon: Expensicons.QrCode,
                 text: translate('common.share'),
-                onPress: onShareButtonPress,
+                onSelected: onShareButtonPress,
             },
             hold: {
                 key: 'hold',
                 icon: Expensicons.Pin,
                 text: translate('iou.hold'),
-                onPress: () => {
+                onSelected: () => {
                     console.log('todo: hold');
                 },
             },
         }),
-        [report.isPinned, translate, onPinButtonPress, onShareButtonPress],
+        [report, translate, onShareButtonPress],
     );
 }
 
