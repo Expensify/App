@@ -13,6 +13,7 @@ import DateUtils from './DateUtils';
 import * as Localize from './Localize';
 import * as NumberUtils from './NumberUtils';
 import {getCleanedTagName} from './PolicyUtils';
+import * as ReportActionsUtils from './ReportActionsUtils';
 
 let allTransactions: OnyxCollection<Transaction> = {};
 
@@ -724,13 +725,9 @@ function getTransaction(transactionID: string): Transaction | null {
 type FieldsToCompare = Record<string, Array<keyof Transaction>>;
 
 function compareDuplicateTransactionFields(transactionID: string) {
-    console.log('transactionID', transactionID);
     const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
-    console.log(transactionViolations);
     const duplicates = transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [];
-    console.log(duplicates);
     const transactions = [transactionID, ...duplicates].map((item) => getTransaction(item));
-    console.log(transactions);
     const keep: Record<string, any> = {};
     const change: Record<string, any[]> = {};
     const fieldsToCompare: FieldsToCompare = {
@@ -748,11 +745,20 @@ function compareDuplicateTransactionFields(transactionID: string) {
             const keys = fieldsToCompare[fieldName];
             const firstTransaction = transactions[0];
 
-            if (transactions.every((item) => keys.every((key) => item && key in item && item[key] === firstTransaction?.[key]))) {
+            if (fieldName === 'description') {
+                if (transactions.every((item) => keys.every((key) => item && item.comment && key in item.comment && item.comment[key] === firstTransaction?.description?.[key]))) {
+                    keep[fieldName] = firstTransaction?.comment?.[keys[0]];
+                } else {
+                    const differentValues = transactions.map((item) => keys.map((key) => (item.comment && key in item.comment ? item.comment[key] : undefined))).flat();
+
+                    if (differentValues.length > 0) {
+                        change[fieldName] = differentValues;
+                    }
+                }
+            } else if (transactions.every((item) => keys.every((key) => item && key in item && item[key] === firstTransaction?.[key]))) {
                 keep[fieldName] = firstTransaction?.[keys[0]];
             } else {
-                const differentValues = transactions.map((item) => keys.map((key) => item?.[key])).flat();
-                // .filter(Boolean);
+                const differentValues = transactions.map((item) => keys.map((key) => (key in item ? item[key] : undefined))).flat();
 
                 if (differentValues.length > 0) {
                     change[fieldName] = differentValues;
@@ -761,8 +767,15 @@ function compareDuplicateTransactionFields(transactionID: string) {
         }
     }
 
-    console.log({keep, change});
     return {keep, change};
+}
+
+function getTransactionID(threadReportID: string): string {
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`] ?? [];
+    const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
+    const transactionID = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction?.originalMessage.IOUTransactionID ?? '0' : '0';
+
+    return transactionID;
 }
 
 export {
@@ -826,6 +839,7 @@ export {
     getRateID,
     getTransaction,
     compareDuplicateTransactionFields,
+    getTransactionID,
 };
 
 export type {TransactionChanges};

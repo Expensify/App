@@ -184,7 +184,7 @@ const SCREENS = {
         CATEGORY: 'Transaction_Duplicate_Category',
         TAG: 'Transaction_Duplicate_Tag',
         DESCRIPTION: 'Transaction_Duplicate_Description',
-        TAX_RATE: 'Transaction_Duplicate_Tax_Rate',
+        TAX_CODE: 'Transaction_Duplicate_Tax_Code',
         BILLABLE: 'Transaction_Duplicate_Billable',
         REIMBURSABLE: 'Transaction_Duplicate_Reimburable',
         // CONFIRM: 'Transaction_Duplicate_Confirm',

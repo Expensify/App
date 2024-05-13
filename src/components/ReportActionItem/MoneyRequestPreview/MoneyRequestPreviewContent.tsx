@@ -112,7 +112,7 @@ function MoneyRequestPreviewContent({
     const isFullyApproved = ReportUtils.isReportApproved(iouReport) && !isSettlementOrApprovalPartial;
     const shouldShowRBR = hasNoticeTypeViolations || hasViolations || hasFieldErrors || (!isFullySettled && !isFullyApproved && isOnHold);
 
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params?.threadReportID as string}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params?.threadReportID}`);
     const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
     const reviewingTransactionID = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction?.originalMessage.IOUTransactionID ?? '0' : '0';
     const duplicates =
@@ -246,26 +246,20 @@ function MoneyRequestPreviewContent({
     );
 
     const navigateToReviewFields = () => {
-        console.log('navigateToReviewFields', reviewingTransactionID);
         const comparisonResult = TransactionUtils.compareDuplicateTransactionFields(reviewingTransactionID);
-        // Transaction.setReviewDuplicatesKey(transaction?.transactionID ?? '', {...comparisonResult.keep, duplicates});
+        Transaction.setReviewDuplicatesKey({...comparisonResult.keep, duplicates: duplicates as string, transactionID: transaction?.transactionID ?? ''});
 
-        // if ('merchant' in comparisonResult.change) {
-        //     console.log('navigate to merchant');
-        //     Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE.getRoute(route.params?.threadReportID));
-        // } else if ('category' in comparisonResult.change) {
-        //     console.log('navigate to category');
-        //     Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_CATEGORY_PAGE.getRoute(route.params?.threadReportID));
-        // } else if ('tag' in comparisonResult.change) {
-        //     console.log('navigate to tag');
-        //     Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAG_PAGE.getRoute(route.params.threadReportID));
-        // } else if ('description' in comparisonResult.change) {
-        //     console.log('navigate to description');
-        //     Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION_PAGE.getRoute(route.params.threadReportID));
-        // } else {
-        //     console.log('navigate to summary');
-        //     // Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_SUMMARY_PAGE.getRoute(route.params.threadReportID));
-        // }
+        if ('merchant' in comparisonResult.change) {
+            Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE.getRoute(route.params?.threadReportID));
+        } else if ('category' in comparisonResult.change) {
+            Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_CATEGORY_PAGE.getRoute(route.params?.threadReportID));
+        } else if ('tag' in comparisonResult.change) {
+            Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAG_PAGE.getRoute(route.params.threadReportID));
+        } else if ('description' in comparisonResult.change) {
+            Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION_PAGE.getRoute(route.params.threadReportID));
+        } else {
+            // Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_SUMMARY_PAGE.getRoute(route.params.threadReportID));
+        }
     };
 
     const childContainer = (

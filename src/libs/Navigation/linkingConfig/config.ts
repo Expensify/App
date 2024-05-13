@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {LinkingOptions} from '@react-navigation/native';
-import {exact} from 'prop-types';
 import type {RootStackParamList} from '@navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
@@ -667,6 +666,10 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.TRANSACTION_DUPLICATE.DESCRIPTION]: {
                             path: ROUTES.TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION_PAGE.route,
+                            exact: true,
+                        },
+                        [SCREENS.TRANSACTION_DUPLICATE.TAX_CODE]: {
+                            path: ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAX_CODE_PAGE.route,
                             exact: true,
                         },
                         // [SCREENS.TRANSACTION_DUPLICATE.CONFIRM]: ROUTES.TRANSACTION_DUPLICATE_CONFIRM.route,

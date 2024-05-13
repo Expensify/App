@@ -788,6 +788,10 @@ const ROUTES = {
         route: 'r/:threadReportID/duplicates/review/tag',
         getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review/tag` as const,
     },
+    TRANSACTION_DUPLICATE_REVIEW_TAX_CODE_PAGE: {
+        route: 'r/:threadReportID/duplicates/review/tax-code',
+        getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review/tax-code` as const,
+    },
     TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION_PAGE: {
         route: 'r/:threadReportID/duplicates/confirm',
         getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/confirm` as const,
