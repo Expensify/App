@@ -20,7 +20,7 @@ function AccountingListSkeletonView({shouldAnimate = true}: AccountingListSkelet
                     <Rect
                         x="54"
                         y="28"
-                        width="20%"
+                        width="40%"
                         height="8"
                     />
                 </>
