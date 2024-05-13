@@ -543,7 +543,7 @@ function hasAllPendingRTERViolations(transactionIds: string[]): boolean {
  * Check if the transaction is pending or has a pending rter violation.
  */
 function hasPendingUI(transaction: OnyxEntry<Transaction>, transactionViolations?: TransactionViolations | null): boolean {
-    return Boolean(isReceiptBeingScanned(transaction) || isPending(transaction) || (transaction && hasPendingRTERViolation(transactionViolations)));
+    return !!(isReceiptBeingScanned(transaction) || isPending(transaction) || (transaction && hasPendingRTERViolation(transactionViolations)));
 }
 
 /**

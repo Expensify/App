@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {SvgProps} from 'react-native-svg';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -63,63 +64,20 @@ type MoneyRequestHeaderProps = MoneyRequestHeaderOnyxProps & {
     onBackButtonPress: () => void;
 };
 
-type PendingType = 'PENDING' | 'SCANNING' | 'RTER';
+type NoPendingStatusBarProps = {isPending: false};
 
-type MoneyRequestHeaderPendingStatusBarProps = {pendingType: PendingType; shouldShowBorderBottom: boolean};
+type PendingStatusBarProps = {
+    isPending: true;
 
-function MoneyRequestHeaderPendingStatusBar({pendingType, shouldShowBorderBottom}: MoneyRequestHeaderPendingStatusBarProps) {
-    const theme = useTheme();
-    const {translate} = useLocalize();
+    /** The icon to be displayed in status bar */
+    pendingIcon: React.FC<SvgProps>;
 
-    if (pendingType === 'PENDING') {
-        return (
-            <MoneyRequestHeaderStatusBar
-                title={
-                    <Icon
-                        src={Expensicons.CreditCardHourglass}
-                        height={variables.iconSizeSmall}
-                        width={variables.iconSizeSmall}
-                        fill={theme.icon}
-                    />
-                }
-                description={translate('iou.transactionPendingDescription')}
-                shouldShowBorderBottom={shouldShowBorderBottom}
-            />
-        );
-    }
+    /** The description to be displayed in status bar */
+    pendingDescription: string;
+};
 
-    if (pendingType === 'SCANNING') {
-        return (
-            <MoneyRequestHeaderStatusBar
-                title={
-                    <Icon
-                        src={Expensicons.ReceiptScan}
-                        height={variables.iconSizeSmall}
-                        width={variables.iconSizeSmall}
-                        fill={theme.icon}
-                    />
-                }
-                description={translate('iou.receiptScanInProgressDescription')}
-                shouldShowBorderBottom={shouldShowBorderBottom}
-            />
-        );
-    }
+type StatusBarProps = NoPendingStatusBarProps | PendingStatusBarProps;
 
-    return (
-        <MoneyRequestHeaderStatusBar
-            title={
-                <Icon
-                    src={Expensicons.Hourglass}
-                    height={variables.iconSizeSmall}
-                    width={variables.iconSizeSmall}
-                    fill={theme.textSupporting}
-                />
-            }
-            description={translate('iou.pendingMatchWithCreditCardDescription')}
-            shouldShowBorderBottom={shouldShowBorderBottom}
-        />
-    );
-}
 function MoneyRequestHeader({
     session,
     parentReport,
@@ -133,6 +91,7 @@ function MoneyRequestHeader({
     onBackButtonPress,
 }: MoneyRequestHeaderProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {translate} = useLocalize();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [shouldShowHoldMenu, setShouldShowHoldMenu] = useState(false);
@@ -179,19 +138,20 @@ function MoneyRequestHeader({
         }
     };
 
-    const getPendingType: () => PendingType | undefined = () => {
+    const getStatusBarProps: () => StatusBarProps = () => {
         if (TransactionUtils.isExpensifyCardTransaction(transaction) && TransactionUtils.isPending(transaction)) {
-            return 'PENDING';
+            return {isPending: true, pendingIcon: Expensicons.CreditCardHourglass, pendingDescription: translate('iou.transactionPendingDescription')};
         }
         if (isScanning) {
-            return 'SCANNING';
+            return {isPending: true, pendingIcon: Expensicons.ReceiptScan, pendingDescription: translate('iou.receiptScanInProgressDescription')};
         }
         if (TransactionUtils.hasPendingRTERViolation(TransactionUtils.getTransactionViolations(transaction?.transactionID ?? '', transactionViolations))) {
-            return 'RTER';
+            return {isPending: true, pendingIcon: Expensicons.Hourglass, pendingDescription: translate('iou.pendingMatchWithCreditCardDescription')};
         }
+        return {isPending: false};
     };
 
-    const pendingType = getPendingType();
+    const statusBarProps = getStatusBarProps();
 
     useEffect(() => {
         if (canDeleteRequest) {
@@ -257,7 +217,7 @@ function MoneyRequestHeader({
         <>
             <View style={[styles.pl0]}>
                 <HeaderWithBackButton
-                    shouldShowBorderBottom={!pendingType && !isOnHold}
+                    shouldShowBorderBottom={!statusBarProps.isPending && !isOnHold}
                     shouldShowReportAvatarWithDisplay
                     shouldEnableDetailPageNavigation
                     shouldShowPinButton={false}
@@ -272,9 +232,17 @@ function MoneyRequestHeader({
                     shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={onBackButtonPress}
                 />
-                {pendingType && (
-                    <MoneyRequestHeaderPendingStatusBar
-                        pendingType={pendingType}
+                {statusBarProps.isPending && (
+                    <MoneyRequestHeaderStatusBar
+                        title={
+                            <Icon
+                                src={statusBarProps.pendingIcon}
+                                height={variables.iconSizeSmall}
+                                width={variables.iconSizeSmall}
+                                fill={theme.textSupporting}
+                            />
+                        }
+                        description={statusBarProps.pendingDescription}
                         shouldShowBorderBottom={!isOnHold}
                     />
                 )}
