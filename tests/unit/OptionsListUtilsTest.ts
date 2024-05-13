@@ -6,7 +6,7 @@ import CONST from '@src/CONST';
 import * as OptionsListUtils from '@src/libs/OptionsListUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, Policy, PolicyCategories, Report, TaxRatesWithDefault} from '@src/types/onyx';
+import type {PersonalDetails, Policy, PolicyCategories, Report, TaxRatesWithDefault, Transaction} from '@src/types/onyx';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type PersonalDetailsList = Record<string, PersonalDetails & ReportUtils.OptionData>;
@@ -21,6 +21,10 @@ describe('OptionsListUtils', () => {
             reportID: '1',
             participantAccountIDs: [2, 1],
             visibleChatMemberAccountIDs: [2, 1],
+            participants: {
+                2: {},
+                1: {},
+            },
             reportName: 'Iron Man, Mister Fantastic',
             type: CONST.REPORT.TYPE.CHAT,
         },
@@ -31,6 +35,9 @@ describe('OptionsListUtils', () => {
             reportID: '2',
             participantAccountIDs: [3],
             visibleChatMemberAccountIDs: [3],
+            participants: {
+                3: {},
+            },
             reportName: 'Spider-Man',
             type: CONST.REPORT.TYPE.CHAT,
         },
@@ -43,6 +50,9 @@ describe('OptionsListUtils', () => {
             reportID: '3',
             participantAccountIDs: [1],
             visibleChatMemberAccountIDs: [1],
+            participants: {
+                1: {},
+            },
             reportName: 'Mister Fantastic',
             type: CONST.REPORT.TYPE.CHAT,
         },
@@ -53,6 +63,9 @@ describe('OptionsListUtils', () => {
             reportID: '4',
             participantAccountIDs: [4],
             visibleChatMemberAccountIDs: [4],
+            participants: {
+                4: {},
+            },
             reportName: 'Black Panther',
             type: CONST.REPORT.TYPE.CHAT,
         },
@@ -63,6 +76,9 @@ describe('OptionsListUtils', () => {
             reportID: '5',
             participantAccountIDs: [5],
             visibleChatMemberAccountIDs: [5],
+            participants: {
+                5: {},
+            },
             reportName: 'Invisible Woman',
             type: CONST.REPORT.TYPE.CHAT,
         },
@@ -73,6 +89,9 @@ describe('OptionsListUtils', () => {
             reportID: '6',
             participantAccountIDs: [6],
             visibleChatMemberAccountIDs: [6],
+            participants: {
+                6: {},
+            },
             reportName: 'Thor',
             type: CONST.REPORT.TYPE.CHAT,
         },
@@ -85,6 +104,9 @@ describe('OptionsListUtils', () => {
             reportID: '7',
             participantAccountIDs: [7],
             visibleChatMemberAccountIDs: [7],
+            participants: {
+                7: {},
+            },
             reportName: 'Captain America',
             type: CONST.REPORT.TYPE.CHAT,
         },
@@ -97,6 +119,9 @@ describe('OptionsListUtils', () => {
             reportID: '8',
             participantAccountIDs: [12],
             visibleChatMemberAccountIDs: [12],
+            participants: {
+                12: {},
+            },
             reportName: 'Silver Surfer',
             type: CONST.REPORT.TYPE.CHAT,
         },
@@ -109,6 +134,9 @@ describe('OptionsListUtils', () => {
             reportID: '9',
             participantAccountIDs: [8],
             visibleChatMemberAccountIDs: [8],
+            participants: {
+                8: {},
+            },
             reportName: 'Mister Sinister',
             iouReportID: '100',
             type: CONST.REPORT.TYPE.CHAT,
@@ -122,6 +150,10 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             participantAccountIDs: [2, 7],
             visibleChatMemberAccountIDs: [2, 7],
+            participants: {
+                2: {},
+                7: {},
+            },
             reportName: '',
             oldPolicyName: "SHIELD's workspace",
             chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
@@ -212,6 +244,9 @@ describe('OptionsListUtils', () => {
             reportID: '11',
             participantAccountIDs: [999],
             visibleChatMemberAccountIDs: [999],
+            participants: {
+                999: {},
+            },
             reportName: 'Concierge',
             type: CONST.REPORT.TYPE.CHAT,
         },
@@ -226,6 +261,9 @@ describe('OptionsListUtils', () => {
             reportID: '12',
             participantAccountIDs: [1000],
             visibleChatMemberAccountIDs: [1000],
+            participants: {
+                1000: {},
+            },
             reportName: 'Chronos',
             type: CONST.REPORT.TYPE.CHAT,
         },
@@ -240,6 +278,9 @@ describe('OptionsListUtils', () => {
             reportID: '13',
             participantAccountIDs: [1001],
             visibleChatMemberAccountIDs: [1001],
+            participants: {
+                1001: {},
+            },
             reportName: 'Receipts',
             type: CONST.REPORT.TYPE.CHAT,
         },
@@ -254,6 +295,11 @@ describe('OptionsListUtils', () => {
             reportID: '14',
             participantAccountIDs: [1, 10, 3],
             visibleChatMemberAccountIDs: [1, 10, 3],
+            participants: {
+                1: {},
+                10: {},
+                3: {},
+            },
             reportName: '',
             oldPolicyName: 'Avengers Room',
             chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
@@ -271,6 +317,10 @@ describe('OptionsListUtils', () => {
             reportID: '15',
             participantAccountIDs: [3, 4],
             visibleChatMemberAccountIDs: [3, 4],
+            participants: {
+                3: {},
+                4: {},
+            },
             reportName: 'Spider-Man, Black Panther',
             type: CONST.REPORT.TYPE.CHAT,
             chatType: CONST.REPORT.CHAT_TYPE.DOMAIN_ALL,
@@ -432,6 +482,36 @@ describe('OptionsListUtils', () => {
         expect(results.personalDetails[1].text).toBe('Black Widow');
         expect(results.personalDetails[2].text).toBe('Captain America');
         expect(results.personalDetails[3].text).toBe('Invisible Woman');
+
+        // When we don't include personal detail to the result
+        results = OptionsListUtils.getFilteredOptions(
+            [],
+            OPTIONS.personalDetails,
+            [],
+            '',
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            false,
+        );
+
+        // Then no personal detail options will be returned
+        expect(results.personalDetails.length).toBe(0);
 
         // When we provide a search value that does not match any personal details
         results = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], 'magneto');
@@ -812,12 +892,14 @@ describe('OptionsListUtils', () => {
                         isSelected: false,
                     },
                 ],
+                indexOffset: 3,
             },
         ];
         const smallSearchResultList: OptionsListUtils.CategoryTreeSection[] = [
             {
                 title: '',
                 shouldShow: true,
+                indexOffset: 2,
                 data: [
                     {
                         text: 'Food',
@@ -842,6 +924,7 @@ describe('OptionsListUtils', () => {
             {
                 title: '',
                 shouldShow: true,
+                indexOffset: 0,
                 data: [],
             },
         ];
@@ -977,20 +1060,22 @@ describe('OptionsListUtils', () => {
             {
                 title: '',
                 shouldShow: false,
+                indexOffset: 1,
                 data: [
                     {
                         text: 'Medical',
                         keyForList: 'Medical',
                         searchText: 'Medical',
                         tooltipText: 'Medical',
-                        isDisabled: false,
-                        isSelected: false,
+                        isDisabled: true,
+                        isSelected: true,
                     },
                 ],
             },
             {
                 title: 'Recent',
                 shouldShow: true,
+                indexOffset: 1,
                 data: [
                     {
                         text: 'Restaurant',
@@ -1005,6 +1090,7 @@ describe('OptionsListUtils', () => {
             {
                 title: 'All',
                 shouldShow: true,
+                indexOffset: 11,
                 data: [
                     {
                         text: 'Cars',
@@ -1101,6 +1187,7 @@ describe('OptionsListUtils', () => {
             {
                 title: '',
                 shouldShow: true,
+                indexOffset: 3,
                 data: [
                     {
                         text: 'Food',
@@ -1133,6 +1220,7 @@ describe('OptionsListUtils', () => {
             {
                 title: '',
                 shouldShow: true,
+                indexOffset: 0,
                 data: [],
             },
         ];
@@ -1141,14 +1229,15 @@ describe('OptionsListUtils', () => {
             {
                 title: '',
                 shouldShow: false,
+                indexOffset: 1,
                 data: [
                     {
                         text: 'Medical',
                         keyForList: 'Medical',
                         searchText: 'Medical',
                         tooltipText: 'Medical',
-                        isDisabled: false,
-                        isSelected: false,
+                        isDisabled: true,
+                        isSelected: true,
                     },
                 ],
             },
@@ -2483,99 +2572,85 @@ describe('OptionsListUtils', () => {
                 },
             },
         };
+        const policy = {
+            taxRates: taxRatesWithDefault,
+        } as Policy;
+
+        const transaction = {
+            taxCode: 'CODE1',
+        } as Transaction;
 
         const resultList: OptionsListUtils.CategorySection[] = [
             {
-                title: '',
-                shouldShow: false,
-                // data sorted alphabetically by name
                 data: [
                     {
-                        // Adds 'Default' title to default tax.
-                        // Adds value to tax name for more description.
-                        text: 'Tax exempt 1 (0%) • Default',
+                        code: 'CODE1',
+                        isDisabled: undefined,
+                        isSelected: undefined,
                         keyForList: 'Tax exempt 1 (0%) • Default',
                         searchText: 'Tax exempt 1 (0%) • Default',
+                        text: 'Tax exempt 1 (0%) • Default',
                         tooltipText: 'Tax exempt 1 (0%) • Default',
-                        isDisabled: undefined,
-                        // creates a data option.
-                        data: {
-                            name: 'Tax exempt 1',
-                            code: 'CODE1',
-                            modifiedName: 'Tax exempt 1 (0%) • Default',
-                            value: '0%',
-                        },
                     },
                     {
-                        text: 'Tax option 3 (5%)',
+                        code: 'CODE3',
+                        isDisabled: undefined,
+                        isSelected: undefined,
                         keyForList: 'Tax option 3 (5%)',
                         searchText: 'Tax option 3 (5%)',
+                        text: 'Tax option 3 (5%)',
                         tooltipText: 'Tax option 3 (5%)',
-                        isDisabled: undefined,
-                        data: {
-                            name: 'Tax option 3',
-                            code: 'CODE3',
-                            modifiedName: 'Tax option 3 (5%)',
-                            value: '5%',
-                        },
                     },
                     {
-                        text: 'Tax rate 2 (3%)',
+                        code: 'CODE2',
+                        isDisabled: undefined,
+                        isSelected: undefined,
                         keyForList: 'Tax rate 2 (3%)',
                         searchText: 'Tax rate 2 (3%)',
+                        text: 'Tax rate 2 (3%)',
                         tooltipText: 'Tax rate 2 (3%)',
-                        isDisabled: undefined,
-                        data: {
-                            name: 'Tax rate 2',
-                            code: 'CODE2',
-                            modifiedName: 'Tax rate 2 (3%)',
-                            value: '3%',
-                        },
                     },
                 ],
+                shouldShow: false,
+                title: '',
             },
         ];
 
         const searchResultList: OptionsListUtils.CategorySection[] = [
             {
-                title: '',
-                shouldShow: true,
-                // data sorted alphabetically by name
                 data: [
                     {
-                        text: 'Tax rate 2 (3%)',
+                        code: 'CODE2',
+                        isDisabled: undefined,
+                        isSelected: undefined,
                         keyForList: 'Tax rate 2 (3%)',
                         searchText: 'Tax rate 2 (3%)',
+                        text: 'Tax rate 2 (3%)',
                         tooltipText: 'Tax rate 2 (3%)',
-                        isDisabled: undefined,
-                        data: {
-                            name: 'Tax rate 2',
-                            code: 'CODE2',
-                            modifiedName: 'Tax rate 2 (3%)',
-                            value: '3%',
-                        },
                     },
                 ],
+                shouldShow: true,
+                title: '',
             },
         ];
 
         const wrongSearchResultList: OptionsListUtils.CategorySection[] = [
             {
-                title: '',
-                shouldShow: true,
                 data: [],
+                shouldShow: true,
+                title: '',
             },
         ];
 
-        const result = OptionsListUtils.getFilteredOptions([], [], [], emptySearch, [], [], false, false, false, {}, [], false, {}, [], false, false, true, taxRatesWithDefault);
+        const result = OptionsListUtils.getTaxRatesSection(policy, [], emptySearch, transaction);
 
-        expect(result.taxRatesOptions).toStrictEqual(resultList);
+        expect(result).toStrictEqual(resultList);
 
-        const searchResult = OptionsListUtils.getFilteredOptions([], [], [], search, [], [], false, false, false, {}, [], false, {}, [], false, false, true, taxRatesWithDefault);
-        expect(searchResult.taxRatesOptions).toStrictEqual(searchResultList);
+        const searchResult = OptionsListUtils.getTaxRatesSection(policy, [], search, transaction);
+        expect(searchResult).toStrictEqual(searchResultList);
 
-        const wrongSearchResult = OptionsListUtils.getFilteredOptions([], [], [], wrongSearch, [], [], false, false, false, {}, [], false, {}, [], false, false, true, taxRatesWithDefault);
-        expect(wrongSearchResult.taxRatesOptions).toStrictEqual(wrongSearchResultList);
+        const wrongSearchResult = OptionsListUtils.getTaxRatesSection(policy, [], wrongSearch, transaction);
+        expect(wrongSearchResult).toStrictEqual(wrongSearchResultList);
     });
 
     it('formatMemberForList()', () => {

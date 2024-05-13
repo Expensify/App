@@ -14,6 +14,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as Browser from '@libs/Browser';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import BackgroundImage from './BackgroundImage';
@@ -144,8 +145,16 @@ function SignInPageLayout(
                     keyboardShouldPersistTaps="handled"
                     ref={scrollViewRef}
                 >
-                    <View style={[styles.dBlock, styles.flexColumn, styles.overflowHidden, StyleUtils.getSignInBgStyles(theme)]}>
-                        <View style={[styles.dBlock, styles.pAbsolute, styles.w100, StyleUtils.getHeight(backgroundImageHeight), StyleUtils.getBackgroundColorStyle(theme.highlightBG)]}>
+                    <View
+                        style={[
+                            styles.flex1,
+                            styles.flexColumn,
+                            Browser.isMobileSafari() ? styles.overflowHidden : {},
+                            StyleUtils.getMinimumHeight(backgroundImageHeight),
+                            StyleUtils.getSignInBgStyles(theme),
+                        ]}
+                    >
+                        <View style={[styles.pAbsolute, styles.w100, StyleUtils.getHeight(backgroundImageHeight), StyleUtils.getBackgroundColorStyle(theme.highlightBG)]}>
                             <BackgroundImage
                                 isSmallScreen
                                 pointerEvents="none"

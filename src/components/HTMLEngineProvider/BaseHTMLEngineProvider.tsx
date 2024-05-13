@@ -92,6 +92,9 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             tagsStyles={styles.webViewStyles.tagStyles}
             enableCSSInlineProcessing={false}
             systemFonts={Object.values(FontUtils.fontFamily.single)}
+            htmlParserOptions={{
+                recognizeSelfClosing: true,
+            }}
             domVisitors={{
                 // eslint-disable-next-line no-param-reassign
                 onText: (text) => (text.data = convertToLTR(text.data)),
