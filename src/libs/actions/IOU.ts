@@ -5120,6 +5120,10 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
         updatedIOUReport.lastVisibleActionCreated = lastVisibleAction?.created;
     }
 
+    if (isSingleTransactionView && !shouldDeleteIOUReport && updatedIOUReport) {
+        updatedIOUReport.statusNum = CONST.REPORT.STATUS_NUM.CLOSED;
+    }
+
     const hasNonReimbursableTransactions = ReportUtils.hasNonReimbursableTransactions(iouReport?.reportID);
     const messageText = Localize.translateLocal(hasNonReimbursableTransactions ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount', {
         payer: ReportUtils.getPersonalDetailsForAccountID(updatedIOUReport?.managerID ?? -1).login ?? '',
