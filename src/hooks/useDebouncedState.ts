@@ -1,5 +1,5 @@
 import debounce from 'lodash/debounce';
-import {useEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 import CONST from '@src/CONST';
 
 /**
@@ -24,10 +24,13 @@ function useDebouncedState<T>(initialValue: T, delay: number = CONST.TIMING.SEAR
 
     useEffect(() => () => debouncedSetDebouncedValue.cancel(), [debouncedSetDebouncedValue]);
 
-    const handleSetValue = (newValue: T) => {
-        setValue(newValue);
-        debouncedSetDebouncedValue(newValue);
-    };
+    const handleSetValue = useCallback(
+        (newValue: T) => {
+            setValue(newValue);
+            debouncedSetDebouncedValue(newValue);
+        },
+        [debouncedSetDebouncedValue],
+    );
 
     return [value, debouncedValue, handleSetValue];
 }
