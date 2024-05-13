@@ -45,13 +45,15 @@ Onyx.connect({
     },
 });
 
-let wasTheLeader = false;
+let isPromotingNewLeader = false;
 
 /**
  * The last GUID is the most recent GUID, so that should be the leader
  */
 const isClientTheLeader: IsClientTheLeader = () => {
-    if (wasTheLeader) {
+    // keep reporting currently leading client on page refresh
+    // when clientID is already removed from activeClients list
+    if (isPromotingNewLeader) {
         return true;
     }
 
@@ -61,7 +63,7 @@ const isClientTheLeader: IsClientTheLeader = () => {
 };
 
 const cleanUpClientId = () => {
-    wasTheLeader = isClientTheLeader();
+    isPromotingNewLeader = isClientTheLeader();
     activeClients = activeClients.filter((id) => id !== clientID);
     ActiveClients.setActiveClients(activeClients);
 };
