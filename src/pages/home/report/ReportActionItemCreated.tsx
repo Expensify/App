@@ -16,7 +16,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, Report} from '@src/types/onyx';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
-import * as ReportActions from '@userActions/Report';
 
 type ReportActionItemCreatedOnyxProps = {
     /** The report currently being looked at */
@@ -69,9 +68,7 @@ function ReportActionItemCreated(props: ReportActionItemCreatedProps) {
                     accessibilityLabel={translate('accessibilityHints.chatWelcomeMessage')}
                     style={[styles.p5, StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}
                 >
-                    <OfflineWithFeedback 
-                        pendingAction={props.report?.pendingFields?.avatar}
-                    >
+                    <OfflineWithFeedback pendingAction={props.report?.pendingFields?.avatar}>
                         <PressableWithoutFeedback
                             onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
                             style={[styles.mh5, styles.mb3, styles.alignSelfStart]}

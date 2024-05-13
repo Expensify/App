@@ -9,6 +9,7 @@ import type {ThreeDotsMenuItem} from '@components/HeaderWithBackButton/types';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MultipleAvatars from '@components/MultipleAvatars';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
@@ -35,7 +36,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 type HeaderViewOnyxProps = {
     /** URL to the assigned guide's appointment booking calendar */
