@@ -2857,7 +2857,7 @@ type UpdateMoneyRequestTaxRateParams = {
 function updateMoneyRequestTaxRate({transactionID, optimisticReportActionID, taxCode, taxAmount, policy, policyTagList, policyCategories}: UpdateMoneyRequestTaxRateParams) {
     const transactionChanges = {
         taxCode,
-        taxAmount,
+        ...(taxAmount !== null && {taxAmount}),
     };
     const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, optimisticReportActionID, transactionChanges, policy, policyTagList, policyCategories, true);
     API.write('UpdateMoneyRequestTaxRate', params, onyxData);
@@ -5062,7 +5062,7 @@ function updateMoneyRequestAmountAndCurrency({
     const transactionChanges = {
         amount,
         currency,
-        taxAmount,
+        ...(taxAmount !== null && {taxAmount}),
     };
     const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.parentReportID}`] ?? null;
