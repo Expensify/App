@@ -1,13 +1,13 @@
-import {useIsFocused, useRoute} from '@react-navigation/native';
+import {useIsFocused} from '@react-navigation/native';
 import React, {forwardRef, useEffect, useRef} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
+import useGeographicalStateAndCountryFromRoute from '@hooks/useGeographicalStateAndCountryFromRoute';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {MaybePhraseKey} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {Country} from '@src/CONST';
-import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import FormHelpMessage from './FormHelpMessage';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
@@ -33,10 +33,7 @@ type CountrySelectorProps = {
 function CountrySelector({errorText = '', value: countryCode, onInputChange = () => {}, onBlur}: CountrySelectorProps, ref: ForwardedRef<View>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const route = useRoute();
-    const countryFromUrlTemp = (route?.params as Record<string, string>)?.country;
-    // Check if country is valid
-    const countryFromUrl = CONST.ALL_COUNTRIES[countryFromUrlTemp as keyof typeof CONST.ALL_COUNTRIES] ? countryFromUrlTemp : '';
+    const countryFromUrl = useGeographicalStateAndCountryFromRoute()?.country;
 
     const title = countryCode ? translate(`allCountries.${countryCode}`) : '';
     const countryTitleDescStyle = title.length === 0 ? styles.textNormal : null;
