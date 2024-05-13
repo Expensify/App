@@ -132,8 +132,7 @@ function AttachmentView({
 
     if (TransactionUtils.hasEReceipt(transaction) && transaction) {
         return (
-            <View
-                style={[styles.flex1, styles.alignItemsCenter]}>
+            <View style={[styles.flex1, styles.alignItemsCenter]}>
                 <ScrollView
                     style={styles.w100}
                     contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter, styles.alignItemsCenter]}
@@ -218,35 +217,29 @@ function AttachmentView({
     }
 
     if ((isVideo ?? (file?.name && Str.isVideo(file.name))) && typeof source === 'string') {
-
         return (
             <AttachmentViewVideo
-                            source={source}
-                            shouldUseSharedVideoElement={isUsedInCarousel}
-                            isHovered={isHovered}
-                            duration={duration}
-                        />
+                source={source}
+                shouldUseSharedVideoElement={isUsedInCarousel}
+                isHovered={isHovered}
+                duration={duration}
+            />
         );
     }
 
     return (
-        <View
-            style={[styles.defaultAttachmentView, containerStyles]}>
-            <View
-                style={styles.mr2}>
+        <View style={[styles.defaultAttachmentView, containerStyles]}>
+            <View style={styles.mr2}>
                 <Icon
                     fill={theme.icon}
                     src={Expensicons.Paperclip}
                 />
             </View>
 
-            <Text
-                style={[styles.textStrong, styles.flexShrink1, styles.breakAll, styles.flexWrap, styles.mw100]}>{file?.name}</Text>
+            <Text style={[styles.textStrong, styles.flexShrink1, styles.breakAll, styles.flexWrap, styles.mw100]}>{file?.name}</Text>
             {!shouldShowLoadingSpinnerIcon && shouldShowDownloadIcon && (
-                <Tooltip
-                    text={translate('common.download')}>
-                    <View
-                        style={styles.ml2}>
+                <Tooltip text={translate('common.download')}>
+                    <View style={styles.ml2}>
                         <Icon
                             fill={theme.icon}
                             src={Expensicons.Download}
@@ -255,10 +248,8 @@ function AttachmentView({
                 </Tooltip>
             )}
             {shouldShowLoadingSpinnerIcon && (
-                <View
-                    style={styles.ml2}>
-                    <Tooltip
-                        text={translate('common.downloading')}>
+                <View style={styles.ml2}>
+                    <Tooltip text={translate('common.downloading')}>
                         <ActivityIndicator
                             size="small"
                             color={theme.textSupporting}

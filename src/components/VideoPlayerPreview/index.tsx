@@ -70,8 +70,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     }, [currentlyPlayingURL, currentlyPlayingURLReportID, updateCurrentlyPlayingURL, videoUrl, reportID]);
 
     return (
-        <View
-            style={[styles.webViewStyles.tagStyles.video, thumbnailDimensionsStyles]}>
+        <View style={[styles.webViewStyles.tagStyles.video, thumbnailDimensionsStyles]}>
             {isSmallScreenWidth || isThumbnail ? (
                 <VideoPlayerThumbnail
                     thumbnailUrl={thumbnailUrl}
@@ -79,8 +78,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
                     accessibilityLabel={fileName}
                 />
             ) : (
-                <View
-                    style={styles.flex1}>
+                <View style={styles.flex1}>
                     <VideoPlayer
                         url={videoUrl}
                         onVideoLoaded={onVideoLoaded as (event: VideoReadyForDisplayEvent) => void}
@@ -89,8 +87,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
                         style={[styles.w100, styles.h100]}
                         videoPlayerStyle={styles.videoPlayerPreview}
                     />
-                    <View
-                        style={[styles.pAbsolute, styles.w100]}>
+                    <View style={[styles.pAbsolute, styles.w100]}>
                         <IconButton
                             src={Expensicons.Expand}
                             style={[styles.videoExpandButton]}

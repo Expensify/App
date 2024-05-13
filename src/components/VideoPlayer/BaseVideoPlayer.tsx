@@ -290,8 +290,7 @@ function BaseVideoPlayer({
             >
                 <Hoverable>
                     {(isHovered) => (
-                        <View
-                            style={[styles.w100, styles.h100]}>
+                        <View style={[styles.w100, styles.h100]}>
                             <PressableWithoutFeedback
                                 accessibilityRole="button"
                                 accessible={false}
