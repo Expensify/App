@@ -1,3 +1,4 @@
+import {noop} from 'lodash';
 import {useCallback, useRef, useState} from 'react';
 import type {SubStepProps, UseSubStep} from './types';
 
@@ -8,7 +9,7 @@ import type {SubStepProps, UseSubStep} from './types';
  * @param startFrom - initial index for bodyContent array
  * @param onNextSubStep - callback triggered after finish each step
  */
-export default function useSubStep<TProps extends SubStepProps>({bodyContent, onFinished, startFrom = 0, onNextSubStep = () => {}}: UseSubStep<TProps>) {
+export default function useSubStep<TProps extends SubStepProps>({bodyContent, onFinished, startFrom = 0, onNextSubStep = noop}: UseSubStep<TProps>) {
     const [screenIndex, setScreenIndex] = useState(startFrom);
     const isEditing = useRef(false);
 
