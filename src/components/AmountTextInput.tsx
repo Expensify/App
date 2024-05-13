@@ -36,6 +36,9 @@ type AmountTextInputProps = {
 
     /** Style for the TextInput container */
     containerStyle?: StyleProp<ViewStyle>;
+
+    /** Hide the focus styles on TextInput */
+    hideFocusedState?: boolean;
 } & Pick<BaseTextInputProps, 'autoFocus'>;
 
 function AmountTextInput(
@@ -50,6 +53,7 @@ function AmountTextInput(
         onKeyPress,
         containerStyle,
         disableKeyboard = true,
+        hideFocusedState = true,
         ...rest
     }: AmountTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
@@ -57,7 +61,7 @@ function AmountTextInput(
     return (
         <TextInput
             autoGrow
-            hideFocusedState
+            hideFocusedState={hideFocusedState}
             shouldInterceptSwipe
             disableKeyboard={disableKeyboard}
             inputStyle={style}
