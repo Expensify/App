@@ -35,6 +35,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 type HeaderViewOnyxProps = {
     /** URL to the assigned guide's appointment booking calendar */
@@ -266,10 +267,12 @@ function HeaderView({
                                             size={defaultSubscriptSize}
                                         />
                                     ) : (
-                                        <MultipleAvatars
-                                            icons={icons}
-                                            shouldShowTooltip={!isChatRoom || isChatThread}
-                                        />
+                                        <OfflineWithFeedback pendingAction={report.pendingFields?.avatar}>
+                                            <MultipleAvatars
+                                                icons={icons}
+                                                shouldShowTooltip={!isChatRoom || isChatThread}
+                                            />
+                                        </OfflineWithFeedback>
                                     )}
                                     <View style={[styles.flex1, styles.flexColumn]}>
                                         <DisplayNames
