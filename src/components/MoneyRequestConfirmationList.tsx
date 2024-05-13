@@ -498,7 +498,7 @@ function MoneyRequestConfirmationList({
                 currency: iouCurrencyCode,
                 prefixCharacter: currencySymbol,
                 containerStyle: [amountWidth],
-                // inputStyle: [amountWidth],
+                inputStyle: [amountWidth as TextStyle],
                 maxLength: formattedTotalAmount.length,
                 onAmountChange: (value: string) => onSplitShareChange(participantOption.accountID ?? 0, Number(value)),
             },
@@ -582,7 +582,9 @@ function MoneyRequestConfirmationList({
                                             onAmountChange={participant.amountInputProps.onAmountChange}
                                             maxLength={participant.amountInputProps.maxLength}
                                         />
-                                    ) : null,
+                                    ) : (
+                                        <Text style={[styles.textLabel]}>{participant.descriptiveText}</Text>
+                                    ),
                             })) ?? [],
                         shouldShow: true,
                     },
@@ -613,6 +615,7 @@ function MoneyRequestConfirmationList({
         styles.pv0,
         SplitAmountSectionHeader,
         styles.textInputContainer,
+        styles.textLabel,
     ]);
 
     useEffect(() => {
