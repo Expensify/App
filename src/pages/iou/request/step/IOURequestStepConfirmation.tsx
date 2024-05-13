@@ -85,9 +85,9 @@ function IOURequestStepConfirmation({
     const receiptFilename = transaction?.filename;
     const receiptPath = transaction?.receipt?.source;
     const receiptType = transaction?.receipt?.type;
-    const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
-    const transactionTaxCode = transaction?.taxRate ? transaction.taxRate.data?.code : foreignTaxDefault;
-    const transactionTaxAmount = transaction?.taxAmount;
+    const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction);
+    const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
+    const transactionTaxAmount = transaction?.taxAmount ?? 0;
     const isSharingTrackExpense = action === CONST.IOU.ACTION.SHARE;
     const isCategorizingTrackExpense = action === CONST.IOU.ACTION.CATEGORIZE;
     const isSubmittingFromTrackExpense = action === CONST.IOU.ACTION.SUBMIT;
@@ -146,7 +146,7 @@ function IOURequestStepConfirmation({
             }) ?? [],
         [transaction?.participants, personalDetails, iouType],
     );
-    const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report)), [report]);
+    const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
     const formHasBeenSubmitted = useRef(false);
 
     useEffect(() => {
@@ -300,6 +300,8 @@ function IOURequestStepConfirmation({
                 transaction.created,
                 transaction.category,
                 transaction.tag,
+                transactionTaxCode,
+                transactionTaxAmount,
                 transaction.amount,
                 transaction.currency,
                 transaction.merchant,
@@ -311,11 +313,20 @@ function IOURequestStepConfirmation({
                 customUnitRateID,
             );
         },
-        [policy, policyCategories, policyTags, report, transaction],
+        [policy, policyCategories, policyTags, report, transaction, transactionTaxCode, transactionTaxAmount],
     );
 
     const createTransaction = useCallback(
         (selectedParticipants: Participant[]) => {
+            let splitParticipants = selectedParticipants;
+
+            // Filter out participants with an amount equal to O
+            if (iouType === CONST.IOU.TYPE.SPLIT && transaction?.splitShares) {
+                const participantsWithAmount = Object.keys(transaction.splitShares ?? {})
+                    .filter((accountID: string): boolean => (transaction?.splitShares?.[Number(accountID)]?.amount ?? 0) > 0)
+                    .map((accountID) => Number(accountID));
+                splitParticipants = selectedParticipants.filter((participant) => participantsWithAmount.includes(participant.accountID ?? -1));
+            }
             const trimmedComment = (transaction?.comment.comment ?? '').trim();
 
             // Don't let the form be submitted multiple times while the navigator is waiting to take the user to a different page
@@ -349,7 +360,7 @@ function IOURequestStepConfirmation({
             if (iouType === CONST.IOU.TYPE.SPLIT && !transaction?.isFromGlobalCreate) {
                 if (currentUserPersonalDetails.login && !!transaction) {
                     IOU.splitBill({
-                        participants: selectedParticipants,
+                        participants: splitParticipants,
                         currentUserLogin: currentUserPersonalDetails.login,
                         currentUserAccountID: currentUserPersonalDetails.accountID,
                         amount: transaction.amount,
@@ -362,6 +373,7 @@ function IOURequestStepConfirmation({
                         existingSplitChatReportID: report?.reportID,
                         billable: transaction.billable,
                         iouRequestType: transaction.iouRequestType,
+                        splitShares: transaction.splitShares,
                         splitPayerAccountIDs: transaction.splitPayerAccountIDs ?? [],
                     });
                 }
@@ -372,7 +384,7 @@ function IOURequestStepConfirmation({
             if (iouType === CONST.IOU.TYPE.SPLIT) {
                 if (currentUserPersonalDetails.login && !!transaction) {
                     IOU.splitBillAndOpenReport({
-                        participants: selectedParticipants,
+                        participants: splitParticipants,
                         currentUserLogin: currentUserPersonalDetails.login,
                         currentUserAccountID: currentUserPersonalDetails.accountID,
                         amount: transaction.amount,
@@ -384,6 +396,7 @@ function IOURequestStepConfirmation({
                         tag: transaction.tag,
                         billable: !!transaction.billable,
                         iouRequestType: transaction.iouRequestType,
+                        splitShares: transaction.splitShares,
                         splitPayerAccountIDs: transaction.splitPayerAccountIDs,
                     });
                 }
@@ -547,7 +560,6 @@ function IOURequestStepConfirmation({
                     />
                     <MoneyRequestConfirmationList
                         transaction={transaction}
-                        hasMultipleParticipants={iouType === CONST.IOU.TYPE.SPLIT}
                         selectedParticipants={participants}
                         iouAmount={Math.abs(transaction?.amount ?? 0)}
                         iouComment={transaction?.comment.comment ?? ''}
@@ -563,13 +575,7 @@ function IOURequestStepConfirmation({
                         iouType={iouType}
                         reportID={reportID}
                         isPolicyExpenseChat={isPolicyExpenseChat}
-                        // The participants can only be modified when the action is initiated from directly within a group chat and not the floating-action-button.
-                        // This is because when there is a group of people, say they are on a trip, and you have some shared expenses with some of the people,
-                        // but not all of them (maybe someone skipped out on dinner). Then it's nice to be able to select/deselect people from the group chat bill
-                        // split rather than forcing the user to create a new group, just for that expense. The reportID is empty, when the action was initiated from
-                        // the floating-action-button (since it is something that exists outside the context of a report).
-                        canModifyParticipants={!transaction?.isFromGlobalCreate}
-                        policyID={report?.policyID}
+                        policyID={report?.policyID ?? policy?.id}
                         bankAccountRoute={ReportUtils.getBankAccountRoute(report)}
                         iouMerchant={transaction?.merchant}
                         iouCreated={transaction?.created}

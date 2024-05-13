@@ -8,7 +8,7 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyTemporaryForRefactorRequestParticipantsSelector';
+import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -105,6 +105,12 @@ function IOURequestStepParticipants({
     const goToNextStep = useCallback(() => {
         const isCategorizing = action === CONST.IOU.ACTION.CATEGORIZE;
 
+        const isPolicyExpenseChat = participants?.some((participant) => participant.isPolicyExpenseChat);
+        if (iouType === CONST.IOU.TYPE.SPLIT && !isPolicyExpenseChat && transaction?.amount && transaction?.currency) {
+            const participantAccountIDs = participants?.map((participant) => participant.accountID) as number[];
+            IOU.setSplitShares(transaction, transaction.amount, transaction.currency, participantAccountIDs);
+        }
+
         IOU.setMoneyRequestTag(transactionID, '');
         IOU.setMoneyRequestCategory(transactionID, '');
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, selectedReportID.current || reportID);
@@ -113,7 +119,7 @@ function IOURequestStepParticipants({
         } else {
             Navigation.navigate(iouConfirmationPageRoute);
         }
-    }, [iouType, transactionID, reportID, action]);
+    }, [iouType, transactionID, transaction, reportID, action, participants]);
 
     const navigateBack = useCallback(() => {
         IOUUtils.navigateToStartMoneyRequestStep(iouRequestType, iouType, transactionID, reportID, action);
