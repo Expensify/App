@@ -56,6 +56,16 @@ type IOURequestStepAmountProps = IOURequestStepAmountOnyxProps &
         transaction: OnyxEntry<OnyxTypes.Transaction>;
     };
 
+function getTaxAmount(transaction: OnyxEntry<OnyxTypes.Transaction>, policy: OnyxEntry<OnyxTypes.Policy>, newAmount: number) {
+    if (!transaction?.amount) {
+        return;
+    }
+    const transactionTaxCode = transaction?.taxCode ?? '';
+    const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction) ?? '';
+    const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, transactionTaxCode ?? defaultTaxCode) ?? '';
+    return CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(taxPercentage, newAmount));
+}
+
 function IOURequestStepAmount({
     report,
     route: {
@@ -280,7 +290,9 @@ function IOURequestStepAmount({
             return;
         }
 
-        IOU.updateMoneyRequestAmountAndCurrency({transactionID, transactionThreadReportID: reportID, currency, amount: newAmount});
+        const taxAmount = getTaxAmount(transaction, policy, newAmount);
+
+        IOU.updateMoneyRequestAmountAndCurrency({transactionID, transactionThreadReportID: reportID, currency, amount: newAmount, taxAmount});
         Navigation.dismissModal();
     };
 

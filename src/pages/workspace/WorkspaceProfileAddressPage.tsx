@@ -9,6 +9,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {updateAddress} from '@userActions/Policy';
 import type {Country} from '@src/CONST';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {CompanyAddress} from '@src/types/onyx/Policy';
@@ -19,7 +20,7 @@ type WorkspaceProfileAddressPagePolicyProps = WithPolicyProps;
 
 type WorkspaceProfileAddressPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ADDRESS> & WorkspaceProfileAddressPagePolicyProps;
 
-function WorkspaceProfileAddressPage({policy}: WorkspaceProfileAddressPageProps) {
+function WorkspaceProfileAddressPage({policy, route}: WorkspaceProfileAddressPageProps) {
     const {translate} = useLocalize();
     const address = useMemo(() => policy?.address, [policy]);
     const [currentCountry, setCurrentCountry] = useState(address?.country);
@@ -27,6 +28,9 @@ function WorkspaceProfileAddressPage({policy}: WorkspaceProfileAddressPageProps)
     const [state, setState] = useState(address?.state);
     const [city, setCity] = useState(address?.city);
     const [zipcode, setZipcode] = useState(address?.zipCode);
+
+    const countryFromUrlTemp = route?.params?.country;
+    const countryFromUrl = CONST.ALL_COUNTRIES[countryFromUrlTemp as keyof typeof CONST.ALL_COUNTRIES] ? countryFromUrlTemp : '';
 
     const updatePolicyAddress = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>) => {
         if (!policy) {
@@ -80,6 +84,13 @@ function WorkspaceProfileAddressPage({policy}: WorkspaceProfileAddressPageProps)
         setCity(address.city);
         setZipcode(address.zipCode);
     }, [address]);
+
+    useEffect(() => {
+        if (!countryFromUrl) {
+            return;
+        }
+        handleAddressChange(countryFromUrl, 'country');
+    }, [countryFromUrl, handleAddressChange]);
 
     return (
         <ScreenWrapper

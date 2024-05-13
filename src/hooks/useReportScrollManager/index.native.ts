@@ -7,13 +7,17 @@ function useReportScrollManager(): ReportScrollManagerData {
 
     /**
      * Scroll to the provided index.
+     * @param viewPosition (optional) - `0`: top, `0.5`: center, `1`: bottom
      */
-    const scrollToIndex = (index: number) => {
+    // We're defaulting isEditing to false in order to match the
+    // number of arguments that index.ts version has.
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const scrollToIndex = (index: number, isEditing = false, viewPosition?: number) => {
         if (!flatListRef?.current) {
             return;
         }
 
-        flatListRef.current.scrollToIndex({index});
+        flatListRef.current.scrollToIndex({index, viewPosition});
     };
 
     /**

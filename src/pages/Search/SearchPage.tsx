@@ -12,6 +12,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {SearchQuery} from '@src/types/onyx/SearchResults';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 type SearchPageProps = StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.SEARCH.CENTRAL_PANE>;
 
@@ -20,6 +21,10 @@ function SearchPage({route}: SearchPageProps) {
     const currentQuery = route?.params && 'query' in route.params ? route?.params?.query : '';
     const query = currentQuery as SearchQuery;
     const isValidQuery = Object.values(CONST.TAB_SEARCH).includes(query);
+
+    const headerContent: {[key in SearchQuery]: {icon: IconAsset; title: string}} = {
+        all: {icon: Illustrations.MoneyReceipts, title: translate('common.expenses')},
+    };
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.ALL));
 
@@ -32,8 +37,8 @@ function SearchPage({route}: SearchPageProps) {
                 shouldShowLink={false}
             >
                 <HeaderWithBackButton
-                    title={translate('common.expenses')}
-                    icon={Illustrations.MoneyReceipts}
+                    title={headerContent[query]?.title}
+                    icon={headerContent[query]?.icon}
                     shouldShowBackButton={false}
                 />
                 <Search query={query} />

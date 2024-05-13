@@ -1,15 +1,21 @@
 import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import getRootNavigatorScreenOptions from '@libs/Navigation/AppNavigator/getRootNavigatorScreenOptions';
 import SCREENS from '@src/SCREENS';
-import useModalScreenOptions from './useModalScreenOptions';
 
 const StackNavigator = createStackNavigator();
 
 function WorkspaceSettingsModalStackNavigator() {
-    const screenOptions = useModalScreenOptions((styles) => ({cardStyle: styles.navigationScreenCardStyle, headerShown: false}));
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const {isSmallScreenWidth} = useWindowDimensions();
+    const screenOptions = getRootNavigatorScreenOptions(isSmallScreenWidth, styles, StyleUtils);
 
     return (
-        <StackNavigator.Navigator screenOptions={screenOptions}>
+        <StackNavigator.Navigator screenOptions={screenOptions.centralPaneNavigator}>
             <StackNavigator.Screen
                 key={SCREENS.WORKSPACE.PROFILE}
                 name={SCREENS.WORKSPACE.PROFILE}

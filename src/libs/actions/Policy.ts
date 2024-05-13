@@ -282,7 +282,7 @@ function getPolicy(policyID: string | undefined): Policy | EmptyObject {
 /**
  * Returns a primary policy for the user
  */
-function getPrimaryPolicy(activePolicyID?: string): Policy | undefined {
+function getPrimaryPolicy(activePolicyID?: OnyxEntry<string>): Policy | undefined {
     const activeAdminWorkspaces = PolicyUtils.getActiveAdminWorkspaces(allPolicies);
     const primaryPolicy: Policy | null | undefined = allPolicies?.[activePolicyID ?? ''];
 

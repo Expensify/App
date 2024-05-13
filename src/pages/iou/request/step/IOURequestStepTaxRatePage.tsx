@@ -5,14 +5,13 @@ import TaxPicker from '@components/TaxPicker';
 import useLocalize from '@hooks/useLocalize';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import type {TaxRatesOption} from '@libs/OptionsListUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {Policy, PolicyCategories, PolicyTagList, TaxRatesWithDefault, Transaction} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyTagList, Transaction} from '@src/types/onyx';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -31,10 +30,11 @@ type IOURequestStepTaxRatePageProps = IOURequestStepTaxRatePageOnyxProps &
         transaction: OnyxEntry<Transaction>;
     };
 
-function getTaxAmount(taxRates: TaxRatesWithDefault, selectedTaxRate: string, amount: number): number | undefined {
-    const percentage = Object.values(OptionsListUtils.transformedTaxRates(taxRates)).find((taxRate) => taxRate.modifiedName?.includes(selectedTaxRate))?.value;
-    if (percentage) {
-        return TransactionUtils.calculateTaxAmount(percentage, amount);
+function getTaxAmount(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, selectedTaxCode: string, amount: number): number | undefined {
+    const getTaxValue = (taxCode: string) => TransactionUtils.getTaxValue(policy, transaction, taxCode);
+    const taxPercentage = getTaxValue(selectedTaxCode);
+    if (taxPercentage) {
+        return TransactionUtils.calculateTaxAmount(taxPercentage, amount);
     }
 }
 
@@ -52,46 +52,49 @@ function IOURequestStepTaxRatePage({
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const taxRates = policy?.taxRates;
-    const defaultExternalID = taxRates?.defaultExternalID;
-    const transactionDetails = ReportUtils.getTransactionDetails(transaction);
-    const transactionTaxCode = transactionDetails?.taxCode;
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
     };
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const moneyRequestSelectedTaxRate = transaction?.taxRate?.keyForList || (taxRates && TransactionUtils.getDefaultTaxName(taxRates));
-    const editingSelectedTaxRate =
-        taxRates &&
-        (transactionTaxCode === defaultExternalID
-            ? transaction && TransactionUtils.getDefaultTaxName(taxRates, transaction)
-            : transactionTaxCode && TransactionUtils.getTaxName(taxRates.taxes, transactionTaxCode));
 
-    const updateTaxRates = (taxes: OptionsListUtils.TaxRatesOption) => {
+    const taxRateTitle = TransactionUtils.getTaxName(policy, transaction);
+
+    const updateTaxRates = (taxes: TaxRatesOption) => {
+        if (!transaction || !taxes.code || !taxRates) {
+            Navigation.goBack();
+            return;
+        }
+
+        const taxAmount = getTaxAmount(policy, transaction, taxes?.code, TransactionUtils.getAmount(transaction, false, true));
+
         if (isEditing) {
-            const newTaxCode = taxes.data.code;
-            if (newTaxCode === undefined || newTaxCode === TransactionUtils.getTaxCode(transaction)) {
+            const newTaxCode = taxes.code;
+            if (newTaxCode === TransactionUtils.getTaxCode(transaction)) {
                 navigateBack();
                 return;
             }
-            IOU.updateMoneyRequestTaxRate(transaction?.transactionID ?? '', report?.reportID ?? '', newTaxCode, policy, policyTags, policyCategories);
+            IOU.updateMoneyRequestTaxRate({
+                transactionID: transaction?.transactionID ?? '',
+                optimisticReportActionID: report?.reportID ?? '',
+                taxCode: newTaxCode,
+                taxAmount: CurrencyUtils.convertToBackendAmount(taxAmount ?? 0),
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+            });
             navigateBack();
             return;
         }
-        if (!transaction || !taxes.text || !taxRates) {
-            Navigation.goBack(backTo);
-            return;
-        }
-        const taxAmount = getTaxAmount(taxRates, taxes.text, transaction?.amount);
+
         if (taxAmount === undefined) {
-            Navigation.goBack(backTo);
+            navigateBack();
             return;
         }
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(taxAmount);
-        IOU.setMoneyRequestTaxRate(transaction?.transactionID, taxes);
+        IOU.setMoneyRequestTaxRate(transaction?.transactionID, taxes?.code ?? '');
         IOU.setMoneyRequestTaxAmount(transaction.transactionID, amountInSmallestCurrencyUnits, true);
 
-        Navigation.goBack(backTo);
+        navigateBack();
     };
 
     return (
@@ -102,9 +105,11 @@ function IOURequestStepTaxRatePage({
             testID={IOURequestStepTaxRatePage.displayName}
         >
             <TaxPicker
-                selectedTaxRate={isEditing ? editingSelectedTaxRate ?? '' : moneyRequestSelectedTaxRate}
+                selectedTaxRate={taxRateTitle}
                 policyID={report?.policyID}
+                transactionID={transaction?.transactionID}
                 onSubmit={updateTaxRates}
+                action={action}
             />
         </StepScreenWrapper>
     );

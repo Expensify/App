@@ -1,4 +1,4 @@
-import type {PropsWithChildren} from 'react';
+import type {ReactNode} from 'react';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
@@ -6,6 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import callOrReturn from '@src/types/utils/callOrReturn';
 
 type StepScreenDragAndDropWrapperProps = {
     /** The title to show in the header (should be translated already) */
@@ -22,15 +23,18 @@ type StepScreenDragAndDropWrapperProps = {
 
     /** An ID used for unit testing */
     testID: string;
+
+    /** The children to render */
+    children: ((isDraggingOver: boolean) => ReactNode) | ReactNode;
 };
 
-function StepScreenDragAndDropWrapper({testID, headerTitle, onBackButtonPress, onEntryTransitionEnd, children, shouldShowWrapper}: PropsWithChildren<StepScreenDragAndDropWrapperProps>) {
+function StepScreenDragAndDropWrapper({testID, headerTitle, onBackButtonPress, onEntryTransitionEnd, children, shouldShowWrapper}: StepScreenDragAndDropWrapperProps) {
     const styles = useThemeStyles();
 
     const [isDraggingOver, setIsDraggingOver] = useState(false);
 
     if (!shouldShowWrapper) {
-        return children;
+        return callOrReturn(children, false);
     }
 
     return (
@@ -49,7 +53,7 @@ function StepScreenDragAndDropWrapper({testID, headerTitle, onBackButtonPress, o
                             title={headerTitle}
                             onBackButtonPress={onBackButtonPress}
                         />
-                        {children}
+                        {callOrReturn(children, isDraggingOver)}
                     </View>
                 </DragAndDropProvider>
             )}

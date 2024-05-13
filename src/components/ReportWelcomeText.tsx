@@ -145,9 +145,9 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                 {isDefault && (
                     <Text>
                         <Text>{translate('reportActionsView.beginningOfChatHistory')}</Text>
-                        {displayNamesWithTooltips.map(({displayName, pronouns, accountID}, index) => (
+                        {displayNamesWithTooltips.map(({displayName, accountID}, index) => (
                             // eslint-disable-next-line react/no-array-index-key
-                            <Text key={`${displayName}${pronouns}${index}`}>
+                            <Text key={`${displayName}${index}`}>
                                 <UserDetailsTooltip accountID={accountID}>
                                     {ReportUtils.isOptimisticPersonalDetail(accountID) ? (
                                         <Text style={[styles.textStrong]}>{displayName}</Text>
@@ -161,7 +161,6 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                                         </Text>
                                     )}
                                 </UserDetailsTooltip>
-                                {!!pronouns && <Text>{` (${pronouns})`}</Text>}
                                 {index === displayNamesWithTooltips.length - 1 && <Text>.</Text>}
                                 {index === displayNamesWithTooltips.length - 2 && <Text>{` ${translate('common.and')} `}</Text>}
                                 {index < displayNamesWithTooltips.length - 2 && <Text>, </Text>}

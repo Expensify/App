@@ -23,7 +23,7 @@ function XeroImportPage({policy}: WithPolicyProps) {
     const {importCustomers, importTaxRates, importTrackingCategories, pendingFields} = policy?.connections?.xero?.config ?? {};
 
     const tenants = useMemo(() => getXeroTenants(policy ?? undefined), [policy]);
-    const currentXeroOrganization = tenants.find((tenant) => tenant.id === policy?.connections?.xero.config.tenantID);
+    const currentXeroOrganization = tenants.find((tenant) => tenant.id === policy?.connections?.xero?.config.tenantID);
 
     const sections = useMemo(
         () => [

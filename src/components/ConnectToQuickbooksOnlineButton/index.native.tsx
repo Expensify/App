@@ -9,6 +9,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {removePolicyConnection} from '@libs/actions/connections';
 import {getQuickBooksOnlineSetupLink} from '@libs/actions/connections/QuickBooksOnline';
 import CONST from '@src/CONST';
@@ -29,6 +30,7 @@ function ConnectToQuickbooksOnlineButton({
     shouldDisconnectIntegrationBeforeConnecting,
     integrationToDisconnect,
 }: ConnectToQuickbooksOnlineButtonProps & ConnectToQuickbooksOnlineButtonOnyxProps) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const webViewRef = useRef<WebView>(null);
     const [isWebViewOpen, setWebViewOpen] = useState(false);
@@ -48,6 +50,7 @@ function ConnectToQuickbooksOnlineButton({
                     setWebViewOpen(true);
                 }}
                 text={translate('workspace.accounting.setup')}
+                style={styles.justifyContentCenter}
                 small
             />
             {shouldDisconnectIntegrationBeforeConnecting && integrationToDisconnect && isDisconnectModalOpen && (

@@ -136,13 +136,13 @@ describe('ReportUtils', () => {
     test('[ReportUtils] shouldReportBeInOptionList on 1k participant', async () => {
         const report = {...createRandomReport(1), participantAccountIDs, type: CONST.REPORT.TYPE.CHAT};
         const currentReportId = '2';
-        const isInGSDMode = true;
+        const isInFocusMode = true;
         const betas = [CONST.BETAS.DEFAULT_ROOMS];
         const policies = getMockedPolicies();
 
         await waitForBatchedUpdates();
         await measureFunction(() =>
-            ReportUtils.shouldReportBeInOptionList({report, currentReportId, isInGSDMode, betas, policies, doesReportHaveViolations: false, excludeEmptyChats: false}),
+            ReportUtils.shouldReportBeInOptionList({report, currentReportId, isInFocusMode, betas, policies, doesReportHaveViolations: false, excludeEmptyChats: false}),
         );
     });
 
