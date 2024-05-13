@@ -160,7 +160,7 @@ function ReservationView({reservation}: ReservationViewProps) {
             description={formattedDate}
             descriptionTextStyle={[styles.textLabelSupporting, styles.lh16]}
             titleComponent={titleComponent}
-            titleContainerStyle={styles.justifyContentStart}
+            titleContainerStyle={[styles.justifyContentStart, styles.gap1]}
             secondaryIcon={reservationIcon}
             isSecondaryIconHoverable
             shouldShowRightIcon
