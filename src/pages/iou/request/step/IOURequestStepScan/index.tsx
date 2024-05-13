@@ -23,6 +23,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
+import getCurrentPosition from '@libs/getCurrentPosition';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -285,32 +287,95 @@ function IOURequestStepScan({
                     });
                     return;
                 }
-                if (iouType === CONST.IOU.TYPE.TRACK && report) {
-                    IOU.trackExpense(
-                        report,
-                        0,
-                        transaction?.currency ?? 'USD',
-                        transaction?.created ?? '',
-                        '',
-                        currentUserPersonalDetails.login,
-                        currentUserPersonalDetails.accountID,
-                        participants[0],
-                        '',
-                        receipt,
-                    );
-                    return;
-                }
-                IOU.requestMoney(
-                    report,
-                    0,
-                    transaction?.currency ?? 'USD',
-                    transaction?.created ?? '',
-                    '',
-                    currentUserPersonalDetails.login,
-                    currentUserPersonalDetails.accountID,
-                    participants[0],
-                    '',
-                    receipt,
+                getCurrentPosition(
+                    (successData) => {
+                        if (iouType === CONST.IOU.TYPE.TRACK && report) {
+                            IOU.trackExpense(
+                                report,
+                                0,
+                                transaction?.currency ?? 'USD',
+                                transaction?.created ?? '',
+                                '',
+                                currentUserPersonalDetails.login,
+                                currentUserPersonalDetails.accountID,
+                                participants[0],
+                                '',
+                                receipt,
+                                '',
+                                '',
+                                '',
+                                0,
+                                false,
+                                policy,
+                                {},
+                                {},
+                                {
+                                    lat: successData.coords.latitude,
+                                    long: successData.coords.longitude,
+                                },
+                            );
+                        } else {
+                            IOU.requestMoney(
+                                report,
+                                0,
+                                transaction?.currency ?? 'USD',
+                                transaction?.created ?? '',
+                                '',
+                                currentUserPersonalDetails.login,
+                                currentUserPersonalDetails.accountID,
+                                participants[0],
+                                '',
+                                receipt,
+                                '',
+                                '',
+                                '',
+                                0,
+                                false,
+                                policy,
+                                {},
+                                {},
+                                {
+                                    lat: successData.coords.latitude,
+                                    long: successData.coords.longitude,
+                                },
+                            );
+                        }
+                    },
+                    (errorData) => {
+                        Log.info('[IOURequestStepScan] getCurrentPosition failed', false, errorData);
+                        // When there is an error, the money can still be requested, it just won't include the GPS coordinates
+                        if (iouType === CONST.IOU.TYPE.TRACK && report) {
+                            IOU.trackExpense(
+                                report,
+                                0,
+                                transaction?.currency ?? 'USD',
+                                transaction?.created ?? '',
+                                '',
+                                currentUserPersonalDetails.login,
+                                currentUserPersonalDetails.accountID,
+                                participants[0],
+                                '',
+                                receipt,
+                            );
+                        } else {
+                            IOU.requestMoney(
+                                report,
+                                0,
+                                transaction?.currency ?? 'USD',
+                                transaction?.created ?? '',
+                                '',
+                                currentUserPersonalDetails.login,
+                                currentUserPersonalDetails.accountID,
+                                participants[0],
+                                '',
+                                receipt,
+                            );
+                        }
+                    },
+                    {
+                        maximumAge: CONST.GPS.MAX_AGE,
+                        timeout: CONST.GPS.TIMEOUT,
+                    },
                 );
                 return;
             }
@@ -328,6 +393,7 @@ function IOURequestStepScan({
             transaction,
             navigateToConfirmationPage,
             navigateToParticipantPage,
+            policy,
         ],
     );
 
@@ -588,28 +654,30 @@ function IOURequestStepScan({
             shouldShowWrapper={Boolean(backTo)}
             testID={IOURequestStepScan.displayName}
         >
-            <View style={[styles.flex1, !Browser.isMobile() && styles.uploadReceiptView(isSmallScreenWidth)]}>
-                {!isDraggingOver && (Browser.isMobile() ? mobileCameraView() : desktopUploadView())}
-                <ReceiptDropUI
-                    onDrop={(e) => {
-                        const file = e?.dataTransfer?.files[0];
-                        if (file) {
-                            file.uri = URL.createObjectURL(file);
-                            setReceiptAndNavigate(file);
-                        }
-                    }}
-                    receiptImageTopPosition={receiptImageTopPosition}
-                />
-                <ConfirmModal
-                    title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
-                    onConfirm={hideRecieptModal}
-                    onCancel={hideRecieptModal}
-                    isVisible={isAttachmentInvalid}
-                    prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
-                    confirmText={translate('common.close')}
-                    shouldShowCancelButton={false}
-                />
-            </View>
+            {(isDraggingOverWrapper) => (
+                <View style={[styles.flex1, !Browser.isMobile() && styles.uploadReceiptView(isSmallScreenWidth)]}>
+                    {!(isDraggingOver ?? isDraggingOverWrapper) && (Browser.isMobile() ? mobileCameraView() : desktopUploadView())}
+                    <ReceiptDropUI
+                        onDrop={(e) => {
+                            const file = e?.dataTransfer?.files[0];
+                            if (file) {
+                                file.uri = URL.createObjectURL(file);
+                                setReceiptAndNavigate(file);
+                            }
+                        }}
+                        receiptImageTopPosition={receiptImageTopPosition}
+                    />
+                    <ConfirmModal
+                        title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
+                        onConfirm={hideRecieptModal}
+                        onCancel={hideRecieptModal}
+                        isVisible={isAttachmentInvalid}
+                        prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
+                        confirmText={translate('common.close')}
+                        shouldShowCancelButton={false}
+                    />
+                </View>
+            )}
         </StepScreenDragAndDropWrapper>
     );
 }
