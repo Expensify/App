@@ -7,7 +7,7 @@ import {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import ChatDetailsQuickActionsBar, {QuickActions} from '@components/ChatDetailsQuickActionsBar';
+import ChatDetailsQuickActionsBar, {useQuickActions} from '@components/ChatDetailsQuickActionsBar';
 import DisplayNames from '@components/DisplayNames';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -103,6 +103,8 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const isPrivateNotesFetchTriggered = report?.isLoadingPrivateNotes !== undefined;
 
     const isSelfDM = useMemo(() => ReportUtils.isSelfDM(report), [report]);
+
+    const QuickActions = useQuickActions({report});
 
     useEffect(() => {
         // Do not fetch private notes if isLoadingPrivateNotes is already defined, or if the network is offline, or if the report is a self DM.
@@ -334,10 +336,9 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     )}
                     {isGroupChat && (
                         <ChatDetailsQuickActionsBar
-                            shouldShowLeaveButton
-                            shouldShowShareButton={false}
                             report={report}
-                            actionButtons={[QuickActions.leave, QuickActions.leave({onPress: () => {}})]}
+                            actionButtons={[QuickActions.share, QuickActions.pin]}
+                            shouldShowLeaveButton
                         />
                     )}
                     {menuItems.map((item) => {

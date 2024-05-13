@@ -1,6 +1,5 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {satisfies} from 'semver';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -13,44 +12,84 @@ import ConfirmModal from './ConfirmModal';
 import * as Expensicons from './Icon/Expensicons';
 
 type QuickAction = {
+    key: string;
     icon: IconAsset;
     text: string;
-    onPress: (report: OnyxReportType) => void;
+    onPress: () => void;
 };
 
-type FunctionType = (report: OnyxReportType) => void;
+type QuickActionsParams = {
+    report: OnyxReportType;
+};
 
-type OnPressOrQuickAction = ((func: FunctionType) => QuickAction) | QuickAction;
+function useQuickActions({report}: QuickActionsParams): Record<string, QuickAction> {
+    const {translate} = useLocalize();
+    const onPinButtonPress = useCallback(() => Report.togglePinnedState(report.reportID, !!report.isPinned), [report.isPinned, report.reportID]);
+    const onShareButtonPress = useCallback(() => Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.getRoute(report?.reportID ?? '')), [report?.reportID]);
 
-const QuickActions = {
-    leave: {
-        icon: Expensicons.Exit,
-        text: 'common.leave',
-        onPress: () => {
-            // Do something
-        },
-    },
-    // ...
-} satisfies Record<string, OnPressOrQuickAction>;
+    return useMemo(
+        () => ({
+            pin: {
+                key: 'pin',
+                icon: Expensicons.Pin,
+                text: report.isPinned ? translate('common.unPin') : translate('common.pin'),
+                onPress: onPinButtonPress,
+            },
+            join: {
+                key: 'join',
+                icon: Expensicons.Pin,
+                text: translate('common.join'),
+                onPress: () => {
+                    console.log('todo: join');
+                },
+            },
+            share: {
+                key: 'share',
+                icon: Expensicons.QrCode,
+                text: translate('common.share'),
+                onPress: onShareButtonPress,
+            },
+            hold: {
+                key: 'hold',
+                icon: Expensicons.Pin,
+                text: translate('iou.hold'),
+                onPress: () => {
+                    console.log('todo: hold');
+                },
+            },
+        }),
+        [report.isPinned, translate, onPinButtonPress, onShareButtonPress],
+    );
+}
 
 type ChatDetailsQuickActionsBarProps = {
     report: OnyxReportType;
 
     actionButtons: QuickAction[];
-};
 
-// <ChatDetailsQuickActionsBar actionButtons={[QuickActions.leave]} />
+    /**
+     * Whether to show the `Leave` button.
+     * @deprecated Remove this prop when @src/pages/ReportDetailsPage.tsx is updated
+     */
+    shouldShowLeaveButton: boolean;
+};
 
 function ChatDetailsQuickActionsBar({report, actionButtons, shouldShowLeaveButton}: ChatDetailsQuickActionsBarProps) {
     const styles = useThemeStyles();
     const [isLastMemberLeavingGroupModalVisible, setIsLastMemberLeavingGroupModalVisible] = useState(false);
     const {translate} = useLocalize();
-    const isPinned = !!report.isPinned;
-
-    const onShareButtonPress = useCallback(() => Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.getRoute(report?.reportID ?? '')), [report?.reportID]);
 
     return (
         <View style={[styles.flexRow, styles.ph5, styles.mb5, styles.gap3]}>
+            {actionButtons.map(({key, ...props}) => (
+                <View style={[styles.flex1]}>
+                    <Button
+                        key={key}
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...props}
+                    />
+                </View>
+            ))}
             {/* TODO: Remove the `Leave` button when @src/pages/ReportDetailsPage.tsx is updated */}
             {shouldShowLeaveButton && (
                 <View style={[styles.flex1]}>
@@ -82,47 +121,6 @@ function ChatDetailsQuickActionsBar({report, actionButtons, shouldShowLeaveButto
                     />
                 </View>
             )}
-
-            {shouldShowJoinButton && (
-                <View style={[styles.flex1]}>
-                    <Button
-                        onPress={onJoinButtonPress}
-                        icon={Expensicons.Pin}
-                        style={styles.flex1}
-                        text={translate('common.join')}
-                    />
-                </View>
-            )}
-            {shouldShowHoldButton && (
-                <View style={[styles.flex1]}>
-                    <Button
-                        onPress={onHoldButtonPress}
-                        icon={Expensicons.Pin}
-                        style={styles.flex1}
-                        text={translate('iou.hold')}
-                    />
-                </View>
-            )}
-            {shouldShowPinButton && (
-                <View style={[styles.flex1]}>
-                    <Button
-                        onPress={() => Report.togglePinnedState(report.reportID, isPinned)}
-                        icon={Expensicons.Pin}
-                        style={styles.flex1}
-                        text={isPinned ? translate('common.unPin') : translate('common.pin')}
-                    />
-                </View>
-            )}
-            {shouldShowShareButton && (
-                <View style={[styles.flex1]}>
-                    <Button
-                        onPress={onShareButtonPress}
-                        icon={Expensicons.QrCode}
-                        style={styles.flex1}
-                        text={translate('common.share')}
-                    />
-                </View>
-            )}
         </View>
     );
 }
@@ -131,4 +129,4 @@ ChatDetailsQuickActionsBar.displayName = 'ChatDetailsQuickActionsBar';
 
 export default ChatDetailsQuickActionsBar;
 
-export {QuickActions};
+export {useQuickActions};
