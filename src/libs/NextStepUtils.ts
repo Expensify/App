@@ -276,7 +276,7 @@ function buildNextStep(
         // Generates an optimistic nextStep once a report has been approved
         case CONST.REPORT.STATUS_NUM.APPROVED:
             if (
-                !ReportUtils.isInvoiceReport(report) &&
+                ReportUtils.isInvoiceReport(report) ||
                 !ReportUtils.isPayer(
                     {
                         accountID: currentUserAccountID,
