@@ -6,7 +6,7 @@ import CONST from '@src/CONST';
 import * as OptionsListUtils from '@src/libs/OptionsListUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, Policy, PolicyCategories, Report, TaxRatesWithDefault} from '@src/types/onyx';
+import type {PersonalDetails, Policy, PolicyCategories, Report, TaxRatesWithDefault, Transaction} from '@src/types/onyx';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type PersonalDetailsList = Record<string, PersonalDetails & ReportUtils.OptionData>;
@@ -1067,8 +1067,8 @@ describe('OptionsListUtils', () => {
                         keyForList: 'Medical',
                         searchText: 'Medical',
                         tooltipText: 'Medical',
-                        isDisabled: false,
-                        isSelected: false,
+                        isDisabled: true,
+                        isSelected: true,
                     },
                 ],
             },
@@ -1236,8 +1236,8 @@ describe('OptionsListUtils', () => {
                         keyForList: 'Medical',
                         searchText: 'Medical',
                         tooltipText: 'Medical',
-                        isDisabled: false,
-                        isSelected: false,
+                        isDisabled: true,
+                        isSelected: true,
                     },
                 ],
             },
@@ -2572,99 +2572,85 @@ describe('OptionsListUtils', () => {
                 },
             },
         };
+        const policy = {
+            taxRates: taxRatesWithDefault,
+        } as Policy;
+
+        const transaction = {
+            taxCode: 'CODE1',
+        } as Transaction;
 
         const resultList: OptionsListUtils.CategorySection[] = [
             {
-                title: '',
-                shouldShow: false,
-                // data sorted alphabetically by name
                 data: [
                     {
-                        // Adds 'Default' title to default tax.
-                        // Adds value to tax name for more description.
-                        text: 'Tax exempt 1 (0%) • Default',
+                        code: 'CODE1',
+                        isDisabled: undefined,
+                        isSelected: undefined,
                         keyForList: 'Tax exempt 1 (0%) • Default',
                         searchText: 'Tax exempt 1 (0%) • Default',
+                        text: 'Tax exempt 1 (0%) • Default',
                         tooltipText: 'Tax exempt 1 (0%) • Default',
-                        isDisabled: undefined,
-                        // creates a data option.
-                        data: {
-                            name: 'Tax exempt 1',
-                            code: 'CODE1',
-                            modifiedName: 'Tax exempt 1 (0%) • Default',
-                            value: '0%',
-                        },
                     },
                     {
-                        text: 'Tax option 3 (5%)',
+                        code: 'CODE3',
+                        isDisabled: undefined,
+                        isSelected: undefined,
                         keyForList: 'Tax option 3 (5%)',
                         searchText: 'Tax option 3 (5%)',
+                        text: 'Tax option 3 (5%)',
                         tooltipText: 'Tax option 3 (5%)',
-                        isDisabled: undefined,
-                        data: {
-                            name: 'Tax option 3',
-                            code: 'CODE3',
-                            modifiedName: 'Tax option 3 (5%)',
-                            value: '5%',
-                        },
                     },
                     {
-                        text: 'Tax rate 2 (3%)',
+                        code: 'CODE2',
+                        isDisabled: undefined,
+                        isSelected: undefined,
                         keyForList: 'Tax rate 2 (3%)',
                         searchText: 'Tax rate 2 (3%)',
+                        text: 'Tax rate 2 (3%)',
                         tooltipText: 'Tax rate 2 (3%)',
-                        isDisabled: undefined,
-                        data: {
-                            name: 'Tax rate 2',
-                            code: 'CODE2',
-                            modifiedName: 'Tax rate 2 (3%)',
-                            value: '3%',
-                        },
                     },
                 ],
+                shouldShow: false,
+                title: '',
             },
         ];
 
         const searchResultList: OptionsListUtils.CategorySection[] = [
             {
-                title: '',
-                shouldShow: true,
-                // data sorted alphabetically by name
                 data: [
                     {
-                        text: 'Tax rate 2 (3%)',
+                        code: 'CODE2',
+                        isDisabled: undefined,
+                        isSelected: undefined,
                         keyForList: 'Tax rate 2 (3%)',
                         searchText: 'Tax rate 2 (3%)',
+                        text: 'Tax rate 2 (3%)',
                         tooltipText: 'Tax rate 2 (3%)',
-                        isDisabled: undefined,
-                        data: {
-                            name: 'Tax rate 2',
-                            code: 'CODE2',
-                            modifiedName: 'Tax rate 2 (3%)',
-                            value: '3%',
-                        },
                     },
                 ],
+                shouldShow: true,
+                title: '',
             },
         ];
 
         const wrongSearchResultList: OptionsListUtils.CategorySection[] = [
             {
-                title: '',
-                shouldShow: true,
                 data: [],
+                shouldShow: true,
+                title: '',
             },
         ];
 
-        const result = OptionsListUtils.getFilteredOptions([], [], [], emptySearch, [], [], false, false, false, {}, [], false, {}, [], false, false, true, taxRatesWithDefault);
+        const result = OptionsListUtils.getTaxRatesSection(policy, [], emptySearch, transaction);
 
-        expect(result.taxRatesOptions).toStrictEqual(resultList);
+        expect(result).toStrictEqual(resultList);
 
-        const searchResult = OptionsListUtils.getFilteredOptions([], [], [], search, [], [], false, false, false, {}, [], false, {}, [], false, false, true, taxRatesWithDefault);
-        expect(searchResult.taxRatesOptions).toStrictEqual(searchResultList);
+        const searchResult = OptionsListUtils.getTaxRatesSection(policy, [], search, transaction);
+        expect(searchResult).toStrictEqual(searchResultList);
 
-        const wrongSearchResult = OptionsListUtils.getFilteredOptions([], [], [], wrongSearch, [], [], false, false, false, {}, [], false, {}, [], false, false, true, taxRatesWithDefault);
-        expect(wrongSearchResult.taxRatesOptions).toStrictEqual(wrongSearchResultList);
+        const wrongSearchResult = OptionsListUtils.getTaxRatesSection(policy, [], wrongSearch, transaction);
+        expect(wrongSearchResult).toStrictEqual(wrongSearchResultList);
     });
 
     it('formatMemberForList()', () => {
