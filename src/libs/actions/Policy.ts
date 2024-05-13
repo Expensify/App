@@ -282,7 +282,7 @@ function getPolicy(policyID: string | undefined): Policy | EmptyObject {
 /**
  * Returns a primary policy for the user
  */
-function getPrimaryPolicy(activePolicyID?: string): Policy | undefined {
+function getPrimaryPolicy(activePolicyID?: OnyxEntry<string>): Policy | undefined {
     const activeAdminWorkspaces = PolicyUtils.getActiveAdminWorkspaces(allPolicies);
     const primaryPolicy: Policy | null | undefined = allPolicies?.[activePolicyID ?? ''];
 
@@ -3361,6 +3361,7 @@ function renamePolicyCategory(policyID: string, policyCategory: {oldName: string
                         pendingFields: {
                             name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         },
+                        previousCategoryName: policyCategory.oldName,
                     },
                 },
             },
@@ -3673,6 +3674,7 @@ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName:
                                 pendingFields: {
                                     name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                 },
+                                previousTagName: policyTag.oldName,
                             },
                         },
                     },
