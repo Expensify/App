@@ -87,14 +87,14 @@ function IOURequestStepTaxRatePage({
         }
 
         if (taxAmount === undefined) {
-            Navigation.goBack(backTo);
+            navigateBack();
             return;
         }
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(taxAmount);
         IOU.setMoneyRequestTaxRate(transaction?.transactionID, taxes?.code ?? '');
         IOU.setMoneyRequestTaxAmount(transaction.transactionID, amountInSmallestCurrencyUnits, true);
 
-        Navigation.goBack(backTo);
+        navigateBack();
     };
 
     return (

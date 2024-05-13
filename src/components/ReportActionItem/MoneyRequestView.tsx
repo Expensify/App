@@ -219,9 +219,6 @@ function MoneyRequestView({
         if (formattedOriginalAmount) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.original')} ${formattedOriginalAmount}`;
         }
-        if (TransactionUtils.isPending(transaction)) {
-            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.pending')}`;
-        }
         if (isCancelled) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
         }
@@ -234,9 +231,7 @@ function MoneyRequestView({
         } else if (isCancelled) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
         } else if (isSettled) {
-            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.settledExpensify')}`;
-        } else if (report.isWaitingOnBankAccount) {
-            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.pending')}`;
+            amountDescription += ` • ${translate('iou.settledExpensify')}`;
         }
     }
 

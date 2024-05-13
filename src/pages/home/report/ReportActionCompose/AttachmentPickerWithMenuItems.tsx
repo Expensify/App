@@ -330,5 +330,6 @@ AttachmentPickerWithMenuItems.displayName = 'AttachmentPickerWithMenuItems';
 export default withOnyx<AttachmentPickerWithMenuItemsProps, AttachmentPickerWithMenuItemsOnyxProps>({
     policy: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`,
+        initialValue: {} as OnyxTypes.Policy,
     },
 })(AttachmentPickerWithMenuItems);
