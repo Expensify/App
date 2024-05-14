@@ -1827,7 +1827,7 @@ function getOptions(
         return option;
     });
 
-    const havingLoginPersonalDetails = options.personalDetails.filter((detail) => !!detail?.login && !!detail.accountID && !detail?.isOptimisticPersonalDetail);
+    const havingLoginPersonalDetails = includeP2P ? options.personalDetails.filter((detail) => !!detail?.login && !!detail.accountID && !detail?.isOptimisticPersonalDetail) : [];
     let allPersonalDetailsOptions = havingLoginPersonalDetails;
 
     if (sortPersonalDetailsByAlphaAsc) {
