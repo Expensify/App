@@ -19,6 +19,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {IOUMessage, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
+import type {Participant} from '@src/types/onyx/Report';
 import type {ReportActionBase} from '@src/types/onyx/ReportAction';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -37,18 +38,26 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 
 const CARLOS_EMAIL = 'cmartins@expensifail.com';
 const CARLOS_ACCOUNT_ID = 1;
+const CARLOS_PARTICIPANT: Participant = {hidden: false, role: 'member'};
 const JULES_EMAIL = 'jules@expensifail.com';
 const JULES_ACCOUNT_ID = 2;
+const JULES_PARTICIPANT: Participant = {hidden: false, role: 'member'};
 const RORY_EMAIL = 'rory@expensifail.com';
 const RORY_ACCOUNT_ID = 3;
+const RORY_PARTICIPANT: Participant = {hidden: false, role: 'admin'};
 const VIT_EMAIL = 'vit@expensifail.com';
 const VIT_ACCOUNT_ID = 4;
+const VIT_PARTICIPANT: Participant = {hidden: false, role: 'member'};
 
 OnyxUpdateManager();
 describe('actions/IOU', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
+            initialKeyStates: {
+                [ONYXKEYS.SESSION]: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+            },
         });
     });
 
@@ -97,7 +106,7 @@ describe('actions/IOU', () => {
                                         expect(iouReport?.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
 
                                         // They should be linked together
-                                        expect(chatReport?.participantAccountIDs).toEqual([CARLOS_ACCOUNT_ID]);
+                                        expect(chatReport?.participants).toEqual({[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT});
                                         expect(chatReport?.iouReportID).toBe(iouReport?.reportID);
 
                                         resolve();
@@ -250,7 +259,7 @@ describe('actions/IOU', () => {
             let chatReport: OnyxTypes.Report = {
                 reportID: '1234',
                 type: CONST.REPORT.TYPE.CHAT,
-                participantAccountIDs: [CARLOS_ACCOUNT_ID],
+                participants: {[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT},
             };
             const createdAction: OnyxTypes.ReportAction = {
                 reportActionID: NumberUtils.rand64(),
@@ -418,7 +427,7 @@ describe('actions/IOU', () => {
                 reportID: chatReportID,
                 type: CONST.REPORT.TYPE.CHAT,
                 iouReportID,
-                participantAccountIDs: [CARLOS_ACCOUNT_ID],
+                participants: {[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT},
             };
             const createdAction: OnyxTypes.ReportAction = {
                 reportActionID: NumberUtils.rand64(),
@@ -642,7 +651,7 @@ describe('actions/IOU', () => {
                                         expect(iouReport?.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
 
                                         // They should be linked together
-                                        expect(chatReport?.participantAccountIDs).toEqual([CARLOS_ACCOUNT_ID]);
+                                        expect(chatReport?.participants).toEqual({[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT});
                                         expect(chatReport?.iouReportID).toBe(iouReport?.reportID);
 
                                         resolve();
@@ -938,7 +947,7 @@ describe('actions/IOU', () => {
             let carlosChatReport: OnyxEntry<OnyxTypes.Report> = {
                 reportID: NumberUtils.rand64(),
                 type: CONST.REPORT.TYPE.CHAT,
-                participantAccountIDs: [CARLOS_ACCOUNT_ID],
+                participants: {[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT},
             };
             const carlosCreatedAction: OnyxEntry<OnyxTypes.ReportAction> = {
                 reportActionID: NumberUtils.rand64(),
@@ -951,7 +960,7 @@ describe('actions/IOU', () => {
                 reportID: NumberUtils.rand64(),
                 type: CONST.REPORT.TYPE.CHAT,
                 iouReportID: julesIOUReportID,
-                participantAccountIDs: [JULES_ACCOUNT_ID],
+                participants: {[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [JULES_ACCOUNT_ID]: JULES_PARTICIPANT},
             };
             const julesChatCreatedAction: OnyxEntry<OnyxTypes.ReportAction> = {
                 reportActionID: NumberUtils.rand64(),
@@ -1129,7 +1138,9 @@ describe('actions/IOU', () => {
                                         // 5. The chat report with Rory + Vit (new)
                                         vitChatReport =
                                             Object.values(allReports ?? {}).find(
-                                                (report) => report?.type === CONST.REPORT.TYPE.CHAT && isEqual(report.participantAccountIDs, [VIT_ACCOUNT_ID]),
+                                                (report) =>
+                                                    report?.type === CONST.REPORT.TYPE.CHAT &&
+                                                    isEqual(report.participants, {[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [VIT_ACCOUNT_ID]: VIT_PARTICIPANT}),
                                             ) ?? null;
                                         expect(isEmptyObject(vitChatReport)).toBe(false);
                                         expect(vitChatReport?.pendingFields).toStrictEqual({createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
@@ -1145,7 +1156,12 @@ describe('actions/IOU', () => {
                                             Object.values(allReports ?? {}).find(
                                                 (report) =>
                                                     report?.type === CONST.REPORT.TYPE.CHAT &&
-                                                    isEqual(report.participantAccountIDs, [CARLOS_ACCOUNT_ID, JULES_ACCOUNT_ID, VIT_ACCOUNT_ID, RORY_ACCOUNT_ID]),
+                                                    isEqual(report.participants, {
+                                                        [CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT,
+                                                        [JULES_ACCOUNT_ID]: JULES_PARTICIPANT,
+                                                        [VIT_ACCOUNT_ID]: VIT_PARTICIPANT,
+                                                        [RORY_ACCOUNT_ID]: RORY_PARTICIPANT,
+                                                    }),
                                             ) ?? null;
                                         expect(isEmptyObject(groupChat)).toBe(false);
                                         expect(groupChat?.pendingFields).toStrictEqual({createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
@@ -2455,7 +2471,8 @@ describe('actions/IOU', () => {
             jest.advanceTimersByTime(10);
 
             // Given User logins from the participant accounts
-            const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread?.participantAccountIDs ?? []);
+            const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
+            const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(participantAccountIDs);
 
             // When Opening a thread report with the given details
             Report.openReport(thread.reportID, '', userLogins, thread, createIOUAction?.reportActionID);
@@ -2538,7 +2555,8 @@ describe('actions/IOU', () => {
             jest.advanceTimersByTime(10);
 
             // Given User logins from the participant accounts
-            const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread?.participantAccountIDs ?? []);
+            const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
+            const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(participantAccountIDs);
 
             // When Opening a thread report with the given details
             Report.openReport(thread.reportID, '', userLogins, thread, createIOUAction?.reportActionID);
@@ -2628,7 +2646,8 @@ describe('actions/IOU', () => {
 
             expect(thread.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
 
-            const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread?.participantAccountIDs ?? []);
+            const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
+            const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(participantAccountIDs);
             jest.advanceTimersByTime(10);
             Report.openReport(thread.reportID, '', userLogins, thread, createIOUAction?.reportActionID);
             await waitForBatchedUpdates();
@@ -2724,7 +2743,8 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             jest.advanceTimersByTime(10);
-            const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread?.participantAccountIDs ?? []);
+            const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
+            const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(participantAccountIDs);
             Report.openReport(thread.reportID, '', userLogins, thread, createIOUAction?.reportActionID);
 
             await waitForBatchedUpdates();
@@ -2959,7 +2979,8 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             jest.advanceTimersByTime(10);
-            const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread?.participantAccountIDs ?? []);
+            const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
+            const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(participantAccountIDs);
             Report.openReport(thread.reportID, '', userLogins, thread, createIOUAction?.reportActionID);
             await waitForBatchedUpdates();
 
