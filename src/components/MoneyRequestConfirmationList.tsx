@@ -343,7 +343,7 @@ function MoneyRequestConfirmationList({
     const isMerchantRequired = isPolicyExpenseChat && (!isScanRequest || isEditingSplitBill) && shouldShowMerchant;
     const shouldDisplayMerchantError = isMerchantRequired && (shouldDisplayFieldError || formError === 'iou.error.invalidMerchant') && isMerchantEmpty;
 
-    const isCategoryRequired = canUseViolations && !!policy?.requiresCategory;
+    const isCategoryRequired = !!policy?.requiresCategory;
 
     useEffect(() => {
         if (shouldDisplayFieldError && hasSmartScanFailed) {
@@ -375,7 +375,7 @@ function MoneyRequestConfirmationList({
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount));
 
         if (transaction?.taxAmount && previousTransactionAmount === transaction?.amount && previousTransactionCurrency === transaction?.currency) {
-            return IOU.setMoneyRequestTaxAmount(transaction?.transactionID, transaction?.taxAmount, true);
+            return IOU.setMoneyRequestTaxAmount(transactionID, transaction?.taxAmount ?? 0, true);
         }
 
         IOU.setMoneyRequestTaxAmount(transactionID, amountInSmallestCurrencyUnits, true);
@@ -657,7 +657,7 @@ function MoneyRequestConfirmationList({
         let updatedTagsString = TransactionUtils.getTag(transaction);
         policyTagLists.forEach((tagList, index) => {
             const enabledTags = Object.values(tagList.tags).filter((tag) => tag.enabled);
-            const isTagListRequired = tagList.required === undefined ? false : tagList.required && canUseViolations;
+            const isTagListRequired = tagList.required ?? false;
             if (!isTagListRequired || enabledTags.length !== 1 || TransactionUtils.getTag(transaction, index)) {
                 return;
             }
@@ -668,7 +668,7 @@ function MoneyRequestConfirmationList({
         }
         // Keep 'transaction' out to ensure that we autoselect the option only once
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [policyTagLists, policyTags, canUseViolations]);
+    }, [policyTagLists, policyTags]);
 
     /**
      * Navigate to report details or profile of selected user
@@ -849,7 +849,7 @@ function MoneyRequestConfirmationList({
                     titleStyle={styles.moneyRequestConfirmationAmount}
                     disabled={didConfirm}
                     brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transaction ?? null) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    error={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transaction ?? null) ? translate('common.error.enterAmount') : ''}
+                    errorText={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transaction ?? null) ? translate('common.error.enterAmount') : ''}
                 />
             ),
             shouldShow: shouldShowSmartScanFields,
@@ -945,8 +945,8 @@ function MoneyRequestConfirmationList({
                     disabled={didConfirm}
                     interactive={!isReadOnly}
                     brickRoadIndicator={shouldDisplayMerchantError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    error={shouldDisplayMerchantError ? translate('common.error.fieldRequired') : ''}
-                    rightLabel={isMerchantRequired ? translate('common.required') : ''}
+                    errorText={shouldDisplayMerchantError ? translate('common.error.fieldRequired') : ''}
+                    rightLabel={isMerchantRequired && !shouldDisplayMerchantError ? translate('common.required') : ''}
                 />
             ),
             shouldShow: shouldShowMerchant,
@@ -968,7 +968,7 @@ function MoneyRequestConfirmationList({
                     disabled={didConfirm}
                     interactive={!isReadOnly}
                     brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    error={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transaction) ? translate('common.error.enterDate') : ''}
+                    errorText={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transaction) ? translate('common.error.enterDate') : ''}
                 />
             ),
             shouldShow: shouldShowDate,
@@ -989,14 +989,14 @@ function MoneyRequestConfirmationList({
                     titleStyle={styles.flex1}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
-                    rightLabel={isCategoryRequired ? translate('common.required') : ''}
+                    rightLabel={isCategoryRequired && canUseViolations ? translate('common.required') : ''}
                 />
             ),
             shouldShow: shouldShowCategories,
             isSupplementary: action === CONST.IOU.ACTION.CATEGORIZE ? false : !isCategoryRequired,
         },
         ...policyTagLists.map(({name, required}, index) => {
-            const isTagRequired = required === undefined ? false : canUseViolations && required;
+            const isTagRequired = required ?? false;
             return {
                 item: (
                     <MenuItemWithTopDescription
@@ -1013,7 +1013,7 @@ function MoneyRequestConfirmationList({
                         style={[styles.moneyRequestMenuItem]}
                         disabled={didConfirm}
                         interactive={!isReadOnly}
-                        rightLabel={isTagRequired ? translate('common.required') : ''}
+                        rightLabel={isTagRequired && canUseViolations ? translate('common.required') : ''}
                     />
                 ),
                 shouldShow: shouldShowTags,
