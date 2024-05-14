@@ -29,6 +29,7 @@ import type {
     Report,
     ReportAction,
     ReportMetadata,
+    ReportNameValuePairs,
     Session,
     Task,
     Transaction,
@@ -1223,7 +1224,11 @@ function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>): boolean
 /**
  * Whether the provided report is an archived room
  */
-function isArchivedRoom(report: OnyxEntry<Report> | EmptyObject): boolean {
+function isArchivedRoom(report: OnyxEntry<Report> | EmptyObject, reportNameValuePairs?: OnyxEntry<ReportNameValuePairs> | EmptyObject): boolean {
+    if (reportNameValuePairs) {
+        return reportNameValuePairs.isArchived;
+    }
+
     return report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED && report?.stateNum === CONST.REPORT.STATE_NUM.APPROVED;
 }
 
@@ -5770,7 +5775,7 @@ function isMoneyRequestReportPendingDeletion(report: OnyxEntry<Report> | EmptyOb
     return parentReportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
-function canUserPerformWriteAction(report: OnyxEntry<Report>) {
+function canUserPerformWriteAction(report: OnyxEntry<Report>, reportNameValuePairs?: OnyxEntry<ReportNameValuePairs>) {
     const reportErrors = getAddWorkspaceRoomOrChatReportErrors(report);
 
     // If the expense report is marked for deletion, let us prevent any further write action.
@@ -5778,7 +5783,7 @@ function canUserPerformWriteAction(report: OnyxEntry<Report>) {
         return false;
     }
 
-    return !isArchivedRoom(report) && isEmptyObject(reportErrors) && report && isAllowedToComment(report) && !isAnonymousUser && canWriteInReport(report);
+    return !isArchivedRoom(report, reportNameValuePairs) && isEmptyObject(reportErrors) && report && isAllowedToComment(report) && !isAnonymousUser && canWriteInReport(report);
 }
 
 /**
