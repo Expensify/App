@@ -5,11 +5,13 @@ import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as Policy from '@src/libs/actions/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy as PolicyType, Report, ReportAction, ReportActions} from '@src/types/onyx';
+import type {Participant} from '@src/types/onyx/Report';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const ESH_EMAIL = 'eshgupta1217@gmail.com';
 const ESH_ACCOUNT_ID = 1;
+const ESH_PARTICIPANT: Participant = {hidden: false, role: 'admin'};
 const WORKSPACE_NAME = "Esh's Workspace";
 
 OnyxUpdateManager();
@@ -77,7 +79,7 @@ describe('actions/Policy', () => {
             expect(workspaceReports.length).toBe(3);
             workspaceReports.forEach((report) => {
                 expect(report?.pendingFields?.addWorkspaceRoom).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-                expect(report?.participantAccountIDs).toEqual([ESH_ACCOUNT_ID]);
+                expect(report?.participants).toEqual({[ESH_ACCOUNT_ID]: ESH_PARTICIPANT});
                 switch (report?.chatType) {
                     case CONST.REPORT.CHAT_TYPE.POLICY_ADMINS: {
                         adminReportID = report.reportID;
