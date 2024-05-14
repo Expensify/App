@@ -293,7 +293,7 @@ function IOURequestStepAmount({
         const taxAmount = getTaxAmount(transaction, policy, newAmount, currency);
         const taxCode = TransactionUtils.getDefaultTaxCode(policy, transaction, currency) ?? '';
 
-        IOU.updateMoneyRequestAmountAndCurrency({transactionID, transactionThreadReportID: reportID, currency, amount: newAmount, taxAmount, taxCode});
+        IOU.updateMoneyRequestAmountAndCurrency({transactionID, transactionThreadReportID: reportID, currency, amount: newAmount, taxAmount, policy, taxCode});
         Navigation.dismissModal();
     };
 
