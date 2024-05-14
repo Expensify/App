@@ -19,13 +19,12 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.015',
             isPinned: false,
             reportID: '1',
-            participantAccountIDs: [2, 1],
-            visibleChatMemberAccountIDs: [2, 1],
             participants: {
                 2: {},
                 1: {},
+                5: {},
             },
-            reportName: 'Iron Man, Mister Fantastic',
+            reportName: 'Iron Man, Mister Fantastic, Invisible Woman',
             type: CONST.REPORT.TYPE.CHAT,
         },
         '2': {
@@ -33,9 +32,8 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.016',
             isPinned: false,
             reportID: '2',
-            participantAccountIDs: [3],
-            visibleChatMemberAccountIDs: [3],
             participants: {
+                2: {},
                 3: {},
             },
             reportName: 'Spider-Man',
@@ -48,9 +46,8 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.170',
             isPinned: true,
             reportID: '3',
-            participantAccountIDs: [1],
-            visibleChatMemberAccountIDs: [1],
             participants: {
+                2: {},
                 1: {},
             },
             reportName: 'Mister Fantastic',
@@ -61,9 +58,8 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.180',
             isPinned: false,
             reportID: '4',
-            participantAccountIDs: [4],
-            visibleChatMemberAccountIDs: [4],
             participants: {
+                2: {},
                 4: {},
             },
             reportName: 'Black Panther',
@@ -74,9 +70,8 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.019',
             isPinned: false,
             reportID: '5',
-            participantAccountIDs: [5],
-            visibleChatMemberAccountIDs: [5],
             participants: {
+                2: {},
                 5: {},
             },
             reportName: 'Invisible Woman',
@@ -87,9 +82,8 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.020',
             isPinned: false,
             reportID: '6',
-            participantAccountIDs: [6],
-            visibleChatMemberAccountIDs: [6],
             participants: {
+                2: {},
                 6: {},
             },
             reportName: 'Thor',
@@ -102,9 +96,8 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:03.999',
             isPinned: false,
             reportID: '7',
-            participantAccountIDs: [7],
-            visibleChatMemberAccountIDs: [7],
             participants: {
+                2: {},
                 7: {},
             },
             reportName: 'Captain America',
@@ -117,9 +110,8 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.000',
             isPinned: false,
             reportID: '8',
-            participantAccountIDs: [12],
-            visibleChatMemberAccountIDs: [12],
             participants: {
+                2: {},
                 12: {},
             },
             reportName: 'Silver Surfer',
@@ -132,9 +124,8 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.998',
             isPinned: false,
             reportID: '9',
-            participantAccountIDs: [8],
-            visibleChatMemberAccountIDs: [8],
             participants: {
+                2: {},
                 8: {},
             },
             reportName: 'Mister Sinister',
@@ -148,8 +139,6 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.001',
             reportID: '10',
             isPinned: false,
-            participantAccountIDs: [2, 7],
-            visibleChatMemberAccountIDs: [2, 7],
             participants: {
                 2: {},
                 7: {},
@@ -242,9 +231,8 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.022',
             isPinned: false,
             reportID: '11',
-            participantAccountIDs: [999],
-            visibleChatMemberAccountIDs: [999],
             participants: {
+                2: {},
                 999: {},
             },
             reportName: 'Concierge',
@@ -259,9 +247,8 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.022',
             isPinned: false,
             reportID: '12',
-            participantAccountIDs: [1000],
-            visibleChatMemberAccountIDs: [1000],
             participants: {
+                2: {},
                 1000: {},
             },
             reportName: 'Chronos',
@@ -276,9 +263,8 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.022',
             isPinned: false,
             reportID: '13',
-            participantAccountIDs: [1001],
-            visibleChatMemberAccountIDs: [1001],
             participants: {
+                2: {},
                 1001: {},
             },
             reportName: 'Receipts',
@@ -293,9 +279,8 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.022',
             isPinned: false,
             reportID: '14',
-            participantAccountIDs: [1, 10, 3],
-            visibleChatMemberAccountIDs: [1, 10, 3],
             participants: {
+                2: {},
                 1: {},
                 10: {},
                 3: {},
@@ -308,16 +293,15 @@ describe('OptionsListUtils', () => {
         },
     };
 
-    const REPORTS_WITH_CHAT_ROOM = {
+    const REPORTS_WITH_CHAT_ROOM: OnyxCollection<Report> = {
         ...REPORTS,
         15: {
             lastReadTime: '2021-01-14 11:25:39.301',
             lastVisibleActionCreated: '2022-11-22 03:26:02.000',
             isPinned: false,
             reportID: '15',
-            participantAccountIDs: [3, 4],
-            visibleChatMemberAccountIDs: [3, 4],
             participants: {
+                2: {},
                 3: {},
                 4: {},
             },
@@ -436,7 +420,7 @@ describe('OptionsListUtils', () => {
         // Value with latest lastVisibleActionCreated should be at the top.
         expect(results.recentReports.length).toBe(2);
         expect(results.recentReports[0].text).toBe('Mister Fantastic');
-        expect(results.recentReports[1].text).toBe('Mister Fantastic');
+        expect(results.recentReports[1].text).toBe('Mister Fantastic, Invisible Woman');
 
         return waitForBatchedUpdates()
             .then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS_WITH_PERIODS))
@@ -2688,7 +2672,7 @@ describe('OptionsListUtils', () => {
             expect(filteredOptions.recentReports[0].text).toBe('Invisible Woman');
             expect(filteredOptions.recentReports[1].text).toBe('Spider-Man');
             expect(filteredOptions.recentReports[2].text).toBe('Black Widow');
-            expect(filteredOptions.recentReports[3].text).toBe('Mister Fantastic');
+            expect(filteredOptions.recentReports[3].text).toBe('Mister Fantastic, Invisible Woman');
             expect(filteredOptions.recentReports[4].text).toBe("SHIELD's workspace (archived)");
         });
 
@@ -2761,7 +2745,7 @@ describe('OptionsListUtils', () => {
 
             expect(filteredOptions.recentReports.length).toBe(2);
             expect(filteredOptions.recentReports[0].text).toBe('Mister Fantastic');
-            expect(filteredOptions.recentReports[1].text).toBe('Mister Fantastic');
+            expect(filteredOptions.recentReports[1].text).toBe('Mister Fantastic, Invisible Woman');
         });
     });
 });

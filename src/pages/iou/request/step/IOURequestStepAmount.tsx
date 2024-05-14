@@ -58,7 +58,7 @@ type IOURequestStepAmountProps = IOURequestStepAmountOnyxProps &
 
 function getTaxAmount(transaction: OnyxEntry<OnyxTypes.Transaction>, policy: OnyxEntry<OnyxTypes.Policy>, newAmount: number) {
     if (!transaction?.amount) {
-        return;
+        return 0;
     }
     const transactionTaxCode = transaction?.taxCode ?? '';
     const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction) ?? '';
