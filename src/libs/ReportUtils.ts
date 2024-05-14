@@ -488,6 +488,20 @@ type ParsingDetails = {
     reportID?: string;
 };
 
+type NoPendingProps = {shouldShow: false};
+
+type PendingProps = {
+    shouldShow: true;
+
+    /** The icon to be displayed if a request is pending */
+    messageIcon: IconAsset;
+
+    /** The description to be displayed if a request is pending */
+    messageDescription: string;
+};
+
+type PendingMessageProps = PendingProps | NoPendingProps;
+
 let currentUserEmail: string | undefined;
 let currentUserPrivateDomain: string | undefined;
 let currentUserAccountID: number | undefined;
@@ -6843,4 +6857,5 @@ export type {
     TransactionDetails,
     OptimisticInviteReportAction,
     ParsingDetails,
+    PendingMessageProps,
 };

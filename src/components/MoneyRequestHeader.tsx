@@ -10,6 +10,7 @@ import * as HeaderUtils from '@libs/HeaderUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import type {PendingMessageProps} from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import * as IOU from '@userActions/IOU';
@@ -18,7 +19,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportAction, ReportActions, Session, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
-import type IconAsset from '@src/types/utils/IconAsset';
 import ConfirmModal from './ConfirmModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import Icon from './Icon';
@@ -63,20 +63,6 @@ type MoneyRequestHeaderProps = MoneyRequestHeaderOnyxProps & {
     /** Method to trigger when pressing close button of the header */
     onBackButtonPress: () => void;
 };
-
-type NoPendingStatusBarProps = {shouldShowStatusBar: false};
-
-type PendingStatusBarProps = {
-    shouldShowStatusBar: true;
-
-    /** The icon to be displayed in status bar */
-    statusBarIcon: IconAsset;
-
-    /** The description to be displayed in status bar */
-    statusBarDescription: string;
-};
-
-type StatusBarProps = NoPendingStatusBarProps | PendingStatusBarProps;
 
 function MoneyRequestHeader({
     session,
@@ -138,17 +124,17 @@ function MoneyRequestHeader({
         }
     };
 
-    const getStatusBarProps: () => StatusBarProps = () => {
+    const getStatusBarProps: () => PendingMessageProps = () => {
         if (TransactionUtils.isExpensifyCardTransaction(transaction) && TransactionUtils.isPending(transaction)) {
-            return {shouldShowStatusBar: true, statusBarIcon: Expensicons.CreditCardHourglass, statusBarDescription: translate('iou.transactionPendingDescription')};
+            return {shouldShow: true, messageIcon: Expensicons.CreditCardHourglass, messageDescription: translate('iou.transactionPendingDescription')};
         }
         if (isScanning) {
-            return {shouldShowStatusBar: true, statusBarIcon: Expensicons.ReceiptScan, statusBarDescription: translate('iou.receiptScanInProgressDescription')};
+            return {shouldShow: true, messageIcon: Expensicons.ReceiptScan, messageDescription: translate('iou.receiptScanInProgressDescription')};
         }
         if (TransactionUtils.hasPendingRTERViolation(TransactionUtils.getTransactionViolations(transaction?.transactionID ?? '', transactionViolations))) {
-            return {shouldShowStatusBar: true, statusBarIcon: Expensicons.Hourglass, statusBarDescription: translate('iou.pendingMatchWithCreditCardDescription')};
+            return {shouldShow: true, messageIcon: Expensicons.Hourglass, messageDescription: translate('iou.pendingMatchWithCreditCardDescription')};
         }
-        return {shouldShowStatusBar: false};
+        return {shouldShow: false};
     };
 
     const statusBarProps = getStatusBarProps();
@@ -217,7 +203,7 @@ function MoneyRequestHeader({
         <>
             <View style={[styles.pl0]}>
                 <HeaderWithBackButton
-                    shouldShowBorderBottom={!statusBarProps.shouldShowStatusBar && !isOnHold}
+                    shouldShowBorderBottom={!statusBarProps.shouldShow && !isOnHold}
                     shouldShowReportAvatarWithDisplay
                     shouldEnableDetailPageNavigation
                     shouldShowPinButton={false}
@@ -232,17 +218,17 @@ function MoneyRequestHeader({
                     shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={onBackButtonPress}
                 />
-                {statusBarProps.shouldShowStatusBar && (
+                {statusBarProps.shouldShow && (
                     <MoneyRequestHeaderStatusBar
                         title={
                             <Icon
-                                src={statusBarProps.statusBarIcon}
+                                src={statusBarProps.messageIcon}
                                 height={variables.iconSizeSmall}
                                 width={variables.iconSizeSmall}
                                 fill={theme.icon}
                             />
                         }
-                        description={statusBarProps.statusBarDescription}
+                        description={statusBarProps.messageDescription}
                         shouldShowBorderBottom={!isOnHold}
                     />
                 )}

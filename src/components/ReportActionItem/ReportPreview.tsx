@@ -22,6 +22,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import type {PendingMessageProps} from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
@@ -32,7 +33,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolations, UserWallet} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
-import type IconAsset from '@src/types/utils/IconAsset';
 import ReportActionItemImages from './ReportActionItemImages';
 
 type ReportPreviewOnyxProps = {
@@ -83,20 +83,6 @@ type ReportPreviewProps = ReportPreviewOnyxProps & {
     /** Whether the corresponding report action item is hovered */
     isHovered?: boolean;
 };
-
-type NoPendingMessageProps = {shouldShowMessage: false};
-
-type PendingMessageProps = {
-    shouldShowMessage: true;
-
-    /** The icon to be displayed in the preview content footer */
-    messageIcon: IconAsset;
-
-    /** The description to be displayed in the preview content footer */
-    messageDescription: string;
-};
-
-type MessageProps = PendingMessageProps | NoPendingMessageProps;
 
 function ReportPreview({
     iouReport,
@@ -246,17 +232,17 @@ function ReportPreview({
     const shouldShowScanningSubtitle = numberOfScanningReceipts === 1 && numberOfRequests === 1;
     const shouldShowPendingSubtitle = numberOfPendingRequests === 1 && numberOfRequests === 1;
 
-    const getPendingMessageProps: () => MessageProps = () => {
+    const getPendingMessageProps: () => PendingMessageProps = () => {
         if (shouldShowScanningSubtitle) {
-            return {shouldShowMessage: true, messageIcon: Expensicons.ReceiptScan, messageDescription: translate('iou.receiptScanInProgress')};
+            return {shouldShow: true, messageIcon: Expensicons.ReceiptScan, messageDescription: translate('iou.receiptScanInProgress')};
         }
         if (shouldShowPendingSubtitle) {
-            return {shouldShowMessage: true, messageIcon: Expensicons.CreditCardHourglass, messageDescription: translate('iou.transactionPending')};
+            return {shouldShow: true, messageIcon: Expensicons.CreditCardHourglass, messageDescription: translate('iou.transactionPending')};
         }
         if (showRTERViolationMessage) {
-            return {shouldShowMessage: true, messageIcon: Expensicons.Hourglass, messageDescription: translate('iou.pendingMatchWithCreditCard')};
+            return {shouldShow: true, messageIcon: Expensicons.Hourglass, messageDescription: translate('iou.pendingMatchWithCreditCard')};
         }
-        return {shouldShowMessage: false};
+        return {shouldShow: false};
     };
 
     const pendingMessageProps = getPendingMessageProps();
@@ -346,7 +332,7 @@ function ReportPreview({
                                                 </View>
                                             </View>
                                         )}
-                                        {pendingMessageProps.shouldShowMessage && (
+                                        {pendingMessageProps.shouldShow && (
                                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
                                                 <Icon
                                                     src={pendingMessageProps.messageIcon}

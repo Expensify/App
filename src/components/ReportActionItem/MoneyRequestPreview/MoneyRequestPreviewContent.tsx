@@ -27,6 +27,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import type {PendingMessageProps} from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import variables from '@styles/variables';
@@ -36,22 +37,7 @@ import CONST from '@src/CONST';
 import type {IOUMessage} from '@src/types/onyx/OriginalMessage';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type IconAsset from '@src/types/utils/IconAsset';
 import type {MoneyRequestPreviewProps} from './types';
-
-type NoPendingMessageProps = {shouldShowMessage: false};
-
-type PendingMessageProps = {
-    shouldShowMessage: true;
-
-    /** The icon to be displayed in the preview content footer */
-    messageIcon: IconAsset;
-
-    /** The description to be displayed in the preview content footer */
-    messageDescription: string;
-};
-
-type MessageProps = PendingMessageProps | NoPendingMessageProps;
 
 function MoneyRequestPreviewContent({
     iouReport,
@@ -198,17 +184,17 @@ function MoneyRequestPreviewContent({
         return message;
     };
 
-    const getPendingMessageProps: () => MessageProps = () => {
+    const getPendingMessageProps: () => PendingMessageProps = () => {
         if (isScanning) {
-            return {shouldShowMessage: true, messageIcon: ReceiptScan, messageDescription: translate('iou.receiptScanInProgress')};
+            return {shouldShow: true, messageIcon: ReceiptScan, messageDescription: translate('iou.receiptScanInProgress')};
         }
         if (TransactionUtils.isPending(transaction)) {
-            return {shouldShowMessage: true, messageIcon: Expensicons.CreditCardHourglass, messageDescription: translate('iou.transactionPending')};
+            return {shouldShow: true, messageIcon: Expensicons.CreditCardHourglass, messageDescription: translate('iou.transactionPending')};
         }
         if (TransactionUtils.hasPendingUI(transaction, TransactionUtils.getTransactionViolations(transaction?.transactionID ?? '', transactionViolations))) {
-            return {shouldShowMessage: true, messageIcon: Expensicons.Hourglass, messageDescription: translate('iou.pendingMatchWithCreditCard')};
+            return {shouldShow: true, messageIcon: Expensicons.Hourglass, messageDescription: translate('iou.pendingMatchWithCreditCard')};
         }
-        return {shouldShowMessage: false};
+        return {shouldShow: false};
     };
 
     const pendingMessageProps = getPendingMessageProps();
@@ -341,7 +327,7 @@ function MoneyRequestPreviewContent({
                                                 </Text>
                                             )}
                                         </View>
-                                        {pendingMessageProps.shouldShowMessage && (
+                                        {pendingMessageProps.shouldShow && (
                                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
                                                 <Icon
                                                     src={pendingMessageProps.messageIcon}
