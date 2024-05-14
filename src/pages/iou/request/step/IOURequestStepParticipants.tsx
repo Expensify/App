@@ -15,14 +15,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Participant} from '@src/types/onyx/IOU';
+import * as CurrencyUtils from "@libs/CurrencyUtils";
+import {getPolicy, isTaxTrackingEnabled} from "@libs/PolicyUtils";
 import StepScreenWrapper from './StepScreenWrapper';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
-import policy from "@src/types/onyx/Policy";
-import * as CurrencyUtils from "@libs/CurrencyUtils";
-import {getPolicy, isTaxTrackingEnabled} from "@libs/PolicyUtils";
 
 type IOURequestStepParticipantsOnyxProps = {
     /** Whether the confirmation step should be skipped */
@@ -84,6 +83,31 @@ function IOURequestStepParticipants({
         IOU.navigateToStartStepIfScanFileCannotBeRead(receiptFilename ?? '', receiptPath ?? '', () => {}, iouRequestType, iouType, transactionID, reportID, receiptType ?? '');
     }, [receiptType, receiptPath, receiptFilename, iouRequestType, iouType, transactionID, reportID, action]);
 
+    const setTaxDetailsOnCategorizing = useCallback(
+        (participantsArray: Participant[]) => {
+            if (action !== CONST.IOU.ACTION.CATEGORIZE) {
+                return;
+            }
+
+            const isPolicyExpenseChat = participantsArray.length === 1 && participantsArray[0]?.isPolicyExpenseChat;
+            if (!isPolicyExpenseChat) {
+                return;
+            }
+
+            const policyID = participantsArray[0].policyID;
+            const policy = getPolicy(policyID);
+            if (!isTaxTrackingEnabled(isPolicyExpenseChat, policy)) {
+                return;
+            }
+            const taxCode = TransactionUtils.getDefaultTaxCode(policy, transaction) ?? '';
+            const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, taxCode) ?? '';
+            const taxAmount = CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(taxPercentage, transaction?.amount ?? 0));
+            IOU.setMoneyRequestTaxRate(transactionID, taxCode, true);
+            IOU.setMoneyRequestTaxAmount(transactionID, taxAmount, true);
+        },
+        [action, transaction, transactionID]
+    );
+
     const addParticipant = useCallback(
         (val: Participant[]) => {
             IOU.setMoneyRequestParticipants(transactionID, val);
@@ -106,32 +130,6 @@ function IOURequestStepParticipants({
             selectedReportID.current = val[0]?.reportID ?? reportID;
         },
         [reportID, transactionID],
-    );
-
-    const setTaxDetailsOnCategorizing = useCallback(
-        (participants: Participant[]) => {
-            const isCategorizing = action === CONST.IOU.ACTION.CATEGORIZE;
-            if (!isCategorizing) {
-                return;
-            }
-
-            const isPolicyExpenseChat = participants.length === 1 && participants[0]?.isPolicyExpenseChat;
-            if (!isPolicyExpenseChat) {
-                return;
-            }
-
-            const policyID = participants[0].policyID;
-            const policy= getPolicy(policyID);
-            if (!isTaxTrackingEnabled(isPolicyExpenseChat, policy)) {
-                return;
-            }
-            const taxCode = TransactionUtils.getDefaultTaxCode(policy, transaction) ?? '';
-            const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, taxCode) ?? '';
-            const taxAmount = CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(taxPercentage, transaction?.amount ?? 0));
-            IOU.setMoneyRequestTaxRate(transactionID, taxCode, true);
-            IOU.setMoneyRequestTaxAmount(transactionID, taxAmount, true);
-        },
-        [action]
     );
 
     const goToNextStep = useCallback(() => {
