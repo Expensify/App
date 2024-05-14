@@ -1,7 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -34,13 +34,22 @@ type CategorySettingsPageOnyxProps = {
 
 type CategorySettingsPageProps = CategorySettingsPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_SETTINGS>;
 
-function CategorySettingsPage({route, policyCategories}: CategorySettingsPageProps) {
+function CategorySettingsPage({route, policyCategories, navigation}: CategorySettingsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
     const [deleteCategoryConfirmModalVisible, setDeleteCategoryConfirmModalVisible] = useState(false);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`);
 
-    const policyCategory = policyCategories?.[route.params.categoryName];
+    const policyCategory =
+        policyCategories?.[route.params.categoryName] ?? Object.values(policyCategories ?? {}).find((category) => category.previousCategoryName === route.params.categoryName);
+
+    useEffect(() => {
+        if (policyCategory?.name === route.params.categoryName || !policyCategory) {
+            return;
+        }
+        navigation.setParams({categoryName: policyCategory?.name});
+    }, [route.params.categoryName, navigation, policyCategory]);
 
     if (!policyCategory) {
         return <NotFoundPage />;
@@ -60,13 +69,15 @@ function CategorySettingsPage({route, policyCategories}: CategorySettingsPagePro
         Navigation.dismissModal();
     };
 
-    const threeDotsMenuItems = [
-        {
+    const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
+    const threeDotsMenuItems = [];
+    if (!isThereAnyAccountingConnection) {
+        threeDotsMenuItems.push({
             icon: Expensicons.Trashcan,
             text: translate('workspace.categories.deleteCategory'),
             onSelected: () => setDeleteCategoryConfirmModalVisible(true),
-        },
-    ];
+        });
+    }
 
     return (
         <AccessOrNotFoundWrapper
@@ -80,7 +91,7 @@ function CategorySettingsPage({route, policyCategories}: CategorySettingsPagePro
                 testID={CategorySettingsPage.displayName}
             >
                 <HeaderWithBackButton
-                    shouldShowThreeDotsButton
+                    shouldShowThreeDotsButton={threeDotsMenuItems.length > 0}
                     title={route.params.categoryName}
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
                     threeDotsMenuItems={threeDotsMenuItems}

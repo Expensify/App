@@ -4,6 +4,7 @@ import type {MaybePhraseKey} from '@libs/Localize';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import type CONST from '@src/CONST';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {SearchAccountDetails, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -122,26 +123,30 @@ type ListItem = {
     /** What text to show inside the badge (if none present the badge will be omitted) */
     badgeText?: string;
 
+    /** Whether the brick road indicator should be shown */
     brickRoadIndicator?: BrickRoad | '' | null;
-
-    managerID?: number;
-
-    amount?: number;
-
-    currency?: string;
-
-    tag?: string;
-
-    description?: string;
-
-    category?: string;
-
-    created?: string;
-
-    merchant?: string;
-
-    type?: string;
 };
+
+type TransactionListItemType = ListItem &
+    SearchTransaction & {
+        /** The personal details of the user requesting money */
+        from: SearchAccountDetails;
+
+        /** The personal details of the user paying the request */
+        to: SearchAccountDetails;
+
+        /** Whether we should show the merchant column */
+        shouldShowMerchant: boolean;
+
+        /** Whether we should show the category column */
+        shouldShowCategory: boolean;
+
+        /** Whether we should show the tag column */
+        shouldShowTag: boolean;
+
+        /** Whether we should show the tax column */
+        shouldShowTax: boolean;
+    };
 
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** The section list item */
@@ -270,6 +275,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Input mode for the text input */
     inputMode?: InputModeOptions;
+
+    /** Whether the text input should intercept swipes or not */
+    shouldTextInputInterceptSwipe?: boolean;
 
     /** Item `keyForList` to focus initially */
     initiallyFocusedOptionKey?: string | null;
@@ -401,6 +409,7 @@ export type {
     SelectionListHandle,
     TableListItemProps,
     TransactionListItemProps,
+    TransactionListItemType,
     UserListItemProps,
     ValidListItem,
 };
