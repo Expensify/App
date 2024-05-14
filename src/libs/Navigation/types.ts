@@ -53,6 +53,7 @@ type CentralPaneNavigatorParamList = {
         reportActionID: string;
         reportID: string;
         openOnAdminRoom?: boolean;
+        referrer?: string;
     };
     [SCREENS.SETTINGS.PROFILE.ROOT]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.ROOT]: undefined;

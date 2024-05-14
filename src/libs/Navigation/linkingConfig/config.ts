@@ -169,8 +169,14 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.SETTINGS_ENABLE_PAYMENTS,
                             exact: true,
                         },
+                        // TODO: Added temporarily for testing purposes, remove after refactor - https://github.com/Expensify/App/issues/36648
                         [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS_REFACTOR]: {
                             path: ROUTES.SETTINGS_ENABLE_PAYMENTS_REFACTOR,
+                            exact: true,
+                        },
+                        // TODO: Added temporarily for testing purposes, remove after refactor - https://github.com/Expensify/App/issues/36648
+                        [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS_TEMPORARY_TERMS]: {
+                            path: ROUTES.SETTINGS_ENABLE_PAYMENTS_TEMPORARY_TERMS,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.WALLET.TRANSFER_BALANCE]: {

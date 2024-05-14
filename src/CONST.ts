@@ -362,7 +362,6 @@ const CONST = {
         DEFAULT_ROOMS: 'defaultRooms',
         VIOLATIONS: 'violations',
         REPORT_FIELDS: 'reportFields',
-        TRACK_EXPENSE: 'trackExpense',
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
         WORKFLOWS_DELAYED_SUBMISSION: 'workflowsDelayedSubmission',
         SPOTNANA_TRAVEL: 'spotnanaTravel',
@@ -1969,7 +1968,7 @@ const CONST = {
 
         POLICY_ID_FROM_PATH: /\/w\/([a-zA-Z0-9]+)(\/|$)/,
 
-        SHORT_MENTION: new RegExp(`@[\\w\\-\\+\\'#@]+(?:\\.[\\w\\-\\'\\+]+)*`, 'gim'),
+        SHORT_MENTION: new RegExp(`@[\\w\\-\\+\\'#@]+(?:\\.[\\w\\-\\'\\+]+)*(?![^\`]*\`)`, 'gim'),
     },
 
     PRONOUNS: {
@@ -4764,6 +4763,10 @@ const CONST = {
 
     SEARCH_DATA_TYPES: {
         TRANSACTION: 'transaction',
+    },
+
+    REFERRER: {
+        NOTIFICATION: 'notification',
     },
 } as const;
 

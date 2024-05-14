@@ -40,7 +40,7 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             brickRoadIndicator: errorFields?.exporter ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: exportConfiguration?.exporter ?? policyOwner,
             pendingAction: pendingFields?.export,
-            error: errorFields?.exporter ? translate('common.genericErrorMessage') : undefined,
+            errorText: errorFields?.exporter ? translate('common.genericErrorMessage') : undefined,
         },
         {
             description: translate('workspace.xero.exportExpenses'),
@@ -55,14 +55,14 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             brickRoadIndicator: errorFields?.billDate ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: exportConfiguration?.billDate ? translate(`workspace.xero.exportDate.values.${exportConfiguration.billDate}.label`) : undefined,
             pendingAction: pendingFields?.export,
-            error: errorFields?.billDate ? translate('common.genericErrorMessage') : undefined,
+            errorText: errorFields?.billDate ? translate('common.genericErrorMessage') : undefined,
         },
         {
             description: translate('workspace.xero.advancedConfig.purchaseBillStatusTitle'),
             onPress: () => {},
             title: exportConfiguration?.billStatus?.purchase ? translate(`workspace.xero.invoiceStatus.values.${exportConfiguration.billStatus.purchase}`) : undefined,
             pendingAction: pendingFields?.export,
-            error: errorFields?.purchase ? translate('common.genericErrorMessage') : undefined,
+            errorText: errorFields?.purchase ? translate('common.genericErrorMessage') : undefined,
         },
         {
             description: translate('workspace.xero.exportInvoices'),
@@ -84,7 +84,7 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             brickRoadIndicator: errorFields?.nonReimbursableAccount ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: selectedBankAccountName,
             pendingAction: pendingFields?.export,
-            error: errorFields?.nonReimbursableAccount ? translate('common.genericErrorMessage') : undefined,
+            errorText: errorFields?.nonReimbursableAccount ? translate('common.genericErrorMessage') : undefined,
         },
     ];
 
@@ -113,7 +113,7 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
                         onPress={menuItem?.onPress}
                         brickRoadIndicator={menuItem?.brickRoadIndicator}
                         helperText={menuItem?.helperText}
-                        error={menuItem?.error}
+                        errorText={menuItem?.errorText}
                     />
                 </OfflineWithFeedback>
             ))}
