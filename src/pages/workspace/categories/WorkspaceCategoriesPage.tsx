@@ -12,7 +12,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RightElementEnabledStatus from '@components/SelectionList/RightElementEnabledStatus';
+import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRightCaretWithLabel';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
@@ -90,10 +90,10 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         isDisabled,
                         pendingAction: value.pendingAction,
                         errors: value.errors ?? undefined,
-                        rightElement: <RightElementEnabledStatus enabled={value.enabled} />,
+                        rightElement: <ListItemRightCaretWithLabel labelText={value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
                     };
                 }),
-        [policyCategories, selectedCategories],
+        [policyCategories, selectedCategories, translate],
     );
 
     const toggleCategory = (category: PolicyOption) => {
