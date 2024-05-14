@@ -13,6 +13,7 @@ import DateUtils from './DateUtils';
 import * as Localize from './Localize';
 import * as NumberUtils from './NumberUtils';
 import {getCleanedTagName} from './PolicyUtils';
+import type {EmptyObject} from '@src/types/utils/EmptyObject';
 
 let allTransactions: OnyxCollection<Transaction> = {};
 
@@ -658,7 +659,7 @@ function getRateID(transaction: OnyxEntry<Transaction>): string | undefined {
  * Gets the tax code based on selected currency.
  * Returns policy default tax rate if transaction is in policy default currency, otherwise returns foreign default tax rate
  */
-function getDefaultTaxCode(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, currency?: string | undefined) {
+function getDefaultTaxCode(policy: OnyxEntry<Policy> | EmptyObject, transaction: OnyxEntry<Transaction>, currency?: string | undefined) {
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
     const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
     return policy?.outputCurrency === (currency ?? getCurrency(transaction)) ? defaultExternalID : foreignTaxDefault;
@@ -691,7 +692,7 @@ function transformedTaxRates(policy: OnyxEntry<Policy> | undefined, transaction?
 /**
  * Gets the tax value of a selected tax
  */
-function getTaxValue(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, taxCode: string) {
+function getTaxValue(policy: OnyxEntry<Policy> | EmptyObject, transaction: OnyxEntry<Transaction>, taxCode: string) {
     return Object.values(transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === taxCode)?.value;
 }
 
