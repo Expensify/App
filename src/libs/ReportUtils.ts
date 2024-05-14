@@ -5054,11 +5054,6 @@ function hasViolations(reportID: string, transactionViolations: OnyxCollection<T
     return transactions.some((transaction) => TransactionUtils.hasViolation(transaction.transactionID, transactionViolations));
 }
 
-function isEmptyChat(report: OnyxEntry<Report>) {
-    const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(report?.reportID ?? '');
-    return !report?.lastMessageText && !report?.lastMessageTranslationKey && !lastVisibleMessage.lastMessageText && !lastVisibleMessage.lastMessageTranslationKey;
-}
-
 /**
  * Takes several pieces of data from Onyx and evaluates if a report should be shown in the option list (either when searching
  * for reports or the reports shown in the LHN).
