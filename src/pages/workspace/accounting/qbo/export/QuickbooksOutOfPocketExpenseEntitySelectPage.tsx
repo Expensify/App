@@ -41,12 +41,6 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
                 isSelected: reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY,
                 isShown: !isTaxesEnabled || isLocationsEnabled,
             },
-        ],
-        [reimbursableExpensesExportDestination, isTaxesEnabled, translate, isLocationsEnabled],
-    );
-
-    if (!isLocationsEnabled) {
-        data.push(
             {
                 value: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK,
                 text: translate(`workspace.qbo.accounts.check`),
@@ -61,8 +55,9 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
                 isSelected: reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
                 isShown: !isLocationsEnabled,
             },
-        );
-    }
+        ],
+        [reimbursableExpensesExportDestination, isTaxesEnabled, translate, isLocationsEnabled],
+    );
 
     const sections: CardsSection[] = useMemo(() => [{data: data.filter((item) => item.isShown)}], [data]);
 
