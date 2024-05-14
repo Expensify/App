@@ -295,7 +295,7 @@ function BaseVideoPlayer({
                 accessible={false}
                 style={[styles.cursorDefault, style]}
             >
-                <Hoverable>
+                <Hoverable shouldFreezeCapture={isPopoverVisible}>
                     {(isHovered) => (
                         <View style={[styles.w100, styles.h100]}>
                             <PressableWithoutFeedback
