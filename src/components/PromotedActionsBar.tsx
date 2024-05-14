@@ -34,7 +34,7 @@ function usePromotedActions({report}: PromotedActionsParams): Record<string, Pro
             },
             join: {
                 key: 'join',
-                icon: Expensicons.Pin,
+                icon: Expensicons.CommentBubbles,
                 text: translate('common.join'),
                 onSelected: join,
             },
