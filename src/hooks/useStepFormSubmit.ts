@@ -1,7 +1,7 @@
 import {useCallback} from 'react';
 import type {FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
 import * as FormActions from '@userActions/FormActions';
-import type {OnyxFormKey, OnyxFormValuesMapping} from '@src/ONYXKEYS';
+import type {OnyxFormKey, OnyxFormValuesMapping, OnyxValues} from '@src/ONYXKEYS';
 import type {SubStepProps} from './useSubStep/types';
 
 type UseStepFormSubmitParams<T extends keyof OnyxFormValuesMapping> = Pick<SubStepProps, 'onNext'> & {
@@ -22,13 +22,10 @@ export default function useStepFormSubmit<T extends keyof OnyxFormValuesMapping>
     return useCallback(
         (values: FormOnyxValues<T>) => {
             if (shouldSaveDraft) {
-                const stepValues = fieldIds.reduce(
-                    (acc, key) => ({
-                        ...acc,
-                        [key]: values[key],
-                    }),
-                    {},
-                );
+                const stepValues = fieldIds.reduce((acc, key) => {
+                    acc[key] = values[key];
+                    return acc;
+                }, {} as Record<(typeof fieldIds)[number], OnyxValues[T][(typeof fieldIds)[number]]>);
 
                 FormActions.setDraftValues(formId, stepValues);
             }
