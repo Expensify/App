@@ -323,9 +323,9 @@ function MoneyRequestView({
     const shouldShowNotesViolations = !isReceiptBeingScanned && canUseViolations && ReportUtils.isPaidGroupPolicy(report);
 
     const errors = {
-        ...(transaction?.errors ?? {}),
-        ...(parentReportAction?.errors ?? {}),
-    };
+        ...transaction?.errors,
+        ...parentReportAction?.errors
+    }
 
     return (
         <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true, shouldShowAnimatedBackground)]}>
