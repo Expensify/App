@@ -22,9 +22,7 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
     const xeroConfig = policy?.connections?.xero?.config;
-    const {importTrackingCategories} = policy?.connections?.xero?.config ?? {};
-
-    const isSwitchOn = Boolean(importTrackingCategories);
+    const isSwitchOn = !!xeroConfig?.importTrackingCategories;
 
     const menuItems: MenuItemProps[] = useMemo(() => {
         const availableCategories = [];
@@ -64,14 +62,19 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
             <ToggleSettingOptionRow
                 title={translate('workspace.accounting.import')}
                 switchAccessibilityLabel={translate('workspace.xero.trackingCategories')}
-                isActive={!!isSwitchOn}
+                isActive={isSwitchOn}
                 onToggle={() =>
-                    Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.IMPORT_TRACKING_CATEGORIES, !importTrackingCategories)
+                    Connections.updatePolicyConnectionConfig(
+                        policyID,
+                        CONST.POLICY.CONNECTIONS.NAME.XERO,
+                        CONST.XERO_CONFIG.IMPORT_TRACKING_CATEGORIES,
+                        !xeroConfig?.importTrackingCategories,
+                    )
                 }
                 errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.IMPORT_TRACKING_CATEGORIES)}
                 onCloseError={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.IMPORT_TRACKING_CATEGORIES)}
             />
-            {importTrackingCategories && (
+            {xeroConfig?.importTrackingCategories && (
                 <View>
                     {menuItems.map((menuItem: MenuItemProps) => (
                         <MenuItemWithTopDescription

@@ -15,8 +15,7 @@ function XeroTaxesConfigurationPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
     const xeroConfig = policy?.connections?.xero?.config;
-    const {importTaxRates} = xeroConfig ?? {};
-    const isSwitchOn = Boolean(importTaxRates);
+    const isSwitchOn = !!xeroConfig?.importTaxRates;
 
     return (
         <ConnectionLayout
@@ -26,13 +25,13 @@ function XeroTaxesConfigurationPage({policy}: WithPolicyProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            contentContainerStyle={[[styles.pb2, styles.ph5]]}
+            contentContainerStyle={[styles.pb2, styles.ph5]}
         >
             <ToggleSettingOptionRow
                 title={translate('workspace.accounting.import')}
                 switchAccessibilityLabel={translate('workspace.xero.customers')}
-                isActive={!!isSwitchOn}
-                onToggle={() => Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.IMPORT_TAX_RATES, !importTaxRates)}
+                isActive={isSwitchOn}
+                onToggle={() => Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.IMPORT_TAX_RATES, !xeroConfig?.importTaxRates)}
                 errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.IMPORT_TAX_RATES)}
                 onCloseError={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.IMPORT_TAX_RATES)}
             />

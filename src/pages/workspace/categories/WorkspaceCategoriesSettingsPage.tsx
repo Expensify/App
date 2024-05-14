@@ -21,9 +21,17 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
+    const isConnectedToQbo = policy?.connections?.quickbooksOnline;
+    const isConnectedToXero = policy?.connections?.xero;
     const policyID = route.params.policyID ?? '';
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
-    const toggleSubtitle = isConnectedToAccounting ? `${translate('workspace.categories.needCategoryForExportToIntegration')} ${translate('workspace.accounting.qbo')}` : '';
+    let toggleSubtitle = '';
+    if (isConnectedToQbo) {
+        toggleSubtitle = `${translate('workspace.categories.needCategoryForExportToIntegration')} ${translate('workspace.accounting.qbo')}`;
+    }
+    if (isConnectedToXero) {
+        toggleSubtitle = `${translate('workspace.categories.needCategoryForExportToIntegration')} ${translate('workspace.accounting.xero')}`;
+    }
 
     const updateWorkspaceRequiresCategory = (value: boolean) => {
         setWorkspaceRequiresCategory(policyID, value);

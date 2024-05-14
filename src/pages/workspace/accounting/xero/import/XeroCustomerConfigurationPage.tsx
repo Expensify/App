@@ -16,9 +16,7 @@ function XeroCustomerConfigurationPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
     const xeroConfig = policy?.connections?.xero?.config;
-    const {importCustomers} = xeroConfig ?? {};
-
-    const isSwitchOn = Boolean(importCustomers);
+    const isSwitchOn = !!xeroConfig?.importCustomers;
 
     return (
         <ConnectionLayout
@@ -41,8 +39,8 @@ function XeroCustomerConfigurationPage({policy}: WithPolicyProps) {
                         wrapperStyle={styles.sectionMenuItemTopDescription}
                     />
                 }
-                isActive={!!isSwitchOn}
-                onToggle={() => Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.IMPORT_CUSTOMERS, !importCustomers)}
+                isActive={isSwitchOn}
+                onToggle={() => Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.IMPORT_CUSTOMERS, !xeroConfig?.importCustomers)}
                 errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.IMPORT_CUSTOMERS)}
                 onCloseError={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.IMPORT_CUSTOMERS)}
             />
