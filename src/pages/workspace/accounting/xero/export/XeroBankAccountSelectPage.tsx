@@ -13,14 +13,14 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-function XeroInvoiceAccountSelectorPage({policy}: WithPolicyConnectionsProps) {
+function XeroBankAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const policyID = policy?.id ?? '';
     const {bankAccounts} = policy?.connections?.xero?.data ?? {};
 
-    const {invoiceCollectionsAccountID, syncReimbursedReports} = policy?.connections?.xero?.config.sync ?? {};
+    const {nonReimbursableAccount: nonReimbursableAccountID} = policy?.connections?.xero?.config.export ?? {};
 
     const xeroSelectorOptions = useMemo<SelectorType[]>(
         () =>
@@ -28,15 +28,15 @@ function XeroInvoiceAccountSelectorPage({policy}: WithPolicyConnectionsProps) {
                 value: id,
                 text: name,
                 keyForList: id,
-                isSelected: invoiceCollectionsAccountID === id,
+                isSelected: nonReimbursableAccountID === id,
             })),
-        [invoiceCollectionsAccountID, bankAccounts],
+        [nonReimbursableAccountID, bankAccounts],
     );
 
     const listHeaderComponent = useMemo(
         () => (
             <View style={[styles.pb2, styles.ph5]}>
-                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.xero.advancedConfig.invoiceAccountSelectorDescription')}</Text>
+                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.xero.xeroBankAccountDescription')}</Text>
             </View>
         ),
         [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal],
@@ -44,14 +44,16 @@ function XeroInvoiceAccountSelectorPage({policy}: WithPolicyConnectionsProps) {
 
     const initiallyFocusedOptionKey = useMemo(() => xeroSelectorOptions?.find((mode) => mode.isSelected)?.keyForList, [xeroSelectorOptions]);
 
-    const updateAccount = useCallback(
+    const updateBankAccount = useCallback(
         ({value}: SelectorType) => {
-            Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.SYNC, {
-                invoiceCollectionsAccountID: value,
-            });
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID));
+            if (initiallyFocusedOptionKey !== value) {
+                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.EXPORT, {
+                    nonReimbursableAccount: value,
+                });
+            }
+            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID));
         },
-        [policyID],
+        [policyID, initiallyFocusedOptionKey],
     );
 
     return (
@@ -59,19 +61,18 @@ function XeroInvoiceAccountSelectorPage({policy}: WithPolicyConnectionsProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={XeroInvoiceAccountSelectorPage.displayName}
+            displayName={XeroBankAccountSelectPage.displayName}
             sections={[{data: xeroSelectorOptions}]}
             listItem={RadioListItem}
-            shouldBeBlocked={!syncReimbursedReports}
-            onSelectRow={updateAccount}
+            onSelectRow={updateBankAccount}
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
             headerContent={listHeaderComponent}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID))}
-            title="workspace.xero.advancedConfig.xeroInvoiceCollectionAccount"
+            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID))}
+            title="workspace.xero.xeroBankAccount"
         />
     );
 }
 
-XeroInvoiceAccountSelectorPage.displayName = 'XeroInvoiceAccountSelectorPage';
+XeroBankAccountSelectPage.displayName = 'XeroBankAccountSelectPage';
 
-export default withPolicyConnections(XeroInvoiceAccountSelectorPage);
+export default withPolicyConnections(XeroBankAccountSelectPage);
