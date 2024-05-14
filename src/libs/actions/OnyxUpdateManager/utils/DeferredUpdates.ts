@@ -44,6 +44,7 @@ function enqueueDeferredUpdates(updates: OnyxUpdatesFromServer[], shouldProcessU
 
 /**
  * Clears the deferred updates queue and unpauses the SequentialQueue
+ * @param shouldUnpauseSequentialQueue Whether the SequentialQueue should be unpaused after clearing the deferred updates
  */
 function clearDeferredUpdates(shouldUnpauseSequentialQueue = true) {
     GetMissingOnyxUpdatesPromiseProxy.GetMissingOnyxUpdatesPromise = undefined;
