@@ -508,7 +508,7 @@ function MoneyRequestConfirmationList({
                     prefixContainerStyle={[styles.pv0]}
                     inputStyle={[styles.optionRowAmountInput, amountWidth] as TextStyle[]}
                     containerStyle={[styles.textInputContainer]}
-                    touchableInputWrapperStyle={[StyleUtils.getPaddingLeft(StyleUtils.getCharacterPadding(currencySymbol ?? '') + styles.pl1.paddingLeft)]}
+                    touchableInputWrapperStyle={[styles.ml3]}
                     onAmountChange={(value: string) => onSplitShareChange(participantOption.accountID ?? 0, Number(value))}
                     maxLength={formattedTotalAmount.length}
                 />
@@ -528,8 +528,8 @@ function MoneyRequestConfirmationList({
         styles.textLabel,
         styles.pv0,
         styles.optionRowAmountInput,
-        styles.pl1.paddingLeft,
         styles.textInputContainer,
+        styles.ml3,
         transaction?.comment?.splits,
         transaction?.splitShares,
         onSplitShareChange,
