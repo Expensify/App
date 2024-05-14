@@ -136,6 +136,7 @@ function AvatarWithDisplayName({
                             numberOfLines={1}
                             textStyles={[isAnonymous ? styles.headerAnonymousFooter : styles.headerText, styles.pre]}
                             shouldUseFullTitle={isMoneyRequestOrReport || isAnonymous}
+                            shouldShowCaret
                         />
                         {Object.keys(parentNavigationSubtitleData).length > 0 && (
                             <ParentNavigationSubtitle

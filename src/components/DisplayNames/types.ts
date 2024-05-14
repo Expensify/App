@@ -42,6 +42,9 @@ type DisplayNamesProps = {
 
     /** Additional Text component to render after the displayNames */
     renderAdditionalText?: () => React.ReactNode;
+
+    /** Whether to show a caret next to the title */
+    shouldShowCaret?: boolean;
 };
 
 export default DisplayNamesProps;

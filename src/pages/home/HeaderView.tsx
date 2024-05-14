@@ -25,7 +25,6 @@ import * as HeaderUtils from '@libs/HeaderUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import variables from '@styles/variables';
 import * as Link from '@userActions/Link';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
@@ -272,23 +271,16 @@ function HeaderView({
                                         />
                                     )}
                                     <View style={[styles.flex1, styles.flexColumn]}>
-                                        <View style={[styles.flex1, styles.flexRow, styles.gap1, styles.alignItemsCenter]}>
-                                            <DisplayNames
-                                                fullTitle={title}
-                                                displayNamesWithTooltips={displayNamesWithTooltips}
-                                                tooltipEnabled
-                                                numberOfLines={1}
-                                                textStyles={[styles.headerText, styles.pre]}
-                                                shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isChatThread || isTaskReport || shouldUseGroupTitle}
-                                                renderAdditionalText={renderAdditionalText}
-                                            />
-                                            <Icon
-                                                src={Expensicons.DownArrow}
-                                                fill={theme.icon}
-                                                width={variables.iconSizeExtraSmall}
-                                                height={variables.iconSizeExtraSmall}
-                                            />
-                                        </View>
+                                        <DisplayNames
+                                            fullTitle={title}
+                                            displayNamesWithTooltips={displayNamesWithTooltips}
+                                            tooltipEnabled
+                                            numberOfLines={1}
+                                            textStyles={[styles.headerText, styles.pre]}
+                                            shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isChatThread || isTaskReport || shouldUseGroupTitle}
+                                            renderAdditionalText={renderAdditionalText}
+                                            shouldShowCaret
+                                        />
                                         {!isEmptyObject(parentNavigationSubtitleData) && (
                                             <ParentNavigationSubtitle
                                                 parentNavigationSubtitleData={parentNavigationSubtitleData}
