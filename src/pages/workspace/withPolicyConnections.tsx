@@ -23,7 +23,7 @@ type WithPolicyConnectionsProps = WithPolicyProps & {
  * Only the active policy gets the complete policy data upon app start that includes the connections data.
  * For other policies, the connections data needs to be fetched when it's needed.
  */
-function withPolicyConnections<TProps extends WithPolicyConnectionsProps>(WrappedComponent: ComponentType<TProps>) {
+function withPolicyConnections<TProps extends WithPolicyConnectionsProps>(WrappedComponent: ComponentType<TProps>, shouldBlockView = true) {
     function WithPolicyConnections(props: TProps) {
         const {isOffline} = useNetwork();
         const [hasConnectionsDataBeenFetched, {status}] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${props.policy?.id ?? '0'}`, {
@@ -41,7 +41,7 @@ function withPolicyConnections<TProps extends WithPolicyConnectionsProps>(Wrappe
             openPolicyAccountingPage(props.policy.id);
         }, [props.policy?.id, isConnectionDataFetchNeeded]);
 
-        if (props.policy?.areConnectionsEnabled && status === 'loading') {
+        if (props.policy?.areConnectionsEnabled && status === 'loading' && shouldBlockView) {
             return (
                 <FullPageOfflineBlockingView>
                     <FullScreenLoadingIndicator />

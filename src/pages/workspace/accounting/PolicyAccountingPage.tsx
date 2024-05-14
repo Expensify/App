@@ -392,4 +392,5 @@ export default withPolicyConnections(
             key: (props) => `${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${props.route.params.policyID}`,
         },
     })(PolicyAccountingPage),
+    false,
 );
