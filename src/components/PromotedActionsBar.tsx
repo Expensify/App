@@ -112,9 +112,11 @@ function PromotedActionsBar({report, promotedActions, shouldShowLeaveButton}: Pr
                 </View>
             )}
             {promotedActions.map(({key, onSelected, ...props}) => (
-                <View style={[styles.flex1]}>
+                <View
+                    style={[styles.flex1]}
+                    key={key}
+                >
                     <Button
-                        key={key}
                         onPress={onSelected}
                         iconFill={theme.icon}
                         // eslint-disable-next-line react/jsx-props-no-spreading
