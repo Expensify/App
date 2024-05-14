@@ -85,9 +85,9 @@ function IOURequestStepConfirmation({
     const receiptFilename = transaction?.filename;
     const receiptPath = transaction?.receipt?.source;
     const receiptType = transaction?.receipt?.type;
-    const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
-    const transactionTaxCode = transaction?.taxRate ? transaction.taxRate.data?.code : foreignTaxDefault;
-    const transactionTaxAmount = transaction?.taxAmount;
+    const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction);
+    const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
+    const transactionTaxAmount = transaction?.taxAmount ?? 0;
     const isSharingTrackExpense = action === CONST.IOU.ACTION.SHARE;
     const isCategorizingTrackExpense = action === CONST.IOU.ACTION.CATEGORIZE;
     const isSubmittingFromTrackExpense = action === CONST.IOU.ACTION.SUBMIT;
@@ -300,6 +300,8 @@ function IOURequestStepConfirmation({
                 transaction.created,
                 transaction.category,
                 transaction.tag,
+                transactionTaxCode,
+                transactionTaxAmount,
                 transaction.amount,
                 transaction.currency,
                 transaction.merchant,
@@ -311,7 +313,7 @@ function IOURequestStepConfirmation({
                 customUnitRateID,
             );
         },
-        [policy, policyCategories, policyTags, report, transaction],
+        [policy, policyCategories, policyTags, report, transaction, transactionTaxCode, transactionTaxAmount],
     );
 
     const createTransaction = useCallback(
@@ -521,16 +523,6 @@ function IOURequestStepConfirmation({
         [transaction?.amount, transaction?.comment, transaction?.currency, participants, currentUserPersonalDetails.accountID, report],
     );
 
-    const addNewParticipant = (option: Participant) => {
-        const newParticipants = transaction?.participants?.map((participant) => {
-            if (participant.accountID === option.accountID) {
-                return {...participant, selected: !participant.selected};
-            }
-            return participant;
-        });
-        IOU.setMoneyRequestParticipants(transactionID, newParticipants);
-    };
-
     const setBillable = (billable: boolean) => {
         IOU.setMoneyRequestBillable(transactionID, billable);
     };
@@ -567,7 +559,6 @@ function IOURequestStepConfirmation({
                         iouCategory={transaction?.category}
                         onConfirm={createTransaction}
                         onSendMoney={sendMoney}
-                        onSelectParticipant={addNewParticipant}
                         receiptPath={receiptPath}
                         receiptFilename={receiptFilename}
                         iouType={iouType}
