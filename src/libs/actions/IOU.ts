@@ -5052,6 +5052,7 @@ type UpdateMoneyRequestAmountAndCurrencyParams = {
     policy?: OnyxEntry<OnyxTypes.Policy>;
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>;
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
+    taxCode: string;
 };
 
 /** Updates the amount and currency fields of an expense */
@@ -5064,10 +5065,12 @@ function updateMoneyRequestAmountAndCurrency({
     policy,
     policyTagList,
     policyCategories,
+    taxCode,
 }: UpdateMoneyRequestAmountAndCurrencyParams) {
     const transactionChanges = {
         amount,
         currency,
+        taxCode,
         taxAmount,
     };
     const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
