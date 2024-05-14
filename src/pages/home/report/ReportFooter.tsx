@@ -146,10 +146,6 @@ function ReportFooter({
         [report.reportID, handleCreateTask],
     );
 
-    if (isArchivedRoom) {
-        return <View></View>
-    }
-
     return (
         <>
             {hideComposer && (
