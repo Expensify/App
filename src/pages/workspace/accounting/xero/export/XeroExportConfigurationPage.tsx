@@ -26,7 +26,7 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             brickRoadIndicator: errorFields?.exporter ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: exportConfiguration?.exporter ?? policyOwner,
             pendingAction: pendingFields?.export,
-            error: errorFields?.exporter ? translate('common.genericErrorMessage') : undefined,
+            errorText: errorFields?.exporter ? translate('common.genericErrorMessage') : undefined,
         },
         {
             description: translate('workspace.xero.exportExpenses'),
@@ -40,14 +40,14 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             brickRoadIndicator: errorFields?.billDate ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: exportConfiguration?.billDate,
             pendingAction: pendingFields?.export,
-            error: errorFields?.billDate ? translate('common.genericErrorMessage') : undefined,
+            errorText: errorFields?.billDate ? translate('common.genericErrorMessage') : undefined,
         },
         {
             description: translate('workspace.xero.advancedConfig.purchaseBillStatusTitle'),
             onPress: () => {},
             title: exportConfiguration?.billStatus?.purchase,
             pendingAction: pendingFields?.export,
-            error: errorFields?.purchase ? translate('common.genericErrorMessage') : undefined,
+            errorText: errorFields?.purchase ? translate('common.genericErrorMessage') : undefined,
         },
         {
             description: translate('workspace.xero.exportInvoices'),
@@ -69,7 +69,7 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             brickRoadIndicator: errorFields?.nonReimbursableAccount ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: undefined,
             pendingAction: pendingFields?.export,
-            error: undefined,
+            errorText: undefined,
         },
     ];
 
@@ -97,7 +97,7 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
                         onPress={menuItem?.onPress}
                         brickRoadIndicator={menuItem?.brickRoadIndicator}
                         helperText={menuItem?.helperText}
-                        error={menuItem?.error}
+                        errorText={menuItem?.errorText}
                     />
                 </OfflineWithFeedback>
             ))}
