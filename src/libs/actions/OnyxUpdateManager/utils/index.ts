@@ -91,13 +91,7 @@ function validateAndApplyDeferredUpdates(clientLastUpdateID?: number, previousPa
 
     // We only want to apply deferred updates that are newer than the last update that was applied to the client.
     // At this point, the missing updates from "GetMissingOnyxUpdates" have been applied already, so we can safely filter out.
-    const pendingDeferredUpdates = Object.entries(DeferredUpdates.deferredUpdates).reduce<DeferredUpdatesDictionary>(
-        (accUpdates, [lastUpdateID, update]) => ({
-            ...accUpdates,
-            ...(Number(lastUpdateID) > lastUpdateIDFromClient ? {[Number(lastUpdateID)]: update} : {}),
-        }),
-        {},
-    );
+    const pendingDeferredUpdates = DeferredUpdates.getUpdates(lastUpdateIDFromClient);
 
     // If there are no remaining deferred updates after filtering out outdated ones,
     // we can just unpause the queue and return
@@ -113,7 +107,7 @@ function validateAndApplyDeferredUpdates(clientLastUpdateID?: number, previousPa
         Log.info('[DeferredUpdates] Gap detected in deferred updates', false, {lastUpdateIDFromClient, latestMissingUpdateID});
 
         return new Promise((resolve, reject) => {
-            DeferredUpdates.deferredUpdates = {};
+            DeferredUpdates.clear({shouldUnpauseSequentialQueue: false, shouldResetGetMissingOnyxUpdatesPromise: false});
 
             applyUpdates(applicableUpdates).then(() => {
                 // After we have applied the applicable updates, there might have been new deferred updates added.
@@ -123,7 +117,7 @@ function validateAndApplyDeferredUpdates(clientLastUpdateID?: number, previousPa
 
                 const newLastUpdateIDFromClient = clientLastUpdateID ?? lastUpdateIDAppliedToClient ?? 0;
 
-                DeferredUpdates.deferredUpdates = {...DeferredUpdates.deferredUpdates, ...updatesAfterGaps};
+                DeferredUpdates.enqueue(updatesAfterGaps, {shouldProcessUpdates: false, shouldPauseSequentialQueue: false});
 
                 // If lastUpdateIDAppliedToClient got updated in the meantime, we will just retrigger the validation and application of the current deferred updates.
                 if (latestMissingUpdateID <= newLastUpdateIDFromClient) {
