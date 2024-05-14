@@ -60,7 +60,7 @@ function finalizeUpdatesAndResumeQueue() {
     resolveQueryPromiseWrapper();
     queryPromiseWrapper = createQueryPromiseWrapper();
 
-    DeferredUpdates.clearDeferredUpdates();
+    DeferredUpdates.clear();
 }
 
 /**

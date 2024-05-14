@@ -13,7 +13,7 @@ let deferredUpdates: DeferredUpdatesDictionary = {};
 /**
  * Manually processes and applies the updates from the deferred updates queue. (used e.g. for push notifications)
  */
-function processDeferredUpdates() {
+function process() {
     if (GetMissingOnyxUpdatesPromiseProxy.GetMissingOnyxUpdatesPromise) {
         GetMissingOnyxUpdatesPromiseProxy.GetMissingOnyxUpdatesPromise.finally(() => OnyxUpdateManagerUtils.validateAndApplyDeferredUpdates);
     }
@@ -28,7 +28,7 @@ function processDeferredUpdates() {
  * @param shouldProcessUpdates Whether the updates should be processed immediately
  * @returns
  */
-function enqueueDeferredUpdates(updates: OnyxUpdatesFromServer[], shouldProcessUpdates = true) {
+function enqueue(updates: OnyxUpdatesFromServer[], shouldProcessUpdates = true) {
     SequentialQueue.pause();
 
     updates.forEach((update) => {
@@ -44,14 +44,14 @@ function enqueueDeferredUpdates(updates: OnyxUpdatesFromServer[], shouldProcessU
         return;
     }
 
-    processDeferredUpdates();
+    process();
 }
 
 /**
  * Clears the deferred updates queue and unpauses the SequentialQueue
  * @param shouldUnpauseSequentialQueue Whether the SequentialQueue should be unpaused after clearing the deferred updates
  */
-function clearDeferredUpdates(shouldUnpauseSequentialQueue = true) {
+function clear(shouldUnpauseSequentialQueue = true) {
     GetMissingOnyxUpdatesPromiseProxy.GetMissingOnyxUpdatesPromise = undefined;
     deferredUpdates = {};
 
@@ -63,6 +63,6 @@ function clearDeferredUpdates(shouldUnpauseSequentialQueue = true) {
     SequentialQueue.unpause();
 }
 
-const DeferredUpdates = {deferredUpdates, enqueueDeferredUpdates, clearDeferredUpdates, processDeferredUpdates};
+const DeferredUpdates = {deferredUpdates, enqueue, clear, process};
 
 export default createProxyForObject(DeferredUpdates);
