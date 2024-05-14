@@ -27,18 +27,17 @@ function withPolicyConnections<TProps extends WithPolicyConnectionsProps>(Wrappe
         const [hasConnectionsDataBeenFetched, {status}] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${props.policy?.id ?? '0'}`, {
             initWithStoredValues: false,
         });
-        // eslint-disable-next-line rulesdir/no-negated-variables
-        const isConnectionDataFetchNotNeeded = isOffline || !props.policy || !props.policy.areConnectionsEnabled || !!hasConnectionsDataBeenFetched || !!props.policy.connections;
+        const isConnectionDataFetchSkipped = isOffline || !props.policy || !props.policy.areConnectionsEnabled || !!hasConnectionsDataBeenFetched || !!props.policy.connections;
 
         useEffect(() => {
             // When the accounting feature is not enabled, or if the connections data already exists,
             // there is no need to fetch the connections data.
-            if (isConnectionDataFetchNotNeeded || !props?.policy?.id) {
+            if (isConnectionDataFetchSkipped || !props?.policy?.id) {
                 return;
             }
 
             openPolicyAccountingPage(props.policy.id);
-        }, [hasConnectionsDataBeenFetched, props.policy, isOffline, isConnectionDataFetchNotNeeded]);
+        }, [hasConnectionsDataBeenFetched, props.policy, isOffline, isConnectionDataFetchSkipped]);
 
         if (props.policy?.areConnectionsEnabled && (!props.policy || status === 'loading')) {
             return (
@@ -52,7 +51,7 @@ function withPolicyConnections<TProps extends WithPolicyConnectionsProps>(Wrappe
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
-                isConnectionDataFetchNotNeeded={isConnectionDataFetchNotNeeded}
+                isConnectionDataFetchSkipped={isConnectionDataFetchSkipped}
             />
         );
     }
