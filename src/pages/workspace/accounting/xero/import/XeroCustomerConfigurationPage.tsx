@@ -29,6 +29,7 @@ function XeroCustomerConfigurationPage({policy}: WithPolicyProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+            contentContainerStyle={[[styles.pb2, styles.ph5]]}
         >
             <View>
                 <View style={[styles.flexRow, styles.mb4, styles.alignItemsCenter, styles.justifyContentBetween]}>
@@ -50,7 +51,7 @@ function XeroCustomerConfigurationPage({policy}: WithPolicyProps) {
                         <MenuItemWithTopDescription
                             interactive={false}
                             title={translate('workspace.common.tags')}
-                            description={translate('workspace.qbo.displayedAs')}
+                            description={translate('workspace.common.displayedAs')}
                             wrapperStyle={styles.sectionMenuItemTopDescription}
                         />
                     </OfflineWithFeedback>
