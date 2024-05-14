@@ -506,10 +506,9 @@ function MoneyRequestConfirmationList({
                     hideCurrencySymbol
                     formatAmountOnBlur
                     prefixContainerStyle={[styles.pv0]}
-                    inputStyle={
-                        [styles.optionRowAmountInput, StyleUtils.getPaddingLeft(StyleUtils.getCharacterPadding(currencySymbol ?? '') + styles.pl1.paddingLeft), amountWidth] as TextStyle[]
-                    }
+                    inputStyle={[styles.optionRowAmountInput, amountWidth] as TextStyle[]}
                     containerStyle={[styles.textInputContainer]}
+                    touchableInputWrapperStyle={[StyleUtils.getPaddingLeft(StyleUtils.getCharacterPadding(currencySymbol ?? '') + styles.pl1.paddingLeft)]}
                     onAmountChange={(value: string) => onSplitShareChange(participantOption.accountID ?? 0, Number(value))}
                     maxLength={formattedTotalAmount.length}
                 />
