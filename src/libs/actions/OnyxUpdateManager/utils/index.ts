@@ -4,7 +4,7 @@ import * as App from '@userActions/App';
 import type {DeferredUpdatesDictionary, DetectGapAndSplitResult} from '@userActions/OnyxUpdateManager/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {applyUpdates} from './applyUpdates';
-import deferredUpdatesProxy from './deferredUpdates';
+import deferredUpdatesProxy from './DeferredUpdates';
 
 let lastUpdateIDAppliedToClient = 0;
 Onyx.connect({
