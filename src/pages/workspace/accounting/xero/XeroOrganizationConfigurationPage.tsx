@@ -66,6 +66,7 @@ function XeroOrganizationConfigurationPage({
             >
                 <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.xero.organizationDescription')}</Text>
                 <SelectionList
+                    containerStyle={styles.pb0}
                     ListItem={RadioListItem}
                     onSelectRow={saveSelection}
                     sections={[{data: sections}]}
