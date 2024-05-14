@@ -1,6 +1,6 @@
 import {useFocusEffect, useIsFocused, useRoute} from '@react-navigation/native';
 import FocusTrapOriginal from 'focus-trap-react';
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import BOTTOM_TAB_SCREENS from '@components/FocusTrap/BOTTOM_TAB_SCREENS';
 import SCREENS_WITH_AUTOFOCUS from '@components/FocusTrap/SCREENS_WITH_AUTOFOCUS';
 import sharedTrapStack from '@components/FocusTrap/sharedTrapStack';
@@ -28,9 +28,11 @@ function FocusTrap({children}: FocusTrapProps) {
         return true;
     }, [isSmallScreenWidth, route]);
 
-    useFocusEffect(() => {
-        activeRouteName = route.name;
-    });
+    useFocusEffect(
+        useCallback(() => {
+            activeRouteName = route.name;
+        }, [route]),
+    );
 
     return (
         <FocusTrapOriginal
