@@ -69,7 +69,7 @@ function TransactionListItem<TItem extends ListItem>({
     const merchant = getMerchant();
     const typeIcon = getTypeIcon(transactionItem.type);
 
-    const receiptCell = (
+    const receiptCell = (isHovered = false) => (
         <View style={[StyleUtils.getWidthAndHeightStyle(variables.h36, variables.w40), StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusSmall), styles.overflowHidden]}>
             <ReceiptImage
                 source={transactionItem?.receipt?.source ?? ''}
@@ -81,6 +81,7 @@ function TransactionListItem<TItem extends ListItem>({
                 fallbackIconSize={20}
                 fallbackIconColor={theme.icon}
                 iconSize="x-small"
+                isHovered={isHovered}
             />
         </View>
     );
@@ -215,7 +216,7 @@ function TransactionListItem<TItem extends ListItem>({
                 shouldSyncFocus={shouldSyncFocus}
                 hoverStyle={item.isSelected && styles.activeComponentBG}
             >
-                {() => (
+                {(hovered?: boolean) => (
                     <>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mb2, styles.gap2]}>
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.flex1]}>
@@ -231,7 +232,7 @@ function TransactionListItem<TItem extends ListItem>({
                             <View style={[StyleUtils.getWidthStyle(variables.w80)]}>{actionCell}</View>
                         </View>
                         <View style={[styles.flexRow, styles.justifyContentBetween, styles.gap3]}>
-                            {receiptCell}
+                            {receiptCell(hovered)}
                             <View style={[styles.flex2, styles.gap1]}>
                                 {merchantCell}
                                 <View style={[styles.flexRow, styles.flex1, styles.alignItemsEnd, styles.gap3]}>
@@ -273,9 +274,9 @@ function TransactionListItem<TItem extends ListItem>({
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
         >
-            {() => (
+            {(hovered?: boolean) => (
                 <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
-                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.RECEIPT)]}>{receiptCell}</View>
+                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.RECEIPT)]}>{receiptCell(hovered)}</View>
                     <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DATE)]}>{dateCell}</View>
                     <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.MERCHANT)]}>{merchantCell}</View>
                     <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.FROM)]}>{userCell(transactionItem.from)}</View>

@@ -48,6 +48,9 @@ type ThumbnailImageProps = {
 
     /** The object position of image */
     objectPosition?: ImageObjectPosition;
+
+    /** Whether the component is hovered */
+    isHovered?: boolean;
 };
 
 type UpdateImageSizeParams = {
@@ -66,6 +69,7 @@ function ThumbnailImage({
     fallbackIconSize = variables.iconSizeSuperLarge,
     fallbackIconColor,
     objectPosition = CONST.IMAGE_OBJECT_POSITION.INITIAL,
+    isHovered = false,
 }: ThumbnailImageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -106,7 +110,7 @@ function ThumbnailImage({
 
     if (failedToLoad) {
         return (
-            <View style={[style, styles.overflowHidden, styles.hoveredComponentBG]}>
+            <View style={[style, styles.overflowHidden, isHovered ? styles.activeComponentBG : styles.hoveredComponentBG]}>
                 <View style={[...sizeStyles, styles.alignItemsCenter, styles.justifyContentCenter]}>
                     <Icon
                         src={isOffline ? Expensicons.OfflineCloud : fallbackIcon}
