@@ -48,7 +48,7 @@ type PolicyAccountingPageProps = WithPolicyProps &
     PolicyAccountingPageOnyxProps & {
         // This is not using OnyxEntry<OnyxTypes.Policy> because the HOC withPolicyConnections will only render this component if there is a policy
         policy: Policy;
-        isConnectionDataFetched: boolean;
+        isConnectionDataFetchNotNeeded: boolean;
     };
 
 type AccountingIntegration = {
@@ -102,7 +102,7 @@ function accountingIntegrationData(
     }
 }
 
-function PolicyAccountingPage({policy, connectionSyncProgress, isConnectionDataFetched}: PolicyAccountingPageProps) {
+function PolicyAccountingPage({policy, connectionSyncProgress, isConnectionDataFetchNotNeeded}: PolicyAccountingPageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -336,7 +336,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress, isConnectionDataF
                             titleStyles={styles.accountSettingsSectionTitle}
                             childrenStyles={styles.pt5}
                         >
-                            {!isConnectionDataFetched ? (
+                            {!isConnectionDataFetchNotNeeded ? (
                                 <View style={styles.mnh20}>
                                     <AccountingListSkeletonView shouldAnimate />
                                 </View>
