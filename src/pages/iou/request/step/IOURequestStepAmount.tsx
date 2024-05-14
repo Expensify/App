@@ -283,7 +283,8 @@ function IOURequestStepAmount({
 
         // If currency has changed, then we get the default tax rate based on currency, otherwise we use the current tax rate selected in transaction, if we have it.
         const transactionTaxCode = transaction?.taxCode ?? '';
-        const taxCode = currency !== transactionCurrency ? TransactionUtils.getDefaultTaxCode(policy, transaction, currency) ?? '' : transactionTaxCode;
+        const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction, currency) ?? '';
+        const taxCode = (currency !== transactionCurrency ? defaultTaxCode : transactionTaxCode) ?? defaultTaxCode;
         const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, taxCode) ?? '';
         const taxAmount = CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(taxPercentage, newAmount));
 
