@@ -39,7 +39,7 @@ function withPolicyConnections<TProps extends WithPolicyConnectionsProps>(Wrappe
             }
 
             openPolicyAccountingPage(props.policy.id);
-        }, [hasConnectionsDataBeenFetched, props.policy, isOffline, isConnectionDataFetchNeeded]);
+        }, [props.policy?.id, isConnectionDataFetchNeeded]);
 
         if (props.policy?.areConnectionsEnabled && status === 'loading') {
             return (
