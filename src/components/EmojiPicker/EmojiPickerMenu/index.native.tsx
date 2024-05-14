@@ -2,6 +2,7 @@ import type {ListRenderItem} from '@shopify/flash-list';
 import lodashDebounce from 'lodash/debounce';
 import React, {useCallback, useContext} from 'react';
 import type {ForwardedRef} from 'react';
+import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import {runOnUI, scrollTo} from 'react-native-reanimated';
 import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
@@ -117,7 +118,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
     );
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const onLayout = useCallback(
-        (event) => {
+        (event: LayoutChangeEvent) => {
             const {height} = event.nativeEvent.layout;
             actionSheetAwareScrollViewContext.transitionActionSheetState({
                 type: ActionSheetAwareScrollView.Actions.MEASURE_EMOJI_PICKER_POPOVER,
