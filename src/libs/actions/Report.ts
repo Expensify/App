@@ -57,6 +57,7 @@ import {prepareDraftComment} from '@libs/DraftCommentUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import * as Environment from '@libs/Environment/Environment';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import isPublicScreen from '@libs/isPublicScreen';
 import Log from '@libs/Log';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -2460,8 +2461,9 @@ function toggleEmojiReaction(
 
 function openReportFromDeepLink(url: string) {
     const reportID = ReportUtils.getReportIDFromLink(url);
+    const isAuthenticated = Session.hasAuthToken();
 
-    if (reportID && !Session.hasAuthToken()) {
+    if (reportID && !isAuthenticated) {
         // Call the OpenReport command to check in the server if it's a public room. If so, we'll open it as an anonymous user
         openReport(reportID, '', [], {}, '0', true);
 
@@ -2474,12 +2476,17 @@ function openReportFromDeepLink(url: string) {
         Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
     }
 
+    const route = ReportUtils.getRouteFromLink(url);
+
+    // If we are not authenticated and are navigating to a public screen, we don't want to navigate again to the screen after sign-in/sign-up
+    if (!isAuthenticated && isPublicScreen(route)) {
+        return;
+    }
+
     // Navigate to the report after sign-in/sign-up.
     InteractionManager.runAfterInteractions(() => {
         Session.waitForUserSignIn().then(() => {
             Navigation.waitForProtectedRoutes().then(() => {
-                const route = ReportUtils.getRouteFromLink(url);
-
                 if (route && Session.isAnonymousUser() && !Session.canAnonymousUserAccessRoute(route)) {
                     Session.signOutAndRedirectToSignIn(true);
                     return;
