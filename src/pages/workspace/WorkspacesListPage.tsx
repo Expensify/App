@@ -102,7 +102,7 @@ const workspaceFeatures: FeatureListItem[] = [
 /**
  * Dismisses the errors on one item
  */
-function dismissWorkspaceError(policyID: string, pendingAction: OnyxCommon.PendingAction) {
+function dismissWorkspaceError(policyID: string, pendingAction: OnyxCommon.PendingAction | undefined) {
     if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
         Policy.clearDeleteWorkspaceError(policyID);
         return;
@@ -112,7 +112,8 @@ function dismissWorkspaceError(policyID: string, pendingAction: OnyxCommon.Pendi
         Policy.removeWorkspace(policyID);
         return;
     }
-    throw new Error('Not implemented');
+
+    Policy.clearErrors(policyID);
 }
 
 const stickyHeaderIndices = [0];
@@ -334,19 +335,14 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
                 }
                 return {
                     title: policy.name,
-                    icon: policy.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
+                    icon: policy.avatarURL ? policy.avatarURL : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
                     action: () => Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policy.id)),
                     brickRoadIndicator: reimbursementAccountBrickRoadIndicator ?? PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy),
                     pendingAction: policy.pendingAction,
                     errors: policy.errors,
-                    dismissError: () => {
-                        if (!policy.pendingAction) {
-                            return;
-                        }
-                        dismissWorkspaceError(policy.id, policy.pendingAction);
-                    },
+                    dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
                     disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                    iconType: policy.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
+                    iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
                     iconFill: theme.textLight,
                     fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
                     policyID: policy.id,

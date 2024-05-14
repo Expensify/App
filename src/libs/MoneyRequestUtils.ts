@@ -17,6 +17,10 @@ function stripSpacesFromAmount(amount: string): string {
     return amount.replace(/\s+/g, '');
 }
 
+function replaceCommasWithPeriod(amount: string): string {
+    return amount.replace(/,+/g, '.');
+}
+
 /**
  * Strip decimals from the amount
  */
@@ -91,4 +95,4 @@ function isScanRequest(selectedTab: SelectedTabRequest): boolean {
     return selectedTab === CONST.TAB_REQUEST.SCAN;
 }
 
-export {addLeadingZero, isDistanceRequest, isScanRequest, replaceAllDigits, stripCommaFromAmount, stripDecimalsFromAmount, stripSpacesFromAmount, validateAmount};
+export {addLeadingZero, isDistanceRequest, isScanRequest, replaceAllDigits, stripCommaFromAmount, stripDecimalsFromAmount, stripSpacesFromAmount, replaceCommasWithPeriod, validateAmount};
