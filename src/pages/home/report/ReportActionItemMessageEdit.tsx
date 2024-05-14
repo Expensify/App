@@ -22,7 +22,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as Browser from '@libs/Browser';
 import * as ComposerUtils from '@libs/ComposerUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
@@ -68,7 +67,6 @@ type ReportActionItemMessageEditProps = {
 const emojiButtonID = 'emojiButton';
 const messageEditInput = 'messageEditInput';
 
-const isMobileSafari = Browser.isMobileSafari();
 const shouldUseForcedSelectionRange = shouldUseEmojiPickerSelection();
 
 function ReportActionItemMessageEdit(
@@ -84,14 +82,6 @@ function ReportActionItemMessageEdit(
     const {isSmallScreenWidth} = useWindowDimensions();
     const prevDraftMessage = usePrevious(draftMessage);
 
-    const getInitialSelection = () => {
-        if (isMobileSafari) {
-            return {start: 0, end: 0};
-        }
-
-        const length = draftMessage.length;
-        return {start: length, end: length};
-    };
     const emojisPresentBefore = useRef<Emoji[]>([]);
     const [draft, setDraft] = useState(() => {
         if (draftMessage) {
@@ -99,7 +89,7 @@ function ReportActionItemMessageEdit(
         }
         return draftMessage;
     });
-    const [selection, setSelection] = useState<Selection>(getInitialSelection);
+    const [selection, setSelection] = useState<Selection>({start: draft.length, end: draft.length});
     const [isFocused, setIsFocused] = useState<boolean>(false);
     const {hasExceededMaxCommentLength, validateCommentMaxLength} = useHandleExceedMaxCommentLength();
     const [modal, setModal] = useState<OnyxTypes.Modal>({
@@ -170,26 +160,8 @@ function ReportActionItemMessageEdit(
         [action.reportActionID],
     );
 
-    useEffect(() => {
-        // For mobile Safari, updating the selection prop on an unfocused input will cause it to automatically gain focus
-        // and subsequent programmatic focus shifts (e.g., modal focus trap) to show the blue frame (:focus-visible style),
-        // so we need to ensure that it is only updated after focus.
-        if (isMobileSafari) {
-            setDraft((prevDraft) => {
-                setSelection({
-                    start: prevDraft.length,
-                    end: prevDraft.length,
-                });
-                return prevDraft;
-            });
-
-            // Scroll content of textInputRef to bottom
-            if (textInputRef.current) {
-                textInputRef.current.scrollTop = textInputRef.current.scrollHeight;
-            }
-        }
-
-        return () => {
+    useEffect(
+        () => () => {
             InputFocus.callback(() => setIsFocused(false));
             InputFocus.inputFocusChange(false);
 
@@ -208,9 +180,10 @@ function ReportActionItemMessageEdit(
             // Show the main composer when the focused message is deleted from another client
             // to prevent the main composer stays hidden until we swtich to another chat.
             setShouldShowComposeInputKeyboardAware(true);
-        };
+        },
         // eslint-disable-next-line react-hooks/exhaustive-deps -- this cleanup needs to be called only on unmount
-    }, [action.reportActionID]);
+        [action.reportActionID],
+    );
 
     // show the composer after editing is complete for devices that hide the composer during editing.
     useEffect(() => () => ComposerActions.setShouldShowComposeInput(true), []);
