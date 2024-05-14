@@ -3079,7 +3079,6 @@ function completeOnboarding(
     // With the new onboarding flow, we always ask the customer to enter their name, but allow the customer to only enter their first name
     // If the customer only enters their first name, we will use the first name as the display name
     // If the customer enters both first and last name, we will use both first and last name as the display name
-    // We have also considered an edge case if we do not get the first and last name of the customer, then we display their email handle
     const userWelcomeMessage = `Welcome ${firstName} ${lastName ? lastName + ` ` : ``}👋`;
     const mentionComment = ReportUtils.buildOptimisticAddCommentReportAction(userWelcomeMessage, undefined, actorAccountID);
     const mentionCommentAction: OptimisticAddCommentReportAction = mentionComment.reportAction;
