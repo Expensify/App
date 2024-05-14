@@ -42,15 +42,17 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConne
                         <MenuItemWithTopDescription
                             title={reimbursableExpensesExportDestination ? translate(`workspace.qbo.accounts.${reimbursableExpensesExportDestination}`) : undefined}
                             description={translate('workspace.qbo.exportAs')}
-                            error={hasErrors && reimbursableExpensesExportDestination ? translate(`workspace.qbo.accounts.${reimbursableExpensesExportDestination}Error`) : undefined}
+                            errorText={hasErrors && reimbursableExpensesExportDestination ? translate(`workspace.qbo.accounts.${reimbursableExpensesExportDestination}Error`) : undefined}
                             onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT.getRoute(policyID))}
                             brickRoadIndicator={hasErrors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             shouldShowRightIcon
+                            hintText={
+                                reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL && !isLocationEnabled
+                                    ? translate('workspace.qbo.exportVendorBillDescription')
+                                    : undefined
+                            }
                         />
                     </OfflineWithFeedback>
-                    {reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL && !isLocationEnabled && (
-                        <Text style={[styles.ph5, styles.mutedNormalTextLabel, styles.pt1, styles.pb2]}>{translate('workspace.qbo.exportVendorBillDescription')}</Text>
-                    )}
                     {isLocationEnabled && <Text style={[styles.ph5, styles.mutedNormalTextLabel, styles.pt1]}>{translate('workspace.qbo.outOfPocketLocationEnabledDescription')}</Text>}
                     {!isLocationEnabled && (
                         <OfflineWithFeedback pendingAction={pendingFields?.reimbursableExpensesAccount}>
@@ -60,9 +62,7 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConne
                                 onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT.getRoute(policyID))}
                                 brickRoadIndicator={errorFields?.exportAccount ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                 shouldShowRightIcon
-                                error={errorFields?.exportAccount ? translate('common.genericErrorMessage') : undefined}
-                                // TODO uncomment when errorText will be fixed
-                                // errorText={errors?.exportAccount}
+                                errorText={errorFields?.exportAccount ? translate('common.genericErrorMessage') : undefined}
                             />
                         </OfflineWithFeedback>
                     )}
