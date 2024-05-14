@@ -58,7 +58,6 @@ import * as EmojiUtils from '@libs/EmojiUtils';
 import * as Environment from '@libs/Environment/Environment';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
-import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {NetworkStatus} from '@libs/NetworkConnection';
 import LocalNotification from '@libs/Notification/LocalNotification';
@@ -3058,11 +3057,9 @@ function completeOnboarding(
     engagementChoice: OnboardingPurposeType,
     data: ValueOf<typeof CONST.ONBOARDING_MESSAGES>,
     {
-        login,
         firstName,
         lastName,
     }: {
-        login: string;
         firstName: string;
         lastName: string;
     },
