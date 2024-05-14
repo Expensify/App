@@ -5,6 +5,16 @@ import FontUtils from '@styles/utils/FontUtils';
 import variables from '@styles/variables';
 import useTheme from './useTheme';
 
+const nonStylingDefaultValues: Record<string, string|number> = {
+    color: 'black',
+    backgroundColor: 'transparent',
+    marginLeft: 0,
+    paddingLeft: 0,
+    borderColor: 'transparent',
+    borderWidth: 0,
+}
+
+
 function useMarkdownStyle(message: string | null = null, excludeStyles: Array<keyof MarkdownStyle> = []): MarkdownStyle {
     const theme = useTheme();
     const emojiFontSize = containsOnlyEmojis(message ?? '') ? variables.fontSizeOnlyEmojis : variables.fontSizeNormal;
@@ -60,7 +70,7 @@ function useMarkdownStyle(message: string | null = null, excludeStyles: Array<ke
                 const style: Record<string, unknown> = styling[key];
                 if (style) {
                     Object.keys(style).forEach((styleKey) => {
-                        style[styleKey] = undefined;
+                        style[styleKey] = nonStylingDefaultValues[styleKey] ?? style[styleKey];
                     });
                 }
             });
