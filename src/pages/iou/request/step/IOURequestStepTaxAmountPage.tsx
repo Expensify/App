@@ -150,13 +150,8 @@ function IOURequestStepTaxAmountPage({
             <MoneyRequestAmountForm
                 isEditing={Boolean(backTo || isEditing)}
                 currency={currency}
-<<<<<<< HEAD
-                amount={transactionDetails?.taxAmount}
-                taxAmount={getTaxAmount(transaction, policy, Boolean(backTo || isEditing))}
-=======
                 amount={Math.abs(transactionDetails?.taxAmount ?? 0)}
                 taxAmount={getTaxAmount(transaction, policy, currency, Boolean(backTo || isEditing))}
->>>>>>> 2304a1f (Merge pull request #42064 from ShridharGoel/42407)
                 ref={(e) => (textInput.current = e)}
                 onCurrencyButtonPress={navigateToCurrencySelectionPage}
                 onSubmitButtonPress={updateTaxAmount}
