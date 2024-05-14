@@ -169,7 +169,7 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
                 shouldShowSubscript: option.shouldShowSubscript ?? undefined,
             })),
         }));
-    }, [currentUserOption, personalDetails, recentReports, translate, userToInvite]);
+    }, [currentUserOption, currentUserPersonalDetails, personalDetails, recentReports, translate, userToInvite]);
 
     const selectReport = useCallback(
         (option: ListItem) => {
