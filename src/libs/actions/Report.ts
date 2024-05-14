@@ -3074,12 +3074,10 @@ function completeOnboarding(
     const {reportID: targetChatReportID = '', policyID: targetChatPolicyID = ''} = targetChatReport ?? {};
 
     // Mention message
-    const mentionHandle = LoginUtils.isEmailPublicDomain(login) ? login : login.split('@')[0];
-
     // With the new onboarding flow, we always ask the customer to enter their name, but allow the customer to only enter their first name
     // If the customer only enters their first name, we will use the first name as the display name
     // If the customer enters both first and last name, we will use both first and last name as the display name
-    const userWelcomeMessage = `Welcome ${firstName} ${lastName ? lastName + ` ` : ``}👋`;
+    const userWelcomeMessage = `Welcome ${firstName} ${lastName ? `${lastName} ` : ``}👋`;
     const mentionComment = ReportUtils.buildOptimisticAddCommentReportAction(userWelcomeMessage, undefined, actorAccountID);
     const mentionCommentAction: OptimisticAddCommentReportAction = mentionComment.reportAction;
     const mentionMessage: AddCommentOrAttachementParams = {
