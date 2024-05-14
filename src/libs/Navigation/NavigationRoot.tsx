@@ -62,7 +62,7 @@ function parseAndLogRoute(state: NavigationState) {
     // Fullstory Page navigation tracking
     const focusedRouteName = focusedRoute?.name;
     if(focusedRouteName){
-        new FSPage(focusedRoute?.name ?? '', {path: currentPath}).start();
+        new FSPage(focusedRouteName, {path: currentPath}).start();
     }
 }
 

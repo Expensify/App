@@ -1,4 +1,3 @@
-import fullstory from '@fullstory/react-native';
 import {PortalProvider} from '@gorhom/portal';
 import React from 'react';
 import {LogBox} from 'react-native';
@@ -100,8 +99,5 @@ function App({url}: AppProps) {
 }
 
 App.displayName = 'App';
-
-// TSX View Component properties extended
-fullstory?.LogLevel?.Log;
 
 export default App;
