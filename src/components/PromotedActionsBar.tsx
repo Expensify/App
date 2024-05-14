@@ -5,6 +5,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as HeaderUtils from '@libs/HeaderUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Report from '@userActions/Report';
+import * as Session from '@userActions/Session';
 import ROUTES from '@src/ROUTES';
 import type {Report as OnyxReportType} from '@src/types/onyx';
 import Button from './Button';
@@ -23,6 +24,7 @@ type PromotedActionsParams = {
 function usePromotedActions({report}: PromotedActionsParams): Record<string, PromotedAction> {
     const {translate} = useLocalize();
     const onShareButtonPress = useCallback(() => Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.getRoute(report?.reportID ?? '')), [report?.reportID]);
+    const join = Session.checkIfActionIsAllowed(() => Report.joinRoom(report));
 
     return useMemo(
         () => ({
@@ -34,9 +36,7 @@ function usePromotedActions({report}: PromotedActionsParams): Record<string, Pro
                 key: 'join',
                 icon: Expensicons.Pin,
                 text: translate('common.join'),
-                onSelected: () => {
-                    console.log('todo: join');
-                },
+                onSelected: join,
             },
             share: {
                 key: 'share',
@@ -46,14 +46,14 @@ function usePromotedActions({report}: PromotedActionsParams): Record<string, Pro
             },
             hold: {
                 key: 'hold',
-                icon: Expensicons.Pin,
+                icon: Expensicons.Stopwatch,
                 text: translate('iou.hold'),
                 onSelected: () => {
-                    console.log('todo: hold');
+                    // TODO: Implement this
                 },
             },
         }),
-        [report, translate, onShareButtonPress],
+        [report, translate, join, onShareButtonPress],
     );
 }
 
@@ -88,6 +88,8 @@ function PromotedActionsBar({report, promotedActions, shouldShowLeaveButton}: Pr
             ))}
             {/* TODO: Remove the `Leave` button when @src/pages/ReportDetailsPage.tsx is updated */}
             {shouldShowLeaveButton && (
+                // The `Leave` button is left to make the component backward compatible with the existing code.
+                // After the `Leave` button is moved to the `MenuItem` list, this block can be removed.
                 <View style={[styles.flex1]}>
                     <ConfirmModal
                         danger

@@ -2536,6 +2536,13 @@ function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
     }
 }
 
+function joinRoom(report: OnyxEntry<Report>) {
+    if (!report) {
+        return;
+    }
+    updateNotificationPreference(report.reportID, report.notificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, false, report.parentReportID, report.parentReportActionID);
+}
+
 function leaveGroupChat(reportID: string) {
     const report = ReportUtils.getReport(reportID);
     if (!report) {
@@ -3791,6 +3798,7 @@ export {
     showReportActionNotification,
     toggleEmojiReaction,
     shouldShowReportActionNotification,
+    joinRoom,
     leaveRoom,
     inviteToRoom,
     inviteToGroupChat,
