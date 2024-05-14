@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -35,7 +35,7 @@ type TagSettingsPageOnyxProps = {
 
 type TagSettingsPageProps = TagSettingsPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_SETTINGS>;
 
-function TagSettingsPage({route, policyTags}: TagSettingsPageProps) {
+function TagSettingsPage({route, policyTags, navigation}: TagSettingsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyTag = useMemo(() => PolicyUtils.getTagList(policyTags, 0), [policyTags]);
@@ -43,7 +43,15 @@ function TagSettingsPage({route, policyTags}: TagSettingsPageProps) {
 
     const [isDeleteTagModalOpen, setIsDeleteTagModalOpen] = React.useState(false);
 
-    const currentPolicyTag = policyTag.tags[decodeURIComponent(route.params.tagName)];
+    const currentPolicyTag =
+        policyTag.tags[decodeURIComponent(route.params.tagName)] ?? Object.values(policyTag.tags ?? {}).find((tag) => tag.previousTagName === decodeURIComponent(route.params.tagName));
+
+    useEffect(() => {
+        if (currentPolicyTag?.name === route.params.tagName || !currentPolicyTag) {
+            return;
+        }
+        navigation.setParams({tagName: currentPolicyTag?.name});
+    }, [route.params.tagName, currentPolicyTag, navigation]);
 
     if (!currentPolicyTag) {
         return <NotFoundPage />;
@@ -64,6 +72,7 @@ function TagSettingsPage({route, policyTags}: TagSettingsPageProps) {
     };
 
     const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
+    const isMultiLevelTags = PolicyUtils.isMultiLevelTags(policyTags);
 
     return (
         <AccessOrNotFoundWrapper
@@ -117,7 +126,7 @@ function TagSettingsPage({route, policyTags}: TagSettingsPageProps) {
                             shouldShowRightIcon
                         />
                     </OfflineWithFeedback>
-                    {!isThereAnyAccountingConnection && (
+                    {!isThereAnyAccountingConnection && !isMultiLevelTags && (
                         <MenuItem
                             icon={Expensicons.Trashcan}
                             title={translate('common.delete')}
