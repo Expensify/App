@@ -215,6 +215,9 @@ function BaseVideoPlayer({
         }
 
         // If we are uploading a new video, we want to immediately set the video player ref.
+        if (currentVideoPlayerRef.current) {
+            pauseVideo();
+        }
         currentVideoPlayerRef.current = videoPlayerRef.current;
     }, [url, currentVideoPlayerRef, isUploading]);
 
@@ -223,7 +226,7 @@ function BaseVideoPlayer({
 
     useEffect(
         () => () => {
-            if (!isCurrentlyURLSetRef.current) {
+            if (shouldUseSharedVideoElement || !isCurrentlyURLSetRef.current) {
                 return;
             }
 
