@@ -352,7 +352,6 @@ const SCREENS = {
     },
     ROOM_MEMBERS_ROOT: 'RoomMembers_Root',
     ROOM_INVITE_ROOT: 'RoomInvite_Root',
-    CHAT_FINDER_ROOT: 'ChatFinder_Root',
     FLAG_COMMENT_ROOT: 'FlagComment_Root',
     REIMBURSEMENT_ACCOUNT: 'ReimbursementAccount',
     GET_ASSISTANCE: 'GetAssistance',
