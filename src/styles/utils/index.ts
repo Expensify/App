@@ -1604,6 +1604,10 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         return columnWidth;
     },
 
+    getTextOverflowStyle: (overflow: string): TextStyle => ({
+        textOverflow: overflow,
+    }),
+
     /**
      * Returns container styles for showing the icons in MultipleAvatars/SubscriptAvatar
      */
