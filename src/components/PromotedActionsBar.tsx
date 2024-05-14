@@ -77,7 +77,7 @@ function PromotedActionsBar({report, promotedActions, shouldShowLeaveButton}: Pr
     const {translate} = useLocalize();
 
     return (
-        <View style={[styles.flexRow, styles.ph5, styles.mb5, styles.gap3]}>
+        <View style={[styles.flexRow, styles.ph5, styles.mb5, styles.gap2]}>
             {/* TODO: Remove the `Leave` button when @src/pages/ReportDetailsPage.tsx is updated */}
             {shouldShowLeaveButton && (
                 // The `Leave` button is left to make the component backward compatible with the existing code.
@@ -120,9 +120,9 @@ function PromotedActionsBar({report, promotedActions, shouldShowLeaveButton}: Pr
                     <Button
                         onPress={onSelected}
                         iconFill={theme.icon}
+                        medium
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}
-                        medium
                     />
                 </View>
             ))}
