@@ -354,7 +354,7 @@ jobs:
 
   # Build a version of iOS and Android HybridApp if we are deploying to staging
   hybridApp:
-    if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+    if: ${{ github.event_name == 'release' }}
     uses: Expensify/Mobile-Deploy/.github/workflows/deploy.yml@main
 
   postSlackMessageOnFailure:
