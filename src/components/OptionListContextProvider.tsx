@@ -126,16 +126,16 @@ function OptionsListContextProvider({reports, children}: OptionsListProviderProp
             newReportOption: OptionsListUtils.SearchOption<Report>;
         }> = [];
 
-        Object.keys(personalDetails).forEach((accoutID) => {
-            const prevPersonalDetail = prevPersonalDetails?.[accoutID];
-            const personalDetail = personalDetails?.[accoutID];
+        Object.keys(personalDetails).forEach((accountID) => {
+            const prevPersonalDetail = prevPersonalDetails?.[accountID];
+            const personalDetail = personalDetails?.[accountID];
 
             if (isEqualPersonalDetail(prevPersonalDetail, personalDetail)) {
                 return;
             }
 
             Object.values(reports ?? {})
-                .filter((report) => Boolean(report?.participantAccountIDs?.includes(Number(accoutID))) || (ReportUtils.isSelfDM(report) && report?.ownerAccountID === Number(accoutID)))
+                .filter((report) => Boolean(Object.keys(report?.participants ?? {}).includes(accountID)) || (ReportUtils.isSelfDM(report) && report?.ownerAccountID === Number(accountID)))
                 .forEach((report) => {
                     if (!report) {
                         return;
