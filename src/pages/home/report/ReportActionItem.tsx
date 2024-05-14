@@ -921,12 +921,15 @@ function ReportActionItem({
 
     const hasErrors = !isEmptyObject(action.errors);
     const whisperedTo = ReportActionsUtils.getWhisperedTo(action);
-    const isWhisper = whisperedTo.length > 0;
     const isMultipleParticipant = whisperedTo.length > 1;
-    const isWhisperOnlyVisibleByUser = isWhisper && ReportUtils.isCurrentUserTheOnlyParticipant(whisperedTo);
+
+    const iouReportID = isIOUReport(action) && action.originalMessage.IOUReportID ? action.originalMessage.IOUReportID.toString() : '0';
+    const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(iouReportID);
+    const isWhisper = whisperedTo.length > 0 && transactionsWithReceipts.length === 0 && !action.pendingAction;
     const whisperedToPersonalDetails = isWhisper
         ? (Object.values(personalDetails ?? {}).filter((details) => whisperedTo.includes(details?.accountID ?? -1)) as OnyxTypes.PersonalDetails[])
         : [];
+    const isWhisperOnlyVisibleByUser = isWhisper && ReportUtils.isCurrentUserTheOnlyParticipant(whisperedTo);
     const displayNamesWithTooltips = isWhisper ? ReportUtils.getDisplayNamesWithTooltips(whisperedToPersonalDetails, isMultipleParticipant) : [];
 
     return (

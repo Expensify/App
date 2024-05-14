@@ -217,6 +217,7 @@ const WRITE_COMMANDS = {
     DISMISS_VIOLATION: 'DismissViolation',
     ACCEPT_SPOTNANA_TERMS: 'AcceptSpotnanaTerms',
     SEND_INVOICE: 'SendInvoice',
+    MARK_AS_CASH: 'MarkAsCash',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -434,6 +435,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.DISMISS_VIOLATION]: Parameters.DismissViolationParams;
     [WRITE_COMMANDS.ACCEPT_SPOTNANA_TERMS]: EmptyObject;
     [WRITE_COMMANDS.SEND_INVOICE]: Parameters.SendInvoiceParams;
+    [WRITE_COMMANDS.MARK_AS_CASH]: Parameters.MarkAsCashParams;
 };
 
 const READ_COMMANDS = {

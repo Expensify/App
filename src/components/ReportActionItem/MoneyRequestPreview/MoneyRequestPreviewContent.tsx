@@ -8,6 +8,7 @@ import Button from '@components/Button';
 import ConfirmedRoute from '@components/ConfirmedRoute';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {ReceiptScan} from '@components/Icon/Expensicons';
 import MoneyRequestSkeletonView from '@components/MoneyRequestSkeletonView';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -30,6 +31,7 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
+import variables from '@styles/variables';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as Report from '@userActions/Report';
 import * as Transaction from '@userActions/Transaction';
@@ -88,6 +90,7 @@ function MoneyRequestPreviewContent({
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
+    const isPending = TransactionUtils.isPending(transaction);
     const isOnHold = TransactionUtils.isOnHold(transaction);
     const isSettlementOrApprovalPartial = Boolean(iouReport?.pendingFields?.partial);
     const isPartialHold = isSettlementOrApprovalPartial && isOnHold;
@@ -154,14 +157,6 @@ function MoneyRequestPreviewContent({
             message = translate('iou.split');
         }
 
-        if (isCardTransaction) {
-            message = translate('iou.card');
-            if (TransactionUtils.isPending(transaction)) {
-                message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.pending')}`;
-                return message;
-            }
-        }
-
         if (isSettled && !iouReport?.isCancelledIOU && !isPartialHold) {
             message += ` ${CONST.DOT_SEPARATOR} ${getSettledMessage()}`;
             return message;
@@ -193,8 +188,6 @@ function MoneyRequestPreviewContent({
             message += ` • ${translate('violations.reviewRequired')}`;
         } else if (ReportUtils.isPaidGroupPolicyExpenseReport(iouReport) && ReportUtils.isReportApproved(iouReport) && !ReportUtils.isSettled(iouReport?.reportID) && !isPartialHold) {
             message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.approved')}`;
-        } else if (iouReport?.isWaitingOnBankAccount) {
-            message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.pending')}`;
         } else if (iouReport?.isCancelledIOU) {
             message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
         } else if (!(isSettled && !isSettlementOrApprovalPartial) && isOnHold) {
@@ -331,6 +324,28 @@ function MoneyRequestPreviewContent({
                                                 </Text>
                                             )}
                                         </View>
+                                        {isScanning && (
+                                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
+                                                <Icon
+                                                    src={ReceiptScan}
+                                                    height={variables.iconSizeExtraSmall}
+                                                    width={variables.iconSizeExtraSmall}
+                                                    fill={theme.textSupporting}
+                                                />
+                                                <Text style={[styles.textMicroSupporting, styles.ml1, styles.amountSplitPadding]}>{translate('iou.receiptScanInProgress')}</Text>
+                                            </View>
+                                        )}
+                                        {isPending && (
+                                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
+                                                <Icon
+                                                    src={Expensicons.CreditCardHourglass}
+                                                    height={variables.iconSizeExtraSmall}
+                                                    width={variables.iconSizeExtraSmall}
+                                                    fill={theme.textSupporting}
+                                                />
+                                                <Text style={[styles.textMicroSupporting, styles.ml1, styles.amountSplitPadding]}>{translate('iou.transactionPending')}</Text>
+                                            </View>
+                                        )}
                                     </View>
                                 </View>
                             </View>
