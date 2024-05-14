@@ -337,7 +337,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     {isGroupChat && (
                         <PromotedActionsBar
                             report={report}
-                            promotedActions={[PromotedActions.share, PromotedActions.pin]}
+                            promotedActions={[PromotedActions.pin]}
                             shouldShowLeaveButton
                         />
                     )}

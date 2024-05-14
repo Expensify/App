@@ -78,17 +78,6 @@ function PromotedActionsBar({report, promotedActions, shouldShowLeaveButton}: Pr
 
     return (
         <View style={[styles.flexRow, styles.ph5, styles.mb5, styles.gap3]}>
-            {promotedActions.map(({key, onSelected, ...props}) => (
-                <View style={[styles.flex1]}>
-                    <Button
-                        key={key}
-                        onPress={onSelected}
-                        iconFill={theme.icon}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...props}
-                    />
-                </View>
-            ))}
             {/* TODO: Remove the `Leave` button when @src/pages/ReportDetailsPage.tsx is updated */}
             {shouldShowLeaveButton && (
                 // The `Leave` button is left to make the component backward compatible with the existing code.
@@ -122,6 +111,17 @@ function PromotedActionsBar({report, promotedActions, shouldShowLeaveButton}: Pr
                     />
                 </View>
             )}
+            {promotedActions.map(({key, onSelected, ...props}) => (
+                <View style={[styles.flex1]}>
+                    <Button
+                        key={key}
+                        onPress={onSelected}
+                        iconFill={theme.icon}
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...props}
+                    />
+                </View>
+            ))}
         </View>
     );
 }
