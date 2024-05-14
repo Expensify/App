@@ -77,7 +77,6 @@ function ReportFooter({
     onComposerBlur,
     onComposerFocus,
 }: ReportFooterProps) {
-
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
