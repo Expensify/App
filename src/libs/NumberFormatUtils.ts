@@ -2,8 +2,6 @@ import moize from 'moize';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 
-moize.collectStats();
-
 const numberFormatter = moize(Intl.NumberFormat, {
     isDeepEqual: true,
     maxSize: Infinity,

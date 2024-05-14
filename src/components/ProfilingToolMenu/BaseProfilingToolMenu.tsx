@@ -32,6 +32,14 @@ type BaseProfilingToolMenuProps = {
     displayPath: string;
 } & BaseProfilingToolMenuOnyxProps;
 
+function completeCacheStatsMonitoring() {
+    const stats = moize.getStats();
+    moize.clearStats();
+    moize.collectStats(false);
+
+    return stats;
+}
+
 function formatBytes(bytes: number, decimals = 2) {
     if (!+bytes) {
         return '0 Bytes';
@@ -64,8 +72,7 @@ function BaseProfilingToolMenu({isProfilingInProgress = false, pathToBeUsed, dis
 
         const amountOfTotalMemory = await DeviceInfo.getTotalMemory();
         const amountOfUsedMemory = await DeviceInfo.getUsedMemory();
-        const stats = moize.getStats();
-        moize.clearStats();
+        const stats = completeCacheStatsMonitoring();
 
         setTotalMemory(amountOfTotalMemory);
         setUsedMemory(amountOfUsedMemory);
@@ -76,6 +83,7 @@ function BaseProfilingToolMenu({isProfilingInProgress = false, pathToBeUsed, dis
         const shouldProfiling = !isProfilingInProgress;
         if (shouldProfiling) {
             startProfiling();
+            moize.collectStats();
         } else {
             stop();
         }
