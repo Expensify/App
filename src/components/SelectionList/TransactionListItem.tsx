@@ -72,7 +72,7 @@ function TransactionListItem<TItem extends ListItem>({
     const receiptCell = (
         <View style={[StyleUtils.getWidthAndHeightStyle(variables.h36, variables.w40), StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusSmall), styles.overflowHidden]}>
             <ReceiptImage
-                source={transactionItem?.receipt?.source}
+                source={transactionItem?.receipt?.source ?? ''}
                 isEReceipt={transactionItem.hasEReceipt}
                 transactionID={transactionItem.transactionID}
                 shouldUseThumbnailImage={!transactionItem?.receipt?.source}
