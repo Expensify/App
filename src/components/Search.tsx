@@ -36,7 +36,7 @@ function Search({query, policyIDs}: SearchProps) {
             return;
         }
 
-        SearchActions.search(hash, query, policyIDs);
+        SearchActions.search(hash, query, 0, policyIDs);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [hash, isOffline]);
 
@@ -65,7 +65,7 @@ function Search({query, policyIDs}: SearchProps) {
             return;
         }
         const currentOffset = searchResults?.search?.offset ?? 0;
-        SearchActions.search(query, currentOffset + CONST.SEARCH_RESULTS_PAGE_SIZE);
+        SearchActions.search(hash, query, currentOffset + CONST.SEARCH_RESULTS_PAGE_SIZE);
     };
 
     const type = SearchUtils.getSearchType(searchResults?.search);

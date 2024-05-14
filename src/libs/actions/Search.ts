@@ -4,7 +4,7 @@ import * as API from '@libs/API';
 import {READ_COMMANDS} from '@libs/API/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-function search(hash: number, query: string, offset = 0, policyIDs?: string, ) {
+function search(hash: number, query: string, offset = 0, policyIDs?: string) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
