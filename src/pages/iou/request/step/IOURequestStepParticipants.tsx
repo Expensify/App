@@ -20,6 +20,9 @@ import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNo
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
+import policy from "@src/types/onyx/Policy";
+import * as CurrencyUtils from "@libs/CurrencyUtils";
+import {getPolicy, isTaxTrackingEnabled} from "@libs/PolicyUtils";
 
 type IOURequestStepParticipantsOnyxProps = {
     /** Whether the confirmation step should be skipped */
@@ -96,10 +99,39 @@ function IOURequestStepParticipants({
                 return;
             }
 
+            // If user is categorizing tracked expense with respective workspace on policy expense chat then update tax details on draft transaction
+            setTaxDetailsOnCategorizing(val);
+
             // When a participant is selected, the reportID needs to be saved because that's the reportID that will be used in the confirmation step.
             selectedReportID.current = val[0]?.reportID ?? reportID;
         },
         [reportID, transactionID],
+    );
+
+    const setTaxDetailsOnCategorizing = useCallback(
+        (participants: Participant[]) => {
+            const isCategorizing = action === CONST.IOU.ACTION.CATEGORIZE;
+            if (!isCategorizing) {
+                return;
+            }
+
+            const isPolicyExpenseChat = participants.length === 1 && participants[0]?.isPolicyExpenseChat;
+            if (!isPolicyExpenseChat) {
+                return;
+            }
+
+            const policyID = participants[0].policyID;
+            const policy= getPolicy(policyID);
+            if (!isTaxTrackingEnabled(isPolicyExpenseChat, policy)) {
+                return;
+            }
+            const taxCode = TransactionUtils.getDefaultTaxCode(policy, transaction) ?? '';
+            const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, taxCode) ?? '';
+            const taxAmount = CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(taxPercentage, transaction?.amount ?? 0));
+            IOU.setMoneyRequestTaxRate(transactionID, taxCode, true);
+            IOU.setMoneyRequestTaxAmount(transactionID, taxAmount, true);
+        },
+        [action]
     );
 
     const goToNextStep = useCallback(() => {
