@@ -1045,14 +1045,6 @@ function isSystemChat(report: OnyxEntry<Report>): boolean {
 }
 
 /**
- * Checks if a report is an IOU or expense report.
- */
-function isMoneyRequestReport(reportOrID: OnyxEntry<Report> | EmptyObject | string): boolean {
-    const report = typeof reportOrID === 'object' ? reportOrID : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] ?? null;
-    return isIOUReport(report) || isExpenseReport(report);
-}
-
-/**
  * Only returns true if this is our main 1:1 DM report with Concierge
  */
 function isConciergeChatReport(report: OnyxEntry<Report>): boolean {
@@ -1225,7 +1217,7 @@ function hasExpenses(reportID?: string): boolean {
  * Whether the provided report is a closed expense report with no expenses
  */
 function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>): boolean {
-    return report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED && isMoneyRequestReport(report) && !hasExpenses(report.reportID);
+    return report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED && isExpenseReport(report) && !hasExpenses(report.reportID);
 }
 
 /**
@@ -1393,6 +1385,14 @@ function isTrackExpenseReport(report: OnyxEntry<Report>): boolean {
 function isMoneyRequest(reportOrID: OnyxEntry<Report> | string): boolean {
     const report = typeof reportOrID === 'string' ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] ?? null : reportOrID;
     return isIOURequest(report) || isExpenseRequest(report);
+}
+
+/**
+ * Checks if a report is an IOU or expense report.
+ */
+function isMoneyRequestReport(reportOrID: OnyxEntry<Report> | EmptyObject | string): boolean {
+    const report = typeof reportOrID === 'object' ? reportOrID : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] ?? null;
+    return isIOUReport(report) || isExpenseReport(report);
 }
 
 /**
