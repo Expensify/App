@@ -1923,7 +1923,7 @@ PODS:
   - RNGoogleSignin (10.0.1):
     - GoogleSignIn (~> 7.0)
     - React-Core
-  - RNLiveMarkdown (0.1.69):
+  - RNLiveMarkdown (0.1.70):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1943,9 +1943,9 @@ PODS:
     - React-utils
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNLiveMarkdown/common (= 0.1.69)
+    - RNLiveMarkdown/common (= 0.1.70)
     - Yoga
-  - RNLiveMarkdown/common (0.1.69):
+  - RNLiveMarkdown/common (0.1.70):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1968,13 +1968,14 @@ PODS:
     - Yoga
   - RNLocalize (2.2.6):
     - React-Core
-  - rnmapbox-maps (10.1.20):
+  - rnmapbox-maps (10.1.23):
     - MapboxMaps (~> 10.17.0)
     - React
     - React-Core
-    - rnmapbox-maps/DynamicLibrary (= 10.1.20)
+    - rnmapbox-maps/DynamicLibrary (= 10.1.23)
     - Turf
-  - rnmapbox-maps/DynamicLibrary (10.1.20):
+  - rnmapbox-maps/DynamicLibrary (10.1.23):
+    - DoubleConversion
     - hermes-engine
     - MapboxMaps (~> 10.17.0)
     - RCT-Folly
@@ -2586,7 +2587,7 @@ SPEC CHECKSUMS:
   libavif: 84bbb62fb232c3018d6f1bab79beea87e35de7b7
   libwebp: 1786c9f4ff8a279e4dac1e8f385004d5fc253009
   lottie-ios: 3d98679b41fa6fd6aff2352b3953dbd3df8a397e
-  lottie-react-native: d0e530160e1a0116ab567343d843033c496d0d97
+  lottie-react-native: 042a44995748de42f2e6fcf334fc7545d6d2a840
   MapboxCommon: 768660d6fca8193529ecf82eb6f5f9ae7a5acdf9
   MapboxCoreMaps: be412ff97b16aa7820922c818115a9a0d8211caa
   MapboxMaps: 87ef0003e6db46e45e7a16939f29ae87e38e7ce2
@@ -2676,10 +2677,10 @@ SPEC CHECKSUMS:
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 9265c3b902cd8408ba4376b1a34d9708a6da4ac3
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
-  RNLiveMarkdown: 0b9012926a0c790b4422c401fed667b42e85bc4c
+  RNLiveMarkdown: f243575435f220bcc1bd43ee187fd374486a1c21
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
-  rnmapbox-maps: df8fe93dbd251f25022f4023d31bc04160d4d65c
-  RNPermissions: 0b61d30d21acbeafe25baaa47d9bae40a0c65216
+  rnmapbox-maps: 5165c95556507e5424440a5e7319bd9941194b47
+  RNPermissions: 3b49dcd1645a1f9d57ebff7aa891c28f3de72bce
   RNReactNativeHapticFeedback: 616c35bdec7d20d4c524a7949ca9829c09e35f37
   RNReanimated: 8224e5c25e803359c8db7337be6920897d323935
   RNScreens: 63fe8222c172a79f5c30dd1aefaeb369c6eb57b6
