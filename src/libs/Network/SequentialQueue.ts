@@ -102,16 +102,19 @@ function process(): Promise<void> {
 function flush() {
     // When the queue is paused, return early. This will keep an requests in the queue and they will get flushed again when the queue is unpaused
     if (isQueuePaused) {
+        console.debug('[SequentialQueue] Queue is paused');
         return;
     }
 
     if (isSequentialQueueRunning || PersistedRequests.getAll().length === 0) {
+        console.debug('[SequentialQueue] Skipping flush', {isSequentialQueueRunning, numPersistedRequests: PersistedRequests.getAll().length});
         return;
     }
 
     // ONYXKEYS.PERSISTED_REQUESTS is shared across clients, thus every client/tab will have a copy
     // It is very important to only process the queue from leader client otherwise requests will be duplicated.
     if (!ActiveClientManager.isClientTheLeader()) {
+        console.debug('[SequentialQueue] Client is NOT the leader, skipping flush');
         return;
     }
 
@@ -169,15 +172,18 @@ function push(request: OnyxRequest) {
 
     // If we are offline we don't need to trigger the queue to empty as it will happen when we come back online
     if (NetworkStore.isOffline()) {
+        console.debug('[SequentialQueue] Client is offline, skipping flush');
         return;
     }
 
     // If the queue is running this request will run once it has finished processing the current batch
     if (isSequentialQueueRunning) {
+        console.debug('[SequentialQueue] isSequentialQueueRunning, waiting for current batch to finish before flushing');
         isReadyPromise.then(flush);
         return;
     }
 
+    console.debug('[SequentialQueue] Flushing in push()');
     flush();
 }
 
