@@ -66,19 +66,23 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
                                 title={translate('workspace.qbo.defaultVendor')}
                                 wrapperStyle={[styles.ph5, styles.mb3, styles.mt1]}
                                 isActive={Boolean(autoCreateVendor)}
-                                onToggle={(isOn) => Connections.updateManyPolicyConnectionConfigs(
-                                    policyID,
-                                    CONST.POLICY.CONNECTIONS.NAME.QBO,
-                                    {
-                                        [CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR]: isOn,
-                                        [CONST.QUICK_BOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR]: isOn
-                                            ? policy?.connections?.quickbooksOnline?.data?.vendors?.[0]?.id ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE
-                                            : CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE
-                                    },
-                                    {
-                                        [CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR]: autoCreateVendor,
-                                        [CONST.QUICK_BOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR]: nonReimbursableBillDefaultVendorObject?.id ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE,
-                                    })}
+                                onToggle={(isOn) =>
+                                    Connections.updateManyPolicyConnectionConfigs(
+                                        policyID,
+                                        CONST.POLICY.CONNECTIONS.NAME.QBO,
+                                        {
+                                            [CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR]: isOn,
+                                            [CONST.QUICK_BOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR]: isOn
+                                                ? policy?.connections?.quickbooksOnline?.data?.vendors?.[0]?.id ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE
+                                                : CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE,
+                                        },
+                                        {
+                                            [CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR]: autoCreateVendor,
+                                            [CONST.QUICK_BOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR]:
+                                                nonReimbursableBillDefaultVendorObject?.id ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE,
+                                        },
+                                    )
+                                }
                                 pendingAction={pendingFields?.autoCreateVendor}
                             />
                             {autoCreateVendor && (
