@@ -360,10 +360,10 @@ function assertPostGithubCommentJobExecuted(workflowResult: Step[], didExecute =
             {key: 'IS_PRODUCTION_DEPLOY', value: isProduction ? 'true' : 'false'},
             {key: 'DEPLOY_VERSION', value: '1.2.3'},
             {key: 'GITHUB_TOKEN', value: '***'},
-            {key: 'ANDROID', value: didDeploy ? 'success' : ''},
-            {key: 'DESKTOP', value: didDeploy ? 'success' : ''},
-            {key: 'IOS', value: didDeploy ? 'success' : ''},
-            {key: 'WEB', value: didDeploy ? 'success' : ''},
+            {key: 'ANDROID', value: didDeploy ? 'success' : 'skipped'},
+            {key: 'DESKTOP', value: didDeploy ? 'success' : 'skipped'},
+            {key: 'IOS', value: didDeploy ? 'success' : 'skipped'},
+            {key: 'WEB', value: didDeploy ? 'success' : 'skipped'},
         ]),
     ] as const;
 
