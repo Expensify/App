@@ -11,44 +11,44 @@ const fontFamily: FontFamilyStyles = {
     },
 
     MONOSPACE: {
-        fontFamily: 'ExpensifyMono-Regular',
+        fontFamily: 'Expensify Mono',
         fontStyle: 'normal',
         fontWeight: fontWeight.normal,
     },
     MONOSPACE_BOLD: {
-        fontFamily: 'ExpensifyMono-Bold',
+        fontFamily: 'Expensify Mono',
         fontStyle: 'normal',
         fontWeight: fontWeight.bold,
     },
 
     EXP_NEUE: {
-        fontFamily: 'ExpensifyNeue-Regular',
+        fontFamily: 'Expensify Neue',
         fontStyle: 'normal',
         fontWeight: fontWeight.normal,
     },
     EXP_NEUE_BOLD: {
-        fontFamily: 'ExpensifyMono-Regular',
+        fontFamily: 'Expensify Neue',
         fontStyle: 'normal',
         fontWeight: fontWeight.bold,
     },
     EXP_NEUE_ITALIC: {
-        fontFamily: 'ExpensifyMono-Regular',
+        fontFamily: 'Expensify Neue',
         fontStyle: 'italic',
         fontWeight: fontWeight.normal,
     },
     EXP_NEUE_BOLD_ITALIC: {
-        fontFamily: 'ExpensifyMono-Regular',
+        fontFamily: 'Expensify Neue',
         fontStyle: 'italic',
         fontWeight: fontWeight.bold,
     },
 
     EXP_NEW_KANSAS_MEDIUM: {
-        fontFamily: 'ExpensifyNewKansas-Medium',
+        fontFamily: 'Expensify New Kansas',
         fontStyle: 'normal',
         fontWeight: fontWeight.medium,
     },
     EXP_NEW_KANSAS_MEDIUM_ITALIC: {
-        fontFamily: 'ExpensifyNewKansas-MediumItalic',
+        fontFamily: 'Expensify New Kansas',
         fontStyle: 'italic',
         fontWeight: fontWeight.medium,
     },

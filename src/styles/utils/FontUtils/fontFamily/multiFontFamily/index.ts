@@ -15,44 +15,44 @@ const fontFamily: FontFamilyStyles = {
     },
 
     MONOSPACE: {
-        fontFamily: 'ExpensifyMono-Regular, Segoe UI Emoji, Noto Color Emoji',
+        fontFamily: 'Expensify Mono, Segoe UI Emoji, Noto Color Emoji',
         fontStyle: 'normal',
         fontWeight: fontWeight.normal,
     },
     MONOSPACE_BOLD: {
-        fontFamily: 'ExpensifyMono-Bold, Segoe UI Emoji, Noto Color Emoji',
+        fontFamily: 'Expensify Mono, Segoe UI Emoji, Noto Color Emoji',
         fontStyle: 'normal',
         fontWeight: fontWeight.bold,
     },
 
     EXP_NEUE: {
-        fontFamily: 'ExpensifyNeue-Regular, Segoe UI Emoji, Noto Color Emoji',
+        fontFamily: 'Expensify Neue, Segoe UI Emoji, Noto Color Emoji',
         fontStyle: 'normal',
         fontWeight: fontWeight.normal,
     },
     EXP_NEUE_BOLD: {
-        fontFamily: 'ExpensifyNeue-Regular, Segoe UI Emoji, Noto Color Emoji',
+        fontFamily: 'Expensify Neue, Segoe UI Emoji, Noto Color Emoji',
         fontStyle: 'normal',
         fontWeight: fontWeight.bold,
     },
     EXP_NEUE_ITALIC: {
-        fontFamily: 'ExpensifyNeue-Regular, Segoe UI Emoji, Noto Color Emoji',
+        fontFamily: 'Expensify Neue, Segoe UI Emoji, Noto Color Emoji',
         fontStyle: 'italic',
         fontWeight: fontWeight.normal,
     },
     EXP_NEUE_BOLD_ITALIC: {
-        fontFamily: 'ExpensifyNeue-Regular, Segoe UI Emoji, Noto Color Emoji',
+        fontFamily: 'Expensify Neue, Segoe UI Emoji, Noto Color Emoji',
         fontStyle: 'italic',
         fontWeight: fontWeight.bold,
     },
 
     EXP_NEW_KANSAS_MEDIUM: {
-        fontFamily: 'ExpensifyNewKansas-Medium, Segoe UI Emoji, Noto Color Emoji',
+        fontFamily: 'Expensify New Kansas, Segoe UI Emoji, Noto Color Emoji',
         fontStyle: 'normal',
         fontWeight: fontWeight.medium,
     },
     EXP_NEW_KANSAS_MEDIUM_ITALIC: {
-        fontFamily: 'ExpensifyNewKansas-MediumItalic, Segoe UI Emoji, Noto Color Emoji',
+        fontFamily: 'Expensify New Kansas, Segoe UI Emoji, Noto Color Emoji',
         fontStyle: 'italic',
         fontWeight: fontWeight.medium,
     },
