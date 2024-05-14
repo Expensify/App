@@ -33,6 +33,7 @@ import type {
     RemoveFromGroupChatParams,
     RemoveFromRoomParams,
     ResolveActionableMentionWhisperParams,
+    ResolveActionableReportMentionWhisperParams,
     SearchForReportsParams,
     SearchForRoomsToMentionParams,
     SetNameValuePairParams,
@@ -632,7 +633,12 @@ function updateGroupChatName(reportID: string, reportName: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {reportName},
+            value: {
+                reportName,
+                errorFields: {
+                    reportName: null,
+                },
+            },
         },
     ];
     const parameters: UpdateGroupChatNameParams = {reportName, reportID};
@@ -645,11 +651,55 @@ function updateGroupChatAvatar(reportID: string, file?: File | CustomRNImageMani
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {avatarUrl: file?.uri ?? ''},
+            value: {
+                avatarUrl: file?.uri ?? '',
+                pendingFields: {
+                    avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+                errorFields: {
+                    avatar: null,
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                avatarUrl: currentReportData?.[reportID]?.avatarUrl ?? null,
+                pendingFields: {
+                    avatar: null,
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                pendingFields: {
+                    avatar: null,
+                },
+            },
         },
     ];
     const parameters: UpdateGroupChatAvatarParams = {file, reportID};
-    API.write(WRITE_COMMANDS.UPDATE_GROUP_CHAT_AVATAR, parameters, {optimisticData});
+    API.write(WRITE_COMMANDS.UPDATE_GROUP_CHAT_AVATAR, parameters, {optimisticData, failureData, successData});
+}
+
+/**
+ * Clear error and pending fields for the report avatar
+ */
+function clearAvatarErrors(reportID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+        errorFields: {
+            avatar: null,
+        },
+    });
 }
 
 /**
@@ -696,7 +746,9 @@ function openReport(
             value: {
                 isLoadingInitialReportActions: true,
                 isLoadingOlderReportActions: false,
+                hasLoadingOlderReportActionsError: false,
                 isLoadingNewerReportActions: false,
+                hasLoadingNewerReportActionsError: false,
                 lastVisitTime: DateUtils.getDBTime(),
             },
         },
@@ -988,6 +1040,7 @@ function getOlderActions(reportID: string, reportActionID: string) {
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
             value: {
                 isLoadingOlderReportActions: true,
+                hasLoadingOlderReportActionsError: false,
             },
         },
     ];
@@ -1008,6 +1061,7 @@ function getOlderActions(reportID: string, reportActionID: string) {
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
             value: {
                 isLoadingOlderReportActions: false,
+                hasLoadingOlderReportActionsError: true,
             },
         },
     ];
@@ -1031,6 +1085,7 @@ function getNewerActions(reportID: string, reportActionID: string) {
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
             value: {
                 isLoadingNewerReportActions: true,
+                hasLoadingNewerReportActionsError: false,
             },
         },
     ];
@@ -1051,6 +1106,7 @@ function getNewerActions(reportID: string, reportActionID: string) {
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
             value: {
                 isLoadingNewerReportActions: false,
+                hasLoadingNewerReportActionsError: true,
             },
         },
     ];
@@ -1170,8 +1226,8 @@ function togglePinnedState(reportID: string, isPinnedChat: boolean) {
  * tab, refresh etc without worrying about loosing what they typed out.
  * When empty string or null is passed, it will delete the draft comment from Onyx store.
  */
-function saveReportDraftComment(reportID: string, comment: string | null) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, prepareDraftComment(comment));
+function saveReportDraftComment(reportID: string, comment: string | null, callback: () => void = () => {}) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, prepareDraftComment(comment)).then(callback);
 }
 
 /** Broadcasts whether or not a user is typing on a report over the report's private pusher channel. */
@@ -1202,13 +1258,17 @@ function handleReportChanged(report: OnyxEntry<Report>) {
     // In this case, the API will let us know by returning a preexistingReportID.
     // We should clear out the optimistically created report and re-route the user to the preexisting report.
     if (report?.reportID && report.preexistingReportID) {
-        Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, null);
-
+        let callback = () => {};
         // Only re-route them if they are still looking at the optimistically created report
         if (Navigation.getActiveRoute().includes(`/r/${report.reportID}`)) {
-            // Pass 'FORCED_UP' type to replace new report on second login with proper one in the Navigation
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.preexistingReportID), CONST.NAVIGATION.TYPE.FORCED_UP);
+            callback = () => {
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.preexistingReportID ?? ''), CONST.NAVIGATION.TYPE.FORCED_UP);
+            };
         }
+        DeviceEventEmitter.emit(`switchToPreExistingReport_${report.reportID}`, {
+            preexistingReportID: report.preexistingReportID,
+            callback,
+        });
         return;
     }
 
@@ -2451,7 +2511,7 @@ function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
             ReportUtils.shouldReportBeInOptionList({
                 report: sortedReport,
                 currentReportId: '',
-                isInGSDMode: false,
+                isInFocusMode: false,
                 betas: [],
                 policies: {},
                 excludeEmptyChats: true,
@@ -2689,24 +2749,44 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
 }
 
 function updateGroupChatMemberRoles(reportID: string, accountIDList: number[], role: ValueOf<typeof CONST.REPORT.ROLE>) {
-    const participants: Participants = {};
     const memberRoles: Record<number, string> = {};
+    const optimisticParticipants: Participants = {};
+    const successParticipants: Participants = {};
+
     accountIDList.forEach((accountID) => {
         memberRoles[accountID] = role;
-        participants[accountID] = {role};
+        optimisticParticipants[accountID] = {
+            role,
+            pendingFields: {
+                role: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            },
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+        };
+        successParticipants[accountID] = {
+            pendingFields: {
+                role: null,
+            },
+            pendingAction: null,
+        };
     });
 
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                participants,
-            },
+            value: {participants: optimisticParticipants},
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {participants: successParticipants},
         },
     ];
     const parameters: UpdateGroupChatMemberRolesParams = {reportID, memberRoles: JSON.stringify(memberRoles)};
-    API.write(WRITE_COMMANDS.UPDATE_GROUP_CHAT_MEMBER_ROLES, parameters, {optimisticData});
+    API.write(WRITE_COMMANDS.UPDATE_GROUP_CHAT_MEMBER_ROLES, parameters, {optimisticData, successData});
 }
 
 /** Invites people to a group chat */
@@ -3048,13 +3128,19 @@ function completeOnboarding(
     }
 
     const tasksData = data.tasks.map((task, index) => {
-        const hasSubtitle = !!task.subtitle;
+        const taskDescription =
+            typeof task.description === 'function'
+                ? task.description({
+                      adminsRoomLink: `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID ?? '')}`,
+                      guideCalendarLink: guideCalendarLink ?? CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL,
+                  })
+                : task.description;
         const currentTask = ReportUtils.buildOptimisticTaskReport(
             actorAccountID,
             undefined,
             targetChatReportID,
             task.title,
-            undefined,
+            taskDescription,
             targetChatPolicyID,
             CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         );
@@ -3067,22 +3153,8 @@ function completeOnboarding(
             targetChatReportID,
             actorAccountID,
             index + 3,
-            {
-                childVisibleActionCount: hasSubtitle ? 2 : 1,
-                childCommenterCount: 1,
-                childLastVisibleActionCreated: DateUtils.getDBTime(),
-                childOldestFourAccountIDs: `${actorAccountID}`,
-            },
         );
-        const subtitleComment = hasSubtitle ? ReportUtils.buildOptimisticAddCommentReportAction(task.subtitle, undefined, actorAccountID, 0, false) : null;
-        const isTaskMessageFunction = typeof task.message === 'function';
-        const taskMessage = isTaskMessageFunction
-            ? task.message({
-                  adminsRoomLink: `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID ?? '')}`,
-                  guideCalendarLink: guideCalendarLink ?? CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL,
-              })
-            : task.message;
-        const instructionComment = ReportUtils.buildOptimisticAddCommentReportAction(taskMessage, undefined, actorAccountID, 1, isTaskMessageFunction ? undefined : false);
+
         const completedTaskReportAction = task.autoCompleted
             ? ReportUtils.buildOptimisticTaskReportAction(currentTask.reportID, CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED, 'marked as complete', actorAccountID, 2)
             : null;
@@ -3092,134 +3164,79 @@ function completeOnboarding(
             currentTask,
             taskCreatedAction,
             taskReportAction,
-            subtitleComment,
-            instructionComment,
+            taskDescription,
             completedTaskReportAction,
         };
     });
 
-    const tasksForParameters = tasksData.reduce<TaskForParameters[]>(
-        (acc, {task, currentTask, taskCreatedAction, taskReportAction, subtitleComment, instructionComment, completedTaskReportAction}) => {
-            const instructionCommentAction: OptimisticAddCommentReportAction = instructionComment.reportAction;
-            const instructionCommentText = instructionComment.commentText;
-            const instructionMessage: TaskMessage = {
-                reportID: currentTask.reportID,
-                reportActionID: instructionCommentAction.reportActionID,
-                reportComment: instructionCommentText,
-            };
+    const tasksForParameters = tasksData.map<TaskForParameters>(({task, currentTask, taskCreatedAction, taskReportAction, taskDescription, completedTaskReportAction}) => ({
+        type: 'task',
+        task: task.type,
+        taskReportID: currentTask.reportID,
+        parentReportID: currentTask.parentReportID ?? '',
+        parentReportActionID: taskReportAction.reportAction.reportActionID,
+        assigneeChatReportID: '',
+        createdTaskReportActionID: taskCreatedAction.reportActionID,
+        completedTaskReportActionID: completedTaskReportAction?.reportActionID ?? undefined,
+        title: currentTask.reportName ?? '',
+        description: taskDescription,
+    }));
 
-            const tasksForParametersAcc: TaskForParameters[] = [
-                ...acc,
-                {
-                    type: 'task',
-                    task: task.type,
-                    taskReportID: currentTask.reportID,
-                    parentReportID: currentTask.parentReportID ?? '',
-                    parentReportActionID: taskReportAction.reportAction.reportActionID,
-                    assigneeChatReportID: '',
-                    createdTaskReportActionID: taskCreatedAction.reportActionID,
-                    completedTaskReportActionID: completedTaskReportAction?.reportActionID ?? undefined,
-                    title: currentTask.reportName ?? '',
-                    description: currentTask.description ?? '',
+    const tasksForOptimisticData = tasksData.reduce<OnyxUpdate[]>((acc, {currentTask, taskCreatedAction, taskReportAction, taskDescription, completedTaskReportAction}) => {
+        const tasksForOptimisticDataAcc: OnyxUpdate[] = [
+            ...acc,
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+                value: {
+                    [taskReportAction.reportAction.reportActionID]: taskReportAction.reportAction as ReportAction,
                 },
-                {
-                    type: 'message',
-                    ...instructionMessage,
+            },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${currentTask.reportID}`,
+                value: {
+                    ...currentTask,
+                    description: taskDescription,
+                    pendingFields: {
+                        createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                        reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                        description: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                        managerID: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    },
+                    isOptimisticReport: true,
                 },
-            ];
-
-            if (subtitleComment) {
-                const subtitleCommentAction: OptimisticAddCommentReportAction = subtitleComment.reportAction;
-                const subtitleCommentText = subtitleComment.commentText;
-                const subtitleMessage: TaskMessage = {
-                    reportID: currentTask.reportID,
-                    reportActionID: subtitleCommentAction.reportActionID,
-                    reportComment: subtitleCommentText,
-                };
-
-                tasksForParametersAcc.push({
-                    type: 'message',
-                    ...subtitleMessage,
-                });
-            }
-
-            return tasksForParametersAcc;
-        },
-        [],
-    );
-
-    const tasksForOptimisticData = tasksData.reduce<OnyxUpdate[]>(
-        (acc, {currentTask, taskCreatedAction, taskReportAction, subtitleComment, instructionComment, completedTaskReportAction}) => {
-            const instructionCommentAction: OptimisticAddCommentReportAction = instructionComment.reportAction;
-
-            const tasksForOptimisticDataAcc: OnyxUpdate[] = [
-                ...acc,
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
-                    value: {
-                        [taskReportAction.reportAction.reportActionID]: taskReportAction.reportAction as ReportAction,
-                    },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentTask.reportID}`,
+                value: {
+                    [taskCreatedAction.reportActionID]: taskCreatedAction as ReportAction,
                 },
-                {
-                    onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${currentTask.reportID}`,
-                    value: {
-                        ...currentTask,
-                        pendingFields: {
-                            createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                            reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                            description: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                            managerID: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                        },
-                        isOptimisticReport: true,
-                    },
+            },
+        ];
+
+        if (completedTaskReportAction) {
+            tasksForOptimisticDataAcc.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentTask.reportID}`,
+                value: {
+                    [completedTaskReportAction.reportActionID]: completedTaskReportAction as ReportAction,
                 },
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentTask.reportID}`,
-                    value: {
-                        [taskCreatedAction.reportActionID]: taskCreatedAction as ReportAction,
-                        [instructionCommentAction.reportActionID]: instructionCommentAction as ReportAction,
-                    },
+            });
+
+            tasksForOptimisticDataAcc.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${currentTask.reportID}`,
+                value: {
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
                 },
-            ];
+            });
+        }
 
-            if (subtitleComment) {
-                const subtitleCommentAction: OptimisticAddCommentReportAction = subtitleComment.reportAction;
-
-                tasksForOptimisticDataAcc.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentTask.reportID}`,
-                    value: {
-                        [subtitleCommentAction.reportActionID]: subtitleCommentAction as ReportAction,
-                    },
-                });
-            }
-
-            if (completedTaskReportAction) {
-                tasksForOptimisticDataAcc.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentTask.reportID}`,
-                    value: {
-                        [completedTaskReportAction.reportActionID]: completedTaskReportAction as ReportAction,
-                    },
-                });
-
-                tasksForOptimisticDataAcc.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${currentTask.reportID}`,
-                    value: {
-                        stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                        statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
-                    },
-                });
-            }
-
-            return tasksForOptimisticDataAcc;
-        },
-        [],
-    );
+        return tasksForOptimisticDataAcc;
+    }, []);
 
     const tasksForFailureData = tasksData.reduce<OnyxUpdate[]>((acc, {currentTask, taskReportAction}) => {
         const tasksForFailureDataAcc: OnyxUpdate[] = [
@@ -3640,6 +3657,51 @@ function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEnt
     API.write(WRITE_COMMANDS.RESOLVE_ACTIONABLE_MENTION_WHISPER, parameters, {optimisticData, failureData});
 }
 
+function resolveActionableReportMentionWhisper(
+    reportId: string,
+    reportAction: OnyxEntry<ReportAction>,
+    resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION>,
+) {
+    if (!reportAction) {
+        return;
+    }
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportId}`,
+            value: {
+                [reportAction.reportActionID]: {
+                    originalMessage: {
+                        resolution,
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportId}`,
+            value: {
+                [reportAction.reportActionID]: {
+                    originalMessage: {
+                        resolution: null,
+                    },
+                },
+            },
+        },
+    ];
+
+    const parameters: ResolveActionableReportMentionWhisperParams = {
+        reportActionID: reportAction.reportActionID,
+        resolution,
+    };
+
+    API.write(WRITE_COMMANDS.RESOLVE_ACTIONABLE_REPORT_MENTION_WHISPER, parameters, {optimisticData, failureData});
+}
+
 function dismissTrackExpenseActionableWhisper(reportID: string, reportAction: OnyxEntry<ReportAction>): void {
     const message = reportAction?.message?.[0];
     if (!message) {
@@ -3761,6 +3823,7 @@ export {
     deleteReportField,
     clearReportFieldErrors,
     resolveActionableMentionWhisper,
+    resolveActionableReportMentionWhisper,
     updateRoomVisibility,
     dismissTrackExpenseActionableWhisper,
     setGroupDraft,
@@ -3772,4 +3835,5 @@ export {
     leaveGroupChat,
     removeFromGroupChat,
     updateGroupChatMemberRoles,
+    clearAvatarErrors,
 };

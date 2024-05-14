@@ -16,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as UserUtils from '@libs/UserUtils';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
 import * as Task from '@userActions/Task';
@@ -121,10 +122,17 @@ function ReportFooter({
             const mentionWithDomain = ReportUtils.addDomainToShortMention(mention ?? '') ?? mention;
 
             let assignee: OnyxTypes.PersonalDetails | EmptyObject = {};
+            let assigneeChatReport;
             if (mentionWithDomain) {
                 assignee = Object.values(allPersonalDetails).find((value) => value?.login === mentionWithDomain) ?? {};
+                if (!Object.keys(assignee).length) {
+                    const assigneeAccountID = UserUtils.generateAccountID(mentionWithDomain);
+                    const optimisticDataForNewAssignee = Task.setNewOptimisticAssignee(mentionWithDomain, assigneeAccountID);
+                    assignee = optimisticDataForNewAssignee.assignee;
+                    assigneeChatReport = optimisticDataForNewAssignee.assigneeReport;
+                }
             }
-            Task.createTaskAndNavigate(report.reportID, title, '', assignee?.login ?? '', assignee.accountID, undefined, report.policyID);
+            Task.createTaskAndNavigate(report.reportID, title, '', assignee?.login ?? '', assignee.accountID, assigneeChatReport, report.policyID);
             return true;
         },
         [allPersonalDetails, report.policyID, report.reportID],

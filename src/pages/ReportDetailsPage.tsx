@@ -75,6 +75,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const isChatThread = useMemo(() => ReportUtils.isChatThread(report), [report]);
     const isArchivedRoom = useMemo(() => ReportUtils.isArchivedRoom(report), [report]);
     const isMoneyRequestReport = useMemo(() => ReportUtils.isMoneyRequestReport(report), [report]);
+    const isMoneyRequest = useMemo(() => ReportUtils.isMoneyRequest(report), [report]);
     const isInvoiceReport = useMemo(() => ReportUtils.isInvoiceReport(report), [report]);
     const canEditReportDescription = useMemo(() => ReportUtils.canEditReportDescription(report, policy), [report, policy]);
     const shouldShowReportDescription = isChatRoom && (canEditReportDescription || report.description !== '');
@@ -245,6 +246,10 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 onImageSelected={(file) => Report.updateGroupChatAvatar(report.reportID ?? '', file)}
                 editIcon={Expensicons.Camera}
                 editIconStyle={styles.smallEditIconAccount}
+                pendingAction={report.pendingFields?.avatar ?? undefined}
+                errors={report.errorFields?.avatar ?? null}
+                errorRowStyles={styles.mt6}
+                onErrorClose={() => Report.clearAvatarErrors(report.reportID ?? '')}
             />
         ) : (
             <RoomHeaderAvatars
@@ -304,7 +309,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                             ) : (
                                 chatRoomSubtitleText
                             )}
-                            {!isEmptyObject(parentNavigationSubtitleData) && (isMoneyRequestReport || isInvoiceReport) && (
+                            {!isEmptyObject(parentNavigationSubtitleData) && (isMoneyRequestReport || isInvoiceReport || isMoneyRequest) && (
                                 <ParentNavigationSubtitle
                                     parentNavigationSubtitleData={parentNavigationSubtitleData}
                                     parentReportID={report?.parentReportID}
