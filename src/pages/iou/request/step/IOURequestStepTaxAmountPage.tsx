@@ -34,13 +34,13 @@ type IOURequestStepTaxAmountPageProps = IOURequestStepTaxAmountPageOnyxProps &
         transaction: OnyxEntry<Transaction>;
     };
 
-function getTaxAmount(transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>, isEditing: boolean): number | undefined {
+function getTaxAmount(transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>, currency: string | undefined, isEditing: boolean): number | undefined {
     if (!transaction?.amount) {
         return;
     }
     const transactionTaxAmount = TransactionUtils.getAmount(transaction);
     const transactionTaxCode = transaction?.taxCode ?? '';
-    const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction) ?? '';
+    const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction, currency) ?? '';
     const getTaxValue = (taxCode: string) => TransactionUtils.getTaxValue(policy, transaction, taxCode);
     const defaultTaxValue = getTaxValue(defaultTaxCode);
     const moneyRequestTaxPercentage = (transactionTaxCode ? getTaxValue(transactionTaxCode) : defaultTaxValue) ?? '';
@@ -150,12 +150,17 @@ function IOURequestStepTaxAmountPage({
             <MoneyRequestAmountForm
                 isEditing={Boolean(backTo || isEditing)}
                 currency={currency}
+<<<<<<< HEAD
                 amount={transactionDetails?.taxAmount}
                 taxAmount={getTaxAmount(transaction, policy, Boolean(backTo || isEditing))}
+=======
+                amount={Math.abs(transactionDetails?.taxAmount ?? 0)}
+                taxAmount={getTaxAmount(transaction, policy, currency, Boolean(backTo || isEditing))}
+>>>>>>> 2304a1f (Merge pull request #42064 from ShridharGoel/42407)
                 ref={(e) => (textInput.current = e)}
                 onCurrencyButtonPress={navigateToCurrencySelectionPage}
                 onSubmitButtonPress={updateTaxAmount}
-                isCurrencyPressable={!isEditing}
+                isCurrencyPressable={false}
             />
         </StepScreenWrapper>
     );
