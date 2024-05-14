@@ -34,7 +34,7 @@ function withPolicyConnections<TProps extends WithPolicyConnectionsProps>(Wrappe
         useEffect(() => {
             // When the accounting feature is not enabled, or if the connections data already exists,
             // there is no need to fetch the connections data.
-            if (!isConnectionDataFetchNeeded || !props?.policy?.id) {
+            if (!isConnectionDataFetchNeeded || !props.policy?.id) {
                 return;
             }
 
