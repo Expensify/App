@@ -2120,7 +2120,7 @@ export default {
             enableCategory: 'Activar categoría',
             deleteFailureMessage: 'Se ha producido un error al intentar eliminar la categoría. Por favor, inténtalo más tarde.',
             categoryName: 'Nombre de la categoría',
-            requiresCategory: 'Los miembros deben categorizar todos los gastos',
+            requiresCategory: 'Los miembros deben clasificar todos los gastos',
             needCategoryForExportToIntegration: 'Se requiere una categoría en cada gasto para poder exportarlo a',
             subtitle: 'Obtén una visión general de dónde te gastas el dinero. Utiliza las categorías predeterminadas o añade las tuyas propias.',
             emptyCategories: {
