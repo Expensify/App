@@ -35,14 +35,13 @@ import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Locale, Policy, PolicyConnectionSyncProgress} from '@src/types/onyx';
+import type {Policy, PolicyConnectionSyncProgress} from '@src/types/onyx';
 import type {PolicyConnectionName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type PolicyAccountingPageOnyxProps = {
     connectionSyncProgress: OnyxEntry<PolicyConnectionSyncProgress>;
-    preferredLocale: OnyxEntry<Locale>;
 };
 
 type PolicyAccountingPageProps = WithPolicyProps &
@@ -102,7 +101,7 @@ function accountingIntegrationData(
     }
 }
 
-function PolicyAccountingPage({policy, connectionSyncProgress, preferredLocale}: PolicyAccountingPageProps) {
+function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccountingPageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -120,7 +119,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress, preferredLocale}:
     const connectedIntegration = accountingIntegrations.find((integration) => !!policy?.connections?.[integration]) ?? connectionSyncProgress?.connectionName;
     const policyID = policy?.id ?? '';
     const successfulDate = policy?.connections?.quickbooksOnline?.lastSync?.successfulDate;
-    const formattedDate = successfulDate ? new Date(successfulDate) : new Date();
+    const formattedDate = useMemo(() => (successfulDate ? new Date(successfulDate) : new Date()), [successfulDate]);
 
     const policyConnectedToXero = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.XERO;
 
@@ -147,13 +146,6 @@ function PolicyAccountingPage({policy, connectionSyncProgress, preferredLocale}:
 
     useEffect(() => {
         setDateTimeToRelative(formatDistanceToNow(formattedDate, {addSuffix: true}));
-        const interval = setInterval(() => {
-            setDateTimeToRelative(formatDistanceToNow(formattedDate, {addSuffix: true}));
-        }, 60 * 1000);
-
-        return () => {
-            clearInterval(interval);
-        };
     }, [formattedDate]);
 
     const connectionsMenuItems: MenuItemProps[] = useMemo(() => {
@@ -393,9 +385,6 @@ export default withPolicyConnections(
     withOnyx<PolicyAccountingPageProps, PolicyAccountingPageOnyxProps>({
         connectionSyncProgress: {
             key: (props) => `${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${props.route.params.policyID}`,
-        },
-        preferredLocale: {
-            key: ONYXKEYS.NVP_PREFERRED_LOCALE,
         },
     })(PolicyAccountingPage),
 );
