@@ -3196,6 +3196,7 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
     if (isMoneyRequestReport(report) || isInvoiceReport(report)) {
         formattedName = getMoneyRequestReportName(report, policy);
     }
+
     if (isInvoiceRoom(report)) {
         formattedName = getInvoicesChatName(report);
     }
