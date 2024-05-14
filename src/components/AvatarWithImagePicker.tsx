@@ -322,9 +322,7 @@ function AvatarWithImagePicker({
                             style={[styles.pRelative, avatarStyle]}
                             ref={anchorRef}
                         >
-                            <OfflineWithFeedback
-                                pendingAction={pendingAction}
-                            >
+                            <OfflineWithFeedback pendingAction={pendingAction}>
                                 <View>
                                     {source ? (
                                         <Avatar
