@@ -742,7 +742,7 @@ export default {
         holdReasonRequired: 'A reason is required when holding.',
         expenseOnHold: 'This expense was put on hold. Review the comments for next steps.',
         confirmApprove: 'Confirm approval amount',
-        confirmApprovalAmount: 'Approve what's not held up, or approve the entire report.',
+        confirmApprovalAmount: "Approve what's not held up, or approve the entire report.",
         confirmPay: 'Confirm what to pay',
         confirmPayAmount: 'Pay all out-of-pocket spend or only the amount not on hold.',
         payOnly: 'Pay only',
