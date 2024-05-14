@@ -107,6 +107,7 @@ function PromotedActionsBar({report, promotedActions, shouldShowLeaveButton}: Pr
                         }}
                         icon={Expensicons.Exit}
                         style={styles.flex1}
+                        medium
                         text={translate('common.leave')}
                     />
                 </View>
@@ -121,6 +122,7 @@ function PromotedActionsBar({report, promotedActions, shouldShowLeaveButton}: Pr
                         iconFill={theme.icon}
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}
+                        medium
                     />
                 </View>
             ))}
