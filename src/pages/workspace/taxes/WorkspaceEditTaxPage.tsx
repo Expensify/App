@@ -1,9 +1,8 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import type {ThreeDotsMenuItem} from '@components/HeaderWithBackButton/types';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -12,7 +11,6 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import {clearTaxRateFieldError, deletePolicyTaxes, setPolicyTaxesEnabled} from '@libs/actions/TaxRate';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -25,6 +23,7 @@ import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullsc
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import MenuItem from '@components/MenuItem';
 
 type WorkspaceEditTaxPageBaseProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAX_EDIT>;
 
@@ -37,7 +36,6 @@ function WorkspaceEditTaxPage({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const currentTaxRate = PolicyUtils.getTaxByID(policy, taxID);
-    const {windowWidth} = useWindowDimensions();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const canEdit = policy && PolicyUtils.canEditTaxRate(policy, taxID);
 
@@ -57,17 +55,6 @@ function WorkspaceEditTaxPage({
         Navigation.goBack();
     };
 
-    const threeDotsMenuItems: ThreeDotsMenuItem[] = useMemo(
-        () => [
-            {
-                icon: Expensicons.Trashcan,
-                text: translate('common.delete'),
-                onSelected: () => setIsDeleteModalVisible(true),
-            },
-        ],
-        [translate],
-    );
-
     if (!currentTaxRate) {
         return <NotFoundPage />;
     }
@@ -85,9 +72,6 @@ function WorkspaceEditTaxPage({
                 <View style={[styles.h100, styles.flex1]}>
                     <HeaderWithBackButton
                         title={currentTaxRate?.name}
-                        threeDotsMenuItems={threeDotsMenuItems}
-                        shouldShowThreeDotsButton={!!canEdit}
-                        threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
                     />
                     <OfflineWithFeedback
                         errors={ErrorUtils.getLatestErrorField(currentTaxRate, 'isDisabled')}
@@ -137,6 +121,11 @@ function WorkspaceEditTaxPage({
                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAX_VALUE.getRoute(`${policyID}`, taxID))}
                         />
                     </OfflineWithFeedback>
+                    {!!canEdit && <MenuItem
+                        icon={Expensicons.Trashcan}
+                        title={translate('common.delete')}
+                        onPress={() => setIsDeleteModalVisible(true)}
+                    />}
                 </View>
                 <ConfirmModal
                     title={translate('workspace.taxes.actions.delete')}

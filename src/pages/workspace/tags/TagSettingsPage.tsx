@@ -5,7 +5,7 @@ import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {Trashcan} from '@components/Icon/Expensicons';
+import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -13,7 +13,6 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import {setWorkspaceTagEnabled} from '@libs/actions/Policy';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -27,6 +26,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PolicyTagList} from '@src/types/onyx';
+import MenuItem from '@components/MenuItem';
 
 type TagSettingsPageOnyxProps = {
     /** All policy tags */
@@ -40,8 +40,6 @@ function TagSettingsPage({route, policyTags}: TagSettingsPageProps) {
     const {translate} = useLocalize();
     const policyTag = useMemo(() => PolicyUtils.getTagList(policyTags, 0), [policyTags]);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`);
-
-    const {windowWidth} = useWindowDimensions();
 
     const [isDeleteTagModalOpen, setIsDeleteTagModalOpen] = React.useState(false);
 
@@ -66,14 +64,6 @@ function TagSettingsPage({route, policyTags}: TagSettingsPageProps) {
     };
 
     const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
-    const threeDotsMenuItems = [];
-    if (!isThereAnyAccountingConnection) {
-        threeDotsMenuItems.push({
-            icon: Trashcan,
-            text: translate('workspace.tags.deleteTag'),
-            onSelected: () => setIsDeleteTagModalOpen(true),
-        });
-    }
 
     return (
         <AccessOrNotFoundWrapper
@@ -88,10 +78,7 @@ function TagSettingsPage({route, policyTags}: TagSettingsPageProps) {
             >
                 <HeaderWithBackButton
                     title={PolicyUtils.getCleanedTagName(route.params.tagName)}
-                    shouldShowThreeDotsButton={threeDotsMenuItems.length > 0}
                     shouldSetModalVisibility={false}
-                    threeDotsAnchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
-                    threeDotsMenuItems={threeDotsMenuItems}
                 />
                 <ConfirmModal
                     title={translate('workspace.tags.deleteTag')}
@@ -130,6 +117,11 @@ function TagSettingsPage({route, policyTags}: TagSettingsPageProps) {
                             shouldShowRightIcon
                         />
                     </OfflineWithFeedback>
+                    {!isThereAnyAccountingConnection && <MenuItem
+                        icon={Expensicons.Trashcan}
+                        title={translate('common.delete')}
+                        onPress={() => setIsDeleteTagModalOpen(true)}
+                    />}
                 </View>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

@@ -13,7 +13,6 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import {setWorkspaceCategoryEnabled} from '@libs/actions/Policy';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -26,6 +25,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import MenuItem from '@components/MenuItem';
 
 type CategorySettingsPageOnyxProps = {
     /** Collection of categories attached to a policy */
@@ -37,7 +37,6 @@ type CategorySettingsPageProps = CategorySettingsPageOnyxProps & StackScreenProp
 function CategorySettingsPage({route, policyCategories}: CategorySettingsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {windowWidth} = useWindowDimensions();
     const [deleteCategoryConfirmModalVisible, setDeleteCategoryConfirmModalVisible] = useState(false);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`);
 
@@ -62,14 +61,6 @@ function CategorySettingsPage({route, policyCategories}: CategorySettingsPagePro
     };
 
     const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
-    const threeDotsMenuItems = [];
-    if (!isThereAnyAccountingConnection) {
-        threeDotsMenuItems.push({
-            icon: Expensicons.Trashcan,
-            text: translate('workspace.categories.deleteCategory'),
-            onSelected: () => setDeleteCategoryConfirmModalVisible(true),
-        });
-    }
 
     return (
         <AccessOrNotFoundWrapper
@@ -83,10 +74,7 @@ function CategorySettingsPage({route, policyCategories}: CategorySettingsPagePro
                 testID={CategorySettingsPage.displayName}
             >
                 <HeaderWithBackButton
-                    shouldShowThreeDotsButton={threeDotsMenuItems.length > 0}
                     title={route.params.categoryName}
-                    threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
-                    threeDotsMenuItems={threeDotsMenuItems}
                 />
                 <ConfirmModal
                     isVisible={deleteCategoryConfirmModalVisible}
@@ -124,6 +112,11 @@ function CategorySettingsPage({route, policyCategories}: CategorySettingsPagePro
                             shouldShowRightIcon
                         />
                     </OfflineWithFeedback>
+                    {!isThereAnyAccountingConnection && <MenuItem
+                        icon={Expensicons.Trashcan}
+                        title={translate('common.delete')}
+                        onPress={() => setDeleteCategoryConfirmModalVisible(true)}
+                    />}
                 </View>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

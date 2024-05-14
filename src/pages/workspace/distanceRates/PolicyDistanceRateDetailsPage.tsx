@@ -13,7 +13,6 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -26,6 +25,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Rate} from '@src/types/onyx/Policy';
+import MenuItem from '@components/MenuItem';
 
 type PolicyDistanceRateDetailsPageOnyxProps = {
     /** Policy details */
@@ -37,7 +37,6 @@ type PolicyDistanceRateDetailsPageProps = PolicyDistanceRateDetailsPageOnyxProps
 function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetailsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {windowWidth} = useWindowDimensions();
     const [isWarningModalVisible, setIsWarningModalVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
 
@@ -72,20 +71,6 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
     const rateValueToDisplay = CurrencyUtils.convertAmountToDisplayString(rate.rate, currency);
     const unitToDisplay = translate(`common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`);
 
-    const threeDotsMenuItems = [
-        {
-            icon: Expensicons.Trashcan,
-            text: translate('workspace.distanceRates.deleteDistanceRate'),
-            onSelected: () => {
-                if (canDeleteRate) {
-                    setIsDeleteModalVisible(true);
-                    return;
-                }
-                setIsWarningModalVisible(true);
-            },
-        },
-    ];
-
     const clearErrorFields = (fieldName: keyof Rate) => {
         Policy.clearPolicyDistanceRateErrorFields(policyID, customUnit.customUnitID, rateID, {...errorFields, [fieldName]: null});
     };
@@ -104,9 +89,6 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
             >
                 <HeaderWithBackButton
                     title={`${rateValueToDisplay} / ${translate(`common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`)}`}
-                    shouldShowThreeDotsButton
-                    threeDotsMenuItems={threeDotsMenuItems}
-                    threeDotsAnchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
                 />
                 <View style={styles.flexGrow1}>
                     <OfflineWithFeedback
@@ -138,6 +120,17 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
                             onPress={editRateValue}
                         />
                     </OfflineWithFeedback>
+                    <MenuItem
+                        icon={Expensicons.Trashcan}
+                        title={translate('common.delete')}
+                        onPress={() => {
+                            if (canDeleteRate) {
+                                setIsDeleteModalVisible(true);
+                                return;
+                            }
+                            setIsWarningModalVisible(true);
+                        }}
+                    />
                     <ConfirmModal
                         onConfirm={() => setIsWarningModalVisible(false)}
                         isVisible={isWarningModalVisible}
