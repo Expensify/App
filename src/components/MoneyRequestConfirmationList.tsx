@@ -41,6 +41,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {SplitShares} from '@src/types/onyx/Transaction';
+import { isEmptyObject } from '@src/types/utils/EmptyObject';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {DropdownOption} from './ButtonWithDropdownMenu/types';
 import ConfirmedRoute from './ConfirmedRoute';
@@ -300,6 +301,17 @@ function MoneyRequestConfirmationList({
     // A flag for showing tax rate
     // TODO: remove the !isTypeInvoice from this condition after BE supports tax for invoices: https://github.com/Expensify/App/issues/41281
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy) && !isTypeInvoice;
+
+    useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        if (isEmptyObject(policy) || !shouldShowTax || transaction?.taxCode || !taxRates) {
+            return;
+        }
+        const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction);
+        if (defaultTaxCode) {
+            IOU.setMoneyRequestTaxRate(transactionID, defaultTaxCode);
+        }
+    }, [policy, shouldShowTax, taxRates, transaction, transaction?.taxCode, transactionID]);
 
     // A flag for showing the billable field
     const shouldShowBillable = policy?.disabledFields?.defaultBillable === false;
