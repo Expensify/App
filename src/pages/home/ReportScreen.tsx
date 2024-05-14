@@ -81,6 +81,8 @@ type ReportScreenOnyxPropsWithoutParentReportAction = {
     /** The report currently being looked at */
     report: OnyxEntry<OnyxTypes.Report>;
 
+    reportNameValuePairs: OnyxEntry<OnyxTypes.ReportNameValuePairs>;
+
     /** The report metadata loading states */
     reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>;
 };
@@ -133,6 +135,7 @@ function ReportScreen({
     betas = [],
     route,
     report: reportProp,
+    reportNameValuePairs,
     sortedAllReportActions,
     reportMetadata = {
         isLoadingInitialReportActions: true,
@@ -725,6 +728,7 @@ function ReportScreen({
                                         onComposerFocus={() => setIsComposerFocus(true)}
                                         onComposerBlur={() => setIsComposerFocus(false)}
                                         report={report}
+                                        reportNameValuePairs={reportNameValuePairs}
                                         pendingAction={reportPendingAction}
                                         isComposerFullSize={!!isComposerFullSize}
                                         listHeight={listHeight}
@@ -759,6 +763,10 @@ export default withCurrentReportID(
             },
             report: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
+                allowStaleData: true,
+            },
+            reportNameValuePairs: {
+                key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getReportID(route)}`,
                 allowStaleData: true,
             },
             reportMetadata: {

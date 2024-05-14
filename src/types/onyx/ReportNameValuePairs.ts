@@ -1,7 +1,7 @@
-type ReportNameValuePair = {
-    isArchived: boolean;
-}
+import type * as OnyxCommon from './OnyxCommon';
 
-type ReportNameValuePairs = Record<string, ReportNameValuePair>;
+type ReportNameValuePairs = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    isArchived: boolean;
+}>
 
 export default ReportNameValuePairs;
