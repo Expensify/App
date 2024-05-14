@@ -219,7 +219,7 @@ function BaseVideoPlayer({
             pauseVideo();
         }
         currentVideoPlayerRef.current = videoPlayerRef.current;
-    }, [url, currentVideoPlayerRef, isUploading]);
+    }, [url, currentVideoPlayerRef, isUploading, pauseVideo]);
 
     const isCurrentlyURLSetRef = useRef<boolean>();
     isCurrentlyURLSetRef.current = isCurrentlyURLSet;
@@ -232,7 +232,7 @@ function BaseVideoPlayer({
 
             setCurrentlyPlayingURL(null);
         },
-        [setCurrentlyPlayingURL],
+        [setCurrentlyPlayingURL, shouldUseSharedVideoElement],
     );
     // update shared video elements
     useEffect(() => {
