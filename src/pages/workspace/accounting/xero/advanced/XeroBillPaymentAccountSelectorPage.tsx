@@ -13,14 +13,14 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-function XeroInvoiceAccountSelectorPage({policy}: WithPolicyConnectionsProps) {
+function XeroBillPaymentAccountSelectorPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const policyID = policy?.id ?? '';
     const {bankAccounts} = policy?.connections?.xero?.data ?? {};
 
-    const {invoiceCollectionsAccountID, syncReimbursedReports} = policy?.connections?.xero?.config.sync ?? {};
+    const {reimbursementAccountID, syncReimbursedReports} = policy?.connections?.xero?.config.sync ?? {};
 
     const xeroSelectorOptions = useMemo<SelectorType[]>(
         () =>
@@ -28,15 +28,15 @@ function XeroInvoiceAccountSelectorPage({policy}: WithPolicyConnectionsProps) {
                 value: id,
                 text: name,
                 keyForList: id,
-                isSelected: invoiceCollectionsAccountID === id,
+                isSelected: reimbursementAccountID === id,
             })),
-        [invoiceCollectionsAccountID, bankAccounts],
+        [reimbursementAccountID, bankAccounts],
     );
 
     const listHeaderComponent = useMemo(
         () => (
             <View style={[styles.pb2, styles.ph5]}>
-                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.xero.advancedConfig.invoiceAccountSelectorDescription')}</Text>
+                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.xero.advancedConfig.xeroBillPaymentAccountDescription')}</Text>
             </View>
         ),
         [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal],
@@ -47,7 +47,7 @@ function XeroInvoiceAccountSelectorPage({policy}: WithPolicyConnectionsProps) {
     const updateAccount = useCallback(
         ({value}: SelectorType) => {
             Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.SYNC, {
-                invoiceCollectionsAccountID: value,
+                reimbursementAccountID: value,
             });
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID));
         },
@@ -59,7 +59,7 @@ function XeroInvoiceAccountSelectorPage({policy}: WithPolicyConnectionsProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={XeroInvoiceAccountSelectorPage.displayName}
+            displayName={XeroBillPaymentAccountSelectorPage.displayName}
             sections={[{data: xeroSelectorOptions}]}
             listItem={RadioListItem}
             shouldBeBlocked={!syncReimbursedReports}
@@ -67,11 +67,11 @@ function XeroInvoiceAccountSelectorPage({policy}: WithPolicyConnectionsProps) {
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
             headerContent={listHeaderComponent}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID))}
-            title="workspace.xero.advancedConfig.xeroInvoiceCollectionAccount"
+            title="workspace.xero.advancedConfig.xeroBillPaymentAccount"
         />
     );
 }
 
-XeroInvoiceAccountSelectorPage.displayName = 'XeroInvoiceAccountSelectorPage';
+XeroBillPaymentAccountSelectorPage.displayName = 'XeroBillPaymentAccountSelectorPage';
 
-export default withPolicyConnections(XeroInvoiceAccountSelectorPage);
+export default withPolicyConnections(XeroBillPaymentAccountSelectorPage);
