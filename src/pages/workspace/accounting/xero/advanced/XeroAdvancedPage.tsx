@@ -26,8 +26,8 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const {invoiceCollectionsAccountID, reimbursementAccountID} = sync ?? {};
 
     const getSelectedAccountName = useMemo(
-        () => (accountId: string) => {
-            const selectedAccount = (bankAccounts ?? []).find((bank) => bank.id === accountId);
+        () => (accountID: string) => {
+            const selectedAccount = (bankAccounts ?? []).find((bank) => bank.id === accountID);
             return selectedAccount?.name ?? '';
         },
         [bankAccounts],
