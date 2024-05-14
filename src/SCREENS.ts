@@ -90,7 +90,10 @@ const SCREENS = {
             TRANSFER_BALANCE: 'Settings_Wallet_Transfer_Balance',
             CHOOSE_TRANSFER_ACCOUNT: 'Settings_Wallet_Choose_Transfer_Account',
             ENABLE_PAYMENTS: 'Settings_Wallet_EnablePayments',
+            // TODO: Added temporarily for testing purposes, remove after refactor - https://github.com/Expensify/App/issues/36648
             ENABLE_PAYMENTS_REFACTOR: 'Settings_Wallet_EnablePayments_Refactor',
+            // TODO: Added temporarily for testing purposes, remove after refactor - https://github.com/Expensify/App/issues/36648
+            ENABLE_PAYMENTS_TEMPORARY_TERMS: 'Settings_Wallet_EnablePayments_Temporary_Terms',
             CARD_ACTIVATE: 'Settings_Wallet_Card_Activate',
             REPORT_VIRTUAL_CARD_FRAUD: 'Settings_Wallet_ReportVirtualCardFraud',
             CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS: 'Settings_Wallet_Cards_Digital_Details_Update_Address',
@@ -244,6 +247,9 @@ const SCREENS = {
             XERO_ORGANIZATION: 'Policy_Accounting_Xero_Customers',
             XERO_CUSTOMER: 'Policy_Acounting_Xero_Import_Customer',
             XERO_TAXES: 'Policy_Accounting_Xero_Taxes',
+            XERO_TRACKING_CATEGORIES: 'Policy_Accounting_Xero_Tracking_Categories',
+            XERO_MAP_COST_CENTERS: 'Policy_Accounting_Xero_Map_Cost_Centers',
+            XERO_MAP_REGION: 'Policy_Accounting_Xero_Map_Region',
             XERO_EXPORT: 'Policy_Accounting_Xero_Export',
             XERO_ADVANCED: 'Policy_Accounting_Xero_Advanced',
             XERO_INVOICE_ACCOUNT_SELECTOR: 'Policy_Accounting_Xero_Invoice_Account_Selector',
@@ -277,6 +283,7 @@ const SCREENS = {
         TAX_CREATE: 'Workspace_Tax_Create',
         TAG_CREATE: 'Tag_Create',
         TAG_SETTINGS: 'Tag_Settings',
+        TAG_LIST_VIEW: 'Tag_List_View',
         CURRENCY: 'Workspace_Profile_Currency',
         ADDRESS: 'Workspace_Profile_Address',
         WORKFLOWS: 'Workspace_Workflows',

@@ -52,6 +52,7 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
                         wrapperStyle={[styles.mt2, styles.mh4]}
                         errors={policy?.errorFields?.requiresCategory ?? undefined}
                         onCloseError={() => Policy.clearPolicyErrorField(policy?.id ?? '', 'requiresCategory')}
+                        shouldPlaceSubtitleBelowSwitch
                     />
                 </View>
             </ScreenWrapper>
