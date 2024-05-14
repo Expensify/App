@@ -1,6 +1,7 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as HeaderUtils from '@libs/HeaderUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -70,6 +71,7 @@ type PromotedActionsBarProps = {
 };
 
 function PromotedActionsBar({report, promotedActions, shouldShowLeaveButton}: PromotedActionsBarProps) {
+    const theme = useTheme();
     const styles = useThemeStyles();
     const [isLastMemberLeavingGroupModalVisible, setIsLastMemberLeavingGroupModalVisible] = useState(false);
     const {translate} = useLocalize();
@@ -81,6 +83,7 @@ function PromotedActionsBar({report, promotedActions, shouldShowLeaveButton}: Pr
                     <Button
                         key={key}
                         onPress={onSelected}
+                        iconFill={theme.icon}
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}
                     />
