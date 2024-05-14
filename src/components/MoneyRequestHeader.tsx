@@ -144,7 +144,7 @@ function MoneyRequestHeader({
         if (!isOnHold && (isRequestIOU || canModifyStatus) && !isScanning) {
             threeDotsMenuItems.push({
                 icon: Expensicons.Stopwatch,
-                text: translate('iou.holdExpense'),
+                text: translate('iou.hold'),
                 onSelected: () => changeMoneyRequestStatus(),
             });
         }
