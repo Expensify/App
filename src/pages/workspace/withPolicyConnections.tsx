@@ -29,7 +29,7 @@ function withPolicyConnections<TProps extends WithPolicyConnectionsProps>(Wrappe
         const [hasConnectionsDataBeenFetched, {status}] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${props.policy?.id ?? '0'}`, {
             initWithStoredValues: false,
         });
-        const isConnectionDataFetchNeeded = !isOffline && props.policy && props.policy.areConnectionsEnabled && hasConnectionsDataBeenFetched && props.policy.connections;
+        const isConnectionDataFetchNeeded = !isOffline && props.policy && props.policy.areConnectionsEnabled && !props.policy.connections && hasConnectionsDataBeenFetched === null;
 
         useEffect(() => {
             // When the accounting feature is not enabled, or if the connections data already exists,
