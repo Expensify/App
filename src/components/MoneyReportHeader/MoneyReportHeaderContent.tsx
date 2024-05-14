@@ -4,12 +4,14 @@ import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MoneyReportHeaderStatusBar from '@components/MoneyReportHeaderStatusBar';
 import MoneyRequestHeaderStatusBar from '@components/MoneyRequestHeaderStatusBar';
 import ProcessMoneyReportHoldMenu from '@components/ProcessMoneyReportHoldMenu';
 import SettlementButton from '@components/SettlementButton';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
@@ -17,6 +19,7 @@ import * as HeaderUtils from '@libs/HeaderUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import variables from '@styles/variables';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -38,6 +41,7 @@ function MoneyReportHeaderContent({
     requestTransaction,
 }: MoneyReportHeaderContentProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const [isDeleteRequestModalVisible, setIsDeleteRequestModalVisible] = useState(false);
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
@@ -242,8 +246,15 @@ function MoneyReportHeaderContent({
                 )}
                 {isOneTransactionRequestScanning && (
                     <MoneyRequestHeaderStatusBar
-                        title={translate('iou.receiptStatusTitle')}
-                        description={translate('iou.receiptStatusText')}
+                        title={
+                            <Icon
+                                src={Expensicons.ReceiptScan}
+                                height={variables.iconSizeSmall}
+                                width={variables.iconSizeSmall}
+                                fill={theme.icon}
+                            />
+                        }
+                        description={translate('iou.receiptScanInProgressDescription')}
                         shouldShowBorderBottom={false}
                     />
                 )}
