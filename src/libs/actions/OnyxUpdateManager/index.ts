@@ -1,6 +1,5 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import GetMissingOnyxUpdatesPromiseProxy from '@libs/actions/OnyxUpdateManager/utils/GetMissingOnyxUpdatesPromise';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
@@ -10,6 +9,7 @@ import type {OnyxUpdatesFromServer} from '@src/types/onyx';
 import {isValidOnyxUpdateFromServer} from '@src/types/onyx/OnyxUpdatesFromServer';
 import * as OnyxUpdateManagerUtils from './utils';
 import DeferredUpdates from './utils/DeferredUpdates';
+import GetMissingOnyxUpdatesPromiseProxy from './utils/GetMissingOnyxUpdatesPromise';
 
 // This file is in charge of looking at the updateIDs coming from the server and comparing them to the last updateID that the client has.
 // If the client is behind the server, then we need to

@@ -4,6 +4,7 @@ import * as App from '@userActions/App';
 import type {DeferredUpdatesDictionary, DetectGapAndSplitResult} from '@userActions/OnyxUpdateManager/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {applyUpdates} from './applyUpdates';
+// eslint-disable-next-line import/no-cycle
 import DeferredUpdates from './DeferredUpdates';
 
 let lastUpdateIDAppliedToClient = 0;
@@ -12,9 +13,13 @@ Onyx.connect({
     callback: (value) => (lastUpdateIDAppliedToClient = value ?? 0),
 });
 
-// In order for the deferred updates to be applied correctly in order,
-// we need to check if there are any gaps between deferred updates.
-
+/**
+ * In order for the deferred updates to be applied correctly in order,
+ * we need to check if there are any gaps between deferred updates.
+ * @param updates The deferred updates to be checked for gaps
+ * @param clientLastUpdateID An optional lastUpdateID passed to use instead of the lastUpdateIDAppliedToClient
+ * @returns
+ */
 function detectGapsAndSplit(updates: DeferredUpdatesDictionary, clientLastUpdateID?: number): DetectGapAndSplitResult {
     const lastUpdateIDFromClient = clientLastUpdateID ?? lastUpdateIDAppliedToClient ?? 0;
 
@@ -75,8 +80,10 @@ function detectGapsAndSplit(updates: DeferredUpdatesDictionary, clientLastUpdate
     return {applicableUpdates, updatesAfterGaps, latestMissingUpdateID};
 }
 
-// This function will check for gaps in the deferred updates and
-// apply the updates in order after the missing updates are fetched and applied
+/**
+ * This function will check for gaps in the deferred updates and
+ * apply the updates in order after the missing updates are fetched and applied
+ */
 function validateAndApplyDeferredUpdates(clientLastUpdateID?: number, previousParams?: {newLastUpdateIDFromClient: number; latestMissingUpdateID: number}): Promise<void> {
     const lastUpdateIDFromClient = clientLastUpdateID ?? lastUpdateIDAppliedToClient ?? 0;
 

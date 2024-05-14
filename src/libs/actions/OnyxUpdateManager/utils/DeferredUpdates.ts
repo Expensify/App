@@ -1,11 +1,12 @@
 import Onyx from 'react-native-onyx';
 import type {DeferredUpdatesDictionary} from '@libs/actions/OnyxUpdateManager/types';
-import GetMissingOnyxUpdatesPromiseProxy from '@libs/actions/OnyxUpdateManager/utils/GetMissingOnyxUpdatesPromise';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {OnyxUpdatesFromServer} from '@src/types/onyx';
+import type {OnyxUpdatesFromServer} from '@src/types/onyx';
 import createProxyForObject from '@src/utils/createProxyForObject';
+// eslint-disable-next-line import/no-cycle
 import * as OnyxUpdateManagerUtils from '.';
+import GetMissingOnyxUpdatesPromiseProxy from './GetMissingOnyxUpdatesPromise';
 
 let deferredUpdates: DeferredUpdatesDictionary = {};
 
@@ -14,7 +15,7 @@ let deferredUpdates: DeferredUpdatesDictionary = {};
  */
 function processDeferredUpdates() {
     if (GetMissingOnyxUpdatesPromiseProxy.GetMissingOnyxUpdatesPromise) {
-        GetMissingOnyxUpdatesPromiseProxy.GetMissingOnyxUpdatesPromise.finally(OnyxUpdateManagerUtils.validateAndApplyDeferredUpdates);
+        GetMissingOnyxUpdatesPromiseProxy.GetMissingOnyxUpdatesPromise.finally(() => OnyxUpdateManagerUtils.validateAndApplyDeferredUpdates);
     }
 
     GetMissingOnyxUpdatesPromiseProxy.GetMissingOnyxUpdatesPromise = OnyxUpdateManagerUtils.validateAndApplyDeferredUpdates();
@@ -32,12 +33,16 @@ function enqueueDeferredUpdates(updates: OnyxUpdatesFromServer[], shouldProcessU
 
     updates.forEach((update) => {
         const lastUpdateID = Number(update.lastUpdateID);
-        if (deferredUpdates[lastUpdateID]) return;
+        if (deferredUpdates[lastUpdateID]) {
+            return;
+        }
 
         deferredUpdates[lastUpdateID] = update;
     });
 
-    if (!shouldProcessUpdates) return;
+    if (!shouldProcessUpdates) {
+        return;
+    }
 
     processDeferredUpdates();
 }
@@ -50,7 +55,9 @@ function clearDeferredUpdates(shouldUnpauseSequentialQueue = true) {
     GetMissingOnyxUpdatesPromiseProxy.GetMissingOnyxUpdatesPromise = undefined;
     deferredUpdates = {};
 
-    if (!shouldUnpauseSequentialQueue) return;
+    if (!shouldUnpauseSequentialQueue) {
+        return;
+    }
 
     Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, null);
     SequentialQueue.unpause();
