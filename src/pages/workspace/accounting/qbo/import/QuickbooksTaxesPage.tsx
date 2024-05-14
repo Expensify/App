@@ -46,7 +46,7 @@ function QuickbooksTaxesPage({policy}: WithPolicyProps) {
                                     accessibilityLabel={translate('workspace.accounting.taxes')}
                                     isOn={!!syncTax}
                                     onToggle={() => Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.SYNC_TAX, !syncTax)}
-                                    disabled={isJournalExportEntity}
+                                    disabled={!syncTax && isJournalExportEntity}
                                 />
                             </View>
                         </OfflineWithFeedback>
