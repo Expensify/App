@@ -1,7 +1,7 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {RemovePolicyConnectionParams, SyncPolicyToIntegratedConnectionParams, UpdatePolicyConnectionConfigParams} from '@libs/API/parameters';
+import type {RemovePolicyConnectionParams, SyncPolicyToQuickbooksOnlineParams, SyncPolicyToXeroParams, UpdatePolicyConnectionConfigParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
@@ -139,10 +139,17 @@ function syncConnection(policyID: string, connectionName: PolicyConnectionName |
             value: null,
         },
     ];
-    const parameters: SyncPolicyToIntegratedConnectionParams = {
-        policyID,
-        idempotencyKey: policyID,
-    };
+
+    const parameters: SyncPolicyToQuickbooksOnlineParams | SyncPolicyToXeroParams =
+        connectionName === CONST.POLICY.CONNECTIONS.NAME.QBO
+            ? ({
+                  policyID,
+                  idempotencyKey: policyID,
+              } as SyncPolicyToQuickbooksOnlineParams)
+            : ({
+                  policyID,
+                  idempotencyKey: policyID,
+              } as SyncPolicyToXeroParams);
 
     API.read(connectionName === CONST.POLICY.CONNECTIONS.NAME.QBO ? READ_COMMANDS.SYNC_POLICY_TO_QUICKBOOKS_ONLINE : READ_COMMANDS.SYNC_POLICY_TO_XERO, parameters, {
         optimisticData,
