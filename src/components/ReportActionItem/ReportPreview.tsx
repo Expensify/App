@@ -225,7 +225,7 @@ function ReportPreview({
     const shouldShowSubtitle = !isScanning && (shouldShowSingleRequestMerchantOrDescription || numberOfRequests > 1);
 
     const {supportText} = useMemo(() => {
-        if (formattedMerchant && formattedMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT) {
+        if (formattedMerchant && formattedMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT && formattedMerchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT) {
             return {supportText: formattedMerchant};
         }
         if (formattedDescription ?? moneyRequestComment) {
