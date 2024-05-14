@@ -325,6 +325,7 @@ function MoneyRequestConfirmationList({
     const [didConfirmSplit, setDidConfirmSplit] = useState(false);
 
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
+    const [invalidAttachmentPromt, setInvalidAttachmentPromt] = useState(translate('attachmentPicker.protectedPDFNotSupported'));
 
     const navigateBack = useCallback(
         () => Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID)),
@@ -1096,7 +1097,14 @@ function MoneyRequestConfirmationList({
                         previewSourceURL={resolvedReceiptImage as string}
                         // We don't support scanning password protected PDF receipt
                         enabled={!isAttachmentInvalid}
-                        onPassword={() => setIsAttachmentInvalid(true)}
+                        onPassword={() => {
+                            setIsAttachmentInvalid(true);
+                            setInvalidAttachmentPromt(translate('attachmentPicker.protectedPDFNotSupported'));
+                        }}
+                        onLoadError={() => {
+                            setInvalidAttachmentPromt(translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
+                            setIsAttachmentInvalid(true);
+                        }}
                     />
                 ) : (
                     <ReceiptImage
@@ -1125,6 +1133,7 @@ function MoneyRequestConfirmationList({
             receiptThumbnail,
             fileExtension,
             isDistanceRequest,
+            translate,
         ],
     );
 
@@ -1181,11 +1190,11 @@ function MoneyRequestConfirmationList({
                 )}
                 <View style={[styles.mb5]}>{shouldShowAllFields && supplementaryFields}</View>
                 <ConfirmModal
-                    title={translate('attachmentPicker.wrongFileType')}
+                    title={translate('attachmentPicker.attachmentError')}
                     onConfirm={navigateBack}
                     onCancel={navigateBack}
                     isVisible={isAttachmentInvalid}
-                    prompt={translate('attachmentPicker.protectedPDFNotSupported')}
+                    prompt={invalidAttachmentPromt}
                     confirmText={translate('common.close')}
                     shouldShowCancelButton={false}
                 />
@@ -1220,6 +1229,7 @@ function MoneyRequestConfirmationList({
             transaction,
             transactionID,
             translate,
+            invalidAttachmentPromt,
         ],
     );
 
