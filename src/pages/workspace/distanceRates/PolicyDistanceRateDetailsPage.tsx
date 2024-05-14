@@ -54,6 +54,9 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
     const editRateValue = () => {
         Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATE_EDIT.getRoute(policyID, rateID));
     };
+    const editTaxReclaimableOnValue = () => {
+        Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT.getRoute(policyID, rateID));
+    };
 
     const toggleRate = () => {
         if (!rate.enabled || canDisableRate) {
@@ -136,6 +139,20 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
                             description={translate('workspace.distanceRates.rate')}
                             descriptionTextStyle={styles.textNormal}
                             onPress={editRateValue}
+                        />
+                    </OfflineWithFeedback>
+                    <OfflineWithFeedback
+                        errors={ErrorUtils.getLatestErrorField(rate, 'rate')}
+                        pendingAction={rate?.pendingFields?.rate ?? rate?.pendingFields?.currency}
+                        errorRowStyles={styles.mh5}
+                        onClose={() => clearErrorFields('rate')}
+                    >
+                        <MenuItemWithTopDescription
+                            shouldShowRightIcon
+                            title={`${rateValueToDisplay}`}
+                            description='Tax reclaimable on'
+                            descriptionTextStyle={styles.textNormal}
+                            onPress={editTaxReclaimableOnValue}
                         />
                     </OfflineWithFeedback>
                     <ConfirmModal
