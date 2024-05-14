@@ -4768,6 +4768,8 @@ const CONST = {
     },
 
     SEARCH_RESULTS_PAGE_SIZE: 50,
+    SEARCH_BOTTOM_TAB_URL: '/Search_Bottom_Tab',
+
     SEARCH_DATA_TYPES: {
         TRANSACTION: 'transaction',
     },

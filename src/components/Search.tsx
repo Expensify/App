@@ -20,14 +20,15 @@ import TableListItemSkeleton from './Skeletons/TableListItemSkeleton';
 
 type SearchProps = {
     query: string;
+    policyIDs?: string;
 };
 
-function Search({query}: SearchProps) {
+function Search({query, policyIDs}: SearchProps) {
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     useCustomBackHandler();
 
-    const hash = SearchUtils.getQueryHash(query);
+    const hash = SearchUtils.getQueryHash(query, policyIDs);
     const [searchResults, searchResultsMeta] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
 
     useEffect(() => {
@@ -35,8 +36,9 @@ function Search({query}: SearchProps) {
             return;
         }
 
-        SearchActions.search(query);
-    }, [query, isOffline]);
+        SearchActions.search(hash, query, policyIDs);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [hash, isOffline]);
 
     const isLoadingInitialItems = (!isOffline && isLoadingOnyxValue(searchResultsMeta)) || searchResults?.data === undefined;
     const isLoadingMoreItems = !isLoadingInitialItems && searchResults?.search?.isLoading;
@@ -87,6 +89,7 @@ function Search({query}: SearchProps) {
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
             listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
             containerStyle={[styles.pv0]}
+            showScrollIndicator={false}
             onEndReachedThreshold={0.75}
             onEndReached={fetchMoreResults}
             listFooterContent={

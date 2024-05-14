@@ -2,12 +2,9 @@ import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
 import {READ_COMMANDS} from '@libs/API/types';
-import * as SearchUtils from '@libs/SearchUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-function search(query: string, offset = 0) {
-    const hash = SearchUtils.getQueryHash(query);
-
+function search(hash: number, query: string, offset = 0, policyIDs?: string, ) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -32,7 +29,7 @@ function search(query: string, offset = 0) {
         },
     ];
 
-    API.read(READ_COMMANDS.SEARCH, {query, hash, offset}, {optimisticData, finallyData});
+    API.read(READ_COMMANDS.SEARCH, {hash, query, offset, policyIDs}, {optimisticData, finallyData});
 }
 
 export {
