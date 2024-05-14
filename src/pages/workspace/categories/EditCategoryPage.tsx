@@ -58,7 +58,7 @@ function EditCategoryPage({route, policyCategories}: EditCategoryPageProps) {
                 Navigation.goBack(ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName, backTo));
                 return;
             }
-            Navigation.dismissModal();
+            Navigation.goBack();
         },
         [backTo, currentCategoryName, route.params.categoryName, route.params.policyID],
     );

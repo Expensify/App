@@ -37,7 +37,7 @@ function CreateCategoryPage({route, policyCategories}: CreateCategoryPageProps) 
                 Navigation.goBack(ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(route.params.policyID, backTo));
                 return;
             }
-            Navigation.dismissModal();
+            Navigation.goBack();
         },
         [backTo, route.params.policyID],
     );
