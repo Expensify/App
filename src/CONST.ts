@@ -148,6 +148,14 @@ const CONST = {
         RESERVED_NAMES: ['Expensify', 'Concierge'],
     },
 
+    GPS: {
+        // It's OK to get a cached location that is up to an hour old because the only accuracy needed is the country the user is in
+        MAX_AGE: 3600000,
+
+        // 15 seconds, don't wait too long because the server can always fall back to using the IP address
+        TIMEOUT: 15000,
+    },
+
     LEGAL_NAME: {
         MAX_LENGTH: 40,
     },
@@ -354,7 +362,6 @@ const CONST = {
         DEFAULT_ROOMS: 'defaultRooms',
         VIOLATIONS: 'violations',
         REPORT_FIELDS: 'reportFields',
-        TRACK_EXPENSE: 'trackExpense',
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
         WORKFLOWS_DELAYED_SUBMISSION: 'workflowsDelayedSubmission',
         SPOTNANA_TRAVEL: 'spotnanaTravel',
@@ -644,6 +651,7 @@ const CONST = {
             TYPE: {
                 ACTIONABLE_JOIN_REQUEST: 'ACTIONABLEJOINREQUEST',
                 ACTIONABLE_MENTION_WHISPER: 'ACTIONABLEMENTIONWHISPER',
+                ACTIONABLE_REPORT_MENTION_WHISPER: 'ACTIONABLEREPORTMENTIONWHISPER',
                 ACTIONABLE_TRACK_EXPENSE_WHISPER: 'ACTIONABLETRACKEXPENSEWHISPER',
                 ADD_COMMENT: 'ADDCOMMENT',
                 APPROVED: 'APPROVED',
@@ -781,6 +789,10 @@ const CONST = {
             NOTHING: 'nothing',
         },
         ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION: {
+            NOTHING: 'nothing',
+        },
+        ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION: {
+            CREATE: 'created',
             NOTHING: 'nothing',
         },
         ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION: {
@@ -924,9 +936,12 @@ const CONST = {
         MERCHANT: 'merchant',
         FROM: 'from',
         TO: 'to',
+        CATEGORY: 'category',
+        TAG: 'tag',
         TOTAL: 'total',
         TYPE: 'type',
         ACTION: 'action',
+        TAX_AMOUNT: 'taxAmount',
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -1136,6 +1151,11 @@ const CONST = {
         URL: 'url',
     },
 
+    INPUT_AUTOGROW_DIRECTION: {
+        LEFT: 'left',
+        RIGHT: 'right',
+    },
+
     YOUR_LOCATION_TEXT: 'Your Location',
 
     ATTACHMENT_MESSAGE_TEXT: '[Attachment]',
@@ -1281,14 +1301,38 @@ const CONST = {
     XERO_CONFIG: {
         AUTO_SYNC: 'autoSync',
         SYNC: 'sync',
+        ENABLE_NEW_CATEGORIES: 'enableNewCategories',
+        EXPORT: 'export',
         IMPORT_CUSTOMERS: 'importCustomers',
         IMPORT_TAX_RATES: 'importTaxRates',
+        INVOICE_STATUS: {
+            AWAITING_PAYMENT: 'AWT_PAYMENT',
+            DRAFT: 'DRAFT',
+            AWAITING_APPROVAL: 'AWT_APPROVAL',
+        },
+        IMPORT_TRACKING_CATEGORIES: 'importTrackingCategories',
+        MAPPINGS: 'mappings',
+        TRACKING_CATEGORY_PREFIX: 'trackingCategory_',
+        TRACKING_CATEGORY_FIELDS: {
+            COST_CENTERS: 'cost centers',
+            REGION: 'region',
+        },
+        TRACKING_CATEGORY_OPTIONS: {
+            DEFAULT: 'DEFAULT',
+            TAG: 'TAG',
+        },
     },
 
     QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE: {
         VENDOR_BILL: 'bill',
         CHECK: 'check',
         JOURNAL_ENTRY: 'journal_entry',
+    },
+
+    XERO_EXPORT_DATE: {
+        LAST_EXPENSE: 'LAST_EXPENSE',
+        REPORT_EXPORTED: 'REPORT_EXPORTED',
+        REPORT_SUBMITTED: 'REPORT_SUBMITTED',
     },
 
     QUICKBOOKS_EXPORT_DATE: {
@@ -1756,6 +1800,8 @@ const CONST = {
                 XERO_SYNC_IMPORT_CUSTOMERS: 'xeroSyncImportCustomers',
                 XERO_SYNC_IMPORT_BANK_ACCOUNTS: 'xeroSyncImportBankAccounts',
                 XERO_SYNC_IMPORT_TAX_RATES: 'xeroSyncImportTaxRates',
+                XERO_CHECK_CONNECTION: 'xeroCheckConnection',
+                XERO_SYNC_TITLE: 'xeroSyncTitle',
             },
         },
         ACCESS_VARIANTS: {
@@ -1925,7 +1971,7 @@ const CONST = {
 
         POLICY_ID_FROM_PATH: /\/w\/([a-zA-Z0-9]+)(\/|$)/,
 
-        SHORT_MENTION: new RegExp(`@[\\w\\-\\+\\'#@]+(?:\\.[\\w\\-\\'\\+]+)*`, 'gim'),
+        SHORT_MENTION: new RegExp(`@[\\w\\-\\+\\'#@]+(?:\\.[\\w\\-\\'\\+]+)*(?![^\`]*\`)`, 'gim'),
     },
 
     PRONOUNS: {
@@ -2037,6 +2083,7 @@ const CONST = {
         INFO: 'info',
     },
     REPORT_DETAILS_MENU_ITEM: {
+        SHARE_CODE: 'shareCode',
         MEMBERS: 'member',
         INVITE: 'invite',
         SETTINGS: 'settings',
@@ -4124,7 +4171,7 @@ const CONST = {
             "unit": "km"
         },
         "CHF": {
-            "rate": 100,
+            "rate": 70,
             "unit": "km"
         },
         "CLP": {
@@ -4164,7 +4211,7 @@ const CONST = {
             "unit": "km"
         },
         "DKK": {
-            "rate": 673,
+            "rate": 379,
             "unit": "km"
         },
         "DOP": {
@@ -4192,7 +4239,7 @@ const CONST = {
             "unit": "km"
         },
         "EUR": {
-            "rate": 3,
+            "rate": 30,
             "unit": "km"
         },
         "FJD": {
@@ -4260,7 +4307,7 @@ const CONST = {
             "unit": "km"
         },
         "ILS": {
-            "rate": 356,
+            "rate": 540,
             "unit": "km"
         },
         "INR": {
@@ -4408,7 +4455,7 @@ const CONST = {
             "unit": "km"
         },
         "MXN": {
-            "rate": 2219,
+            "rate": 93,
             "unit": "km"
         },
         "MYR": {
@@ -4432,7 +4479,7 @@ const CONST = {
             "unit": "km"
         },
         "NOK": {
-            "rate": 917,
+            "rate": 350,
             "unit": "km"
         },
         "NPR": {
@@ -4440,7 +4487,7 @@ const CONST = {
             "unit": "km"
         },
         "NZD": {
-            "rate": 151,
+            "rate": 95,
             "unit": "km"
         },
         "OMR": {
@@ -4468,7 +4515,7 @@ const CONST = {
             "unit": "km"
         },
         "PLN": {
-            "rate": 415,
+            "rate": 89,
             "unit": "km"
         },
         "PYG": {
@@ -4512,7 +4559,7 @@ const CONST = {
             "unit": "km"
         },
         "SEK": {
-            "rate": 917,
+            "rate": 250,
             "unit": "km"
         },
         "SGD": {
@@ -4656,7 +4703,7 @@ const CONST = {
             "unit": "km"
         },
         "ZAR": {
-            "rate": 1588,
+            "rate": 464,
             "unit": "km"
         },
         "ZMK": {
@@ -4716,13 +4763,22 @@ const CONST = {
         CARD: 'card',
         DISTANCE: 'distance',
     },
+
+    SEARCH_DATA_TYPES: {
+        TRANSACTION: 'transaction',
+    },
+
+    REFERRER: {
+        NOTIFICATION: 'notification',
+    },
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
 
 type IOUType = ValueOf<typeof CONST.IOU.TYPE>;
 type IOUAction = ValueOf<typeof CONST.IOU.ACTION>;
+type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
-export type {Country, IOUAction, IOUType, RateAndUnit, OnboardingPurposeType};
+export type {Country, IOUAction, IOUType, RateAndUnit, OnboardingPurposeType, IOURequestType};
 
 export default CONST;
