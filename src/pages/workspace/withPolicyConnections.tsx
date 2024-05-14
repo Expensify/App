@@ -40,7 +40,7 @@ function withPolicyConnections<TProps extends WithPolicyConnectionsProps>(Wrappe
             openPolicyAccountingPage(props.policy.id);
         }, [props.policy?.id, isConnectionDataFetchNeeded]);
 
-        if (props.policy?.areConnectionsEnabled && isConnectionDataFetchNeeded && shouldBlockView) {
+        if (isConnectionDataFetchNeeded && shouldBlockView) {
             return <FullScreenLoadingIndicator />;
         }
 
