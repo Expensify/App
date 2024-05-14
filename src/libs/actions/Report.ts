@@ -2530,12 +2530,11 @@ function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
     const isChatThread = ReportUtils.isChatThread(currentReport);
     if (lastAccessedReportID) {
         const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID ?? '');
-        const isFirstRoute = navigationRef?.current?.getState().index === 1;
+        //We are using index 1 here because on index 0, we'll always have the bottomTabNavigator.
+        const isFirstRoute = navigationRef?.current?.getState()?.index === 1;
         // If it is not a chat thread we should call Navigation.goBack to pop the current route first before navigating to last accessed report.
-        if (!isChatThread) {
-            if (!isFirstRoute) {
-                Navigation.goBack();
-            }
+        if (!isChatThread && !isFirstRoute) {
+            Navigation.goBack();
         }
         Navigation.navigate(lastAccessedReportRoute, CONST.NAVIGATION.TYPE.FORCED_UP);
     } else {
