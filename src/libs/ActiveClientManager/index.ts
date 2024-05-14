@@ -45,6 +45,11 @@ Onyx.connect({
     },
 });
 
+const cleanUpClientId = () => {
+    activeClients = activeClients.filter((id) => id !== clientID);
+    ActiveClients.setActiveClients(activeClients);
+};
+
 /**
  * Add our client ID to the list of active IDs.
  * We want to ensure we have no duplicates and that the activeClient gets added at the end of the array (see isClientTheLeader)
@@ -53,6 +58,8 @@ const init: Init = () => {
     activeClients = activeClients.filter((id) => id !== clientID);
     activeClients.push(clientID);
     ActiveClients.setActiveClients(activeClients).then(resolveSavedSelfPromise);
+
+    window.addEventListener('beforeunload', cleanUpClientId);
 };
 
 /**

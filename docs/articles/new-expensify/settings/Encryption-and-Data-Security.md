@@ -1,5 +1,5 @@
 ---
-title: Security
+title: Encryption and Data Security
 description: Expensify prioritizes data security and maintains strict compliance standards to safeguard users' sensitive information.
 ---
 <!-- The lines above are required by Jekyll to process the .md file -->
