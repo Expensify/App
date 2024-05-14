@@ -5287,6 +5287,8 @@ export {
     getPrimaryPolicy,
     createDraftWorkspace,
     buildPolicyData,
+    navigateWhenEnableFeature,
+    removePendingFieldsFromCustomUnit,
 };
 
 export type {NewCustomUnit};
