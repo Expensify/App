@@ -260,7 +260,9 @@ export default {
         your: 'tu',
         conciergeHelp: 'Por favor, contacta con Concierge para obtener ayuda.',
         youAppearToBeOffline: 'Parece que estás desconectado.',
+        weMightHaveProblem: 'Peude que te tengamos un problema. Echa un vistazo a ',
         thisFeatureRequiresInternet: 'Esta función requiere una conexión a Internet activa para ser utilizada.',
+        attachementWillBeAvailableOnceBackOnline: 'El archivo adjunto estará disponible cuando vuelvas a estar en línea.',
         areYouSure: '¿Estás seguro?',
         verify: 'Verifique',
         yesContinue: 'Sí, continuar',
@@ -321,6 +323,7 @@ export default {
         type: 'Tipo',
         action: 'Acción',
         expenses: 'Gastos',
+        tax: 'Impuesto',
     },
     connectionComplete: {
         title: 'Conexión Completa',
@@ -1514,7 +1517,7 @@ export default {
         connectManually: 'Conectar manualmente',
         desktopConnection: 'Para conectarse con Chase, Wells Fargo, Capital One o Bank of America, haz clic aquí para completar este proceso en un navegador.',
         yourDataIsSecure: 'Tus datos están seguros',
-        toGetStarted: 'Añade una cuenta bancaria y emite tarjetas corporativas, reembolsa gastos y cobra y paga facturas, todo desde un mismo lugar.',
+        toGetStarted: 'Añade una cuenta bancaria y reembolsa gastos, emite tarjetas corporativas, y cobra y paga facturas todo desde un mismo lugar.',
         plaidBodyCopy: 'Ofrezca a sus empleados una forma más sencilla de pagar - y recuperar - los gastos de la empresa.',
         checkHelpLine: 'Tu número de ruta y número de cuenta se pueden encontrar en un cheque de la cuenta bancaria.',
         validateAccountError: {
@@ -1917,6 +1920,7 @@ export default {
             plan: 'Plan',
             profile: 'Perfil',
             bankAccount: 'Cuenta bancaria',
+            displayedAs: 'Mostrado como',
             connectBankAccount: 'Conectar cuenta bancaria',
             testTransactions: 'Transacciones de prueba',
             issueAndManageCards: 'Emitir y gestionar tarjetas',
@@ -1944,7 +1948,6 @@ export default {
             classes: 'Clases',
             locations: 'Lugares',
             customers: 'Clientes/Proyectos',
-            displayedAs: 'Mostrado como',
             accountsDescription: 'Cuando estás conectado a Quickbooks Online, los planes de cuentas siempre se importan a Expensify como categorías.',
             accountsSwitchTitle: 'Elige abajo si las categorías importadas serán activadas o desactivadas por defecto.',
             accountsSwitchDescription: 'Las categorías activas estarán disponibles para ser escogidas cuando se crea un gasto.',
@@ -2060,6 +2063,9 @@ export default {
             organization: 'Organización Xero',
             organizationDescription: 'Seleccione la organización en Xero desde la que está importando los datos.',
             importDescription: 'Elija qué configuraciones de codificación se importan de Xero a Expensify.',
+            accountsDescription: 'Cuando estás conectado a Xero, los planes de cuentas siempre se importan a Expensify como categorías.',
+            accountsSwitchTitle: 'Elige abajo si las categorías importadas serán activadas o desactivadas por defecto.',
+            accountsSwitchDescription: 'Las categorías activas estarán disponibles para ser escogidas cuando se crea un gasto.',
             trackingCategories: 'Categorías de seguimiento',
             trackingCategoriesDescription: 'Elige si deseas importar categorías de seguimiento y ver dónde se muestran.',
             mapXeroCostCentersTo: 'Asignar centros de coste de Xero a',
@@ -2083,6 +2089,7 @@ export default {
                 'Cada gasto exportado se contabiliza como una transacción bancaria en la cuenta bancaria de Xero que selecciones a continuación. Las fechas de las transacciones coincidirán con las fechas de el extracto bancario.',
             bankTransactions: 'Transacciones bancarias',
             xeroBankAccount: 'Cuenta bancaria de Xero',
+            xeroBankAccountDescription: 'Selecciona la cuenta bancaria en la que aparecerán los gastos como transacciones bancarias.',
             preferredExporter: 'Exportador preferido',
             exportExpenses: 'Exportar gastos por cuenta propia como',
             exportExpensesDescription: 'Los informes se exportarán como una factura de compra utilizando la fecha y el estado que seleccione a continuación',
@@ -2102,7 +2109,37 @@ export default {
                 xeroInvoiceCollectionAccount: 'Cuenta de cobro de las facturas Xero',
                 invoiceAccountSelectorDescription:
                     'Como ha activado la exportación de facturas de Expensify a Xero, esta es la cuenta en la que aparecerá la factura una vez marcada como pagada.',
+                xeroBillPaymentAccountDescription:
+                    'Como has activado la sincronización de los informes reembolsados, tendrás que seleccionar la cuenta bancaria de la que se producen estos reembolsos y crearemos el pago en Xero.',
             },
+            exportDate: {
+                label: 'Fecha de exportación',
+                description: 'Usa esta fecha al exportar informe a Xero.',
+                values: {
+                    [CONST.XERO_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Fecha del último gasto',
+                        description: 'Fecha del gasto mas reciente en el informe',
+                    },
+                    [CONST.XERO_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'Fecha de exportación',
+                        description: 'Fecha de exportación del informe a Xero',
+                    },
+                    [CONST.XERO_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Fecha de envío',
+                        description: 'Fecha en la que el informe se envió para su aprobación',
+                    },
+                },
+            },
+            invoiceStatus: {
+                values: {
+                    [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_PAYMENT]: 'Autorizado',
+                    [CONST.XERO_CONFIG.INVOICE_STATUS.DRAFT]: 'Borrador',
+                    [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_APPROVAL]: 'Enviado',
+                },
+            },
+            exportPreferredExporterNote:
+                'Puede ser cualquier administrador del espacio de trabajo, pero debe ser un administrador de dominio si configura diferentes cuentas de exportación para tarjetas de empresa individuales en la configuración del dominio.',
+            exportPreferredExporterSubNote: 'Una vez configurado, el exportador preferido verá los informes para exportar en su cuenta.',
         },
         type: {
             free: 'Gratis',
@@ -2120,7 +2157,7 @@ export default {
             enableCategory: 'Activar categoría',
             deleteFailureMessage: 'Se ha producido un error al intentar eliminar la categoría. Por favor, inténtalo más tarde.',
             categoryName: 'Nombre de la categoría',
-            requiresCategory: 'Los miembros deben categorizar todos los gastos',
+            requiresCategory: 'Los miembros deben clasificar todos los gastos',
             needCategoryForExportToIntegration: 'Se requiere una categoría en cada gasto para poder exportarlo a',
             subtitle: 'Obtén una visión general de dónde te gastas el dinero. Utiliza las categorías predeterminadas o añade las tuyas propias.',
             emptyCategories: {
@@ -2370,6 +2407,28 @@ export default {
                             return 'Actualizando empleados';
                         case 'quickbooksOnlineSyncApplyClassesLocations':
                             return 'Actualizando clases';
+                        case 'xeroSyncImportChartOfAccounts':
+                            return 'Sincronizando plan de cuentas';
+                        case 'xeroSyncImportCategories':
+                            return 'Sincronizando categorias';
+                        case 'xeroSyncImportCustomers':
+                            return 'Sincronizando clientes';
+                        case 'xeroSyncXeroReimbursedReports':
+                            return 'Marcar los informes de Expensify como reembolsados';
+                        case 'xeroSyncExpensifyReimbursedReports':
+                            return 'Marcar facturas y recibos de Xero como pagados';
+                        case 'xeroSyncImportTrackingCategories':
+                            return 'Sincronizando categorías de seguimiento';
+                        case 'xeroSyncImportBankAccounts':
+                            return 'Sincronizando cuentas bancarias';
+                        case 'xeroSyncImportTaxRates':
+                            return 'Sincronizando las tasas de impuesto';
+                        case 'xeroCheckConnection':
+                            return 'Comprobando la conexión a Xero';
+                        case 'xeroSyncTitle':
+                            return 'Sincronizando los datos de Xero';
+                        case 'xeroSyncStep':
+                            return 'Cargando datos';
                         default: {
                             return `Translation missing for stage: ${stage}`;
                         }
@@ -2488,6 +2547,7 @@ export default {
             save: 'Guardar',
             genericFailureMessage: 'Se produjo un error al guardar el espacio de trabajo. Por favor, inténtalo de nuevo.',
             avatarUploadFailureMessage: 'No se pudo subir el avatar. Por favor, inténtalo de nuevo.',
+            addressContext: 'Se requiere una dirección para habilitar Expensify Travel. Por favor, introduce una dirección asociada con tu negocio.',
         },
         bankAccount: {
             continueWithSetup: 'Continuar con la configuración',

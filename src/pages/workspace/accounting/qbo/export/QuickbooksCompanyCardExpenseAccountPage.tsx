@@ -42,24 +42,20 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
                         <MenuItemWithTopDescription
                             title={nonReimbursableExpensesExportDestination ? translate(`workspace.qbo.accounts.${nonReimbursableExpensesExportDestination}`) : undefined}
                             description={translate('workspace.qbo.exportCompany')}
-                            error={errorFields?.nonReimbursableExpensesExportDestination ? translate('common.genericErrorMessage') : undefined}
+                            errorText={errorFields?.nonReimbursableExpensesExportDestination ? translate('common.genericErrorMessage') : undefined}
                             onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_SELECT.getRoute(policyID))}
                             brickRoadIndicator={errorFields?.nonReimbursableExpensesExportDestination ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             shouldShowRightIcon
+                            hintText={nonReimbursableExpensesExportDestination ? translate(`workspace.qbo.accounts.${nonReimbursableExpensesExportDestination}Description`) : undefined}
                         />
                     </OfflineWithFeedback>
-                    {!!nonReimbursableExpensesExportDestination && (
-                        <Text style={[styles.ph5, styles.mutedNormalTextLabel, styles.pt1, styles.pb2]}>
-                            {translate(`workspace.qbo.accounts.${nonReimbursableExpensesExportDestination}Description`)}
-                        </Text>
-                    )}
                     {isVendorSelected && (
                         <>
                             <OfflineWithFeedback pendingAction={pendingFields?.nonReimbursableExpensesAccount}>
                                 <MenuItemWithTopDescription
                                     title={nonReimbursableExpensesAccount?.name}
                                     description={translate('workspace.qbo.accountsPayable')}
-                                    error={errorFields?.nonReimbursableExpensesAccount ? translate('common.genericErrorMessage') : undefined}
+                                    errorText={errorFields?.nonReimbursableExpensesAccount ? translate('common.genericErrorMessage') : undefined}
                                     onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_PAYABLE_SELECT.getRoute(policyID))}
                                     brickRoadIndicator={errorFields?.nonReimbursableExpensesAccount ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                     shouldShowRightIcon
@@ -84,7 +80,7 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
                                 onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_DEFAULT_VENDOR_SELECT.getRoute(policyID))}
                                 brickRoadIndicator={errorFields?.nonReimbursableBillDefaultVendor ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                 shouldShowRightIcon
-                                error={errorFields?.nonReimbursableBillDefaultVendor ? translate('common.genericErrorMessage') : undefined}
+                                errorText={errorFields?.nonReimbursableBillDefaultVendor ? translate('common.genericErrorMessage') : undefined}
                             />
                         ) : (
                             <MenuItemWithTopDescription
@@ -93,7 +89,7 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
                                 onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT.getRoute(policyID))}
                                 brickRoadIndicator={errorFields?.nonReimbursableExpensesAccount ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                 shouldShowRightIcon
-                                error={errorFields?.nonReimbursableExpensesAccount ? translate('common.genericErrorMessage') : undefined}
+                                errorText={errorFields?.nonReimbursableExpensesAccount ? translate('common.genericErrorMessage') : undefined}
                             />
                         )}
                     </OfflineWithFeedback>
