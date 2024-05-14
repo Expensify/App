@@ -37,14 +37,18 @@ Onyx.connect({
         // The report is only visible if it is the last action not deleted that
         // does not match a closed or created state.
         const reportActionsForDisplay = actionsArray.filter(
-            (reportAction, actionKey) =>
-                ReportActionsUtils.shouldReportActionBeVisible(reportAction, actionKey) &&
-                !ReportActionsUtils.isWhisperAction(reportAction) &&
-                reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED &&
-                reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            (reportAction) => ReportActionsUtils.shouldReportActionBeVisibleAsLastAction(reportAction) && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
         );
 
         visibleReportActionItems[reportID] = reportActionsForDisplay[reportActionsForDisplay.length - 1];
+    },
+});
+
+let currentUserAccountID: number | undefined;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (value) => {
+        currentUserAccountID = value?.accountID;
     },
 });
 
@@ -72,8 +76,8 @@ function getOrderedReportIDs(
     currentPolicyID = '',
     policyMemberAccountIDs: number[] = [],
 ): string[] {
-    const isInGSDMode = priorityMode === CONST.PRIORITY_MODE.GSD;
-    const isInDefaultMode = !isInGSDMode;
+    const isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
+    const isInDefaultMode = !isInFocusMode;
     const allReportsDictValues = Object.values(allReports ?? {});
 
     // Filter out all the reports that shouldn't be displayed
@@ -103,7 +107,7 @@ function getOrderedReportIDs(
         return ReportUtils.shouldReportBeInOptionList({
             report,
             currentReportId: currentReportId ?? '',
-            isInGSDMode,
+            isInFocusMode,
             betas,
             policies: policies as OnyxCollection<Policy>,
             excludeEmptyChats: true,
@@ -240,12 +244,15 @@ function getOptionData({
         transactionThreadReportID: transactionThreadReport?.reportID,
     };
 
-    let participantAccountIDs = report.participantAccountIDs ?? [];
-
-    // Currently, currentUser is not included in participantAccountIDs, so for selfDM we need to add the currentUser(report owner) as participants.
-    if (ReportUtils.isSelfDM(report)) {
-        participantAccountIDs = [report.ownerAccountID ?? 0];
-    }
+    // For 1:1 chat, we don't want to include currentUser as participants in order to not mark 1:1 chats as having multiple participants
+    const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
+    const participantAccountIDs = Object.keys(report.participants ?? {})
+        .map(Number)
+        .filter((accountID) => accountID !== currentUserAccountID || !isOneOnOneChat);
+    const visibleParticipantAccountIDs = Object.entries(report.participants ?? {})
+        .filter(([, participant]) => participant && !participant.hidden)
+        .map(([accountID]) => Number(accountID))
+        .filter((accountID) => accountID !== currentUserAccountID || !isOneOnOneChat);
 
     const participantPersonalDetailList = Object.values(OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails)) as PersonalDetails[];
     const personalDetail = participantPersonalDetailList[0] ?? {};
@@ -276,7 +283,6 @@ function getOptionData({
     result.isPinned = report.isPinned;
     result.iouReportID = report.iouReportID;
     result.keyForList = String(report.reportID);
-    result.tooltipText = ReportUtils.getReportParticipantsTitle(report.visibleChatMemberAccountIDs ?? []);
     result.hasOutstandingChildRequest = report.hasOutstandingChildRequest;
     result.parentReportID = report.parentReportID ?? '';
     result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
@@ -285,6 +291,8 @@ function getOptionData({
     result.chatType = report.chatType;
     result.isDeletedParentAction = report.isDeletedParentAction;
     result.isSelfDM = ReportUtils.isSelfDM(report);
+    result.isOneOnOneChat = isOneOnOneChat;
+    result.tooltipText = ReportUtils.getReportParticipantsTitle(visibleParticipantAccountIDs);
 
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || ReportUtils.isExpenseReport(report);
     const subtitle = ReportUtils.getChatRoomSubtitle(report);

@@ -31,7 +31,7 @@ type WorkspaceTagsSettingsPageProps = WorkspaceTagsSettingsPageOnyxProps & Stack
 function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const policyTagName = useMemo(() => PolicyUtils.getTagLists(policyTags)?.[0]?.name ?? '', [policyTags]);
+    const [policyTagLists, isMultiLevelTags] = useMemo(() => [PolicyUtils.getTagLists(policyTags), PolicyUtils.isMultiLevelTags(policyTags)], [policyTags]);
 
     const updateWorkspaceRequiresTag = useCallback(
         (value: boolean) => {
@@ -39,6 +39,7 @@ function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPag
         },
         [route.params.policyID],
     );
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -69,18 +70,20 @@ function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPag
                                 </View>
                             </View>
                         </OfflineWithFeedback>
-                        <OfflineWithFeedback
-                            errors={policyTags?.[policyTagName]?.errors}
-                            pendingAction={policyTags?.[policyTagName]?.pendingAction}
-                            errorRowStyles={styles.mh5}
-                        >
-                            <MenuItemWithTopDescription
-                                title={policyTagName}
-                                description={translate(`workspace.tags.customTagName`)}
-                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EDIT_TAGS.getRoute(route.params.policyID))}
-                                shouldShowRightIcon
-                            />
-                        </OfflineWithFeedback>
+                        {!isMultiLevelTags && (
+                            <OfflineWithFeedback
+                                errors={policyTags?.[policyTagLists[0].name]?.errors}
+                                pendingAction={policyTags?.[policyTagLists[0].name]?.pendingAction}
+                                errorRowStyles={styles.mh5}
+                            >
+                                <MenuItemWithTopDescription
+                                    title={policyTagLists[0].name}
+                                    description={translate(`workspace.tags.customTagName`)}
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EDIT_TAGS.getRoute(route.params.policyID, policyTagLists[0].orderWeight))}
+                                    shouldShowRightIcon
+                                />
+                            </OfflineWithFeedback>
+                        )}
                     </View>
                 </ScreenWrapper>
             )}

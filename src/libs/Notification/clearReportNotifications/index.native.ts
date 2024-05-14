@@ -1,7 +1,7 @@
 import type {PushPayload} from '@ua/react-native-airship';
 import Airship from '@ua/react-native-airship';
 import Log from '@libs/Log';
-import type {NotificationData} from '@libs/Notification/PushNotification/NotificationType';
+import type {PushNotificationData} from '@libs/Notification/PushNotification/NotificationType';
 import CONST from '@src/CONST';
 import type ClearReportNotifications from './types';
 
@@ -10,7 +10,7 @@ const parseNotificationAndReportIDs = (pushPayload: PushPayload) => {
     if (typeof payload === 'string') {
         payload = JSON.parse(payload);
     }
-    const data = payload as NotificationData;
+    const data = payload as PushNotificationData;
     return {
         notificationID: pushPayload.notificationId,
         reportID: String(data.reportID),
