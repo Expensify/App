@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {View} from 'react-native';
+import {Keyboard, View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
@@ -40,7 +40,10 @@ function TextSelectorModal({value, description = '', onValueSelected, isVisible,
                     title={description}
                     onBackButtonPress={onClose}
                 />
-                <ScrollView contentContainerStyle={[styles.flex1, styles.mh5, styles.mb5]}>
+                <ScrollView
+                    contentContainerStyle={[styles.flex1, styles.mh5, styles.mb5]}
+                    keyboardShouldPersistTaps="handled"
+                >
                     <View style={styles.flex1}>
                         <TextInput
                             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -54,7 +57,10 @@ function TextSelectorModal({value, description = '', onValueSelected, isVisible,
                         large
                         pressOnEnter
                         text={translate('common.save')}
-                        onPress={() => onValueSelected?.(currentValue ?? '')}
+                        onPress={() => {
+                            Keyboard.dismiss();
+                            onValueSelected?.(currentValue ?? '');
+                        }}
                     />
                 </ScrollView>
             </ScreenWrapper>
