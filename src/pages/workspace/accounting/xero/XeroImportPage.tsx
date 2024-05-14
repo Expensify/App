@@ -8,7 +8,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import {getXeroTenants} from '@libs/PolicyUtils';
+import {getCurrentXeroOrganizationName} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
@@ -22,16 +22,15 @@ function XeroImportPage({policy}: WithPolicyProps) {
     const policyID = policy?.id ?? '';
     const {importCustomers, importTaxRates, importTrackingCategories, pendingFields, errorFields} = policy?.connections?.xero?.config ?? {};
 
-    const tenants = useMemo(() => getXeroTenants(policy ?? undefined), [policy]);
-    const currentXeroOrganization = tenants.find((tenant) => tenant.id === policy?.connections?.xero?.config.tenantID);
+    const currentXeroOrganizationName = useMemo(() => getCurrentXeroOrganizationName(policy ?? undefined), [policy]);
 
     const sections = useMemo(
         () => [
             {
                 description: translate('workspace.accounting.accounts'),
-                action: () => {},
+                action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_CHART_OF_ACCOUNTS.getRoute(policyID)),
+                title: translate('workspace.accounting.importAsCategory'),
                 hasError: !!errorFields?.enableNewCategories,
-                title: translate('workspace.accounting.imported'),
                 pendingAction: pendingFields?.enableNewCategories,
             },
             {
@@ -88,7 +87,7 @@ function XeroImportPage({policy}: WithPolicyProps) {
             >
                 <HeaderWithBackButton
                     title={translate('workspace.accounting.import')}
-                    subtitle={currentXeroOrganization?.name}
+                    subtitle={currentXeroOrganizationName}
                 />
                 <ScrollView contentContainerStyle={styles.pb2}>
                     <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.xero.importDescription')}</Text>

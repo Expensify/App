@@ -35,7 +35,7 @@ function XeroCustomerConfigurationPage({policy}: WithPolicyProps) {
                     <MenuItemWithTopDescription
                         interactive={false}
                         title={translate('workspace.common.tags')}
-                        description={translate('workspace.qbo.displayedAs')}
+                        description={translate('workspace.common.displayedAs')}
                         wrapperStyle={styles.sectionMenuItemTopDescription}
                     />
                 }
