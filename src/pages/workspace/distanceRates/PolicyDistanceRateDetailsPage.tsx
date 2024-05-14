@@ -48,7 +48,9 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
     const customUnit = customUnits[Object.keys(customUnits)[0]];
     const rate = customUnit?.rates[rateID];
     const currency = rate?.currency ?? CONST.CURRENCY.USD;
-    const canDisableorDeleteRate = Object.values(customUnit?.rates).some(
+
+    // Rates can be disabled or deleted as long as in the remaining rates there is always at least one enabled rate and there are no pending delete action
+    const canDisableOrDeleteRate = Object.values(customUnit?.rates).some(
         (distanceRate: Rate) => distanceRate?.enabled && rateID !== distanceRate?.customUnitRateID && distanceRate?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
     );
     const errorFields = rate?.errorFields;
@@ -62,7 +64,7 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
     };
 
     const toggleRate = () => {
-        if (!rate?.enabled || canDisableorDeleteRate) {
+        if (!rate?.enabled || canDisableOrDeleteRate) {
             Policy.setPolicyDistanceRatesEnabled(policyID, customUnit, [{...rate, enabled: !rate?.enabled}]);
         } else {
             setIsWarningModalVisible(true);
@@ -83,7 +85,7 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
             icon: Expensicons.Trashcan,
             text: translate('workspace.distanceRates.deleteDistanceRate'),
             onSelected: () => {
-                if (canDisableorDeleteRate) {
+                if (canDisableOrDeleteRate) {
                     setIsDeleteModalVisible(true);
                     return;
                 }
