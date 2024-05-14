@@ -279,7 +279,7 @@ Onyx.connect({
 
         const transactionThreadReportID = ReportActionUtils.getOneTransactionThreadReportID(reportID, allReportActions[reportID], true);
         if (transactionThreadReportID) {
-            sortedReportActions = ReportActionUtils.getCombinedReportActions(allSortedReportActions[reportID], allSortedReportActions[transactionThreadReportID]);
+            sortedReportActions = ReportActionUtils.getCombinedReportActions(allSortedReportActions[reportID], allSortedReportActions[transactionThreadReportID], reportID);
         }
 
         lastReportActions[reportID] = sortedReportActions[0];
