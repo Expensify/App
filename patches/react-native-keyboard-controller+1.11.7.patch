@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-keyboard-controller/android/src/main/java/com/reactnativekeyboardcontroller/views/EdgeToEdgeReactViewGroup.kt b/node_modules/react-native-keyboard-controller/android/src/main/java/com/reactnativekeyboardcontroller/views/EdgeToEdgeReactViewGroup.kt
-index 83884d8..68572e7 100644
+index 83884d8..5d9e989 100644
 --- a/node_modules/react-native-keyboard-controller/android/src/main/java/com/reactnativekeyboardcontroller/views/EdgeToEdgeReactViewGroup.kt
 +++ b/node_modules/react-native-keyboard-controller/android/src/main/java/com/reactnativekeyboardcontroller/views/EdgeToEdgeReactViewGroup.kt
 @@ -99,12 +99,12 @@ class EdgeToEdgeReactViewGroup(private val reactContext: ThemedReactContext) : R
@@ -21,3 +21,19 @@ index 83884d8..68572e7 100644
    }
  
    private fun setupKeyboardCallbacks() {
+@@ -158,13 +158,13 @@ class EdgeToEdgeReactViewGroup(private val reactContext: ThemedReactContext) : R
+   // region State managers
+   private fun enable() {
+     this.goToEdgeToEdge(true)
+-    this.setupWindowInsets()
++    // this.setupWindowInsets()
+     this.setupKeyboardCallbacks()
+   }
+ 
+   private fun disable() {
+     this.goToEdgeToEdge(false)
+-    this.setupWindowInsets()
++    // this.setupWindowInsets()
+     this.removeKeyboardCallbacks()
+   }
+   // endregion
