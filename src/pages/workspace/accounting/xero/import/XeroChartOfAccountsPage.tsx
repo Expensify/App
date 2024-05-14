@@ -55,6 +55,7 @@ function XeroChartOfAccountsPage({policy}: WithPolicyProps) {
             <ToggleSettingOptionRow
                 title={translate('workspace.common.enabled')}
                 subtitle={translate('workspace.xero.accountsSwitchDescription')}
+                switchAccessibilityLabel={translate('workspace.xero.accountsSwitchDescription')}
                 shouldPlaceSubtitleBelowSwitch
                 isActive={!!enableNewCategories}
                 onToggle={() => Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.ENABLE_NEW_CATEGORIES, !enableNewCategories)}
