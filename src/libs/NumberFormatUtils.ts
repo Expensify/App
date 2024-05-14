@@ -4,7 +4,7 @@ import type CONST from '@src/CONST';
 
 const numberFormatter = moize(Intl.NumberFormat, {
     isDeepEqual: true,
-    maxSize: Infinity,
+    maxSize: 10,
     profileName: 'Intl.NumberFormat',
 });
 
