@@ -515,7 +515,7 @@ function BaseSelectionList<TItem extends ListItem>(
     return (
         <SafeAreaConsumer>
             {({safeAreaPaddingBottomStyle}) => (
-                <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
+                <View style={[styles.flex1, (!isKeyboardShown || !!footerContent || showConfirmButton) && safeAreaPaddingBottomStyle, containerStyle]}>
                     {shouldShowTextInput && (
                         <View style={[styles.ph4, styles.pb3]}>
                             <TextInput

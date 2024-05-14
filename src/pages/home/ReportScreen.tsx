@@ -434,19 +434,12 @@ function ReportScreen({
             return;
         }
 
-        // It is possible that we may not have the report object yet in Onyx yet e.g. we navigated to a URL for an accessible report that
-        // is not stored locally yet. If report.reportID exists, then the report has been stored locally and nothing more needs to be done.
-        // If it doesn't exist, then we fetch the report from the API.
-        if (report.reportID && report.reportID === reportIDFromRoute && !reportMetadata?.isLoadingInitialReportActions) {
-            return;
-        }
-
         if (!shouldFetchReport(report)) {
             return;
         }
 
         fetchReport();
-    }, [report, reportMetadata?.isLoadingInitialReportActions, fetchReport, reportIDFromRoute]);
+    }, [report, fetchReport, reportIDFromRoute]);
 
     const dismissBanner = useCallback(() => {
         setIsBannerVisible(false);
@@ -473,7 +466,10 @@ function ReportScreen({
         Timing.end(CONST.TIMING.CHAT_RENDER);
         Performance.markEnd(CONST.TIMING.CHAT_RENDER);
 
-        fetchReportIfNeeded();
+        // Call OpenReport only if we are not linking to a message or the report is not available yet
+        if (!reportActionIDFromRoute || !report.reportID) {
+            fetchReportIfNeeded();
+        }
         const interactionTask = InteractionManager.runAfterInteractions(() => {
             ComposerActions.setShouldShowComposeInput(true);
         });

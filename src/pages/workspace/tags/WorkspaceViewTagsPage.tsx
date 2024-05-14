@@ -222,7 +222,8 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 shouldEnableMaxHeight
                 testID={WorkspaceViewTagsPage.displayName}
             >
-                <HeaderWithBackButton title={currentTagListName}>{getHeaderButtons()}</HeaderWithBackButton>
+                <HeaderWithBackButton title={currentTagListName}>{!isSmallScreenWidth && getHeaderButtons()}</HeaderWithBackButton>
+                {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                 <ConfirmModal
                     isVisible={isDeleteTagsConfirmModalVisible}
                     onConfirm={deleteTags}
