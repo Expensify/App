@@ -531,7 +531,7 @@ function hasPendingRTERViolation(transactionViolations?: TransactionViolations |
 /**
  * Check if there is pending rter violation in all transactionViolations with given transactionIDs.
  */
-function hasAllPendingRTERViolations(transactionIds: string[]): boolean {
+function allHavePendingRTERViolation(transactionIds: string[]): boolean {
     const transactionsWithRTERViolations = transactionIds.map((transactionId) => {
         const transactionViolations = getTransactionViolations(transactionId, allTransactionViolations);
         return hasPendingRTERViolation(transactionViolations);
@@ -800,7 +800,7 @@ export {
     areRequiredFieldsEmpty,
     hasMissingSmartscanFields,
     hasPendingRTERViolation,
-    hasAllPendingRTERViolations,
+    allHavePendingRTERViolation,
     hasPendingUI,
     getWaypointIndex,
     waypointHasValidAddress,

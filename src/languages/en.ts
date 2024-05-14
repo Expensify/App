@@ -646,7 +646,7 @@ export default {
         posted: 'Posted',
         deleteReceipt: 'Delete receipt',
         pendingMatchWithCreditCard: 'Receipt pending match with credit card.',
-        pendingMatchWithCreditCardDescription: 'Receipt pending match with credit card. Marks as cash to ignore and request payment.',
+        pendingMatchWithCreditCardDescription: 'Receipt pending match with credit card. Mark as cash to ignore and request payment.',
         routePending: 'Route pending...',
         receiptScanning: 'Receipt scanning...',
         receiptScanInProgress: 'Receipt scan in progress.',
