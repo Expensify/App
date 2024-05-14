@@ -2,7 +2,6 @@ import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {SvgProps} from 'react-native-svg';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -19,6 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportAction, ReportActions, Session, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
+import type IconAsset from '@src/types/utils/IconAsset';
 import ConfirmModal from './ConfirmModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import Icon from './Icon';
@@ -70,7 +70,7 @@ type PendingStatusBarProps = {
     shouldShowStatusBar: true;
 
     /** The icon to be displayed in status bar */
-    statusBarIcon: React.FC<SvgProps>;
+    statusBarIcon: IconAsset;
 
     /** The description to be displayed in status bar */
     statusBarDescription: string;

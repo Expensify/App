@@ -32,6 +32,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolations, UserWallet} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import type IconAsset from '@src/types/utils/IconAsset';
 import ReportActionItemImages from './ReportActionItemImages';
 
 type ReportPreviewOnyxProps = {
@@ -82,6 +83,20 @@ type ReportPreviewProps = ReportPreviewOnyxProps & {
     /** Whether the corresponding report action item is hovered */
     isHovered?: boolean;
 };
+
+type NoPendingMessageProps = {shouldShowMessage: false};
+
+type PendingMessageProps = {
+    shouldShowMessage: true;
+
+    /** The icon to be displayed in the preview content footer */
+    messageIcon: IconAsset;
+
+    /** The description to be displayed in the preview content footer */
+    messageDescription: string;
+};
+
+type MessageProps = PendingMessageProps | NoPendingMessageProps;
 
 function ReportPreview({
     iouReport,
@@ -231,6 +246,21 @@ function ReportPreview({
     const shouldShowScanningSubtitle = numberOfScanningReceipts === 1 && numberOfRequests === 1;
     const shouldShowPendingSubtitle = numberOfPendingRequests === 1 && numberOfRequests === 1;
 
+    const getPendingMessageProps: () => MessageProps = () => {
+        if (shouldShowScanningSubtitle) {
+            return {shouldShowMessage: true, messageIcon: Expensicons.ReceiptScan, messageDescription: translate('iou.receiptScanInProgress')};
+        }
+        if (shouldShowPendingSubtitle) {
+            return {shouldShowMessage: true, messageIcon: Expensicons.CreditCardHourglass, messageDescription: translate('iou.transactionPending')};
+        }
+        if (showRTERViolationMessage) {
+            return {shouldShowMessage: true, messageIcon: Expensicons.Hourglass, messageDescription: translate('iou.pendingMatchWithCreditCard')};
+        }
+        return {shouldShowMessage: false};
+    };
+
+    const pendingMessageProps = getPendingMessageProps();
+
     const {supportText} = useMemo(() => {
         if (formattedMerchant) {
             return {supportText: formattedMerchant};
@@ -316,39 +346,15 @@ function ReportPreview({
                                                 </View>
                                             </View>
                                         )}
-                                        {showRTERViolationMessage && (
-                                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                                        {pendingMessageProps.shouldShowMessage && (
+                                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
                                                 <Icon
-                                                    src={Expensicons.Hourglass}
+                                                    src={pendingMessageProps.messageIcon}
                                                     height={variables.iconSizeExtraSmall}
                                                     width={variables.iconSizeExtraSmall}
                                                     fill={theme.textSupporting}
                                                 />
-                                                <Text style={[styles.textLabel, styles.colorMuted, styles.ml1, styles.amountSplitPadding]}>
-                                                    {translate('iou.pendingMatchWithCreditCard')}
-                                                </Text>
-                                            </View>
-                                        )}
-                                        {shouldShowScanningSubtitle && (
-                                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
-                                                <Icon
-                                                    src={Expensicons.ReceiptScan}
-                                                    height={variables.iconSizeExtraSmall}
-                                                    width={variables.iconSizeExtraSmall}
-                                                    fill={theme.icon}
-                                                />
-                                                <Text style={[styles.textMicroSupporting, styles.ml1, styles.amountSplitPadding]}>{translate('iou.receiptScanInProgress')}</Text>
-                                            </View>
-                                        )}
-                                        {shouldShowPendingSubtitle && (
-                                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
-                                                <Icon
-                                                    src={Expensicons.CreditCardHourglass}
-                                                    height={variables.iconSizeExtraSmall}
-                                                    width={variables.iconSizeExtraSmall}
-                                                    fill={theme.icon}
-                                                />
-                                                <Text style={[styles.textMicroSupporting, styles.ml1, styles.amountSplitPadding]}>{translate('iou.transactionPending')}</Text>
+                                                <Text style={[styles.textMicroSupporting, styles.ml1, styles.amountSplitPadding]}>{pendingMessageProps.messageDescription}</Text>
                                             </View>
                                         )}
                                     </View>
