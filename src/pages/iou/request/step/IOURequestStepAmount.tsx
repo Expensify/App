@@ -191,7 +191,7 @@ function IOURequestStepAmount({
                         amount: backendAmount,
                         comment: '',
                         currency,
-                        merchant: '',
+                        merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                         tag: '',
                         category: '',
                         created: transaction?.created ?? '',
