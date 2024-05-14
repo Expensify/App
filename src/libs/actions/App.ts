@@ -202,6 +202,7 @@ function getPolicyParamsForOpenOrReconnect(): Promise<PolicyParamsForOpenOrRecon
                     resolve({policyIDList: getNonOptimisticPolicyIDs(policies)});
                 },
             });
+            Log.info('[getPolicyParamsForOpenOrReconnect] isReadyToOpenApp resolved', true, {policyIDListConnectionID: connectionID});
         });
     });
 }
@@ -254,6 +255,7 @@ function getOnyxDataForOpenOrReconnect(isOpenApp = false): OnyxData {
  */
 function openApp() {
     getPolicyParamsForOpenOrReconnect().then((policyParams: PolicyParamsForOpenOrReconnect) => {
+        Log.info('[openApp] getPolicyParamsForOpenOrReconnect resolved: ', true, policyParams);
         const params: OpenAppParams = {enablePriorityModeFilter: true, ...policyParams};
 
         API.write(WRITE_COMMANDS.OPEN_APP, params, getOnyxDataForOpenOrReconnect(true));

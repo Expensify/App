@@ -203,6 +203,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         // If we are on this screen then we are "logged in", but the user might not have "just logged in". They could be reopening the app
         // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp().
         if (SessionUtils.didUserLogInDuringSession()) {
+            Log.info('[AuthScreens] Sending OpenApp');
             App.openApp();
         } else {
             Log.info('[AuthScreens] Sending ReconnectApp');
