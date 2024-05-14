@@ -331,6 +331,7 @@ export default {
         type: 'Type',
         action: 'Action',
         expenses: 'Expenses',
+        tax: 'Tax',
     },
     location: {
         useCurrent: 'Use current location',

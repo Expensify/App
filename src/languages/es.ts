@@ -321,6 +321,7 @@ export default {
         type: 'Tipo',
         action: 'Acción',
         expenses: 'Gastos',
+        tax: 'Impuesto',
     },
     connectionComplete: {
         title: 'Conexión Completa',

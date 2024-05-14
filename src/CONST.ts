@@ -936,9 +936,12 @@ const CONST = {
         MERCHANT: 'merchant',
         FROM: 'from',
         TO: 'to',
+        CATEGORY: 'category',
+        TAG: 'tag',
         TOTAL: 'total',
         TYPE: 'type',
         ACTION: 'action',
+        TAX_AMOUNT: 'taxAmount',
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
