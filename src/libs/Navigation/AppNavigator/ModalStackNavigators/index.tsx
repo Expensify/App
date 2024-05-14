@@ -216,7 +216,10 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.WALLET.TRANSFER_BALANCE]: () => require('../../../../pages/settings/Wallet/TransferBalancePage').default as React.ComponentType,
     [SCREENS.SETTINGS.WALLET.CHOOSE_TRANSFER_ACCOUNT]: () => require('../../../../pages/settings/Wallet/ChooseTransferAccountPage').default as React.ComponentType,
     [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS]: () => require('../../../../pages/EnablePayments/EnablePaymentsPage').default as React.ComponentType,
+    // TODO: Added temporarily for testing purposes, remove after refactor - https://github.com/Expensify/App/issues/36648
     [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS_REFACTOR]: () => require('../../../../pages/EnablePayments/PersonalInfo/PersonalInfo').default as React.ComponentType,
+    // TODO: Added temporarily for testing purposes, remove after refactor - https://github.com/Expensify/App/issues/36648
+    [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS_TEMPORARY_TERMS]: () => require('../../../../pages/EnablePayments/FeesAndTerms/FeesAndTerms').default as React.ComponentType,
     [SCREENS.SETTINGS.ADD_DEBIT_CARD]: () => require('../../../../pages/settings/Wallet/AddDebitCardPage').default as React.ComponentType,
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: () => require('../../../../pages/AddPersonalBankAccountPage').default as React.ComponentType,
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT_REFACTOR]: () => require('../../../../pages/EnablePayments/AddBankAccount/AddBankAccount').default as React.ComponentType,
@@ -250,6 +253,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.DISTANCE_RATE_EDIT]: () => require('../../../../pages/workspace/distanceRates/PolicyDistanceRateEditPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.TAGS_SETTINGS]: () => require('../../../../pages/workspace/tags/WorkspaceTagsSettingsPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.TAG_SETTINGS]: () => require('../../../../pages/workspace/tags/TagSettingsPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.TAG_LIST_VIEW]: () => require('../../../../pages/workspace/tags/WorkspaceViewTagsPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.TAGS_EDIT]: () => require('../../../../pages/workspace/tags/WorkspaceEditTagsPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.TAG_CREATE]: () => require('../../../../pages/workspace/tags/WorkspaceCreateTagPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.TAG_EDIT]: () => require('../../../../pages/workspace/tags/EditTagPage').default as React.ComponentType,
