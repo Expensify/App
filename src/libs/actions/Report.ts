@@ -662,7 +662,7 @@ function updateGroupChatName(reportID: string, reportName: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                reportName: currentReportData?.[reportID]?.reportName,
+                reportName: currentReportData?.[reportID]?.reportName ?? null,
                 errors: {
                     reportName: Localize.translateLocal('groupChat.invalidGroupChatName'),
                 },
