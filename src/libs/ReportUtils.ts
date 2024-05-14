@@ -1494,10 +1494,6 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>): bool
         return false;
     }
 
-    if (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED) {
-        return false;
-    }
-
     if (isReportApproved(moneyRequestReport) || isSettled(moneyRequestReport?.reportID)) {
         return false;
     }
