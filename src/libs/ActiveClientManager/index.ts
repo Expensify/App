@@ -68,6 +68,8 @@ const init: Init = () => {
 const isClientTheLeader: IsClientTheLeader = () => {
     const lastActiveClient = activeClients.length && activeClients[activeClients.length - 1];
 
+    console.debug('[isClientTheLeader]', {lastActiveClient, clientID});
+
     return lastActiveClient === clientID;
 };
 
