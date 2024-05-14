@@ -117,13 +117,13 @@ function handleOnyxUpdateGap(onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFromSer
     } else {
         // The flow below is setting the promise to a getMissingOnyxUpdates to address flow (2) explained above.
 
-        const existingDeferredUpdatesCount = DeferredUpdates.getCount();
+        const areDeferredUpdatesQueued = DeferredUpdates.isEmpty();
 
         // Add the new update to the deferred updates
         DeferredUpdates.enqueue(updateParams);
 
         // If there are deferred updates already, we don't need to fetch the missing updates again.
-        if (existingDeferredUpdatesCount > 0) {
+        if (areDeferredUpdatesQueued) {
             return;
         }
 

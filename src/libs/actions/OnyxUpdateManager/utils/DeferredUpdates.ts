@@ -45,11 +45,11 @@ function getUpdates(minUpdateID?: number) {
 }
 
 /**
- * Get the number of deferred updates before adding the new one
- * @returns the count of deferred updates in the queue
+ * Returns a boolean indicating whether the deferred updates queue is empty
+ * @returns a boolean indicating whether the deferred updates queue is empty
  */
-function getCount() {
-    return Object.keys(deferredUpdates).length;
+function isEmpty() {
+    return Object.keys(deferredUpdates).length === 0;
 }
 
 /**
@@ -121,6 +121,6 @@ function clear(options?: ClearDeferredUpdatesOptions) {
     }
 }
 
-const DeferredUpdates = {getFetchMissingOnyxUpdatesPromise, setFetchMissingOnyxUpdatesPromise, getUpdates, getCount, enqueue, clear, process};
+const DeferredUpdates = {getFetchMissingOnyxUpdatesPromise, setFetchMissingOnyxUpdatesPromise, getUpdates, isEmpty, enqueue, clear, process};
 
 export default DeferredUpdates;
