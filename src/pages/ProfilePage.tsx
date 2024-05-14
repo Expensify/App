@@ -64,7 +64,7 @@ const getPhoneNumber = (param: OnyxEntry<PersonalDetails>): string | undefined =
 const chatReportSelector = (report: OnyxEntry<Report>): OnyxEntry<Report> =>
     report && {
         reportID: report.reportID,
-        participantAccountIDs: report.participantAccountIDs,
+        participants: report.participants,
         parentReportID: report.parentReportID,
         parentReportActionID: report.parentReportActionID,
         type: report.type,
@@ -80,7 +80,7 @@ function ProfilePage({route}: ProfilePageProps) {
 
     const reportKey = useMemo(() => {
         const accountID = Number(route.params?.accountID ?? 0);
-        const reportID = ReportUtils.getChatByParticipants([accountID], reports)?.reportID ?? '';
+        const reportID = ReportUtils.getChatByParticipants(session?.accountID ? [accountID, session.accountID] : [], reports)?.reportID ?? '';
 
         if ((Boolean(session) && Number(session?.accountID) === accountID) || SessionActions.isAnonymousUser() || !reportID) {
             return `${ONYXKEYS.COLLECTION.REPORT}0` as const;
