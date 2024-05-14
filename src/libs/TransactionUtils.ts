@@ -668,10 +668,9 @@ function getDefaultTaxCode(policy: OnyxEntry<Policy> | EmptyObject, transaction:
 /**
  * Transforms tax rates to a new object format - to add codes and new name with concatenated name and value.
  *
- * @param  policy - The policy which the user has access to and which the report is tied to.
- * @returns The transformed tax rates object.g
+ * @returns The transformed tax rates object
  */
-function transformedTaxRates(policy: OnyxEntry<Policy> | undefined, transaction?: OnyxEntry<Transaction>): Record<string, TaxRate> {
+function transformedTaxRates(policy: OnyxEntry<Policy> | EmptyObject, transaction?: OnyxEntry<Transaction>): Record<string, TaxRate> {
     const taxRates = policy?.taxRates;
     const defaultExternalID = taxRates?.defaultExternalID;
 
@@ -685,8 +684,17 @@ function transformedTaxRates(policy: OnyxEntry<Policy> | undefined, transaction?
 
     const getModifiedName = (data: TaxRate, code: string) =>
         `${data.name} (${data.value})${defaultTaxCode() === code ? ` ${CONST.DOT_SEPARATOR} ${Localize.translateLocal('common.default')}` : ''}`;
-    const taxes = Object.fromEntries(Object.entries(taxRates?.taxes ?? {}).map(([code, data]) => [code, {...data, code, modifiedName: getModifiedName(data, code), name: data.name}]));
-    return taxes;
+    return Object.fromEntries(
+        Object.entries(taxRates?.taxes ?? {}).map(([code, data]) => [
+            code,
+            {
+                ...data,
+                code,
+                modifiedName: getModifiedName(data, code),
+                name: data.name,
+            },
+        ]),
+    );
 }
 
 /**

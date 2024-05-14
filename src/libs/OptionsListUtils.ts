@@ -165,7 +165,7 @@ type GetOptionsConfig = {
     includeSelectedOptions?: boolean;
     includeTaxRates?: boolean;
     taxRates?: TaxRatesWithDefault;
-    policy?: OnyxEntry<Policy>;
+    policy?: OnyxEntry<Policy> | EmptyObject;
     transaction?: OnyxEntry<Transaction>;
     includePolicyReportFieldOptions?: boolean;
     policyReportFieldOptions?: string[];
@@ -1383,7 +1383,7 @@ function getTaxRatesOptions(taxRates: Array<Partial<TaxRate>>): TaxRatesOption[]
 /**
  * Builds the section list for tax rates
  */
-function getTaxRatesSection(policy: OnyxEntry<Policy> | undefined, selectedOptions: Tax[], searchInputValue: string, transaction?: OnyxEntry<Transaction>): TaxSection[] {
+function getTaxRatesSection(policy: OnyxEntry<Policy> | EmptyObject, selectedOptions: Tax[], searchInputValue: string, transaction?: OnyxEntry<Transaction>): TaxSection[] {
     const policyRatesSections = [];
 
     const taxes = TransactionUtils.transformedTaxRates(policy, transaction);
@@ -1705,7 +1705,7 @@ function getOptions(
     }
 
     if (includeTaxRates) {
-        const taxRatesOptions = getTaxRatesSection(policy, selectedOptions as Tax[], searchInputValue, transaction);
+        const taxRatesOptions = getTaxRatesSection(policy ?? {}, selectedOptions as Tax[], searchInputValue, transaction);
 
         return {
             recentReports: [],

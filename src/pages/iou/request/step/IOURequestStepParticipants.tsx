@@ -4,9 +4,11 @@ import {withOnyx} from 'react-native-onyx';
 import FormHelpMessage from '@components/FormHelpMessage';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {getPolicy, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
 import * as IOU from '@userActions/IOU';
@@ -15,8 +17,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Participant} from '@src/types/onyx/IOU';
-import * as CurrencyUtils from "@libs/CurrencyUtils";
-import {getPolicy, isTaxTrackingEnabled} from "@libs/PolicyUtils";
 import StepScreenWrapper from './StepScreenWrapper';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
@@ -105,7 +105,7 @@ function IOURequestStepParticipants({
             IOU.setMoneyRequestTaxRate(transactionID, taxCode, true);
             IOU.setMoneyRequestTaxAmount(transactionID, taxAmount, true);
         },
-        [action, transaction, transactionID]
+        [action, transaction, transactionID],
     );
 
     const addParticipant = useCallback(
@@ -129,7 +129,7 @@ function IOURequestStepParticipants({
             // When a participant is selected, the reportID needs to be saved because that's the reportID that will be used in the confirmation step.
             selectedReportID.current = val[0]?.reportID ?? reportID;
         },
-        [reportID, transactionID],
+        [reportID, transactionID, setTaxDetailsOnCategorizing],
     );
 
     const goToNextStep = useCallback(() => {
