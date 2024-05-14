@@ -21,7 +21,7 @@ function XeroBankAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const {bankAccounts} = policy?.connections?.xero?.data ?? {};
 
     const {nonReimbursableAccount: nonReimbursableAccountID} = policy?.connections?.xero?.config.export ?? {};
-    
+
     const xeroSelectorOptions = useMemo<SelectorType[]>(
         () =>
             (bankAccounts ?? []).map(({id, name}) => ({
