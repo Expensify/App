@@ -6,6 +6,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -26,7 +27,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PolicyTagList} from '@src/types/onyx';
-import MenuItem from '@components/MenuItem';
 
 type TagSettingsPageOnyxProps = {
     /** All policy tags */
@@ -117,11 +117,13 @@ function TagSettingsPage({route, policyTags}: TagSettingsPageProps) {
                             shouldShowRightIcon
                         />
                     </OfflineWithFeedback>
-                    {!isThereAnyAccountingConnection && <MenuItem
-                        icon={Expensicons.Trashcan}
-                        title={translate('common.delete')}
-                        onPress={() => setIsDeleteTagModalOpen(true)}
-                    />}
+                    {!isThereAnyAccountingConnection && (
+                        <MenuItem
+                            icon={Expensicons.Trashcan}
+                            title={translate('common.delete')}
+                            onPress={() => setIsDeleteTagModalOpen(true)}
+                        />
+                    )}
                 </View>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

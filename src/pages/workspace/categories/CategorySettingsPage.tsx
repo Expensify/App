@@ -6,6 +6,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -25,7 +26,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import MenuItem from '@components/MenuItem';
 
 type CategorySettingsPageOnyxProps = {
     /** Collection of categories attached to a policy */
@@ -73,9 +73,7 @@ function CategorySettingsPage({route, policyCategories}: CategorySettingsPagePro
                 style={[styles.defaultModalContainer]}
                 testID={CategorySettingsPage.displayName}
             >
-                <HeaderWithBackButton
-                    title={route.params.categoryName}
-                />
+                <HeaderWithBackButton title={route.params.categoryName} />
                 <ConfirmModal
                     isVisible={deleteCategoryConfirmModalVisible}
                     onConfirm={deleteCategory}
@@ -112,11 +110,13 @@ function CategorySettingsPage({route, policyCategories}: CategorySettingsPagePro
                             shouldShowRightIcon
                         />
                     </OfflineWithFeedback>
-                    {!isThereAnyAccountingConnection && <MenuItem
-                        icon={Expensicons.Trashcan}
-                        title={translate('common.delete')}
-                        onPress={() => setDeleteCategoryConfirmModalVisible(true)}
-                    />}
+                    {!isThereAnyAccountingConnection && (
+                        <MenuItem
+                            icon={Expensicons.Trashcan}
+                            title={translate('common.delete')}
+                            onPress={() => setDeleteCategoryConfirmModalVisible(true)}
+                        />
+                    )}
                 </View>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

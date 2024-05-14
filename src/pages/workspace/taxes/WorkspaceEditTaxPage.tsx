@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -23,7 +24,6 @@ import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullsc
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import MenuItem from '@components/MenuItem';
 
 type WorkspaceEditTaxPageBaseProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAX_EDIT>;
 
@@ -70,9 +70,7 @@ function WorkspaceEditTaxPage({
                 style={styles.mb5}
             >
                 <View style={[styles.h100, styles.flex1]}>
-                    <HeaderWithBackButton
-                        title={currentTaxRate?.name}
-                    />
+                    <HeaderWithBackButton title={currentTaxRate?.name} />
                     <OfflineWithFeedback
                         errors={ErrorUtils.getLatestErrorField(currentTaxRate, 'isDisabled')}
                         pendingAction={currentTaxRate?.pendingFields?.isDisabled}
@@ -121,11 +119,13 @@ function WorkspaceEditTaxPage({
                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAX_VALUE.getRoute(`${policyID}`, taxID))}
                         />
                     </OfflineWithFeedback>
-                    {!!canEdit && <MenuItem
-                        icon={Expensicons.Trashcan}
-                        title={translate('common.delete')}
-                        onPress={() => setIsDeleteModalVisible(true)}
-                    />}
+                    {!!canEdit && (
+                        <MenuItem
+                            icon={Expensicons.Trashcan}
+                            title={translate('common.delete')}
+                            onPress={() => setIsDeleteModalVisible(true)}
+                        />
+                    )}
                 </View>
                 <ConfirmModal
                     title={translate('workspace.taxes.actions.delete')}
