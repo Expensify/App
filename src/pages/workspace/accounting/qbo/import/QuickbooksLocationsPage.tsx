@@ -74,9 +74,6 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
                     )}
                     {shouldBeDisabled && (
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mt1]}>
-                            {/** Make sure to change the description text to explain why the toggle button is locked and how the user can unlock the toggle button
-                             * @see https://expensify.slack.com/archives/C036QM0SLJK/p1714967365830889?thread_ts=1714400674.229349&cid=C036QM0SLJK
-                             */}
                             <Text style={styles.mutedTextLabel}>{translate('workspace.qbo.locationsAdditionalDescription')}</Text>
                         </View>
                     )}
