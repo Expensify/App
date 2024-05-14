@@ -29,7 +29,7 @@ import {syncConnection} from '@libs/actions/connections/QuickBooksOnline';
 import {findCurrentXeroOrganization, getCurrentXeroOrganizationName, getXeroTenants} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
@@ -44,11 +44,10 @@ type PolicyAccountingPageOnyxProps = {
     connectionSyncProgress: OnyxEntry<PolicyConnectionSyncProgress>;
 };
 
-type PolicyAccountingPageProps = WithPolicyProps &
+type PolicyAccountingPageProps = WithPolicyConnectionsProps &
     PolicyAccountingPageOnyxProps & {
         // This is not using OnyxEntry<OnyxTypes.Policy> because the HOC withPolicyConnections will only render this component if there is a policy
         policy: Policy;
-        isConnectionDataFetchSkipped: boolean;
     };
 
 type AccountingIntegration = {
@@ -102,7 +101,7 @@ function accountingIntegrationData(
     }
 }
 
-function PolicyAccountingPage({policy, connectionSyncProgress, isConnectionDataFetchSkipped}: PolicyAccountingPageProps) {
+function PolicyAccountingPage({policy, connectionSyncProgress, isConnectionDataFetchNeeded}: PolicyAccountingPageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -337,7 +336,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress, isConnectionDataF
                             titleStyles={styles.accountSettingsSectionTitle}
                             childrenStyles={styles.pt5}
                         >
-                            {!isConnectionDataFetchSkipped ? (
+                            {isConnectionDataFetchNeeded ? (
                                 <View style={styles.mnh20}>
                                     <AccountingListSkeletonView shouldAnimate />
                                 </View>

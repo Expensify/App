@@ -9,7 +9,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import withPolicy from './withPolicy';
 import type {WithPolicyProps} from './withPolicy';
 
-type WithPolicyConnectionsProps = WithPolicyProps;
+type WithPolicyConnectionsProps = WithPolicyProps & {
+    isConnectionDataFetchNeeded: boolean;
+};
 
 /**
  * Higher-order component that fetches the connections data and populates
@@ -27,19 +29,19 @@ function withPolicyConnections<TProps extends WithPolicyConnectionsProps>(Wrappe
         const [hasConnectionsDataBeenFetched, {status}] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${props.policy?.id ?? '0'}`, {
             initWithStoredValues: false,
         });
-        const isConnectionDataFetchSkipped = isOffline || !props.policy || !props.policy.areConnectionsEnabled || !!hasConnectionsDataBeenFetched || !!props.policy.connections;
+        const isConnectionDataFetchNeeded = !isOffline && props.policy && props.policy.areConnectionsEnabled && hasConnectionsDataBeenFetched && props.policy.connections;
 
         useEffect(() => {
             // When the accounting feature is not enabled, or if the connections data already exists,
             // there is no need to fetch the connections data.
-            if (isConnectionDataFetchSkipped || !props?.policy?.id) {
+            if (!isConnectionDataFetchNeeded || !props?.policy?.id) {
                 return;
             }
 
             openPolicyAccountingPage(props.policy.id);
-        }, [hasConnectionsDataBeenFetched, props.policy, isOffline, isConnectionDataFetchSkipped]);
+        }, [hasConnectionsDataBeenFetched, props.policy, isOffline, isConnectionDataFetchNeeded]);
 
-        if (props.policy?.areConnectionsEnabled && (!props.policy || status === 'loading')) {
+        if (props.policy?.areConnectionsEnabled && status === 'loading') {
             return (
                 <FullPageOfflineBlockingView>
                     <FullScreenLoadingIndicator />
@@ -51,7 +53,7 @@ function withPolicyConnections<TProps extends WithPolicyConnectionsProps>(Wrappe
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
-                isConnectionDataFetchSkipped={isConnectionDataFetchSkipped}
+                isConnectionDataFetchNeeded={isConnectionDataFetchNeeded}
             />
         );
     }
