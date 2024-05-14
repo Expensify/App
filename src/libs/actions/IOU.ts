@@ -5578,7 +5578,6 @@ function getSendMoneyParams(
         ? {
               [recipientAccountID]: {
                   accountID: recipientAccountID,
-                  avatar: UserUtils.getDefaultAvatarURL(recipient.accountID),
                   // Disabling this line since participant.displayName can be an empty string
                   // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                   displayName: recipient.displayName || recipient.login,
