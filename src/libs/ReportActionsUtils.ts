@@ -309,7 +309,7 @@ function shouldIgnoreGap(currentReportAction: ReportAction | undefined, nextRepo
  * Returns a sorted and filtered list of report actions from a report and it's associated child
  * transaction thread report in order to correctly display reportActions from both reports in the one-transaction report view.
  */
-function getCombinedReportActions(reportActions: ReportAction[], transactionThreadReportActions: ReportAction[], reportID: string): ReportAction[] {
+function getCombinedReportActions(reportActions: ReportAction[], transactionThreadReportActions: ReportAction[], reportID?: string): ReportAction[] {
     if (isEmptyObject(transactionThreadReportActions)) {
         return reportActions;
     }
