@@ -65,8 +65,14 @@ type ReportActionsListProps = WithCurrentUserPersonalDetailsProps & {
     /** Are we loading more report actions? */
     isLoadingOlderReportActions?: boolean;
 
+    /** Was there an error when loading older report actions? */
+    hasLoadingOlderReportActionsError?: boolean;
+
     /** Are we loading newer report actions? */
     isLoadingNewerReportActions?: boolean;
+
+    /** Was there an error when loading newer report actions? */
+    hasLoadingNewerReportActionsError?: boolean;
 
     /** Callback executed on list layout */
     onLayout: (event: LayoutChangeEvent) => void;
@@ -75,10 +81,10 @@ type ReportActionsListProps = WithCurrentUserPersonalDetailsProps & {
     onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 
     /** Function to load more chats */
-    loadOlderChats: () => void;
+    loadOlderChats: (force?: boolean) => void;
 
     /** Function to load newer chats */
-    loadNewerChats: () => void;
+    loadNewerChats: (force?: boolean) => void;
 
     /** Whether the composer is in full size */
     isComposerFullSize?: boolean;
@@ -139,7 +145,9 @@ function ReportActionsList({
     parentReportAction,
     isLoadingInitialReportActions = false,
     isLoadingOlderReportActions = false,
+    hasLoadingOlderReportActionsError = false,
     isLoadingNewerReportActions = false,
+    hasLoadingNewerReportActionsError = false,
     sortedReportActions,
     onScroll,
     mostRecentIOUReportActionID = '',
@@ -249,10 +257,14 @@ function ReportActionsList({
         if (!userActiveSince.current || report.reportID !== prevReportID) {
             return;
         }
-
         if (ReportUtils.isUnread(report)) {
-            if (Visibility.isVisible() && scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD) {
+            // On desktop, when the notification center is displayed, Visibility.isVisible() will return false.
+            // Currently, there's no programmatic way to dismiss the notification center panel.
+            // To handle this, we use the 'referrer' parameter to check if the current navigation is triggered from a notification.
+            const isFromNotification = route?.params?.referrer === CONST.REFERRER.NOTIFICATION;
+            if ((Visibility.isVisible() || isFromNotification) && scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD) {
                 Report.readNewestAction(report.reportID);
+                Navigation.setParams({referrer: undefined});
             } else {
                 readActionSkipped.current = true;
             }
@@ -496,6 +508,31 @@ function ReportActionsList({
     }, [calculateUnreadMarker, report.lastReadTime, messageManuallyMarkedUnread]);
 
     useEffect(() => {
+        const scrollToFirstUnreadMessage = () => {
+            if (!currentUnreadMarker) {
+                return;
+            }
+
+            const unreadMessageIndex = sortedVisibleReportActions.findIndex((action) => action.reportActionID === currentUnreadMarker);
+
+            // Checking that we have a valid unread message index and the user scroll
+            // offset is less than the threshold since we don't want to auto-scroll when
+            // the report is already open and New Messages marker is shown as user might be reading.
+            if (unreadMessageIndex !== -1 && scrollingVerticalOffset.current < VERTICAL_OFFSET_THRESHOLD) {
+                // We're passing viewPosition: 1 to scroll to the top of the
+                // unread message (marker) since we're using an inverted FlatList.
+                reportScrollManager?.scrollToIndex(unreadMessageIndex, false, 1);
+            }
+        };
+
+        // Call the scroll function after a small delay to ensure all items
+        // have been measured and the list is ready to be scrolled.
+        InteractionManager.runAfterInteractions(scrollToFirstUnreadMessage);
+        // We only want to run this effect once, when we're navigating to a report with unread messages.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [sortedVisibleReportActions]);
+
+    useEffect(() => {
         if (!userActiveSince.current || report.reportID !== prevReportID) {
             return;
         }
@@ -590,11 +627,16 @@ function ReportActionsList({
 
     const lastReportAction: OnyxTypes.ReportAction | EmptyObject = useMemo(() => sortedReportActions.at(-1) ?? {}, [sortedReportActions]);
 
-    const listFooterComponent = useCallback(() => {
+    const retryLoadOlderChatsError = useCallback(() => {
+        loadOlderChats(true);
+    }, [loadOlderChats]);
+
+    const listFooterComponent = useMemo(() => {
         // Skip this hook on the first render (when online), as we are not sure if more actions are going to be loaded,
         // Therefore showing the skeleton on footer might be misleading.
-        // When offline, there should be no second render, so we should show the skeleton if the corresponding loading prop is present
-        if (!isOffline && !hasFooterRendered.current) {
+        // When offline, there should be no second render, so we should show the skeleton if the corresponding loading prop is present.
+        // In case of an error we want to display the footer no matter what.
+        if (!isOffline && !hasFooterRendered.current && !hasLoadingOlderReportActionsError) {
             hasFooterRendered.current = true;
             return null;
         }
@@ -605,9 +647,11 @@ function ReportActionsList({
                 isLoadingOlderReportActions={isLoadingOlderReportActions}
                 isLoadingInitialReportActions={isLoadingInitialReportActions}
                 lastReportActionName={lastReportAction.actionName}
+                hasError={hasLoadingOlderReportActionsError}
+                onRetry={retryLoadOlderChatsError}
             />
         );
-    }, [isLoadingInitialReportActions, isLoadingOlderReportActions, lastReportAction.actionName, isOffline]);
+    }, [isLoadingInitialReportActions, isLoadingOlderReportActions, lastReportAction.actionName, isOffline, hasLoadingOlderReportActionsError, retryLoadOlderChatsError]);
 
     const onLayoutInner = useCallback(
         (event: LayoutChangeEvent) => {
@@ -622,8 +666,13 @@ function ReportActionsList({
         [onContentSizeChange],
     );
 
-    const listHeaderComponent = useCallback(() => {
-        if (!canShowHeader) {
+    const retryLoadNewerChatsError = useCallback(() => {
+        loadNewerChats(true);
+    }, [loadNewerChats]);
+
+    const listHeaderComponent = useMemo(() => {
+        // In case of an error we want to display the header no matter what.
+        if (!canShowHeader && !hasLoadingNewerReportActionsError) {
             hasHeaderRendered.current = true;
             return null;
         }
@@ -632,9 +681,19 @@ function ReportActionsList({
             <ListBoundaryLoader
                 type={CONST.LIST_COMPONENTS.HEADER}
                 isLoadingNewerReportActions={isLoadingNewerReportActions}
+                hasError={hasLoadingNewerReportActionsError}
+                onRetry={retryLoadNewerChatsError}
             />
         );
-    }, [isLoadingNewerReportActions, canShowHeader]);
+    }, [isLoadingNewerReportActions, canShowHeader, hasLoadingNewerReportActionsError, retryLoadNewerChatsError]);
+
+    const onStartReached = useCallback(() => {
+        loadNewerChats(false);
+    }, [loadNewerChats]);
+
+    const onEndReached = useCallback(() => {
+        loadOlderChats(false);
+    }, [loadOlderChats]);
 
     // When performing comment linking, initially 25 items are added to the list. Subsequent fetches add 15 items from the cache or 50 items from the server.
     // This is to ensure that the user is able to see the 'scroll to newer comments' button when they do comment linking and have not reached the end of the list yet.
@@ -656,9 +715,9 @@ function ReportActionsList({
                     contentContainerStyle={contentContainerStyle}
                     keyExtractor={keyExtractor}
                     initialNumToRender={initialNumToRender}
-                    onEndReached={loadOlderChats}
+                    onEndReached={onEndReached}
                     onEndReachedThreshold={0.75}
-                    onStartReached={loadNewerChats}
+                    onStartReached={onStartReached}
                     onStartReachedThreshold={0.75}
                     ListFooterComponent={listFooterComponent}
                     ListHeaderComponent={listHeaderComponent}
