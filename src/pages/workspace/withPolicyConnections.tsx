@@ -1,7 +1,6 @@
 import React, {useEffect} from 'react';
 import type {ComponentType} from 'react';
 import {useOnyx} from 'react-native-onyx';
-import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useNetwork from '@hooks/useNetwork';
 import {openPolicyAccountingPage} from '@libs/actions/PolicyConnections';
@@ -42,11 +41,7 @@ function withPolicyConnections<TProps extends WithPolicyConnectionsProps>(Wrappe
         }, [props.policy?.id, isConnectionDataFetchNeeded]);
 
         if (props.policy?.areConnectionsEnabled && isConnectionDataFetchNeeded && shouldBlockView) {
-            return (
-                <FullPageOfflineBlockingView>
-                    <FullScreenLoadingIndicator />
-                </FullPageOfflineBlockingView>
-            );
+            return <FullScreenLoadingIndicator />;
         }
 
         return (
