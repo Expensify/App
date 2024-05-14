@@ -150,7 +150,7 @@ function subscribeToNetworkStatus(): () => void {
             Log.info('[NetworkConnection] Not setting offline status because shouldForceOffline = true');
             return;
         }
-        setOfflineStatus((state.isInternetReachable ?? false) === false);
+        setOfflineStatus(state.isInternetReachable === false);
         setNetWorkStatus(state.isInternetReachable);
     });
 
