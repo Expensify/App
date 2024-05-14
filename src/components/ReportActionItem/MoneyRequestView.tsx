@@ -324,8 +324,8 @@ function MoneyRequestView({
 
     const errors = {
         ...transaction?.errors,
-        ...parentReportAction?.errors
-    }
+        ...parentReportAction?.errors,
+    };
 
     return (
         <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true, shouldShowAnimatedBackground)]}>
