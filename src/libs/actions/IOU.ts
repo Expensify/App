@@ -460,6 +460,7 @@ function buildOnyxDataForMoneyRequest(
     const outstandingChildRequest = ReportUtils.getOutstandingChildRequest(iouReport);
     const clearedPendingFields = Object.fromEntries(Object.keys(transaction.pendingFields ?? {}).map((key) => [key, null]));
     const optimisticData: OnyxUpdate[] = [];
+    const successData: OnyxUpdate[] = [];
     let newQuickAction: ValueOf<typeof CONST.QUICK_ACTIONS> = isScanRequest ? CONST.QUICK_ACTIONS.REQUEST_SCAN : CONST.QUICK_ACTIONS.REQUEST_MANUAL;
     if (TransactionUtils.isDistanceRequest(transaction)) {
         newQuickAction = CONST.QUICK_ACTIONS.REQUEST_DISTANCE;
@@ -586,11 +587,26 @@ function buildOnyxDataForMoneyRequest(
         });
     }
 
+    const redundantParticipants: Record<number, null> = {};
     if (!isEmptyObject(optimisticPersonalDetailListAction)) {
+        const successPersonalDetailListAction: Record<number, null> = {};
+
+        // BE will send different participants. We clear the optimistic ones to avoid duplicated entries
+        Object.keys(optimisticPersonalDetailListAction).forEach((accountIDKey) => {
+            const accountID = Number(accountIDKey);
+            successPersonalDetailListAction[accountID] = null;
+            redundantParticipants[accountID] = null;
+        });
+
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: optimisticPersonalDetailListAction,
+        });
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: successPersonalDetailListAction,
         });
     }
 
@@ -602,13 +618,12 @@ function buildOnyxDataForMoneyRequest(
         });
     }
 
-    const successData: OnyxUpdate[] = [];
-
     if (isNewChatReport) {
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
             value: {
+                participants: redundantParticipants,
                 pendingFields: null,
                 errorFields: null,
                 isOptimisticReport: false,
@@ -621,16 +636,20 @@ function buildOnyxDataForMoneyRequest(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
             value: {
+                participants: redundantParticipants,
                 pendingFields: null,
                 errorFields: null,
+                isOptimisticReport: false,
             },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport.reportID}`,
             value: {
+                participants: redundantParticipants,
                 pendingFields: null,
                 errorFields: null,
+                isOptimisticReport: false,
             },
         },
         {
@@ -883,6 +902,7 @@ function buildOnyxDataForInvoice(
             value: null,
         },
     ];
+    const successData: OnyxUpdate[] = [];
 
     if (chatReport) {
         optimisticData.push({
@@ -915,29 +935,48 @@ function buildOnyxDataForInvoice(
         });
     }
 
+    const redundantParticipants: Record<number, null> = {};
     if (!isEmptyObject(optimisticPersonalDetailListAction)) {
+        const successPersonalDetailListAction: Record<number, null> = {};
+
+        // BE will send different participants. We clear the optimistic ones to avoid duplicated entries
+        Object.keys(optimisticPersonalDetailListAction).forEach((accountIDKey) => {
+            const accountID = Number(accountIDKey);
+            successPersonalDetailListAction[accountID] = null;
+            redundantParticipants[accountID] = null;
+        });
+
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: optimisticPersonalDetailListAction,
         });
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: successPersonalDetailListAction,
+        });
     }
 
-    const successData: OnyxUpdate[] = [
+    successData.push(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
             value: {
+                participants: redundantParticipants,
                 pendingFields: null,
                 errorFields: null,
+                isOptimisticReport: false,
             },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport.reportID}`,
             value: {
+                participants: redundantParticipants,
                 pendingFields: null,
                 errorFields: null,
+                isOptimisticReport: false,
             },
         },
         {
@@ -989,13 +1028,14 @@ function buildOnyxDataForInvoice(
                 },
             },
         },
-    ];
+    );
 
     if (isNewChatReport) {
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
             value: {
+                participants: redundantParticipants,
                 pendingFields: null,
                 errorFields: null,
                 isOptimisticReport: false,
@@ -1774,13 +1814,13 @@ function getMoneyRequestInformation(
     }
 
     if (!chatReport) {
-        chatReport = ReportUtils.getChatByParticipants([payerAccountID]);
+        chatReport = ReportUtils.getChatByParticipants([payerAccountID, payeeAccountID]);
     }
 
     // If we still don't have a report, it likely doens't exist and we need to build an optimistic one
     if (!chatReport) {
         isNewChatReport = true;
-        chatReport = ReportUtils.buildOptimisticChatReport([payerAccountID]);
+        chatReport = ReportUtils.buildOptimisticChatReport([payerAccountID, payeeAccountID]);
     }
 
     // STEP 2: Get the Expense/IOU report. If the moneyRequestReportID has been provided, we want to add the transaction to this specific report.
@@ -3624,8 +3664,9 @@ function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string,
 
     // If we do not have one locally then we will search for a chat with the same participants (only for 1:1 chats).
     const shouldGetOrCreateOneOneDM = participants.length < 2;
+    const allParticipantsAccountIDs = [...participantAccountIDs, currentUserAccountID];
     if (!existingSplitChatReport && shouldGetOrCreateOneOneDM) {
-        existingSplitChatReport = ReportUtils.getChatByParticipants(participantAccountIDs);
+        existingSplitChatReport = ReportUtils.getChatByParticipants(allParticipantsAccountIDs);
     }
 
     // We found an existing chat report we are done...
@@ -3633,9 +3674,6 @@ function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string,
         // Yes, these are the same, but give the caller a way to identify if we created a new report or not
         return {existingSplitChatReport, splitChatReport: existingSplitChatReport};
     }
-
-    // No existing chat by this point we need to create it
-    const allParticipantsAccountIDs = [...participantAccountIDs, currentUserAccountID];
 
     // Create a Group Chat if we have multiple participants
     if (participants.length > 1) {
@@ -3795,7 +3833,6 @@ function createSplitsAndOnyxData(
             value: null,
         },
     ];
-
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3812,11 +3849,12 @@ function createSplitsAndOnyxData(
         },
     ];
 
+    const redundantParticipants: Record<number, null> = {};
     if (!existingSplitChatReport) {
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${splitChatReport.reportID}`,
-            value: {pendingFields: {createChat: null}},
+            value: {pendingFields: {createChat: null}, participants: redundantParticipants},
         });
     }
 
@@ -3904,10 +3942,10 @@ function createSplitsAndOnyxData(
             oneOnOneChatReport = splitChatReport;
             shouldCreateOptimisticPersonalDetails = !existingSplitChatReport && !personalDetailExists;
         } else {
-            const existingChatReport = ReportUtils.getChatByParticipants([accountID]);
+            const existingChatReport = ReportUtils.getChatByParticipants([accountID, currentUserAccountID]);
             isNewOneOnOneChatReport = !existingChatReport;
             shouldCreateOptimisticPersonalDetails = isNewOneOnOneChatReport && !personalDetailExists;
-            oneOnOneChatReport = existingChatReport ?? ReportUtils.buildOptimisticChatReport([accountID]);
+            oneOnOneChatReport = existingChatReport ?? ReportUtils.buildOptimisticChatReport([accountID, currentUserAccountID]);
         }
 
         // STEP 2: Get existing IOU/Expense report and update its total OR build a new optimistic one
@@ -3979,6 +4017,11 @@ function createSplitsAndOnyxData(
                   },
               }
             : {};
+
+        if (shouldCreateOptimisticPersonalDetails) {
+            // BE will send different participants. We clear the optimistic ones to avoid duplicated entries
+            redundantParticipants[accountID] = null;
+        }
 
         let oneOnOneReportPreviewAction = getReportPreviewAction(oneOnOneChatReport.reportID, oneOnOneIOUReport.reportID);
         if (oneOnOneReportPreviewAction) {
@@ -4353,11 +4396,12 @@ function startSplitBill({
         },
     ];
 
+    const redundantParticipants: Record<number, null> = {};
     if (!existingSplitChatReport) {
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${splitChatReport.reportID}`,
-            value: {pendingFields: {createChat: null}},
+            value: {pendingFields: {createChat: null}, participants: redundantParticipants},
         });
     }
 
@@ -4446,6 +4490,8 @@ function startSplitBill({
                     },
                 },
             });
+            // BE will send different participants. We clear the optimistic ones to avoid duplicated entries
+            redundantParticipants[accountID] = null;
         }
 
         splits.push({
@@ -4620,9 +4666,9 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
             // The workspace chat reportID is saved in the splits array when starting a split expense with a workspace
             oneOnOneChatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.chatReportID}`] ?? null;
         } else {
-            const existingChatReport = ReportUtils.getChatByParticipants(participant.accountID ? [participant.accountID] : []);
+            const existingChatReport = ReportUtils.getChatByParticipants(participant.accountID ? [participant.accountID, sessionAccountID] : []);
             isNewOneOnOneChatReport = !existingChatReport;
-            oneOnOneChatReport = existingChatReport ?? ReportUtils.buildOptimisticChatReport(participant.accountID ? [participant.accountID] : []);
+            oneOnOneChatReport = existingChatReport ?? ReportUtils.buildOptimisticChatReport(participant.accountID ? [participant.accountID, sessionAccountID] : []);
         }
 
         let oneOnOneIOUReport: OneOnOneIOUReport = oneOnOneChatReport?.iouReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.iouReportID}`] : null;
@@ -5426,10 +5472,10 @@ function getSendMoneyParams(
         idempotencyKey: Str.guid(),
     });
 
-    let chatReport = !isEmptyObject(report) && report?.reportID ? report : ReportUtils.getChatByParticipants([recipientAccountID]);
+    let chatReport = !isEmptyObject(report) && report?.reportID ? report : ReportUtils.getChatByParticipants([recipientAccountID, managerID]);
     let isNewChat = false;
     if (!chatReport) {
-        chatReport = ReportUtils.buildOptimisticChatReport([recipientAccountID]);
+        chatReport = ReportUtils.buildOptimisticChatReport([recipientAccountID, managerID]);
         isNewChat = true;
     }
     const optimisticIOUReport = ReportUtils.buildOptimisticIOUReport(recipientAccountID, managerID, amount, chatReport.reportID, currency, true);
@@ -5530,7 +5576,61 @@ function getSendMoneyParams(
         },
     };
 
-    const successData: OnyxUpdate[] = [
+    const successData: OnyxUpdate[] = [];
+
+    // Add optimistic personal details for recipient
+    let optimisticPersonalDetailListData: OnyxUpdate | EmptyObject = {};
+    const optimisticPersonalDetailListAction = isNewChat
+        ? {
+              [recipientAccountID]: {
+                  accountID: recipientAccountID,
+                  avatar: UserUtils.getDefaultAvatarURL(recipient.accountID),
+                  // Disabling this line since participant.displayName can be an empty string
+                  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                  displayName: recipient.displayName || recipient.login,
+                  login: recipient.login,
+              },
+          }
+        : {};
+
+    const redundantParticipants: Record<number, null> = {};
+    if (!isEmptyObject(optimisticPersonalDetailListAction)) {
+        const successPersonalDetailListAction: Record<number, null> = {};
+
+        // BE will send different participants. We clear the optimistic ones to avoid duplicated entries
+        Object.keys(optimisticPersonalDetailListAction).forEach((accountIDKey) => {
+            const accountID = Number(accountIDKey);
+            successPersonalDetailListAction[accountID] = null;
+            redundantParticipants[accountID] = null;
+        });
+
+        optimisticPersonalDetailListData = {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: optimisticPersonalDetailListAction,
+        };
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: successPersonalDetailListAction,
+        });
+    }
+
+    successData.push(
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticIOUReport.reportID}`,
+            value: {
+                participants: redundantParticipants,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticTransactionThread.reportID}`,
+            value: {
+                participants: redundantParticipants,
+            },
+        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticIOUReport.reportID}`,
@@ -5563,7 +5663,7 @@ function getSendMoneyParams(
                 },
             },
         },
-    ];
+    );
 
     const failureData: OnyxUpdate[] = [
         {
@@ -5593,14 +5693,12 @@ function getSendMoneyParams(
         },
     ];
 
-    let optimisticPersonalDetailListData: OnyxUpdate | EmptyObject = {};
-
     // Now, let's add the data we need just when we are creating a new chat report
     if (isNewChat) {
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
-            value: {pendingFields: null},
+            value: {pendingFields: null, participants: redundantParticipants},
         });
         failureData.push(
             {
@@ -5622,22 +5720,6 @@ function getSendMoneyParams(
                 },
             },
         );
-
-        // Add optimistic personal details for recipient
-        optimisticPersonalDetailListData = {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {
-                [recipientAccountID]: {
-                    accountID: recipientAccountID,
-                    avatar: UserUtils.getDefaultAvatarURL(recipient.accountID),
-                    // Disabling this line since participant.displayName can be an empty string
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    displayName: recipient.displayName || recipient.login,
-                    login: recipient.login,
-                },
-            },
-        };
 
         if (optimisticChatReportActionsData.value) {
             // Add an optimistic created action to the optimistic chat reportActions data
@@ -6423,7 +6505,10 @@ function setMoneyRequestParticipantsFromReport(transactionID: string, report: On
             },
         ];
     } else {
-        participants = (chatReport?.participantAccountIDs ?? []).filter((accountID) => currentUserAccountID !== accountID).map((accountID) => ({accountID, selected: true}));
+        const chatReportOtherParticipants = Object.keys(chatReport?.participants ?? {})
+            .map(Number)
+            .filter((accountID) => accountID !== currentUserAccountID);
+        participants = chatReportOtherParticipants.map((accountID) => ({accountID, selected: true}));
     }
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants, participantsAutoAssigned: true});
