@@ -1268,6 +1268,7 @@ export default {
         lastMemberWarning: "Since you're the last person here, leaving will make this chat inaccessible to all users. Are you sure you want to leave?",
         defaultReportName: ({displayName}: {displayName: string}) => `${displayName}'s group chat`,
         invalidGroupChatName: 'Invalid group chat name',
+        genericErrorMessage: 'An error occurred while updating group chat name, please try again.',
     },
     languagePage: {
         language: 'Language',

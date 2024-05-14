@@ -664,7 +664,7 @@ function updateGroupChatName(reportID: string, reportName: string) {
             value: {
                 reportName: currentReportData?.[reportID]?.reportName ?? null,
                 errors: {
-                    reportName: Localize.translateLocal('groupChat.invalidGroupChatName'),
+                    reportName: Localize.translateLocal('groupChat.genericErrorMessage'),
                 },
                 pendingFields: {
                     reportName: null,
