@@ -5,6 +5,7 @@ import FontUtils from '@styles/utils/FontUtils';
 import variables from '@styles/variables';
 import useTheme from './useTheme';
 
+// this map is used to reset the styles that are not needed - passing undefined value can break the native side
 const nonStylingDefaultValues: Record<string, string|number> = {
     color: 'black',
     backgroundColor: 'transparent',
