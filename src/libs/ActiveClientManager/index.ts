@@ -51,8 +51,13 @@ let isPromotingNewLeader = false;
  * The last GUID is the most recent GUID, so that should be the leader
  */
 const isClientTheLeader: IsClientTheLeader = () => {
-    // keep reporting currently leading client on page refresh
-    // when clientID is already removed from activeClients list
+    /**
+     * When a new leader is being promoted, there is a brief period during which the current leader's clientID
+     * is removed from the activeClients list due to asynchronous operations, but the new leader has not officially
+     * taken over yet. This can result in a situation where, upon page refresh, multiple leaders are being reported.
+     * This early return statement here will prevent that from happening by maintaining the current leader as
+     * the 'active leader' until the other leader is fully promoted.
+     */
     if (isPromotingNewLeader) {
         return true;
     }
