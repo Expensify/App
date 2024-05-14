@@ -3346,7 +3346,9 @@ function goBackFromPrivateNotes(report: OnyxEntry<Report>, session: OnyxEntry<Se
     }
     const currentUserPrivateNote = report.privateNotes?.[session.accountID]?.note ?? '';
     if (isEmpty(currentUserPrivateNote)) {
-        const participantAccountIDs = report?.participantAccountIDs ?? [];
+        const participantAccountIDs = Object.keys(report?.participants ?? {})
+            .map(Number)
+            .filter((accountID) => accountID !== currentUserAccountID || !isOneOnOneChat(report));
 
         if (isOneOnOneChat(report)) {
             Navigation.goBack(ROUTES.PROFILE.getRoute(participantAccountIDs[0]));
