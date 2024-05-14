@@ -10,14 +10,17 @@ function useMarkdownStyle(message: string | null = null, excludeStyles: Array<ke
     const emojiFontSize = containsOnlyEmojis(message ?? '') ? variables.fontSizeOnlyEmojis : variables.fontSizeNormal;
 
     // this map is used to reset the styles that are not needed - passing undefined value can break the native side
-    const nonStylingDefaultValues: Record<string, string|number> = useMemo(() =>({
-        color: theme.text,
-        backgroundColor: 'transparent',
-        marginLeft: 0,
-        paddingLeft: 0,
-        borderColor: 'transparent',
-        borderWidth: 0,
-    }), [theme]);
+    const nonStylingDefaultValues: Record<string, string | number> = useMemo(
+        () => ({
+            color: theme.text,
+            backgroundColor: 'transparent',
+            marginLeft: 0,
+            paddingLeft: 0,
+            borderColor: 'transparent',
+            borderWidth: 0,
+        }),
+        [theme],
+    );
 
     const markdownStyle = useMemo(() => {
         const styling = {
