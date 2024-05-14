@@ -45,7 +45,7 @@ function QuickbooksChartOfAccountsPage({policy}: WithPolicyProps) {
             <MenuItemWithTopDescription
                 interactive={false}
                 title={translate('workspace.common.categories')}
-                description={translate('workspace.qbo.displayedAs')}
+                description={translate('workspace.common.displayedAs')}
                 wrapperStyle={styles.sectionMenuItemTopDescription}
             />
             <Text style={styles.pv5}>{translate('workspace.qbo.accountsSwitchTitle')}</Text>
