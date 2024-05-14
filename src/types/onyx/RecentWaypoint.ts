@@ -10,6 +10,9 @@ type RecentWaypoint = {
 
     /** The longitude of the waypoint */
     lng?: number;
+
+    /** The longitude of the waypoint */
+    keyForList?: string;
 };
 
 export default RecentWaypoint;

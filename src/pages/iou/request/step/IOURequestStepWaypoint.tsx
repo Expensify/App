@@ -119,6 +119,7 @@ function IOURequestStepWaypoint({
                 name: values.name ?? '',
                 lat: values.lat ?? 0,
                 lng: values.lng ?? 0,
+                keyForList: `${new Date().getTime()}_${Math.random().toString(36).substring(2, 15)}`,
             };
             saveWaypoint(waypoint);
         }

@@ -38,6 +38,9 @@ type Waypoint = {
 
     /** Address street line 2 */
     street2?: string;
+
+    /** The longitude of the waypoint */
+    keyForList?: string;
 };
 
 type WaypointCollection = Record<string, RecentWaypoint | Waypoint>;

@@ -344,7 +344,10 @@ function IOURequestStepDistance({
             const newWaypoints: WaypointCollection = {};
             let emptyWaypointIndex = -1;
             data.forEach((waypoint, index) => {
-                newWaypoints[`waypoint${index}`] = waypoints[waypoint] ?? {};
+                const newWaypointObj = waypoints[waypoint].keyForList
+                    ? waypoints[waypoint]
+                    : {...waypoints[waypoint], keyForList: `${new Date().getTime()}_${Math.random().toString(36).substring(2, 15)}`};
+                newWaypoints[`waypoint${index}`] = newWaypointObj ?? {};
                 // Find waypoint that BECOMES empty after dragging
                 if (isEmpty(newWaypoints[`waypoint${index}`]) && !isEmpty(waypoints[`waypoint${index}`] ?? {})) {
                     emptyWaypointIndex = index;
@@ -428,7 +431,7 @@ function IOURequestStepDistance({
                 <View style={styles.flex1}>
                     <DraggableList
                         data={waypointsList}
-                        keyExtractor={(item) => (waypoints[item]?.address ?? '') + item || item}
+                        keyExtractor={(item) => (waypoints[item]?.keyForList ?? waypoints[item]?.address ?? '') + item || item}
                         shouldUsePortal
                         onDragEnd={updateWaypoints}
                         ref={scrollViewRef}
