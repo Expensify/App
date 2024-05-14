@@ -64,13 +64,14 @@ function RoomInvitePage({
     }, []);
 
     // Any existing participants and Expensify emails should not be eligible for invitation
-    const excludedUsers = useMemo(
-        () =>
-            [...PersonalDetailsUtils.getLoginsByAccountIDs(report?.visibleChatMemberAccountIDs ?? []), ...CONST.EXPENSIFY_EMAILS].map((participant) =>
-                PhoneNumber.addSMSDomainIfPhoneNumber(participant),
-            ),
-        [report],
-    );
+    const excludedUsers = useMemo(() => {
+        const visibleParticipantAccountIDs = Object.entries(report.participants ?? {})
+            .filter(([, participant]) => participant && !participant.hidden)
+            .map(([accountID]) => Number(accountID));
+        return [...PersonalDetailsUtils.getLoginsByAccountIDs(visibleParticipantAccountIDs), ...CONST.EXPENSIFY_EMAILS].map((participant) =>
+            PhoneNumber.addSMSDomainIfPhoneNumber(participant),
+        );
+    }, [report.participants]);
 
     useEffect(() => {
         const inviteOptions = OptionsListUtils.getMemberInviteOptions(options.personalDetails, betas ?? [], debouncedSearchTerm, excludedUsers);
