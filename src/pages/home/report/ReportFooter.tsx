@@ -78,9 +78,6 @@ function ReportFooter({
     onComposerFocus,
 }: ReportFooterProps) {
 
-    console.log("LOOK HERE");
-    console.log(reportNameValuePairs);
-
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();

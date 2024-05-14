@@ -5734,7 +5734,7 @@ function isMoneyRequestReportPendingDeletion(report: OnyxEntry<Report> | EmptyOb
     return parentReportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
-function canUserPerformWriteAction(report: OnyxEntry<Report>, reportNameValuePairs?: ReportNameValuePairs) {
+function canUserPerformWriteAction(report: OnyxEntry<Report>, reportNameValuePairs?: OnyxEntry<ReportNameValuePairs>) {
     const reportErrors = getAddWorkspaceRoomOrChatReportErrors(report);
 
     // If the expense report is marked for deletion, let us prevent any further write action.
