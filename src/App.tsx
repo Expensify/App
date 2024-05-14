@@ -1,4 +1,5 @@
 import {PortalProvider} from '@gorhom/portal';
+import * as Sentry from '@sentry/react-native';
 import React from 'react';
 import {LogBox} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
@@ -36,6 +37,10 @@ import {ReportIDsContextProvider} from './hooks/useReportIDs';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsContext';
 import type {Route} from './ROUTES';
+
+Sentry.init({
+    dsn: 'xxx',
+});
 
 type AppProps = {
     /** URL passed to our top-level React Native component by HybridApp. Will always be undefined in "pure" NewDot builds. */

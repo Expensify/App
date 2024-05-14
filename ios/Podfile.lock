@@ -2000,6 +2000,16 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - RNSentry (5.22.2):
+    - hermes-engine
+    - RCT-Folly
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Codegen
+    - React-Core
+    - React-hermes
+    - ReactCommon/turbomodule/core
+    - Sentry/HybridSDK (= 8.25.0)
   - RNShare (10.0.2):
     - RCT-Folly
     - RCTRequired
@@ -2063,6 +2073,7 @@ PODS:
   - SDWebImageWebPCoder (0.13.0):
     - libwebp (~> 1.0)
     - SDWebImage/Core (~> 5.17)
+  - Sentry/HybridSDK (8.25.0)
   - SocketRocket (0.6.1)
   - Turf (2.7.0)
   - VisionCamera (4.0.0-beta.13):
@@ -2192,6 +2203,7 @@ DEPENDENCIES:
   - RNReactNativeHapticFeedback (from `../node_modules/react-native-haptic-feedback`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
+  - "RNSentry (from `../node_modules/@sentry/react-native`)"
   - RNShare (from `../node_modules/react-native-share`)
   - RNSound (from `../node_modules/react-native-sound`)
   - RNSVG (from `../node_modules/react-native-svg`)
@@ -2238,6 +2250,7 @@ SPEC REPOS:
     - SDWebImageAVIFCoder
     - SDWebImageSVGCoder
     - SDWebImageWebPCoder
+    - Sentry
     - SocketRocket
     - Turf
 
@@ -2445,6 +2458,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-reanimated"
   RNScreens:
     :path: "../node_modules/react-native-screens"
+  RNSentry:
+    :path: "../node_modules/@sentry/react-native"
   RNShare:
     :path: "../node_modules/react-native-share"
   RNSound:
@@ -2596,6 +2611,7 @@ SPEC CHECKSUMS:
   RNReactNativeHapticFeedback: 616c35bdec7d20d4c524a7949ca9829c09e35f37
   RNReanimated: 51db0fff543694d931bd3b7cab1a3b36bd86c738
   RNScreens: 9ec969a95987a6caae170ef09313138abf3331e1
+  RNSentry: 46ed4dabe9498088e1be7557fdecdadeec99332c
   RNShare: 2a4cdfc0626ad56b0ef583d424f2038f772afe58
   RNSound: 6c156f925295bdc83e8e422e7d8b38d33bc71852
   RNSVG: 18f1381e046be2f1c30b4724db8d0c966238089f
@@ -2603,6 +2619,7 @@ SPEC CHECKSUMS:
   SDWebImageAVIFCoder: 8348fef6d0ec69e129c66c9fe4d74fbfbf366112
   SDWebImageSVGCoder: 15a300a97ec1c8ac958f009c02220ac0402e936c
   SDWebImageWebPCoder: af09429398d99d524cae2fe00f6f0f6e491ed102
+  Sentry: cd86fc55628f5b7c572cabe66cc8f95a9d2f165a
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Turf: 13d1a92d969ca0311bbc26e8356cca178ce95da2
   VisionCamera: 1394a316c7add37e619c48d7aa40b38b954bf055
