@@ -13,8 +13,8 @@ type FontFamilyKey =
 
 type FontFamily = {
     fontFamily: string;
-    fontStyle?: TextStyle['fontStyle'];
-    fontWeight?: TextStyle['fontWeight'];
+    fontStyle: TextStyle['fontStyle'];
+    fontWeight: TextStyle['fontWeight'];
 };
 
 type FontFamilyStyles = Record<FontFamilyKey, FontFamily>;
