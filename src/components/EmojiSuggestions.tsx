@@ -7,9 +7,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import getStyledTextArray from '@libs/GetStyledTextArray';
 import AutoCompleteSuggestions from './AutoCompleteSuggestions';
+import type {MeasureParentContainerAndCursorCallback} from './AutoCompleteSuggestions/types';
 import Text from './Text';
-
-type MeasureParentContainerCallback = (x: number, y: number, width: number) => void;
 
 type EmojiSuggestionsProps = {
     /** The index of the highlighted emoji */
@@ -33,8 +32,8 @@ type EmojiSuggestionsProps = {
     /** Stores user's preferred skin tone */
     preferredSkinToneIndex: number;
 
-    /** Meaures the parent container's position and dimensions. */
-    measureParentContainer: (callback: MeasureParentContainerCallback) => void;
+    /** Measures the parent container's position and dimensions. Also add cursor coordinates */
+    measureParentContainerAndReportCursor: (callback: MeasureParentContainerAndCursorCallback) => void;
 };
 
 /**
@@ -42,7 +41,15 @@ type EmojiSuggestionsProps = {
  */
 const keyExtractor = (item: Emoji, index: number): string => `${item.name}+${index}}`;
 
-function EmojiSuggestions({emojis, onSelect, prefix, isEmojiPickerLarge, preferredSkinToneIndex, highlightedEmojiIndex = 0, measureParentContainer = () => {}}: EmojiSuggestionsProps) {
+function EmojiSuggestions({
+    emojis,
+    onSelect,
+    prefix,
+    isEmojiPickerLarge,
+    preferredSkinToneIndex,
+    highlightedEmojiIndex = 0,
+    measureParentContainerAndReportCursor = () => {},
+}: EmojiSuggestionsProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     /**
@@ -85,7 +92,7 @@ function EmojiSuggestions({emojis, onSelect, prefix, isEmojiPickerLarge, preferr
             onSelect={onSelect}
             isSuggestionPickerLarge={isEmojiPickerLarge}
             accessibilityLabelExtractor={keyExtractor}
-            measureParentContainer={measureParentContainer}
+            measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
         />
     );
 }
