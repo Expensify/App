@@ -1,7 +1,7 @@
 import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,22 +16,18 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import Overlay from './Overlay';
 
-type OnboardingModalNavigatorProps = {
-    /** Current onboarding completion status */
-    hasCompletedGuidedSetupFlow: boolean;
-};
-
 const Stack = createStackNavigator<OnboardingModalNavigatorParamList>();
 
-function OnboardingModalNavigator({hasCompletedGuidedSetupFlow}: OnboardingModalNavigatorProps) {
+function OnboardingModalNavigator() {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useOnboardingLayout();
+    const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: (onboarding) => onboarding?.hasCompletedGuidedSetupFlow ?? true});
 
     if (hasCompletedGuidedSetupFlow) {
         Navigation.goBack();
         Report.navigateToConciergeChat();
         // eslint-disable-next-line react/jsx-no-useless-fragment
-        return <></>;
+        return null;
     }
 
     return (
@@ -61,9 +57,4 @@ function OnboardingModalNavigator({hasCompletedGuidedSetupFlow}: OnboardingModal
 
 OnboardingModalNavigator.displayName = 'OnboardingModalNavigator';
 
-export default withOnyx<OnboardingModalNavigatorProps, OnboardingModalNavigatorProps>({
-    hasCompletedGuidedSetupFlow: {
-        key: ONYXKEYS.NVP_ONBOARDING,
-        selector: (onboarding) => onboarding?.hasCompletedGuidedSetupFlow ?? true,
-    },
-})(OnboardingModalNavigator);
+export default OnboardingModalNavigator;
