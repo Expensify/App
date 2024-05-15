@@ -30,15 +30,15 @@ function Template(args: PromotedActionsBarProps) {
 
 const promotedActions = [
     {
-        key: 'pin',
-        icon: Expensicons.Pin,
-        text: 'Pin',
-        onSelected: () => {},
-    },
-    {
         key: 'join',
         icon: Expensicons.CommentBubbles,
         text: 'Join',
+        onSelected: () => {},
+    },
+    {
+        key: 'pin',
+        icon: Expensicons.Pin,
+        text: 'Pin',
         onSelected: () => {},
     },
     {
