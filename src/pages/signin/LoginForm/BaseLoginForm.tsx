@@ -2,7 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import Str from 'expensify-common/lib/str';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
@@ -35,6 +35,8 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CloseAccountForm} from '@src/types/form';
 import type {Account, Credentials} from '@src/types/onyx';
+import htmlDivElementRef from '@src/types/utils/htmlDivElementRef';
+import viewRef from '@src/types/utils/viewRef';
 import type LoginFormProps from './types';
 import type {InputHandle} from './types';
 
@@ -216,6 +218,13 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
     const serverErrorText = useMemo(() => (account ? ErrorUtils.getLatestErrorMessage(account) : ''), [account]);
     const shouldShowServerError = !!serverErrorText && !formError;
 
+    const submitContainerRef = useRef<View | HTMLDivElement>(null);
+    const handleFocus = useCallback(() => {
+        InteractionManager.runAfterInteractions(() => {
+            htmlDivElementRef(submitContainerRef).current?.scrollIntoView?.({behavior: 'smooth', block: 'end'});
+        });
+    }, []);
+
     return (
         <>
             <View
@@ -250,6 +259,7 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
                                   }, 500)
                             : undefined
                     }
+                    onFocus={handleFocus}
                     onChangeText={onTextInput}
                     onSubmitEditing={validateAndSubmitForm}
                     autoCapitalize="none"
@@ -273,7 +283,10 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
                 // We need to unmount the submit button when the component is not visible so that the Enter button
                 // key handler gets unsubscribed
                 isVisible && (
-                    <View style={[shouldShowServerError ? {} : styles.mt5]}>
+                    <View
+                        style={[shouldShowServerError ? {} : styles.mt5]}
+                        ref={viewRef(submitContainerRef)}
+                    >
                         <FormAlertWithSubmitButton
                             buttonText={translate('common.continue')}
                             isLoading={account?.isLoading && account?.loadingForm === CONST.FORMS.LOGIN_FORM}
