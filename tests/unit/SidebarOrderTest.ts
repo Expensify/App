@@ -14,6 +14,7 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 jest.mock('@libs/Permissions');
 jest.mock('@hooks/usePermissions.ts');
 jest.mock('@components/Icon/Expensicons');
+jest.mock('@src/hooks/useActiveWorkspaceFromNavigationState');
 
 const ONYXKEYS = {
     PERSONAL_DETAILS_LIST: 'personalDetailsList',
@@ -862,10 +863,10 @@ describe('Sidebar', () => {
         it('alphabetizes chats', () => {
             LHNTestUtils.getDefaultRenderedSidebarLinks();
 
-            const report1 = LHNTestUtils.getFakeReport([1, 2], 3, true);
-            const report2 = LHNTestUtils.getFakeReport([3, 4], 2, true);
-            const report3 = LHNTestUtils.getFakeReport([5, 6], 1, true);
-            const report4 = LHNTestUtils.getFakeReport([7, 8], 0, true);
+            const report1 = {...LHNTestUtils.getFakeReport([1, 2], 3, true), lastMessageText: 'test'};
+            const report2 = {...LHNTestUtils.getFakeReport([3, 4], 2, true), lastMessageText: 'test'};
+            const report3 = {...LHNTestUtils.getFakeReport([5, 6], 1, true), lastMessageText: 'test'};
+            const report4 = {...LHNTestUtils.getFakeReport([7, 8], 0, true), lastMessageText: 'test'};
 
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
@@ -919,9 +920,13 @@ describe('Sidebar', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                lastMessageText: 'test',
             };
-            const report2 = LHNTestUtils.getFakeReport([3, 4], 2, true);
-            const report3 = LHNTestUtils.getFakeReport([5, 6], 1, true);
+            const report2 = {
+                ...LHNTestUtils.getFakeReport([3, 4], 2, true),
+                lastMessageText: 'test',
+            };
+            const report3 = {...LHNTestUtils.getFakeReport([5, 6], 1, true), lastMessageText: 'test'};
 
             // Given the user is in all betas
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
