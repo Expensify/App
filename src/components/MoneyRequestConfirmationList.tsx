@@ -375,7 +375,7 @@ function MoneyRequestConfirmationList({
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount));
 
         if (transaction?.taxAmount && previousTransactionAmount === transaction?.amount && previousTransactionCurrency === transaction?.currency) {
-            return IOU.setMoneyRequestTaxAmount(transaction?.transactionID, transaction?.taxAmount, true);
+            return IOU.setMoneyRequestTaxAmount(transactionID, transaction?.taxAmount ?? 0, true);
         }
 
         IOU.setMoneyRequestTaxAmount(transactionID, amountInSmallestCurrencyUnits, true);
@@ -599,7 +599,7 @@ function MoneyRequestConfirmationList({
             const formattedSelectedParticipants = selectedParticipants.map((participant) => ({
                 ...participant,
                 isSelected: false,
-                isDisabled: !participant.isPolicyExpenseChat && !participant.isSelfDM && ReportUtils.isOptimisticPersonalDetail(participant.accountID ?? -1),
+                isDisabled: !participant.isInvoiceRoom && !participant.isPolicyExpenseChat && !participant.isSelfDM && ReportUtils.isOptimisticPersonalDetail(participant.accountID ?? -1),
             }));
             options.push({
                 title: translate('common.to'),
@@ -849,7 +849,7 @@ function MoneyRequestConfirmationList({
                     titleStyle={styles.moneyRequestConfirmationAmount}
                     disabled={didConfirm}
                     brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transaction ?? null) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    error={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transaction ?? null) ? translate('common.error.enterAmount') : ''}
+                    errorText={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transaction ?? null) ? translate('common.error.enterAmount') : ''}
                 />
             ),
             shouldShow: shouldShowSmartScanFields,
@@ -945,8 +945,8 @@ function MoneyRequestConfirmationList({
                     disabled={didConfirm}
                     interactive={!isReadOnly}
                     brickRoadIndicator={shouldDisplayMerchantError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    error={shouldDisplayMerchantError ? translate('common.error.fieldRequired') : ''}
-                    rightLabel={isMerchantRequired ? translate('common.required') : ''}
+                    errorText={shouldDisplayMerchantError ? translate('common.error.fieldRequired') : ''}
+                    rightLabel={isMerchantRequired && !shouldDisplayMerchantError ? translate('common.required') : ''}
                 />
             ),
             shouldShow: shouldShowMerchant,
@@ -968,7 +968,7 @@ function MoneyRequestConfirmationList({
                     disabled={didConfirm}
                     interactive={!isReadOnly}
                     brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    error={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transaction) ? translate('common.error.enterDate') : ''}
+                    errorText={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transaction) ? translate('common.error.enterDate') : ''}
                 />
             ),
             shouldShow: shouldShowDate,
@@ -1148,7 +1148,7 @@ function MoneyRequestConfirmationList({
                         style={styles.moneyRequestMenuItem}
                         labelStyle={styles.mt2}
                         titleStyle={styles.flex1}
-                        disabled={didConfirm || !canUpdateSenderWorkspace}
+                        disabled={didConfirm}
                     />
                 )}
                 {isDistanceRequest && (
