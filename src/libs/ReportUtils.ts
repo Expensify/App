@@ -3596,8 +3596,8 @@ function buildOptimisticIOUReport(payeeAccountID: number, payerAccountID: number
     const payerEmail = 'login' in personalDetails ? personalDetails.login : '';
 
     const participants: Participants = {
-        [payeeAccountID]: {hidden: false},
-        [payerAccountID]: {hidden: false},
+        [payeeAccountID]: {hidden: true},
+        [payerAccountID]: {hidden: true},
     };
 
     return {
