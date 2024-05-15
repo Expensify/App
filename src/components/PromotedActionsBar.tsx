@@ -5,7 +5,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as HeaderUtils from '@libs/HeaderUtils';
 import * as Report from '@userActions/Report';
-import * as Session from '@userActions/Session';
 import type {Report as OnyxReportType} from '@src/types/onyx';
 import Button from './Button';
 import ConfirmModal from './ConfirmModal';
@@ -136,3 +135,4 @@ PromotedActionsBar.displayName = 'PromotedActionsBar';
 export default PromotedActionsBar;
 
 export {usePromotedActions};
+export type {PromotedActionsBarProps, PromotedAction};
