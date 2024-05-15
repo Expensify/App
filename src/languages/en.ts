@@ -334,6 +334,9 @@ export default {
         action: 'Action',
         expenses: 'Expenses',
         tax: 'Tax',
+        shared: 'Shared',
+        drafts: 'Drafts',
+        finished: 'Finished',
     },
     location: {
         useCurrent: 'Use current location',

@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import { View } from 'react-native';
 import MenuItem from '@components/MenuItem';
 import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -9,9 +9,11 @@ import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
-import type {Route} from '@src/ROUTES';
+import type { Route } from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
+import SearchFiltersNarrow from './SearchFiltersNarrow';
+
 
 type SearchFiltersProps = {
     query: string;
@@ -37,13 +39,34 @@ function SearchFilters({query}: SearchFiltersProps) {
             icon: Expensicons.Receipt,
             route: ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.ALL),
         },
+        {
+            title: translate('common.shared'),
+            query: CONST.TAB_SEARCH.SHARED,
+            icon: Expensicons.Send,
+            route: ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.SHARED),
+        },
+        {
+            title: translate('common.drafts'),
+            query: CONST.TAB_SEARCH.DRAFTS,
+            icon: Expensicons.Pencil,
+            route: ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.DRAFTS),
+        },
+        {
+            title: translate('common.finished'),
+            query: CONST.TAB_SEARCH.FINISHED,
+            icon: Expensicons.Checkmark,
+            route: ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.FINISHED),
+        },
     ];
     const activeItemIndex = filterItems.findIndex((item) => item.query === query);
 
-    // We're not showing the filters on mobile yet since there's only one search option.
-    // We'll introduce the filters as part of https://github.com/Expensify/App/issues/39878
     if (isSmallScreenWidth) {
-        return;
+        return (
+            <SearchFiltersNarrow
+                filterItems={filterItems}
+                activeItemIndex={activeItemIndex}
+            />
+        );
     }
 
     return (
