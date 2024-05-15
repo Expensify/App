@@ -774,6 +774,21 @@ function ReportActionItem({
         return <ReportActionItemGrouped wrapperStyle={isWhisper ? styles.pt1 : {}}>{content}</ReportActionItemGrouped>;
     };
 
+    console.log('action.actionName', action.actionName);
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.TRIPPREVIEW) {
+        console.log('Hello');
+        if (ReportUtils.isTripRoom(report)) {
+            return (
+                <OfflineWithFeedback pendingAction={action.pendingAction}>
+                    <TripDetailsView
+                        iouReportID={report.iouReportID}
+                        shouldShowHorizontalRule={!shouldHideThreadDividerLine}
+                    />
+                </OfflineWithFeedback>
+            );
+        }
+    }
+
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
         if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
             const isReversedTransaction = ReportActionsUtils.isReversedTransaction(parentReportAction);
@@ -842,17 +857,6 @@ function ReportActionItem({
                         {renderThreadDivider}
                     </View>
                 </View>
-            );
-        }
-
-        if (ReportUtils.isTripRoom(report)) {
-            return (
-                <OfflineWithFeedback pendingAction={action.pendingAction}>
-                    <TripDetailsView
-                        iouReportID={report.iouReportID}
-                        shouldShowHorizontalRule={!shouldHideThreadDividerLine}
-                    />
-                </OfflineWithFeedback>
             );
         }
 
