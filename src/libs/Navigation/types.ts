@@ -68,16 +68,11 @@ type CentralPaneNavigatorParamList = {
     [SCREENS.SETTINGS.SAVE_THE_WORLD]: undefined;
 };
 
-type WorkspaceSwitcherNavigatorParamList = {
-    [SCREENS.WORKSPACE_SWITCHER.ROOT]: undefined;
-};
-
 type BackToParams = {
     backTo?: Routes;
 };
 
 type SettingsNavigatorParamList = {
-    [SCREENS.SETTINGS.ROOT]: undefined;
     [SCREENS.SETTINGS.SHARE_CODE]: undefined;
     [SCREENS.SETTINGS.PROFILE.ROOT]: undefined;
     [SCREENS.SETTINGS.PROFILE.PRONOUNS]: undefined;
@@ -403,10 +398,6 @@ type NewChatNavigatorParamList = {
     };
 };
 
-type ChatFinderNavigatorParamList = {
-    [SCREENS.CHAT_FINDER_ROOT]: undefined;
-};
-
 type DetailsNavigatorParamList = {
     [SCREENS.DETAILS_ROOT]: {
         login: string;
@@ -719,8 +710,8 @@ type PrivateNotesNavigatorParamList = {
 };
 
 type LeftModalNavigatorParamList = {
-    [SCREENS.LEFT_MODAL.CHAT_FINDER]: NavigatorScreenParams<ChatFinderNavigatorParamList>;
-    [SCREENS.LEFT_MODAL.WORKSPACE_SWITCHER]: NavigatorScreenParams<WorkspaceSwitcherNavigatorParamList>;
+    [SCREENS.LEFT_MODAL.CHAT_FINDER]: undefined;
+    [SCREENS.LEFT_MODAL.WORKSPACE_SWITCHER]: undefined;
 };
 
 type RightModalNavigatorParamList = {
@@ -758,7 +749,10 @@ type TravelNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: NavigatorScreenParams<SearchReportParamList>;
 };
 
-type WorkspacesCentralPaneNavigatorParamList = {
+type FullScreenNavigatorParamList = {
+    [SCREENS.WORKSPACE.INITIAL]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.PROFILE]: {
         policyID: string;
     };
@@ -823,13 +817,6 @@ type WorkspacesCentralPaneNavigatorParamList = {
     };
 };
 
-type FullScreenNavigatorParamList = {
-    [SCREENS.WORKSPACE.INITIAL]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACES_CENTRAL_PANE]: NavigatorScreenParams<WorkspacesCentralPaneNavigatorParamList>;
-};
-
 type OnboardingModalNavigatorParamList = {
     [SCREENS.ONBOARDING_MODAL.ONBOARDING]: undefined;
     [SCREENS.ONBOARDING.PERSONAL_DETAILS]: undefined;
@@ -842,9 +829,9 @@ type WelcomeVideoModalNavigatorParamList = {
 };
 
 type BottomTabNavigatorParamList = {
-    [SCREENS.HOME]: undefined;
-    [SCREENS.SEARCH.BOTTOM_TAB]: undefined;
-    [SCREENS.SETTINGS.ROOT]: undefined;
+    [SCREENS.HOME]: {policyID?: string};
+    [SCREENS.SEARCH.BOTTOM_TAB]: {policyID?: string};
+    [SCREENS.SETTINGS.ROOT]: {policyID?: string};
 };
 
 type SharedScreensParamList = {
@@ -920,13 +907,13 @@ type SearchReportParamList = {
     };
 };
 
-type RootStackParamList = PublicScreensParamList & AuthScreensParamList & ChatFinderNavigatorParamList;
+type RootStackParamList = PublicScreensParamList & AuthScreensParamList & LeftModalNavigatorParamList;
 
 type BottomTabName = keyof BottomTabNavigatorParamList;
 
 type CentralPaneName = keyof CentralPaneNavigatorParamList;
 
-type FullScreenName = keyof WorkspacesCentralPaneNavigatorParamList;
+type FullScreenName = keyof FullScreenNavigatorParamList;
 
 type SwitchPolicyIDParams = {
     policyID?: string;
@@ -942,7 +929,6 @@ export type {
     BottomTabNavigatorParamList,
     CentralPaneName,
     CentralPaneNavigatorParamList,
-    ChatFinderNavigatorParamList,
     DetailsNavigatorParamList,
     EditRequestNavigatorParamList,
     EnablePaymentsNavigatorParamList,
@@ -984,7 +970,5 @@ export type {
     TeachersUniteNavigatorParamList,
     WalletStatementNavigatorParamList,
     WelcomeVideoModalNavigatorParamList,
-    WorkspaceSwitcherNavigatorParamList,
-    WorkspacesCentralPaneNavigatorParamList,
     SearchReportParamList,
 };
