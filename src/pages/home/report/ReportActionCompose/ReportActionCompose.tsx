@@ -176,10 +176,12 @@ function ReportActionCompose({
 
     const suggestionsRef = useRef<SuggestionsRef>(null);
     const composerRef = useRef<ComposerRef>(null);
-
     const reportParticipantIDs = useMemo(
-        () => report?.participantAccountIDs?.filter((accountID) => accountID !== currentUserPersonalDetails.accountID),
-        [currentUserPersonalDetails.accountID, report],
+        () =>
+            Object.keys(report?.participants ?? {})
+                .map(Number)
+                .filter((accountID) => accountID !== currentUserPersonalDetails.accountID),
+        [currentUserPersonalDetails.accountID, report?.participants],
     );
 
     const shouldShowReportRecipientLocalTime = useMemo(
@@ -187,7 +189,7 @@ function ReportActionCompose({
         [personalDetails, report, currentUserPersonalDetails.accountID, isComposerFullSize],
     );
 
-    const includesConcierge = useMemo(() => ReportUtils.chatIncludesConcierge({participantAccountIDs: report?.participantAccountIDs}), [report?.participantAccountIDs]);
+    const includesConcierge = useMemo(() => ReportUtils.chatIncludesConcierge({participants: report?.participants}), [report?.participants]);
     const userBlockedFromConcierge = useMemo(() => User.isBlockedFromConcierge(blockedFromConcierge), [blockedFromConcierge]);
     const isBlockedFromConcierge = useMemo(() => includesConcierge && userBlockedFromConcierge, [includesConcierge, userBlockedFromConcierge]);
 
