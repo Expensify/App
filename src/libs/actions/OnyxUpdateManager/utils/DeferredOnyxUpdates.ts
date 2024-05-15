@@ -25,20 +25,24 @@ function setMissingOnyxUpdatesQueryPromise(promise: Promise<Response | Response[
     missingOnyxUpdatesQueryPromise = promise;
 }
 
+type GetDeferredOnyxUpdatesOptiosn = {
+    minUpdateID?: number;
+};
+
 /**
  * Returns the deferred updates that are currently in the queue
  * @param minUpdateID An optional minimum update ID to filter the deferred updates by
  * @returns
  */
-function getUpdates(minUpdateID?: number) {
-    if (minUpdateID == null) {
+function getUpdates(options?: GetDeferredOnyxUpdatesOptiosn) {
+    if (options?.minUpdateID == null) {
         return deferredUpdates;
     }
 
     return Object.entries(deferredUpdates).reduce<DeferredUpdatesDictionary>(
         (accUpdates, [lastUpdateID, update]) => ({
             ...accUpdates,
-            ...(Number(lastUpdateID) > minUpdateID ? {[Number(lastUpdateID)]: update} : {}),
+            ...(Number(lastUpdateID) > (options.minUpdateID ?? 0) ? {[Number(lastUpdateID)]: update} : {}),
         }),
         {},
     );
@@ -64,7 +68,6 @@ function process() {
 }
 
 type EnqueueDeferredOnyxUpdatesOptions = {
-    shouldProcessUpdates?: boolean;
     shouldPauseSequentialQueue?: boolean;
 };
 
@@ -72,8 +75,7 @@ type EnqueueDeferredOnyxUpdatesOptions = {
  * Allows adding onyx updates to the deferred updates queue manually.
  * By default, this will automatically process the updates. Setting "shouldProcessUpdates" to false will prevent this.
  * @param updates The updates that should be applied (e.g. updates from push notifications)
- * @param shouldProcessUpdates Whether the updates should be processed immediately
- * @returns
+ * @param options additional flags to change the behaviour of this function
  */
 function enqueue(updates: OnyxUpdatesFromServer | DeferredUpdatesDictionary, options?: EnqueueDeferredOnyxUpdatesOptions) {
     if (options?.shouldPauseSequentialQueue ?? true) {
@@ -93,10 +95,15 @@ function enqueue(updates: OnyxUpdatesFromServer | DeferredUpdatesDictionary, opt
             deferredUpdates[lastUpdateID] = update;
         });
     }
+}
 
-    if (options?.shouldProcessUpdates ?? true) {
-        process();
-    }
+/**
+ * Adds updates to the deferred updates queue and processes them immediately
+ * @param updates The updates that should be applied (e.g. updates from push notifications)
+ */
+function enqueueAndProcess(updates: OnyxUpdatesFromServer | DeferredUpdatesDictionary, options?: EnqueueDeferredOnyxUpdatesOptions) {
+    enqueue(updates, options);
+    process();
 }
 
 type ClearDeferredOnyxUpdatesOptions = {
@@ -106,7 +113,7 @@ type ClearDeferredOnyxUpdatesOptions = {
 
 /**
  * Clears the deferred updates queue and unpauses the SequentialQueue
- * @param shouldUnpauseSequentialQueue Whether the SequentialQueue should be unpaused after clearing the deferred updates
+ * @param options additional flags to change the behaviour of this function
  */
 function clear(options?: ClearDeferredOnyxUpdatesOptions) {
     deferredUpdates = {};
@@ -121,6 +128,6 @@ function clear(options?: ClearDeferredOnyxUpdatesOptions) {
     }
 }
 
-const DeferredOnyxUpdates = {getMissingOnyxUpdatesQueryPromise, setMissingOnyxUpdatesQueryPromise, getUpdates, isEmpty, enqueue, clear, process};
+const DeferredOnyxUpdates = {getMissingOnyxUpdatesQueryPromise, setMissingOnyxUpdatesQueryPromise, getUpdates, isEmpty, process, enqueue, enqueueAndProcess, clear};
 
 export default DeferredOnyxUpdates;

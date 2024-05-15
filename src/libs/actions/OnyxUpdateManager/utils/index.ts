@@ -91,7 +91,7 @@ function validateAndApplyDeferredUpdates(clientLastUpdateID?: number, previousPa
 
     // We only want to apply deferred updates that are newer than the last update that was applied to the client.
     // At this point, the missing updates from "GetMissingOnyxUpdates" have been applied already, so we can safely filter out.
-    const pendingDeferredUpdates = DeferredOnyxUpdates.getUpdates(lastUpdateIDFromClient);
+    const pendingDeferredUpdates = DeferredOnyxUpdates.getUpdates({minUpdateID: lastUpdateIDFromClient});
 
     // If there are no remaining deferred updates after filtering out outdated ones,
     // we can just unpause the queue and return
@@ -117,7 +117,7 @@ function validateAndApplyDeferredUpdates(clientLastUpdateID?: number, previousPa
 
                 const newLastUpdateIDFromClient = clientLastUpdateID ?? lastUpdateIDAppliedToClient ?? 0;
 
-                DeferredOnyxUpdates.enqueue(updatesAfterGaps, {shouldProcessUpdates: false, shouldPauseSequentialQueue: false});
+                DeferredOnyxUpdates.enqueue(updatesAfterGaps, {shouldPauseSequentialQueue: false});
 
                 // If lastUpdateIDAppliedToClient got updated in the meantime, we will just retrigger the validation and application of the current deferred updates.
                 if (latestMissingUpdateID <= newLastUpdateIDFromClient) {

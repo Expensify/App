@@ -120,7 +120,7 @@ function handleOnyxUpdateGap(onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFromSer
         const areDeferredUpdatesQueued = !DeferredOnyxUpdates.isEmpty();
 
         // Add the new update to the deferred updates
-        DeferredOnyxUpdates.enqueue(updateParams);
+        DeferredOnyxUpdates.enqueue(updateParams, {shouldPauseSequentialQueue: false});
 
         // If there are deferred updates already, we don't need to fetch the missing updates again.
         if (areDeferredUpdatesQueued) {
