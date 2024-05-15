@@ -73,7 +73,6 @@ type EnqueueDeferredOnyxUpdatesOptions = {
 
 /**
  * Allows adding onyx updates to the deferred updates queue manually.
- * By default, this will automatically process the updates. Setting "shouldProcessUpdates" to false will prevent this.
  * @param updates The updates that should be applied (e.g. updates from push notifications)
  * @param options additional flags to change the behaviour of this function
  */
