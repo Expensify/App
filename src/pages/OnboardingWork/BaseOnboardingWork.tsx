@@ -46,7 +46,7 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
                 Welcome.setOnboardingAdminsChatReportID(adminsChatReportID);
                 Welcome.setOnboardingPolicyID(policyID);
             } else {
-                Policy.updateGeneralSettings(onboardingPolicyID as string, work);
+                Policy.updateGeneralSettings(onboardingPolicyID, work);
             }
 
             Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS);
