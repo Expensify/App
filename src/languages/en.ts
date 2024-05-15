@@ -647,6 +647,9 @@ export default {
         canceled: 'Canceled',
         posted: 'Posted',
         deleteReceipt: 'Delete receipt',
+        pendingMatchWithCreditCard: 'Receipt pending match with credit card.',
+        pendingMatchWithCreditCardDescription: 'Receipt pending match with credit card. Mark as cash to ignore and request payment.',
+        routePending: 'Route pending...',
         receiptScanning: 'Receipt scanning...',
         receiptScanInProgress: 'Receipt scan in progress.',
         receiptScanInProgressDescription: 'Receipt scan in progress. Check back later or enter the details now.',
@@ -1932,6 +1935,8 @@ export default {
             locationsDescription: 'Choose whether to import locations, and see where locations are displayed.',
             taxesDescription: 'Choose whether to import tax rates and tax defaults from your accounting integration.',
             locationsAdditionalDescription: `QuickBooks Online does not support adding a location to vendor bills or checks. Update your export preference to journal entry if you'd like to import locations as tags.`,
+            taxesJournalEntrySwitchNote:
+                'Note: QuickBooks Online does not support a field for tax on Journal Entry exports. Change your export preference to Vendor Bill or Check to import taxes.',
             export: 'Export',
             exportAs: 'Export as',
             exportDescription: 'Configure how data in Expensify gets exported to QuickBooks Online.',
