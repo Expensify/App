@@ -29,6 +29,7 @@ import type {
     Report,
     ReportAction,
     ReportMetadata,
+    ReportNameValuePairs,
     Session,
     Task,
     Transaction,
@@ -1223,7 +1224,11 @@ function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>): boolean
 /**
  * Whether the provided report is an archived room
  */
-function isArchivedRoom(report: OnyxEntry<Report> | EmptyObject): boolean {
+function isArchivedRoom(report: OnyxEntry<Report> | EmptyObject, reportNameValuePairs?: OnyxEntry<ReportNameValuePairs> | EmptyObject): boolean {
+    if (reportNameValuePairs) {
+        return reportNameValuePairs.isArchived;
+    }
+
     return report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED && report?.stateNum === CONST.REPORT.STATE_NUM.APPROVED;
 }
 
@@ -2982,7 +2987,8 @@ function getModifiedExpenseOriginalMessage(
 
     // The amount is always a combination of the currency and the number value so when one changes we need to store both
     // to match how we handle the modified expense action in oldDot
-    if ('amount' in transactionChanges || 'currency' in transactionChanges) {
+    const didAmountOrCurrencyChange = 'amount' in transactionChanges || 'currency' in transactionChanges;
+    if (didAmountOrCurrencyChange) {
         originalMessage.oldAmount = TransactionUtils.getAmount(oldTransaction, isFromExpenseReport);
         originalMessage.amount = transactionChanges?.amount ?? transactionChanges.oldAmount;
         originalMessage.oldCurrency = TransactionUtils.getCurrency(oldTransaction);
@@ -2999,17 +3005,20 @@ function getModifiedExpenseOriginalMessage(
         originalMessage.tag = transactionChanges?.tag;
     }
 
+    // We only want to display a tax rate update system message when tax rate is updated by user.
+    // Tax rate can change as a result of currency update. In such cases, we want to skip displaying a system message, as discussed.
+    const didTaxCodeChange = 'taxCode' in transactionChanges;
+    if (didTaxCodeChange && !didAmountOrCurrencyChange) {
+        originalMessage.oldTaxRate = policy?.taxRates?.taxes[TransactionUtils.getTaxCode(oldTransaction)]?.value;
+        originalMessage.taxRate = transactionChanges?.taxCode && policy?.taxRates?.taxes[transactionChanges?.taxCode].value;
+    }
+
     // We only want to display a tax amount update system message when tax amount is updated by user.
     // Tax amount can change as a result of amount, currency or tax rate update. In such cases, we want to skip displaying a system message, as discussed.
-    if ('taxAmount' in transactionChanges && !('amount' in transactionChanges || 'currency' in transactionChanges || 'taxCode' in transactionChanges)) {
+    if ('taxAmount' in transactionChanges && !(didAmountOrCurrencyChange || didTaxCodeChange)) {
         originalMessage.oldTaxAmount = TransactionUtils.getTaxAmount(oldTransaction, isFromExpenseReport);
         originalMessage.taxAmount = transactionChanges?.taxAmount;
         originalMessage.currency = TransactionUtils.getCurrency(oldTransaction);
-    }
-
-    if ('taxCode' in transactionChanges) {
-        originalMessage.oldTaxRate = policy?.taxRates?.taxes[TransactionUtils.getTaxCode(oldTransaction)]?.value;
-        originalMessage.taxRate = transactionChanges?.taxCode && policy?.taxRates?.taxes[transactionChanges?.taxCode].value;
     }
 
     if ('billable' in transactionChanges) {
@@ -5766,7 +5775,7 @@ function isMoneyRequestReportPendingDeletion(report: OnyxEntry<Report> | EmptyOb
     return parentReportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
-function canUserPerformWriteAction(report: OnyxEntry<Report>) {
+function canUserPerformWriteAction(report: OnyxEntry<Report>, reportNameValuePairs?: OnyxEntry<ReportNameValuePairs>) {
     const reportErrors = getAddWorkspaceRoomOrChatReportErrors(report);
 
     // If the expense report is marked for deletion, let us prevent any further write action.
@@ -5774,7 +5783,7 @@ function canUserPerformWriteAction(report: OnyxEntry<Report>) {
         return false;
     }
 
-    return !isArchivedRoom(report) && isEmptyObject(reportErrors) && report && isAllowedToComment(report) && !isAnonymousUser && canWriteInReport(report);
+    return !isArchivedRoom(report, reportNameValuePairs) && isEmptyObject(reportErrors) && report && isAllowedToComment(report) && !isAnonymousUser && canWriteInReport(report);
 }
 
 /**
@@ -6315,7 +6324,7 @@ function getAllAncestorReportActions(report: Report | null | undefined): Ancesto
         const parentReport = getReport(parentReportID);
         const parentReportAction = ReportActionsUtils.getReportAction(parentReportID, parentReportActionID ?? '0');
 
-        if (!parentReportAction || ReportActionsUtils.isTransactionThread(parentReportAction)) {
+        if (!parentReportAction || ReportActionsUtils.isTransactionThread(parentReportAction) || ReportActionsUtils.isReportPreviewAction(parentReportAction)) {
             break;
         }
 
@@ -6359,7 +6368,10 @@ function getAllAncestorReportActionIDs(report: Report | null | undefined, includ
         const parentReport = getReport(parentReportID);
         const parentReportAction = ReportActionsUtils.getReportAction(parentReportID, parentReportActionID ?? '0');
 
-        if (!parentReportAction || (!includeTransactionThread && ReportActionsUtils.isTransactionThread(parentReportAction))) {
+        if (
+            !parentReportAction ||
+            (!includeTransactionThread && (ReportActionsUtils.isTransactionThread(parentReportAction) || ReportActionsUtils.isReportPreviewAction(parentReportAction)))
+        ) {
             break;
         }
 
@@ -6566,6 +6578,27 @@ function getReportActionActorAccountID(reportAction: OnyxEntry<ReportAction>, io
     }
 }
 
+function createDraftWorkspaceAndNavigateToConfirmationScreen(transactionID: string, actionName: IOUAction): void {
+    const isCategorizing = actionName === CONST.IOU.ACTION.CATEGORIZE;
+    const {expenseChatReportID, policyID, policyName} = PolicyActions.createDraftWorkspace();
+    IOU.setMoneyRequestParticipants(transactionID, [
+        {
+            selected: true,
+            accountID: 0,
+            isPolicyExpenseChat: true,
+            reportID: expenseChatReportID,
+            policyID,
+            searchText: policyName,
+        },
+    ]);
+    const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID);
+    if (isCategorizing) {
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID, iouConfirmationPageRoute));
+    } else {
+        Navigation.navigate(iouConfirmationPageRoute);
+    }
+}
+
 function createDraftTransactionAndNavigateToParticipantSelector(transactionID: string, reportID: string, actionName: IOUAction, reportActionID: string): void {
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? ({} as Transaction);
     const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? ([] as ReportAction[]);
@@ -6601,25 +6634,7 @@ function createDraftTransactionAndNavigateToParticipantSelector(transactionID: s
         return;
     }
 
-    const {expenseChatReportID, policyID, policyName} = PolicyActions.createDraftWorkspace();
-    const isCategorizing = actionName === CONST.IOU.ACTION.CATEGORIZE;
-
-    IOU.setMoneyRequestParticipants(transactionID, [
-        {
-            selected: true,
-            accountID: 0,
-            isPolicyExpenseChat: true,
-            reportID: expenseChatReportID,
-            policyID,
-            searchText: policyName,
-        },
-    ]);
-    const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID);
-    if (isCategorizing) {
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID, iouConfirmationPageRoute));
-    } else {
-        Navigation.navigate(iouConfirmationPageRoute);
-    }
+    return createDraftWorkspaceAndNavigateToConfirmationScreen(transactionID, actionName);
 }
 
 /**
@@ -6920,6 +6935,7 @@ export {
     shouldShowMerchantColumn,
     isCurrentUserInvoiceReceiver,
     isDraftReport,
+    createDraftWorkspaceAndNavigateToConfirmationScreen,
 };
 
 export type {

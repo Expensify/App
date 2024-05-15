@@ -2887,7 +2887,7 @@ type UpdateMoneyRequestTaxRateParams = {
     transactionID: string;
     optimisticReportActionID: string;
     taxCode: string;
-    taxAmount?: number;
+    taxAmount: number;
     policy: OnyxEntry<OnyxTypes.Policy>;
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>;
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
@@ -2897,7 +2897,7 @@ type UpdateMoneyRequestTaxRateParams = {
 function updateMoneyRequestTaxRate({transactionID, optimisticReportActionID, taxCode, taxAmount, policy, policyTagList, policyCategories}: UpdateMoneyRequestTaxRateParams) {
     const transactionChanges = {
         taxCode,
-        ...(taxAmount && {taxAmount}),
+        taxAmount,
     };
     const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, optimisticReportActionID, transactionChanges, policy, policyTagList, policyCategories, true);
     API.write('UpdateMoneyRequestTaxRate', params, onyxData);
@@ -5088,10 +5088,11 @@ type UpdateMoneyRequestAmountAndCurrencyParams = {
     transactionThreadReportID: string;
     currency: string;
     amount: number;
-    taxAmount?: number;
+    taxAmount: number;
     policy?: OnyxEntry<OnyxTypes.Policy>;
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>;
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
+    taxCode: string;
 };
 
 /** Updates the amount and currency fields of an expense */
@@ -5104,11 +5105,13 @@ function updateMoneyRequestAmountAndCurrency({
     policy,
     policyTagList,
     policyCategories,
+    taxCode,
 }: UpdateMoneyRequestAmountAndCurrencyParams) {
     const transactionChanges = {
         amount,
         currency,
-        ...(taxAmount && {taxAmount}),
+        taxCode,
+        taxAmount,
     };
     const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.parentReportID}`] ?? null;
