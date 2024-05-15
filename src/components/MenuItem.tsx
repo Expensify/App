@@ -32,6 +32,7 @@ import * as Expensicons from './Icon/Expensicons';
 import * as defaultWorkspaceAvatars from './Icon/WorkspaceDefaultAvatars';
 import {MenuItemGroupContext} from './MenuItemGroup';
 import MultipleAvatars from './MultipleAvatars';
+import type {PressableRef} from './Pressable/GenericPressable/types';
 import PressableWithSecondaryInteraction from './PressableWithSecondaryInteraction';
 import RenderHTML from './RenderHTML';
 import SelectCircle from './SelectCircle';
@@ -267,7 +268,7 @@ type MenuItemBaseProps = {
 
     /** Handles what to do when the item loose focus */
     onBlur?: () => void;
-    
+
     /** Optional account id if it's user avatar or policy id if it's workspace avatar */
     avatarID?: number | string;
 };
@@ -350,6 +351,7 @@ function MenuItem(
         onBlur,
         avatarID,
     }: MenuItemProps,
+    ref: PressableRef,
 ) {
     const theme = useTheme();
     const styles = useThemeStyles();
