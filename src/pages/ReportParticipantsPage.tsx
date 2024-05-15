@@ -264,7 +264,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
                     <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
                         shouldAlwaysShowDropdownMenu
                         pressOnEnter
-                        customText={translate('workspace.common.selected', {selectedNumber: selectedMembers.length})}
+                        customText={translate('workspace.common.selected', selectedMembers.length)}
                         buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                         onPress={() => null}
                         options={bulkActionsButtonOptions}

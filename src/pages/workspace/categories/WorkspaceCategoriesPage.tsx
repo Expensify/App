@@ -210,7 +210,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     shouldAlwaysShowDropdownMenu
                     pressOnEnter
                     buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                    customText={translate('workspace.common.selected', {selectedNumber: selectedCategoriesArray.length})}
+                    customText={translate('workspace.common.selected', selectedCategoriesArray.length)}
                     options={options}
                     isSplitButton={false}
                     style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}

@@ -651,13 +651,10 @@ export default {
         receiptStatusText: 'Solo tú puedes ver este recibo cuando se está escaneando. Vuelve más tarde o introduce los detalles ahora.',
         receiptScanningFailed: 'El escaneo de recibo ha fallado. Introduce los detalles manualmente.',
         transactionPendingText: 'La transacción tarda unos días en contabilizarse desde la fecha en que se utilizó la tarjeta.',
-        // expenseCount: ({count, scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) => ({
-        //     one: `${count} gasto${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}${pendingReceipts > 0 ? `, ${pendingReceipts} pendiente` : ''}`,
-        //     other: `${count} gastos${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}${pendingReceipts > 0 ? `, ${pendingReceipts} pendiente` : ''}`,
-        // }),
         expenseCount: (count: number, {scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) => ({
-                one: `${count} gasto${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}${pendingReceipts > 0 ? `, ${pendingReceipts} pendiente` : ''}`,
-                other: `${count} gastos${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}${pendingReceipts > 0 ? `, ${pendingReceipts} pendiente` : ''}`
+            zero: `${count} gasto${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}${pendingReceipts > 0 ? `, ${pendingReceipts} pendiente` : ''}`,
+            one: `${count} gasto${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}${pendingReceipts > 0 ? `, ${pendingReceipts} pendiente` : ''}`,
+            other: `${count} gastos${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}${pendingReceipts > 0 ? `, ${pendingReceipts} pendiente` : ''}`,
         }),
         deleteExpense: 'Eliminar gasto',
         deleteConfirmation: '¿Estás seguro de que quieres eliminar esta solicitud?',
@@ -1919,17 +1916,11 @@ export default {
             testTransactions: 'Transacciones de prueba',
             issueAndManageCards: 'Emitir y gestionar tarjetas',
             reconcileCards: 'Reconciliar tarjetas',
-            selected: ({selectedNumber}: CommonSelectedParams) => {
-                const pluralForm = esPluralRules.select(selectedNumber);
-                switch (pluralForm) {
-                    case 'one':
-                        return `${selectedNumber} seleccionado`;
-                    case 'other':
-                        return `${selectedNumber} seleccionados`;
-                    default:
-                        return `${selectedNumber} seleccionados`;
-                }
-            },
+            selected: (count: number) => ({
+                zero: `${count} seleccionados`,
+                one: `${count} seleccionado`,
+                other: `${count} seleccionados`,
+            }),
             settlementFrequency: 'Frecuencia de liquidación',
             deleteConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo?',
             unavailable: 'Espacio de trabajo no disponible',
@@ -2451,50 +2442,26 @@ export default {
             centrallyManage: 'Gestiona centralizadamente las tasas, elige si contabilizar en millas o kilómetros, y define una categoría por defecto',
             rate: 'Tasa',
             addRate: 'Agregar tasa',
-            deleteRates: ({count}: DistanceRateOperationsParams) => {
-                const pluralForm = esPluralRules.select(count);
-                switch (pluralForm) {
-                    case 'one':
-                        return `Eliminar ${count} tasa`;
-                    case 'other':
-                        return `Eliminar ${count} tasas`;
-                    default:
-                        return `Eliminar ${count} tasas`;
-                }
-            },
-            enableRates: ({count}: DistanceRateOperationsParams) => {
-                const pluralForm = esPluralRules.select(count);
-                switch (pluralForm) {
-                    case 'one':
-                        return `Activar ${count} tasa`;
-                    case 'other':
-                        return `Activar ${count} tasas`;
-                    default:
-                        return `Activar ${count} tasas`;
-                }
-            },
-            disableRates: ({count}: DistanceRateOperationsParams) => {
-                const pluralForm = esPluralRules.select(count);
-                switch (pluralForm) {
-                    case 'one':
-                        return `Desactivar ${count} tasa`;
-                    case 'other':
-                        return `Desactivar ${count} tasas`;
-                    default:
-                        return `Desactivar ${count} tasas`;
-                }
-            },
-            areYouSureDelete: ({count}: DistanceRateOperationsParams) => {
-                const pluralForm = esPluralRules.select(count);
-                switch (pluralForm) {
-                    case 'one':
-                        return `¿Estás seguro de que quieres eliminar esta ${count} tasa?`;
-                    case 'other':
-                        return `¿Estás seguro de que quieres eliminar estas ${count} tasas?`;
-                    default:
-                        return `¿Estás seguro de que quieres eliminar estas ${count} tasas?`;
-                }
-            },
+            deleteRates: (count: number) => ({
+                zero: `Eliminar ${count} tasas`,
+                one: `Eliminar ${count} tasa`,
+                other: `Eliminar ${count} tasas`,
+            }),
+            enableRates: (count: number) => ({
+                zero: `Activar ${count} tasas`,
+                one: `Activar ${count} tasa`,
+                other: `Activar ${count} tasas`,
+            }),
+            disableRates: (count: number) => ({
+                zero: `Desactivar ${count} tasas`,
+                one: `Desactivar ${count} tasa`,
+                other: `Desactivar ${count} tasas`,
+            }),
+            areYouSureDelete: (count: number) => ({
+                zero: `¿Estás seguro de que quieres eliminar estas ${count} tasas?`,
+                one: `¿Estás seguro de que quieres eliminar esta ${count} tasa?`,
+                other: `¿Estás seguro de que quieres eliminar estas ${count} tasas?`,
+            }),
             enableRate: 'Activar tasa',
             status: 'Estado',
             unit: 'Unidad',

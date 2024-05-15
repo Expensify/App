@@ -48,7 +48,12 @@ function init() {
 }
 
 type PluralFormValue = string | ((count: number) => string);
-type PhraseParameters<T> = T extends (count: number, ...args: infer A) => string ? [number, ...A] : [];
+type PhraseParameters<T> = T extends (count: number) => string
+    ? [number]
+    : T extends (...args: infer A) => unknown
+    ? [...A]
+    : [];
+
 type Phrase<TKey extends TranslationPaths> = TranslationFlatObject[TKey] extends (...args: infer A) => unknown ? (...args: A) => string : string;
 
 /**

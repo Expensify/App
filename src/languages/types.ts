@@ -255,7 +255,15 @@ type TaskCreatedActionParams = {title: string};
 
 /* Translation Object types */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type TranslationBaseValue = string | string[] | ((...args: any[]) => string) | ((count: number, ...args: any[]) => Record<Intl.LDMLPluralRule, string>);
+type PluralFormValue = {
+    zero?: string;
+    one?: string;
+    two?: string;
+    few?: string;
+    many?: string;
+    other: string;
+}
+type TranslationBaseValue = string | string[] | ((...args: any[]) => string | PluralFormValue);
 
 type TranslationBase = {[key: string]: TranslationBaseValue | TranslationBase};
 
