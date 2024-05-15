@@ -1650,8 +1650,8 @@ function getSendInvoiceInformation(
     const {amount = 0, currency = '', created = '', merchant = '', category = '', tag = '', taxCode = '', taxAmount = 0, billable, comment, participants} = transaction ?? {};
     const trimmedComment = (comment?.comment ?? '').trim();
     const senderWorkspaceID = participants?.find((participant) => participant?.isSender)?.policyID ?? '';
-    const receiverParticipant = participants?.find((participant) => participant?.accountID);
-    const receiverAccountID = receiverParticipant?.accountID ?? -1;
+    const receiverParticipant = participants?.find((participant) => participant?.accountID) ?? invoiceChatReport?.invoiceReceiver;
+    const receiverAccountID = receiverParticipant && 'accountID' in receiverParticipant && receiverParticipant.accountID ? receiverParticipant.accountID : -1;
     let receiver = ReportUtils.getPersonalDetailsForAccountID(receiverAccountID);
     let optimisticPersonalDetailListAction = {};
 
@@ -1704,11 +1704,12 @@ function getSendInvoiceInformation(
     // STEP 4: Add optimistic personal details for participant
     const shouldCreateOptimisticPersonalDetails = isNewChatReport && !allPersonalDetails[receiverAccountID];
     if (shouldCreateOptimisticPersonalDetails) {
+        const receiverLogin = receiverParticipant && 'login' in receiverParticipant && receiverParticipant.login ? receiverParticipant.login : '';
         receiver = {
             accountID: receiverAccountID,
             avatar: UserUtils.getDefaultAvatarURL(receiverAccountID),
-            displayName: LocalePhoneNumber.formatPhoneNumber(receiverParticipant?.login ?? ''),
-            login: receiverParticipant?.login,
+            displayName: LocalePhoneNumber.formatPhoneNumber(receiverLogin),
+            login: receiverLogin,
             isOptimisticPersonalDetail: true,
         };
 
@@ -6497,22 +6498,20 @@ function setMoneyRequestParticipantsFromReport(transactionID: string, report: On
 
     if (ReportUtils.isPolicyExpenseChat(chatReport) || shouldAddAsReport) {
         participants = [{accountID: 0, reportID: chatReport?.reportID, isPolicyExpenseChat: ReportUtils.isPolicyExpenseChat(chatReport), selected: true}];
+    } else if (ReportUtils.isInvoiceRoom(chatReport)) {
+        participants = [
+            {reportID: chatReport?.reportID, selected: true},
+            {
+                policyID: chatReport?.policyID,
+                isSender: true,
+                selected: false,
+            },
+        ];
     } else {
         const chatReportOtherParticipants = Object.keys(chatReport?.participants ?? {})
             .map(Number)
             .filter((accountID) => accountID !== currentUserAccountID);
         participants = chatReportOtherParticipants.map((accountID) => ({accountID, selected: true}));
-
-        if (ReportUtils.isInvoiceRoom(chatReport)) {
-            participants = [
-                ...participants,
-                {
-                    policyID: chatReport?.policyID,
-                    isSender: true,
-                    selected: false,
-                },
-            ];
-        }
     }
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants, participantsAutoAssigned: true});
