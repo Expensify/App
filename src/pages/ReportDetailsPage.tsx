@@ -233,6 +233,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         policy,
         activeChatMembers.length,
         session,
+        isRootGroupChat,
         leaveChat,
     ]);
 
