@@ -10,14 +10,17 @@ import type {
     TextInput,
     TextInputFocusEventData,
     TextInputKeyPressEventData,
+    TextInputScrollEventData,
     TextInputSelectionChangeEventData,
 } from 'react-native';
 import {DeviceEventEmitter, findNodeHandle, InteractionManager, NativeModules, View} from 'react-native';
+import {useFocusedInputHandler} from 'react-native-keyboard-controller';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import type {useAnimatedRef} from 'react-native-reanimated';
+import Reanimated, {typeuseAnimatedRef, useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
 import type {FileObject} from '@components/AttachmentModal';
+import type {MeasureParentContainerAndCursorCallback} from '@components/AutoCompleteSuggestions/types';
 import Composer from '@components/Composer';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
@@ -41,6 +44,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as SuggestionUtils from '@libs/SuggestionUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
+import getScrollPosition from '@pages/home/report/ReportActionCompose/getScrollPosition';
 import type {ComposerRef, SuggestionsRef} from '@pages/home/report/ReportActionCompose/ReportActionCompose';
 import SilentCommentUpdater from '@pages/home/report/ReportActionCompose/SilentCommentUpdater';
 import Suggestions from '@pages/home/report/ReportActionCompose/Suggestions';
@@ -266,6 +270,9 @@ function ComposerWithSuggestions(
     const isFocused = useIsFocused();
     const navigation = useNavigation();
     const emojisPresentBefore = useRef<Emoji[]>([]);
+    const mobileInputScrollPosition = useRef(0);
+    const position = useSharedValue({x: 0, y: 0});
+    const tag = useSharedValue(-1);
     const draftComment = getDraftComment(reportID) ?? '';
     const [value, setValue] = useState(() => {
         if (draftComment) {
@@ -294,12 +301,6 @@ function ComposerWithSuggestions(
     const insertedEmojisRef = useRef<Emoji[]>([]);
 
     const syncSelectionWithOnChangeTextRef = useRef<SyncSelection | null>(null);
-
-    const suggestions = suggestionsRef.current?.getSuggestions() ?? [];
-
-    const hasEnoughSpaceForLargeSuggestion = SuggestionUtils.hasEnoughSpaceForLargeSuggestionMenu(listHeight, composerHeight, suggestions?.length ?? 0);
-
-    const isAutoSuggestionPickerLarge = !isSmallScreenWidth || (isSmallScreenWidth && hasEnoughSpaceForLargeSuggestion);
 
     // The ref to check whether the comment saving is in progress
     const isCommentPendingSaved = useRef(false);
@@ -563,21 +564,26 @@ function ComposerWithSuggestions(
 
     const onSelectionChange = useCallback(
         (e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
-            if (textInputRef.current?.isFocused() && suggestionsRef.current?.onSelectionChange?.(e)) {
+            if (!textInputRef.current?.isFocused()) {
                 return;
             }
+            suggestionsRef.current?.onSelectionChange?.(e);
 
             setSelection(e.nativeEvent.selection);
         },
         [suggestionsRef],
     );
 
-    const hideSuggestionMenu = useCallback(() => {
-        if (!suggestionsRef.current || isScrollLikelyLayoutTriggered.current) {
-            return;
-        }
-        suggestionsRef.current.updateShouldShowSuggestionMenuToFalse(false);
-    }, [suggestionsRef, isScrollLikelyLayoutTriggered]);
+    const hideSuggestionMenu = useCallback(
+        (e: NativeSyntheticEvent<TextInputScrollEventData>) => {
+            mobileInputScrollPosition.current = e?.nativeEvent?.contentOffset?.y ?? 0;
+            if (!suggestionsRef.current || isScrollLikelyLayoutTriggered.current) {
+                return;
+            }
+            suggestionsRef.current.updateShouldShowSuggestionMenuToFalse(false);
+        },
+        [suggestionsRef, isScrollLikelyLayoutTriggered],
+    );
 
     const setShouldBlockSuggestionCalcToFalse = useCallback(() => {
         if (!suggestionsRef.current) {
@@ -733,6 +739,42 @@ function ComposerWithSuggestions(
         return isOnlyEmoji ? {lineHeight: variables.fontSizeOnlyEmojisHeight} : {};
     }, [value]);
 
+    useEffect(() => {
+        tag.value = findNodeHandle(textInputRef.current) ?? -1;
+    }, []);
+    useFocusedInputHandler(
+        {
+            onSelectionChange: (event) => {
+                'worklet';
+
+                if (event.target === tag.value) {
+                    position.value = {
+                        x: event.selection.end.x,
+                        y: event.selection.end.y,
+                    };
+                }
+            },
+        },
+        [],
+    );
+
+    const measureParentContainerAndReportCursor = useCallback(
+        (callback: MeasureParentContainerAndCursorCallback) => {
+            const {scrollValue} = getScrollPosition({mobileInputScrollPosition, textInputRef});
+            measureParentContainer((x, y, width, height) => {
+                callback({
+                    x,
+                    y,
+                    width,
+                    height,
+                    scrollValue,
+                    cursorCoordinates: {x: position.value.x, y: position.value.y},
+                });
+            });
+        },
+        [measureParentContainer, position],
+    );
+
     return (
         <>
             <View style={[StyleUtils.getContainerComposeStyles(), styles.textInputComposeBorder]}>
@@ -772,12 +814,9 @@ function ComposerWithSuggestions(
 
             <Suggestions
                 ref={suggestionsRef}
-                isComposerFullSize={isComposerFullSize}
                 isComposerFocused={textInputRef.current?.isFocused()}
                 updateComment={updateComment}
-                composerHeight={composerHeight}
-                measureParentContainer={measureParentContainer}
-                isAutoSuggestionPickerLarge={isAutoSuggestionPickerLarge}
+                measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
                 isGroupPolicyReport={isGroupPolicyReport}
                 policyID={policyID}
                 // Input
