@@ -208,7 +208,16 @@ function mergeEmojisWithFrequentlyUsedEmojis(emojis: PickerEmojis): EmojiPickerL
         return addSpacesToEmojiCategories(emojis);
     }
 
-    const mergedEmojis = [Emojis.categoryFrequentlyUsed, ...frequentlyUsedEmojis, ...emojis];
+    const formattedFrequentlyUsedEmojis = frequentlyUsedEmojis.map((frequentlyUsedEmoji: Emoji): Emoji => {
+        // Frequently used emojis in the old format will have name/types/code stored with them
+        // In the new format, only the code is stored, so we'll need to retrieve the name/types
+        if (!('name' in (frequentlyUsedEmoji as FrequentlyUsedEmoji))) {
+            return findEmojiByCode(frequentlyUsedEmoji.code);
+        }
+        return frequentlyUsedEmoji;
+    });
+
+    const mergedEmojis = [Emojis.categoryFrequentlyUsed, ...formattedFrequentlyUsedEmojis, ...emojis];
     return addSpacesToEmojiCategories(mergedEmojis);
 }
 
