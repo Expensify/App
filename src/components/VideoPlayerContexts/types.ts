@@ -30,6 +30,7 @@ type VideoPopoverMenuContext = {
     menuItems: PopoverMenuItem[];
     videoPopoverMenuPlayerRef: MutableRefObject<VideoWithOnFullScreenUpdate | null>;
     updatePlaybackSpeed: (speed: PlaybackSpeed) => void;
+    setCurrentPlaybackSpeed: (speed: PlaybackSpeed) => void;
 };
 
 type FullScreenContext = {
