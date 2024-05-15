@@ -45,9 +45,9 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
                 const {adminsChatReportID, policyID} = Policy.createWorkspace(undefined, true, work);
                 Welcome.setOnboardingAdminsChatReportID(adminsChatReportID);
                 Welcome.setOnboardingPolicyID(policyID);
+            } else {
+                Policy.updateGeneralSettings(onboardingPolicyID as string, work);
             }
-            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-            Policy.updateGeneralSettings(onboardingPolicyID as string, work);
 
             Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS);
         },
