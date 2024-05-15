@@ -19,15 +19,14 @@ import TableListItemSkeleton from './Skeletons/TableListItemSkeleton';
 
 type SearchProps = {
     query: string;
-    policyIDs?: string;
 };
 
-function Search({query, policyIDs}: SearchProps) {
+function Search({query}: SearchProps) {
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     useCustomBackHandler();
 
-    const hash = SearchUtils.getQueryHash(query, policyIDs);
+    const hash = SearchUtils.getQueryHash(query);
     const [searchResults, searchResultsMeta] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
 
     useEffect(() => {
@@ -35,9 +34,8 @@ function Search({query, policyIDs}: SearchProps) {
             return;
         }
 
-        SearchActions.search(hash, query, policyIDs);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [hash, isOffline]);
+        SearchActions.search(query);
+    }, [query, isOffline]);
 
     const isLoading = (!isOffline && isLoadingOnyxValue(searchResultsMeta)) || searchResults?.data === undefined;
     const shouldShowEmptyState = !isLoading && isEmptyObject(searchResults?.data);

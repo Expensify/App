@@ -1,6 +1,5 @@
 type SearchParams = {
     query: string;
-    policyIDs?: string;
     hash: number;
 };
 
