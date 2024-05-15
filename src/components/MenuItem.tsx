@@ -472,8 +472,8 @@ function MenuItem(
                         onFocus={onFocus}
                     >
                         {({pressed}) => (
-                            <View style={[styles.flexColumn, styles.flex1]}>
-                                <View style={[styles.flexRow, styles.flex1]}>
+                            <View style={[styles.flex1]}>
+                                <View style={[styles.flexRow]}>
                                     <View style={[styles.flexColumn, styles.flex1]}>
                                         {!!label && isLabelHoverable && (
                                             <View style={[icon ? styles.mb2 : null, labelStyle]}>
