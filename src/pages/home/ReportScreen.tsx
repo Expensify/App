@@ -525,6 +525,10 @@ function ReportScreen({
             isRemovalExpectedForReportType ||
             isClosedTopLevelPolicyRoom
         ) {
+            // If the report isn't focused, navigation to Concierge Chat should be avoided.
+            if (!isFocused) {
+                return;
+            }
             Navigation.dismissModal();
             if (Navigation.getTopmostReportId() === prevOnyxReportID) {
                 Navigation.setShouldPopAllStateOnUP();
@@ -539,10 +543,7 @@ function ReportScreen({
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(prevReport.parentReportID));
                 return;
             }
-            // If the report isn't focused, navigation to Concierge Chat should be avoided.
-            if (!isFocused) {
-                return;
-            }
+
             Report.navigateToConciergeChat();
             return;
         }
