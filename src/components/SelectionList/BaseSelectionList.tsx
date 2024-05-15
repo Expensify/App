@@ -76,7 +76,7 @@ function BaseSelectionList<TItem extends ListItem>(
         sectionTitleStyles,
         textInputAutoFocus = true,
         shouldTextInputInterceptSwipe = false,
-        ListHeaderComponent,
+        listHeaderContent,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -322,7 +322,7 @@ function BaseSelectionList<TItem extends ListItem>(
             return <section.CustomSectionHeader section={section} />;
         }
 
-        if (!section.title || isEmptyObject(section.data) || ListHeaderComponent) {
+        if (!section.title || isEmptyObject(section.data) || listHeaderContent) {
             return null;
         }
 
@@ -601,7 +601,7 @@ function BaseSelectionList<TItem extends ListItem>(
                         <OptionsListSkeletonView shouldAnimate />
                     ) : (
                         <>
-                            {!ListHeaderComponent && header()}
+                            {!listHeaderContent && header()}
                             <SectionList
                                 ref={listRef}
                                 sections={slicedSections}
@@ -609,7 +609,7 @@ function BaseSelectionList<TItem extends ListItem>(
                                 renderSectionHeader={(arg) => (
                                     <>
                                         {renderSectionHeader(arg)}
-                                        {ListHeaderComponent && header()}
+                                        {listHeaderContent && header()}
                                     </>
                                 )}
                                 renderItem={renderItem}
@@ -630,7 +630,7 @@ function BaseSelectionList<TItem extends ListItem>(
                                 onLayout={onSectionListLayout}
                                 style={(!maxToRenderPerBatch || (shouldHideListOnInitialRender && isInitialSectionListRender)) && styles.opacity0}
                                 ListFooterComponent={listFooterContent ?? ShowMoreButtonInstance}
-                                ListHeaderComponent={ListHeaderComponent && ListHeaderComponent}
+                                ListHeaderComponent={listHeaderContent && listHeaderContent}
                             />
                             {children}
                         </>

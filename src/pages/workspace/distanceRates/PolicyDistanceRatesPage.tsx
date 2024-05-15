@@ -309,7 +309,7 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
                         shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                         customListHeader={getCustomListHeader()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                        ListHeaderComponent={isSmallScreenWidth ? getHeaderText() : null}
+                        listHeaderContent={isSmallScreenWidth ? getHeaderText() : null}
                     />
                 )}
                 <ConfirmModal

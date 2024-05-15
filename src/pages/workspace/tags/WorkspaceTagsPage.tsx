@@ -334,7 +334,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         onDismissError={(item) => Policy.clearPolicyTagErrors(policyID, item.value)}
-                        ListHeaderComponent={isSmallScreenWidth ? getHeaderText() : null}
+                        listHeaderContent={isSmallScreenWidth ? getHeaderText() : null}
                     />
                 )}
             </ScreenWrapper>

@@ -583,7 +583,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                         textInputRef={textInputRef}
                         customListHeader={getCustomListHeader()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                        ListHeaderComponent={isSmallScreenWidth ? <View style={[styles.pl5, styles.pr5]}>{getHeaderContent()}</View> : null}
+                        listHeaderContent={isSmallScreenWidth ? <View style={[styles.pl5, styles.pr5]}>{getHeaderContent()}</View> : null}
                     />
                 </View>
             </FullPageNotFoundView>

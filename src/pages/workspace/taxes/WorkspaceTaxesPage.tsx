@@ -277,7 +277,7 @@ function WorkspaceTaxesPage({
                     showScrollIndicator
                     ListItem={TableListItem}
                     customListHeader={getCustomListHeader()}
-                    ListHeaderComponent={isSmallScreenWidth ? getHeaderText() : null}
+                    listHeaderContent={isSmallScreenWidth ? getHeaderText() : null}
                     shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                     listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                     onDismissError={(item) => (item.keyForList ? clearTaxRateError(policyID, item.keyForList, item.pendingAction) : undefined)}

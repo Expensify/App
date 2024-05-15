@@ -320,7 +320,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         onDismissError={dismissError}
                         customListHeader={getCustomListHeader()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                        ListHeaderComponent={isSmallScreenWidth ? getHeaderText() : null}
+                        listHeaderContent={isSmallScreenWidth ? getHeaderText() : null}
                     />
                 )}
             </ScreenWrapper>
