@@ -21,9 +21,9 @@ type PromotedActionsParams = {
 };
 
 function usePromotedActions({report}: PromotedActionsParams): Record<string, PromotedAction> {
-    const {translate} = useLocalize();
+    // const {translate} = useLocalize();
+    // const join = Session.checkIfActionIsAllowed(() => Report.joinRoom(report));
     // const onShareButtonPress = useCallback(() => Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.getRoute(report?.reportID ?? '')), [report?.reportID]);
-    const join = Session.checkIfActionIsAllowed(() => Report.joinRoom(report));
 
     return useMemo(
         () => ({
@@ -31,12 +31,12 @@ function usePromotedActions({report}: PromotedActionsParams): Record<string, Pro
                 key: 'pin',
                 ...HeaderUtils.getPinMenuItem(report),
             },
-            join: {
-                key: 'join',
-                icon: Expensicons.CommentBubbles,
-                text: translate('common.join'),
-                onSelected: join,
-            },
+            // join: {
+            //     key: 'join',
+            //     icon: Expensicons.CommentBubbles,
+            //     text: translate('common.join'),
+            //     onSelected: join,
+            // },
             // TODO: Uncomment and test it when needed
             // share: {
             //     key: 'share',
@@ -53,7 +53,7 @@ function usePromotedActions({report}: PromotedActionsParams): Record<string, Pro
             //     },
             // },
         }),
-        [report, translate, join],
+        [report],
     );
 }
 
