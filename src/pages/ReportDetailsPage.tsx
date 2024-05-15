@@ -87,6 +87,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(report), [report, policy]);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(report);
     const isGroupChat = useMemo(() => ReportUtils.isGroupChat(report), [report]);
+    const isRootGroupChat = useMemo(() => ReportUtils.isRootGroupChat(report), [report]);
     const isThread = useMemo(() => ReportUtils.isThread(report), [report]);
     const participants = useMemo(() => {
         if (isGroupChat) {
@@ -204,7 +205,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 isAnonymousAction: true,
                 shouldShowRightIcon: false,
                 action: () => {
-                    if (Object.keys(report?.participants ?? {}).length === 1 && isGroupChat) {
+                    if (Object.keys(report?.participants ?? {}).length === 1 && isRootGroupChat) {
                         setIsLastMemberLeavingGroupModalVisible(true);
                         return;
                     }
