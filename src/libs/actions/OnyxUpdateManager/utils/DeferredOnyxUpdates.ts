@@ -63,7 +63,7 @@ function process() {
     fetchMissingOnyxUpdatesPromise = OnyxUpdateManagerUtils.validateAndApplyDeferredUpdates();
 }
 
-type EnqueueDeferredUpdatesOptions = {
+type EnqueueDeferredOnyxUpdatesOptions = {
     shouldProcessUpdates?: boolean;
     shouldPauseSequentialQueue?: boolean;
 };
@@ -75,7 +75,7 @@ type EnqueueDeferredUpdatesOptions = {
  * @param shouldProcessUpdates Whether the updates should be processed immediately
  * @returns
  */
-function enqueue(updates: OnyxUpdatesFromServer | DeferredUpdatesDictionary, options?: EnqueueDeferredUpdatesOptions) {
+function enqueue(updates: OnyxUpdatesFromServer | DeferredUpdatesDictionary, options?: EnqueueDeferredOnyxUpdatesOptions) {
     if (options?.shouldPauseSequentialQueue ?? true) {
         SequentialQueue.pause();
     }
@@ -99,7 +99,7 @@ function enqueue(updates: OnyxUpdatesFromServer | DeferredUpdatesDictionary, opt
     }
 }
 
-type ClearDeferredUpdatesOptions = {
+type ClearDeferredOnyxUpdatesOptions = {
     shouldResetGetMissingOnyxUpdatesPromise?: boolean;
     shouldUnpauseSequentialQueue?: boolean;
 };
@@ -108,7 +108,7 @@ type ClearDeferredUpdatesOptions = {
  * Clears the deferred updates queue and unpauses the SequentialQueue
  * @param shouldUnpauseSequentialQueue Whether the SequentialQueue should be unpaused after clearing the deferred updates
  */
-function clear(options?: ClearDeferredUpdatesOptions) {
+function clear(options?: ClearDeferredOnyxUpdatesOptions) {
     deferredUpdates = {};
 
     if (options?.shouldResetGetMissingOnyxUpdatesPromise ?? true) {
@@ -121,6 +121,6 @@ function clear(options?: ClearDeferredUpdatesOptions) {
     }
 }
 
-const DeferredUpdates = {getFetchMissingOnyxUpdatesPromise, setFetchMissingOnyxUpdatesPromise, getUpdates, isEmpty, enqueue, clear, process};
+const DeferredOnyxUpdates = {getFetchMissingOnyxUpdatesPromise, setFetchMissingOnyxUpdatesPromise, getUpdates, isEmpty, enqueue, clear, process};
 
-export default DeferredUpdates;
+export default DeferredOnyxUpdates;
