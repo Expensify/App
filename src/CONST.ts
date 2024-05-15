@@ -50,7 +50,7 @@ const KEYBOARD_SHORTCUT_NAVIGATION_TYPE = 'NAVIGATION_SHORTCUT';
 const chatTypes = {
     POLICY_ANNOUNCE: 'policyAnnounce',
     POLICY_ADMINS: 'policyAdmins',
-    POLICY_TRIP_ROOM: 'policyTripRoom',
+    TRIP_ROOM: 'tripRoom',
     GROUP: 'group',
     DOMAIN_ALL: 'domainAll',
     POLICY_ROOM: 'policyRoom',
