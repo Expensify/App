@@ -175,7 +175,6 @@ function FloatingActionButtonAndPopover(
     const {translate} = useLocalize();
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
     const fabRef = useRef<HTMLDivElement>(null);
-    const {canUseTrackExpense} = usePermissions();
     const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
     const isFocused = useIsFocused();
     const prevIsFocused = usePrevious(isFocused);
@@ -340,7 +339,7 @@ function FloatingActionButtonAndPopover(
                         text: translate('sidebarScreen.fabNewChat'),
                         onSelected: () => interceptAnonymousUser(Report.startNewChat),
                     },
-                    ...(canUseTrackExpense && selfDMReportID
+                    ...(selfDMReportID
                         ? [
                               {
                                   icon: getIconForAction(CONST.IOU.TYPE.TRACK),

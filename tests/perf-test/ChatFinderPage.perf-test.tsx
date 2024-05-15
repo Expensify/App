@@ -122,7 +122,7 @@ afterEach(() => {
     Onyx.clear();
 });
 
-type ChatFinderPageProps = StackScreenProps<RootStackParamList, typeof SCREENS.CHAT_FINDER_ROOT> & {
+type ChatFinderPageProps = StackScreenProps<RootStackParamList, typeof SCREENS.LEFT_MODAL.CHAT_FINDER> & {
     betas?: OnyxEntry<Beta[]>;
     reports?: OnyxCollection<Report>;
     isSearchingForReports?: OnyxEntry<boolean>;
@@ -163,7 +163,7 @@ test('[ChatFinderPage] should render list with cached options', async () => {
         await screen.findByTestId('ChatFinderPage');
     };
 
-    const navigation = {addListener} as unknown as StackNavigationProp<RootStackParamList, 'ChatFinder_Root', undefined>;
+    const navigation = {addListener} as unknown as StackNavigationProp<RootStackParamList, 'ChatFinder', undefined>;
 
     return waitForBatchedUpdates()
         .then(() =>
@@ -177,7 +177,7 @@ test('[ChatFinderPage] should render list with cached options', async () => {
         .then(() =>
             measurePerformance(
                 <ChatFinderPageWithCachedOptions
-                    route={{key: 'ChatFinder_Root', name: 'ChatFinder_Root'}}
+                    route={{key: 'ChatFinder_Root', name: 'ChatFinder'}}
                     navigation={navigation}
                 />,
                 {scenario},
@@ -197,7 +197,7 @@ test('[ChatFinderPage] should interact when text input changes', async () => {
         fireEvent.changeText(input, 'Email Five');
     };
 
-    const navigation = {addListener} as unknown as StackNavigationProp<RootStackParamList, 'ChatFinder_Root', undefined>;
+    const navigation = {addListener} as unknown as StackNavigationProp<RootStackParamList, 'ChatFinder', undefined>;
 
     return waitForBatchedUpdates()
         .then(() =>
@@ -211,7 +211,7 @@ test('[ChatFinderPage] should interact when text input changes', async () => {
         .then(() =>
             measurePerformance(
                 <ChatFinderPageWrapper
-                    route={{key: 'ChatFinder_Root', name: 'ChatFinder_Root'}}
+                    route={{key: 'ChatFinder_Root', name: 'ChatFinder'}}
                     navigation={navigation}
                 />,
                 {scenario},
