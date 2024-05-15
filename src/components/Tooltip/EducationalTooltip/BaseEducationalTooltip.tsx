@@ -11,6 +11,17 @@ import getBounds from './getBounds';
 function BaseEducationalTooltip({children, ...props}: TooltipProps) {
     const hideTooltipRef = useRef<() => void>();
 
+    useEffect(
+        () => () => {
+            if (!hideTooltipRef.current) {
+                return;
+            }
+
+            hideTooltipRef.current();
+        },
+        [],
+    );
+
     // Automatically hide tooltip after 5 seconds
     useEffect(() => {
         if (!hideTooltipRef.current) {
@@ -24,8 +35,11 @@ function BaseEducationalTooltip({children, ...props}: TooltipProps) {
     }, []);
 
     return (
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        <GenericTooltip {...props}>
+        <GenericTooltip
+            shouldForceAnimate
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+        >
             {({showTooltip, hideTooltip, updateTargetBounds}) => {
                 hideTooltipRef.current = hideTooltip;
                 return React.cloneElement(children as React.ReactElement, {

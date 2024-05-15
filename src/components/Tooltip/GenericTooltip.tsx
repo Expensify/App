@@ -29,6 +29,7 @@ function GenericTooltip({
     shouldForceRenderingBelow = false,
     wrapperStyle = {},
     shouldForceRenderingLeft = false,
+    shouldForceAnimate = false,
 }: GenericTooltipProps) {
     const {preferredLocale} = useLocalize();
     const {windowWidth} = useWindowDimensions();
@@ -72,7 +73,7 @@ function GenericTooltip({
         animation.current.stopAnimation();
 
         // When TooltipSense is active, immediately show the tooltip
-        if (TooltipSense.isActive()) {
+        if (TooltipSense.isActive() && !shouldForceAnimate) {
             animation.current.setValue(1);
         } else {
             isTooltipSenseInitiator.current = true;
@@ -86,7 +87,7 @@ function GenericTooltip({
             });
         }
         TooltipSense.activate();
-    }, []);
+    }, [shouldForceAnimate]);
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {

@@ -53,6 +53,9 @@ type GenericTooltipState = {
 
 type GenericTooltipProps = SharedTooltipProps & {
     children: React.FC<GenericTooltipState>;
+
+    /** Whether to ignore TooltipSense activity and always triger animation */
+    shouldForceAnimate?: boolean;
 };
 
 type TooltipProps = ChildrenProps &
