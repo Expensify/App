@@ -12,7 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 type DefaultAttachmentViewProps = {
     /** The name of the file */
     fileName?: string;
-    
+
     /** Should show the download icon */
     shouldShowDownloadIcon?: boolean;
 

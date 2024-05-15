@@ -99,7 +99,7 @@ function AttachmentView({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [loadComplete, setLoadComplete] = useState(false);
-    const [isPdfFailedToLoad, setIsPdfFailedToLoad] = useState(false);
+    const [hasPDFFailedToLoad, setHasPDFFailedToLoad] = useState(false);
     const isVideo = (typeof source === 'string' && Str.isVideo(source)) || (file?.name && Str.isVideo(file.name));
 
     useEffect(() => {
@@ -150,7 +150,9 @@ function AttachmentView({
 
     // Check both source and file.name since PDFs dragged into the text field
     // will appear with a source that is a blob
-    if (!isPdfFailedToLoad && ((typeof source === 'string' && Str.isPDF(source)) || (file && Str.isPDF(file.name ?? translate('attachmentView.unknownFilename'))))) {
+    const isSourcePDF = typeof source === 'string' && Str.isPDF(source);
+    const isFilePDF = file && Str.isPDF(file.name ?? translate('attachmentView.unknownFilename'));
+    if (!hasPDFFailedToLoad && (isSourcePDF || isFilePDF)) {
         const encryptedSourceUrl = isAuthTokenRequired ? addEncryptedAuthTokenToURL(source as string) : (source as string);
 
         const onPDFLoadComplete = (path: string) => {
@@ -164,7 +166,7 @@ function AttachmentView({
         };
 
         const onPDFLoadError = () => {
-            setIsPdfFailedToLoad(true);
+            setHasPDFFailedToLoad(true);
         };
 
         // We need the following View component on android native
