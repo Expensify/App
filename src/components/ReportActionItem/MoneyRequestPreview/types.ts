@@ -75,6 +75,7 @@ type MoneyRequestPreviewProps = MoneyRequestPreviewOnyxProps & {
 type NoPendingProps = {shouldShow: false};
 
 type PendingProps = {
+    /** Whether to show the pending message or not */
     shouldShow: true;
 
     /** The icon to be displayed if a request is pending */
