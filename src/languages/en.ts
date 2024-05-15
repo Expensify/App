@@ -270,7 +270,9 @@ export default {
         your: 'your',
         conciergeHelp: 'Please reach out to Concierge for help.',
         youAppearToBeOffline: 'You appear to be offline.',
+        weMightHaveProblem: 'We might have a problem. Check out ',
         thisFeatureRequiresInternet: 'This feature requires an active internet connection to be used.',
+        attachementWillBeAvailableOnceBackOnline: 'Attachment will become available once back online.',
         areYouSure: 'Are you sure?',
         verify: 'Verify',
         yesContinue: 'Yes, continue',
@@ -1891,6 +1893,7 @@ export default {
             travel: 'Travel',
             members: 'Members',
             accounting: 'Accounting',
+            displayedAs: 'Displayed as',
             plan: 'Plan',
             profile: 'Profile',
             bankAccount: 'Bank account',
@@ -1921,7 +1924,6 @@ export default {
             classes: 'Classes',
             locations: 'Locations',
             customers: 'Customers/Projects',
-            displayedAs: 'Displayed as',
             accountsDescription: 'When connected to Quickbooks Online, chart of accounts are always imported to Expensify as categories.',
             accountsSwitchTitle: 'Below you can choose to have any new account imported as an enabled or disabled category by default.',
             accountsSwitchDescription: 'Enabled categories are available for members to select when creating their expenses.',
@@ -2029,6 +2031,9 @@ export default {
             organization: 'Xero organization',
             organizationDescription: 'Select the organization in Xero you are importing data from.',
             importDescription: 'Choose which coding configurations are imported from Xero to Expensify.',
+            accountsDescription: 'When connected to Xero, chart of accounts are always imported to Expensify as categories.',
+            accountsSwitchTitle: 'Below you can choose to have any new account imported as an enabled or disabled category by default.',
+            accountsSwitchDescription: 'Enabled categories are available for members to select when creating their expenses.',
             trackingCategories: 'Tracking categories',
             trackingCategoriesDescription: 'Choose whether to import tracking categories and see where they are displayed.',
             mapXeroCostCentersTo: 'Map Xero cost centers to',
@@ -2051,6 +2056,7 @@ export default {
                 'Each exported expense posts as a bank transaction to the Xero bank account you select below, and transaction dates will match the dates on your bank statement.',
             bankTransactions: 'Bank transactions',
             xeroBankAccount: 'Xero bank account',
+            xeroBankAccountDescription: 'Select the bank account expenses will be posted to as bank transactions.',
             preferredExporter: 'Preferred exporter',
             exportExpenses: 'Export out-of-pocket expenses as',
             exportExpensesDescription: 'Reports will export as a purchase bill, using the date and status you select below.',
@@ -2068,7 +2074,36 @@ export default {
                 xeroBillPaymentAccount: 'Xero Bill Payment Account',
                 xeroInvoiceCollectionAccount: 'Xero Invoice Collections Account',
                 invoiceAccountSelectorDescription: "As you've enabled exporting invoices from Expensify to Xero, this is the account the invoice will appear against once marked as paid.",
+                xeroBillPaymentAccountDescription:
+                    "As you've enabled sync reimbursed reports, you will need to select the bank account your reimbursements are coming out of, and we'll create the payment in Xero.",
             },
+            exportDate: {
+                label: 'Export date',
+                description: 'Use this date when exporting reports to Xero.',
+                values: {
+                    [CONST.QUICKBOOKS_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Date of last expense',
+                        description: 'The date of the most recent expense on the report',
+                    },
+                    [CONST.QUICKBOOKS_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'Export date',
+                        description: 'The date the report was exported to Xero',
+                    },
+                    [CONST.QUICKBOOKS_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Submitted date',
+                        description: 'The date the report was submitted for approval',
+                    },
+                },
+            },
+            invoiceStatus: {
+                values: {
+                    [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_PAYMENT]: 'Authorised',
+                    [CONST.XERO_CONFIG.INVOICE_STATUS.DRAFT]: 'Draft',
+                    [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_APPROVAL]: 'Submitted',
+                },
+            },
+            exportPreferredExporterNote: 'This can be any workspace admin, but must be a domain admin if you set different export accounts for individual company cards in domain settings.',
+            exportPreferredExporterSubNote: 'Once set, the preferred exporter will see reports for export in their account.',
         },
         type: {
             free: 'Free',
@@ -2368,6 +2403,28 @@ export default {
                             return 'Updating people list';
                         case 'quickbooksOnlineSyncApplyClassesLocations':
                             return 'Updating report fields';
+                        case 'xeroSyncImportChartOfAccounts':
+                            return 'Syncing chart of accounts';
+                        case 'xeroSyncImportCategories':
+                            return 'Syncing categories';
+                        case 'xeroSyncImportCustomers':
+                            return 'Syncing customers';
+                        case 'xeroSyncXeroReimbursedReports':
+                            return 'Marking Expensify reports as reimbursed';
+                        case 'xeroSyncExpensifyReimbursedReports':
+                            return 'Marking Xero bills and invoices as paid';
+                        case 'xeroSyncImportTrackingCategories':
+                            return 'Syncing tracking categories';
+                        case 'xeroSyncImportBankAccounts':
+                            return 'Syncing bank accounts';
+                        case 'xeroSyncImportTaxRates':
+                            return 'Syncing tax rates';
+                        case 'xeroCheckConnection':
+                            return 'Checking Xero connection';
+                        case 'xeroSyncTitle':
+                            return 'Synchronizing Xero data';
+                        case 'xeroSyncStep':
+                            return 'Loading data';
                         default: {
                             return `Translation missing for stage: ${stage}`;
                         }
