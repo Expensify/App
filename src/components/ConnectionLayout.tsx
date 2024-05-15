@@ -1,5 +1,6 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -19,14 +20,14 @@ type ConnectionLayoutProps = {
     /** Header title for the connection */
     headerTitle: TranslationPaths;
 
+    /** The subtitle to show in the header */
+    headerSubtitle?: string;
+
     /** React nodes that will be shown */
     children?: React.ReactNode;
 
     /** Title of the connection component */
     title?: TranslationPaths;
-
-    /** Subtitle of the connection */
-    subtitle?: TranslationPaths;
 
     /** The current policyID */
     policyID: string;
@@ -43,25 +44,49 @@ type ConnectionLayoutProps = {
     /** Style of the title text */
     titleStyle?: StyleProp<TextStyle> | undefined;
 
-    /** Style of the subtitle text */
-    subTitleStyle?: StyleProp<TextStyle> | undefined;
+    /** Whether to use ScrollView or not */
+    shouldUseScrollView?: boolean;
 };
+
+type ConnectionLayoutContentProps = Pick<ConnectionLayoutProps, 'title' | 'titleStyle' | 'children'>;
+
+function ConnectionLayoutContent({title, titleStyle, children}: ConnectionLayoutContentProps) {
+    const {translate} = useLocalize();
+    const styles = useThemeStyles();
+    return (
+        <>
+            {title && <Text style={[styles.pb5, titleStyle]}>{translate(title)}</Text>}
+            {children}
+        </>
+    );
+}
 
 function ConnectionLayout({
     displayName,
     headerTitle,
     children,
     title,
-    subtitle,
+    headerSubtitle,
     policyID,
     accessVariants,
     featureName,
     contentContainerStyle,
     titleStyle,
-    subTitleStyle,
+    shouldUseScrollView = true,
 }: ConnectionLayoutProps) {
-    const styles = useThemeStyles();
     const {translate} = useLocalize();
+
+    const renderSelectionContent = useMemo(
+        () => (
+            <ConnectionLayoutContent
+                title={title}
+                titleStyle={titleStyle}
+            >
+                {children}
+            </ConnectionLayoutContent>
+        ),
+        [title, titleStyle, children],
+    );
 
     return (
         <AccessOrNotFoundWrapper
@@ -76,13 +101,14 @@ function ConnectionLayout({
             >
                 <HeaderWithBackButton
                     title={translate(headerTitle)}
+                    subtitle={headerSubtitle}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
-                <ScrollView contentContainerStyle={contentContainerStyle}>
-                    {title && <Text style={[styles.pb5, titleStyle]}>{translate(title)}</Text>}
-                    {subtitle && <Text style={[styles.textLabelSupporting, subTitleStyle]}>{translate(subtitle)}</Text>}
-                    {children}
-                </ScrollView>
+                {shouldUseScrollView ? (
+                    <ScrollView contentContainerStyle={contentContainerStyle}>{renderSelectionContent}</ScrollView>
+                ) : (
+                    <View style={contentContainerStyle}>{renderSelectionContent}</View>
+                )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

@@ -12,7 +12,7 @@ import type {
     TextInputKeyPressEventData,
     TextInputSelectionChangeEventData,
 } from 'react-native';
-import {findNodeHandle, InteractionManager, NativeModules, View} from 'react-native';
+import {DeviceEventEmitter, findNodeHandle, InteractionManager, NativeModules, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {useAnimatedRef} from 'react-native-reanimated';
@@ -343,6 +343,20 @@ function ComposerWithSuggestions(
             }, 1000),
         [],
     );
+
+    useEffect(() => {
+        const switchToCurrentReport = DeviceEventEmitter.addListener(`switchToPreExistingReport_${reportID}`, ({preexistingReportID, callback}) => {
+            if (!commentRef.current) {
+                callback();
+                return;
+            }
+            Report.saveReportDraftComment(preexistingReportID, commentRef.current, callback);
+        });
+
+        return () => {
+            switchToCurrentReport.remove();
+        };
+    }, [reportID]);
 
     /**
      * Find the newly added characters between the previous text and the new text based on the selection.
@@ -753,6 +767,7 @@ function ComposerWithSuggestions(
                     onLayout={onLayout}
                     onScroll={hideSuggestionMenu}
                     shouldContainScroll={Browser.isMobileSafari()}
+                    isGroupPolicyReport={isGroupPolicyReport}
                 />
             </View>
 
