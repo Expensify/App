@@ -15,6 +15,8 @@ type Participant = {
 
     /** Is IOU participant associated with policy expense chat */
     isPolicyExpenseChat?: boolean;
+    
+    isInvoiceRoom?: boolean;
 
     /** Is IOU participant associated with is own policy expense chat */
     isOwnPolicyExpenseChat?: boolean;

@@ -12131,15 +12131,8 @@ const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
 const promiseWhile_1 = __nccwpck_require__(9438);
 function run() {
-    console.info('[awaitStagingDeploys] POLL RATE', CONST_1.default.POLL_RATE);
-    console.info('[awaitStagingDeploys] run()');
-    console.info('[awaitStagingDeploys] getStringInput', ActionUtils_1.getStringInput);
-    console.info('[awaitStagingDeploys] GitHubUtils', GithubUtils_1.default);
-    console.info('[awaitStagingDeploys] promiseDoWhile', promiseWhile_1.promiseDoWhile);
     const tag = (0, ActionUtils_1.getStringInput)('TAG', { required: false });
-    console.info('[awaitStagingDeploys] run() tag', tag);
     let currentStagingDeploys = [];
-    console.info('[awaitStagingDeploys] run()  _.throttle', throttle_1.default);
     const throttleFunc = () => Promise.all([
         // These are active deploys
         GithubUtils_1.default.octokit.actions.listWorkflowRuns({
@@ -12159,22 +12152,18 @@ function run() {
             }),
     ])
         .then((responses) => {
-        console.info('[awaitStagingDeploys] listWorkflowRuns responses', responses);
         const workflowRuns = responses[0].data.workflow_runs;
         if (!tag && typeof responses[1] === 'object') {
             workflowRuns.push(...responses[1].data.workflow_runs);
         }
-        console.info('[awaitStagingDeploys] workflowRuns', workflowRuns);
         return workflowRuns;
     })
         .then((workflowRuns) => (currentStagingDeploys = workflowRuns.filter((workflowRun) => workflowRun.status !== 'completed')))
         .then(() => {
-        console.info('[awaitStagingDeploys] currentStagingDeploys', currentStagingDeploys);
         console.log(!currentStagingDeploys.length
             ? 'No current staging deploys found'
             : `Found ${currentStagingDeploys.length} staging deploy${currentStagingDeploys.length > 1 ? 's' : ''} still running...`);
     });
-    console.info('[awaitStagingDeploys] run() throttleFunc', throttleFunc);
     return (0, promiseWhile_1.promiseDoWhile)(() => !!currentStagingDeploys.length, (0, throttle_1.default)(throttleFunc, 
     // Poll every 60 seconds instead of every 10 seconds
     CONST_1.default.POLL_RATE * 6));
@@ -12730,7 +12719,6 @@ exports.promiseDoWhile = exports.promiseWhile = void 0;
  * Simulates a while loop where the condition is determined by the result of a Promise.
  */
 function promiseWhile(condition, action) {
-    console.info('[promiseWhile] promiseWhile()');
     return new Promise((resolve, reject) => {
         const loop = function () {
             if (!condition()) {
@@ -12738,7 +12726,6 @@ function promiseWhile(condition, action) {
             }
             else {
                 const actionResult = action?.();
-                console.info('[promiseWhile] promiseWhile() actionResult', actionResult);
                 if (!actionResult) {
                     resolve();
                     return;
@@ -12759,11 +12746,8 @@ exports.promiseWhile = promiseWhile;
  * Simulates a do-while loop where the condition is determined by the result of a Promise.
  */
 function promiseDoWhile(condition, action) {
-    console.info('[promiseWhile] promiseDoWhile()');
     return new Promise((resolve, reject) => {
-        console.info('[promiseWhile] promiseDoWhile() condition', condition);
         const actionResult = action?.();
-        console.info('[promiseWhile] promiseDoWhile() actionResult', actionResult);
         if (!actionResult) {
             resolve();
             return;
