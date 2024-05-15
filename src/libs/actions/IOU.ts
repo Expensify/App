@@ -3726,6 +3726,7 @@ function createSplitsAndOnyxData(
     existingSplitChatReportID = '',
     billable = false,
     iouRequestType: IOURequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
+    taxCode: string,
     taxAmount: number,
 ): SplitsAndOnyxData {
     const currentUserEmailForIOUSplit = PhoneNumber.addSMSDomainIfPhoneNumber(currentUserLogin);
@@ -3748,8 +3749,8 @@ function createSplitsAndOnyxData(
         undefined,
         category,
         tag,
-        undefined,
-        undefined,
+        taxCode,
+        taxAmount,
         billable,
     );
 
@@ -3904,14 +3905,16 @@ function createSplitsAndOnyxData(
 
     // Loop through participants creating individual chats, iouReports and reportActionIDs as needed
     const currentUserAmount = splitShares?.[currentUserAccountID]?.amount ?? IOUUtils.calculateAmount(participants.length, amount, currency, true);
-    const splitTaxAmount = IOUUtils.calculateAmount(participants.length, taxAmount, currency, false);
-    const splits: Split[] = [{email: currentUserEmailForIOUSplit, accountID: currentUserAccountID, amount: currentUserAmount}];
+    const currentUserTaxAmount = IOUUtils.calculateAmount(participants.length, taxAmount, currency, true);
+
+    const splits: Split[] = [{email: currentUserEmailForIOUSplit, accountID: currentUserAccountID, amount: currentUserAmount, taxAmount: currentUserTaxAmount}];
 
     const hasMultipleParticipants = participants.length > 1;
     participants.forEach((participant) => {
         // In a case when a participant is a workspace, even when a current user is not an owner of the workspace
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(participant);
         const splitAmount = splitShares?.[participant.accountID ?? -1]?.amount ?? IOUUtils.calculateAmount(participants.length, amount, currency, false);
+        const splitTaxAmount = IOUUtils.calculateAmount(participants.length, taxAmount, currency, false);
 
         // To exclude someone from a split, the amount can be 0. The scenario for this is when creating a split from a group chat, we have remove the option to deselect users to exclude them.
         // We can input '0' next to someone we want to exclude.
@@ -3981,8 +3984,8 @@ function createSplitsAndOnyxData(
             undefined,
             category,
             tag,
-            undefined,
-            undefined,
+            taxCode,
+            splitTaxAmount,
             billable,
         );
 
@@ -4172,6 +4175,7 @@ function splitBill({
         existingSplitChatReportID,
         billable,
         iouRequestType,
+        taxCode,
         taxAmount,
     );
 
@@ -4220,6 +4224,8 @@ function splitBillAndOpenReport({
     iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
     splitShares = {},
     splitPayerAccountIDs = [],
+    taxCode = '',
+    taxAmount = 0,
 }: SplitBillActionsParams) {
     const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData(
@@ -4237,6 +4243,8 @@ function splitBillAndOpenReport({
         '',
         billable,
         iouRequestType,
+        taxCode,
+        taxAmount,
     );
 
     const parameters: SplitBillParams = {
@@ -4256,6 +4264,8 @@ function splitBillAndOpenReport({
         policyID: splitData.policyID,
         chatType: splitData.chatType,
         splitPayerAccountIDs,
+        taxCode,
+        taxAmount,
     };
 
     API.write(WRITE_COMMANDS.SPLIT_BILL_AND_OPEN_REPORT, parameters, onyxData);

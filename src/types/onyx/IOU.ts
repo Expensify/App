@@ -41,6 +41,7 @@ type Split = {
     reportPreviewReportActionID?: string;
     transactionThreadReportID?: string;
     createdReportActionIDForThread?: string;
+    taxAmount?: number;
 };
 
 type IOU = {
