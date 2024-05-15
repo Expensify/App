@@ -78,7 +78,16 @@ function BaseListItem<TItem extends ListItem>({
                 hoverDimmingValue={1}
                 hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, hoverStyle]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
+                onMouseDown={(e: React.MouseEvent) => {
+                    // If the user clicked on an input element, we should not prevent the default behavior so that the input receives focus.
+                    // Specifically, it allows double clicking an input to select the text in it.
+                    // If the user clicked elsewhere, prevent default focus based on the value of the prop
+                    const isInputElement = (element: EventTarget | null): element is HTMLInputElement => element instanceof HTMLElement && element.tagName.toUpperCase() === 'INPUT';
+                    if (!shouldPreventDefaultFocusOnSelectRow || isInputElement(e.target)) {
+                        return;
+                    }
+                    e.preventDefault();
+                }}
                 id={keyForList ?? ''}
                 style={pressableStyle}
                 onFocus={onFocus}
