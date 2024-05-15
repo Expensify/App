@@ -1,5 +1,5 @@
 import {createStackNavigator} from '@react-navigation/stack';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
@@ -23,10 +23,18 @@ function OnboardingModalNavigator() {
     const {shouldUseNarrowLayout} = useOnboardingLayout();
     const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: (onboarding) => onboarding?.hasCompletedGuidedSetupFlow ?? true});
 
-    if (hasCompletedGuidedSetupFlow) {
+    useEffect(() => {
+        if (!hasCompletedGuidedSetupFlow) {
+            return;
+        }
+
+        // Need to go back to previous route and then redirect to Concierge,
+        // otherwise going back on concierge will go to onboarding and then redirected to concierge again
         Navigation.goBack();
         Report.navigateToConciergeChat();
-        // eslint-disable-next-line react/jsx-no-useless-fragment
+    }, [hasCompletedGuidedSetupFlow]);
+
+    if (hasCompletedGuidedSetupFlow) {
         return null;
     }
 
