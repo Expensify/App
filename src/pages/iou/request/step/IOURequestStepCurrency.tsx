@@ -61,7 +61,8 @@ function IOURequestStepCurrency({
         if (pageIndex !== 'confirm') {
             IOU.setMoneyRequestCurrency(transactionID, option.currencyCode, action === CONST.IOU.ACTION.EDIT);
         }
-        navigateBack(option.currencyCode);
+
+        Navigation.setNabigationActionToMicrotaskQueue(() => navigateBack(option.currencyCode));
     };
 
     return (

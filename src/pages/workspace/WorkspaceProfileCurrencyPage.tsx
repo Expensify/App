@@ -20,7 +20,7 @@ function WorkspaceProfileCurrencyPage({policy}: WorkspaceProfileCurrencyPageProp
 
     const onSelectCurrency = (item: CurrencyListItem) => {
         Policy.updateGeneralSettings(policy?.id ?? '', policy?.name ?? '', item.currencyCode);
-        Navigation.goBack();
+        Navigation.setNabigationActionToMicrotaskQueue(Navigation.goBack);
     };
 
     return (
