@@ -10,6 +10,7 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 
 jest.mock('@libs/Permissions');
 jest.mock('@hooks/usePermissions.ts');
+jest.mock('@src/hooks/useActiveWorkspaceFromNavigationState');
 jest.mock('../../src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     isActiveRoute: jest.fn(),
@@ -28,7 +29,7 @@ const getMockedReportsMap = (length = 100) => {
             const reportID = index + 1;
             const participants = [1, 2];
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
-            const report = LHNTestUtils.getFakeReport(participants, 1, true);
+            const report = {...LHNTestUtils.getFakeReport(participants, 1, true), lastMessageText: 'hey'};
 
             return [reportKey, report];
         }),
