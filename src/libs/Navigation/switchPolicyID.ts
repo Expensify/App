@@ -103,8 +103,12 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
         const screen = topmostCentralPaneRoute?.name;
         const params: CentralPaneRouteParams = {...topmostCentralPaneRoute?.params};
 
-        if (isOpeningSearchFromBottomTab && policyID) {
-            params.policyIDs = policyID;
+        if (isOpeningSearchFromBottomTab) {
+            if (policyID) {
+                params.policyIDs = policyID;
+            } else {
+                delete params.policyIDs;
+            }
         }
 
         // If the user is on the home page and changes the current workspace, then should be displayed a report from the selected workspace.
