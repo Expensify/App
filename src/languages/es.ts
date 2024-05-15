@@ -2130,7 +2130,7 @@ export default {
             },
             invoiceStatus: {
                 label: 'Estado de la factura de compra',
-                description: 'When exported to Xero what state should purchase bills have.',
+                description: 'Qué estado deben tener las facturas de compra cuando se exportan a Xero.',
                 values: {
                     [CONST.XERO_CONFIG.INVOICE_STATUS.DRAFT]: 'Borrador',
                     [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_APPROVAL]: 'Awaiting approval',
