@@ -14,7 +14,7 @@ function CaretWrapper({children}: CaretWrapperProps) {
     const styles = useThemeStyles();
 
     return (
-        <View style={[styles.flex1, styles.flexRow, styles.gap1, styles.alignItemsCenter]}>
+        <View style={[styles.flexRow, styles.gap1, styles.alignItemsCenter]}>
             {children}
             <Icon
                 src={Expensicons.DownArrow}
