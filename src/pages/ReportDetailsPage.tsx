@@ -87,7 +87,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(report), [report, policy]);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(report);
     const isGroupChat = useMemo(() => ReportUtils.isGroupChat(report), [report]);
-    const isRootGroupChat = useMemo(() => ReportUtils.isRootGroupChat(report), [report]);
     const isThread = useMemo(() => ReportUtils.isThread(report), [report]);
     const participants = useMemo(() => {
         if (isGroupChat) {
@@ -197,7 +196,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             });
         }
 
-        if (isGroupChat || (isChatRoom && ReportUtils.canLeaveChat(report, policy ?? null))) {
+        if ((isGroupChat || (isChatRoom && ReportUtils.canLeaveChat(report, policy ?? null))) && !isThread) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
                 translationKey: 'common.leave',
@@ -205,7 +204,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 isAnonymousAction: true,
                 shouldShowRightIcon: false,
                 action: () => {
-                    if (Object.keys(report?.participants ?? {}).length === 1 && isRootGroupChat) {
+                    if (Object.keys(report?.participants ?? {}).length === 1 && isGroupChat) {
                         setIsLastMemberLeavingGroupModalVisible(true);
                         return;
                     }
@@ -229,11 +228,11 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         isPolicyExpenseChat,
         isMoneyRequestReport,
         isInvoiceReport,
+        isThread,
         isChatRoom,
         policy,
         activeChatMembers.length,
         session,
-        isRootGroupChat,
         leaveChat,
     ]);
 
@@ -281,10 +280,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             />
         );
 
-    const reportName =
-        ReportUtils.isDeprecatedGroupDM(report) || ReportUtils.isGroupChat(report)
-            ? ReportUtils.getGroupChatName(undefined, false, report.reportID ?? '')
-            : ReportUtils.getReportName(report);
+    const reportName = ReportUtils.isDeprecatedGroupDM(report) || isGroupChat ? ReportUtils.getGroupChatName(undefined, false, report.reportID ?? '') : ReportUtils.getReportName(report);
     return (
         <ScreenWrapper testID={ReportDetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={isEmptyObject(report)}>
