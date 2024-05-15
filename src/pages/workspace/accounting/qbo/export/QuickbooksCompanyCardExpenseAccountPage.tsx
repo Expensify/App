@@ -75,14 +75,25 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
                         </>
                     )}
                     <OfflineWithFeedback pendingAction={pendingFields?.nonReimbursableBillDefaultVendor}>
-                        <MenuItemWithTopDescription
-                            title={nonReimbursableBillDefaultVendorObject?.name}
-                            description={isVendorSelected ? translate('workspace.qbo.vendor') : translate('workspace.qbo.account')}
-                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_DEFAULT_VENDOR_SELECT.getRoute(policyID))}
-                            brickRoadIndicator={errorFields?.nonReimbursableBillDefaultVendor ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            shouldShowRightIcon
-                            errorText={errorFields?.nonReimbursableBillDefaultVendor ? translate('common.genericErrorMessage') : undefined}
-                        />
+                        {isVendorSelected ? (
+                            <MenuItemWithTopDescription
+                                title={nonReimbursableBillDefaultVendorObject?.name}
+                                description={translate('workspace.qbo.vendor')}
+                                onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_DEFAULT_VENDOR_SELECT.getRoute(policyID))}
+                                brickRoadIndicator={errorFields?.nonReimbursableBillDefaultVendor ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                shouldShowRightIcon
+                                errorText={errorFields?.nonReimbursableBillDefaultVendor ? translate('common.genericErrorMessage') : undefined}
+                            />
+                        ) : (
+                            <MenuItemWithTopDescription
+                                title={nonReimbursableExpensesAccount?.name}
+                                description={translate('workspace.qbo.account')}
+                                onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT.getRoute(policyID))}
+                                brickRoadIndicator={errorFields?.nonReimbursableExpensesAccount ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                shouldShowRightIcon
+                                errorText={errorFields?.nonReimbursableExpensesAccount ? translate('common.genericErrorMessage') : undefined}
+                            />
+                        )}
                     </OfflineWithFeedback>
                 </ScrollView>
             </ScreenWrapper>
