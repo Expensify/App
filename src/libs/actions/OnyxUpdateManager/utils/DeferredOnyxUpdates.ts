@@ -7,22 +7,22 @@ import {isValidOnyxUpdateFromServer} from '@src/types/onyx/OnyxUpdatesFromServer
 // eslint-disable-next-line import/no-cycle
 import * as OnyxUpdateManagerUtils from '.';
 
-let fetchMissingOnyxUpdatesPromise: Promise<Response | Response[] | void> | undefined;
+let missingOnyxUpdatesQueryPromise: Promise<Response | Response[] | void> | undefined;
 let deferredUpdates: DeferredUpdatesDictionary = {};
 
 /**
  * Returns the promise that fetches the missing onyx updates
  * @returns the promise
  */
-function getFetchMissingOnyxUpdatesPromise() {
-    return fetchMissingOnyxUpdatesPromise;
+function getMissingOnyxUpdatesQueryPromise() {
+    return missingOnyxUpdatesQueryPromise;
 }
 
 /**
- * Sets the promise in which the missing onyx updates are being fetched
+ * Sets the promise that fetches the missing onyx updates
  */
-function setFetchMissingOnyxUpdatesPromise(promise: Promise<Response | Response[] | void>) {
-    fetchMissingOnyxUpdatesPromise = promise;
+function setMissingOnyxUpdatesQueryPromise(promise: Promise<Response | Response[] | void>) {
+    missingOnyxUpdatesQueryPromise = promise;
 }
 
 /**
@@ -56,11 +56,11 @@ function isEmpty() {
  * Manually processes and applies the updates from the deferred updates queue. (used e.g. for push notifications)
  */
 function process() {
-    if (fetchMissingOnyxUpdatesPromise) {
-        fetchMissingOnyxUpdatesPromise.finally(() => OnyxUpdateManagerUtils.validateAndApplyDeferredUpdates);
+    if (missingOnyxUpdatesQueryPromise) {
+        missingOnyxUpdatesQueryPromise.finally(() => OnyxUpdateManagerUtils.validateAndApplyDeferredUpdates);
     }
 
-    fetchMissingOnyxUpdatesPromise = OnyxUpdateManagerUtils.validateAndApplyDeferredUpdates();
+    missingOnyxUpdatesQueryPromise = OnyxUpdateManagerUtils.validateAndApplyDeferredUpdates();
 }
 
 type EnqueueDeferredOnyxUpdatesOptions = {
@@ -112,7 +112,7 @@ function clear(options?: ClearDeferredOnyxUpdatesOptions) {
     deferredUpdates = {};
 
     if (options?.shouldResetGetMissingOnyxUpdatesPromise ?? true) {
-        fetchMissingOnyxUpdatesPromise = undefined;
+        missingOnyxUpdatesQueryPromise = undefined;
     }
 
     if (options?.shouldUnpauseSequentialQueue ?? true) {
@@ -121,6 +121,6 @@ function clear(options?: ClearDeferredOnyxUpdatesOptions) {
     }
 }
 
-const DeferredOnyxUpdates = {getFetchMissingOnyxUpdatesPromise, setFetchMissingOnyxUpdatesPromise, getUpdates, isEmpty, enqueue, clear, process};
+const DeferredOnyxUpdates = {getMissingOnyxUpdatesQueryPromise, setMissingOnyxUpdatesQueryPromise, getUpdates, isEmpty, enqueue, clear, process};
 
 export default DeferredOnyxUpdates;
