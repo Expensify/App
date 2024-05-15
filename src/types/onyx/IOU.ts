@@ -7,6 +7,7 @@ type Participant = {
     login?: string;
     displayName?: string;
     isPolicyExpenseChat?: boolean;
+    isInvoiceRoom?: boolean;
     isOwnPolicyExpenseChat?: boolean;
     chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
     reportID?: string;
@@ -23,6 +24,7 @@ type Participant = {
     isSelected?: boolean;
     isSelfDM?: boolean;
     isSender?: boolean;
+    iouType?: string;
 };
 
 type Split = {
