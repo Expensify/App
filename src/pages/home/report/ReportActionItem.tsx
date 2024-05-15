@@ -774,9 +774,7 @@ function ReportActionItem({
         return <ReportActionItemGrouped wrapperStyle={isWhisper ? styles.pt1 : {}}>{content}</ReportActionItemGrouped>;
     };
 
-    console.log('action.actionName', action.actionName);
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.TRIPPREVIEW) {
-        console.log('Hello');
         if (ReportUtils.isTripRoom(report)) {
             return (
                 <OfflineWithFeedback pendingAction={action.pendingAction}>
