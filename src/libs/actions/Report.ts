@@ -58,7 +58,6 @@ import * as EmojiUtils from '@libs/EmojiUtils';
 import * as Environment from '@libs/Environment/Environment';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
-import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {NetworkStatus} from '@libs/NetworkConnection';
 import LocalNotification from '@libs/Notification/LocalNotification';
@@ -3058,11 +3057,9 @@ function completeOnboarding(
     engagementChoice: OnboardingPurposeType,
     data: ValueOf<typeof CONST.ONBOARDING_MESSAGES>,
     {
-        login,
         firstName,
         lastName,
     }: {
-        login: string;
         firstName: string;
         lastName: string;
     },
@@ -3074,8 +3071,11 @@ function completeOnboarding(
     const {reportID: targetChatReportID = '', policyID: targetChatPolicyID = ''} = targetChatReport ?? {};
 
     // Mention message
-    const mentionHandle = LoginUtils.isEmailPublicDomain(login) ? login : login.split('@')[0];
-    const mentionComment = ReportUtils.buildOptimisticAddCommentReportAction(`Hey @${mentionHandle} 👋`, undefined, actorAccountID);
+    // With the new onboarding flow, we always ask the customer to enter their name, but allow the customer to only enter their first name
+    // If the customer only enters their first name, we will use the first name as the display name
+    // If the customer enters both first and last name, we will use both first and last name as the display name
+    const userWelcomeMessage = `Welcome ${firstName} ${lastName ? `${lastName} ` : ``}👋`;
+    const mentionComment = ReportUtils.buildOptimisticAddCommentReportAction(userWelcomeMessage, undefined, actorAccountID);
     const mentionCommentAction: OptimisticAddCommentReportAction = mentionComment.reportAction;
     const mentionMessage: AddCommentOrAttachementParams = {
         reportID: targetChatReportID,
