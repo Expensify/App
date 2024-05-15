@@ -412,7 +412,7 @@ export default {
         splitAmounts: 'Split amounts',
         whatsItFor: "What's it for?",
     },
-    optionsSelector: {
+    selectionList: {
         nameEmailOrPhoneNumber: 'Name, email, or phone number',
         findMember: 'Find a member',
     },
