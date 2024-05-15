@@ -145,7 +145,6 @@ function WorkspaceSwitcherPage() {
                 data: [
                     {
                         text: CONST.WORKSPACE_SWITCHER.NAME,
-                        policyID: undefined,
                         icons: [{source: Expensicons.ExpensifyAppIcon, name: CONST.WORKSPACE_SWITCHER.NAME, type: CONST.ICON_TYPE_AVATAR}],
                         brickRoadIndicator: getIndicatorTypeForPolicy(undefined),
                         isSelected: activeWorkspaceID === undefined,
