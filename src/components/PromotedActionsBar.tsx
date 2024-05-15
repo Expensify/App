@@ -58,7 +58,7 @@ function usePromotedActions({report}: PromotedActionsParams): Record<string, Pro
 
 type PromotedActionsBarProps = {
     /** The report of actions */
-    report: OnyxReportType;
+    report?: OnyxReportType;
 
     /** The list of actions to show */
     promotedActions: PromotedAction[];
@@ -79,7 +79,7 @@ function PromotedActionsBar({report, promotedActions, shouldShowLeaveButton}: Pr
     return (
         <View style={[styles.flexRow, styles.ph5, styles.mb5, styles.gap2]}>
             {/* TODO: Remove the `Leave` button when @src/pages/ReportDetailsPage.tsx is updated */}
-            {shouldShowLeaveButton && (
+            {shouldShowLeaveButton && report && (
                 // The `Leave` button is left to make the component backward compatible with the existing code.
                 // After the `Leave` button is moved to the `MenuItem` list, this block can be removed.
                 <View style={[styles.flex1]}>
