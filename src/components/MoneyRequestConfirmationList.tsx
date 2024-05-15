@@ -1133,6 +1133,7 @@ function MoneyRequestConfirmationList({
                 {isTypeInvoice && (
                     <MenuItem
                         key={translate('workspace.invoices.sendFrom')}
+                        avatarID={senderWorkspace?.id}
                         shouldShowRightIcon={!isReadOnly && canUpdateSenderWorkspace}
                         title={senderWorkspace?.name}
                         icon={senderWorkspace?.avatarURL ? senderWorkspace?.avatarURL : getDefaultWorkspaceAvatar(senderWorkspace?.name)}
@@ -1207,6 +1208,7 @@ function MoneyRequestConfirmationList({
             reportID,
             senderWorkspace?.avatarURL,
             senderWorkspace?.name,
+            senderWorkspace?.id,
             shouldShowAllFields,
             styles.confirmationListMapItem,
             styles.flex1,
