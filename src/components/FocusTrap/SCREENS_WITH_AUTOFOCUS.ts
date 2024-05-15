@@ -1,7 +1,8 @@
+import {CENTRAL_PANE_WORKSPACE_SCREENS} from '@libs/Navigation/AppNavigator/Navigators/FullScreenNavigator';
 import SCREENS from '@src/SCREENS';
 
 const SCREENS_WITH_AUTOFOCUS: string[] = [
-    SCREENS.WORKSPACE_SWITCHER.ROOT,
+    ...Object.keys(CENTRAL_PANE_WORKSPACE_SCREENS),
     SCREENS.SEARCH.CENTRAL_PANE,
     SCREENS.REPORT,
     SCREENS.REPORT_DESCRIPTION_ROOT,

@@ -15,7 +15,7 @@ const RootStack = createCustomFullScreenNavigator();
 
 type Screens = Partial<Record<keyof FullScreenNavigatorParamList, () => React.ComponentType>>;
 
-const centralPaneWorkspaceScreens = {
+const CENTRAL_PANE_WORKSPACE_SCREENS = {
     [SCREENS.WORKSPACE.PROFILE]: () => require('../../../../pages/workspace/WorkspaceProfilePage').default as React.ComponentType,
     [SCREENS.WORKSPACE.CARD]: () => require('../../../../pages/workspace/card/WorkspaceCardPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.WORKFLOWS]: () => require('../../../../pages/workspace/workflows/WorkspaceWorkflowsPage').default as React.ComponentType,
@@ -47,7 +47,7 @@ function FullScreenNavigator() {
                         options={screenOptions.homeScreen}
                         getComponent={loadWorkspaceInitialPage}
                     />
-                    {Object.entries(centralPaneWorkspaceScreens).map(([screenName, componentGetter]) => (
+                    {Object.entries(CENTRAL_PANE_WORKSPACE_SCREENS).map(([screenName, componentGetter]) => (
                         <RootStack.Screen
                             key={screenName}
                             name={screenName as keyof Screens}
@@ -62,4 +62,5 @@ function FullScreenNavigator() {
 
 FullScreenNavigator.displayName = 'FullScreenNavigator';
 
+export {CENTRAL_PANE_WORKSPACE_SCREENS};
 export default FullScreenNavigator;
