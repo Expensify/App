@@ -305,15 +305,6 @@ function ComposerWithSuggestions(
     const isCommentPendingSaved = useRef(false);
 
     /**
-     * Update frequently used emojis list. We debounce this method in the constructor so that UpdateFrequentlyUsedEmojis
-     * API is not called too often.
-     */
-    const debouncedUpdateFrequentlyUsedEmojis = useCallback(() => {
-        User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(insertedEmojisRef.current));
-        insertedEmojisRef.current = [];
-    }, []);
-
-    /**
      * Set the TextInput Ref
      */
     const setTextInputRef = useCallback(
@@ -419,7 +410,6 @@ function ComposerWithSuggestions(
                         suggestionsRef.current.resetSuggestions();
                     }
                     insertedEmojisRef.current = [...insertedEmojisRef.current, ...newEmojis];
-                    debouncedUpdateFrequentlyUsedEmojis();
                 }
             }
             const newCommentConverted = convertToLTRForComposer(newComment);
@@ -457,7 +447,6 @@ function ComposerWithSuggestions(
             }
         },
         [
-            debouncedUpdateFrequentlyUsedEmojis,
             findNewlyAddedChars,
             preferredLocale,
             preferredSkinTone,

@@ -13,7 +13,6 @@ import type {
     SetContactMethodAsDefaultParams,
     SetNameValuePairParams,
     UpdateChatPriorityModeParams,
-    UpdateFrequentlyUsedEmojisParams,
     UpdateNewsletterSubscriptionParams,
     UpdatePreferredEmojiSkinToneParams,
     UpdateStatusParams,
@@ -645,23 +644,6 @@ function updatePreferredSkinTone(skinTone: number) {
 }
 
 /**
- * Sync frequentlyUsedEmojis with Onyx and Server
- */
-function updateFrequentlyUsedEmojis(frequentlyUsedEmojis: FrequentlyUsedEmoji[]) {
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
-            value: frequentlyUsedEmojis,
-        },
-    ];
-
-    const parameters: UpdateFrequentlyUsedEmojisParams = {value: JSON.stringify(frequentlyUsedEmojis)};
-
-    API.write(WRITE_COMMANDS.UPDATE_FREQUENTLY_USED_EMOJIS, parameters, {optimisticData});
-}
-
-/**
  * Sync user chat priority mode with Onyx and Server
  * @param mode
  * @param [automatic] if we changed the mode automatically
@@ -1030,7 +1012,6 @@ export {
     setShouldUseStagingServer,
     setMuteAllSounds,
     clearUserErrorMessage,
-    updateFrequentlyUsedEmojis,
     joinScreenShare,
     clearScreenShareRequest,
     generateStatementPDF,
