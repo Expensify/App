@@ -35,6 +35,7 @@ import ChatBubbleReply from '@assets/images/chatbubble-reply.svg';
 import ChatBubbleUnread from '@assets/images/chatbubble-unread.svg';
 import ChatBubble from '@assets/images/chatbubble.svg';
 import ChatBubbles from '@assets/images/chatbubbles.svg';
+import CheckCircle from '@assets/images/check-circle.svg';
 import Checkmark from '@assets/images/checkmark.svg';
 import Close from '@assets/images/close.svg';
 import ClosedSign from '@assets/images/closed-sign.svg';
@@ -338,4 +339,5 @@ export {
     Lightbulb,
     DocumentPlus,
     Clear,
+    CheckCircle,
 };

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View } from 'react-native';
+import {View} from 'react-native';
 import MenuItem from '@components/MenuItem';
 import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -9,11 +9,10 @@ import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
-import type { Route } from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
 import SearchFiltersNarrow from './SearchFiltersNarrow';
-
 
 type SearchFiltersProps = {
     query: string;
@@ -54,7 +53,7 @@ function SearchFilters({query}: SearchFiltersProps) {
         {
             title: translate('common.finished'),
             query: CONST.TAB_SEARCH.FINISHED,
-            icon: Expensicons.Checkmark,
+            icon: Expensicons.CheckCircle,
             route: ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.FINISHED),
         },
     ];
