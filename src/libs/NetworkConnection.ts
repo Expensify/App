@@ -160,11 +160,7 @@ function subscribeToNetworkStatus(): () => void {
             return;
         }
         setOfflineStatus(state.isInternetReachable === false);
-        Log.info(
-            `[NetworkStatus] NetInfo.addEventListener event coming, setting "offlineStatus" to ${Boolean(state.isInternetReachable)} with network state: ${JSON.stringify(
-                state,
-            )}`,
-        );
+        Log.info(`[NetworkStatus] NetInfo.addEventListener event coming, setting "offlineStatus" to ${Boolean(state.isInternetReachable)} with network state: ${JSON.stringify(state)}`);
         setNetWorkStatus(state.isInternetReachable);
     });
 
