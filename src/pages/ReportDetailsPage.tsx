@@ -1,6 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -40,6 +40,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
+import ConfirmModal from '@components/ConfirmModal';
 
 type ReportDetailsPageMenuItem = {
     key: DeepValueOf<typeof CONST.REPORT_DETAILS_MENU_ITEM>;
@@ -79,6 +80,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const isInvoiceReport = useMemo(() => ReportUtils.isInvoiceReport(report), [report]);
     const canEditReportDescription = useMemo(() => ReportUtils.canEditReportDescription(report, policy), [report, policy]);
     const shouldShowReportDescription = isChatRoom && (canEditReportDescription || report.description !== '');
+    const [isLastMemberLeavingGroupModalVisible, setIsLastMemberLeavingGroupModalVisible] = useState(false);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
     const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(report), [report, policy]);
@@ -357,6 +359,34 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                             />
                         );
                     })}
+                    <MenuItem
+                        key={CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM}
+                        title={translate('common.leave')}
+                        icon={Expensicons.Exit}
+                        isAnonymousAction={false}
+                        shouldShowRightIcon={false}
+                        onPress={() => {
+                            if (Object.keys(report?.participants ?? {}).length === 1) {
+                                setIsLastMemberLeavingGroupModalVisible(true);
+                                return;
+                            }
+
+                            Report.leaveGroupChat(report.reportID);
+                        }}
+                    />
+                    <ConfirmModal
+                        danger
+                        title={translate('groupChat.lastMemberTitle')}
+                        isVisible={isLastMemberLeavingGroupModalVisible}
+                        onConfirm={() => {
+                            setIsLastMemberLeavingGroupModalVisible(false);
+                            Report.leaveGroupChat(report.reportID);
+                        }}
+                        onCancel={() => setIsLastMemberLeavingGroupModalVisible(false)}
+                        prompt={translate('groupChat.lastMemberWarning')}
+                        confirmText={translate('common.leave')}
+                        cancelText={translate('common.cancel')}
+                    />
                 </ScrollView>
             </FullPageNotFoundView>
         </ScreenWrapper>
