@@ -17,8 +17,9 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
-import type {SearchPersonalDetails, SearchPolicyDetails, SearchTransactionType} from '@src/types/onyx/SearchResults';
+import type {SearchAccountDetails, SearchTransactionType} from '@src/types/onyx/SearchResults';
 import BaseListItem from './BaseListItem';
+import TextWithIconCell from './TextWithIconCell';
 import type {ListItem, TransactionListItemProps, TransactionListItemType} from './types';
 
 const getTypeIcon = (type?: SearchTransactionType) => {
@@ -61,6 +62,7 @@ function TransactionListItem<TItem extends ListItem>({
     const isFromExpenseReport = transactionItem.reportType === CONST.REPORT.TYPE.EXPENSE;
     const date = TransactionUtils.getCreated(transactionItem as OnyxEntry<Transaction>, CONST.DATE.MONTH_DAY_ABBR_FORMAT);
     const amount = TransactionUtils.getAmount(transactionItem as OnyxEntry<Transaction>, isFromExpenseReport);
+    const taxAmount = TransactionUtils.getTaxAmount(transactionItem as OnyxEntry<Transaction>, isFromExpenseReport);
     const currency = TransactionUtils.getCurrency(transactionItem as OnyxEntry<Transaction>);
     const description = TransactionUtils.getDescription(transactionItem as OnyxEntry<Transaction>);
     const merchant = getMerchant();
@@ -82,7 +84,7 @@ function TransactionListItem<TItem extends ListItem>({
         />
     );
 
-    const userCell = (participant: SearchPersonalDetails & SearchPolicyDetails) => {
+    const userCell = (participant: SearchAccountDetails) => {
         const displayName = participant?.name ?? participant?.displayName ?? participant?.login;
         const avatarURL = participant?.avatarURL ?? participant?.avatar;
         const isWorkspace = participant?.avatarURL !== undefined;
@@ -100,13 +102,49 @@ function TransactionListItem<TItem extends ListItem>({
                 />
                 <Text
                     numberOfLines={1}
-                    style={[styles.textMicroBold]}
+                    style={[styles.textMicroBold, styles.flexShrink1]}
                 >
                     {displayName}
                 </Text>
             </View>
         );
     };
+
+    const categoryCell = isLargeScreenWidth ? (
+        <TextWithTooltip
+            shouldShowTooltip={showTooltip}
+            text={transactionItem?.category}
+            style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter]}
+        />
+    ) : (
+        <TextWithIconCell
+            icon={Expensicons.Folder}
+            showTooltip={showTooltip}
+            text={transactionItem?.category}
+        />
+    );
+
+    const tagCell = isLargeScreenWidth ? (
+        <TextWithTooltip
+            shouldShowTooltip={showTooltip}
+            text={transactionItem?.tag}
+            style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter]}
+        />
+    ) : (
+        <TextWithIconCell
+            icon={Expensicons.Tag}
+            showTooltip={showTooltip}
+            text={transactionItem?.tag}
+        />
+    );
+
+    const taxCell = (
+        <TextWithTooltip
+            shouldShowTooltip={showTooltip}
+            text={CurrencyUtils.convertToDisplayString(taxAmount, currency)}
+            style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter, styles.textAlignRight]}
+        />
+    );
 
     const totalCell = (
         <TextWithTooltip
@@ -162,22 +200,28 @@ function TransactionListItem<TItem extends ListItem>({
             >
                 {() => (
                     <>
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mb2, styles.gap2]}>
+                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mb2, styles.gap2]}>
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.flex1]}>
-                                <View style={[styles.flexGrow0, styles.flexShrink1, styles.mw50]}>{userCell(transactionItem.from)}</View>
+                                <View style={[styles.mw50]}>{userCell(transactionItem.from)}</View>
                                 <Icon
                                     src={Expensicons.ArrowRightLong}
                                     width={variables.iconSizeXXSmall}
                                     height={variables.iconSizeXXSmall}
                                     fill={theme.icon}
                                 />
-                                <View style={[styles.flexGrow0, styles.flexShrink1, styles.mw50]}>{userCell(transactionItem.to)}</View>
+                                <View style={[styles.flex1, styles.mw50]}>{userCell(transactionItem.to)}</View>
                             </View>
                             <View style={[StyleUtils.getWidthStyle(variables.w80)]}>{actionCell}</View>
                         </View>
                         <View style={[styles.flexRow, styles.justifyContentBetween, styles.gap1]}>
-                            <View style={[styles.flex1]}>{merchantCell}</View>
-                            <View style={[styles.alignItemsEnd, styles.gap1]}>
+                            <View style={[styles.flex2, styles.gap1]}>
+                                {merchantCell}
+                                <View style={[styles.flexRow, styles.flex1, styles.alignItemsEnd, styles.gap3]}>
+                                    {categoryCell}
+                                    {tagCell}
+                                </View>
+                            </View>
+                            <View style={[styles.alignItemsEnd, styles.flex1, styles.gap1]}>
                                 {totalCell}
                                 <View style={[styles.flexRow, styles.gap1, styles.justifyContentCenter]}>
                                     {typeCell}
@@ -216,7 +260,10 @@ function TransactionListItem<TItem extends ListItem>({
                     <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DATE)]}>{dateCell}</View>
                     <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.MERCHANT)]}>{merchantCell}</View>
                     <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.FROM)]}>{userCell(transactionItem.from)}</View>
-                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.FROM)]}>{userCell(transactionItem.to)}</View>
+                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TO)]}>{userCell(transactionItem.to)}</View>
+                    {transactionItem.shouldShowCategory && <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.CATEGORY)]}>{categoryCell}</View>}
+                    {transactionItem.shouldShowTag && <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TAG)]}>{tagCell}</View>}
+                    {transactionItem.shouldShowTax && <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TAX_AMOUNT)]}>{taxCell}</View>}
                     <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TOTAL)]}>{totalCell}</View>
                     <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TYPE)]}>{typeCell}</View>
                     <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.ACTION)]}>{actionCell}</View>

@@ -18,7 +18,11 @@ type WithWritableReportOrNotFoundOnyxProps = {
     /** The report corresponding to the reportID in the route params */
     report: OnyxEntry<Report>;
 
+    /** Whether the reports are loading. When false it means they are ready to be used. */
     isLoadingApp: OnyxEntry<boolean>;
+
+    /** The draft report corresponding to the reportID in the route params */
+    reportDraft: OnyxEntry<Report>;
 };
 
 type MoneyRequestRouteName =
@@ -92,6 +96,9 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
         },
         isLoadingApp: {
             key: ONYXKEYS.IS_LOADING_APP,
+        },
+        reportDraft: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT}${route.params.reportID ?? '0'}`,
         },
     })(forwardRef(WithWritableReportOrNotFound));
 }
