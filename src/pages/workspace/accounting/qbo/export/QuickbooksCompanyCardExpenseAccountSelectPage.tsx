@@ -72,7 +72,7 @@ function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyConne
                 <HeaderWithBackButton
                     title={
                         nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL
-                            ? translate('workspace.qbo.vendor')
+                            ? translate('workspace.qbo.accountsPayable')
                             : translate('workspace.qbo.account')
                     }
                 />
