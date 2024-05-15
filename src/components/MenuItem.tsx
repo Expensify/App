@@ -462,13 +462,11 @@ function MenuItem(
             EMPTY_STRING = '',
             DEFAULT_TRUNCATE_SYMBOL = '...',
             DEFAULT_SLOP = 10 > maxLength ? maxLength : 10,
-            EXCLUDE_TAGS = ['img', 'br'], // non-closed tags
             items: string[] = [], // stack for saving tags
             KEY_VALUE_REGEX = '([\\w|-]+\\s*=\\s*"[^"]*"\\s*)*',
             IS_CLOSE_REGEX = '\\s*\\/?\\s*',
-            CLOSE_REGEX = '\\s*\\/\\s*',
-            SELF_CLOSE_REGEX = new RegExp('<\\/?\\w+\\s*' + KEY_VALUE_REGEX + CLOSE_REGEX + '>'),
-            HTML_TAG_REGEX = new RegExp('<\\/?\\w+\\s*' + KEY_VALUE_REGEX + IS_CLOSE_REGEX + '>'),
+            SELF_CLOSE_REGEX = new RegExp('<\\/?(\\w+)((?:\\s+(?:\\w+|-)+(?:\\s*=\\s*(?:"(?:\\\\.|[^"\\\\])*"|\'(?:\\\\.|[^\'\\\\])*\'|[^\'">\\s]+))?)*)\\s*\\/?>'),
+            HTML_TAG_REGEX = new RegExp('<\\/?(\\w+)((?:\\s+(?:\\w+|-)+(?:\\s*=\\s*(?:"(?:\\\\.|[^"\\\\])*"|\'(?:\\\\.|[^\'\\\\])*\'|[^\'">\\s]+))?)*)\\s*\\/?>'),
             URL_REGEX = /(((ftp|https?):\/\/)[\-\w@:%_\+.~#?,&\/\/=]+)|((mailto:)?[_.\w\-]+@([\w][\w\-]+\.)+[a-zA-Z]{2,3})/g, // Simple regexp
             IMAGE_TAG_REGEX = new RegExp('<img\\s*' + KEY_VALUE_REGEX + IS_CLOSE_REGEX + '>'),
             WORD_BREAK_REGEX = new RegExp('\\W+', 'g');
@@ -502,10 +500,7 @@ function MenuItem(
             let html = '';
 
             tags.reverse().forEach((tag) => {
-                // dump non-excluded tags only
-                if (EXCLUDE_TAGS.indexOf(tag) === -1) {
-                    html += '</' + tag + '>';
-                }
+                html += '</' + tag + '>';
             });
 
             return html;
@@ -608,7 +603,6 @@ function MenuItem(
                 selfClose = SELF_CLOSE_REGEX.exec(result);
                 if (!selfClose) {
                     tag = _getTag(result);
-
                     items.push(tag);
                 }
             }
