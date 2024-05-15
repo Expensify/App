@@ -175,7 +175,7 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
                 sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
                 ListItem={UserListItem}
                 textInputValue={searchValue}
-                textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+                textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
                 textInputHint={offlineMessage}
                 onChangeText={setSearchValue}
                 headerMessage={headerMessage}

@@ -241,7 +241,7 @@ function RoomInvitePage({
                     canSelectMultiple
                     sections={sections}
                     ListItem={UserListItem}
-                    textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+                    textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
                     textInputValue={searchTerm}
                     onChangeText={(value) => {
                         SearchInputManager.searchInput = value;
