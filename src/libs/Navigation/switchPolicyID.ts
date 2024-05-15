@@ -19,7 +19,7 @@ type ActionPayloadParams = {
     path?: string;
 };
 
-type CentralPaneRouteParams = Record<string, string> & {policyID?: string; reportID?: string};
+type CentralPaneRouteParams = Record<string, string> & {policyID?: string; policyIDs?: string; reportID?: string};
 
 function checkIfActionPayloadNameIsEqual(action: Writable<NavigationAction>, screenName: string) {
     return action?.payload && 'name' in action.payload && action?.payload?.name === screenName;
@@ -102,6 +102,10 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
         const topmostCentralPaneRoute = getTopmostCentralPaneRoute(rootState);
         const screen = topmostCentralPaneRoute?.name;
         const params: CentralPaneRouteParams = {...topmostCentralPaneRoute?.params};
+
+        if (isOpeningSearchFromBottomTab && policyID) {
+            params.policyIDs = policyID;
+        }
 
         // If the user is on the home page and changes the current workspace, then should be displayed a report from the selected workspace.
         // To achieve that, it's necessary to navigate without the reportID param.

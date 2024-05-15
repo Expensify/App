@@ -19,13 +19,13 @@ function SearchPageBottomTab() {
     const {isSmallScreenWidth} = useWindowDimensions();
     const activeRoute = useActiveRoute();
     const styles = useThemeStyles();
-    const {activeWorkspaceID} = useActiveWorkspace();
     const currentQuery = activeRoute?.params && 'query' in activeRoute.params ? activeRoute?.params?.query : '';
+    const policyIDs = activeRoute?.params && 'policyIDs' in activeRoute.params ? activeRoute?.params?.policyIDs : null;
     const query = currentQuery as SearchQuery;
     const isValidQuery = Object.values(CONST.TAB_SEARCH).includes(query);
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.ALL));
-
+    
     return (
         <ScreenWrapper
             testID={SearchPageBottomTab.displayName}
@@ -37,14 +37,14 @@ function SearchPageBottomTab() {
                 shouldShowLink={false}
             >
                 <TopBar
-                    activeWorkspaceID={activeWorkspaceID}
+                    activeWorkspaceID={policyIDs}
                     breadcrumbLabel={translate('common.search')}
                     shouldDisplaySearch={false}
                 />
                 <SearchFilters query={query} />
                 {isSmallScreenWidth && (
                     <Search
-                        policyIDs={activeWorkspaceID}
+                        policyIDs={policyIDs}
                         query={query}
                     />
                 )}

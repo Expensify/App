@@ -6,7 +6,7 @@ import type {BottomTabName, RootStackParamList, State} from '@libs/Navigation/ty
 import SCREENS from '@src/SCREENS';
 
 // The policy ID parameter should be included in the URL when any of these pages is opened in the bottom tab.
-const SCREENS_WITH_POLICY_ID_IN_URL: BottomTabName[] = [SCREENS.HOME, SCREENS.SEARCH.BOTTOM_TAB] as const;
+const SCREENS_WITH_POLICY_ID_IN_URL: BottomTabName[] = [SCREENS.HOME] as const;
 
 const removePolicyIDParamFromState = (state: State<RootStackParamList>) => {
     const stateCopy = _.cloneDeep(state);
@@ -18,6 +18,7 @@ const removePolicyIDParamFromState = (state: State<RootStackParamList>) => {
 };
 
 const customGetPathFromState: typeof getPathFromState = (state, options) => {
+    console.log('state', state);
     // For the Home and Settings pages we should remove policyID from the params, because on small screens it's displayed twice in the URL
     const stateWithoutPolicyID = removePolicyIDParamFromState(state as State<RootStackParamList>);
     const path = getPathFromState(stateWithoutPolicyID, options);

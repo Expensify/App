@@ -133,15 +133,17 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
     const stateFromPath = getStateFromPath(pathWithoutPolicyID) as PartialState<NavigationState<RootStackParamList>>;
 
     // Creating path with /w/ included if necessary.
+    const topmostCentralPaneRoute = getTopmostCentralPaneRoute(rootState);
+    const policyIDs = !!topmostCentralPaneRoute?.params && 'policyIDs' in topmostCentralPaneRoute.params ? (topmostCentralPaneRoute?.params?.policyIDs as string) : '';
     const extractedPolicyID = extractPolicyIDFromPath(`/${path}`);
     const policyIDFromState = getPolicyIDFromState(rootState);
-    const policyID = extractedPolicyID ?? policyIDFromState;
+    const policyID = extractedPolicyID ?? policyIDFromState ?? policyIDs;
 
     const isNarrowLayout = getIsNarrowLayout();
 
     const isFullScreenOnTop = rootState.routes?.at(-1)?.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR;
 
-    if (policyID && !isFullScreenOnTop) {
+    if (policyID && !isFullScreenOnTop && !policyID) {
         // The stateFromPath doesn't include proper path if there is a policy passed with /w/id.
         // We need to replace the path in the state with the proper one.
         // To avoid this hacky solution we may want to create custom getActionFromState function in the future.
@@ -149,9 +151,15 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
     }
 
     const action: StackNavigationAction = getActionFromState(stateFromPath, linkingConfig.config);
+
     // If action type is different than NAVIGATE we can't change it to the PUSH safely
     if (action?.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE) {
-        const topmostCentralPaneRoute = getTopmostCentralPaneRoute(rootState);
+        const targetScreen = action.payload.params?.screen;
+
+        if (targetScreen === SCREENS.SEARCH.CENTRAL_PANE && policyID && action.payload?.params?.params) {
+            action.payload.params.params.policyIDs = policyID;
+        }
+
         const topRouteName = rootState?.routes?.at(-1)?.name;
         const isTargetNavigatorOnTop = topRouteName === action.payload.name;
 
