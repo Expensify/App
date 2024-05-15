@@ -11,7 +11,7 @@ import variables from '@src/styles/variables';
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
 const story = {
-    title: 'Components/PromotedActionBar',
+    title: 'Components/PromotedActionsBar',
     component: PromotedActionsBar,
 };
 
