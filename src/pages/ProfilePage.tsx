@@ -15,6 +15,7 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
+import PromotedActionsBar, {PromotedAction, PromotedActions} from '@components/PromotedActionsBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -143,6 +144,18 @@ function ProfilePage({route}: ProfilePageProps) {
         }
     }, [accountID]);
 
+    const promotedActions = useMemo(() => {
+        const result: PromotedAction[] = [];
+        if (report) {
+            result.push(PromotedActions.pin(report));
+        }
+
+        if (!isCurrentUser && !SessionActions.isAnonymousUser()) {
+            result.push(PromotedActions.message(accountID));
+        }
+        return result;
+    }, [accountID, isCurrentUser, report]);
+
     return (
         <ScreenWrapper testID={ProfilePage.displayName}>
             <FullPageNotFoundView shouldShow={shouldShowBlockingView || CONST.RESTRICTED_ACCOUNT_IDS.includes(accountID)}>
@@ -178,6 +191,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                         {displayName}
                                     </Text>
                                 )}
+                                <PromotedActionsBar promotedActions={promotedActions} />
                                 {hasStatus && (
                                     <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.mw100]}>
                                         <Text
@@ -226,16 +240,6 @@ function ProfilePage({route}: ProfilePageProps) {
                                     description={translate('notificationPreferencesPage.label')}
                                     onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.getRoute(report.reportID))}
                                     wrapperStyle={[styles.mtn6, styles.mb5]}
-                                />
-                            )}
-                            {!isCurrentUser && !SessionActions.isAnonymousUser() && (
-                                <MenuItem
-                                    title={`${translate('common.message')}${displayName}`}
-                                    titleStyle={styles.flex1}
-                                    icon={Expensicons.ChatBubble}
-                                    onPress={() => ReportActions.navigateToAndOpenReportWithAccountIDs([accountID])}
-                                    wrapperStyle={styles.breakAll}
-                                    shouldShowRightIcon
                                 />
                             )}
                             {!isEmptyObject(report) && report.reportID && !isCurrentUser && (

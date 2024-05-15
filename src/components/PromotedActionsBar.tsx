@@ -5,6 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as HeaderUtils from '@libs/HeaderUtils';
+import * as Localize from '@libs/Localize';
 import * as ReportActions from '@userActions/Report';
 import type OnyxReport from '@src/types/onyx/Report';
 import Button from './Button';
@@ -20,7 +21,7 @@ type ReportPromotedAction = (report: OnyxReport) => PromotedAction;
 
 type PromotedActionsType = {
     pin: ReportPromotedAction;
-    // message: (accountID: number) => PromotedAction;
+    message: (accountID: number) => PromotedAction;
     // join: ReportPromotedAction;
     // share: ReportPromotedAction;
     // hold: () => PromotedAction;
@@ -31,13 +32,12 @@ const PromotedActions = {
         key: 'pin',
         ...HeaderUtils.getPinMenuItem(report),
     }),
-    // TODO: Uncomment the following lines when the corresponding features are implemented
-    // message: (accountID) => ({
-    //     key: 'message',
-    //     icon: Expensicons.CommentBubbles,
-    //     text: Localize.translateLocal('common.message'),
-    //     onSelected: () => ReportActions.navigateToAndOpenReportWithAccountIDs([accountID]),
-    // }),
+    message: (accountID) => ({
+        key: 'message',
+        icon: Expensicons.CommentBubbles,
+        text: Localize.translateLocal('common.message'),
+        onSelected: () => ReportActions.navigateToAndOpenReportWithAccountIDs([accountID]),
+    }),
     // join: (report) => ({
     //     key: 'join',
     //     icon: Expensicons.CommentBubbles,
