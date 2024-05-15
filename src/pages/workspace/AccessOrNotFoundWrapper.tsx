@@ -41,9 +41,6 @@ type AccessOrNotFoundWrapperOnyxProps = {
 
     /** Indicated whether the report data is loading */
     isLoadingReportData: OnyxEntry<boolean>;
-
-    /** The list of all policies */
-    allPolicies: OnyxCollection<OnyxTypes.Policy>;
 };
 
 type AccessOrNotFoundWrapperProps = AccessOrNotFoundWrapperOnyxProps & {
@@ -70,6 +67,9 @@ type AccessOrNotFoundWrapperProps = AccessOrNotFoundWrapperOnyxProps & {
 
     /** The type of the transaction */
     iouType?: IOUType;
+
+    /** The list of all policies */
+    allPolicies?: OnyxCollection<OnyxTypes.Policy>;
 } & Pick<FullPageNotFoundViewProps, 'subtitleKey' | 'onLinkPress'>;
 
 type PageNotFoundFallbackProps = Pick<AccessOrNotFoundWrapperProps, 'policyID' | 'fullPageNotFoundViewProps'> & {shouldShowFullScreenFallback: boolean};
@@ -115,7 +115,7 @@ function AccessOrNotFoundWrapper({accessVariants = [], fullPageNotFoundViewProps
 
     const isPageAccessible = accessVariants.reduce((acc, variant) => {
         const accessFunction = ACCESS_VARIANTS[variant];
-        return acc && accessFunction(policy, report, allPolicies, iouType);
+        return acc && accessFunction(policy, report, allPolicies ?? null, iouType);
     }, true);
 
     const isPolicyNotAccessible = isEmptyObject(policy) || (Object.keys(policy).length === 1 && !isEmptyObject(policy.errors)) || !policy?.id;
@@ -149,8 +149,5 @@ export default withOnyx<AccessOrNotFoundWrapperProps, AccessOrNotFoundWrapperOny
     },
     isLoadingReportData: {
         key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-    },
-    allPolicies: {
-        key: ONYXKEYS.COLLECTION.POLICY,
     },
 })(AccessOrNotFoundWrapper);

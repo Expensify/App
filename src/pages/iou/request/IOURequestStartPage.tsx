@@ -1,7 +1,7 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -42,6 +42,9 @@ type IOURequestStartPageOnyxProps = {
 
     /** The transaction being modified */
     transaction: OnyxEntry<Transaction>;
+
+    /** The list of all policies */
+    allPolicies: OnyxCollection<Policy>;
 };
 
 type IOURequestStartPageProps = IOURequestStartPageOnyxProps & WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.CREATE>;
@@ -55,6 +58,7 @@ function IOURequestStartPage({
     },
     selectedTab,
     transaction,
+    allPolicies,
 }: IOURequestStartPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -122,6 +126,7 @@ function IOURequestStartPage({
             iouType={iouType}
             policyID={policy?.id}
             accessVariants={[CONST.IOU.ACCESS_VARIANTS.CREATE]}
+            allPolicies={allPolicies}
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
@@ -175,5 +180,8 @@ export default withOnyx<IOURequestStartPageProps, IOURequestStartPageOnyxProps>(
     },
     transaction: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${route?.params.transactionID ?? 0}`,
+    },
+    allPolicies: {
+        key: ONYXKEYS.COLLECTION.POLICY,
     },
 })(IOURequestStartPage);
