@@ -517,7 +517,6 @@ function ReportScreen({
         const didReportClose = wasReportRemoved && prevReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN && report.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
         const isTopLevelPolicyRoomWithNoStatus = !report.statusNum && !prevReport.parentReportID && prevReport.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ROOM;
         const isClosedTopLevelPolicyRoom = wasReportRemoved && prevReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN && isTopLevelPolicyRoomWithNoStatus;
-
         // Navigate to the Concierge chat if the room was removed from another device (e.g. user leaving a room or removed from a room)
         if (
             // non-optimistic case
@@ -538,6 +537,10 @@ function ReportScreen({
                     return;
                 }
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(prevReport.parentReportID));
+                return;
+            }
+            // If the report isn't focused, navigation to Concierge Chat should be avoided.
+            if (!isFocused) {
                 return;
             }
             Report.navigateToConciergeChat();
@@ -567,6 +570,7 @@ function ReportScreen({
         prevReport.chatType,
         prevReport,
         reportIDFromRoute,
+        isFocused,
     ]);
 
     useEffect(() => {
