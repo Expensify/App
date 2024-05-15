@@ -525,7 +525,7 @@ function ReportScreen({
             isRemovalExpectedForReportType ||
             isClosedTopLevelPolicyRoom
         ) {
-            // If the report isn't focused, navigation to Concierge Chat should be avoided.
+            // Early return if the report we're passing isn't in a focused state. We only want to navigate to Concierge if the user leaves the room from another device or gets removed from the room while the report is in a focused state.
             if (!isFocused) {
                 return;
             }
