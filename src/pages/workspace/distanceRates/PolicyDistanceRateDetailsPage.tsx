@@ -26,7 +26,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Rate} from '@src/types/onyx/Policy';
-import type { ListItemType } from './PolicyDistanceRateTaxRateSelectionModal';
+import type {ListItemType} from './PolicyDistanceRateTaxRateSelectionModal';
 import PolicyDistanceRateTaxRateSelectionModal from './PolicyDistanceRateTaxRateSelectionModal';
 
 type PolicyDistanceRateDetailsPageOnyxProps = {
@@ -48,24 +48,24 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
     const rateID = route.params.rateID;
     const customUnits = policy?.customUnits ?? {};
     const customUnit = customUnits[Object.keys(customUnits)[0]];
+    const isTrackTaxEnabled = customUnit.attributes.taxEnabled;
     const rate = customUnit.rates[rateID];
     const currency = rate.currency ?? CONST.CURRENCY.USD;
     const canDeleteRate = Object.values(customUnit.rates).filter((distanceRate) => distanceRate.enabled).length > 1 || !rate.enabled;
     const canDisableRate = Object.values(customUnit.rates).filter((distanceRate) => distanceRate.enabled).length > 1;
     const errorFields = rate.errorFields;
     const defaultTaxRateID = policy?.taxRates?.defaultExternalID ?? '';
-    const taxRate = `${policy?.taxRates?.taxes[defaultTaxRateID].name} (${policy?.taxRates?.taxes[defaultTaxRateID].value})` 
-    const taxRateItems: ListItemType[] = useMemo(()=>{
+    const taxRate = `${policy?.taxRates?.taxes[defaultTaxRateID].name} (${policy?.taxRates?.taxes[defaultTaxRateID].value})`;
+    const taxRateItems: ListItemType[] = useMemo(() => {
         const taxes = policy?.taxRates?.taxes;
         const result = Object.entries(taxes ?? {}).map(([key, value]) => ({
             value: value.value,
             text: `${value.name} (${value.value})`,
             isSelected: defaultTaxRateID === key,
-            keyForList: key
+            keyForList: key,
         }));
-        return result
-    },[policy, defaultTaxRateID])
-
+        return result;
+    }, [policy, defaultTaxRateID]);
 
     const editRateValue = () => {
         Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATE_EDIT.getRoute(policyID, rateID));
@@ -157,35 +157,39 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
                             onPress={editRateValue}
                         />
                     </OfflineWithFeedback>
-                    <View style={styles.w100}>
-                        <MenuItemWithTopDescription
-                            disabled={false}
-                            title={taxRate}
-                            description='Tax Rate'
-                            shouldShowRightIcon
-                            onPress={() => setIsTaxRateSelectionModalVisible(true)}
-                        />
-                        <PolicyDistanceRateTaxRateSelectionModal
-                            isVisible={isTaxRateSelectionModalVisible}
-                            items={taxRateItems}
-                            onTaxRateChange={()=>{}}
-                            onClose={()=> setIsTaxRateSelectionModalVisible(false)}
-                        />
-                    </View>
-                    <OfflineWithFeedback
-                        errors={ErrorUtils.getLatestErrorField(rate, 'rate')}
-                        pendingAction={rate?.pendingFields?.rate ?? rate?.pendingFields?.currency}
-                        errorRowStyles={styles.mh5}
-                        onClose={() => clearErrorFields('rate')}
-                    >
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon
-                            title={`${rateValueToDisplay}`}
-                            description='Tax reclaimable on'
-                            descriptionTextStyle={styles.textNormal}
-                            onPress={editTaxReclaimableOnValue}
-                        />
-                    </OfflineWithFeedback>
+                    {isTrackTaxEnabled && (
+                        <View style={styles.w100}>
+                            <MenuItemWithTopDescription
+                                disabled={false}
+                                title={taxRate}
+                                description="Tax Rate"
+                                shouldShowRightIcon
+                                onPress={() => setIsTaxRateSelectionModalVisible(true)}
+                            />
+                            <PolicyDistanceRateTaxRateSelectionModal
+                                isVisible={isTaxRateSelectionModalVisible}
+                                items={taxRateItems}
+                                onTaxRateChange={() => {}}
+                                onClose={() => setIsTaxRateSelectionModalVisible(false)}
+                            />
+                        </View>
+                    )}
+                    {isTrackTaxEnabled && (
+                        <OfflineWithFeedback
+                            errors={ErrorUtils.getLatestErrorField(rate, 'rate')}
+                            pendingAction={rate?.pendingFields?.rate ?? rate?.pendingFields?.currency}
+                            errorRowStyles={styles.mh5}
+                            onClose={() => clearErrorFields('rate')}
+                        >
+                            <MenuItemWithTopDescription
+                                shouldShowRightIcon
+                                title={`${rateValueToDisplay}`}
+                                description="Tax reclaimable on"
+                                descriptionTextStyle={styles.textNormal}
+                                onPress={editTaxReclaimableOnValue}
+                            />
+                        </OfflineWithFeedback>
+                    )}
                     <ConfirmModal
                         onConfirm={() => setIsWarningModalVisible(false)}
                         isVisible={isWarningModalVisible}

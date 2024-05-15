@@ -206,6 +206,7 @@ const WRITE_COMMANDS = {
     ADD_BILLING_CARD_AND_REQUEST_WORKSPACE_OWNER_CHANGE: 'AddBillingCardAndRequestPolicyOwnerChange',
     SET_POLICY_DISTANCE_RATES_UNIT: 'SetPolicyDistanceRatesUnit',
     SET_POLICY_DISTANCE_RATES_DEFAULT_CATEGORY: 'SetPolicyDistanceRatesDefaultCategory',
+    ENABLE_DISTANCE_REQUEST_TAX: 'EnableDistanceRequestTax',
     UPDATE_POLICY_DISTANCE_RATE_VALUE: 'UpdatePolicyDistanceRateValue',
     SET_POLICY_DISTANCE_RATES_ENABLED: 'SetPolicyDistanceRatesEnabled',
     DELETE_POLICY_DISTANCE_RATES: 'DeletePolicyDistanceRates',

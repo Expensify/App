@@ -19,6 +19,7 @@ type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
 type Attributes = {
     unit: Unit;
+    taxEnabled?: boolean;
 };
 
 type CustomUnit = OnyxCommon.OnyxValueWithOfflineFeedback<{

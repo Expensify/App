@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, { useCallback } from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -7,6 +7,9 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {ListItem} from '@components/SelectionList/types';
+import Switch from '@components/Switch';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 import type {UnitItemType} from '@components/UnitPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,9 +23,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {CustomUnit} from '@src/types/onyx/Policy';
-import Switch from '@components/Switch';
-import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import CategorySelector from './CategorySelector';
 import UnitSelector from './UnitSelector';
 
@@ -43,6 +43,7 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
     const customUnits = policy?.customUnits ?? {};
     const customUnit = customUnits[Object.keys(customUnits)[0]];
     const customUnitID = customUnit?.customUnitID ?? '';
+    const isTrackTaxEnabled = customUnit.attributes.taxEnabled;
 
     const defaultCategory = customUnits[customUnitID].defaultCategory;
     const defaultUnit = customUnits[customUnitID].attributes.unit;
@@ -67,10 +68,10 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
         Policy.clearPolicyDistanceRatesErrorFields(policyID, customUnitID, {...errorFields, [fieldName]: null});
     };
 
-    const onToggleTrackTax = useCallback(()=>{
-
-    },[])
-
+    const onToggleTrackTax = (isOn: boolean) => {
+        const attributes = {...customUnits[customUnitID].attributes, taxEnabled: isOn};
+        Policy.enableDistanceRequestTax(policyID, customUnit.name, customUnitID, attributes);
+    };
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -113,25 +114,36 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
                             />
                         </OfflineWithFeedback>
                     )}
-                    <OfflineWithFeedback
-                            errorRowStyles={styles.mh5}
-                        >
-                            <View style={[styles.mt2, styles.mh4]}>
-                                <View style={[styles.flexRow, styles.mb2, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                    <Text style={[styles.textNormal, styles.colorMuted]}>Track Tax</Text>
-                                    <Switch
-                                        isOn={false}
-                                        accessibilityLabel='Track Tax'
-                                        onToggle={onToggleTrackTax}
-                                        disabled={!policy?.tax?.trackingEnabled}
-                                    />
-                                </View>
+                    <OfflineWithFeedback errorRowStyles={styles.mh5}>
+                        <View style={[styles.mt2, styles.mh4]}>
+                            <View style={[styles.flexRow, styles.mb2, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                                <Text style={[styles.textNormal, styles.colorMuted]}>Track Tax</Text>
+                                <Switch
+                                    isOn={Boolean(isTrackTaxEnabled)}
+                                    accessibilityLabel="Track Tax"
+                                    onToggle={onToggleTrackTax}
+                                    disabled={!policy?.tax?.trackingEnabled}
+                                />
                             </View>
-                          {!policy?.tax?.trackingEnabled &&  <View style={[styles.mh4]}>
-                                <Text style={styles.colorMuted} fontSize={14}>Taxes must be enabled on the workspace to use this feature. Head over to <TextLink fontSize={14} onPress={()=>{}}>More features</TextLink> to make that change.</Text>
-                            </View>}
-
-                        </OfflineWithFeedback>
+                        </View>
+                        {!policy?.tax?.trackingEnabled && (
+                            <View style={[styles.mh4]}>
+                                <Text
+                                    style={styles.colorMuted}
+                                    fontSize={14}
+                                >
+                                    Taxes must be enabled on the workspace to use this feature. Head over to{' '}
+                                    <TextLink
+                                        fontSize={14}
+                                        onPress={() => {}}
+                                    >
+                                        More features
+                                    </TextLink>{' '}
+                                    to make that change.
+                                </Text>
+                            </View>
+                        )}
+                    </OfflineWithFeedback>
                 </View>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

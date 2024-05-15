@@ -4461,6 +4461,59 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
     }
 }
 
+function enableDistanceRequestTax(policyID: string, customUnitName: string, customUnitID: string, attributes: Attributes) {
+    const policy = getPolicy(policyID);
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    customUnits: {
+                        [customUnitID]: {
+                            attributes,
+                        },
+                    },
+                    pendingFields: {
+                        customUnits: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {
+                        customUnits: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    customUnits: {
+                        [customUnitID]: {
+                            attributes: policy.customUnits ? policy.customUnits[customUnitID].attributes : null,
+                        },
+                    },
+                },
+            },
+        ],
+    };
+
+    const params = {
+        customUnitName,
+        customUnitID,
+        attributes,
+    };
+    API.write(WRITE_COMMANDS.ENABLE_DISTANCE_REQUEST_TAX, params, onyxData);
+}
+
 function renamePolicyTaglist(policyID: string, policyTagListName: {oldName: string; newName: string}, policyTags: OnyxEntry<PolicyTagList>) {
     const newName = policyTagListName.newName;
     const oldName = policyTagListName.oldName;
@@ -5264,6 +5317,7 @@ export {
     enablePolicyTags,
     enablePolicyTaxes,
     enablePolicyWorkflows,
+    enableDistanceRequestTax,
     openPolicyDistanceRatesPage,
     openPolicyMoreFeaturesPage,
     generateCustomUnitID,

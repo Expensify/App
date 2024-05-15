@@ -48,7 +48,7 @@ function PolicyDistanceRateTaxRateSelectionModal({isVisible, items, onTaxRateCha
                 includePaddingTop={false}
             >
                 <HeaderWithBackButton
-                    title='Tax Rate'
+                    title="Tax Rate"
                     onBackButtonPress={onClose}
                 />
                 <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>

@@ -67,7 +67,7 @@ function PolicyDistanceRateTaxReclaimableOnEditPage({policy, route}: PolicyDista
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
-                    title='Tax Reclaimabe On'
+                    title="Tax Reclaimabe On"
                     shouldShowBackButton
                     onBackButtonPress={() => Navigation.goBack()}
                 />
