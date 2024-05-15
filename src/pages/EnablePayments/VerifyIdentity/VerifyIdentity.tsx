@@ -3,14 +3,20 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import FixedFooter from '@components/FixedFooter';
+import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Icon from '@components/Icon';
+import * as Illustrations from '@components/Icon/Illustrations';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import Onfido from '@components/Onfido';
 import type {OnfidoData} from '@components/Onfido/types';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Growl from '@libs/Growl';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as Wallet from '@userActions/Wallet';
@@ -45,6 +51,8 @@ function VerifyIdentity({personalBankAccount, onfidoApplicantID, onfidoToken, wa
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
+    console.log({personalBankAccount, onfidoApplicantID, onfidoToken, walletOnfidoData});
+
     const handleOnfidoSuccess = useCallback(
         (onfidoData: OnfidoData) => {
             BankAccounts.verifyIdentity({
@@ -57,6 +65,8 @@ function VerifyIdentity({personalBankAccount, onfidoApplicantID, onfidoToken, wa
         },
         [personalBankAccount, onfidoApplicantID],
     );
+
+    const onfidoError = ErrorUtils.getLatestErrorMessage(walletOnfidoData) ?? '';
 
     const handleOnfidoError = () => {
         // In case of any unexpected error we log it to the server, show a growl, and return the user back to the requestor step so they can try again.
@@ -74,6 +84,8 @@ function VerifyIdentity({personalBankAccount, onfidoApplicantID, onfidoToken, wa
         Wallet.updateCurrentStep(CONST.WALLET.STEP.ADDITIONAL_DETAILS);
     };
 
+    const {isLoading = false, hasAcceptedPrivacyPolicy} = walletOnfidoData;
+
     return (
         <ScreenWrapper testID={VerifyIdentity.displayName}>
             <HeaderWithBackButton
@@ -88,12 +100,38 @@ function VerifyIdentity({personalBankAccount, onfidoApplicantID, onfidoToken, wa
             </View>
             <FullPageOfflineBlockingView>
                 <ScrollView contentContainerStyle={styles.flex1}>
-                    <Onfido
-                        sdkToken={onfidoToken ?? ''}
-                        onUserExit={handleOnfidoUserExit}
-                        onError={handleOnfidoError}
-                        onSuccess={handleOnfidoSuccess}
-                    />
+                    {hasAcceptedPrivacyPolicy ? (
+                        <Onfido
+                            sdkToken={onfidoToken ?? ''}
+                            onUserExit={handleOnfidoUserExit}
+                            onError={handleOnfidoError}
+                            onSuccess={handleOnfidoSuccess}
+                        />
+                    ) : (
+                        <>
+                            <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.m5, styles.ph5]}>
+                                <Icon
+                                    src={Illustrations.ToddBehindCloud}
+                                    fill="black"
+                                    width={100}
+                                    height={100}
+                                />
+                                <Text style={[styles.textHeadline, styles.mb2]}>{translate('onfidoStep.letsVerifyIdentity')}</Text>
+                                <Text style={[styles.textAlignCenter, styles.textSupporting]}>{translate('onfidoStep.butFirst')}</Text>
+                            </View>
+                            <FixedFooter>
+                                <FormAlertWithSubmitButton
+                                    isAlertVisible={Boolean(onfidoError)}
+                                    onSubmit={() => {}}
+                                    onFixTheErrorsLinkPressed={() => {}}
+                                    message={onfidoError}
+                                    isLoading={isLoading}
+                                    buttonText={onfidoError ? translate('onfidoStep.tryAgain') : translate('common.continue')}
+                                    containerStyles={[styles.mh0, styles.mv0, styles.mb0]}
+                                />
+                            </FixedFooter>
+                        </>
+                    )}
                 </ScrollView>
             </FullPageOfflineBlockingView>
         </ScreenWrapper>

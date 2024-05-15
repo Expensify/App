@@ -1590,6 +1590,8 @@ export default {
         facialScan: 'Política y lanzamiento de la exploración facial de Onfido',
         tryAgain: 'Intentar otra vez',
         verifyIdentity: 'Verificar identidad',
+        letsVerifyIdentity: '¡Vamos a verificar tu identidad!',
+        butFirst: 'Pero primero, lo aburrido. Lee la jerga legal en el siguiente paso y haz clic en "Aceptar" cuando estés listo.',
         genericError: 'Hubo un error al procesar este paso. Inténtalo de nuevo.',
         cameraPermissionsNotGranted: 'Permiso para acceder a la cámara',
         cameraRequestMessage: 'Necesitamos acceso a tu cámara para completar la verificación de tu cuenta de banco. Por favor habilita los permisos en Configuración > Nuevo Expensify.',
