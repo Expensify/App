@@ -135,7 +135,7 @@ function TaskView({report, ...props}: TaskViewProps) {
                 </Hoverable>
                 <OfflineWithFeedback pendingAction={report.pendingFields?.description}>
                     <MenuItemWithTopDescription
-                        shouldParseTitle
+                        shouldRenderAsHTML
                         description={translate('task.description')}
                         title={report.description ?? ''}
                         onPress={() => Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report.reportID))}

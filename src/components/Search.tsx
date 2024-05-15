@@ -19,14 +19,15 @@ import TableListItemSkeleton from './Skeletons/TableListItemSkeleton';
 
 type SearchProps = {
     query: string;
+    policyIDs?: string;
 };
 
-function Search({query}: SearchProps) {
+function Search({query, policyIDs}: SearchProps) {
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     useCustomBackHandler();
 
-    const hash = SearchUtils.getQueryHash(query);
+    const hash = SearchUtils.getQueryHash(query, policyIDs);
     const [searchResults, searchResultsMeta] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
 
     useEffect(() => {
@@ -34,8 +35,9 @@ function Search({query}: SearchProps) {
             return;
         }
 
-        SearchActions.search(query);
-    }, [query, isOffline]);
+        SearchActions.search(hash, query, policyIDs);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [hash, isOffline]);
 
     const isLoading = (!isOffline && isLoadingOnyxValue(searchResultsMeta)) || searchResults?.data === undefined;
     const shouldShowEmptyState = !isLoading && isEmptyObject(searchResults?.data);
@@ -65,11 +67,10 @@ function Search({query}: SearchProps) {
 
     const ListItem = SearchUtils.getListItem(type);
     const data = SearchUtils.getSections(searchResults?.data ?? {}, type);
-    const shouldShowMerchant = SearchUtils.getShouldShowMerchant(searchResults?.data ?? {});
 
     return (
         <SelectionList
-            customListHeader={<SearchTableHeader shouldShowMerchant={shouldShowMerchant} />}
+            customListHeader={<SearchTableHeader data={searchResults?.data} />}
             ListItem={ListItem}
             sections={[{data, isDisabled: false}]}
             onSelectRow={(item) => {
@@ -78,6 +79,7 @@ function Search({query}: SearchProps) {
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
             listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
             containerStyle={[styles.pv0]}
+            showScrollIndicator={false}
         />
     );
 }

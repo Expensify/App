@@ -35,7 +35,7 @@ type ChatFinderPageOnyxProps = {
     isSearchingForReports: OnyxEntry<boolean>;
 };
 
-type ChatFinderPageProps = ChatFinderPageOnyxProps & StackScreenProps<RootStackParamList, typeof SCREENS.CHAT_FINDER_ROOT>;
+type ChatFinderPageProps = ChatFinderPageOnyxProps & StackScreenProps<RootStackParamList, typeof SCREENS.LEFT_MODAL.CHAT_FINDER>;
 
 type ChatFinderPageSectionItem = {
     data: OptionData[];

@@ -1,14 +1,14 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {forwardRef, useEffect, useRef} from 'react';
 import type {ForwardedRef} from 'react';
-import {View} from 'react-native';
+import type {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {MaybePhraseKey} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
+import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import FormHelpMessage from './FormHelpMessage';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 
 type CountrySelectorProps = {
@@ -53,23 +53,20 @@ function CountrySelector({errorText = '', value: countryCode, onInputChange = ()
     }, [countryCode]);
 
     return (
-        <View>
-            <MenuItemWithTopDescription
-                shouldShowRightIcon
-                title={title}
-                ref={ref}
-                descriptionTextStyle={countryTitleDescStyle}
-                description={translate('common.country')}
-                onPress={() => {
-                    const activeRoute = Navigation.getActiveRouteWithoutParams();
-                    didOpenContrySelector.current = true;
-                    Navigation.navigate(ROUTES.SETTINGS_ADDRESS_COUNTRY.getRoute(countryCode ?? '', activeRoute));
-                }}
-            />
-            <View style={styles.ml5}>
-                <FormHelpMessage message={errorText} />
-            </View>
-        </View>
+        <MenuItemWithTopDescription
+            shouldShowRightIcon
+            title={title}
+            ref={ref}
+            descriptionTextStyle={countryTitleDescStyle}
+            brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+            description={translate('common.country')}
+            errorText={errorText}
+            onPress={() => {
+                const activeRoute = Navigation.getActiveRouteWithoutParams();
+                didOpenContrySelector.current = true;
+                Navigation.navigate(ROUTES.SETTINGS_ADDRESS_COUNTRY.getRoute(countryCode ?? '', activeRoute));
+            }}
+        />
     );
 }
 

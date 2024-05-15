@@ -54,8 +54,8 @@ function ToggleSettingOptionRow({
     const styles = useThemeStyles();
 
     const subTitleView = useMemo(
-        () => <Text style={[styles.textLabel, shouldPlaceSubtitleBelowSwitch ? styles.mt4 : {...styles.mt1, ...styles.mr5}, styles.textSupporting]}>{subtitle}</Text>,
-        [shouldPlaceSubtitleBelowSwitch, subtitle, styles.mr5, styles.mt1, styles.mt4, styles.textLabel, styles.textSupporting],
+        () => <Text style={[styles.textLabel, shouldPlaceSubtitleBelowSwitch ? styles.mt1 : {...styles.mt1, ...styles.mr5}, styles.textSupporting]}>{subtitle}</Text>,
+        [shouldPlaceSubtitleBelowSwitch, subtitle, styles.mr5, styles.mt1, styles.textLabel, styles.textSupporting],
     );
 
     return (

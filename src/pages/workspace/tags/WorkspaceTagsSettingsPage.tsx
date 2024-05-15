@@ -31,8 +31,7 @@ type WorkspaceTagsSettingsPageProps = WorkspaceTagsSettingsPageOnyxProps & Stack
 function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
-    const doesPolicyContainOnlyOneTagList = policyTagLists.length === 1;
+    const [policyTagLists, isMultiLevelTags] = useMemo(() => [PolicyUtils.getTagLists(policyTags), PolicyUtils.isMultiLevelTags(policyTags)], [policyTags]);
 
     const updateWorkspaceRequiresTag = useCallback(
         (value: boolean) => {
@@ -62,7 +61,7 @@ function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPag
                         >
                             <View style={[styles.mt2, styles.mh4]}>
                                 <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.tags.requiresTag')}</Text>
+                                    <Text style={[styles.textNormal]}>{translate('workspace.tags.requiresTag')}</Text>
                                     <Switch
                                         isOn={policy?.requiresTag ?? false}
                                         accessibilityLabel={translate('workspace.tags.requiresTag')}
@@ -71,7 +70,7 @@ function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPag
                                 </View>
                             </View>
                         </OfflineWithFeedback>
-                        {doesPolicyContainOnlyOneTagList && (
+                        {!isMultiLevelTags && (
                             <OfflineWithFeedback
                                 errors={policyTags?.[policyTagLists[0].name]?.errors}
                                 pendingAction={policyTags?.[policyTagLists[0].name]?.pendingAction}

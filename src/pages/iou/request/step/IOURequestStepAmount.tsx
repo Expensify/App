@@ -56,16 +56,6 @@ type IOURequestStepAmountProps = IOURequestStepAmountOnyxProps &
         transaction: OnyxEntry<OnyxTypes.Transaction>;
     };
 
-function getTaxAmount(transaction: OnyxEntry<OnyxTypes.Transaction>, policy: OnyxEntry<OnyxTypes.Policy>, newAmount: number) {
-    if (!transaction?.amount) {
-        return;
-    }
-    const transactionTaxCode = transaction?.taxCode ?? '';
-    const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction) ?? '';
-    const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, transactionTaxCode ?? defaultTaxCode) ?? '';
-    return CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(taxPercentage, newAmount));
-}
-
 function IOURequestStepAmount({
     report,
     route: {
@@ -201,7 +191,7 @@ function IOURequestStepAmount({
                         amount: backendAmount,
                         comment: '',
                         currency,
-                        merchant: '',
+                        merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                         tag: '',
                         category: '',
                         created: transaction?.created ?? '',
@@ -279,7 +269,8 @@ function IOURequestStepAmount({
         }
 
         // If the value hasn't changed, don't request to save changes on the server and just close the modal
-        if (newAmount === TransactionUtils.getAmount(transaction) && currency === TransactionUtils.getCurrency(transaction)) {
+        const transactionCurrency = TransactionUtils.getCurrency(transaction);
+        if (newAmount === TransactionUtils.getAmount(transaction) && currency === transactionCurrency) {
             Navigation.dismissModal();
             return;
         }
@@ -290,9 +281,14 @@ function IOURequestStepAmount({
             return;
         }
 
-        const taxAmount = getTaxAmount(transaction, policy, newAmount);
+        // If currency has changed, then we get the default tax rate based on currency, otherwise we use the current tax rate selected in transaction, if we have it.
+        const transactionTaxCode = transaction?.taxCode ?? '';
+        const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction, currency) ?? '';
+        const taxCode = (currency !== transactionCurrency ? defaultTaxCode : transactionTaxCode) ?? defaultTaxCode;
+        const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, taxCode) ?? '';
+        const taxAmount = CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(taxPercentage, newAmount));
 
-        IOU.updateMoneyRequestAmountAndCurrency({transactionID, transactionThreadReportID: reportID, currency, amount: newAmount, taxAmount});
+        IOU.updateMoneyRequestAmountAndCurrency({transactionID, transactionThreadReportID: reportID, currency, amount: newAmount, taxAmount, policy, taxCode});
         Navigation.dismissModal();
     };
 

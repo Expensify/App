@@ -3,6 +3,7 @@ import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {removePolicyConnection} from '@libs/actions/connections';
 import {getQuickBooksOnlineSetupLink} from '@libs/actions/connections/QuickBooksOnline';
@@ -14,6 +15,7 @@ function ConnectToQuickbooksOnlineButton({policyID, shouldDisconnectIntegrationB
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
+    const {isOffline} = useNetwork();
 
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
 
@@ -27,6 +29,7 @@ function ConnectToQuickbooksOnlineButton({policyID, shouldDisconnectIntegrationB
                     }
                     Link.openLink(getQuickBooksOnlineSetupLink(policyID), environmentURL);
                 }}
+                isDisabled={isOffline}
                 text={translate('workspace.accounting.setup')}
                 style={styles.justifyContentCenter}
                 small

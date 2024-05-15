@@ -523,16 +523,6 @@ function IOURequestStepConfirmation({
         [transaction?.amount, transaction?.comment, transaction?.currency, participants, currentUserPersonalDetails.accountID, report],
     );
 
-    const addNewParticipant = (option: Participant) => {
-        const newParticipants = transaction?.participants?.map((participant) => {
-            if (participant.accountID === option.accountID) {
-                return {...participant, selected: !participant.selected};
-            }
-            return participant;
-        });
-        IOU.setMoneyRequestParticipants(transactionID, newParticipants);
-    };
-
     const setBillable = (billable: boolean) => {
         IOU.setMoneyRequestBillable(transactionID, billable);
     };
@@ -569,7 +559,6 @@ function IOURequestStepConfirmation({
                         iouCategory={transaction?.category}
                         onConfirm={createTransaction}
                         onSendMoney={sendMoney}
-                        onSelectParticipant={addNewParticipant}
                         receiptPath={receiptPath}
                         receiptFilename={receiptFilename}
                         iouType={iouType}

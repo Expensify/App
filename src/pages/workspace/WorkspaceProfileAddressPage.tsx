@@ -1,10 +1,13 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
 import AddressForm from '@components/AddressForm';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {updateAddress} from '@userActions/Policy';
@@ -21,6 +24,7 @@ type WorkspaceProfileAddressPagePolicyProps = WithPolicyProps;
 type WorkspaceProfileAddressPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ADDRESS> & WorkspaceProfileAddressPagePolicyProps;
 
 function WorkspaceProfileAddressPage({policy, route}: WorkspaceProfileAddressPageProps) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const address = useMemo(() => policy?.address, [policy]);
     const [currentCountry, setCurrentCountry] = useState(address?.country);
@@ -102,6 +106,9 @@ function WorkspaceProfileAddressPage({policy, route}: WorkspaceProfileAddressPag
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack()}
             />
+            <View style={[styles.ph5, styles.mv3, styles.flexRow, styles.flexWrap]}>
+                <Text>{translate('workspace.editor.addressContext')}</Text>
+            </View>
             <AddressForm
                 formID={ONYXKEYS.FORMS.HOME_ADDRESS_FORM}
                 onSubmit={updatePolicyAddress}

@@ -298,7 +298,7 @@ function MoneyRequestParticipantsSelector({participants = [], onFinish, onPartic
 
         return (
             <>
-                {shouldShowReferralBanner && (
+                {shouldShowReferralBanner && !isCategorizeOrShareAction && (
                     <ReferralProgramCTA
                         referralContentType={referralContentType}
                         style={[styles.flexShrink0, !!participants.length && !shouldShowSplitBillErrorMessage && styles.mb5]}
@@ -313,7 +313,7 @@ function MoneyRequestParticipantsSelector({participants = [], onFinish, onPartic
                     />
                 )}
 
-                {!!participants.length && (
+                {!!participants.length && !isCategorizeOrShareAction && (
                     <Button
                         success
                         text={translate('common.next')}
@@ -323,9 +323,29 @@ function MoneyRequestParticipantsSelector({participants = [], onFinish, onPartic
                         isDisabled={shouldShowSplitBillErrorMessage}
                     />
                 )}
+                {isCategorizeOrShareAction && (
+                    <Button
+                        success
+                        text={translate('workspace.new.newWorkspace')}
+                        onPress={() => onFinish()}
+                        pressOnEnter
+                        large
+                    />
+                )}
             </>
         );
-    }, [handleConfirmSelection, participants.length, isDismissed, referralContentType, shouldShowSplitBillErrorMessage, styles, translate, shouldShowReferralBanner]);
+    }, [
+        handleConfirmSelection,
+        participants.length,
+        isDismissed,
+        referralContentType,
+        shouldShowSplitBillErrorMessage,
+        styles,
+        translate,
+        shouldShowReferralBanner,
+        isCategorizeOrShareAction,
+        onFinish,
+    ]);
 
     return (
         <SelectionList

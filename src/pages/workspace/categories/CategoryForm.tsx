@@ -60,7 +60,7 @@ function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit}: 
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
             onSubmit(values);
             Keyboard.dismiss();
-            Navigation.dismissModal();
+            Navigation.goBack();
         },
         [onSubmit],
     );
