@@ -114,6 +114,8 @@ type IOUMessage = {
 
     /** Only exists when we are sending money */
     IOUDetails?: IOUDetails;
+
+    /** Collection of accountIDs of users mentioned in message */
     whisperedTo?: number[];
 };
 
@@ -414,6 +416,8 @@ type OriginalMessageReportPreview = {
 
         /** TODO: Only used in tests */
         lastModified?: string;
+
+        /** Collection of accountIDs of users mentioned in report */
         whisperedTo?: number[];
     };
 };

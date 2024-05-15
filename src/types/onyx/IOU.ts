@@ -15,7 +15,8 @@ type Participant = {
 
     /** Is IOU participant associated with policy expense chat */
     isPolicyExpenseChat?: boolean;
-    
+
+    /** Whether the IOU participant is an invoice receiver */
     isInvoiceRoom?: boolean;
 
     /** Is IOU participant associated with is own policy expense chat */
@@ -62,7 +63,12 @@ type Participant = {
 
     /** Is IOU participant the current user */
     isSelfDM?: boolean;
+
+    /** Whether the IOU participant is an invoice sender */
     isSender?: boolean;
+
+    /** TODO: I think this type could be changes to `IOUType` */
+    /** The type of IOU report, i.e. split, request, send, track */
     iouType?: string;
 };
 

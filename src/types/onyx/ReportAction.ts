@@ -11,7 +11,9 @@ import type OriginalMessage from './OriginalMessage';
 import type {NotificationPreference} from './Report';
 import type {Receipt} from './Transaction';
 
+/** Partial content of report action message */
 type ReportActionMessageJSON = {
+    /** Collection of accountIDs from users that were mentioned in report */
     whisperedTo?: number[];
 };
 
@@ -283,7 +285,11 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
 /** Model of report action */
 type ReportAction = ReportActionBase & OriginalMessage;
+
+/** Model of report preview action */
 type ReportPreviewAction = ReportActionBase & OriginalMessageReportPreview;
+
+/** Model of modifies expense action */
 type ModifiedExpenseAction = ReportActionBase & OriginalMessageModifiedExpense;
 
 /** Record of report actions, indexed by report action ID */
