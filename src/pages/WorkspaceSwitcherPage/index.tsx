@@ -188,6 +188,7 @@ function WorkspaceSwitcherPage() {
                 showTooltip={false}
                 onSelectRow={() => selectPolicy(defaultPolicy)}
                 pressableStyle={styles.flexRow}
+                shouldSyncFocus={false}
             />
             <WorkspacesSectionHeader />
             <SelectionList<WorkspaceListItem>
