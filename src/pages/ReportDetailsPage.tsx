@@ -1,13 +1,12 @@
 import {useRoute} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import ConfirmModal from '@components/ConfirmModal';
 import DisplayNames from '@components/DisplayNames';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -18,7 +17,6 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import PromotedActionsBar, {PromotedActions} from '@components/PromotedActionsBar';
-import type {PromotedAction} from '@components/PromotedActionsBar';
 import RoomHeaderAvatars from '@components/RoomHeaderAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -81,7 +79,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const isInvoiceReport = useMemo(() => ReportUtils.isInvoiceReport(report), [report]);
     const canEditReportDescription = useMemo(() => ReportUtils.canEditReportDescription(report, policy), [report, policy]);
     const shouldShowReportDescription = isChatRoom && (canEditReportDescription || report.description !== '');
-    const [isLastMemberLeavingGroupModalVisible, setIsLastMemberLeavingGroupModalVisible] = useState(false);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
     const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(report), [report, policy]);
@@ -121,6 +118,16 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
         if (isSelfDM) {
             return [];
+        }
+
+        if (!isGroupDMChat) {
+            items.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.SHARE_CODE,
+                translationKey: 'common.shareCode',
+                icon: Expensicons.QrCode,
+                isAnonymousAction: true,
+                action: () => Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.getRoute(report?.reportID ?? '')),
+            });
         }
 
         if (isArchivedRoom) {
@@ -189,26 +196,10 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             });
         }
 
-        if (isGroupChat) {
-            items.push({
-                key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE,
-                translationKey: 'common.leave',
-                icon: Expensicons.Exit,
-                isAnonymousAction: false,
-                action: () => {
-                    if (activeChatMembers.length === 1) {
-                        setIsLastMemberLeavingGroupModalVisible(true);
-                        return;
-                    }
-
-                    Report.leaveGroupChat(report.reportID);
-                },
-            });
-        }
-
         return items;
     }, [
         isSelfDM,
+        isGroupDMChat,
         isArchivedRoom,
         isGroupChat,
         isDefaultRoom,
@@ -222,20 +213,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         activeChatMembers.length,
         session,
     ]);
-
-    const promotedActions = useMemo(() => {
-        const result: PromotedAction[] = [];
-
-        if (isGroupChat) {
-            result.push(PromotedActions.pin(report));
-        }
-
-        if (!isGroupDMChat) {
-            result.push(PromotedActions.share(report));
-        }
-
-        return result;
-    }, [isGroupChat, isGroupDMChat, report]);
 
     const displayNamesWithTooltips = useMemo(() => {
         const hasMultipleParticipants = participants.length > 1;
@@ -355,7 +332,13 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                             />
                         </OfflineWithFeedback>
                     )}
-                    <PromotedActionsBar promotedActions={promotedActions} />
+                    {isGroupChat && (
+                        <PromotedActionsBar
+                            report={report}
+                            promotedActions={[PromotedActions.pin(report)]}
+                            shouldShowLeaveButton
+                        />
+                    )}
                     {menuItems.map((item) => {
                         const brickRoadIndicator =
                             ReportUtils.hasReportNameError(report) && item.key === CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
@@ -372,19 +355,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                             />
                         );
                     })}
-                    <ConfirmModal
-                        danger
-                        title={translate('groupChat.lastMemberTitle')}
-                        isVisible={isLastMemberLeavingGroupModalVisible}
-                        onConfirm={() => {
-                            setIsLastMemberLeavingGroupModalVisible(false);
-                            Report.leaveGroupChat(report.reportID);
-                        }}
-                        onCancel={() => setIsLastMemberLeavingGroupModalVisible(false)}
-                        prompt={translate('groupChat.lastMemberWarning')}
-                        confirmText={translate('common.leave')}
-                        cancelText={translate('common.cancel')}
-                    />
                 </ScrollView>
             </FullPageNotFoundView>
         </ScreenWrapper>
