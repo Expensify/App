@@ -10,9 +10,7 @@ import type {PolicyFeatureName, Rate, Tenant} from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import getPolicyIDFromState from './Navigation/getPolicyIDFromState';
-import Navigation, {navigationRef} from './Navigation/Navigation';
-import type {RootStackParamList, State} from './Navigation/types';
+import Navigation from './Navigation/Navigation';
 import * as NetworkStore from './Network/NetworkStore';
 import {getAccountIDsByLogins, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 
@@ -370,13 +368,6 @@ function getPersonalPolicy() {
     return Object.values(allPolicies ?? {}).find((policy) => policy?.type === CONST.POLICY.TYPE.PERSONAL);
 }
 
-/**
- *  Get the currently selected policy ID stored in the navigation state.
- */
-function getPolicyIDFromNavigationState() {
-    return getPolicyIDFromState(navigationRef.getRootState() as State<RootStackParamList>);
-}
-
 function getAdminEmployees(policy: OnyxEntry<Policy>): PolicyEmployee[] {
     return Object.values(policy?.employeeList ?? {}).filter((employee) => employee.role === CONST.POLICY.ROLE.ADMIN);
 }
@@ -416,54 +407,58 @@ function findCurrentXeroOrganization(tenants: Tenant[] | undefined, organization
     return tenants?.find((tenant) => tenant.id === organizationID);
 }
 
+function getCurrentXeroOrganizationName(policy: Policy | undefined): string | undefined {
+    return findCurrentXeroOrganization(getXeroTenants(policy), policy?.connections?.xero?.config?.tenantID)?.name;
+}
+
 export {
-    getActivePolicies,
-    hasAccountingConnections,
-    hasEmployeeListError,
-    hasPolicyError,
-    hasPolicyErrorFields,
-    hasCustomUnitsError,
-    getNumericValue,
-    getUnitRateValue,
-    getPolicyBrickRoadIndicatorStatus,
-    shouldShowPolicy,
-    isExpensifyTeam,
-    isInstantSubmitEnabled,
-    isFreeGroupPolicy,
-    isPolicyAdmin,
-    isTaxTrackingEnabled,
-    isSubmitAndClose,
-    getMemberAccountIDsForWorkspace,
-    getIneligibleInvitees,
-    getTagLists,
-    getTagListName,
-    getSortedTagKeys,
     canEditTaxRate,
-    getTagList,
+    extractPolicyIDFromPath,
+    getActivePolicies,
+    getAdminEmployees,
     getCleanedTagName,
     getCountOfEnabledTagsOfList,
+    getIneligibleInvitees,
+    getMemberAccountIDsForWorkspace,
+    getNumericValue,
     isMultiLevelTags,
-    isPendingDeletePolicy,
-    isPolicyEmployee,
-    isPolicyOwner,
-    isPaidGroupPolicy,
-    extractPolicyIDFromPath,
     getPathWithoutPolicyID,
-    getPolicyEmployeeListByIdWithoutCurrentUser,
-    goBackFromInvalidPolicy,
     getPersonalPolicy,
-    isPolicyFeatureEnabled,
-    hasTaxRateError,
-    getTaxByID,
-    hasPolicyCategoriesError,
-    getPolicyIDFromNavigationState,
-    getSubmitToAccountID,
-    getAdminEmployees,
     getPolicy,
+    getPolicyBrickRoadIndicatorStatus,
+    getPolicyEmployeeListByIdWithoutCurrentUser,
+    getSortedTagKeys,
+    getSubmitToAccountID,
+    getTagList,
+    getTagListName,
+    getTagLists,
+    getTaxByID,
+    getUnitRateValue,
+    goBackFromInvalidPolicy,
+    hasAccountingConnections,
+    hasCustomUnitsError,
+    hasEmployeeListError,
+    hasPolicyCategoriesError,
+    hasPolicyError,
+    hasPolicyErrorFields,
+    hasTaxRateError,
+    isExpensifyTeam,
+    isFreeGroupPolicy,
+    isInstantSubmitEnabled,
+    isPaidGroupPolicy,
+    isPendingDeletePolicy,
+    isPolicyAdmin,
+    isPolicyEmployee,
+    isPolicyFeatureEnabled,
+    isPolicyOwner,
+    isSubmitAndClose,
+    isTaxTrackingEnabled,
+    shouldShowPolicy,
     getActiveAdminWorkspaces,
     canSendInvoice,
     getXeroTenants,
     findCurrentXeroOrganization,
+    getCurrentXeroOrganizationName,
 };
 
 export type {MemberEmailsToAccountIDs};
