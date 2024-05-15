@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/react-native';
 import React, {memo, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -180,6 +181,10 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         [StyleUtils, isSmallScreenWidth, shouldUseNarrowLayout, styles],
     );
     const isInitialRender = useRef(true);
+
+    useEffect(() => {
+        Sentry.setUser({email: session?.email, id: session?.accountID});
+    }, [session?.email, session?.accountID]);
 
     if (isInitialRender.current) {
         Timing.start(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);

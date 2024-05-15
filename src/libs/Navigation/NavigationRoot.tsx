@@ -1,6 +1,7 @@
 import type {NavigationState} from '@react-navigation/native';
 import {DefaultTheme, findFocusedRoute, NavigationContainer} from '@react-navigation/native';
-import React, {useContext, useEffect, useMemo, useRef} from 'react';
+import * as Sentry from '@sentry/react-native';
+import React, {forwardRef, useContext, useEffect, useMemo, useRef} from 'react';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useCurrentReportID from '@hooks/useCurrentReportID';
@@ -19,6 +20,27 @@ import customGetPathFromState from './linkingConfig/customGetPathFromState';
 import getAdaptedStateFromPath from './linkingConfig/getAdaptedStateFromPath';
 import Navigation, {navigationRef} from './Navigation';
 import type {RootStackParamList} from './types';
+
+const routingInstrumentation = new Sentry.ReactNavigationInstrumentation({
+    enableTimeToInitialDisplay: true,
+});
+
+Sentry.init({
+    dsn: '',
+    tracesSampleRate: 1.0,
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    _experiments: {
+        profilesSampleRate: 1.0,
+    },
+    integrations: [
+        new Sentry.ReactNativeTracing({
+            routingInstrumentation,
+            // ... other options
+        }),
+        Sentry.metrics.metricsAggregatorIntegration(),
+    ],
+    attachScreenshot: true,
+});
 
 type NavigationRootProps = {
     /** Whether the current user is logged in with an authToken */
@@ -137,11 +159,17 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         cleanStaleScrollOffsets(state);
     };
 
+    const onReadyWithSentry = () => {
+        onReady();
+
+        routingInstrumentation.registerNavigationContainer(navigationRef);
+    };
+
     return (
         <NavigationContainer
             initialState={initialState}
             onStateChange={handleStateChange}
-            onReady={onReady}
+            onReady={onReadyWithSentry}
             theme={navigationTheme}
             ref={navigationRef}
             linking={linkingConfig}
@@ -156,4 +184,4 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
 NavigationRoot.displayName = 'NavigationRoot';
 
-export default NavigationRoot;
+export default Sentry.wrap(NavigationRoot);
