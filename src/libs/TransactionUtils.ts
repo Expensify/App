@@ -536,7 +536,7 @@ function allHavePendingRTERViolation(transactionIds: string[]): boolean {
         const transactionViolations = getTransactionViolations(transactionId, allTransactionViolations);
         return hasPendingRTERViolation(transactionViolations);
     });
-    return transactionsWithRTERViolations.length !== 0 && transactionsWithRTERViolations.every((value) => value === true);
+    return transactionsWithRTERViolations.length > 0 && transactionsWithRTERViolations.every((value) => value === true);
 }
 
 /**

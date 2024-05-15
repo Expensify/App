@@ -333,7 +333,7 @@ function MoneyRequestPreviewContent({
                                                     src={pendingMessageProps.messageIcon}
                                                     height={variables.iconSizeExtraSmall}
                                                     width={variables.iconSizeExtraSmall}
-                                                    fill={theme.textSupporting}
+                                                    fill={theme.icon}
                                                 />
                                                 <Text style={[styles.textMicroSupporting, styles.ml1, styles.amountSplitPadding]}>{pendingMessageProps.messageDescription}</Text>
                                             </View>

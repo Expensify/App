@@ -257,7 +257,7 @@ function MoneyReportHeader({
                             src={Expensicons.Hourglass}
                             height={variables.iconSizeSmall}
                             width={variables.iconSizeSmall}
-                            fill={theme.textSupporting}
+                            fill={theme.icon}
                         />
                     }
                     description={translate('iou.pendingMatchWithCreditCardDescription')}
