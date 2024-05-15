@@ -1,40 +1,18 @@
 import {FlashList} from '@shopify/flash-list';
 import type {ReactElement} from 'react';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 // We take ScrollView from this package to properly handle the scrolling of AutoCompleteSuggestions in chats since one scroll is nested inside another
 import {ScrollView} from 'react-native-gesture-handler';
-import Animated, {Easing, FadeOutDown, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {AutoCompleteSuggestionsProps, RenderSuggestionMenuItemProps} from './types';
+import type {AutoCompleteSuggestionsPortalProps} from './AutoCompleteSuggestionsPortal';
+import type {RenderSuggestionMenuItemProps} from './types';
 
-const measureHeightOfSuggestionRows = (numRows: number, isSuggestionPickerLarge: boolean): number => {
-    if (isSuggestionPickerLarge) {
-        if (numRows > CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_VISIBLE_SUGGESTIONS_IN_CONTAINER) {
-            // On large screens, if there are more than 5 suggestions, we display a scrollable window with a height of 5 items, indicating that there are more items available
-            return CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_VISIBLE_SUGGESTIONS_IN_CONTAINER * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT;
-        }
-        return numRows * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT;
-    }
-    if (numRows > 2) {
-        // On small screens, we display a scrollable window with a height of 2.5 items, indicating that there are more items available beyond what is currently visible
-        return CONST.AUTO_COMPLETE_SUGGESTER.SMALL_CONTAINER_HEIGHT_FACTOR * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT;
-    }
-    return numRows * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT;
-};
-
-/**
- * On the mobile-web platform, when long-pressing on auto-complete suggestions,
- * we need to prevent focus shifting to avoid blurring the main input (which makes the suggestions picker close and fires the onSelect callback).
- * The desired pattern for all platforms is to do nothing on long-press.
- * On the native platform, tapping on auto-complete suggestions will not blur the main input.
- */
+type ExternalProps<TSuggestion> = Omit<AutoCompleteSuggestionsPortalProps<TSuggestion>, 'left' | 'bottom'>;
 
 function BaseAutoCompleteSuggestions<TSuggestion>({
     highlightedSuggestionIndex,
@@ -42,13 +20,13 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
     accessibilityLabelExtractor,
     renderSuggestionMenuItem,
     suggestions,
-    isSuggestionPickerLarge,
     keyExtractor,
-}: AutoCompleteSuggestionsProps<TSuggestion>) {
-    const {windowWidth, isLargeScreenWidth} = useWindowDimensions();
+    measuredHeightOfSuggestionRows,
+}: ExternalProps<TSuggestion>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const rowHeight = useSharedValue(0);
+    const fadeInOpacity = useSharedValue(0);
     const scrollRef = useRef<FlashList<TSuggestion>>(null);
     /**
      * Render a suggestion menu item component.
@@ -61,7 +39,6 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
                 onMouseDown={(e) => e.preventDefault()}
                 onPress={() => onSelect(index)}
                 onLongPress={() => {}}
-                shouldUseHapticsOnLongPress={false}
                 accessibilityLabel={accessibilityLabelExtractor(item, index)}
             >
                 {renderSuggestionMenuItem(item, index)}
@@ -71,20 +48,15 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
     );
 
     const innerHeight = CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT * suggestions.length;
-    const animatedStyles = useAnimatedStyle(() => StyleUtils.getAutoCompleteSuggestionContainerStyle(rowHeight.value));
-    const estimatedListSize = useMemo(
-        () => ({
-            height: CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT * suggestions.length,
-            width: (isLargeScreenWidth ? windowWidth - variables.sideBarWidth : windowWidth) - CONST.CHAT_FOOTER_HORIZONTAL_PADDING,
-        }),
-        [isLargeScreenWidth, suggestions.length, windowWidth],
-    );
+    const animatedStyles = useAnimatedStyle(() => ({
+        opacity: fadeInOpacity.value,
+    }));
     useEffect(() => {
-        rowHeight.value = withTiming(measureHeightOfSuggestionRows(suggestions.length, isSuggestionPickerLarge), {
-            duration: 100,
+        fadeInOpacity.value = withTiming(1, {
+            duration: 70,
             easing: Easing.inOut(Easing.ease),
         });
-    }, [suggestions.length, isSuggestionPickerLarge, rowHeight]);
+    }, [suggestions.length, fadeInOpacity]);
 
     useEffect(() => {
         if (!scrollRef.current) {
@@ -95,19 +67,12 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
 
     return (
         <Animated.View
-            style={[styles.autoCompleteSuggestionsContainer, animatedStyles]}
-            exiting={FadeOutDown.duration(100).easing(Easing.inOut(Easing.ease))}
-            onPointerDown={(e) => {
-                if (DeviceCapabilities.hasHoverSupport()) {
-                    return;
-                }
-                e.preventDefault();
-            }}
+            style={[styles.autoCompleteSuggestionsContainer, animatedStyles, StyleUtils.getAutoCompleteSuggestionContainerStyle(measuredHeightOfSuggestionRows)]}
+            // style={[styles.autoCompleteSuggestionsContainer, StyleUtils.getAutoCompleteSuggestionContainerStyle(measuredHeightOfSuggestionRows)]}
         >
             <ColorSchemeWrapper>
                 <FlashList
                     estimatedItemSize={CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT}
-                    estimatedListSize={estimatedListSize}
                     ref={scrollRef}
                     keyboardShouldPersistTaps="handled"
                     data={suggestions}
