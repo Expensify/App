@@ -1,4 +1,5 @@
 import React, {useMemo, useState} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -63,6 +64,9 @@ type PromotedActionsBarProps = {
     /** The list of actions to show */
     promotedActions: PromotedAction[];
 
+    /** The style of the container */
+    containerStyle: StyleProp<ViewStyle>;
+
     /**
      * Whether to show the `Leave` button.
      * @deprecated Remove this prop when @src/pages/ReportDetailsPage.tsx is updated
@@ -70,14 +74,14 @@ type PromotedActionsBarProps = {
     shouldShowLeaveButton?: boolean;
 };
 
-function PromotedActionsBar({report, promotedActions, shouldShowLeaveButton}: PromotedActionsBarProps) {
+function PromotedActionsBar({report, promotedActions, containerStyle, shouldShowLeaveButton}: PromotedActionsBarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const [isLastMemberLeavingGroupModalVisible, setIsLastMemberLeavingGroupModalVisible] = useState(false);
     const {translate} = useLocalize();
 
     return (
-        <View style={[styles.flexRow, styles.ph5, styles.mb5, styles.gap2]}>
+        <View style={[styles.flexRow, styles.ph5, styles.mb5, styles.gap2, styles.mw100, styles.w100, containerStyle]}>
             {/* TODO: Remove the `Leave` button when @src/pages/ReportDetailsPage.tsx is updated */}
             {shouldShowLeaveButton && report && (
                 // The `Leave` button is left to make the component backward compatible with the existing code.
