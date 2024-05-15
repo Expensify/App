@@ -81,6 +81,8 @@ type ReportScreenOnyxPropsWithoutParentReportAction = {
     /** The report currently being looked at */
     report: OnyxEntry<OnyxTypes.Report>;
 
+    reportNameValuePairs: OnyxEntry<OnyxTypes.ReportNameValuePairs>;
+
     /** The report metadata loading states */
     reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>;
 };
@@ -133,11 +135,14 @@ function ReportScreen({
     betas = [],
     route,
     report: reportProp,
+    reportNameValuePairs,
     sortedAllReportActions,
     reportMetadata = {
         isLoadingInitialReportActions: true,
         isLoadingOlderReportActions: false,
+        hasLoadingOlderReportActionsError: false,
         isLoadingNewerReportActions: false,
+        hasLoadingNewerReportActionsError: false,
     },
     parentReportActions,
     accountManagerReportID,
@@ -197,7 +202,7 @@ function ReportScreen({
             ownerAccountID: reportProp?.ownerAccountID,
             currency: reportProp?.currency,
             unheldTotal: reportProp?.unheldTotal,
-            participantAccountIDs: reportProp?.participantAccountIDs,
+            participants: reportProp?.participants,
             isWaitingOnBankAccount: reportProp?.isWaitingOnBankAccount,
             iouReportID: reportProp?.iouReportID,
             isOwnPolicyExpenseChat: reportProp?.isOwnPolicyExpenseChat,
@@ -238,7 +243,7 @@ function ReportScreen({
             reportProp?.ownerAccountID,
             reportProp?.currency,
             reportProp?.unheldTotal,
-            reportProp?.participantAccountIDs,
+            reportProp?.participants,
             reportProp?.isWaitingOnBankAccount,
             reportProp?.iouReportID,
             reportProp?.isOwnPolicyExpenseChat,
@@ -321,14 +326,18 @@ function ReportScreen({
         wasReportAccessibleRef.current = true;
     }, [shouldHideReport, report]);
 
-    const goBack = useCallback(() => {
+    const onBackButtonPress = useCallback(() => {
+        if (isReportOpenInRHP) {
+            Navigation.dismissModal();
+            return;
+        }
         Navigation.goBack(undefined, false, true);
-    }, []);
+    }, [isReportOpenInRHP]);
 
     let headerView = (
         <HeaderView
             reportID={reportIDFromRoute}
-            onNavigationMenuButtonClicked={goBack}
+            onNavigationMenuButtonClicked={onBackButtonPress}
             report={report}
             parentReportAction={parentReportAction}
             shouldUseNarrowLayout={shouldUseNarrowLayout}
@@ -342,12 +351,13 @@ function ReportScreen({
                 policy={policy}
                 parentReportAction={parentReportAction}
                 shouldUseNarrowLayout={shouldUseNarrowLayout}
+                onBackButtonPress={onBackButtonPress}
             />
         );
     }
 
     const transactionThreadReportID = useMemo(
-        () => ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, reportActions ?? [], isOffline),
+        () => ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, reportActions ?? [], false, isOffline),
         [report.reportID, reportActions, isOffline],
     );
 
@@ -366,6 +376,7 @@ function ReportScreen({
                 transactionThreadReportID={transactionThreadReportID}
                 reportActions={reportActions}
                 shouldUseNarrowLayout={shouldUseNarrowLayout}
+                onBackButtonPress={onBackButtonPress}
             />
         );
     }
@@ -426,19 +437,12 @@ function ReportScreen({
             return;
         }
 
-        // It is possible that we may not have the report object yet in Onyx yet e.g. we navigated to a URL for an accessible report that
-        // is not stored locally yet. If report.reportID exists, then the report has been stored locally and nothing more needs to be done.
-        // If it doesn't exist, then we fetch the report from the API.
-        if (report.reportID && report.reportID === reportIDFromRoute && !reportMetadata?.isLoadingInitialReportActions) {
-            return;
-        }
-
         if (!shouldFetchReport(report)) {
             return;
         }
 
         fetchReport();
-    }, [report, reportMetadata?.isLoadingInitialReportActions, fetchReport, reportIDFromRoute]);
+    }, [report, fetchReport, reportIDFromRoute]);
 
     const dismissBanner = useCallback(() => {
         setIsBannerVisible(false);
@@ -465,7 +469,10 @@ function ReportScreen({
         Timing.end(CONST.TIMING.CHAT_RENDER);
         Performance.markEnd(CONST.TIMING.CHAT_RENDER);
 
-        fetchReportIfNeeded();
+        // Call OpenReport only if we are not linking to a message or the report is not available yet
+        if (!reportActionIDFromRoute || !report.reportID) {
+            fetchReportIfNeeded();
+        }
         const interactionTask = InteractionManager.runAfterInteractions(() => {
             ComposerActions.setShouldShowComposeInput(true);
         });
@@ -703,7 +710,9 @@ function ReportScreen({
                                         parentReportAction={parentReportAction}
                                         isLoadingInitialReportActions={reportMetadata?.isLoadingInitialReportActions}
                                         isLoadingNewerReportActions={reportMetadata?.isLoadingNewerReportActions}
+                                        hasLoadingNewerReportActionsError={reportMetadata?.hasLoadingNewerReportActionsError}
                                         isLoadingOlderReportActions={reportMetadata?.isLoadingOlderReportActions}
+                                        hasLoadingOlderReportActionsError={reportMetadata?.hasLoadingOlderReportActionsError}
                                         isReadyForCommentLinking={!shouldShowSkeleton}
                                         transactionThreadReportID={transactionThreadReportID}
                                     />
@@ -719,6 +728,7 @@ function ReportScreen({
                                         onComposerFocus={() => setIsComposerFocus(true)}
                                         onComposerBlur={() => setIsComposerFocus(false)}
                                         report={report}
+                                        reportNameValuePairs={reportNameValuePairs}
                                         pendingAction={reportPendingAction}
                                         isComposerFullSize={!!isComposerFullSize}
                                         listHeight={listHeight}
@@ -755,12 +765,18 @@ export default withCurrentReportID(
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
                 allowStaleData: true,
             },
+            reportNameValuePairs: {
+                key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getReportID(route)}`,
+                allowStaleData: true,
+            },
             reportMetadata: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_METADATA}${getReportID(route)}`,
                 initialValue: {
                     isLoadingInitialReportActions: true,
                     isLoadingOlderReportActions: false,
+                    hasLoadingOlderReportActionsError: false,
                     isLoadingNewerReportActions: false,
+                    hasLoadingNewerReportActionsError: false,
                 },
             },
             isComposerFullSize: {

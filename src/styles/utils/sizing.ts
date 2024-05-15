@@ -41,6 +41,10 @@ export default {
         minHeight: '100%',
     },
 
+    mnh20: {
+        minHeight: 80,
+    },
+
     mnw2: {
         minWidth: 8,
     },
@@ -83,6 +87,10 @@ export default {
 
     mwn: {
         maxWidth: 'auto',
+    },
+
+    mw50: {
+        maxWidth: '50%',
     },
 
     mw75: {

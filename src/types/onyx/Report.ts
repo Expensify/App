@@ -23,10 +23,10 @@ type PendingChatMember = {
     pendingAction: OnyxCommon.PendingAction;
 };
 
-type Participant = {
+type Participant = OnyxCommon.OnyxValueWithOfflineFeedback<{
     hidden?: boolean;
     role?: 'admin' | 'member';
-};
+}>;
 
 type InvoiceReceiver =
     | {
@@ -150,11 +150,12 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         displayName?: string;
         lastMessageHtml?: string;
         lastActorAccountID?: number;
+
+        // The type of the last action
+        lastActionType?: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE>;
         ownerAccountID?: number;
         ownerEmail?: string;
         participants?: Participants;
-        participantAccountIDs?: number[];
-        visibleChatMemberAccountIDs?: number[];
         total?: number;
         unheldTotal?: number;
         currency?: string;

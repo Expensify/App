@@ -1,4 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import React, {useCallback, useRef, useState} from 'react';
 import type {GestureResponderEvent, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
@@ -28,6 +29,8 @@ import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OptionRowLHNProps} from './types';
 
+const parser = new ExpensiMark();
+
 function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, optionItem, viewMode = 'default', style, onLayout = () => {}, hasDraftComment}: OptionRowLHNProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -48,26 +51,30 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
         }, []),
     );
 
-    if (!optionItem) {
-        return null;
-    }
-
-    const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-    const shouldShowGreenDotIndicator = !hasBrickError && ReportUtils.requiresAttentionFromCurrentUser(optionItem, optionItem.parentReportAction);
     const isInFocusMode = viewMode === CONST.OPTION_MODE.COMPACT;
-    const textStyle = isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
-    const textUnreadStyle = optionItem?.isUnread && optionItem.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
-    const displayNameStyle = [styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, textUnreadStyle, style];
-    const alternateTextStyle = isInFocusMode
-        ? [textStyle, styles.optionAlternateText, styles.pre, styles.textLabelSupporting, styles.optionAlternateTextCompact, styles.ml2, style]
-        : [textStyle, styles.optionAlternateText, styles.pre, styles.textLabelSupporting, style];
-
-    const contentContainerStyles = isInFocusMode ? [styles.flex1, styles.flexRow, styles.overflowHidden, StyleUtils.getCompactContentContainerStyles()] : [styles.flex1];
     const sidebarInnerRowStyle = StyleSheet.flatten<ViewStyle>(
         isInFocusMode
             ? [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRowCompact, styles.justifyContentCenter]
             : [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRow, styles.justifyContentCenter],
     );
+
+    if (!optionItem) {
+        // rendering null as a render item causes the FlashList to render all
+        // its children and consume signficant memory. We can avoid this by
+        // rendering a placeholder view instead.
+        return <View style={sidebarInnerRowStyle} />;
+    }
+
+    const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+    const shouldShowGreenDotIndicator = !hasBrickError && ReportUtils.requiresAttentionFromCurrentUser(optionItem, optionItem.parentReportAction);
+    const textStyle = isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
+    const textUnreadStyle = optionItem?.isUnread && optionItem.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
+    const displayNameStyle = [styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, textUnreadStyle, style];
+    const alternateTextStyle = isInFocusMode
+        ? [textStyle, styles.optionAlternateText, styles.textLabelSupporting, styles.optionAlternateTextCompact, styles.ml2, style]
+        : [textStyle, styles.optionAlternateText, styles.textLabelSupporting, style];
+
+    const contentContainerStyles = isInFocusMode ? [styles.flex1, styles.flexRow, styles.overflowHidden, StyleUtils.getCompactContentContainerStyles()] : [styles.flex1];
     const hoveredBackgroundColor = !!styles.sidebarLinkHover && 'backgroundColor' in styles.sidebarLinkHover ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
 
@@ -221,7 +228,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                             numberOfLines={1}
                                             accessibilityLabel={translate('accessibilityHints.lastChatMessagePreview')}
                                         >
-                                            {optionItem.alternateText}
+                                            {parser.htmlToText(optionItem.alternateText)}
                                         </Text>
                                     ) : null}
                                 </View>

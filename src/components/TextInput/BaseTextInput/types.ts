@@ -113,6 +113,9 @@ type CustomBaseTextInputProps = {
     /** Should live markdown be enabled. Changes RNTextInput component to RNMarkdownTextInput */
     isMarkdownEnabled?: boolean;
 
+    /** Whether the clear button should be displayed */
+    shouldShowClearButton?: boolean;
+
     /** Style for the prefix */
     prefixStyle?: StyleProp<TextStyle>;
 

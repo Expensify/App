@@ -6,13 +6,11 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyCategories, PolicyEmployeeList, PolicyTagList, PolicyTags, TaxRate} from '@src/types/onyx';
-import type {PolicyFeatureName, Rate} from '@src/types/onyx/Policy';
+import type {PolicyFeatureName, Rate, Tenant} from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import getPolicyIDFromState from './Navigation/getPolicyIDFromState';
-import Navigation, {navigationRef} from './Navigation/Navigation';
-import type {RootStackParamList, State} from './Navigation/types';
+import Navigation from './Navigation/Navigation';
 import * as NetworkStore from './Network/NetworkStore';
 import {getAccountIDsByLogins, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 
@@ -146,17 +144,19 @@ const isPolicyEmployee = (policyID: string, policies: OnyxCollection<Policy>): b
 const isPolicyOwner = (policy: OnyxEntry<Policy>, currentUserAccountID: number): boolean => policy?.ownerAccountID === currentUserAccountID;
 
 /**
- * Create an object mapping member emails to their accountIDs. Filter for members without errors, and get the login email from the personalDetail object using the accountID.
+ * Create an object mapping member emails to their accountIDs. Filter for members without errors if includeMemberWithErrors is false, and get the login email from the personalDetail object using the accountID.
  *
- * We only return members without errors. Otherwise, the members with errors would immediately be removed before the user has a chance to read the error.
+ * If includeMemberWithErrors is false, We only return members without errors. Otherwise, the members with errors would immediately be removed before the user has a chance to read the error.
  */
-function getMemberAccountIDsForWorkspace(employeeList: PolicyEmployeeList | undefined): MemberEmailsToAccountIDs {
+function getMemberAccountIDsForWorkspace(employeeList: PolicyEmployeeList | undefined, includeMemberWithErrors = false): MemberEmailsToAccountIDs {
     const members = employeeList ?? {};
     const memberEmailsToAccountIDs: MemberEmailsToAccountIDs = {};
     Object.keys(members).forEach((email) => {
-        const member = members?.[email];
-        if (Object.keys(member?.errors ?? {})?.length > 0) {
-            return;
+        if (!includeMemberWithErrors) {
+            const member = members?.[email];
+            if (Object.keys(member?.errors ?? {})?.length > 0) {
+                return;
+            }
         }
         const personalDetail = getPersonalDetailByEmail(email);
         if (!personalDetail?.login) {
@@ -209,7 +209,7 @@ function getTagListName(policyTagList: OnyxEntry<PolicyTagList>, orderWeight: nu
 /**
  * Gets all tag lists of a policy
  */
-function getTagLists(policyTagList: OnyxEntry<PolicyTagList>): Array<PolicyTagList[keyof PolicyTagList]> {
+function getTagLists(policyTagList: OnyxEntry<PolicyTagList>): Array<ValueOf<PolicyTagList>> {
     if (isEmptyObject(policyTagList)) {
         return [];
     }
@@ -222,7 +222,7 @@ function getTagLists(policyTagList: OnyxEntry<PolicyTagList>): Array<PolicyTagLi
 /**
  * Gets a tag list of a policy by a tag index
  */
-function getTagList(policyTagList: OnyxEntry<PolicyTagList>, tagIndex: number): PolicyTagList[keyof PolicyTagList] {
+function getTagList(policyTagList: OnyxEntry<PolicyTagList>, tagIndex: number): ValueOf<PolicyTagList> {
     const tagLists = getTagLists(policyTagList);
 
     return (
@@ -246,6 +246,13 @@ function getCleanedTagName(tag: string) {
  */
 function getCountOfEnabledTagsOfList(policyTags: PolicyTags) {
     return Object.values(policyTags).filter((policyTag) => policyTag.enabled).length;
+}
+
+/**
+ * Whether the policy has multi-level tags
+ */
+function isMultiLevelTags(policyTagList: OnyxEntry<PolicyTagList>): boolean {
+    return Object.keys(policyTagList ?? {}).length > 1;
 }
 
 function isPendingDeletePolicy(policy: OnyxEntry<Policy>): boolean {
@@ -358,13 +365,6 @@ function getPersonalPolicy() {
     return Object.values(allPolicies ?? {}).find((policy) => policy?.type === CONST.POLICY.TYPE.PERSONAL);
 }
 
-/**
- *  Get the currently selected policy ID stored in the navigation state.
- */
-function getPolicyIDFromNavigationState() {
-    return getPolicyIDFromState(navigationRef.getRootState() as State<RootStackParamList>);
-}
-
 function getAdminEmployees(policy: OnyxEntry<Policy>): PolicyEmployee[] {
     return Object.values(policy?.employeeList ?? {}).filter((employee) => employee.role === CONST.POLICY.ROLE.ADMIN);
 }
@@ -390,51 +390,72 @@ function canSendInvoice(policies: OnyxCollection<Policy>): boolean {
     return getActiveAdminWorkspaces(policies).length > 0;
 }
 
+/** Get the Xero organizations connected to the policy */
+function getXeroTenants(policy: Policy | undefined): Tenant[] {
+    // Due to the way optional chain is being handled in this useMemo we are forced to use this approach to properly handle undefined values
+    // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
+    if (!policy || !policy.connections || !policy.connections.xero || !policy.connections.xero.data) {
+        return [];
+    }
+    return policy.connections.xero.data.tenants ?? [];
+}
+
+function findCurrentXeroOrganization(tenants: Tenant[] | undefined, organizationID: string | undefined): Tenant | undefined {
+    return tenants?.find((tenant) => tenant.id === organizationID);
+}
+
+function getCurrentXeroOrganizationName(policy: Policy | undefined): string | undefined {
+    return findCurrentXeroOrganization(getXeroTenants(policy), policy?.connections?.xero?.config?.tenantID)?.name;
+}
+
 export {
-    getActivePolicies,
-    hasAccountingConnections,
-    hasEmployeeListError,
-    hasPolicyError,
-    hasPolicyErrorFields,
-    hasCustomUnitsError,
-    getNumericValue,
-    getUnitRateValue,
-    getPolicyBrickRoadIndicatorStatus,
-    shouldShowPolicy,
-    isExpensifyTeam,
-    isInstantSubmitEnabled,
-    isFreeGroupPolicy,
-    isPolicyAdmin,
-    isTaxTrackingEnabled,
-    isSubmitAndClose,
-    getMemberAccountIDsForWorkspace,
-    getIneligibleInvitees,
-    getTagLists,
-    getTagListName,
-    getSortedTagKeys,
     canEditTaxRate,
-    getTagList,
+    extractPolicyIDFromPath,
+    getActivePolicies,
+    getAdminEmployees,
     getCleanedTagName,
     getCountOfEnabledTagsOfList,
-    isPendingDeletePolicy,
-    isPolicyEmployee,
-    isPolicyOwner,
-    isPaidGroupPolicy,
-    extractPolicyIDFromPath,
+    getIneligibleInvitees,
+    getMemberAccountIDsForWorkspace,
+    getNumericValue,
+    isMultiLevelTags,
     getPathWithoutPolicyID,
-    getPolicyEmployeeListByIdWithoutCurrentUser,
-    goBackFromInvalidPolicy,
     getPersonalPolicy,
-    isPolicyFeatureEnabled,
-    hasTaxRateError,
-    getTaxByID,
-    hasPolicyCategoriesError,
-    getPolicyIDFromNavigationState,
-    getSubmitToAccountID,
-    getAdminEmployees,
     getPolicy,
+    getPolicyBrickRoadIndicatorStatus,
+    getPolicyEmployeeListByIdWithoutCurrentUser,
+    getSortedTagKeys,
+    getSubmitToAccountID,
+    getTagList,
+    getTagListName,
+    getTagLists,
+    getTaxByID,
+    getUnitRateValue,
+    goBackFromInvalidPolicy,
+    hasAccountingConnections,
+    hasCustomUnitsError,
+    hasEmployeeListError,
+    hasPolicyCategoriesError,
+    hasPolicyError,
+    hasPolicyErrorFields,
+    hasTaxRateError,
+    isExpensifyTeam,
+    isFreeGroupPolicy,
+    isInstantSubmitEnabled,
+    isPaidGroupPolicy,
+    isPendingDeletePolicy,
+    isPolicyAdmin,
+    isPolicyEmployee,
+    isPolicyFeatureEnabled,
+    isPolicyOwner,
+    isSubmitAndClose,
+    isTaxTrackingEnabled,
+    shouldShowPolicy,
     getActiveAdminWorkspaces,
     canSendInvoice,
+    getXeroTenants,
+    findCurrentXeroOrganization,
+    getCurrentXeroOrganizationName,
 };
 
 export type {MemberEmailsToAccountIDs};
