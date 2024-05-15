@@ -1185,9 +1185,7 @@ const CONST = {
     },
     ATTACHMENT_TYPE: {
         REPORT: 'r',
-        REPORT_ACTION: 'a',
         NOTE: 'n',
-        SINGLE: 's',
     },
 
     IMAGE_OBJECT_POSITION: {
