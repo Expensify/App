@@ -27,7 +27,6 @@ const SCREENS = {
         MY_TRIPS: 'Travel_MyTrips',
         TCS: 'Travel_TCS',
     },
-    WORKSPACES_CENTRAL_PANE: 'WorkspacesCentralPane',
     SEARCH: {
         CENTRAL_PANE: 'Search_Central_Pane',
         REPORT_RHP: 'Search_Report_RHP',
@@ -111,9 +110,6 @@ const SCREENS = {
     LEFT_MODAL: {
         CHAT_FINDER: 'ChatFinder',
         WORKSPACE_SWITCHER: 'WorkspaceSwitcher',
-    },
-    WORKSPACE_SWITCHER: {
-        ROOT: 'WorkspaceSwitcher_Root',
     },
     RIGHT_MODAL: {
         SETTINGS: 'Settings',
@@ -373,7 +369,6 @@ const SCREENS = {
     },
     ROOM_MEMBERS_ROOT: 'RoomMembers_Root',
     ROOM_INVITE_ROOT: 'RoomInvite_Root',
-    CHAT_FINDER_ROOT: 'ChatFinder_Root',
     FLAG_COMMENT_ROOT: 'FlagComment_Root',
     REIMBURSEMENT_ACCOUNT: 'ReimbursementAccount',
     GET_ASSISTANCE: 'GetAssistance',
