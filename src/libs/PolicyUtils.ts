@@ -266,7 +266,8 @@ function isPaidGroupPolicy(policy: OnyxEntry<Policy> | EmptyObject): boolean {
 }
 
 function isTaxTrackingEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Policy>, customUnitRateID: string, isDistanceRequest: boolean): boolean {
-    const isTaxEnabled = policy?.customUnits?.[customUnitRateID]?.attributes?.taxEnabled;
+    // TODO - confirm if customUnitRateID is correct then remove coalescing
+    const isTaxEnabled = policy?.customUnits?.[customUnitRateID]?.attributes?.taxEnabled ?? true;
     const isPolicyTaxTrackingEnabled = isPolicyExpenseChat && (policy?.tax?.trackingEnabled ?? policy?.isTaxTrackingEnabled);
     return (isDistanceRequest ? isPolicyTaxTrackingEnabled && isTaxEnabled : isPolicyTaxTrackingEnabled) ?? false;
 }
