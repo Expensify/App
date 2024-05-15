@@ -154,7 +154,7 @@ function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
                     success
                     text={translate('initialSettingsPage.debugConsole.execute')}
                     onPress={executeArbitraryCode}
-                    style={[styles.mt5]}
+                    style={[styles.mv5]}
                     large
                 />
             </View>
