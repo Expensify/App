@@ -1,4 +1,5 @@
 import React, {memo, useMemo} from 'react';
+import type {LayoutChangeEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -52,6 +53,9 @@ type ReportActionsListItemRendererProps = {
 
     /** If the thread divider line will be used */
     shouldUseThreadDividerLine?: boolean;
+
+    /** Invoked on mount and layout changes with `{nativeEvent: {layout: {x, y, width, height}}}`. */
+    onLayout?: (event: LayoutChangeEvent) => void;
 };
 
 function ReportActionsListItemRenderer({
@@ -70,6 +74,7 @@ function ReportActionsListItemRenderer({
     isFirstVisibleReportAction = false,
     shouldUseThreadDividerLine = false,
     parentReportActionForTransactionThread,
+    onLayout = undefined,
 }: ReportActionsListItemRendererProps) {
     const shouldDisplayParentAction =
         reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && ReportUtils.isChatThread(report) && !ReportActionsUtils.isTransactionThread(parentReportAction);
@@ -152,6 +157,7 @@ function ReportActionsListItemRenderer({
             index={index}
             isFirstVisibleReportAction={isFirstVisibleReportAction}
             shouldUseThreadDividerLine={shouldUseThreadDividerLine}
+            onLayout={onLayout}
         />
     ) : (
         <ReportActionItem
@@ -175,6 +181,7 @@ function ReportActionsListItemRenderer({
             index={index}
             isFirstVisibleReportAction={isFirstVisibleReportAction}
             shouldUseThreadDividerLine={shouldUseThreadDividerLine}
+            onLayout={onLayout}
         />
     );
 }

@@ -510,6 +510,45 @@ function ReportActionsList({
         calculateUnreadMarker();
     }, [calculateUnreadMarker, report.lastReadTime, messageManuallyMarkedUnread]);
 
+    function onItemLayout(index: number) {
+        return () => DeviceEventEmitter.emit('renderedItemIndex', index);
+    }
+
+    useEffect(() => {
+        function scrollToUnreadMessageIndex(index: number) {
+            // If there is no unread marker, we don't need to scroll.
+            if (!currentUnreadMarker) {
+                return;
+            }
+
+            const unreadMessageIndex = sortedVisibleReportActions.findIndex((action) => action.reportActionID === currentUnreadMarker);
+            // Scroll to unread marker if:
+            // 1. We found the unread message index (index !== -1).
+            // 2. The unread message index was rendered (index === unreadMessageIndex).
+            if (unreadMessageIndex !== -1 && index === unreadMessageIndex) {
+                // Scroll after interactions to ensure the list is ready to be scrolled.
+                InteractionManager.runAfterInteractions(() => {
+                    // We're passing viewPosition: 1 to scroll to the top (inverted FlatList)
+                    // of the unread message marker.
+                    reportScrollManager?.scrollToIndex(unreadMessageIndex, false, 1);
+                });
+            }
+        }
+
+        const subscription = DeviceEventEmitter.addListener('renderedItemIndex', scrollToUnreadMessageIndex);
+        return () => {
+            subscription.remove();
+        };
+        // When we're navigating to a report with unread messages, we only want to run this effect once,
+        // after the unread marker is set and the item at the unread marker index is rendered.
+        // Dependency array reasoning:
+        // [+] currentUnreadMarker - We need to keep this updated, otherwise the effect will scroll to
+        // previously unread marker since this state is initialized from cacheUnreadMarkers.
+        // [-] reportScrollManager - Doesn't update.
+        // [-] sortedVisibleReportActions - Don't re-run this effect if the list of visible report actions updates.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentUnreadMarker]);
+
     useEffect(() => {
         if (!userActiveSince.current || report.reportID !== prevReportID) {
             return;
@@ -573,6 +612,7 @@ function ReportActionsList({
                 shouldDisplayReplyDivider={sortedVisibleReportActions.length > 1}
                 isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
                 shouldUseThreadDividerLine={shouldUseThreadDividerLine}
+                onLayout={onItemLayout(index)}
             />
         ),
         [

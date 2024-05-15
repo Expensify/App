@@ -1,6 +1,6 @@
 import lodashIsEqual from 'lodash/isEqual';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import type {GestureResponderEvent, TextInput} from 'react-native';
+import type {GestureResponderEvent, LayoutChangeEvent, TextInput} from 'react-native';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -154,6 +154,9 @@ type ReportActionItemProps = {
 
     /** IF the thread divider line will be used */
     shouldUseThreadDividerLine?: boolean;
+
+    /** Invoked on mount and layout changes with `{nativeEvent: {layout: {x, y, width, height}}}`. */
+    onLayout?: (event: LayoutChangeEvent) => void;
 } & ReportActionItemOnyxProps;
 
 const isIOUReport = (actionObj: OnyxEntry<OnyxTypes.ReportAction>): actionObj is OnyxTypes.ReportActionBase & OnyxTypes.OriginalMessageIOU =>
@@ -179,6 +182,7 @@ function ReportActionItem({
     onPress = undefined,
     isFirstVisibleReportAction = false,
     shouldUseThreadDividerLine = false,
+    onLayout = undefined,
 }: ReportActionItemProps) {
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -936,6 +940,7 @@ function ReportActionItem({
             withoutFocusOnSecondaryInteraction
             accessibilityLabel={translate('accessibilityHints.chatMessage')}
             accessible
+            onLayout={onLayout}
         >
             <Hoverable
                 shouldHandleScroll

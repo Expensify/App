@@ -1,4 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
+import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -50,6 +51,9 @@ type ReportActionItemParentActionProps = {
 
     /** If the thread divider line will be used */
     shouldUseThreadDividerLine?: boolean;
+
+    /** Invoked on mount and layout changes with `{nativeEvent: {layout: {x, y, width, height}}}`. */
+    onLayout?: (event: LayoutChangeEvent) => void;
 };
 
 function ReportActionItemParentAction({
@@ -62,6 +66,7 @@ function ReportActionItemParentAction({
     shouldDisplayReplyDivider,
     isFirstVisibleReportAction = false,
     shouldUseThreadDividerLine = false,
+    onLayout = undefined,
 }: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -100,7 +105,10 @@ function ReportActionItemParentAction({
     }, []);
 
     return (
-        <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth)]}>
+        <View
+            style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth)]}
+            onLayout={onLayout}
+        >
             <AnimatedEmptyStateBackground />
             <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]} />
             {allAncestors.map((ancestor) => (

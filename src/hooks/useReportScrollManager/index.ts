@@ -6,14 +6,15 @@ function useReportScrollManager(): ReportScrollManagerData {
     const {flatListRef} = useContext(ActionListContext);
 
     /**
-     * Scroll to the provided index. On non-native implementations we do not want to scroll when we are scrolling because
+     * Scroll to the provided index.
+     * On non-native implementations we don't want to scroll while editing a comment.
      */
-    const scrollToIndex = (index: number, isEditing?: boolean) => {
+    const scrollToIndex = (index: number, isEditing?: boolean, viewPosition?: number) => {
         if (!flatListRef?.current || isEditing) {
             return;
         }
 
-        flatListRef.current.scrollToIndex({index, animated: true});
+        flatListRef.current.scrollToIndex({index, animated: true, viewPosition});
     };
 
     /**
