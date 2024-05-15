@@ -47,7 +47,7 @@ const defaultSuggestionsValues: SuggestionValues = {
 };
 
 function SuggestionMention(
-    {value, selection, setSelection, updateComment, isAutoSuggestionPickerLarge, measureParentContainer, isComposerFocused, isGroupPolicyReport, policyID}: SuggestionProps,
+    {value, selection, setSelection, updateComment, isAutoSuggestionPickerLarge, measureParentContainerAndReportCursor, isComposerFocused, isGroupPolicyReport, policyID}: SuggestionProps,
     ref: ForwardedRef<SuggestionsRef>,
 ) {
     const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
@@ -392,7 +392,7 @@ function SuggestionMention(
             prefix={suggestionValues.mentionPrefix}
             onSelect={insertSelectedMention}
             isMentionPickerLarge={!!isAutoSuggestionPickerLarge}
-            measureParentContainer={measureParentContainer}
+            measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
         />
     );
 }
