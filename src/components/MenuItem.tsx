@@ -672,30 +672,6 @@ function MenuItem(
                                                 <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre])}>
                                                     {label}
                                                 </Text>
-                                            )}
-                                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                                {!!title && (shouldRenderAsHTML || (shouldParseTitle && !!html.length)) && (
-                                                    <View style={styles.renderHTMLTitle}>
-                                                        <RenderHTML html={truncate(processedTitle, maxDescLength)} />
-                                                    </View>
-                                                )}
-                                                {!shouldRenderAsHTML && !shouldParseTitle && !!title && (
-                                                    <Text
-                                                        style={combinedTitleTextStyle}
-                                                        numberOfLines={numberOfLinesTitle || undefined}
-                                                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: interactive && disabled}}
-                                                    >
-                                                        {renderTitleContent()}
-                                                    </Text>
-                                                )}
-                                                {shouldShowTitleIcon && titleIcon && (
-                                                    <View style={[styles.ml2]}>
-                                                        <Icon
-                                                            src={titleIcon}
-                                                            fill={theme.iconSuccessFill}
-                                                        />
-                                                    </View>
-                                                )}
                                             </View>
                                         )}
                                         <View style={[styles.flexRow, styles.pointerEventsAuto, disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled]}>
@@ -781,7 +757,7 @@ function MenuItem(
                                                 <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                                     {!!title && (shouldRenderAsHTML || (shouldParseTitle && !!html.length)) && (
                                                         <View style={styles.renderHTMLTitle}>
-                                                            <RenderHTML html={processedTitle} />
+                                                            <RenderHTML html={truncate(processedTitle, maxDescLength)} />
                                                         </View>
                                                     )}
                                                     {!shouldRenderAsHTML && !shouldParseTitle && !!title && (
