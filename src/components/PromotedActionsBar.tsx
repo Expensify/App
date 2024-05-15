@@ -1,13 +1,11 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as HeaderUtils from '@libs/HeaderUtils';
-import Navigation from '@libs/Navigation/Navigation';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
-import ROUTES from '@src/ROUTES';
 import type {Report as OnyxReportType} from '@src/types/onyx';
 import Button from './Button';
 import ConfirmModal from './ConfirmModal';
@@ -24,7 +22,7 @@ type PromotedActionsParams = {
 
 function usePromotedActions({report}: PromotedActionsParams): Record<string, PromotedAction> {
     const {translate} = useLocalize();
-    const onShareButtonPress = useCallback(() => Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.getRoute(report?.reportID ?? '')), [report?.reportID]);
+    // const onShareButtonPress = useCallback(() => Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.getRoute(report?.reportID ?? '')), [report?.reportID]);
     const join = Session.checkIfActionIsAllowed(() => Report.joinRoom(report));
 
     return useMemo(
@@ -39,35 +37,38 @@ function usePromotedActions({report}: PromotedActionsParams): Record<string, Pro
                 text: translate('common.join'),
                 onSelected: join,
             },
-            share: {
-                key: 'share',
-                icon: Expensicons.QrCode,
-                text: translate('common.share'),
-                onSelected: onShareButtonPress,
-            },
-            hold: {
-                key: 'hold',
-                icon: Expensicons.Stopwatch,
-                text: translate('iou.hold'),
-                onSelected: () => {
-                    // TODO: Implement this
-                },
-            },
+            // TODO: Uncomment and test it when needed
+            // share: {
+            //     key: 'share',
+            //     icon: Expensicons.QrCode,
+            //     text: translate('common.share'),
+            //     onSelected: onShareButtonPress,
+            // },
+            // hold: {
+            //     key: 'hold',
+            //     icon: Expensicons.Stopwatch,
+            //     text: translate('iou.hold'),
+            //     onSelected: () => {
+            //         // TODO: Implement this
+            //     },
+            // },
         }),
-        [report, translate, join, onShareButtonPress],
+        [report, translate, join],
     );
 }
 
 type PromotedActionsBarProps = {
+    /** The report of actions */
     report: OnyxReportType;
 
+    /** The list of actions to show */
     promotedActions: PromotedAction[];
 
     /**
      * Whether to show the `Leave` button.
      * @deprecated Remove this prop when @src/pages/ReportDetailsPage.tsx is updated
      */
-    shouldShowLeaveButton: boolean;
+    shouldShowLeaveButton?: boolean;
 };
 
 function PromotedActionsBar({report, promotedActions, shouldShowLeaveButton}: PromotedActionsBarProps) {
