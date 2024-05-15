@@ -1,4 +1,4 @@
-import type {StackScreenProps} from '@react-navigation/stack';
+import type { StackScreenProps } from '@react-navigation/stack';
 import React from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -9,12 +9,13 @@ import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
-import type {CentralPaneNavigatorParamList} from '@libs/Navigation/types';
+import type { CentralPaneNavigatorParamList } from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {SearchQuery} from '@src/types/onyx/SearchResults';
+import type { SearchQuery } from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
+
 
 type SearchPageProps = StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.SEARCH.CENTRAL_PANE>;
 
@@ -28,15 +29,15 @@ function SearchPage({route}: SearchPageProps) {
     const headerContent: {[key in SearchQuery]: {icon: IconAsset; title: string}} = {
         all: {icon: Illustrations.MoneyReceipts, title: translate('common.expenses')},
         shared: {
-            icon: Illustrations.Shared,
+            icon: Illustrations.SendMoney,
             title: translate('common.shared'),
         },
         drafts: {
-            icon: Illustrations.Drafts,
+            icon: Illustrations.Pencil,
             title: translate('common.drafts'),
         },
         finished: {
-            icon: Illustrations.Finished,
+            icon: Illustrations.CheckmarkCircle,
             title: translate('common.finished'),
         },
     };
