@@ -82,10 +82,13 @@ function enqueue(updates: OnyxUpdatesFromServer | DeferredUpdatesDictionary, opt
         SequentialQueue.pause();
     }
 
+    // We check here if the "updates" param is a single update.
+    // If so, we only need to insert one update into the deferred updates queue.
     if (isValidOnyxUpdateFromServer(updates)) {
         const lastUpdateID = Number(updates.lastUpdateID);
         deferredUpdates[lastUpdateID] = updates;
     } else {
+        // If the "updates" param is an object, we need to insert multiple updates into the deferred updates queue.
         Object.entries(updates).forEach(([lastUpdateIDString, update]) => {
             const lastUpdateID = Number(lastUpdateIDString);
             if (deferredUpdates[lastUpdateID]) {
