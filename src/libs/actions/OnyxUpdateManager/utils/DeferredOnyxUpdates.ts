@@ -128,6 +128,4 @@ function clear(options?: ClearDeferredOnyxUpdatesOptions) {
     }
 }
 
-const DeferredOnyxUpdates = {getMissingOnyxUpdatesQueryPromise, setMissingOnyxUpdatesQueryPromise, getUpdates, isEmpty, process, enqueue, enqueueAndProcess, clear};
-
-export default DeferredOnyxUpdates;
+export {getMissingOnyxUpdatesQueryPromise, setMissingOnyxUpdatesQueryPromise, getUpdates, isEmpty, process, enqueue, enqueueAndProcess, clear};

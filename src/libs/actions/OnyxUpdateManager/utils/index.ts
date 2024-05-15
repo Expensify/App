@@ -5,7 +5,7 @@ import type {DeferredUpdatesDictionary, DetectGapAndSplitResult} from '@userActi
 import ONYXKEYS from '@src/ONYXKEYS';
 import {applyUpdates} from './applyUpdates';
 // eslint-disable-next-line import/no-cycle
-import DeferredOnyxUpdates from './DeferredOnyxUpdates';
+import * as DeferredOnyxUpdates from './DeferredOnyxUpdates';
 
 let lastUpdateIDAppliedToClient = 0;
 Onyx.connect({

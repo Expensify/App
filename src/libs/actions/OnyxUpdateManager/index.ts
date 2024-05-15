@@ -8,7 +8,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
 import {isValidOnyxUpdateFromServer} from '@src/types/onyx/OnyxUpdatesFromServer';
 import * as OnyxUpdateManagerUtils from './utils';
-import DeferredOnyxUpdates from './utils/DeferredOnyxUpdates';
+import * as DeferredOnyxUpdates from './utils/DeferredOnyxUpdates';
 
 // This file is in charge of looking at the updateIDs coming from the server and comparing them to the last updateID that the client has.
 // If the client is behind the server, then we need to
