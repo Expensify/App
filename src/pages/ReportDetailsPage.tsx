@@ -82,8 +82,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const isMoneyRequest = useMemo(() => ReportUtils.isMoneyRequest(report), [report]);
     const isInvoiceReport = useMemo(() => ReportUtils.isInvoiceReport(report), [report]);
     const canEditReportDescription = useMemo(() => ReportUtils.canEditReportDescription(report, policy), [report, policy]);
-    const canLeaveRoom = useMemo(() => ReportUtils.canLeaveRoom(report, isPolicyEmployee), [report, isPolicyEmployee]);
-    const canLeavePolicyExpenseChat = useMemo(() => ReportUtils.canLeavePolicyExpenseChat(report, policy ?? {}), [report, policy]);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
     const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(report), [report, policy]);
@@ -109,8 +107,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const isSelfDM = useMemo(() => ReportUtils.isSelfDM(report), [report]);
 
     const shouldShowReportDescription = isChatRoom && (canEditReportDescription || report.description !== '');
-    const canLeave =
-        !isSelfDM && (isChatThread || isUserCreatedPolicyRoom || canLeaveRoom || canLeavePolicyExpenseChat) && report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
 
     useEffect(() => {
         // Do not fetch private notes if isLoadingPrivateNotes is already defined, or if the network is offline, or if the report is a self DM.
@@ -200,7 +196,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             });
         }
 
-        if (isGroupChat || (isChatRoom && canLeave)) {
+        if (isGroupChat || (isChatRoom && ReportUtils.canLeaveChat(report, policy ?? null))) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
                 translationKey: 'common.leave',
@@ -233,7 +229,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         isMoneyRequestReport,
         isInvoiceReport,
         isChatRoom,
-        canLeave,
+        policy,
         activeChatMembers.length,
         session,
         leaveChat,
