@@ -27,7 +27,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
-import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import * as ComposerUtils from '@libs/ComposerUtils';
 import convertToLTRForComposer from '@libs/convertToLTRForComposer';
 import {getDraftComment} from '@libs/DraftCommentUtils';
@@ -36,7 +35,6 @@ import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import getPlatform from '@libs/getPlatform';
 import * as KeyDownListener from '@libs/KeyboardShortcut/KeyDownPressListener';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as SuggestionUtils from '@libs/SuggestionUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
@@ -64,9 +62,6 @@ type AnimatedRef = ReturnType<typeof useAnimatedRef>;
 type NewlyAddedChars = {startIndex: number; endIndex: number; diff: string};
 
 type ComposerWithSuggestionsOnyxProps = {
-    /** The parent report actions for the report */
-    parentReportActions: OnyxEntry<OnyxTypes.ReportActions>;
-
     /** The modal state */
     modal: OnyxEntry<OnyxTypes.Modal>;
 
@@ -154,21 +149,11 @@ type ComposerWithSuggestionsProps = ComposerWithSuggestionsOnyxProps &
         /** Whether the edit is focused */
         editFocused: boolean;
 
-        /** Wheater chat is empty */
-        isEmptyChat?: boolean;
-
         /** The last report action */
         lastReportAction?: OnyxEntry<OnyxTypes.ReportAction>;
 
         /** Whether to include chronos */
         includeChronos?: boolean;
-
-        /** The parent report action ID */
-        parentReportActionID?: string;
-
-        /** The parent report ID */
-        // eslint-disable-next-line react/no-unused-prop-types -- its used in the withOnyx HOC
-        parentReportID: string | undefined;
 
         /** Whether report is from group policy */
         isGroupPolicyReport: boolean;
@@ -197,10 +182,6 @@ const debouncedBroadcastUserIsTyping = lodashDebounce(
 
 const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 
-// We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
-// prevent auto focus on existing chat for mobile device
-const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
-
 /**
  * This component holds the value and selection state.
  * If a component really needs access to these state values it should be put here.
@@ -212,14 +193,11 @@ function ComposerWithSuggestions(
         // Onyx
         modal,
         preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE,
-        parentReportActions,
 
         // Props: Report
         reportID,
         includeChronos,
-        isEmptyChat,
         lastReportAction,
-        parentReportActionID,
         isGroupPolicyReport,
         policyID,
 
@@ -279,12 +257,12 @@ function ComposerWithSuggestions(
     const {isSmallScreenWidth} = useWindowDimensions();
     const maxComposerLines = isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
 
-    const parentReportAction = parentReportActions?.[parentReportActionID ?? ''] ?? null;
-    const shouldAutoFocus =
-        !modal?.isVisible && isFocused && (shouldFocusInputOnScreenFocus || (isEmptyChat && !ReportActionsUtils.isTransactionThread(parentReportAction))) && shouldShowComposeInput;
+    const shouldAutoFocus = !modal?.isVisible && shouldShowComposeInput;
 
     const valueRef = useRef(value);
     valueRef.current = value;
+
+    const [showSoftInputOnFocus, setShowSoftInputOnFocus] = useState(false);
 
     const [selection, setSelection] = useState(() => ({start: 0, end: 0}));
 
@@ -292,6 +270,8 @@ function ComposerWithSuggestions(
 
     const textInputRef = useRef<TextInput | null>(null);
     const insertedEmojisRef = useRef<Emoji[]>([]);
+    const shouldInitFocus = useRef<boolean>(true);
+    const isFocusedWhileChangingInputMode = useRef<boolean>(false);
 
     const syncSelectionWithOnChangeTextRef = useRef<SyncSelection | null>(null);
 
@@ -676,7 +656,15 @@ function ComposerWithSuggestions(
         // We want to focus or refocus the input when a modal has been closed or the underlying screen is refocused.
         // We avoid doing this on native platforms since the software keyboard popping
         // open creates a jarring and broken UX.
-        if (!((willBlurTextInputOnTapOutside || shouldAutoFocus) && !isNextModalWillOpenRef.current && !modal?.isVisible && isFocused && (!!prevIsModalVisible || !prevIsFocused))) {
+        if (
+            !(
+                (willBlurTextInputOnTapOutside || shouldAutoFocus) &&
+                !isNextModalWillOpenRef.current &&
+                !modal?.isVisible &&
+                isFocused &&
+                (!!prevIsModalVisible || !prevIsFocused || shouldInitFocus.current)
+            )
+        ) {
             return;
         }
 
@@ -685,6 +673,9 @@ function ComposerWithSuggestions(
             return;
         }
         focus(true);
+        if (shouldInitFocus.current) {
+            shouldInitFocus.current = false;
+        }
     }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal?.isVisible, isNextModalWillOpenRef, shouldAutoFocus]);
 
     useEffect(() => {
@@ -728,6 +719,16 @@ function ComposerWithSuggestions(
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    useEffect(() => {
+        if (!showSoftInputOnFocus || !isFocusedWhileChangingInputMode.current) {
+            return;
+        }
+        // On Safari when changing inputMode from none to text, the keyboard will cover the view
+        // We need to re-focus to trigger the keyboard to open below the view
+        isFocusedWhileChangingInputMode.current = false;
+        textInputRef.current?.focus();
+    }, [showSoftInputOnFocus]);
+    
     const isOnlyEmojiLineHeight = useMemo(() => {
         const isOnlyEmoji = EmojiUtils.containsOnlyEmojis(value);
         return isOnlyEmoji ? {lineHeight: variables.fontSizeOnlyEmojisHeight} : {};
@@ -749,7 +750,12 @@ function ComposerWithSuggestions(
                     style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.textInputCollapseCompose, isOnlyEmojiLineHeight]}
                     maxLines={maxComposerLines}
                     onFocus={onFocus}
-                    onBlur={onBlur}
+                    onBlur={(e) => {
+                        if (isFocusedWhileChangingInputMode.current) {
+                            return;
+                        }
+                        onBlur(e);
+                    }}
                     onClick={setShouldBlockSuggestionCalcToFalse}
                     onPasteFile={displayFileInModal}
                     shouldClear={textInputShouldClear}
@@ -766,6 +772,18 @@ function ComposerWithSuggestions(
                     shouldCalculateCaretPosition
                     onLayout={onLayout}
                     onScroll={hideSuggestionMenu}
+                    showSoftInputOnFocus={showSoftInputOnFocus}
+                    onTouchStart={() => {
+                        if (showSoftInputOnFocus) {
+                            return;
+                        }
+                        if (Browser.isMobileSafari()) {
+                            isFocusedWhileChangingInputMode.current = true;
+                            textInputRef.current?.blur();
+                        }
+
+                        setShowSoftInputOnFocus(true);
+                    }}
                     shouldContainScroll={Browser.isMobileSafari()}
                 />
             </View>
@@ -818,11 +836,6 @@ export default withOnyx<ComposerWithSuggestionsProps & RefAttributes<ComposerRef
     },
     editFocused: {
         key: ONYXKEYS.INPUT_FOCUSED,
-    },
-    parentReportActions: {
-        key: ({parentReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
-        canEvict: false,
-        initWithStoredValues: false,
     },
 })(memo(ComposerWithSuggestionsWithRef));
 
