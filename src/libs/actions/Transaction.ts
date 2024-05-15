@@ -12,7 +12,6 @@ import {buildOptimisticDismissedViolationReportAction} from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReviewDuplicatesForm} from '@src/types/form';
 import type {PersonalDetails, RecentWaypoint, ReportActions, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
@@ -326,7 +325,17 @@ function dismissDuplicateTransactionViolation(transactionID: string, transaction
     API.write(WRITE_COMMANDS.DISMISS_VIOLATION, params, {optimisticData, failureData});
 }
 
-function setReviewDuplicatesKey(values: ReviewDuplicatesForm) {
+function setReviewDuplicatesKey(values: {
+    duplicates?: string[];
+    transactionID?: string;
+    tag?: string;
+    merchant?: string;
+    description?: string;
+    category?: string;
+    taxCode?: string;
+    reimbursable?: boolean;
+    billable?: boolean;
+}) {
     Onyx.merge(`${ONYXKEYS.FORMS.REVIEW_DUPLICATES_FORM}`, {
         ...values,
     });

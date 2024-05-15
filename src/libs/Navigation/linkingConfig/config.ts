@@ -687,6 +687,14 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAX_CODE_PAGE.route,
                             exact: true,
                         },
+                        [SCREENS.TRANSACTION_DUPLICATE.REIMBURSABLE]: {
+                            path: ROUTES.TRANSACTION_DUPLICATE_REVIEW_REIMBURSABLE_PAGE.route,
+                            exact: true,
+                        },
+                        [SCREENS.TRANSACTION_DUPLICATE.BILLABLE]: {
+                            path: ROUTES.TRANSACTION_DUPLICATE_REVIEW_BILLABLE_PAGE.route,
+                            exact: true,
+                        },
                         // [SCREENS.TRANSACTION_DUPLICATE.CONFIRM]: ROUTES.TRANSACTION_DUPLICATE_CONFIRM.route,
                     },
                 },

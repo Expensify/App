@@ -790,7 +790,7 @@ function compareDuplicateTransactionFields(transactionID: string) {
                 if (transactions.every((item) => keys.every((key) => item && item.comment && key in item.comment && item.comment[key] === firstTransaction?.description?.[key]))) {
                     keep[fieldName] = firstTransaction?.comment?.[keys[0]];
                 } else {
-                    const differentValues = transactions.map((item) => keys.map((key) => (item.comment && key in item.comment ? item.comment[key] : undefined))).flat();
+                    const differentValues = transactions.map((item) => keys.map((key) => (item && item.comment && key in item.comment ? item.comment[key] : undefined))).flat();
 
                     if (differentValues.length > 0) {
                         change[fieldName] = differentValues;
@@ -799,7 +799,7 @@ function compareDuplicateTransactionFields(transactionID: string) {
             } else if (transactions.every((item) => keys.every((key) => item && key in item && item[key] === firstTransaction?.[key]))) {
                 keep[fieldName] = firstTransaction?.[keys[0]];
             } else {
-                const differentValues = transactions.map((item) => keys.map((key) => (key in item ? item[key] : undefined))).flat();
+                const differentValues = transactions.map((item) => keys.map((key) => (item && key in item ? item[key] : typeof item?.[key] === 'boolean' ? false : undefined))).flat();
 
                 if (differentValues.length > 0) {
                     change[fieldName] = differentValues;

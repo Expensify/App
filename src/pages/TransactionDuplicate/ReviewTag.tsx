@@ -1,7 +1,55 @@
-import React from 'react';
+import type {RouteProp} from '@react-navigation/native';
+import {useRoute} from '@react-navigation/native';
+import React, {useMemo} from 'react';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import type {ListItem} from '@components/SelectionList/types';
+import useReviewDuplicatesNavigation from '@hooks/useReviewDuplicatesNavigation';
+import {setReviewDuplicatesKey} from '@libs/actions/Transaction';
+import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
+import * as TransactionUtils from '@libs/TransactionUtils';
+import type SCREENS from '@src/SCREENS';
+import ReviewFields from './ReviewFields';
 
 function ReviewTag() {
-    return <div>ReviewTag</div>;
+    const route = useRoute<RouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.TAG>>();
+    const transactionID = TransactionUtils.getTransactionID(route.params.threadReportID ?? '');
+
+    const compareResult = TransactionUtils.compareDuplicateTransactionFields(transactionID);
+    const stepNames = Object.keys(compareResult.change ?? {}).map((key, index) => (index + 1).toString());
+    const {currentScreenIndex, navigateToNextScreen} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'tag', route.params.threadReportID ?? '');
+    const options = useMemo(
+        () =>
+            compareResult.change.tag.map((tag) =>
+                !tag
+                    ? {text: 'None', value: undefined}
+                    : {
+                          text: tag,
+                          value: tag,
+                      },
+            ),
+        [compareResult.change.tag],
+    );
+    const onSelectRow = (data: ListItem) => {
+        if (data.data !== undefined) {
+            setReviewDuplicatesKey({tag: data.data});
+        }
+        navigateToNextScreen();
+    };
+    return (
+        <ScreenWrapper testID={ReviewTag.displayName}>
+            <HeaderWithBackButton title="Review duplicates" />
+            <ReviewFields
+                stepNames={stepNames}
+                label="Choose which tag to keep"
+                options={options}
+                index={currentScreenIndex}
+                onSelectRow={onSelectRow}
+            />
+        </ScreenWrapper>
+    );
 }
+
+ReviewTag.displayName = 'ReviewTag';
 
 export default ReviewTag;

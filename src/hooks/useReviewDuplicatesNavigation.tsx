@@ -16,7 +16,6 @@ function useReviewDuplicatesNavigation(stepNames: string[], currentScreenName: s
     }, [currentScreenName, intersection]);
 
     const navigateToNextScreen = () => {
-        console.log('navigateToNextScreen', nextScreen, threadReportID);
         switch (nextScreen) {
             case 'merchant':
                 Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE.getRoute(threadReportID));
@@ -34,12 +33,13 @@ function useReviewDuplicatesNavigation(stepNames: string[], currentScreenName: s
             case 'taxCode':
                 Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAX_CODE_PAGE.getRoute(threadReportID));
                 break;
-            // case 'payee':
-            //   Navigation.navigate(CONST.SCREENS.TRANSACTION_DUPLICATE.REVIEW_PAYEE);
-            //   break;
-            // case 'tags':
-            //   Navigation.navigate(CONST.SCREENS.TRANSACTION_DUPLICATE.REVIEW_TAGS);
-            //   break;
+
+            case 'reimbursable':
+                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_REIMBURSABLE_PAGE.getRoute(threadReportID));
+                break;
+            case 'billable':
+                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_BILLABLE_PAGE.getRoute(threadReportID));
+                break;
             default:
                 //   Navigation.navigate(CONST.SCREENS.TRANSACTION_DUPLICATE.REVIEW_CATEGORY);
                 break;

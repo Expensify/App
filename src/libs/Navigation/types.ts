@@ -722,6 +722,15 @@ type TransactionDuplicateNavigatorParamList = {
     [SCREENS.TRANSACTION_DUPLICATE.DESCRIPTION]: {
         threadReportID: string;
     };
+    [SCREENS.TRANSACTION_DUPLICATE.TAX_CODE]: {
+        threadReportID: string;
+    };
+    [SCREENS.TRANSACTION_DUPLICATE.BILLABLE]: {
+        threadReportID: string;
+    };
+    [SCREENS.TRANSACTION_DUPLICATE.REIMBURSABLE]: {
+        threadReportID: string;
+    };
     // [SCREENS.TRANSACTION_DUPLICATE.CONFIRM]: {
     //     threadReportID: string;
     // };

@@ -1,6 +1,6 @@
 import type {RouteProp} from '@react-navigation/native';
 import {useRoute} from '@react-navigation/native';
-import React from 'react';
+import React, {useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useReviewDuplicatesNavigation from '@hooks/useReviewDuplicatesNavigation';
@@ -15,6 +15,18 @@ function ReviewCategory() {
     const compareResult = TransactionUtils.compareDuplicateTransactionFields(transactionID);
     const stepNames = Object.keys(compareResult.change ?? {}).map((key, index) => (index + 1).toString());
     const {currentScreenIndex, navigateToNextScreen} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'category', route.params.threadReportID ?? '');
+    const options = useMemo(
+        () =>
+            compareResult.change.category.map((category) =>
+                !category
+                    ? {text: 'None', value: undefined}
+                    : {
+                          text: category,
+                          value: category,
+                      },
+            ),
+        [compareResult.change.category],
+    );
 
     return (
         <ScreenWrapper testID={ReviewCategory.displayName}>
@@ -22,7 +34,7 @@ function ReviewCategory() {
             <ReviewFields
                 stepNames={stepNames}
                 label="Choose which category to keep"
-                options={compareResult.change.category}
+                options={options}
                 index={currentScreenIndex}
                 onSelectRow={navigateToNextScreen}
             />

@@ -1,6 +1,6 @@
 import type {RouteProp} from '@react-navigation/native';
 import {useRoute} from '@react-navigation/native';
-import React from 'react';
+import React, {useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useReviewDuplicatesNavigation from '@hooks/useReviewDuplicatesNavigation';
@@ -15,15 +15,26 @@ function ReviewDescription() {
     const compareResult = TransactionUtils.compareDuplicateTransactionFields(transactionID);
     const stepNames = Object.keys(compareResult.change ?? {}).map((key, index) => (index + 1).toString());
     const {currentScreenIndex, navigateToNextScreen} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'description', route.params.threadReportID ?? '');
-
+    const options = useMemo(
+        () =>
+            compareResult.change.description.map((description) =>
+                !description
+                    ? {text: 'None', value: undefined}
+                    : {
+                          text: description,
+                          value: description,
+                      },
+            ),
+        [compareResult.change.description],
+    );
     return (
         <ScreenWrapper testID={ReviewDescription.displayName}>
             <HeaderWithBackButton title="Review duplicates" />
             <ReviewFields
                 stepNames={stepNames}
                 label="Choose which description to keep"
-                options={compareResult.change.description}
-                index={currentScreenIndex + 1}
+                options={options}
+                index={currentScreenIndex}
                 onSelectRow={navigateToNextScreen}
             />
         </ScreenWrapper>

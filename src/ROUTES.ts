@@ -807,6 +807,14 @@ const ROUTES = {
         route: 'r/:threadReportID/duplicates/confirm',
         getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/confirm` as const,
     },
+    TRANSACTION_DUPLICATE_REVIEW_REIMBURSABLE_PAGE: {
+        route: 'r/:threadReportID/duplicates/review/reimbursable',
+        getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review/reimbursable` as const,
+    },
+    TRANSACTION_DUPLICATE_REVIEW_BILLABLE_PAGE: {
+        route: 'r/:threadReportID/duplicates/review/billable',
+        getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review/billable` as const,
+    },
     // TRANSACTION_DUPLICATE_CONFIRM: {
     //     route: 'r/:threadReportID/duplicates/review/description',
     //     getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review/description` as const,
