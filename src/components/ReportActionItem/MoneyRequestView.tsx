@@ -385,7 +385,7 @@ function MoneyRequestView({
                         shouldShowRightIcon={canEditAmount}
                         onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '', report.reportID))}
                         brickRoadIndicator={getErrorForField('amount') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        error={getErrorForField('amount')}
+                        errorText={getErrorForField('amount')}
                     />
                 </OfflineWithFeedback>
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('comment')}>
@@ -399,7 +399,7 @@ function MoneyRequestView({
                         onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '', report.reportID))}
                         wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
                         brickRoadIndicator={getErrorForField('comment') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        error={getErrorForField('comment')}
+                        errorText={getErrorForField('comment')}
                         numberOfLinesTitle={0}
                     />
                 </OfflineWithFeedback>
@@ -417,7 +417,7 @@ function MoneyRequestView({
                                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '', report.reportID))
                             }
                             brickRoadIndicator={getErrorForField('merchant') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            error={getErrorForField('merchant')}
+                            errorText={getErrorForField('merchant')}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -430,7 +430,7 @@ function MoneyRequestView({
                         titleStyle={styles.flex1}
                         onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '', report.reportID))}
                         brickRoadIndicator={getErrorForField('date') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        error={getErrorForField('date')}
+                        errorText={getErrorForField('date')}
                     />
                 </OfflineWithFeedback>
                 {shouldShowCategory && (
@@ -445,7 +445,7 @@ function MoneyRequestView({
                                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '', report.reportID))
                             }
                             brickRoadIndicator={getErrorForField('category') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            error={getErrorForField('category')}
+                            errorText={getErrorForField('category')}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -474,7 +474,7 @@ function MoneyRequestView({
                                         ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                                         : undefined
                                 }
-                                error={getErrorForField('tag', {tagListIndex: index, tagListName: name})}
+                                errorText={getErrorForField('tag', {tagListIndex: index, tagListName: name})}
                             />
                         </OfflineWithFeedback>
                     ))}
@@ -500,7 +500,7 @@ function MoneyRequestView({
                                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '', report.reportID))
                             }
                             brickRoadIndicator={getErrorForField('tax') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            error={getErrorForField('tax')}
+                            errorText={getErrorForField('tax')}
                         />
                     </OfflineWithFeedback>
                 )}

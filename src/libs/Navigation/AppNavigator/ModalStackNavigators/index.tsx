@@ -4,7 +4,6 @@ import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
 import type {
     AddPersonalBankAccountNavigatorParamList,
-    ChatFinderNavigatorParamList,
     DetailsNavigatorParamList,
     EditRequestNavigatorParamList,
     EnablePaymentsNavigatorParamList,
@@ -30,13 +29,11 @@ import type {
     TeachersUniteNavigatorParamList,
     TravelNavigatorParamList,
     WalletStatementNavigatorParamList,
-    WorkspaceSwitcherNavigatorParamList,
 } from '@navigation/types';
 import type {ThemeStyles} from '@styles/index';
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
 import useModalScreenOptions from './useModalScreenOptions';
-import WorkspaceSettingsModalStackNavigator from './WorkspaceSettingsModalStackNavigator';
 
 type Screens = Partial<Record<Screen, () => React.ComponentType>>;
 
@@ -152,10 +149,6 @@ const RoomInviteModalStackNavigator = createModalStackNavigator<RoomInviteNaviga
     [SCREENS.ROOM_INVITE_ROOT]: () => require('../../../../pages/RoomInvitePage').default as React.ComponentType,
 });
 
-const ChatFinderModalStackNavigator = createModalStackNavigator<ChatFinderNavigatorParamList>({
-    [SCREENS.CHAT_FINDER_ROOT]: () => require('../../../../pages/ChatFinderPage').default as React.ComponentType,
-});
-
 const NewChatModalStackNavigator = createModalStackNavigator<NewChatNavigatorParamList>({
     [SCREENS.NEW_CHAT.ROOT]: () => require('../../../../pages/NewChatSelectorPage').default as React.ComponentType,
     [SCREENS.NEW_CHAT.NEW_CHAT_CONFIRM]: () => require('../../../../pages/NewChatConfirmPage').default as React.ComponentType,
@@ -176,10 +169,6 @@ const NewTeachersUniteNavigator = createModalStackNavigator<TeachersUniteNavigat
     [SCREENS.I_KNOW_A_TEACHER]: () => require('../../../../pages/TeachersUnite/KnowATeacherPage').default as React.ComponentType,
     [SCREENS.INTRO_SCHOOL_PRINCIPAL]: () => require('../../../../pages/TeachersUnite/ImTeacherPage').default as React.ComponentType,
     [SCREENS.I_AM_A_TEACHER]: () => require('../../../../pages/TeachersUnite/ImTeacherPage').default as React.ComponentType,
-});
-
-const WorkspaceSwitcherModalStackNavigator = createModalStackNavigator<WorkspaceSwitcherNavigatorParamList>({
-    [SCREENS.WORKSPACE_SWITCHER.ROOT]: () => require('../../../../pages/WorkspaceSwitcherPage').default as React.ComponentType,
 });
 
 const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorParamList>({
@@ -307,6 +296,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
 
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_IMPORT]: () => require('../../../../pages/workspace/accounting/xero/XeroImportPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_ORGANIZATION]: () => require('../../../../pages/workspace/accounting/xero/XeroOrganizationConfigurationPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.XERO_CHART_OF_ACCOUNTS]: () => require('../../../../pages/workspace/accounting/xero/import/XeroChartOfAccountsPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_CUSTOMER]: () => require('../../../../pages/workspace/accounting/xero/import/XeroCustomerConfigurationPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_TAXES]: () => require('../../../../pages/workspace/accounting/xero/XeroTaxesConfigurationPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_TRACKING_CATEGORIES]: () =>
@@ -314,9 +304,17 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_MAP_COST_CENTERS]: () => require('../../../../pages/workspace/accounting/xero/XeroMapCostCentersToConfigurationPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_MAP_REGION]: () => require('../../../../pages/workspace/accounting/xero/XeroMapRegionsToConfigurationPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_EXPORT]: () => require('../../../../pages/workspace/accounting/xero/export/XeroExportConfigurationPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.XERO_EXPORT_PURCHASE_BILL_DATE_SELECT]: () =>
+        require('../../../../pages/workspace/accounting/xero/export/XeroPurchaseBillDateSelectPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.XERO_EXPORT_BANK_ACCOUNT_SELECT]: () =>
+        require('../../../../pages/workspace/accounting/xero/export/XeroBankAccountSelectPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_ADVANCED]: () => require('../../../../pages/workspace/accounting/xero/advanced/XeroAdvancedPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_INVOICE_ACCOUNT_SELECTOR]: () =>
         require('../../../../pages/workspace/accounting/xero/advanced/XeroInvoiceAccountSelectorPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.XERO_EXPORT_PREFERRED_EXPORTER_SELECT]: () =>
+        require('../../../../pages/workspace/accounting/xero/export/XeroPreferredExporterSelectPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.XERO_BILL_PAYMENT_ACCOUNT_SELECTOR]: () =>
+        require('../../../../pages/workspace/accounting/xero/advanced/XeroBillPaymentAccountSelectorPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: () => require('../../../../pages/workspace/workflows/WorkspaceAutoReportingFrequencyPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET]: () =>
         require('../../../../pages/workspace/workflows/WorkspaceAutoReportingMonthlyOffsetPage').default as React.ComponentType,
@@ -382,24 +380,21 @@ export {
     NewTaskModalStackNavigator,
     NewTeachersUniteNavigator,
     PrivateNotesModalStackNavigator,
+    ProcessMoneyRequestHoldStackNavigator,
     ProfileModalStackNavigator,
     ReferralModalStackNavigator,
     TravelModalStackNavigator,
-    WorkspaceSwitcherModalStackNavigator,
     ReimbursementAccountModalStackNavigator,
+    ReportDescriptionModalStackNavigator,
     ReportDetailsModalStackNavigator,
     ReportParticipantsModalStackNavigator,
     ReportSettingsModalStackNavigator,
-    ReportDescriptionModalStackNavigator,
     RoomInviteModalStackNavigator,
     RoomMembersModalStackNavigator,
-    ChatFinderModalStackNavigator,
     SettingsModalStackNavigator,
     SignInModalStackNavigator,
     SplitDetailsModalStackNavigator,
     TaskModalStackNavigator,
     WalletStatementStackNavigator,
-    ProcessMoneyRequestHoldStackNavigator,
-    WorkspaceSettingsModalStackNavigator,
     SearchReportModalStackNavigator,
 };
