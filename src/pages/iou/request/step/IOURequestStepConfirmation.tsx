@@ -497,6 +497,8 @@ function IOURequestStepConfirmation({
             policy,
             policyTags,
             policyCategories,
+            transactionTaxAmount,
+            transactionTaxCode,
         ],
     );
 

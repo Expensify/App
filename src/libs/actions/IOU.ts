@@ -3726,8 +3726,8 @@ function createSplitsAndOnyxData(
     existingSplitChatReportID = '',
     billable = false,
     iouRequestType: IOURequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
-    taxCode: string,
-    taxAmount: number,
+    taxCode = '',
+    taxAmount = 0,
 ): SplitsAndOnyxData {
     const currentUserEmailForIOUSplit = PhoneNumber.addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -4158,7 +4158,6 @@ function splitBill({
     taxCode = '',
     taxAmount = 0,
 }: SplitBillActionsParams) {
-    console.debug(taxCode);
     const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData(
         participants,
