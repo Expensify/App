@@ -5,6 +5,7 @@ import type {MutableRefObject} from 'react';
 import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
+import AttachmentOfflineIndicator from '@components/AttachmentOfflineIndicator';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Hoverable from '@components/Hoverable';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -45,6 +46,7 @@ function BaseVideoPlayer({
     // user hovers the mouse over the carousel arrows, but this UI bug feels much less troublesome for now.
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     isVideoHovered = false,
+    isPreview,
 }: VideoPlayerProps) {
     const styles = useThemeStyles();
     const {
@@ -288,7 +290,7 @@ function BaseVideoPlayer({
                 accessible={false}
                 style={[styles.cursorDefault, style]}
             >
-                <Hoverable>
+                <Hoverable shouldFreezeCapture={isPopoverVisible}>
                     {(isHovered) => (
                         <View style={[styles.w100, styles.h100]}>
                             <PressableWithoutFeedback
@@ -352,9 +354,8 @@ function BaseVideoPlayer({
                                     </View>
                                 )}
                             </PressableWithoutFeedback>
-
-                            {(isLoading || isBuffering) && <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
-
+                            {((isLoading && !isOffline) || isBuffering) && <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
+                            {isLoading && !isBuffering && <AttachmentOfflineIndicator isPreview={isPreview} />}
                             {controlsStatus !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE && !isLoading && (isPopoverVisible || isHovered || canUseTouchScreen) && (
                                 <VideoPlayerControls
                                     duration={duration}
