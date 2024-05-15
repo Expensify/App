@@ -35,7 +35,7 @@ type ChatFinderPageOnyxProps = {
     isSearchingForReports: OnyxEntry<boolean>;
 };
 
-type ChatFinderPageProps = ChatFinderPageOnyxProps & StackScreenProps<RootStackParamList, typeof SCREENS.CHAT_FINDER_ROOT>;
+type ChatFinderPageProps = ChatFinderPageOnyxProps & StackScreenProps<RootStackParamList, typeof SCREENS.LEFT_MODAL.CHAT_FINDER>;
 
 type ChatFinderPageSectionItem = {
     data: OptionData[];
@@ -101,15 +101,15 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
             };
         }
 
-        const newOptions = OptionsListUtils.filterOptions(searchOptions, debouncedSearchValue);
-        const header = OptionsListUtils.getHeaderMessage(newOptions.recentReports.length > 0, false, debouncedSearchValue);
+        const newOptions = OptionsListUtils.filterOptions(searchOptions, debouncedSearchValue, betas);
+        const header = OptionsListUtils.getHeaderMessage(newOptions.recentReports.length + Number(!!newOptions.userToInvite) > 0, false, debouncedSearchValue);
         return {
             recentReports: newOptions.recentReports,
             personalDetails: newOptions.personalDetails,
-            userToInvite: null,
+            userToInvite: newOptions.userToInvite,
             headerMessage: header,
         };
-    }, [debouncedSearchValue, searchOptions]);
+    }, [debouncedSearchValue, searchOptions, betas]);
 
     const {recentReports, personalDetails: localPersonalDetails, userToInvite, headerMessage} = debouncedSearchValue.trim() !== '' ? filteredOptions : searchOptions;
 
@@ -184,7 +184,7 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
                 onSelectRow={selectReport}
                 showLoadingPlaceholder={!areOptionsInitialized || !isScreenTransitionEnd}
                 footerContent={!isDismissed && ChatFinderPageFooterInstance}
-                isLoadingNewOptions={isSearchingForReports ?? undefined}
+                isLoadingNewOptions={!!isSearchingForReports}
             />
         </ScreenWrapper>
     );

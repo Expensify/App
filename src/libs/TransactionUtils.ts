@@ -4,7 +4,7 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {RecentWaypoint, Report, TaxRate, TaxRates, TaxRatesWithDefault, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Policy, RecentWaypoint, Report, TaxRate, TaxRates, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {IOURequestType} from './actions/IOU';
@@ -96,6 +96,8 @@ function buildOptimisticTransaction(
     existingTransactionID: string | null = null,
     category = '',
     tag = '',
+    taxCode = '',
+    taxAmount = 0,
     billable = false,
     pendingFields: Partial<{[K in TransactionPendingFieldsKey]: ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION>}> | undefined = undefined,
     reimbursable = true,
@@ -126,6 +128,8 @@ function buildOptimisticTransaction(
         filename,
         category,
         tag,
+        taxCode,
+        taxAmount,
         billable,
         reimbursable,
     };
@@ -356,8 +360,8 @@ function getMerchant(transaction: OnyxEntry<Transaction>): string {
     return transaction?.modifiedMerchant ? transaction.modifiedMerchant : transaction?.merchant ?? '';
 }
 
-function getDistance(transaction: Transaction): number {
-    return transaction?.routes?.route0?.distance ?? 0;
+function getDistance(transaction: Transaction | null): number {
+    return transaction?.comment?.customUnit?.quantity ?? 0;
 }
 
 /**
@@ -651,29 +655,69 @@ function getRateID(transaction: OnyxEntry<Transaction>): string | undefined {
 }
 
 /**
- * Gets the default tax name
+ * Gets the tax code based on selected currency.
+ * Returns policy default tax rate if transaction is in policy default currency, otherwise returns foreign default tax rate
  */
-function getDefaultTaxName(taxRates: TaxRatesWithDefault, transaction?: Transaction) {
-    const defaultTaxKey = taxRates.defaultExternalID;
-    const defaultTaxName =
-        (defaultTaxKey && `${taxRates.taxes[defaultTaxKey]?.name} (${taxRates.taxes[defaultTaxKey]?.value}) ${CONST.DOT_SEPARATOR} ${Localize.translateLocal('common.default')}`) || '';
-    return transaction?.taxRate?.text ?? defaultTaxName;
+function getDefaultTaxCode(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, currency?: string | undefined) {
+    const defaultExternalID = policy?.taxRates?.defaultExternalID;
+    const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
+    return policy?.outputCurrency === (currency ?? getCurrency(transaction)) ? defaultExternalID : foreignTaxDefault;
+}
+
+/**
+ * Transforms tax rates to a new object format - to add codes and new name with concatenated name and value.
+ *
+ * @param  policy - The policy which the user has access to and which the report is tied to.
+ * @returns The transformed tax rates object.g
+ */
+function transformedTaxRates(policy: OnyxEntry<Policy> | undefined, transaction?: OnyxEntry<Transaction>): Record<string, TaxRate> {
+    const taxRates = policy?.taxRates;
+    const defaultExternalID = taxRates?.defaultExternalID;
+
+    const defaultTaxCode = () => {
+        if (!transaction) {
+            return defaultExternalID;
+        }
+
+        return policy && getDefaultTaxCode(policy, transaction);
+    };
+
+    const getModifiedName = (data: TaxRate, code: string) =>
+        `${data.name} (${data.value})${defaultTaxCode() === code ? ` ${CONST.DOT_SEPARATOR} ${Localize.translateLocal('common.default')}` : ''}`;
+    const taxes = Object.fromEntries(Object.entries(taxRates?.taxes ?? {}).map(([code, data]) => [code, {...data, code, modifiedName: getModifiedName(data, code), name: data.name}]));
+    return taxes;
+}
+
+/**
+ * Gets the tax value of a selected tax
+ */
+function getTaxValue(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, taxCode: string) {
+    return Object.values(transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === taxCode)?.value;
+}
+
+/**
+ * Gets the tax name for Workspace Taxes Settings
+ */
+function getWorkspaceTaxesSettingsName(policy: OnyxEntry<Policy>, taxCode: string) {
+    return Object.values(transformedTaxRates(policy)).find((taxRate) => taxRate.code === taxCode)?.modifiedName;
 }
 
 /**
  * Gets the tax name
  */
-function getTaxName(taxes: TaxRates, transactionTaxCode: string) {
-    const taxName = taxes[transactionTaxCode]?.name ?? '';
-    const taxValue = taxes[transactionTaxCode]?.value ?? '';
-    return transactionTaxCode && taxName && taxValue ? `${taxName} (${taxValue})` : '';
+function getTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>) {
+    const defaultTaxCode = getDefaultTaxCode(policy, transaction);
+    return Object.values(transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === (transaction?.taxCode ?? defaultTaxCode))?.modifiedName;
 }
 
 export {
     buildOptimisticTransaction,
     calculateTaxAmount,
+    getWorkspaceTaxesSettingsName,
+    getDefaultTaxCode,
+    transformedTaxRates,
+    getTaxValue,
     getTaxName,
-    getDefaultTaxName,
     getEnabledTaxRateCount,
     getUpdatedTransaction,
     getDescription,

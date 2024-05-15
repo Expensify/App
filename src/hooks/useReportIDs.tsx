@@ -13,7 +13,7 @@ import useCurrentReportID from './useCurrentReportID';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 
 type ChatReportSelector = OnyxTypes.Report & {isUnreadWithMention: boolean};
-type PolicySelector = Pick<OnyxTypes.Policy, 'type' | 'name' | 'avatar' | 'employeeList'>;
+type PolicySelector = Pick<OnyxTypes.Policy, 'type' | 'name' | 'avatarURL' | 'employeeList'>;
 type ReportActionsSelector = Array<Pick<OnyxTypes.ReportAction, 'reportActionID' | 'actionName' | 'errors' | 'message' | 'originalMessage'>>;
 
 type ReportIDsContextProviderProps = {
@@ -38,7 +38,7 @@ const ReportIDsContext = createContext<ReportIDsContextValue>({
 const chatReportSelector = (report: OnyxEntry<OnyxTypes.Report>): ChatReportSelector =>
     (report && {
         reportID: report.reportID,
-        participantAccountIDs: report.participantAccountIDs,
+        participants: report.participants,
         isPinned: report.isPinned,
         isHidden: report.isHidden,
         notificationPreference: report.notificationPreference,
@@ -97,7 +97,7 @@ const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>): PolicySelector =>
     (policy && {
         type: policy.type,
         name: policy.name,
-        avatar: policy.avatar,
+        avatarURL: policy.avatarURL,
         employeeList: policy.employeeList,
     }) as PolicySelector;
 
