@@ -16,7 +16,7 @@ import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import PromotedActionsBar, {usePromotedActions} from '@components/PromotedActionsBar';
+import PromotedActionsBar, {PromotedActions} from '@components/PromotedActionsBar';
 import RoomHeaderAvatars from '@components/RoomHeaderAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -103,8 +103,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const isPrivateNotesFetchTriggered = report?.isLoadingPrivateNotes !== undefined;
 
     const isSelfDM = useMemo(() => ReportUtils.isSelfDM(report), [report]);
-
-    const PromotedActions = usePromotedActions({report});
 
     useEffect(() => {
         // Do not fetch private notes if isLoadingPrivateNotes is already defined, or if the network is offline, or if the report is a self DM.
@@ -337,7 +335,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     {isGroupChat && (
                         <PromotedActionsBar
                             report={report}
-                            promotedActions={[PromotedActions.pin]}
+                            promotedActions={[PromotedActions.pin(report)]}
                             shouldShowLeaveButton
                         />
                     )}

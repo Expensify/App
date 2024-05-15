@@ -1,12 +1,12 @@
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as HeaderUtils from '@libs/HeaderUtils';
-import * as Report from '@userActions/Report';
-import type {Report as OnyxReportType} from '@src/types/onyx';
+import * as ReportActions from '@userActions/Report';
+import type OnyxReport from '@src/types/onyx/Report';
 import Button from './Button';
 import ConfirmModal from './ConfirmModal';
 import type {ThreeDotsMenuItem} from './HeaderWithBackButton/types';
@@ -16,56 +16,57 @@ type PromotedAction = {
     key: string;
 } & ThreeDotsMenuItem;
 
-type PromotedActionsParams = {
-    report: OnyxReportType;
+type ReportPromotedAction = (report: OnyxReport) => PromotedAction;
+
+type PromotedActionsType = {
+    pin: ReportPromotedAction;
+    // message: (accountID: number) => PromotedAction;
+    // join: ReportPromotedAction;
+    // share: ReportPromotedAction;
+    // hold: () => PromotedAction;
 };
 
-function usePromotedActions({report}: PromotedActionsParams): Record<string, PromotedAction> {
-    // const {translate} = useLocalize();
-    // const join = Session.checkIfActionIsAllowed(() => Report.joinRoom(report));
-    // const onShareButtonPress = useCallback(() => Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.getRoute(report?.reportID ?? '')), [report?.reportID]);
-
-    return useMemo(
-        () => ({
-            pin: {
-                key: 'pin',
-                ...HeaderUtils.getPinMenuItem(report),
-            },
-            // join: {
-            //     key: 'join',
-            //     icon: Expensicons.CommentBubbles,
-            //     text: translate('common.join'),
-            //     onSelected: join,
-            // },
-            // TODO: Uncomment and test it when needed
-            // share: {
-            //     key: 'share',
-            //     icon: Expensicons.QrCode,
-            //     text: translate('common.share'),
-            //     onSelected: onShareButtonPress,
-            // },
-            // hold: {
-            //     key: 'hold',
-            //     icon: Expensicons.Stopwatch,
-            //     text: translate('iou.hold'),
-            //     onSelected: () => {
-            //         // TODO: Implement this
-            //     },
-            // },
-        }),
-        [report],
-    );
-}
+const PromotedActions = {
+    pin: (report) => ({
+        key: 'pin',
+        ...HeaderUtils.getPinMenuItem(report),
+    }),
+    // TODO: Uncomment the following lines when the corresponding features are implemented
+    // message: (accountID) => ({
+    //     key: 'message',
+    //     icon: Expensicons.CommentBubbles,
+    //     text: Localize.translateLocal('common.message'),
+    //     onSelected: () => ReportActions.navigateToAndOpenReportWithAccountIDs([accountID]),
+    // }),
+    // join: (report) => ({
+    //     key: 'join',
+    //     icon: Expensicons.CommentBubbles,
+    //     text: Localize.translateLocal('common.join'),
+    //     onSelected: () => Session.checkIfActionIsAllowed(() => Report.joinRoom(report)),
+    // }),
+    // share: (report) => ({
+    //     key: 'share',
+    //     icon: Expensicons.QrCode,
+    //     text: Localize.translateLocal('common.share'),
+    //     onSelected: () => Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.getRoute(report?.reportID ?? '')),
+    // }),
+    // hold: () => ({
+    //     key: 'hold',
+    //     icon: Expensicons.Stopwatch,
+    //     text: Localize.translateLocal('iou.hold'),
+    //     onSelected: () => {},
+    // }),
+} satisfies PromotedActionsType;
 
 type PromotedActionsBarProps = {
     /** The report of actions */
-    report?: OnyxReportType;
+    report?: OnyxReport;
 
     /** The list of actions to show */
     promotedActions: PromotedAction[];
 
     /** The style of the container */
-    containerStyle: StyleProp<ViewStyle>;
+    containerStyle?: StyleProp<ViewStyle>;
 
     /**
      * Whether to show the `Leave` button.
@@ -93,7 +94,7 @@ function PromotedActionsBar({report, promotedActions, containerStyle, shouldShow
                         isVisible={isLastMemberLeavingGroupModalVisible}
                         onConfirm={() => {
                             setIsLastMemberLeavingGroupModalVisible(false);
-                            Report.leaveGroupChat(report.reportID);
+                            ReportActions.leaveGroupChat(report.reportID);
                         }}
                         onCancel={() => setIsLastMemberLeavingGroupModalVisible(false)}
                         prompt={translate('groupChat.lastMemberWarning')}
@@ -107,7 +108,7 @@ function PromotedActionsBar({report, promotedActions, containerStyle, shouldShow
                                 return;
                             }
 
-                            Report.leaveGroupChat(report.reportID);
+                            ReportActions.leaveGroupChat(report.reportID);
                         }}
                         icon={Expensicons.Exit}
                         style={styles.flex1}
@@ -138,5 +139,5 @@ PromotedActionsBar.displayName = 'PromotedActionsBar';
 
 export default PromotedActionsBar;
 
-export {usePromotedActions};
+export {PromotedActions};
 export type {PromotedActionsBarProps, PromotedAction};
