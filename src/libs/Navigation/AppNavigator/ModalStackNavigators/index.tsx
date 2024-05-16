@@ -375,6 +375,7 @@ const TransactionDuplicateStackNavigator = createModalStackNavigator<Transaction
     [SCREENS.TRANSACTION_DUPLICATE.TAX_CODE]: () => require('../../../../pages/TransactionDuplicate/ReviewTaxCode').default as React.ComponentType,
     [SCREENS.TRANSACTION_DUPLICATE.BILLABLE]: () => require('../../../../pages/TransactionDuplicate/ReviewBillable').default as React.ComponentType,
     [SCREENS.TRANSACTION_DUPLICATE.REIMBURSABLE]: () => require('../../../../pages/TransactionDuplicate/ReviewReimbursable').default as React.ComponentType,
+    [SCREENS.TRANSACTION_DUPLICATE.CONFIRM]: () => require('../../../../pages/TransactionDuplicate/Confirm').default as React.ComponentType,
 });
 
 const SearchReportModalStackNavigator = createModalStackNavigator<SearchReportParamList>({
