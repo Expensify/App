@@ -60,8 +60,8 @@ import type {Comment, Receipt, ReceiptSource, SplitShares, TransactionChanges, W
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CachedPDFPaths from './CachedPDFPaths';
-import * as Policy from './Policy/Policy';
 import * as Category from './Policy/Category';
+import * as Policy from './Policy/Policy';
 import * as Report from './Report';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
