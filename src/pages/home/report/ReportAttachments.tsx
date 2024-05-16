@@ -38,6 +38,7 @@ function ReportAttachments({route}: ReportAttachmentsProps) {
                 ComposerFocusManager.setReadyToFocus();
             }}
             onCarouselAttachmentChange={onCarouselAttachmentChange}
+            shouldShowNotFoundPage={!report?.reportID}
         />
     );
 }
