@@ -55,11 +55,13 @@ function SuggestionEmoji(
         updateComment,
         isAutoSuggestionPickerLarge,
         resetKeyboardInput,
-        measureParentContainer,
+        measureParentContainerAndReportCursor,
         isComposerFocused,
     }: SuggestionEmojiProps,
     ref: ForwardedRef<SuggestionsRef>,
 ) {
+    const prevValueRef = useRef(value);
+    const prevSelectionEndRef = useRef(selection.end);
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
 
     const isEmojiSuggestionsMenuVisible = suggestionValues.suggestedEmojis.length > 0 && suggestionValues.shouldShowSuggestionMenu;
@@ -185,17 +187,6 @@ function SuggestionEmoji(
         calculateEmojiSuggestion(selection.end);
     }, [selection, calculateEmojiSuggestion, isComposerFocused]);
 
-    const onSelectionChange = useCallback(
-        (e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
-            /**
-             * we pass here e.nativeEvent.selection.end directly to calculateEmojiSuggestion
-             * because in other case calculateEmojiSuggestion will have an old calculation value
-             * of suggestion instead of current one
-             */
-            calculateEmojiSuggestion(e.nativeEvent.selection.end);
-        },
-        [calculateEmojiSuggestion],
-    );
 
     const setShouldBlockSuggestionCalc = useCallback(
         (shouldBlockSuggestionCalc: boolean) => {
@@ -210,13 +201,12 @@ function SuggestionEmoji(
         ref,
         () => ({
             resetSuggestions,
-            onSelectionChange,
             triggerHotkeyActions,
             setShouldBlockSuggestionCalc,
             updateShouldShowSuggestionMenuToFalse,
             getSuggestions,
         }),
-        [onSelectionChange, resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions],
+        [resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions],
     );
 
     if (!isEmojiSuggestionsMenuVisible) {
@@ -231,7 +221,7 @@ function SuggestionEmoji(
             onSelect={insertSelectedEmoji}
             preferredSkinToneIndex={preferredSkinTone}
             isEmojiPickerLarge={!!isAutoSuggestionPickerLarge}
-            measureParentContainer={measureParentContainer}
+            measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
         />
     );
 }
