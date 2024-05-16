@@ -4732,7 +4732,7 @@ function createDistanceRequest(
     policy?: OnyxEntry<OnyxTypes.Policy>,
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
-    customUnitRateID?: string,
+    customUnitRateID = '',
     currentUserLogin = '',
     currentUserAccountID = -1,
     splitShares: SplitShares = {},
@@ -4770,27 +4770,21 @@ function createDistanceRequest(
         onyxData = splitOnyxData;
 
         // Splits don't use the IOU report param. The split transaction isn't linked to a report shown in the UI, it's linked to a special default reportID of -2.
-        // Therefore, anything related to the IOU report is irrelevant.
+        // Therefore, any params related to the IOU report are irrelevant and omitted below.
         parameters = {
-            comment,
-            iouReportID: '',
-            chatReportID: splitData.chatReportID,
             transactionID: splitData.transactionID,
-            reportActionID: splitData.reportActionID,
+            chatReportID: splitData.chatReportID,
             createdChatReportActionID: splitData.createdReportActionID ?? '',
-            createdIOUReportActionID: '',
-            reportPreviewReportActionID: '', // No report preview needed, since the split transaction report is not shown in the UI
+            reportActionID: splitData.reportActionID,
             waypoints: JSON.stringify(validWaypoints),
+            customUnitRateID,
+            comment,
             created: currentCreated,
             category,
             tag,
             taxCode,
             taxAmount,
             billable,
-            transactionThreadReportID: '',
-            createdReportActionIDForThread: '',
-            customUnitRateID,
-            payerEmail: '',
             splits: JSON.stringify(splits),
             chatType: splitData.chatType,
         };

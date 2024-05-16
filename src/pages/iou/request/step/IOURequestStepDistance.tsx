@@ -37,6 +37,7 @@ import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 
 type IOURequestStepDistanceOnyxProps = {
     /** backup version of the original transaction  */
@@ -278,7 +279,7 @@ function IOURequestStepDistance({
 
                 IOU.createDistanceRequest(
                     report,
-                    participants[0],
+                    participants,
                     '',
                     transaction?.created ?? '',
                     '',
@@ -290,6 +291,10 @@ function IOURequestStepDistance({
                     translate('iou.fieldPending'),
                     false,
                     TransactionUtils.getValidWaypoints(waypoints, true),
+                    undefined,
+                    undefined,
+                    undefined,
+                    DistanceRequestUtils.getCustomUnitRateID(report.reportID),
                 );
                 return;
             }
