@@ -4,7 +4,6 @@ import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
 import type {
     AddPersonalBankAccountNavigatorParamList,
-    ChatFinderNavigatorParamList,
     DetailsNavigatorParamList,
     EditRequestNavigatorParamList,
     EnablePaymentsNavigatorParamList,
@@ -30,13 +29,11 @@ import type {
     TeachersUniteNavigatorParamList,
     TravelNavigatorParamList,
     WalletStatementNavigatorParamList,
-    WorkspaceSwitcherNavigatorParamList,
 } from '@navigation/types';
 import type {ThemeStyles} from '@styles/index';
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
 import useModalScreenOptions from './useModalScreenOptions';
-import WorkspaceSettingsModalStackNavigator from './WorkspaceSettingsModalStackNavigator';
 
 type Screens = Partial<Record<Screen, () => React.ComponentType>>;
 
@@ -152,10 +149,6 @@ const RoomInviteModalStackNavigator = createModalStackNavigator<RoomInviteNaviga
     [SCREENS.ROOM_INVITE_ROOT]: () => require('../../../../pages/RoomInvitePage').default as React.ComponentType,
 });
 
-const ChatFinderModalStackNavigator = createModalStackNavigator<ChatFinderNavigatorParamList>({
-    [SCREENS.CHAT_FINDER_ROOT]: () => require('../../../../pages/ChatFinderPage').default as React.ComponentType,
-});
-
 const NewChatModalStackNavigator = createModalStackNavigator<NewChatNavigatorParamList>({
     [SCREENS.NEW_CHAT.ROOT]: () => require('../../../../pages/NewChatSelectorPage').default as React.ComponentType,
     [SCREENS.NEW_CHAT.NEW_CHAT_CONFIRM]: () => require('../../../../pages/NewChatConfirmPage').default as React.ComponentType,
@@ -176,10 +169,6 @@ const NewTeachersUniteNavigator = createModalStackNavigator<TeachersUniteNavigat
     [SCREENS.I_KNOW_A_TEACHER]: () => require('../../../../pages/TeachersUnite/KnowATeacherPage').default as React.ComponentType,
     [SCREENS.INTRO_SCHOOL_PRINCIPAL]: () => require('../../../../pages/TeachersUnite/ImTeacherPage').default as React.ComponentType,
     [SCREENS.I_AM_A_TEACHER]: () => require('../../../../pages/TeachersUnite/ImTeacherPage').default as React.ComponentType,
-});
-
-const WorkspaceSwitcherModalStackNavigator = createModalStackNavigator<WorkspaceSwitcherNavigatorParamList>({
-    [SCREENS.WORKSPACE_SWITCHER.ROOT]: () => require('../../../../pages/WorkspaceSwitcherPage').default as React.ComponentType,
 });
 
 const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorParamList>({
@@ -266,8 +255,6 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require('../../../../pages/workspace/accounting/qbo/export/QuickbooksExportInvoiceAccountSelectPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT]: () =>
         require('../../../../pages/workspace/accounting/qbo/export/QuickbooksOutOfPocketExpenseAccountSelectPage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_PAYABLE_SELECT]: () =>
-        require('../../../../pages/workspace/accounting/qbo/export/QuickbooksCompanyCardExpenseAccountPayableSelectPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES]: () =>
         require('../../../../pages/workspace/accounting/qbo/export/QuickbooksOutOfPocketExpenseConfigurationPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT]: () =>
@@ -389,24 +376,21 @@ export {
     NewTaskModalStackNavigator,
     NewTeachersUniteNavigator,
     PrivateNotesModalStackNavigator,
+    ProcessMoneyRequestHoldStackNavigator,
     ProfileModalStackNavigator,
     ReferralModalStackNavigator,
     TravelModalStackNavigator,
-    WorkspaceSwitcherModalStackNavigator,
     ReimbursementAccountModalStackNavigator,
+    ReportDescriptionModalStackNavigator,
     ReportDetailsModalStackNavigator,
     ReportParticipantsModalStackNavigator,
     ReportSettingsModalStackNavigator,
-    ReportDescriptionModalStackNavigator,
     RoomInviteModalStackNavigator,
     RoomMembersModalStackNavigator,
-    ChatFinderModalStackNavigator,
     SettingsModalStackNavigator,
     SignInModalStackNavigator,
     SplitDetailsModalStackNavigator,
     TaskModalStackNavigator,
     WalletStatementStackNavigator,
-    ProcessMoneyRequestHoldStackNavigator,
-    WorkspaceSettingsModalStackNavigator,
     SearchReportModalStackNavigator,
 };
