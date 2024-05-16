@@ -1218,7 +1218,7 @@ function buildOnyxDataForTrackExpense(
             failureData.push({
                 onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
-                value: {[actionableTrackExpenseWhisper.reportActionID]: null},
+                value: {[actionableTrackExpenseWhisper.reportActionID]: {} as ReportAction},
             });
         }
     }
