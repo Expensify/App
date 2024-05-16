@@ -37,7 +37,7 @@ function getDisplayNameOrDefault(passedPersonalDetails?: Partial<PersonalDetails
     let displayName = passedPersonalDetails?.displayName ?? '';
 
     // If the displayName starts with the merged account prefix, remove it.
-    if (displayName.startsWith(CONST.MERGED_ACCOUNT_PREFIX)) {
+    if (new RegExp(CONST.REGEX.MERGED_ACCOUNT_PREFIX).test(displayName)) {
         // Remove the merged account prefix from the displayName.
         displayName = displayName.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     }
