@@ -209,6 +209,7 @@ export type {default as SetPolicyCustomTaxNameParams} from './SetPolicyCustomTax
 export type {default as SetPolicyForeignCurrencyDefaultParams} from './SetPolicyForeignCurrencyDefaultParams';
 export type {default as SetPolicyCurrencyDefaultParams} from './SetPolicyCurrencyDefaultParams';
 export type {default as UpdatePolicyConnectionConfigParams} from './UpdatePolicyConnectionConfigParams';
+export type {default as UpdateManyPolicyConnectionConfigurationsParams} from './UpdateManyPolicyConnectionConfigurationsParams';
 export type {default as RemovePolicyConnectionParams} from './RemovePolicyConnectionParams';
 export type {default as RenamePolicyTaxParams} from './RenamePolicyTaxParams';
 export type {default as CompleteGuidedSetupParams} from './CompleteGuidedSetupParams';
@@ -220,3 +221,4 @@ export type {default as LeavePolicyParams} from './LeavePolicyParams';
 export type {default as OpenPolicyAccountingPageParams} from './OpenPolicyAccountingPageParams';
 export type {default as SearchParams} from './Search';
 export type {default as SendInvoiceParams} from './SendInvoiceParams';
+export type {default as MarkAsCashParams} from './MarkAsCashParams';

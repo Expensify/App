@@ -261,7 +261,9 @@ export default {
         your: 'tu',
         conciergeHelp: 'Por favor, contacta con Concierge para obtener ayuda.',
         youAppearToBeOffline: 'Parece que estás desconectado.',
+        weMightHaveProblem: 'Peude que te tengamos un problema. Echa un vistazo a ',
         thisFeatureRequiresInternet: 'Esta función requiere una conexión a Internet activa para ser utilizada.',
+        attachementWillBeAvailableOnceBackOnline: 'El archivo adjunto estará disponible cuando vuelvas a estar en línea.',
         areYouSure: '¿Estás seguro?',
         verify: 'Verifique',
         yesContinue: 'Sí, continuar',
@@ -322,6 +324,7 @@ export default {
         type: 'Tipo',
         action: 'Acción',
         expenses: 'Gastos',
+        tax: 'Impuesto',
     },
     connectionComplete: {
         title: 'Conexión Completa',
@@ -377,7 +380,7 @@ export default {
         youCanAlso: 'También puedes',
         openLinkInBrowser: 'abrir este enlace en tu navegador',
         loggedInAs: ({email}: LoggedInAsParams) =>
-            `Has iniciado sesión como ${email}. Haga clic en "Abrir enlace" en el aviso para iniciar sesión en la aplicación de escritorio con esta cuenta.`,
+            `Has iniciado sesión como ${email}. Haz clic en "Abrir enlace" en el aviso para iniciar sesión en la aplicación de escritorio con esta cuenta.`,
         doNotSeePrompt: '¿No ves el aviso?',
         tryAgain: 'Inténtalo de nuevo',
         or: ', o',
@@ -401,7 +404,7 @@ export default {
         splitAmounts: 'Importes a dividir',
         whatsItFor: '¿Para qué es?',
     },
-    optionsSelector: {
+    selectionList: {
         nameEmailOrPhoneNumber: 'Nombre, email o número de teléfono',
         findMember: 'Encuentra un miembro',
     },
@@ -414,7 +417,6 @@ export default {
         getStarted: 'Comience a continuación.',
         anotherLoginPageIsOpen: 'Otra página de inicio de sesión está abierta.',
         anotherLoginPageIsOpenExplanation: 'Ha abierto la página de inicio de sesión en una pestaña separada, inicie sesión desde esa pestaña específica.',
-        welcomeBack: '¡Bienvenido de nuevo!',
         welcome: '¡Bienvenido!',
         phrase2: 'El dinero habla. Y ahora que chat y pagos están en un mismo lugar, es también fácil.',
         phrase3: 'Tus pagos llegan tan rápido como tus mensajes.',
@@ -643,17 +645,22 @@ export default {
         canceled: 'Canceló',
         posted: 'Contabilizado',
         deleteReceipt: 'Eliminar recibo',
+        pendingMatchWithCreditCard: 'Recibo pendiente de adjuntar con la tarjeta de crédito.',
+        pendingMatchWithCreditCardDescription: 'Recibo pendiente de adjuntar con tarjeta de crédito. Marca como efectivo para ignorar y solicitar pago.',
+        routePending: 'Ruta pendiente...',
         receiptIssuesFound: (count: number) => `${count === 1 ? 'Problema encontrado' : 'Problemas encontrados'}`,
         fieldPending: 'Pendiente...',
+        receiptScanning: 'Escaneando recibo...',
+        receiptScanInProgress: 'Escaneado de recibo en proceso.',
+        receiptScanInProgressDescription: 'Escaneado de recibo en proceso. Vuelva a comprobar más tarde o introduzca los detalles ahora.',
         defaultRate: 'Tasa predeterminada',
-        receiptScanning: 'Escaneo en curso…',
         receiptMissingDetails: 'Recibo con campos vacíos',
         missingAmount: 'Falta importe',
         missingMerchant: 'Falta comerciante',
         receiptStatusTitle: 'Escaneando…',
         receiptStatusText: 'Solo tú puedes ver este recibo cuando se está escaneando. Vuelve más tarde o introduce los detalles ahora.',
         receiptScanningFailed: 'El escaneo de recibo ha fallado. Introduce los detalles manualmente.',
-        transactionPendingText: 'La transacción tarda unos días en contabilizarse desde la fecha en que se utilizó la tarjeta.',
+        transactionPendingDescription: 'Transacción pendiente. La transacción tarda unos días en contabilizarse desde la fecha en que se utilizó la tarjeta.',
         expenseCount: ({count, scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) =>
             `${count} ${Str.pluralize('gasto', 'gastos', count)}${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}${
                 pendingReceipts > 0 ? `, ${pendingReceipts} pendiente` : ''
@@ -717,6 +724,7 @@ export default {
             other: 'Error inesperado, por favor inténtalo más tarde.',
             genericCreateFailureMessage: 'Error inesperado al enviar este gasto. Por favor, inténtalo más tarde.',
             genericCreateInvoiceFailureMessage: 'Error inesperado al enviar la factura, inténtalo de nuevo más tarde.',
+            receiptDeleteFailureError: 'Error inesperado al borrar este recibo. Vuelve a intentarlo más tarde.',
             // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             receiptFailureMessage: 'El recibo no se subió. ',
             // eslint-disable-next-line rulesdir/use-periods-for-error-messages
@@ -740,10 +748,10 @@ export default {
         reason: 'Razón',
         holdReasonRequired: 'Se requiere una razón para bloquear.',
         expenseOnHold: 'Este gasto está bloqueado. Revisa los comentarios para saber como proceder.',
-        confirmApprove: 'Confirma que quieres aprobar',
-        confirmApprovalAmount: 'Aprobar el total o solo la parte no bloqueada.',
-        confirmPay: 'Confirma que quieres pagar',
-        confirmPayAmount: 'Pagar todos los gastos por cuenta propia o solo el monto no bloqueado.',
+        confirmApprove: 'Confirmar importe a aprobar',
+        confirmApprovalAmount: 'Aprueba lo que no está bloqueado, o aprueba todo el informe.',
+        confirmPay: 'Confirmar importe de pago',
+        confirmPayAmount: 'Paga lo que no está bloqueado, o paga todos los gastos por cuenta propia.',
         payOnly: 'Solo pagar',
         approveOnly: 'Solo aprobar',
         hold: 'Bloqueada',
@@ -757,6 +765,7 @@ export default {
         set: 'estableció',
         changed: 'cambió',
         removed: 'eliminó',
+        transactionPending: 'Transacción pendiente.',
         chooseARate: ({unit}: ReimbursementRateParams) => `Seleccione una tasa de reembolso del espacio de trabajo por ${unit}`,
     },
     notificationPreferencesPage: {
@@ -1019,7 +1028,7 @@ export default {
     privateNotes: {
         title: 'Notas privadas',
         personalNoteMessage: 'Guarda notas sobre este chat aquí. Usted es la única persona que puede añadir, editar o ver estas notas.',
-        sharedNoteMessage: 'Guarda notas sobre este chat aquí. Los empleados de Expensify y otros usuarios del dominio team.expensify.com pueden ver estas notas.',
+        sharedNoteMessage: 'Guarda notas sobre este chat aquí. Los empleados de Expensify y otros miembros del dominio team.expensify.com pueden ver estas notas.',
         composerLabel: 'Notas',
         myNote: 'Mi nota',
         error: {
@@ -1106,7 +1115,7 @@ export default {
         reportFraud: 'Reportar fraude con la tarjeta virtual',
         reviewTransaction: 'Revisar transacción',
         suspiciousBannerTitle: 'Transacción sospechosa',
-        suspiciousBannerDescription: 'Hemos detectado una transacción sospechosa en la tarjeta. Haga click abajo para revisarla.',
+        suspiciousBannerDescription: 'Hemos detectado una transacción sospechosa en la tarjeta. Haz click abajo para revisarla.',
         cardLocked: 'La tarjeta está temporalmente bloqueada mientras nuestro equipo revisa la cuenta de tu empresa.',
         cardDetails: {
             cardNumber: 'Número de tarjeta virtual',
@@ -1514,9 +1523,9 @@ export default {
         chooseAnAccount: 'Elige una cuenta',
         connectOnlineWithPlaid: 'Conéctate a Plaid online',
         connectManually: 'Conectar manualmente',
-        desktopConnection: 'Para conectarse con Chase, Wells Fargo, Capital One o Bank of America, haga clic aquí para completar este proceso en un navegador.',
+        desktopConnection: 'Para conectarse con Chase, Wells Fargo, Capital One o Bank of America, haz clic aquí para completar este proceso en un navegador.',
         yourDataIsSecure: 'Tus datos están seguros',
-        toGetStarted: 'Añade una cuenta bancaria y emite tarjetas corporativas, reembolsa gastos y cobra y paga facturas, todo desde un mismo lugar.',
+        toGetStarted: 'Añade una cuenta bancaria y reembolsa gastos, emite tarjetas corporativas, y cobra y paga facturas todo desde un mismo lugar.',
         plaidBodyCopy: 'Ofrezca a sus empleados una forma más sencilla de pagar - y recuperar - los gastos de la empresa.',
         checkHelpLine: 'Tu número de ruta y número de cuenta se pueden encontrar en un cheque de la cuenta bancaria.',
         validateAccountError: {
@@ -1623,6 +1632,7 @@ export default {
     },
     termsStep: {
         headerTitle: 'Condiciones y tarifas',
+        headerTitleRefactor: 'Tarifas y condiciones',
         haveReadAndAgree: 'He leído y acepto recibir ',
         electronicDisclosures: 'divulgaciones electrónicas',
         agreeToThe: 'Estoy de acuerdo con el ',
@@ -1633,6 +1643,9 @@ export default {
         noOverdraftOrCredit: 'Sin función de sobregiro/crédito',
         electronicFundsWithdrawal: 'Retiro electrónico de fondos',
         standard: 'Estándar',
+        takeALookAtSomeFees: 'Echa un vistazo a algunas tarifas.',
+        checkPlease: 'Por favor, revisa.',
+        agreeToTerms: 'Debes aceptar los términos y condiciones para continuar.',
         shortTermsForm: {
             expensifyPaymentsAccount: ({walletProgram}: WalletProgramParams) => `La billetera Expensify es emitida por ${walletProgram}.`,
             perPurchase: 'Por compra',
@@ -1915,6 +1928,7 @@ export default {
             plan: 'Plan',
             profile: 'Perfil',
             bankAccount: 'Cuenta bancaria',
+            displayedAs: 'Mostrado como',
             connectBankAccount: 'Conectar cuenta bancaria',
             testTransactions: 'Transacciones de prueba',
             issueAndManageCards: 'Emitir y gestionar tarjetas',
@@ -1942,7 +1956,6 @@ export default {
             classes: 'Clases',
             locations: 'Lugares',
             customers: 'Clientes/Proyectos',
-            displayedAs: 'Mostrado como',
             accountsDescription: 'Cuando estás conectado a Quickbooks Online, los planes de cuentas siempre se importan a Expensify como categorías.',
             accountsSwitchTitle: 'Elige abajo si las categorías importadas serán activadas o desactivadas por defecto.',
             accountsSwitchDescription: 'Las categorías activas estarán disponibles para ser escogidas cuando se crea un gasto.',
@@ -1950,6 +1963,8 @@ export default {
             customersDescription: 'Elige si queres importar clientes/proyectos y donde los clientes/proyectos son mostrados.',
             locationsDescription: 'Elige si quieres importar lugares y donde los lugares son mostrados.',
             taxesDescription: 'Elige si quires importar las tasas de impuestos y  los impuestos por defecto de tu integración de contaduría.',
+            taxesJournalEntrySwitchNote:
+                'Nota: QuickBooks Online no admite un campo para impuestos al exportar entradas en el libro diario. Cambia tu preferencia de exportación a Factura de Proveedor o Cheque para importar impuestos.',
             locationsAdditionalDescription:
                 'Los lugares son importados como Etiquegas. Esto limita a exportar los informes de gastos como Factura del Proveedor o Cheques a Quicbooks Online. Para desbloquear estas opciones de exportación desactiva la importación de Lugares o cambia al Plan Control para exportar Lugares como Campos de Informes.',
             export: 'Exportar',
@@ -2058,6 +2073,9 @@ export default {
             organization: 'Organización Xero',
             organizationDescription: 'Seleccione la organización en Xero desde la que está importando los datos.',
             importDescription: 'Elija qué configuraciones de codificación se importan de Xero a Expensify.',
+            accountsDescription: 'Cuando estás conectado a Xero, los planes de cuentas siempre se importan a Expensify como categorías.',
+            accountsSwitchTitle: 'Elige abajo si las categorías importadas serán activadas o desactivadas por defecto.',
+            accountsSwitchDescription: 'Las categorías activas estarán disponibles para ser escogidas cuando se crea un gasto.',
             trackingCategories: 'Categorías de seguimiento',
             trackingCategoriesDescription: 'Elige si deseas importar categorías de seguimiento y ver dónde se muestran.',
             mapXeroCostCentersTo: 'Asignar centros de coste de Xero a',
@@ -2081,6 +2099,7 @@ export default {
                 'Cada gasto exportado se contabiliza como una transacción bancaria en la cuenta bancaria de Xero que selecciones a continuación. Las fechas de las transacciones coincidirán con las fechas de el extracto bancario.',
             bankTransactions: 'Transacciones bancarias',
             xeroBankAccount: 'Cuenta bancaria de Xero',
+            xeroBankAccountDescription: 'Selecciona la cuenta bancaria en la que aparecerán los gastos como transacciones bancarias.',
             preferredExporter: 'Exportador preferido',
             exportExpenses: 'Exportar gastos por cuenta propia como',
             exportExpensesDescription: 'Los informes se exportarán como una factura de compra utilizando la fecha y el estado que seleccione a continuación',
@@ -2100,7 +2119,37 @@ export default {
                 xeroInvoiceCollectionAccount: 'Cuenta de cobro de las facturas Xero',
                 invoiceAccountSelectorDescription:
                     'Como ha activado la exportación de facturas de Expensify a Xero, esta es la cuenta en la que aparecerá la factura una vez marcada como pagada.',
+                xeroBillPaymentAccountDescription:
+                    'Como has activado la sincronización de los informes reembolsados, tendrás que seleccionar la cuenta bancaria de la que se producen estos reembolsos y crearemos el pago en Xero.',
             },
+            exportDate: {
+                label: 'Fecha de exportación',
+                description: 'Usa esta fecha al exportar informe a Xero.',
+                values: {
+                    [CONST.XERO_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Fecha del último gasto',
+                        description: 'Fecha del gasto mas reciente en el informe',
+                    },
+                    [CONST.XERO_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'Fecha de exportación',
+                        description: 'Fecha de exportación del informe a Xero',
+                    },
+                    [CONST.XERO_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Fecha de envío',
+                        description: 'Fecha en la que el informe se envió para su aprobación',
+                    },
+                },
+            },
+            invoiceStatus: {
+                values: {
+                    [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_PAYMENT]: 'Autorizado',
+                    [CONST.XERO_CONFIG.INVOICE_STATUS.DRAFT]: 'Borrador',
+                    [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_APPROVAL]: 'Enviado',
+                },
+            },
+            exportPreferredExporterNote:
+                'Puede ser cualquier administrador del espacio de trabajo, pero debe ser un administrador de dominio si configura diferentes cuentas de exportación para tarjetas de empresa individuales en la configuración del dominio.',
+            exportPreferredExporterSubNote: 'Una vez configurado, el exportador preferido verá los informes para exportar en su cuenta.',
         },
         type: {
             free: 'Gratis',
@@ -2118,7 +2167,7 @@ export default {
             enableCategory: 'Activar categoría',
             deleteFailureMessage: 'Se ha producido un error al intentar eliminar la categoría. Por favor, inténtalo más tarde.',
             categoryName: 'Nombre de la categoría',
-            requiresCategory: 'Los miembros deben categorizar todos los gastos',
+            requiresCategory: 'Los miembros deben clasificar todos los gastos',
             needCategoryForExportToIntegration: 'Se requiere una categoría en cada gasto para poder exportarlo a',
             subtitle: 'Obtén una visión general de dónde te gastas el dinero. Utiliza las categorías predeterminadas o añade las tuyas propias.',
             emptyCategories: {
@@ -2276,7 +2325,7 @@ export default {
         accounting: {
             settings: 'configuración',
             title: 'Conexiones',
-            subtitle: 'Conecta a tu sistema de contabilidad para codificar transacciones con tu plan de cuentas, auto-cotejar pagos y mantener tus finanzas sincronizadas.',
+            subtitle: 'Conecta a tu sistema de contabilidad para codificar transacciones con tu plan de cuentas, auto-cotejar pagos, y mantener tus finanzas sincronizadas.',
             qbo: 'Quickbooks Online',
             xero: 'Xero',
             setup: 'Configurar',
@@ -2368,6 +2417,28 @@ export default {
                             return 'Actualizando empleados';
                         case 'quickbooksOnlineSyncApplyClassesLocations':
                             return 'Actualizando clases';
+                        case 'xeroSyncImportChartOfAccounts':
+                            return 'Sincronizando plan de cuentas';
+                        case 'xeroSyncImportCategories':
+                            return 'Sincronizando categorias';
+                        case 'xeroSyncImportCustomers':
+                            return 'Sincronizando clientes';
+                        case 'xeroSyncXeroReimbursedReports':
+                            return 'Marcar los informes de Expensify como reembolsados';
+                        case 'xeroSyncExpensifyReimbursedReports':
+                            return 'Marcar facturas y recibos de Xero como pagados';
+                        case 'xeroSyncImportTrackingCategories':
+                            return 'Sincronizando categorías de seguimiento';
+                        case 'xeroSyncImportBankAccounts':
+                            return 'Sincronizando cuentas bancarias';
+                        case 'xeroSyncImportTaxRates':
+                            return 'Sincronizando las tasas de impuesto';
+                        case 'xeroCheckConnection':
+                            return 'Comprobando la conexión a Xero';
+                        case 'xeroSyncTitle':
+                            return 'Sincronizando los datos de Xero';
+                        case 'xeroSyncStep':
+                            return 'Cargando datos';
                         default: {
                             return `Translation missing for stage: ${stage}`;
                         }
@@ -2486,6 +2557,7 @@ export default {
             save: 'Guardar',
             genericFailureMessage: 'Se produjo un error al guardar el espacio de trabajo. Por favor, inténtalo de nuevo.',
             avatarUploadFailureMessage: 'No se pudo subir el avatar. Por favor, inténtalo de nuevo.',
+            addressContext: 'Se requiere una dirección para habilitar Expensify Travel. Por favor, introduce una dirección asociada con tu negocio.',
         },
         bankAccount: {
             continueWithSetup: 'Continuar con la configuración',
@@ -2515,7 +2587,7 @@ export default {
             updateToUSD: 'Actualizar a USD',
         },
         changeOwner: {
-            changeOwnerPageTitle: 'Dueño de la transferencia',
+            changeOwnerPageTitle: 'Transferir la propiedad',
             addPaymentCardTitle: 'Ingrese tu tarjeta de pago para transferir la propiedad',
             addPaymentCardButtonText: 'Aceptar términos y agregar tarjeta de pago',
             addPaymentCardReadAndAcceptTextPart1: 'Lea y acepte',
@@ -2528,7 +2600,6 @@ export default {
             addPaymentCardRedundant: 'Infraestructura redundante',
             addPaymentCardLearnMore: 'Conozca más sobre nuestra',
             addPaymentCardSecurity: 'seguridad',
-            // TODO: add spanish translations below
             amountOwedTitle: 'Saldo pendiente',
             amountOwedButtonText: 'OK',
             amountOwedText: 'Esta cuenta tiene un saldo pendiente de un mes anterior.\n\n¿Quiere liquidar el saldo y hacerse cargo de la facturación de este espacio de trabajo?',
@@ -2548,9 +2619,9 @@ export default {
             hasFailedSettlementsButtonText: 'Entiendo',
             hasFailedSettlementsText: ({email}) =>
                 `No puede hacerse cargo de la facturación porque ${email} tiene una liquidación vencida de la tarjeta Expensify. Avíseles que se comuniquen con concierge@expensify.com para resolver el problema. Luego, podrá hacerse cargo de la facturación de este espacio de trabajo.`,
-            failedToClearBalanceTitle: 'Failed to clear balance',
+            failedToClearBalanceTitle: 'Fallo al liquidar el saldo',
             failedToClearBalanceButtonText: 'OK',
-            failedToClearBalanceText: 'We were unable to clear the balance. Please try again later.',
+            failedToClearBalanceText: 'No hemos podido liquidar el saldo, por favor, inténtalo más tarde.',
             successTitle: '¡Guau! Todo listo.',
             successDescription: 'Ahora eres el propietario de este espacio de trabajo.',
             errorTitle: '¡Ups! No tan rapido...',
@@ -3414,7 +3485,7 @@ export default {
             body: `¡Gana dinero por hablar con tus amigos! Inicia un chat con una cuenta nueva de Expensify y recibe $${CONST.REFERRAL_PROGRAM.REVENUE} cuando se conviertan en clientes.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
-            buttonText1: 'Presentar gasto, ',
+            buttonText1: 'Presenta un gasto, ',
             buttonText2: `recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             header: `Presenta un gasto y consigue $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             body: `¡Vale la pena cobrar! Envia un gasto a una cuenta nueva de Expensify y recibe $${CONST.REFERRAL_PROGRAM.REVENUE} cuando se conviertan en clientes.`,
@@ -3535,6 +3606,10 @@ export default {
         offlineTitle: 'Parece que estás atrapado aquí...',
         offline:
             'Parece que estás desconectado. Desafortunadamente, Expensify Classic no funciona sin conexión, pero New Expensify sí. Si prefieres utilizar Expensify Classic, inténtalo de nuevo cuando tengas conexión a internet.',
+    },
+    listBoundary: {
+        errorMessage: 'Se produjo un error al cargar más mensajes.',
+        tryAgain: 'Inténtalo de nuevo',
     },
     systemMessage: {
         mergedWithCashTransaction: 'encontró un recibo para esta transacción.',

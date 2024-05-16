@@ -1,10 +1,10 @@
 import React, {useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import BusinessTypeSelectorModal from './BusinessTypeSelectorModal';
 import type {BusinessTypeItemType, IncorporationType} from './types';
 
@@ -65,11 +65,10 @@ function BusinessTypePicker({errorText = '', value = '', wrapperStyle, onInputCh
                 description={label}
                 descriptionTextStyle={descStyle}
                 onPress={showPickerModal}
+                brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                errorText={errorText}
                 wrapperStyle={wrapperStyle}
             />
-            <View style={styles.ml5}>
-                <FormHelpMessage message={errorText} />
-            </View>
             <BusinessTypeSelectorModal
                 isVisible={isPickerVisible}
                 currentBusinessType={value}
