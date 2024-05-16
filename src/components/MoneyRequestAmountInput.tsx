@@ -69,7 +69,11 @@ type MoneyRequestAmountInputProps = {
     /** Whether we want to format the display amount on blur */
     formatAmountOnBlur?: boolean;
 
+    /** Max length for the amount input */
     maxLength?: number;
+
+    /** Hide the focus styles on TextInput */
+    hideFocusedState?: boolean;
 };
 
 type Selection = {
@@ -99,6 +103,7 @@ function MoneyRequestAmountInput(
         disableKeyboard = true,
         formatAmountOnBlur,
         maxLength,
+        hideFocusedState = true,
         ...props
     }: MoneyRequestAmountInputProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
@@ -279,6 +284,8 @@ function MoneyRequestAmountInput(
             prefixContainerStyle={props.prefixContainerStyle}
             touchableInputWrapperStyle={props.touchableInputWrapperStyle}
             maxLength={maxLength}
+            hideFocusedState={hideFocusedState}
+            onMouseDown={(event) => event.stopPropagation()}
         />
     );
 }

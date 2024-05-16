@@ -145,10 +145,10 @@ function OptionRow({
     const hoveredStyle = hoverStyle ? flattenHoverStyle : styles.sidebarLinkHover;
     const hoveredBackgroundColor = hoveredStyle?.backgroundColor ? (hoveredStyle.backgroundColor as string) : backgroundColor;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
-    const isMultipleParticipant = (option.participantsList?.length ?? 0) > 1;
+    const shouldUseShortFormInTooltip = (option.participantsList?.length ?? 0) > 1;
 
     // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
-    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips((option.participantsList ?? (option.accountID ? [option] : [])).slice(0, 10), isMultipleParticipant);
+    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips((option.participantsList ?? (option.accountID ? [option] : [])).slice(0, 10), shouldUseShortFormInTooltip);
     let subscriptColor = theme.appBG;
     if (optionIsFocused) {
         subscriptColor = focusedBackgroundColor;
@@ -260,16 +260,16 @@ function OptionRow({
                                         prefixCharacter={option.amountInputProps.prefixCharacter}
                                         disableKeyboard={false}
                                         isCurrencyPressable={false}
+                                        hideFocusedState={false}
                                         hideCurrencySymbol
                                         formatAmountOnBlur
-                                        touchableInputWrapperStyle={[styles.optionRowAmountInputWrapper, option.amountInputProps.containerStyle]}
                                         prefixContainerStyle={[styles.pv0]}
+                                        containerStyle={[styles.textInputContainer]}
                                         inputStyle={[
                                             styles.optionRowAmountInput,
                                             StyleUtils.getPaddingLeft(StyleUtils.getCharacterPadding(option.amountInputProps.prefixCharacter ?? '') + styles.pl1.paddingLeft) as TextStyle,
                                             option.amountInputProps.inputStyle,
                                         ]}
-                                        containerStyle={styles.iouAmountTextInputContainer}
                                         onAmountChange={option.amountInputProps.onAmountChange}
                                         maxLength={option.amountInputProps.maxLength}
                                     />
