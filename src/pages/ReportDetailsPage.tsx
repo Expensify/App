@@ -82,6 +82,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const isMoneyRequest = useMemo(() => ReportUtils.isMoneyRequest(report), [report]);
     const isInvoiceReport = useMemo(() => ReportUtils.isInvoiceReport(report), [report]);
     const canEditReportDescription = useMemo(() => ReportUtils.canEditReportDescription(report, policy), [report, policy]);
+    const shouldShowReportDescription = isChatRoom && (canEditReportDescription || report.description !== '');
 
     // eslint-disable-next-line react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
     const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(report), [report, policy]);
@@ -105,8 +106,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const isPrivateNotesFetchTriggered = report?.isLoadingPrivateNotes !== undefined;
 
     const isSelfDM = useMemo(() => ReportUtils.isSelfDM(report), [report]);
-
-    const shouldShowReportDescription = isChatRoom && (canEditReportDescription || report.description !== '');
 
     useEffect(() => {
         // Do not fetch private notes if isLoadingPrivateNotes is already defined, or if the network is offline, or if the report is a self DM.
@@ -154,6 +153,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 icon: Expensicons.Users,
                 subtitle: activeChatMembers.length,
                 isAnonymousAction: false,
+                shouldShowRightIcon: true,
                 action: () => {
                     if (isUserCreatedPolicyRoom || isChatThread) {
                         Navigation.navigate(ROUTES.ROOM_MEMBERS.getRoute(report?.reportID ?? ''));
@@ -168,6 +168,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 translationKey: 'common.invite',
                 icon: Expensicons.Users,
                 isAnonymousAction: false,
+                shouldShowRightIcon: true,
                 action: () => {
                     Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(report?.reportID ?? ''));
                 },
@@ -179,6 +180,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             translationKey: 'common.settings',
             icon: Expensicons.Gear,
             isAnonymousAction: false,
+            shouldShowRightIcon: true,
             action: () => {
                 Navigation.navigate(ROUTES.REPORT_SETTINGS.getRoute(report?.reportID ?? ''));
             },
@@ -191,6 +193,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 translationKey: 'privateNotes.title',
                 icon: Expensicons.Pencil,
                 isAnonymousAction: false,
+                shouldShowRightIcon: true,
                 action: () => ReportUtils.navigateToPrivateNotes(report, session),
                 brickRoadIndicator: Report.hasErrorInPrivateNotes(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             });
@@ -202,7 +205,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 translationKey: 'common.leave',
                 icon: Expensicons.Exit,
                 isAnonymousAction: true,
-                shouldShowRightIcon: false,
                 action: () => {
                     if (Object.keys(report?.participants ?? {}).length === 1 && isGroupChat) {
                         setIsLastMemberLeavingGroupModalVisible(true);
@@ -366,7 +368,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                                 icon={item.icon}
                                 onPress={item.action}
                                 isAnonymousAction={item.isAnonymousAction}
-                                shouldShowRightIcon={item.shouldShowRightIcon ?? true}
+                                shouldShowRightIcon={item.shouldShowRightIcon}
                                 brickRoadIndicator={brickRoadIndicator ?? item.brickRoadIndicator}
                             />
                         );
