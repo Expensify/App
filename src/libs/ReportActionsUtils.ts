@@ -20,7 +20,7 @@ import type {
     OriginalMessageReimbursementDequeued,
 } from '@src/types/onyx/OriginalMessage';
 import type Report from '@src/types/onyx/Report';
-import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
+import type {Message, ReportActionBase, ReportActionMessageJSON, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -143,8 +143,27 @@ function isModifiedExpenseAction(reportAction: OnyxEntry<ReportAction> | ReportA
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE;
 }
 
+/**
+ * We are in the process of deprecating reportAction.originalMessage and will be setting the db version of "message" to reportAction.message in the future see: https://github.com/Expensify/App/issues/39797
+ * In the interim, we must check to see if we have an object or array for the reportAction.message, if we have an array we will use the originalMessage as this means we have not yet migrated.
+ */
+function getWhisperedTo(reportAction: OnyxEntry<ReportAction> | EmptyObject): number[] {
+    const originalMessage = reportAction?.originalMessage;
+    const message = reportAction?.message;
+
+    if (!Array.isArray(message) && typeof message === 'object') {
+        return (message as ReportActionMessageJSON)?.whisperedTo ?? [];
+    }
+
+    if (originalMessage) {
+        return (originalMessage as ReportActionMessageJSON)?.whisperedTo ?? [];
+    }
+
+    return [];
+}
+
 function isWhisperAction(reportAction: OnyxEntry<ReportAction> | EmptyObject): boolean {
-    return (reportAction?.whisperedToAccountIDs ?? []).length > 0;
+    return getWhisperedTo(reportAction).length > 0;
 }
 
 /**
@@ -154,7 +173,7 @@ function isWhisperActionTargetedToOthers(reportAction: OnyxEntry<ReportAction>):
     if (!isWhisperAction(reportAction)) {
         return false;
     }
-    return !reportAction?.whisperedToAccountIDs?.includes(currentUserAccountID ?? 0);
+    return !getWhisperedTo(reportAction).includes(currentUserAccountID ?? 0);
 }
 
 function isReimbursementQueuedAction(reportAction: OnyxEntry<ReportAction>) {
@@ -278,8 +297,8 @@ function shouldIgnoreGap(currentReportAction: ReportAction | undefined, nextRepo
     return (
         isOptimisticAction(currentReportAction) ||
         isOptimisticAction(nextReportAction) ||
-        !!currentReportAction.whisperedToAccountIDs?.length ||
-        !!nextReportAction.whisperedToAccountIDs?.length ||
+        !!getWhisperedTo(currentReportAction).length ||
+        !!getWhisperedTo(nextReportAction).length ||
         currentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM ||
         nextReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED ||
         nextReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED
@@ -1196,6 +1215,7 @@ export {
     getParentReportAction,
     getReportAction,
     getReportActionMessageText,
+    getWhisperedTo,
     isApprovedOrSubmittedReportAction,
     getReportPreviewAction,
     getSortedReportActions,
