@@ -84,6 +84,8 @@ function Composer(
         | {
               start: number;
               end?: number;
+              positionX?: number;
+              positionY?: number;
           }
         | undefined
     >({
