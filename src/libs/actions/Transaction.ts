@@ -342,7 +342,7 @@ function setReviewDuplicatesKey(values: {
 }
 
 function clearError(transactionID: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {errors: null});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {errors: null, errorFields: {route: null}});
 }
 
 function markAsCash(transactionID: string, transactionThreadReportID: string, existingViolations: TransactionViolation[]) {
