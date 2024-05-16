@@ -1205,7 +1205,20 @@ function buildOnyxDataForTrackExpense(
                 key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
                 value: {
                     lastVisibleActionCreated: actionableTrackExpenseWhisper.created,
+                    lastMessageText: 'What would you like to do with this expense?',
                 },
+            });
+            successData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
+                value: {
+                    [actionableTrackExpenseWhisper.reportActionID]: {pendingAction: null, errors: null},
+                },
+            });
+            failureData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
+                value: {[actionableTrackExpenseWhisper.reportActionID]: null},
             });
         }
     }
@@ -3669,9 +3682,11 @@ function trackExpense(
                 transactionThreadReportID,
                 createdReportActionIDForThread,
                 waypoints: validWaypoints ? JSON.stringify(validWaypoints) : undefined,
-                actionableWhisperReportActionID: actionableWhisperReportActionIDParam,
             };
-
+            if (actionableWhisperReportActionIDParam) {
+                parameters.actionableWhisperReportActionID = actionableWhisperReportActionIDParam;
+            }
+            console.log('222222222', onyxData);
             API.write(WRITE_COMMANDS.TRACK_EXPENSE, parameters, onyxData);
         }
     }

@@ -146,6 +146,7 @@ const CONST = {
     DISPLAY_NAME: {
         MAX_LENGTH: 50,
         RESERVED_NAMES: ['Expensify', 'Concierge'],
+        EXPENSIFY_CONCIERGE: 'Expensify Concierge',
     },
 
     GPS: {

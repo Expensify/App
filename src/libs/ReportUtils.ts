@@ -4143,7 +4143,7 @@ function buildOptimisticActionableTrackExpenseWhisper(iouAction: OptimisticIOURe
         },
         person: [
             {
-                text: 'Expensify Concierge',
+                text: CONST.DISPLAY_NAME.EXPENSIFY_CONCIERGE,
                 type: 'TEXT',
             },
         ],
