@@ -52,6 +52,7 @@ import ReportActionsView from './report/ReportActionsView';
 import ReportFooter from './report/ReportFooter';
 import type {ActionListContextType, ReactionListRef, ScrollPosition} from './ReportScreenContext';
 import {ActionListContext, ReactionListContext} from './ReportScreenContext';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type ReportScreenOnyxProps = {
     /** Tells us if the sidebar has rendered */
@@ -151,6 +152,8 @@ function ReportScreen({
         canEvict: false,
         selector: (parentReportActions) => getParentReportAction(parentReportActions, reportOnyx?.parentReportActionID ?? ''),
     });
+
+    const isLoadingReportOnyx = isLoadingOnyxValue(reportResult);
 
     /**
      * Create a lightweight Report so as to keep the re-rendering as light as possible by
@@ -469,13 +472,13 @@ function ReportScreen({
 
     useEffect(() => {
         // Call OpenReport only if we are not linking to a message or the report is not available yet
-        if (reportResult.status === 'loading' || (reportActionIDFromRoute && report.reportID)) {
+        if (isLoadingReportOnyx || (reportActionIDFromRoute && report.reportID)) {
             return;
         }
 
         fetchReportIfNeeded();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reportResult.status]);
+    }, [isLoadingReportOnyx]);
 
     // If a user has chosen to leave a thread, and then returns to it (e.g. with the back button), we need to call `openReport` again in order to allow the user to rejoin and to receive real-time updates
     useEffect(() => {
