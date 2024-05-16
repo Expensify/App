@@ -1258,6 +1258,9 @@ export default {
             },
         },
     },
+    reportDetailsPage: {
+        in: 'In',
+    },
     reportDescriptionPage: {
         roomDescription: 'Room description',
         roomDescriptionOptional: 'Room description (optional)',

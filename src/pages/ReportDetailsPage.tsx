@@ -41,6 +41,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
+import Text from '@components/Text';
 
 type ReportDetailsPageMenuItem = {
     key: DeepValueOf<typeof CONST.REPORT_DETAILS_MENU_ITEM>;
@@ -81,6 +82,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const canEditReportDescription = useMemo(() => ReportUtils.canEditReportDescription(report, policy), [report, policy]);
     const shouldShowReportDescription = isChatRoom && (canEditReportDescription || report.description !== '');
     const [isLastMemberLeavingGroupModalVisible, setIsLastMemberLeavingGroupModalVisible] = useState(false);
+    const isPolicy =  isPolicyAdmin || isPolicyEmployee;
 
     // eslint-disable-next-line react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
     const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(report), [report, policy]);
@@ -262,6 +264,11 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             />
         );
 
+    const linkedWorkspace = useMemo(() => Object.values(policies ?? {}).find((pol) => pol && pol.id === report?.policyID) ?? null, [policies, report?.policyID]);
+    const shouldDisableRename = useMemo(() => ReportUtils.shouldDisableRename(report, linkedWorkspace), [report, linkedWorkspace]);
+
+    const chatRoomAdminSubtitleText = `${translate('reportDetailsPage.in')  } ${  report.policyName}`;
+
     const reportName =
         ReportUtils.isDeprecatedGroupDM(report) || ReportUtils.isGroupChat(report)
             ? ReportUtils.getGroupChatName(undefined, false, report.reportID ?? '')
@@ -323,6 +330,48 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                             )}
                         </View>
                     </View>
+                    
+                    <OfflineWithFeedback
+                        pendingAction={report?.pendingFields?.reportName}
+                        errors={report?.errorFields?.reportName}
+                        errorRowStyles={[styles.ph5]}
+                        onClose={() => Report.clearPolicyRoomNameErrors(report.reportID)}
+                    >
+                        <MenuItemWithTopDescription
+                            shouldShowRightIcon={!shouldDisableRename}
+                            title={reportName ?? ''}
+                            style={[isPolicy ? styles.pb2 : undefined]}
+                            titleStyle={styles.textHeadline}
+                            description={isGroupChat ? translate('common.name') : translate('newRoomPage.roomName')}
+                            onPress={() =>
+                                isGroupChat
+                                    ? Navigation.navigate(ROUTES.REPORT_SETTINGS_GROUP_NAME.getRoute(report.reportID))
+                                    : Navigation.navigate(ROUTES.REPORT_SETTINGS_ROOM_NAME.getRoute(report.reportID))
+                            }
+                            disabled={shouldDisableRename}
+                            shouldGreyOutWhenDisabled={false}
+                        />
+
+                        {isPolicyAdmin ? (
+                            <PressableWithoutFeedback
+                                style={[styles.w100, styles.ph5, styles.pb3]}
+                                disabled={policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
+                                role={CONST.ROLE.BUTTON}
+                                accessibilityLabel={chatRoomSubtitle ?? ''}
+                                accessible
+                                onPress={() => {
+                                    Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(report?.policyID ?? ''));
+                                }}
+                            >
+                                <Text style={[styles.textLabelSupporting]}>{chatRoomAdminSubtitleText}</Text>
+                            </PressableWithoutFeedback>
+                        ) : (
+                            <View style={[styles.w100, styles.ph5, styles.pb3]}>
+                                <Text style={[styles.textLabelSupporting]}>{chatRoomSubtitleText}</Text>
+                            </View>
+                        )}
+                    </OfflineWithFeedback>
+
                     {shouldShowReportDescription && (
                         <OfflineWithFeedback pendingAction={report.pendingFields?.description}>
                             <MenuItemWithTopDescription
