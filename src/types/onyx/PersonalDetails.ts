@@ -27,6 +27,8 @@ type PersonalDetails = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** ID of the current user from their personal details */
     accountID: number;
 
+    preexistingAccountID?: number;
+
     /** First name of the current user from their personal details */
     firstName?: string;
 

@@ -95,6 +95,16 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         }
     }, [accountID, policy?.errorFields?.changeOwner, policy?.isChangeOwnerSuccessful, policyID]);
 
+    useEffect(() => {
+        if (!accountID || !personalDetails) {
+            return;
+        }
+        if (personalDetails[accountID] && personalDetails[accountID]?.preexistingAccountID) {
+            Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, personalDetails[accountID]?.preexistingAccountID ?? accountID));
+            Policy.clearAddMemberError(policyID, accountID);
+        }
+    }, [accountID, policyID, personalDetails]);
+
     const askForConfirmationToRemove = () => {
         setIsRemoveMemberConfirmModalVisible(true);
     };

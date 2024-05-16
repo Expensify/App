@@ -1397,7 +1397,6 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
 
     const {newAccountIDs, newLogins} = PersonalDetailsUtils.getNewAccountIDsAndLogins(logins, accountIDs);
     const newPersonalDetailsOnyxData = PersonalDetailsUtils.getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs);
-
     const announceRoomMembers = buildAnnounceRoomMembersOnyxData(policyID, accountIDs);
 
     // create onyx data for policy expense chats for each new member
@@ -1437,7 +1436,6 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
                 employeeList: successMembersState,
             },
         },
-        ...newPersonalDetailsOnyxData.finallyData,
         ...membersChats.onyxSuccessData,
         ...announceRoomMembers.onyxSuccessData,
     ];
