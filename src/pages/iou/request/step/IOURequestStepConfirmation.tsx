@@ -340,6 +340,11 @@ function IOURequestStepConfirmation({
 
             formHasBeenSubmitted.current = true;
 
+            if (requestType === CONST.IOU.REQUEST_TYPE.DISTANCE && !IOUUtils.isMovingTransactionFromTrackExpense(action)) {
+                createDistanceRequest((iouType === CONST.IOU.TYPE.SPLIT) ? splitParticipants : selectedParticipants, trimmedComment);
+                return;
+            }
+
             // If we have a receipt let's start the split expense by creating only the action, the transaction, and the group DM if needed
             if (iouType === CONST.IOU.TYPE.SPLIT && receiptFile) {
                 if (currentUserPersonalDetails.login && !!transaction) {
@@ -387,26 +392,22 @@ function IOURequestStepConfirmation({
             // If the split expense is created from the global create menu, we also navigate the user to the group report
             if (iouType === CONST.IOU.TYPE.SPLIT) {
                 if (currentUserPersonalDetails.login && !!transaction) {
-                    if (requestType === CONST.IOU.REQUEST_TYPE.DISTANCE) {
-                        createDistanceRequest(splitParticipants, trimmedComment);
-                    } else {
-                        IOU.splitBillAndOpenReport({
-                            participants: splitParticipants,
-                            currentUserLogin: currentUserPersonalDetails.login,
-                            currentUserAccountID: currentUserPersonalDetails.accountID,
-                            amount: transaction.amount,
-                            comment: trimmedComment,
-                            currency: transaction.currency,
-                            merchant: transaction.merchant,
-                            created: transaction.created,
-                            category: transaction.category,
-                            tag: transaction.tag,
-                            billable: !!transaction.billable,
-                            iouRequestType: transaction.iouRequestType,
-                            splitShares: transaction.splitShares,
-                            splitPayerAccountIDs: transaction.splitPayerAccountIDs,
-                        });
-                    }
+                    IOU.splitBillAndOpenReport({
+                        participants: splitParticipants,
+                        currentUserLogin: currentUserPersonalDetails.login,
+                        currentUserAccountID: currentUserPersonalDetails.accountID,
+                        amount: transaction.amount,
+                        comment: trimmedComment,
+                        currency: transaction.currency,
+                        merchant: transaction.merchant,
+                        created: transaction.created,
+                        category: transaction.category,
+                        tag: transaction.tag,
+                        billable: !!transaction.billable,
+                        iouRequestType: transaction.iouRequestType,
+                        splitShares: transaction.splitShares,
+                        splitPayerAccountIDs: transaction.splitPayerAccountIDs,
+                    });
                 }
                 return;
             }
@@ -476,10 +477,6 @@ function IOURequestStepConfirmation({
                 return;
             }
 
-            if (requestType === CONST.IOU.REQUEST_TYPE.DISTANCE && !IOUUtils.isMovingTransactionFromTrackExpense(action)) {
-                createDistanceRequest(selectedParticipants, trimmedComment);
-                return;
-            }
 
             requestMoney(selectedParticipants, trimmedComment);
         },
