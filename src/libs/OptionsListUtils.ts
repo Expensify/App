@@ -273,7 +273,7 @@ Onyx.connect({
 
         allReportActions = actions ?? {};
 
-        // Iterate over the report actions to build the sorted and lastVisible report actions bjects
+        // Iterate over the report actions to build the sorted and lastVisible report actions objects
         Object.entries(allReportActions).forEach((reportActions) => {
             const reportID = reportActions[0].split('_')[1];
             const reportActionsArray = Object.values(reportActions[1] ?? {});
