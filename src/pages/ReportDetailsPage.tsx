@@ -203,6 +203,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         isDefaultRoom,
         isChatThread,
         isPolicyEmployee,
+        isPolicyExpenseChat,
         isUserCreatedPolicyRoom,
         participants.length,
         report,
