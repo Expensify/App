@@ -58,11 +58,20 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
             : [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRow, styles.justifyContentCenter],
     );
 
-    if (!optionItem) {
+    if (!optionItem && !isFocused) {
         // rendering null as a render item causes the FlashList to render all
-        // its children and consume signficant memory. We can avoid this by
-        // rendering a placeholder view instead.
+        // its children and consume signficant memory on the first render. We can avoid this by
+        // rendering a placeholder view instead. This behaviour is only observed when we
+        // first sign in to the App.
+        // We can fix this by checking if the optionItem is null and the component is not focused.
+        // Which means that the currentReportID is not the same as the reportID. The currentReportID
+        // in this case is empty and hence the component is not focused.
         return <View style={sidebarInnerRowStyle} />;
+    } else if (!optionItem) {
+        // This is the case when the component is focused and the optionItem is null.
+        // For example, when you submit an expense in offline mode and click on the
+        // generated expense report, we would only see the Report Details but no item in LHN.
+        return null;
     }
 
     const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
