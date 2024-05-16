@@ -271,7 +271,7 @@ type XeroConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
 type Connection<ConnectionData, ConnectionConfig> = {
     lastSync?: ConnectionLastSync;
-    data: ConnectionData;
+    data?: ConnectionData;
     config: ConnectionConfig;
 };
 

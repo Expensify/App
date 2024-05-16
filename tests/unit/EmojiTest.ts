@@ -1,8 +1,9 @@
 import {getUnixTime} from 'date-fns';
 import Onyx from 'react-native-onyx';
-import Emojis from '@assets/emojis';
+import Emojis, {importEmojiLocale} from '@assets/emojis';
 import type {Emoji} from '@assets/emojis/types';
 import * as User from '@libs/actions/User';
+import {buildEmojisTrie} from '@libs/EmojiTrie';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -11,6 +12,13 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('EmojiTest', () => {
+    beforeAll(async () => {
+        await importEmojiLocale('en');
+        buildEmojisTrie('en');
+        await importEmojiLocale('es');
+        buildEmojisTrie('es');
+    });
+
     it('matches all the emojis in the list', () => {
         // Given the set of Emojis available in the application
         const emojiMatched = Emojis.every((emoji) => {
@@ -194,7 +202,6 @@ describe('EmojiTest', () => {
 
         beforeAll(() => {
             Onyx.init({keys: ONYXKEYS});
-            // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
             global.fetch = TestHelper.getGlobalFetchMock();
             spy = jest.spyOn(User, 'updateFrequentlyUsedEmojis');
         });
