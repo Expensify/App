@@ -47,11 +47,15 @@ type VerifyIdentityProps = VerifyIdentityOnyxProps;
 
 const ONFIDO_ERROR_DISPLAY_DURATION = 10000;
 
-function VerifyIdentity({personalBankAccount, onfidoApplicantID, onfidoToken, walletOnfidoData = DEFAULT_WALLET_ONFIDO_DATA}: VerifyIdentityProps) {
+function VerifyIdentity({personalBankAccount, walletOnfidoData = DEFAULT_WALLET_ONFIDO_DATA}: VerifyIdentityProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    console.log({personalBankAccount, onfidoApplicantID, onfidoToken, walletOnfidoData});
+    const openOnfidoFlow = () => {
+        BankAccounts.openOnfidoFlow();
+    };
+
+    const {isLoading = false, hasAcceptedPrivacyPolicy, sdkToken, applicantID} = walletOnfidoData;
 
     const handleOnfidoSuccess = useCallback(
         (onfidoData: OnfidoData) => {
@@ -63,7 +67,7 @@ function VerifyIdentity({personalBankAccount, onfidoApplicantID, onfidoToken, wa
             });
             BankAccounts.updateAddPersonalBankAccountDraft({isOnfidoSetupComplete: true});
         },
-        [personalBankAccount, onfidoApplicantID],
+        [personalBankAccount, applicantID],
     );
 
     const onfidoError = ErrorUtils.getLatestErrorMessage(walletOnfidoData) ?? '';
@@ -84,8 +88,6 @@ function VerifyIdentity({personalBankAccount, onfidoApplicantID, onfidoToken, wa
         Wallet.updateCurrentStep(CONST.WALLET.STEP.ADDITIONAL_DETAILS);
     };
 
-    const {isLoading = false, hasAcceptedPrivacyPolicy} = walletOnfidoData;
-
     return (
         <ScreenWrapper testID={VerifyIdentity.displayName}>
             <HeaderWithBackButton
@@ -102,7 +104,7 @@ function VerifyIdentity({personalBankAccount, onfidoApplicantID, onfidoToken, wa
                 <ScrollView contentContainerStyle={styles.flex1}>
                     {hasAcceptedPrivacyPolicy ? (
                         <Onfido
-                            sdkToken={onfidoToken ?? ''}
+                            sdkToken={sdkToken ?? ''}
                             onUserExit={handleOnfidoUserExit}
                             onError={handleOnfidoError}
                             onSuccess={handleOnfidoSuccess}
@@ -122,7 +124,7 @@ function VerifyIdentity({personalBankAccount, onfidoApplicantID, onfidoToken, wa
                             <FixedFooter>
                                 <FormAlertWithSubmitButton
                                     isAlertVisible={Boolean(onfidoError)}
-                                    onSubmit={() => {}}
+                                    onSubmit={openOnfidoFlow}
                                     onFixTheErrorsLinkPressed={() => {}}
                                     message={onfidoError}
                                     isLoading={isLoading}
@@ -144,12 +146,6 @@ export default withOnyx<VerifyIdentityProps, VerifyIdentityOnyxProps>({
     // @ts-expect-error: ONYXKEYS.PERSONAL_BANK_ACCOUNT is conflicting with ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM
     personalBankAccount: {
         key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
-    },
-    onfidoApplicantID: {
-        key: ONYXKEYS.ONFIDO_APPLICANT_ID,
-    },
-    onfidoToken: {
-        key: ONYXKEYS.ONFIDO_TOKEN,
     },
     walletOnfidoData: {
         key: ONYXKEYS.WALLET_ONFIDO,
