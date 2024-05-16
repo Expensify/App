@@ -515,7 +515,7 @@ function AttachmentModal({
                                 onLinkPress={() => Navigation.dismissModal()}
                             />
                         )}
-                        {!isEmptyObject(report) && !isReceiptAttachment && !shouldShowNotFoundPage ? (
+                        {!shouldShowNotFoundPage && (!isEmptyObject(report) && !isReceiptAttachment ? (
                             <AttachmentCarousel
                                 report={report}
                                 onNavigate={onNavigate}
@@ -527,7 +527,7 @@ function AttachmentModal({
                             !!sourceForAttachmentView &&
                             shouldLoadAttachment &&
                             !isLoading &&
-                            !shouldShowNotFoundPage && (
+                            (
                                 <AttachmentCarouselPagerContext.Provider value={context}>
                                     <AttachmentView
                                         containerStyles={[styles.mh5]}
@@ -543,7 +543,7 @@ function AttachmentModal({
                                     />
                                 </AttachmentCarouselPagerContext.Provider>
                             )
-                        )}
+                        ))}
                     </View>
                     {/* If we have an onConfirm method show a confirmation button */}
                     {!!onConfirm && (
