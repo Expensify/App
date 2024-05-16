@@ -4739,7 +4739,6 @@ function createDistanceRequest(
 ) {
     // If the report is an iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
-    const activeReportID = isMoneyRequestReport ? report?.reportID ?? '' : chatReport.reportID;
     const currentChatReport = isMoneyRequestReport ? ReportUtils.getReport(report?.chatReportID) : report;
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
     const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
@@ -4857,6 +4856,7 @@ function createDistanceRequest(
     }
 
     API.write(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData);
+    const activeReportID = isMoneyRequestReport ? report?.reportID ?? '' : parameters.chatReportID;
     Navigation.dismissModal(activeReportID);
     Report.notifyNewAction(activeReportID, userAccountID);
 }
