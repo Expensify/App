@@ -1,7 +1,6 @@
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
-import * as Policy from '@src/libs/actions/Policy/Policy';
 import * as Category from '@src/libs/actions/Policy/Category';
 import ONYXKEYS from '@src/ONYXKEYS';
 import createRandomPolicy from '../utils/collections/policies';
@@ -221,7 +220,7 @@ describe('actions/PolicyCategory', () => {
             fetch.pause();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakeCategories);
-            Policy.deleteWorkspaceCategories(fakePolicy.id, categoriesToDelete);
+            Category.deleteWorkspaceCategories(fakePolicy.id, categoriesToDelete);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connectionID = Onyx.connect({
