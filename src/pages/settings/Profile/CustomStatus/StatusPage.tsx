@@ -79,18 +79,16 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
             onfulfilled?: () => typeof InteractionManager.runAfterInteractions,
             onrejected?: () => typeof InteractionManager.runAfterInteractions,
         ) => Promise<typeof InteractionManager.runAfterInteractions>;
-        done: (...args: (typeof InteractionManager.runAfterInteractions)[]) => typeof InteractionManager.runAfterInteractions;
+        done: (...args: Array<typeof InteractionManager.runAfterInteractions>) => typeof InteractionManager.runAfterInteractions;
         cancel: () => void;
     } | null>(null);
 
     useEffect(() => {
-        return () => {
-            if (!navigateBackToPreviousScreenTask.current) {
-                return;
-            }
+        if (!navigateBackToPreviousScreenTask.current) {
+            return;
+        }
 
-            navigateBackToPreviousScreenTask.current.cancel();
-        };
+        navigateBackToPreviousScreenTask.current.cancel();
     }, []);
 
     const navigateBackToPreviousScreen = useCallback(() => Navigation.goBack(), []);
