@@ -23,19 +23,19 @@ function ReviewDescription() {
                 !description
                     ? {text: 'None', value: undefined}
                     : {
-                          text: description,
+                          text: description.comment,
                           value: description,
                       },
             ),
         [compareResult.change.description],
     );
     const onSelectRow = (data: ListItem) => {
-        console.log(data);
         if (data.data !== undefined) {
             setReviewDuplicatesKey({description: data.data});
         }
         navigateToNextScreen();
     };
+    console.log('options', options);
     return (
         <ScreenWrapper testID={ReviewDescription.displayName}>
             <HeaderWithBackButton title="Review duplicates" />

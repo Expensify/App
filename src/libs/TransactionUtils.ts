@@ -41,20 +41,6 @@ Onyx.connect({
     callback: (value) => (allReports = value),
 });
 
-let allTransactionViolations: NonNullable<OnyxCollection<TransactionViolations>> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        if (!value) {
-            allTransactionViolations = {};
-            return;
-        }
-
-        allTransactionViolations = value;
-    },
-});
-
 let currentUserEmail = '';
 let currentUserAccountID = -1;
 Onyx.connect({
@@ -802,7 +788,7 @@ function getTransaction(transactionID: string): Transaction | null {
 type FieldsToCompare = Record<string, Array<keyof Transaction>>;
 
 function compareDuplicateTransactionFields(transactionID: string) {
-    const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+    const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
     const duplicates = transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [];
     const transactions = [transactionID, ...duplicates].map((item) => getTransaction(item));
     const keep: Record<string, any> = {};
@@ -820,22 +806,16 @@ function compareDuplicateTransactionFields(transactionID: string) {
     for (const fieldName in fieldsToCompare) {
         if (Object.prototype.hasOwnProperty.call(fieldsToCompare, fieldName)) {
             const keys = fieldsToCompare[fieldName];
-            console.log('keys', keys);
+
             const firstTransaction = transactions[0];
-            console.log('fieldName', fieldName);
+
             if (fieldName === 'description') {
-                console.log('firstTransaction', firstTransaction);
                 if (transactions.every((item) => keys.every((key) => item && item.comment && item.comment === firstTransaction?.comment))) {
                     keep[fieldName] = firstTransaction?.comment;
                 } else {
-                    const differentValues = transactions
-                        .map((item) => keys.map((key) => (item && item.comment && key in item.comment ? item.comment : undefined)))
-                        .flat()
-                        .filter((item) => item !== undefined);
+                    const differentValues = transactions.map((item) => keys.map((key) => (item && item.comment && key in item.comment ? item.comment : undefined))).flat();
 
                     if (differentValues.length > 0) {
-                        console.log('description');
-                        console.log('differentValues', differentValues);
                         change[fieldName] = differentValues;
                     }
                 }
@@ -845,9 +825,6 @@ function compareDuplicateTransactionFields(transactionID: string) {
                 const differentValues = transactions
                     .map((item) =>
                         keys.map((key) => {
-                            console.log('key', key);
-                            console.log('item', item);
-                            console.log('item[key]', item?.[key]);
                             if (!item?.[key]) {
                                 return;
                             }
@@ -858,8 +835,6 @@ function compareDuplicateTransactionFields(transactionID: string) {
                     .filter((item) => item !== undefined);
 
                 if (differentValues.length > 0) {
-                    console.log('else');
-                    console.log('differentValues', differentValues);
                     change[fieldName] = differentValues;
                 }
             }
