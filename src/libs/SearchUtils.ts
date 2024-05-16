@@ -1,6 +1,7 @@
 import type {ValueOf} from 'react-native-gesture-handler/lib/typescript/typeUtils';
+import ReportListItem from '@components/SelectionList/ReportListItem';
 import TransactionListItem from '@components/SelectionList/TransactionListItem';
-import type {TransactionListItemType} from '@components/SelectionList/types';
+import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -54,10 +55,31 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data']): Transac
         });
 }
 
+function getReportSections(data: OnyxTypes.SearchResults['data']): ReportListItemType[] {
+    const reportIDToTransactions: Record<string, ReportListItemType> = {};
+    for (const key in data) {
+        if (key.startsWith('transactions_')) {
+            const transaction = {...data[key]};
+            const reportKey = `report_${transaction.reportID}`;
+            if (reportIDToTransactions?.[reportKey].transactions) {
+                reportIDToTransactions[reportKey].transactions.push(transaction);
+            } else {
+                reportIDToTransactions[reportKey].transactions = [transaction];
+            }
+        }
+    }
+
+    return Object.values(reportIDToTransactions);
+}
+
 const searchTypeToItemMap: SearchTypeToItemMap = {
     [CONST.SEARCH_DATA_TYPES.TRANSACTION]: {
         listItem: TransactionListItem,
         getSections: getTransactionsSections,
+    },
+    [CONST.SEARCH_DATA_TYPES.REPORT]: {
+        listItem: ReportListItem,
+        getSections: getReportSections,
     },
 };
 
@@ -74,4 +96,4 @@ function getQueryHash(query: string, policyID?: string): number {
     return UserUtils.hashText(textToHash, 2 ** 32);
 }
 
-export {getListItem, getQueryHash, getSections, getShouldShowColumn, getShouldShowMerchant, getSearchType};
+export {getListItem, getQueryHash, getSearchType, getSections, getShouldShowColumn, getShouldShowMerchant};

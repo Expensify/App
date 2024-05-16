@@ -4,12 +4,13 @@ import type {MaybePhraseKey} from '@libs/Localize';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import type CONST from '@src/CONST';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {SearchAccountDetails, SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {SearchAccountDetails, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type InviteMemberListItem from './InviteMemberListItem';
 import type RadioListItem from './RadioListItem';
+import type ReportListItem from './ReportListItem';
 import type TableListItem from './TableListItem';
 import type TransactionListItem from './TransactionListItem';
 import type UserListItem from './UserListItem';
@@ -148,6 +149,11 @@ type TransactionListItemType = ListItem &
         shouldShowTax: boolean;
     };
 
+type ReportListItemType = ListItem &
+    SearchReport & {
+        transactions: SearchTransaction[];
+    };
+
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** The section list item */
     item: TItem;
@@ -206,7 +212,9 @@ type TableListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
-type ValidListItem = typeof RadioListItem | typeof UserListItem | typeof TableListItem | typeof InviteMemberListItem | typeof TransactionListItem;
+type ReportListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+
+type ValidListItem = typeof RadioListItem | typeof UserListItem | typeof TableListItem | typeof InviteMemberListItem | typeof TransactionListItem | typeof ReportListItem;
 
 type Section<TItem extends ListItem> = {
     /** Title of the section */
@@ -412,4 +420,6 @@ export type {
     TransactionListItemType,
     UserListItemProps,
     ValidListItem,
+    ReportListItemProps,
+    ReportListItemType,
 };
