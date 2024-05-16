@@ -136,7 +136,7 @@ function ReportActionItemSingle({
         source: avatarSource,
         type: isWorkspaceActor ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR,
         name: primaryDisplayName ?? '',
-        id: isWorkspaceActor ? '' : actorAccountID,
+        id: isWorkspaceActor ? report.policyID : actorAccountID,
     };
 
     // Since the display name for a report action message is delivered with the report history as an array of fragments
@@ -206,7 +206,7 @@ function ReportActionItemSingle({
                         source={icon.source}
                         type={icon.type}
                         name={icon.name}
-                        accountID={icon.id}
+                        avatarID={icon.id}
                         fallbackIcon={fallbackIcon}
                     />
                 </View>
