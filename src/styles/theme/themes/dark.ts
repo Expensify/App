@@ -11,7 +11,6 @@ const darkTheme = {
     highlightBG: colors.productDark200,
     border: colors.productDark400,
     borderLighter: colors.productDark400,
-    borderDarker: colors.productDark500,
     borderFocus: colors.green400,
     icon: colors.productDark700,
     iconMenu: colors.green400,

@@ -37,7 +37,7 @@ function useMarkdownStyle(message: string | null = null, excludeStyles: Array<ke
                 fontSize: emojiFontSize,
             },
             blockquote: {
-                borderLeftColor: theme.borderDarker,
+                borderColor: theme.border,
                 borderWidth: 4,
                 marginLeft: 0,
                 paddingLeft: 6,

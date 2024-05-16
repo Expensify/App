@@ -11,7 +11,6 @@ const lightTheme = {
     highlightBG: colors.productLight200,
     border: colors.productLight400,
     borderLighter: colors.productLight400,
-    borderDarker: colors.productLight500,
     borderFocus: colors.green400,
     icon: colors.productLight700,
     iconMenu: colors.green400,

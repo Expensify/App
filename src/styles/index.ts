@@ -173,7 +173,7 @@ const webViewStyles = (theme: ThemeColors) =>
             },
 
             blockquote: {
-                borderLeftColor: theme.borderDarker,
+                borderLeftColor: theme.border,
                 borderLeftWidth: 4,
                 paddingLeft: 12,
                 marginTop: 4,
@@ -3228,7 +3228,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         blockquote: {
-            borderLeftColor: theme.borderDarker,
+            borderLeftColor: theme.border,
             borderLeftWidth: 4,
             paddingLeft: 12,
             marginVertical: 4,

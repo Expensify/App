@@ -14,7 +14,6 @@ type ThemeColors = {
     messageHighlightBG: Color;
     border: Color;
     borderLighter: Color;
-    borderDarker: Color;
     borderFocus: Color;
     icon: Color;
     iconMenu: Color;
