@@ -266,6 +266,7 @@
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-jest": "^28.6.0",
     "eslint-plugin-jsdoc": "^46.2.6",
+    "eslint-plugin-react-compiler": "^0.0.0-experimental-53bb89e-20240515",
     "eslint-plugin-react-native-a11y": "^3.3.0",
     "eslint-plugin-storybook": "^0.8.0",
     "eslint-plugin-testing-library": "^6.2.2",
