@@ -2,6 +2,7 @@ import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as Policy from '@src/libs/actions/Policy/Policy';
+import * as Category from '@src/libs/actions/Policy/Category';
 import ONYXKEYS from '@src/ONYXKEYS';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomPolicyCategories from '../utils/collections/policyCategory';
@@ -29,7 +30,7 @@ describe('actions/PolicyCategory', () => {
             // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
             fetch.pause();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
-            Policy.setWorkspaceRequiresCategory(fakePolicy.id, true);
+            Category.setWorkspaceRequiresCategory(fakePolicy.id, true);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connectionID = Onyx.connect({
@@ -71,7 +72,7 @@ describe('actions/PolicyCategory', () => {
             fetch.pause();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakeCategories);
-            Policy.createPolicyCategory(fakePolicy.id, newCategoryName);
+            Category.createPolicyCategory(fakePolicy.id, newCategoryName);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connectionID = Onyx.connect({
@@ -118,7 +119,7 @@ describe('actions/PolicyCategory', () => {
             fetch.pause();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakeCategories);
-            Policy.renamePolicyCategory(fakePolicy.id, {
+            Category.renamePolicyCategory(fakePolicy.id, {
                 oldName: oldCategoryName,
                 newName: newCategoryName,
             });
@@ -173,7 +174,7 @@ describe('actions/PolicyCategory', () => {
             fetch.pause();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakeCategories);
-            Policy.setWorkspaceCategoryEnabled(fakePolicy.id, categoriesToUpdate);
+            Category.setWorkspaceCategoryEnabled(fakePolicy.id, categoriesToUpdate);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connectionID = Onyx.connect({
