@@ -75,8 +75,11 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
     }, [draftClearAfter, currentUserClearAfter]);
 
     const navigateBackToPreviousScreenTask = useRef<{
-        then: (onfulfilled?: () => any, onrejected?: () => any) => Promise<any>;
-        done: (...args: any[]) => any;
+        then: (
+            onfulfilled?: () => typeof InteractionManager.runAfterInteractions,
+            onrejected?: () => typeof InteractionManager.runAfterInteractions,
+        ) => Promise<typeof InteractionManager.runAfterInteractions>;
+        done: (...args: (typeof InteractionManager.runAfterInteractions)[]) => typeof InteractionManager.runAfterInteractions;
         cancel: () => void;
     } | null>(null);
 
