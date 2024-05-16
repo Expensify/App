@@ -21,6 +21,7 @@ import PromotedActionsBar, {usePromotedActions} from '@components/PromotedAction
 import RoomHeaderAvatars from '@components/RoomHeaderAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -41,7 +42,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
-import Text from '@components/Text';
 
 type ReportDetailsPageMenuItem = {
     key: DeepValueOf<typeof CONST.REPORT_DETAILS_MENU_ITEM>;
@@ -82,7 +82,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const canEditReportDescription = useMemo(() => ReportUtils.canEditReportDescription(report, policy), [report, policy]);
     const shouldShowReportDescription = isChatRoom && (canEditReportDescription || report.description !== '');
     const [isLastMemberLeavingGroupModalVisible, setIsLastMemberLeavingGroupModalVisible] = useState(false);
-    const isPolicy =  isPolicyAdmin || isPolicyEmployee;
+    const isPolicy = isPolicyAdmin || isPolicyEmployee;
 
     // eslint-disable-next-line react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
     const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(report), [report, policy]);
@@ -267,7 +267,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const linkedWorkspace = useMemo(() => Object.values(policies ?? {}).find((pol) => pol && pol.id === report?.policyID) ?? null, [policies, report?.policyID]);
     const shouldDisableRename = useMemo(() => ReportUtils.shouldDisableRename(report, linkedWorkspace), [report, linkedWorkspace]);
 
-    const chatRoomAdminSubtitleText = `${translate('reportDetailsPage.in')  } ${  report.policyName}`;
+    const chatRoomAdminSubtitleText = `${translate('reportDetailsPage.in')} ${report.policyName}`;
 
     const reportName =
         ReportUtils.isDeprecatedGroupDM(report) || ReportUtils.isGroupChat(report)
@@ -330,7 +330,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                             )}
                         </View>
                     </View>
-                    
+
                     <OfflineWithFeedback
                         pendingAction={report?.pendingFields?.reportName}
                         errors={report?.errorFields?.reportName}
