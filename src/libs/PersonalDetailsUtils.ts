@@ -39,7 +39,7 @@ function getDisplayNameOrDefault(passedPersonalDetails?: Partial<PersonalDetails
     // If the displayName starts with the merged account prefix, remove it.
     if (displayName.startsWith(CONST.MERGED_ACCOUNT_PREFIX)) {
         // Remove the merged account prefix from the displayName.
-        displayName = displayName.substring(CONST.MERGED_ACCOUNT_PREFIX.length);
+        displayName = displayName.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     }
 
     // If the displayName is not set by the user, the backend sets the diplayName same as the login so
