@@ -89,9 +89,6 @@ const getDraftMessage = (drafts: OnyxCollection<OnyxTypes.ReportActionsDrafts>, 
 };
 
 type ReportActionItemOnyxProps = {
-    /** Stores user's preferred skin tone */
-    preferredSkinTone: OnyxEntry<string | number>;
-
     /** IOU report for this action, if any */
     iouReport: OnyxEntry<OnyxTypes.Report>;
 
@@ -173,7 +170,6 @@ function ReportActionItem({
     iouReport,
     isMostRecentIOUReportAction,
     parentReportAction,
-    preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE,
     shouldDisplayNewMarker,
     userWallet,
     shouldHideThreadDividerLine = false,
@@ -672,8 +668,6 @@ function ReportActionItem({
                             reportID={report.reportID}
                             index={index}
                             ref={textInputRef}
-                            // Avoid defining within component due to an existing Onyx bug
-                            preferredSkinTone={preferredSkinTone}
                             shouldDisableEmojiPicker={(ReportUtils.chatIncludesConcierge(report) && User.isBlockedFromConcierge(blockedFromConcierge)) || ReportUtils.isArchivedRoom(report)}
                         />
                     )}
@@ -919,12 +913,15 @@ function ReportActionItem({
 
     const hasErrors = !isEmptyObject(action.errors);
     const whisperedTo = ReportActionsUtils.getWhisperedTo(action);
-    const isWhisper = whisperedTo.length > 0;
     const isMultipleParticipant = whisperedTo.length > 1;
-    const isWhisperOnlyVisibleByUser = isWhisper && ReportUtils.isCurrentUserTheOnlyParticipant(whisperedTo);
+
+    const iouReportID = isIOUReport(action) && action.originalMessage.IOUReportID ? action.originalMessage.IOUReportID.toString() : '0';
+    const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(iouReportID);
+    const isWhisper = whisperedTo.length > 0 && transactionsWithReceipts.length === 0 && !action.pendingAction;
     const whisperedToPersonalDetails = isWhisper
         ? (Object.values(personalDetails ?? {}).filter((details) => whisperedTo.includes(details?.accountID ?? -1)) as OnyxTypes.PersonalDetails[])
         : [];
+    const isWhisperOnlyVisibleByUser = isWhisper && ReportUtils.isCurrentUserTheOnlyParticipant(whisperedTo);
     const displayNamesWithTooltips = isWhisper ? ReportUtils.getDisplayNamesWithTooltips(whisperedToPersonalDetails, isMultipleParticipant) : [];
 
     return (
@@ -1016,10 +1013,6 @@ function ReportActionItem({
 }
 
 export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
-    preferredSkinTone: {
-        key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
-        initialValue: CONST.EMOJI_DEFAULT_SKIN_TONE,
-    },
     iouReport: {
         key: ({action}) => {
             const iouReportID = ReportActionsUtils.getIOUReportIDFromReportActionPreview(action);
