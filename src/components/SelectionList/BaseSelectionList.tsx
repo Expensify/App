@@ -131,7 +131,7 @@ function BaseSelectionList<TItem extends ListItem>(
 
                 // If disabled, add to the disabled indexes array
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                if (!!section.isDisabled || item.isDisabled || item.isDisabledCheckbox) {
+                if (!!section.isDisabled || (item.isDisabled && !item.isSelected) || item.isDisabledCheckbox) {
                     disabledOptionsIndexes.push(disabledIndex);
                 }
                 disabledIndex += 1;
@@ -171,7 +171,7 @@ function BaseSelectionList<TItem extends ListItem>(
     }, [canSelectMultiple, sections]);
 
     const [slicedSections, ShowMoreButtonInstance] = useMemo(() => {
-        let remainingOptionsLimit = CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * currentPage;
+        let remainingOptionsLimit = CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage;
         const processedSections = getSectionsWithIndexOffset(
             sections.map((section) => {
                 const data = !isEmpty(section.data) && remainingOptionsLimit > 0 ? section.data.slice(0, remainingOptionsLimit) : [];
@@ -184,11 +184,11 @@ function BaseSelectionList<TItem extends ListItem>(
             }),
         );
 
-        const shouldShowMoreButton = flattenedSections.allOptions.length > CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * currentPage;
+        const shouldShowMoreButton = flattenedSections.allOptions.length > CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage;
         const showMoreButton = shouldShowMoreButton ? (
             <ShowMoreButton
                 containerStyle={[styles.mt2, styles.mb5]}
-                currentCount={CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * currentPage}
+                currentCount={CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage}
                 totalCount={flattenedSections.allOptions.length}
                 onPress={incrementPage}
             />
@@ -229,7 +229,7 @@ function BaseSelectionList<TItem extends ListItem>(
     // If `initiallyFocusedOptionKey` is not passed, we fall back to `-1`, to avoid showing the highlight on the first member
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: flattenedSections.allOptions.findIndex((option) => option.keyForList === initiallyFocusedOptionKey),
-        maxIndex: Math.min(flattenedSections.allOptions.length - 1, CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * currentPage - 1),
+        maxIndex: Math.min(flattenedSections.allOptions.length - 1, CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage - 1),
         disabledIndexes: flattenedSections.disabledOptionsIndexes,
         isActive: true,
         onFocusedIndexChange: (index: number) => {
@@ -277,7 +277,7 @@ function BaseSelectionList<TItem extends ListItem>(
     const selectFocusedOption = () => {
         const focusedOption = flattenedSections.allOptions[focusedIndex];
 
-        if (!focusedOption || focusedOption.isDisabled) {
+        if (!focusedOption || (focusedOption.isDisabled && !focusedOption.isSelected)) {
             return;
         }
 
@@ -331,7 +331,7 @@ function BaseSelectionList<TItem extends ListItem>(
             // we need to know the heights of all list items up-front in order to synchronously compute the layout of any given list item.
             // So be aware that if you adjust the content of the section header (for example, change the font size), you may need to adjust this explicit height as well.
             <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter, sectionTitleStyles]}>
-                <Text style={[styles.ph4, styles.textLabelSupporting]}>{section.title}</Text>
+                <Text style={[styles.ph5, styles.textLabelSupporting]}>{section.title}</Text>
             </View>
         );
     };
@@ -339,7 +339,7 @@ function BaseSelectionList<TItem extends ListItem>(
     const renderItem = ({item, index, section}: SectionListRenderItemInfo<TItem, SectionWithIndexOffset<TItem>>) => {
         const normalizedIndex = index + (section?.indexOffset ?? 0);
         const isDisabled = !!section.isDisabled || item.isDisabled;
-        const isItemFocused = !isDisabled && (focusedIndex === normalizedIndex || itemsToHighlight?.has(item.keyForList ?? ''));
+        const isItemFocused = (!isDisabled || item.isSelected) && (focusedIndex === normalizedIndex || itemsToHighlight?.has(item.keyForList ?? ''));
         // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
         const showTooltip = shouldShowTooltips && normalizedIndex < 10;
 
@@ -515,9 +515,9 @@ function BaseSelectionList<TItem extends ListItem>(
     return (
         <SafeAreaConsumer>
             {({safeAreaPaddingBottomStyle}) => (
-                <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
+                <View style={[styles.flex1, (!isKeyboardShown || !!footerContent || showConfirmButton) && safeAreaPaddingBottomStyle, containerStyle]}>
                     {shouldShowTextInput && (
-                        <View style={[styles.ph4, styles.pb3]}>
+                        <View style={[styles.ph5, styles.pb3]}>
                             <TextInput
                                 ref={(element) => {
                                     innerTextInputRef.current = element as RNTextInput;

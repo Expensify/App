@@ -19,9 +19,9 @@ import getIconForAction from '@libs/getIconForAction';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import type {CentralPaneName, NavigationPartialRoute, RootStackParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import {isArchivedRoom} from '@libs/ReportUtils';
 import * as App from '@userActions/App';
 import * as IOU from '@userActions/IOU';
 import * as Policy from '@userActions/Policy';
@@ -41,7 +41,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 const useIsFocused = () => {
     const {isSmallScreenWidth} = useWindowDimensions();
     const isFocused = useIsFocusedOriginal();
-    const topmostCentralPane = useNavigationState(getTopmostCentralPaneRoute);
+    const topmostCentralPane = useNavigationState<RootStackParamList, NavigationPartialRoute<CentralPaneName> | undefined>(getTopmostCentralPaneRoute);
     return isFocused || (topmostCentralPane?.name === SCREENS.SEARCH.CENTRAL_PANE && isSmallScreenWidth);
 };
 
@@ -144,7 +144,7 @@ const getQuickActionTitle = (action: QuickActionName): TranslationPaths => {
         case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
             return 'quickAction.trackDistance';
         case CONST.QUICK_ACTIONS.SEND_MONEY:
-            return 'quickAction.sendMoney';
+            return 'quickAction.paySomeone';
         case CONST.QUICK_ACTIONS.ASSIGN_TASK:
             return 'quickAction.assignTask';
         default:
@@ -175,7 +175,6 @@ function FloatingActionButtonAndPopover(
     const {translate} = useLocalize();
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
     const fabRef = useRef<HTMLDivElement>(null);
-    const {canUseTrackExpense} = usePermissions();
     const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
     const isFocused = useIsFocused();
     const prevIsFocused = usePrevious(isFocused);
@@ -195,12 +194,30 @@ function FloatingActionButtonAndPopover(
     }, [personalDetails, session?.accountID, quickActionReport, quickActionPolicy]);
 
     const quickActionTitle = useMemo(() => {
+        if (isEmptyObject(quickActionReport)) {
+            return '';
+        }
+        if (quickAction?.action === CONST.QUICK_ACTIONS.SEND_MONEY && quickActionAvatars.length > 0) {
+            const name: string = ReportUtils.getDisplayNameForParticipant(+(quickActionAvatars[0]?.id ?? 0), true) ?? '';
+            return translate('quickAction.paySomeone', {name});
+        }
         const titleKey = getQuickActionTitle(quickAction?.action ?? ('' as QuickActionName));
         return titleKey ? translate(titleKey) : '';
-    }, [quickAction, translate]);
+    }, [quickAction, translate, quickActionAvatars, quickActionReport]);
+
+    const hideQABSubtitle = useMemo(() => {
+        if (isEmptyObject(quickActionReport)) {
+            return true;
+        }
+        if (quickActionAvatars.length === 0) {
+            return false;
+        }
+        const displayName = personalDetails?.[quickActionAvatars[0]?.id ?? 0]?.firstName ?? '';
+        return quickAction?.action === CONST.QUICK_ACTIONS.SEND_MONEY && displayName.length === 0;
+    }, [personalDetails, quickActionReport, quickAction?.action, quickActionAvatars]);
 
     const navigateToQuickAction = () => {
-        const isValidReport = !(isEmptyObject(quickActionReport) || isArchivedRoom(quickActionReport));
+        const isValidReport = !(isEmptyObject(quickActionReport) || ReportUtils.isArchivedRoom(quickActionReport));
         const quickActionReportID = isValidReport ? quickActionReport?.reportID ?? '' : ReportUtils.generateReportID();
         switch (quickAction?.action) {
             case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
@@ -322,7 +339,7 @@ function FloatingActionButtonAndPopover(
                         text: translate('sidebarScreen.fabNewChat'),
                         onSelected: () => interceptAnonymousUser(Report.startNewChat),
                     },
-                    ...(canUseTrackExpense && selfDMReportID
+                    ...(selfDMReportID
                         ? [
                               {
                                   icon: getIconForAction(CONST.IOU.TYPE.TRACK),
@@ -439,7 +456,7 @@ function FloatingActionButtonAndPopover(
                                   isLabelHoverable: false,
                                   floatRightAvatars: quickActionAvatars,
                                   floatRightAvatarSize: CONST.AVATAR_SIZE.SMALL,
-                                  description: ReportUtils.getReportName(quickActionReport) ?? translate('quickAction.updateDestination'),
+                                  description: !hideQABSubtitle ? ReportUtils.getReportName(quickActionReport) ?? translate('quickAction.updateDestination') : '',
                                   numberOfLinesDescription: 1,
                                   onSelected: () => interceptAnonymousUser(() => navigateToQuickAction()),
                                   shouldShowSubscriptRightAvatar: ReportUtils.isPolicyExpenseChat(quickActionReport),

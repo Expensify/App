@@ -36,7 +36,7 @@ import CONST from '@src/CONST';
 import type {IOUMessage} from '@src/types/onyx/OriginalMessage';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {MoneyRequestPreviewProps} from './types';
+import type {MoneyRequestPreviewProps, PendingMessageProps} from './types';
 
 function MoneyRequestPreviewContent({
     iouReport,
@@ -95,7 +95,6 @@ function MoneyRequestPreviewContent({
     const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
     const isSettled = ReportUtils.isSettled(iouReport?.reportID);
     const isDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    const hasPendingUI = TransactionUtils.hasPendingUI(transaction, TransactionUtils.getTransactionViolations(transaction?.transactionID ?? '', transactionViolations));
     const isFullySettled = isSettled && !isSettlementOrApprovalPartial;
     const isFullyApproved = ReportUtils.isReportApproved(iouReport) && !isSettlementOrApprovalPartial;
     const shouldShowRBR = hasNoticeTypeViolations || hasViolations || hasFieldErrors || (!isFullySettled && !isFullyApproved && isOnHold);
@@ -145,14 +144,6 @@ function MoneyRequestPreviewContent({
             message = translate('iou.split');
         }
 
-        if (isCardTransaction) {
-            message = translate('iou.card');
-            if (TransactionUtils.isPending(transaction)) {
-                message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.pending')}`;
-                return message;
-            }
-        }
-
         if (isSettled && !iouReport?.isCancelledIOU && !isPartialHold) {
             message += ` ${CONST.DOT_SEPARATOR} ${getSettledMessage()}`;
             return message;
@@ -184,8 +175,6 @@ function MoneyRequestPreviewContent({
             message += ` • ${translate('violations.reviewRequired')}`;
         } else if (ReportUtils.isPaidGroupPolicyExpenseReport(iouReport) && ReportUtils.isReportApproved(iouReport) && !ReportUtils.isSettled(iouReport?.reportID) && !isPartialHold) {
             message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.approved')}`;
-        } else if (iouReport?.isWaitingOnBankAccount) {
-            message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.pending')}`;
         } else if (iouReport?.isCancelledIOU) {
             message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
         } else if (!(isSettled && !isSettlementOrApprovalPartial) && isOnHold) {
@@ -193,6 +182,21 @@ function MoneyRequestPreviewContent({
         }
         return message;
     };
+
+    const getPendingMessageProps: () => PendingMessageProps = () => {
+        if (isScanning) {
+            return {shouldShow: true, messageIcon: ReceiptScan, messageDescription: translate('iou.receiptScanInProgress')};
+        }
+        if (TransactionUtils.isPending(transaction)) {
+            return {shouldShow: true, messageIcon: Expensicons.CreditCardHourglass, messageDescription: translate('iou.transactionPending')};
+        }
+        if (TransactionUtils.hasPendingUI(transaction, TransactionUtils.getTransactionViolations(transaction?.transactionID ?? '', transactionViolations))) {
+            return {shouldShow: true, messageIcon: Expensicons.Hourglass, messageDescription: translate('iou.pendingMatchWithCreditCard')};
+        }
+        return {shouldShow: false};
+    };
+
+    const pendingMessageProps = getPendingMessageProps();
 
     const getDisplayAmountText = (): string => {
         if (isScanning) {
@@ -322,28 +326,15 @@ function MoneyRequestPreviewContent({
                                                 </Text>
                                             )}
                                         </View>
-                                        {isScanning && (
+                                        {pendingMessageProps.shouldShow && (
                                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
                                                 <Icon
-                                                    src={ReceiptScan}
+                                                    src={pendingMessageProps.messageIcon}
                                                     height={variables.iconSizeExtraSmall}
                                                     width={variables.iconSizeExtraSmall}
-                                                    fill={theme.textSupporting}
+                                                    fill={theme.icon}
                                                 />
-                                                <Text style={[styles.textLabel, styles.colorMuted, styles.ml1, styles.amountSplitPadding]}>{translate('iou.receiptScanInProgress')}</Text>
-                                            </View>
-                                        )}
-                                        {!isScanning && hasPendingUI && (
-                                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
-                                                <Icon
-                                                    src={Expensicons.Hourglass}
-                                                    height={variables.iconSizeExtraSmall}
-                                                    width={variables.iconSizeExtraSmall}
-                                                    fill={theme.textSupporting}
-                                                />
-                                                <Text style={[styles.textLabel, styles.colorMuted, styles.ml1, styles.amountSplitPadding]}>
-                                                    {translate('iou.pendingMatchWithCreditCard')}
-                                                </Text>
+                                                <Text style={[styles.textMicroSupporting, styles.ml1, styles.amountSplitPadding]}>{pendingMessageProps.messageDescription}</Text>
                                             </View>
                                         )}
                                     </View>

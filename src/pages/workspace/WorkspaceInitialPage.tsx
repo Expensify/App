@@ -20,7 +20,7 @@ import usePrevious from '@hooks/usePrevious';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
-import getTopmostWorkspacesCentralPaneName from '@libs/Navigation/getTopmostWorkspacesCentralPaneName';
+import getTopmostRouteName from '@libs/Navigation/getTopmostRouteName';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
@@ -34,6 +34,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -75,19 +76,23 @@ type WorkspaceInitialPageProps = WithPolicyAndFullscreenLoadingProps & Workspace
 
 type PolicyFeatureStates = Record<PolicyFeatureName, boolean>;
 
-function dismissError(policyID: string) {
-    PolicyUtils.goBackFromInvalidPolicy();
-    Policy.removeWorkspace(policyID);
+function dismissError(policyID: string, pendingAction: PendingAction | undefined) {
+    if (!policyID || pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+        PolicyUtils.goBackFromInvalidPolicy();
+        Policy.removeWorkspace(policyID);
+    } else {
+        Policy.clearErrors(policyID);
+    }
 }
 
 function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAccount, policyCategories}: WorkspaceInitialPageProps) {
     const styles = useThemeStyles();
     const policy = policyDraft?.id ? policyDraft : policyProp;
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
-    const hasPolicyCreationError = !!(policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && policy.errors);
+    const hasPolicyCreationError = !!(policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(policy.errors));
     const waitForNavigate = useWaitForNavigation();
     const {singleExecution, isExecuting} = useSingleExecution();
-    const activeRoute = useNavigationState(getTopmostWorkspacesCentralPaneName);
+    const activeRoute = useNavigationState(getTopmostRouteName);
     const {translate} = useLocalize();
     const {canUseAccountingIntegrations} = usePermissions();
     const {isOffline} = useNetwork();
@@ -340,7 +345,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
                 <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween]}>
                     <OfflineWithFeedback
                         pendingAction={policy?.pendingAction}
-                        onClose={() => dismissError(policyID)}
+                        onClose={() => dismissError(policyID, policy?.pendingAction)}
                         errors={policy?.errors}
                         errorRowStyles={[styles.ph5, styles.pv2]}
                         shouldDisableStrikeThrough={false}

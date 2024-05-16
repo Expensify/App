@@ -1,3 +1,4 @@
+import type {ReactNode} from 'react';
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -19,12 +20,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportAction, ReportActions, Session, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
+import type IconAsset from '@src/types/utils/IconAsset';
 import Button from './Button';
 import ConfirmModal from './ConfirmModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import {ReceiptScan} from './Icon/Expensicons';
+import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusBar';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import ProcessMoneyRequestHoldMenu from './ProcessMoneyRequestHoldMenu';
 
@@ -65,6 +67,7 @@ type MoneyRequestHeaderProps = MoneyRequestHeaderOnyxProps & {
     /** Method to trigger when pressing close button of the header */
     onBackButtonPress: () => void;
 };
+
 function MoneyRequestHeader({
     session,
     parentReport,
@@ -92,7 +95,7 @@ function MoneyRequestHeader({
     const isActionOwner = typeof parentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && parentReportAction.actorAccountID === session?.accountID;
     const isPolicyAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isApprover = ReportUtils.isMoneyRequestReport(moneyRequestReport) && moneyRequestReport?.managerID !== null && session?.accountID === moneyRequestReport?.managerID;
-    const hasAllPendingRTERViolations = TransactionUtils.hasAllPendingRTERViolations([transaction?.transactionID ?? '']);
+    const hasAllPendingRTERViolations = TransactionUtils.allHavePendingRTERViolation([transaction?.transactionID ?? '']);
 
     const deleteTransaction = useCallback(() => {
         if (parentReportAction) {
@@ -126,20 +129,32 @@ function MoneyRequestHeader({
         }
     };
 
-    const getPendingType = () => {
+    const getStatusIcon: (src: IconAsset) => ReactNode = (src) => (
+        <Icon
+            src={src}
+            height={variables.iconSizeSmall}
+            width={variables.iconSizeSmall}
+            fill={theme.icon}
+        />
+    );
+
+    const getStatusBarProps: () => MoneyRequestHeaderStatusBarProps | undefined = () => {
+        if (isOnHold) {
+            return {title: translate('iou.hold'), description: translate('iou.expenseOnHold'), danger: true, shouldShowBorderBottom: true};
+        }
+
         if (TransactionUtils.isExpensifyCardTransaction(transaction) && TransactionUtils.isPending(transaction)) {
-            return {pendingType: 'PENDING', pendingTitle: translate('iou.pending'), pendingDescription: translate('iou.transactionPendingText')};
+            return {title: getStatusIcon(Expensicons.CreditCardHourglass), description: translate('iou.transactionPendingDescription'), shouldShowBorderBottom: true};
         }
         if (isScanning) {
-            return {pendingType: 'SCANNING', pendingTitle: ReceiptScan, pendingDescription: translate('iou.receiptScanInProgressDescription')};
+            return {title: getStatusIcon(Expensicons.ReceiptScan), description: translate('iou.receiptScanInProgressDescription'), shouldShowBorderBottom: true};
         }
         if (TransactionUtils.hasPendingRTERViolation(TransactionUtils.getTransactionViolations(transaction?.transactionID ?? '', transactionViolations))) {
-            return {pendingType: 'RTER', pendingTitle: Expensicons.Hourglass, pendingDescription: translate('iou.pendingMatchWithCreditCardDescription')};
+            return {title: getStatusIcon(Expensicons.Hourglass), description: translate('iou.pendingMatchWithCreditCardDescription'), shouldShowBorderBottom: !hasAllPendingRTERViolations};
         }
-        return {};
     };
 
-    const {pendingType, pendingTitle, pendingDescription} = getPendingType();
+    const statusBarProps = getStatusBarProps();
 
     useEffect(() => {
         if (canDeleteRequest) {
@@ -165,7 +180,7 @@ function MoneyRequestHeader({
         if (!isOnHold && (isRequestIOU || canModifyStatus) && !isScanning) {
             threeDotsMenuItems.push({
                 icon: Expensicons.Stopwatch,
-                text: translate('iou.holdExpense'),
+                text: translate('iou.hold'),
                 onSelected: () => changeMoneyRequestStatus(),
             });
         }
@@ -205,7 +220,7 @@ function MoneyRequestHeader({
         <>
             <View style={[styles.pl0]}>
                 <HeaderWithBackButton
-                    shouldShowBorderBottom={!pendingType && !isOnHold}
+                    shouldShowBorderBottom={!statusBarProps && !isOnHold}
                     shouldShowReportAvatarWithDisplay
                     shouldEnableDetailPageNavigation
                     shouldShowPinButton={false}
@@ -220,31 +235,12 @@ function MoneyRequestHeader({
                     shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={onBackButtonPress}
                 />
-                {pendingType && (
+                {statusBarProps && (
                     <MoneyRequestHeaderStatusBar
-                        title={
-                            typeof pendingTitle === 'string' ? (
-                                pendingTitle
-                            ) : (
-                                <Icon
-                                    src={pendingTitle}
-                                    height={variables.iconSizeSmall}
-                                    width={variables.iconSizeSmall}
-                                    fill={theme.textSupporting}
-                                />
-                            )
-                        }
-                        description={pendingDescription}
-                        shouldShowBorderBottom={!isOnHold && !hasAllPendingRTERViolations}
-                        additionalViewStyle={[styles.mr2]}
-                    />
-                )}
-                {isOnHold && (
-                    <MoneyRequestHeaderStatusBar
-                        title={translate('iou.hold')}
-                        description={translate('iou.expenseOnHold')}
-                        shouldShowBorderBottom
-                        danger
+                        title={statusBarProps.title}
+                        description={statusBarProps.description}
+                        danger={statusBarProps.danger}
+                        shouldShowBorderBottom={statusBarProps.shouldShowBorderBottom}
                     />
                 )}
                 {hasAllPendingRTERViolations && (
