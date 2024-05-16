@@ -1,7 +1,5 @@
 import {useEffect, useRef, useState} from 'react';
 import {Dimensions} from 'react-native';
-import getPlatform from '@libs/getPlatform';
-import CONST from '@src/CONST';
 import useSafeAreaInsets from './useSafeAreaInsets';
 import useThemeStyles from './useThemeStyles';
 import useWindowDimensions from './useWindowDimensions';
@@ -15,14 +13,12 @@ function useSubmitButtonVisibility() {
     const initialWindowHeightRef = useRef(windowHeight);
     const isSmallScreenWidthRef = useRef(isSmallScreenWidth);
     const {bottom} = useSafeAreaInsets();
-    const platform = getPlatform();
-    const isNative = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
 
     // Web: the submit button is shown when the height of the window is the same or greater,
     // otherwise it's hidden
     useEffect(() => {
         const dimensionsListener = Dimensions.addEventListener('change', ({window}) => {
-            if (platform !== CONST.PLATFORM.WEB || !isSmallScreenWidthRef.current) {
+            if (!isSmallScreenWidthRef.current) {
                 return;
             }
 
@@ -40,21 +36,11 @@ function useSubmitButtonVisibility() {
 
     // Web: the submit button is only shown when the window height is the same or greater,
     // so executing this function won't do anything
-    const showSubmitButton = () => {
-        if (!isNative) {
-            return;
-        }
-        setIsSubmitButtonVisible(true);
-    };
+    const showSubmitButton = () => {};
 
     // Web: the submit button is only hidden when the window height becomes smaller,
     // so executing this function won't do anything
-    const hideSubmitButton = () => {
-        if (!isNative) {
-            return;
-        }
-        setIsSubmitButtonVisible(false);
-    };
+    const hideSubmitButton = () => {};
 
     // When the submit button is hidden there's a need to manually
     // add its bottom style to the FormProvider style prop,
