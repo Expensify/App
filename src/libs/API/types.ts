@@ -196,6 +196,7 @@ const WRITE_COMMANDS = {
     DECLINE_JOIN_REQUEST: 'DeclineJoinRequest',
     CREATE_POLICY_TAX: 'CreatePolicyTax',
     UPDATE_POLICY_CONNECTION_CONFIG: 'UpdatePolicyConnectionConfiguration',
+    UPDATE_MANY_POLICY_CONNECTION_CONFIGS: 'UpdateManyPolicyConnectionConfigurations',
     REMOVE_POLICY_CONNECTION: 'RemovePolicyConnection',
     SET_POLICY_TAXES_ENABLED: 'SetPolicyTaxesEnabled',
     DELETE_POLICY_TAXES: 'DeletePolicyTaxes',
@@ -216,6 +217,7 @@ const WRITE_COMMANDS = {
     LEAVE_POLICY: 'LeavePolicy',
     ACCEPT_SPOTNANA_TERMS: 'AcceptSpotnanaTerms',
     SEND_INVOICE: 'SendInvoice',
+    MARK_AS_CASH: 'MarkAsCash',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -421,6 +423,7 @@ type WriteCommandParameters = {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIG]: Parameters.UpdatePolicyConnectionConfigParams;
+    [WRITE_COMMANDS.UPDATE_MANY_POLICY_CONNECTION_CONFIGS]: Parameters.UpdateManyPolicyConnectionConfigurationsParams;
     [WRITE_COMMANDS.REMOVE_POLICY_CONNECTION]: Parameters.RemovePolicyConnectionParams;
     [WRITE_COMMANDS.UPDATE_POLICY_DISTANCE_RATE_VALUE]: Parameters.UpdatePolicyDistanceRateValueParams;
     [WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_ENABLED]: Parameters.SetPolicyDistanceRatesEnabledParams;
@@ -432,6 +435,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.LEAVE_POLICY]: Parameters.LeavePolicyParams;
     [WRITE_COMMANDS.ACCEPT_SPOTNANA_TERMS]: EmptyObject;
     [WRITE_COMMANDS.SEND_INVOICE]: Parameters.SendInvoiceParams;
+    [WRITE_COMMANDS.MARK_AS_CASH]: Parameters.MarkAsCashParams;
 };
 
 const READ_COMMANDS = {

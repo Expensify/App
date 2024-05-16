@@ -76,7 +76,9 @@ type ExpensifyOnyxProps = {
 
 type ExpensifyProps = ExpensifyOnyxProps;
 
-const SplashScreenHiddenContext = React.createContext({});
+type SplashScreenHiddenContextType = {isSplashHidden?: boolean};
+
+const SplashScreenHiddenContext = React.createContext<SplashScreenHiddenContextType>({});
 
 function Expensify({
     isCheckingPublicRoom = true,
@@ -140,8 +142,10 @@ function Expensify({
         // Initialize this client as being an active client
         ActiveClientManager.init();
 
-        // Used for the offline indicator appearing when someone is offline
-        NetworkConnection.subscribeToNetInfo();
+        // Used for the offline indicator appearing when someone is offline or backend is unreachable
+        const unsubscribeNetworkStatus = NetworkConnection.subscribeToNetworkStatus();
+
+        return () => unsubscribeNetworkStatus();
     }, []);
 
     useEffect(() => {
