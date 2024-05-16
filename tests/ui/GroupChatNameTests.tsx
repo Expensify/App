@@ -1,20 +1,18 @@
 /* eslint-disable testing-library/no-node-access */
 import type * as NativeNavigation from '@react-navigation/native';
-import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
+import {act, render, screen, waitFor} from '@testing-library/react-native';
 import React from 'react';
-import {Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
-import type Animated from 'react-native-reanimated';
 import * as Localize from '@libs/Localize';
 import * as AppActions from '@userActions/App';
 import * as User from '@userActions/User';
 import App from '@src/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import appSetup from '@src/setup';
 import type {Participant} from '@src/types/onyx/Report';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
+import {navigateToSidebarOption} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -54,9 +52,8 @@ type ListenerMock = {
  * The reason we need this is because we need to trigger the transitionEnd event in our tests to simulate
  * the transitionEnd event that is triggered when the screen transition animation is completed.
  *
- * P.S: This can't be moved to a utils file because Jest wants any external function to stay in the scope.
- *
- * @returns An object with two functions: triggerTransitionEnd and addListener
+ * This can't be moved to a utils file because Jest wants any external function to stay in the scope.
+ * Details: https://github.com/jestjs/jest/issues/2567
  */
 const createAddListenerMock = (): ListenerMock => {
     const transitionEndListeners: Array<() => void> = [];
@@ -102,24 +99,8 @@ jest.mock('@react-navigation/native', () => {
 });
 
 beforeAll(() => {
-    // In this test, we are generically mocking the responses of all API requests by mocking fetch() and having it
-    // return 200. In other tests, we might mock HttpUtils.xhr() with a more specific mock data response (which means
-    // fetch() never gets called so it does not need mocking) or we might have fetch throw an error to test error handling
-    // behavior. But here we just want to treat all API requests as a generic "success" and in the cases where we need to
-    // simulate data arriving we will just set it into Onyx directly with Onyx.merge() or Onyx.set() etc.
-    // @ts-expect-error -- TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated
-    global.fetch = TestHelper.getGlobalFetchMock();
-
-    Linking.setInitialURL('https://new.expensify.com/');
-    appSetup();
+    TestHelper.beforeAllSetupUITests()
 });
-
-async function navigateToSidebarOption(index: number): Promise<void> {
-    const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
-    const optionRows = screen.queryAllByAccessibilityHint(hintText);
-    fireEvent(optionRows[index], 'press');
-    await waitForBatchedUpdatesWithAct();
-}
 
 const REPORT_ID = '1';
 const USER_A_ACCOUNT_ID = 1;
@@ -144,7 +125,7 @@ const USER_H_EMAIL = 'user_h@test.com';
  */
 function signInAndGetApp(reportName = '', participantAccountIDs?: number[]): Promise<void> {
     // Render the App and sign in as a test user.
-    render(<App />);
+    render(<App/>);
 
     const participants: Record<number, Participant> = {};
     participantAccountIDs?.forEach((id) => {

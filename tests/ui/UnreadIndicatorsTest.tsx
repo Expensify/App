@@ -13,22 +13,19 @@ import DateUtils from '@libs/DateUtils';
 import * as Localize from '@libs/Localize';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import * as NumberUtils from '@libs/NumberUtils';
-import * as Pusher from '@libs/Pusher/pusher';
-import PusherConnectionManager from '@libs/PusherConnectionManager';
 import FontUtils from '@styles/utils/FontUtils';
 import * as AppActions from '@userActions/App';
 import * as Report from '@userActions/Report';
 import * as User from '@userActions/User';
 import App from '@src/App';
-import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import appSetup from '@src/setup';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
+import {navigateToSidebarOption} from "../utils/TestHelper";
 
 // We need a large timeout here as we are lazy loading React Navigation screens and this test is running against the entire mounted App
 jest.setTimeout(30000);
@@ -114,24 +111,7 @@ jest.mock('@react-navigation/native', () => {
 });
 
 beforeAll(() => {
-    // In this test, we are generically mocking the responses of all API requests by mocking fetch() and having it
-    // return 200. In other tests, we might mock HttpUtils.xhr() with a more specific mock data response (which means
-    // fetch() never gets called so it does not need mocking) or we might have fetch throw an error to test error handling
-    // behavior. But here we just want to treat all API requests as a generic "success" and in the cases where we need to
-    // simulate data arriving we will just set it into Onyx directly with Onyx.merge() or Onyx.set() etc.
-    // @ts-expect-error -- TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated
-    global.fetch = TestHelper.getGlobalFetchMock();
-
-    Linking.setInitialURL('https://new.expensify.com/');
-    appSetup();
-
-    // Connect to Pusher
-    PusherConnectionManager.init();
-    Pusher.init({
-        appKey: CONFIG.PUSHER.APP_KEY,
-        cluster: CONFIG.PUSHER.CLUSTER,
-        authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
-    });
+    TestHelper.beforeAllSetupUITests(true)
 });
 
 function scrollUpToRevealNewMessagesBadge() {
@@ -168,13 +148,6 @@ function navigateToSidebar(): Promise<void> {
         fireEvent(reportHeaderBackButton, 'press');
     }
     return waitForBatchedUpdates();
-}
-
-async function navigateToSidebarOption(index: number): Promise<void> {
-    const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
-    const optionRows = screen.queryAllByAccessibilityHint(hintText);
-    fireEvent(optionRows[index], 'press');
-    await waitForBatchedUpdatesWithAct();
 }
 
 function areYouOnChatListScreen(): boolean {
