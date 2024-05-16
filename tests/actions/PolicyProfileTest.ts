@@ -48,7 +48,7 @@ describe('actions/PolicyProfile', () => {
                     },
                 });
             });
-            await mockFetch.resume?.();
+            await mockFetch.resume();
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connectionID = Onyx.connect({

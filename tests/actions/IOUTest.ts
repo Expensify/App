@@ -461,7 +461,7 @@ describe('actions/IOU', () => {
             };
             let newIOUAction: OnyxEntry<OnyxTypes.ReportAction>;
             let newTransaction: OnyxEntry<OnyxTypes.Transaction>;
-            mockFetch.pause?.();
+            mockFetch.pause();
             return Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, chatReport)
                 .then(() => Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport))
                 .then(() =>
@@ -1592,7 +1592,7 @@ describe('actions/IOU', () => {
         const merchant = 'NASDAQ';
 
         afterEach(() => {
-            mockFetch.resume?.();
+            mockFetch.resume();
         });
 
         it('updates the IOU request and IOU report when offline', () => {
@@ -1744,7 +1744,7 @@ describe('actions/IOU', () => {
                         }),
                 )
                 .then(() => {
-                    mockFetch.resume?.();
+                    mockFetch.resume();
                 });
         });
 
@@ -1903,7 +1903,7 @@ describe('actions/IOU', () => {
         const merchant = 'NASDAQ';
 
         afterEach(() => {
-            mockFetch.resume?.();
+            mockFetch.resume();
         });
 
         it('updates the expense request and expense report when paid while offline', () => {
@@ -2256,7 +2256,7 @@ describe('actions/IOU', () => {
             expect(t).toBeFalsy();
 
             // Given fetch operations are resumed
-            mockFetch.resume?.();
+            mockFetch.resume();
             await waitForBatchedUpdates();
 
             // Then we recheck the IOU report action from the report actions collection
@@ -2314,7 +2314,7 @@ describe('actions/IOU', () => {
             expect(report).toBeTruthy();
 
             // Given the resumed fetch state
-            mockFetch.resume?.();
+            mockFetch.resume();
             await waitForBatchedUpdates();
 
             report = await new Promise<OnyxEntry<OnyxTypes.Report>>((resolve) => {
@@ -2392,7 +2392,7 @@ describe('actions/IOU', () => {
             expect(iouReport).toHaveProperty('chatReportID');
 
             // Given the resumed fetch state
-            mockFetch.resume?.();
+            mockFetch.resume();
 
             allReports = await new Promise<OnyxCollection<OnyxTypes.Report>>((resolve) => {
                 const connectionID = Onyx.connect({
@@ -2478,7 +2478,7 @@ describe('actions/IOU', () => {
             });
 
             expect(report).toBeFalsy();
-            mockFetch.resume?.();
+            mockFetch.resume();
 
             // Then After resuming fetch, the report for the given thread ID still does not exist
             report = await new Promise<OnyxEntry<OnyxTypes.Report>>((resolve) => {
@@ -2669,7 +2669,7 @@ describe('actions/IOU', () => {
 
             // When fetch resumes
             // Then the transaction thread report should still exist
-            mockFetch.resume?.();
+            mockFetch.resume();
             await new Promise<void>((resolve) => {
                 const connectionID = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
@@ -2815,7 +2815,7 @@ describe('actions/IOU', () => {
             });
 
             // When we resume fetch
-            mockFetch.resume?.();
+            mockFetch.resume();
 
             // Then we expect the moneyRequestPreview to show [Deleted expense]
 
@@ -2879,7 +2879,7 @@ describe('actions/IOU', () => {
             expect(iouReport?.total).toBe(20000);
 
             // When we resume
-            mockFetch.resume?.();
+            mockFetch.resume();
 
             // Then we expect the IOU report and reportPreview to update with new totals
             expect(iouReport).toBeTruthy();
@@ -2980,7 +2980,7 @@ describe('actions/IOU', () => {
             expect(iouReport).toHaveProperty('reportID');
             expect(iouReport).toHaveProperty('chatReportID');
 
-            mockFetch.resume?.();
+            mockFetch.resume();
 
             allReports = await new Promise<OnyxCollection<OnyxTypes.Report>>((resolve) => {
                 const connectionID = Onyx.connect({

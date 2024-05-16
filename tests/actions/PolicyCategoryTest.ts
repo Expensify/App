@@ -46,7 +46,7 @@ describe('actions/PolicyCategory', () => {
                     },
                 });
             });
-            await mockFetch.resume?.();
+            await mockFetch.resume();
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connectionID = Onyx.connect({
@@ -87,7 +87,7 @@ describe('actions/PolicyCategory', () => {
                     },
                 });
             });
-            await mockFetch.resume?.();
+            await mockFetch.resume();
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connectionID = Onyx.connect({
@@ -136,7 +136,7 @@ describe('actions/PolicyCategory', () => {
                     },
                 });
             });
-            await mockFetch.resume?.();
+            await mockFetch.resume();
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connectionID = Onyx.connect({
@@ -185,7 +185,7 @@ describe('actions/PolicyCategory', () => {
                     },
                 });
             });
-            await mockFetch.resume?.();
+            await mockFetch.resume();
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connectionID = Onyx.connect({
@@ -227,7 +227,7 @@ describe('actions/PolicyCategory', () => {
                     },
                 });
             });
-            await mockFetch.resume?.();
+            await mockFetch.resume();
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connectionID = Onyx.connect({
