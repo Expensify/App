@@ -27,7 +27,7 @@ function Confirm() {
         comment: {comment: reviewDuplicates?.description},
         billable: reviewDuplicates?.billable,
         reimbursable: reviewDuplicates?.reimbursable,
-        tag: reviewDuplicates?.tag,
+        tag: 'dklajsdijasoi',
         taxCode: reviewDuplicates?.taxCode,
     };
 
@@ -49,8 +49,9 @@ function Confirm() {
             </View>
             <MoneyRequestView
                 report={report}
-                transaction={transaction}
                 shouldShowAnimatedBackground={false}
+                nonEditableMode
+                transactionTest={transaction}
             />
             <Button
                 text="Confirm"

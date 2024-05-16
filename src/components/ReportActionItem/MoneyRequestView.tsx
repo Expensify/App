@@ -78,6 +78,10 @@ type MoneyRequestViewPropsWithoutTransaction = MoneyRequestViewOnyxPropsWithoutT
 
     /** Whether we should display the animated banner above the component */
     shouldShowAnimatedBackground: boolean;
+
+    nonEditableMode?: boolean;
+
+    transactionTest?: OnyxEntry<OnyxTypes.Transaction>;
 };
 
 type MoneyRequestViewProps = MoneyRequestViewTransactionOnyxProps & MoneyRequestViewPropsWithoutTransaction;
@@ -93,6 +97,8 @@ function MoneyRequestView({
     transactionViolations,
     shouldShowAnimatedBackground,
     distanceRates,
+    nonEditableMode = false,
+    transactionTest,
 }: MoneyRequestViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -237,7 +243,7 @@ function MoneyRequestView({
     if (hasReceipt) {
         receiptURIs = ReceiptUtils.getThumbnailAndImageURIs(transaction);
     }
-
+    console.log('test', transactionTest);
     const pendingAction = transaction?.pendingAction;
     const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => transaction?.pendingFields?.[fieldPath] ?? pendingAction;
 
@@ -369,7 +375,7 @@ function MoneyRequestView({
                 {shouldShowReceiptEmptyState && (
                     <ReceiptEmptyState
                         hasError={hasErrors}
-                        disabled={!canEditReceipt}
+                        disabled={!canEditReceipt || nonEditableMode}
                         onPress={() =>
                             Navigation.navigate(
                                 ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
@@ -398,13 +404,14 @@ function MoneyRequestView({
                         onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '', report.reportID))}
                         brickRoadIndicator={getErrorForField('amount') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         errorText={getErrorForField('amount')}
+                        disabled={nonEditableMode}
                     />
                 </OfflineWithFeedback>
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('comment')}>
                     <MenuItemWithTopDescription
                         description={translate('common.description')}
                         shouldParseTitle
-                        title={transactionDescription}
+                        title={TransactionUtils.getDescription(transactionTest) ?? transactionDescription}
                         interactive={canEdit}
                         shouldShowRightIcon={canEdit}
                         titleStyle={styles.flex1}
@@ -413,6 +420,7 @@ function MoneyRequestView({
                         brickRoadIndicator={getErrorForField('comment') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         errorText={getErrorForField('comment')}
                         numberOfLinesTitle={0}
+                        disabled={nonEditableMode}
                     />
                 </OfflineWithFeedback>
                 {isDistanceRequest ? (
@@ -421,7 +429,7 @@ function MoneyRequestView({
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('merchant')}>
                         <MenuItemWithTopDescription
                             description={translate('common.merchant')}
-                            title={merchantTitle}
+                            title={transactionTest?.modifiedMerchant ?? merchantTitle}
                             interactive={canEditMerchant}
                             shouldShowRightIcon={canEditMerchant}
                             titleStyle={styles.flex1}
@@ -430,6 +438,7 @@ function MoneyRequestView({
                             }
                             brickRoadIndicator={getErrorForField('merchant') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             errorText={getErrorForField('merchant')}
+                            disabled={nonEditableMode}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -443,13 +452,14 @@ function MoneyRequestView({
                         onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '', report.reportID))}
                         brickRoadIndicator={getErrorForField('date') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         errorText={getErrorForField('date')}
+                        disabled={nonEditableMode}
                     />
                 </OfflineWithFeedback>
                 {shouldShowCategory && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('category')}>
                         <MenuItemWithTopDescription
                             description={translate('common.category')}
-                            title={transactionCategory}
+                            title={transactionTest?.category ?? transactionCategory}
                             interactive={canEdit}
                             shouldShowRightIcon={canEdit}
                             titleStyle={styles.flex1}
@@ -458,6 +468,7 @@ function MoneyRequestView({
                             }
                             brickRoadIndicator={getErrorForField('category') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             errorText={getErrorForField('category')}
+                            disabled={nonEditableMode}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -469,7 +480,7 @@ function MoneyRequestView({
                         >
                             <MenuItemWithTopDescription
                                 description={name ?? translate('common.tag')}
-                                title={TransactionUtils.getTagForDisplay(transaction, index)}
+                                title={TransactionUtils.getTagForDisplay(transactionTest, index) ?? TransactionUtils.getTagForDisplay(transaction, index)}
                                 interactive={canEdit}
                                 shouldShowRightIcon={canEdit}
                                 titleStyle={styles.flex1}
@@ -487,6 +498,7 @@ function MoneyRequestView({
                                         : undefined
                                 }
                                 errorText={getErrorForField('tag', {tagListIndex: index, tagListName: name})}
+                                disabled={nonEditableMode}
                             />
                         </OfflineWithFeedback>
                     ))}
@@ -497,6 +509,7 @@ function MoneyRequestView({
                             title={cardProgramName}
                             titleStyle={styles.flex1}
                             interactive={false}
+                            disabled={nonEditableMode}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -513,6 +526,7 @@ function MoneyRequestView({
                             }
                             brickRoadIndicator={getErrorForField('tax') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             errorText={getErrorForField('tax')}
+                            disabled={nonEditableMode}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -528,6 +542,7 @@ function MoneyRequestView({
                             onPress={() =>
                                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '', report.reportID))
                             }
+                            disabled={nonEditableMode}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -548,7 +563,7 @@ function MoneyRequestView({
                             accessibilityLabel={translate('common.billable')}
                             isOn={!!transactionBillable}
                             onToggle={saveBillable}
-                            disabled={!canEdit}
+                            disabled={!canEdit || nonEditableMode}
                         />
                     </View>
                 )}

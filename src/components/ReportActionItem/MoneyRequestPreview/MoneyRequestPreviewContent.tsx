@@ -256,17 +256,22 @@ function MoneyRequestPreviewContent({
         const comparisonResult = TransactionUtils.compareDuplicateTransactionFields(reviewingTransactionID);
         const allTransactionIDsDuplicates = [reviewingTransactionID, ...duplicates].filter((id) => id !== transaction?.transactionID);
         Transaction.setReviewDuplicatesKey({...comparisonResult.keep, duplicates: allTransactionIDsDuplicates, transactionID: transaction?.transactionID ?? ''});
-
+        console.log(comparisonResult);
         if ('merchant' in comparisonResult.change) {
+            console.log('dihjasiodj');
             Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE.getRoute(route.params?.threadReportID));
         } else if ('category' in comparisonResult.change) {
+            console.log('h1');
             Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_CATEGORY_PAGE.getRoute(route.params?.threadReportID));
         } else if ('tag' in comparisonResult.change) {
+            console.log('h2j');
             Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAG_PAGE.getRoute(route.params?.threadReportID));
         } else if ('description' in comparisonResult.change) {
+            console.log('hej');
             Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION_PAGE.getRoute(route.params?.threadReportID));
         } else {
-            // Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_SUMMARY_PAGE.getRoute(route.params.threadReportID));
+            console.log('asdkjasjdoooodd,');
+            Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_CONFIRM_PAGE.getRoute(route.params?.threadReportID));
         }
     };
 
