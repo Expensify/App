@@ -1,7 +1,13 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {RemovePolicyConnectionParams, SyncPolicyToQuickbooksOnlineParams, SyncPolicyToXeroParams, UpdatePolicyConnectionConfigParams, UpdateManyPolicyConnectionConfigurationsParams} from '@libs/API/parameters';
+import type {
+    RemovePolicyConnectionParams,
+    SyncPolicyToQuickbooksOnlineParams,
+    SyncPolicyToXeroParams,
+    UpdateManyPolicyConnectionConfigurationsParams,
+    UpdatePolicyConnectionConfigParams,
+} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
