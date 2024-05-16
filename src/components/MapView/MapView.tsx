@@ -39,7 +39,6 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
             opacity: centerButtonOpacity.value,
         }));
         const isCentering = useRef(false);
-        const indexTime = useRef(0);
 
         const toggleCenterButton = useCallback(
             (toggleOn: boolean) => {
@@ -169,9 +168,6 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
             if (userInteractedWithMap) {
                 if (!isCentering.current) {
                     toggleCenterButton(true);
-                }
-                if (isCentering.current) {
-                    indexTime.current = indexTime.current + 1;
                 }
 
                 isCentering.current = false;

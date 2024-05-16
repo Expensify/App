@@ -49,7 +49,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
     ) => {
         const {isOffline} = useNetwork();
         const {translate} = useLocalize();
-        const centerButtonOpacity = useSharedValue(1);
+        const centerButtonOpacity = useSharedValue(0);
         const [shouldDisplayCenterButton, setShouldDisplayCenterButton] = useState(false);
         const centerButtonAnimatedStyle = useAnimatedStyle(() => ({
             opacity: centerButtonOpacity.value,
@@ -272,7 +272,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                     {directionCoordinates && <Direction coordinates={directionCoordinates} />}
                 </Map>
                 {shouldDisplayCenterButton && (
-                    <Animated.View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, {zIndex: 1}, {opacity: 1}, centerButtonAnimatedStyle]}>
+                    <Animated.View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, {zIndex: 1}, centerButtonAnimatedStyle]}>
                         <PressableWithoutFeedback
                             accessibilityRole={CONST.ROLE.BUTTON}
                             onPress={centerMap}
