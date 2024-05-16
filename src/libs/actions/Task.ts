@@ -440,7 +440,8 @@ function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task
     const reportName = (title ?? report?.reportName)?.trim();
 
     // Description can be unset, so we default to an empty string if so
-    const reportDescription = ReportUtils.getParsedComment((description ?? report.description ?? '').trim());
+    const newDescription = description ? ReportUtils.getParsedComment(description) : report.description
+    const reportDescription = (newDescription ?? '').trim();
 
     const optimisticData: OnyxUpdate[] = [
         {
