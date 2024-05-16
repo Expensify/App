@@ -27,6 +27,7 @@ function Composer(
         // On Android the selection prop is required on the TextInput but this prop has issues on IOS
         selection,
         value,
+        isGroupPolicyReport = false,
         ...props
     }: ComposerProps,
     ref: ForwardedRef<TextInput>,
@@ -34,7 +35,7 @@ function Composer(
     const textInput = useRef<AnimatedMarkdownTextInputRef | null>(null);
     const {isFocused, shouldResetFocus} = useResetComposerFocus(textInput);
     const theme = useTheme();
-    const markdownStyle = useMarkdownStyle(value);
+    const markdownStyle = useMarkdownStyle(value, !isGroupPolicyReport ? ['mentionReport'] : []);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
