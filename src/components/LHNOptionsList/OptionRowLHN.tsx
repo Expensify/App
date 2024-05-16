@@ -82,7 +82,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const textUnreadStyle = optionItem?.isUnread && optionItem.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
     const displayNameStyle = [styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, textUnreadStyle, style];
     const alternateTextStyle = isInFocusMode
-        ? [textStyle, styles.optionAlternateText, styles.textLabelSupporting, styles.optionAlternateTextCompact, styles.ml2, style]
+        ? [textStyle, styles.textLabelSupporting, styles.optionAlternateTextCompact, styles.ml2, style]
         : [textStyle, styles.optionAlternateText, styles.textLabelSupporting, style];
 
     const contentContainerStyles = isInFocusMode ? [styles.flex1, styles.flexRow, styles.overflowHidden, StyleUtils.getCompactContentContainerStyles()] : [styles.flex1];
