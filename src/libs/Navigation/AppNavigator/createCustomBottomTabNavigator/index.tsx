@@ -50,6 +50,7 @@ function CustomBottomTabNavigator({initialRouteName, children, screenOptions, ..
             testID={CustomBottomTabNavigator.displayName}
             shouldShowOfflineIndicator={false}
             shouldEnableKeyboardAvoidingView={false}
+            shouldEnablePickerAvoiding={false}
         >
             <View style={styles.flex1}>
                 <NavigationContent>
