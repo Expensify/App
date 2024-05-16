@@ -4,7 +4,7 @@ import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-na
 import {addSeconds, format, subMinutes, subSeconds} from 'date-fns';
 import {utcToZonedTime} from 'date-fns-tz';
 import React from 'react';
-import {AppState, DeviceEventEmitter, Linking} from 'react-native';
+import {AppState, DeviceEventEmitter} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type Animated from 'react-native-reanimated';

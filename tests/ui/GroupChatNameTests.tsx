@@ -15,6 +15,7 @@ import * as TestHelper from '../utils/TestHelper';
 import {navigateToSidebarOption} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
+import Animated from "react-native-reanimated";
 
 // We need a large timeout here as we are lazy loading React Navigation screens and this test is running against the entire mounted App
 jest.setTimeout(50000);
@@ -157,7 +158,6 @@ function signInAndGetApp(reportName = '', participantAccountIDs?: number[]): Pro
                 reportID: REPORT_ID,
                 reportName,
                 lastMessageText: 'Test',
-                participantAccountIDs,
                 participants,
                 lastActorAccountID: USER_B_ACCOUNT_ID,
                 type: CONST.REPORT.TYPE.CHAT,

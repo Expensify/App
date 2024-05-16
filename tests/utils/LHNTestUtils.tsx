@@ -16,7 +16,6 @@ import SidebarLinksData from '@pages/home/sidebar/SidebarLinksData';
 import CONST from '@src/CONST';
 import type {PersonalDetailsList, Policy, Report, ReportAction} from '@src/types/onyx';
 import type {ActionName} from '@src/types/onyx/OriginalMessage';
-import type {Participant, Participants} from '@src/types/onyx/Report';
 
 type MockedReportActionItemSingleProps = {
     /** Determines if the avatar is displayed as a subscript (positioned lower than normal) */

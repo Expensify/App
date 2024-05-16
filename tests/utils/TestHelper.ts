@@ -1,7 +1,5 @@
-import * as NativeNavigation from '@react-navigation/native';
 import {fireEvent, screen} from '@testing-library/react-native';
 import Str from 'expensify-common/lib/str';
-import {func} from 'prop-types';
 import {Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
 import * as Localize from '@libs/Localize';
@@ -259,7 +257,7 @@ async function navigateToSidebarOption(index: number): Promise<void> {
     await waitForBatchedUpdatesWithAct();
 }
 
-function beforeAllSetupUITests(shouldConnectToPusher: boolean = false) {
+function beforeAllSetupUITests(shouldConnectToPusher = false) {
     // In this test, we are generically mocking the responses of all API requests by mocking fetch() and having it
     // return 200. In other tests, we might mock HttpUtils.xhr() with a more specific mock data response (which means
     // fetch() never gets called so it does not need mocking) or we might have fetch throw an error to test error handling
