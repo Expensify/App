@@ -59,7 +59,7 @@ import * as Environment from '@libs/Environment/Environment';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import * as LoginUtils from '@libs/LoginUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {NetworkStatus} from '@libs/NetworkConnection';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -103,6 +103,7 @@ import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CachedPDFPaths from './CachedPDFPaths';
 import * as Modal from './Modal';
+import navigateFromNotification from './navigateFromNotification';
 import * as Session from './Session';
 import * as Welcome from './Welcome';
 
@@ -513,7 +514,7 @@ function addActions(reportID: string, text = '', file?: FileObject) {
         clientCreatedTime: file ? attachmentAction?.created : reportCommentAction?.created,
     };
 
-    if (reportIDDeeplinkedFromOldDot === reportID && report?.participantAccountIDs?.length === 1 && Number(report.participantAccountIDs?.[0]) === CONST.ACCOUNT_ID.CONCIERGE) {
+    if (reportIDDeeplinkedFromOldDot === reportID && ReportUtils.isConciergeChatReport(report)) {
         parameters.isOldDotConciergeChat = true;
     }
 
@@ -842,46 +843,51 @@ function openReport(
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {[optimisticCreatedAction.reportActionID]: optimisticCreatedAction},
         });
-        successData.push(
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-                value: {[optimisticCreatedAction.reportActionID]: {pendingAction: null}},
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                value: {
-                    pendingFields: {
-                        createChat: null,
-                    },
-                    errorFields: {
-                        createChat: null,
-                    },
-                    isOptimisticReport: false,
-                },
-            },
-        );
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {[optimisticCreatedAction.reportActionID]: {pendingAction: null}},
+        });
 
         // Add optimistic personal details for new participants
         const optimisticPersonalDetails: OnyxCollection<PersonalDetails> = {};
         const settledPersonalDetails: OnyxCollection<PersonalDetails> = {};
+        const redundantParticipants: Record<number, null> = {};
+        const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(participantLoginList);
         participantLoginList.forEach((login, index) => {
-            const accountID = newReportObject?.participantAccountIDs?.[index];
+            const accountID = participantAccountIDs[index];
+            const isOptimisticAccount = !allPersonalDetails?.[accountID];
 
-            if (!accountID) {
+            if (!isOptimisticAccount) {
                 return;
             }
 
-            optimisticPersonalDetails[accountID] = allPersonalDetails?.[accountID] ?? {
+            optimisticPersonalDetails[accountID] = {
                 login,
                 accountID,
                 avatar: UserUtils.getDefaultAvatarURL(accountID),
                 displayName: login,
                 isOptimisticPersonalDetail: true,
             };
+            settledPersonalDetails[accountID] = null;
 
-            settledPersonalDetails[accountID] = allPersonalDetails?.[accountID] ?? null;
+            // BE will send different participants. We clear the optimistic ones to avoid duplicated entries
+            redundantParticipants[accountID] = null;
+        });
+
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                participants: redundantParticipants,
+                pendingFields: {
+                    createChat: null,
+                },
+                errorFields: {
+                    createChat: null,
+                },
+                isOptimisticReport: false,
+            },
         });
 
         optimisticData.push({
@@ -944,22 +950,23 @@ function navigateToAndOpenReport(
     avatarUri?: string,
     avatarFile?: File | CustomRNImageManipulatorResult | undefined,
     optimisticReportID?: string,
+    isGroupChat = false,
 ) {
     let newChat: ReportUtils.OptimisticChatReport | EmptyObject = {};
     let chat: OnyxEntry<Report> | EmptyObject = {};
     const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
-    const isGroupChat = participantAccountIDs.length > 1;
 
     // If we are not creating a new Group Chat then we are creating a 1:1 DM and will look for an existing chat
     if (!isGroupChat) {
-        chat = ReportUtils.getChatByParticipants(participantAccountIDs);
+        chat = ReportUtils.getChatByParticipants([...participantAccountIDs, currentUserAccountID]);
     }
 
     if (isEmptyObject(chat)) {
         if (isGroupChat) {
+            // If we are creating a group chat then participantAccountIDs is expected to contain currentUserAccountID
             newChat = ReportUtils.buildOptimisticGroupChatReport(participantAccountIDs, reportName ?? '', avatarUri ?? '', optimisticReportID);
         } else {
-            newChat = ReportUtils.buildOptimisticChatReport(participantAccountIDs);
+            newChat = ReportUtils.buildOptimisticChatReport([...participantAccountIDs, currentUserAccountID]);
         }
     }
     const report = isEmptyObject(chat) ? newChat : chat;
@@ -981,9 +988,9 @@ function navigateToAndOpenReport(
  */
 function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[]) {
     let newChat: ReportUtils.OptimisticChatReport | EmptyObject = {};
-    const chat = ReportUtils.getChatByParticipants(participantAccountIDs);
+    const chat = ReportUtils.getChatByParticipants([...participantAccountIDs, currentUserAccountID]);
     if (!chat) {
-        newChat = ReportUtils.buildOptimisticChatReport(participantAccountIDs);
+        newChat = ReportUtils.buildOptimisticChatReport([...participantAccountIDs, currentUserAccountID]);
     }
     const report = chat ?? newChat;
 
@@ -1023,7 +1030,7 @@ function navigateToAndOpenChildReport(childReportID = '0', parentReportAction: P
             parentReportID,
         );
 
-        const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(newChat?.participantAccountIDs ?? []);
+        const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(Object.keys(newChat.participants ?? {}).map(Number));
         openReport(newChat.reportID, '', participantLogins, newChat, parentReportAction.reportActionID);
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(newChat.reportID));
     }
@@ -2273,7 +2280,7 @@ function shouldShowReportActionNotification(reportID: string, action: ReportActi
     }
 
     // Only show notifications for supported types of report actions
-    if (!ReportActionsUtils.isNotifiableReportAction(action)) {
+    if (action && !ReportActionsUtils.isNotifiableReportAction(action)) {
         Log.info(`${tag} No notification because this action type is not supported`, false, {actionName: action?.actionName});
         return false;
     }
@@ -2302,7 +2309,7 @@ function showReportActionNotification(reportID: string, reportAction: ReportActi
             if (!reportBelongsToWorkspace) {
                 Navigation.navigateWithSwitchPolicyID({route: ROUTES.HOME});
             }
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+            navigateFromNotification(reportID);
         });
 
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
@@ -2523,15 +2530,16 @@ function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
     const isChatThread = ReportUtils.isChatThread(currentReport);
     if (lastAccessedReportID) {
         const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID ?? '');
+        // We are using index 1 here because on index 0, we'll always have the bottomTabNavigator.
+        const isFirstRoute = navigationRef?.current?.getState()?.index === 1;
         // If it is not a chat thread we should call Navigation.goBack to pop the current route first before navigating to last accessed report.
-        if (!isChatThread) {
-            // Fallback to the lastAccessedReportID route, if this is first route in the navigator
-            Navigation.goBack(lastAccessedReportRoute);
+        if (!isChatThread && !isFirstRoute) {
+            Navigation.goBack();
         }
         Navigation.navigate(lastAccessedReportRoute, CONST.NAVIGATION.TYPE.FORCED_UP);
     } else {
         const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins([CONST.EMAIL.CONCIERGE]);
-        const chat = ReportUtils.getChatByParticipants(participantAccountIDs);
+        const chat = ReportUtils.getChatByParticipants([...participantAccountIDs, currentUserAccountID]);
         if (chat?.reportID) {
             // If it is not a chat thread we should call Navigation.goBack to pop the current route first before navigating to Concierge.
             if (!isChatThread) {
@@ -2661,12 +2669,6 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
 
     const inviteeEmails = Object.keys(inviteeEmailsToAccountIDs);
     const inviteeAccountIDs = Object.values(inviteeEmailsToAccountIDs);
-    const participantAccountIDsAfterInvitation = [...new Set([...(report?.participantAccountIDs ?? []), ...inviteeAccountIDs])].filter(
-        (accountID): accountID is number => typeof accountID === 'number',
-    );
-    const visibleMemberAccountIDsAfterInvitation = [...new Set([...(report?.visibleChatMemberAccountIDs ?? []), ...inviteeAccountIDs])].filter(
-        (accountID): accountID is number => typeof accountID === 'number',
-    );
 
     const participantsAfterInvitation = inviteeAccountIDs.reduce(
         (reportParticipants: Participants, accountID: number) => {
@@ -2691,8 +2693,6 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                participantAccountIDs: participantAccountIDsAfterInvitation,
-                visibleChatMemberAccountIDs: visibleMemberAccountIDsAfterInvitation,
                 participants: participantsAfterInvitation,
                 pendingChatMembers,
             },
@@ -2715,8 +2715,6 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                participantAccountIDs: report.participantAccountIDs,
-                visibleChatMemberAccountIDs: report.visibleChatMemberAccountIDs,
                 participants: inviteeAccountIDs.reduce((revertedParticipants: Record<number, null>, accountID) => {
                     // eslint-disable-next-line no-param-reassign
                     revertedParticipants[accountID] = null;
@@ -2804,24 +2802,6 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
     }
 
     const removeParticipantsData: Record<number, null> = {};
-    const currentParticipants = ReportUtils.getParticipants(reportID);
-    if (!currentParticipants) {
-        return;
-    }
-
-    const currentParticipantAccountIDs = ReportUtils.getParticipantAccountIDs(reportID);
-    const participantAccountIDsAfterRemoval: number[] = [];
-    const visibleChatMemberAccountIDsAfterRemoval: number[] = [];
-    currentParticipantAccountIDs.forEach((participantAccountID: number) => {
-        const participant = currentParticipants[participantAccountID];
-        if (!targetAccountIDs.includes(participantAccountID)) {
-            participantAccountIDsAfterRemoval.push(participantAccountID);
-            if (!participant.hidden) {
-                visibleChatMemberAccountIDsAfterRemoval.push(participantAccountID);
-            }
-        }
-    });
-
     targetAccountIDs.forEach((accountID) => {
         removeParticipantsData[accountID] = null;
     });
@@ -2855,8 +2835,6 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 participants: removeParticipantsData,
-                participantAccountIDs: participantAccountIDsAfterRemoval,
-                visibleChatMemberAccountIDs: visibleChatMemberAccountIDsAfterRemoval,
                 pendingChatMembers: report?.pendingChatMembers ?? null,
             },
         },
@@ -3093,7 +3071,7 @@ function completeOnboarding(
 ) {
     const targetEmail = CONST.EMAIL.CONCIERGE;
     const actorAccountID = PersonalDetailsUtils.getAccountIDsByLogins([targetEmail])[0];
-    const targetChatReport = ReportUtils.getChatByParticipants([actorAccountID]);
+    const targetChatReport = ReportUtils.getChatByParticipants([actorAccountID, currentUserAccountID]);
     const {reportID: targetChatReportID = '', policyID: targetChatPolicyID = ''} = targetChatReport ?? {};
 
     // Mention message
@@ -3154,6 +3132,7 @@ function completeOnboarding(
             actorAccountID,
             index + 3,
         );
+        currentTask.parentReportActionID = taskReportAction.reportAction.reportActionID;
 
         const completedTaskReportAction = task.autoCompleted
             ? ReportUtils.buildOptimisticTaskReportAction(currentTask.reportID, CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED, 'marked as complete', actorAccountID, 2)
@@ -3434,7 +3413,7 @@ function completeEngagementModal(choice: OnboardingPurposeType, text?: string) {
         lastReadTime: currentTime,
     };
 
-    const conciergeChatReport = ReportUtils.getChatByParticipants([conciergeAccountID]);
+    const conciergeChatReport = ReportUtils.getChatByParticipants([conciergeAccountID, currentUserAccountID]);
     conciergeChatReportID = conciergeChatReport?.reportID;
 
     const report = ReportUtils.getReport(conciergeChatReportID);
