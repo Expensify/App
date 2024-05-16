@@ -26,6 +26,7 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const rowHeight = useSharedValue(0);
+    const prevRowHeightRef = useRef<number>(measuredHeightOfSuggestionRows);
     const fadeInOpacity = useSharedValue(0);
     const scrollRef = useRef<FlashList<TSuggestion>>(null);
     /**
@@ -50,13 +51,26 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
     const innerHeight = CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT * suggestions.length;
     const animatedStyles = useAnimatedStyle(() => ({
         opacity: fadeInOpacity.value,
+        ...StyleUtils.getAutoCompleteSuggestionContainerStyle(rowHeight.value),
     }));
+
     useEffect(() => {
-        fadeInOpacity.value = withTiming(1, {
-            duration: 70,
-            easing: Easing.inOut(Easing.ease),
-        });
-    }, [suggestions.length, fadeInOpacity]);
+        if (measuredHeightOfSuggestionRows === prevRowHeightRef.current) {
+            fadeInOpacity.value = withTiming(1, {
+                duration: 70,
+                easing: Easing.inOut(Easing.ease),
+            });
+            rowHeight.value = measuredHeightOfSuggestionRows;
+        } else {
+            fadeInOpacity.value = 1;
+            rowHeight.value = withTiming(measuredHeightOfSuggestionRows, {
+                duration: 100,
+                easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+            });
+        }
+
+        prevRowHeightRef.current = measuredHeightOfSuggestionRows;
+    }, [suggestions.length, rowHeight, measuredHeightOfSuggestionRows, prevRowHeightRef, fadeInOpacity]);
 
     useEffect(() => {
         if (!scrollRef.current) {
@@ -65,11 +79,11 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
         scrollRef.current.scrollToIndex({index: highlightedSuggestionIndex, animated: true});
     }, [highlightedSuggestionIndex]);
 
+    if (suggestions.length === 0) {
+        return null;
+    }
     return (
-        <Animated.View
-            style={[styles.autoCompleteSuggestionsContainer, animatedStyles, StyleUtils.getAutoCompleteSuggestionContainerStyle(measuredHeightOfSuggestionRows)]}
-            // style={[styles.autoCompleteSuggestionsContainer, StyleUtils.getAutoCompleteSuggestionContainerStyle(measuredHeightOfSuggestionRows)]}
-        >
+        <Animated.View style={[styles.autoCompleteSuggestionsContainer, animatedStyles]}>
             <ColorSchemeWrapper>
                 <FlashList
                     estimatedItemSize={CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT}
