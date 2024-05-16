@@ -3,7 +3,9 @@ import {useRoute} from '@react-navigation/native';
 import React, {useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import type {ListItem} from '@components/SelectionList/types';
 import useReviewDuplicatesNavigation from '@hooks/useReviewDuplicatesNavigation';
+import {setReviewDuplicatesKey} from '@libs/actions/Transaction';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import type SCREENS from '@src/SCREENS';
@@ -27,6 +29,14 @@ function ReviewMerchant() {
             ),
         [compareResult.change.merchant],
     );
+
+    const onSelectRow = (data: ListItem) => {
+        if (data.data !== undefined) {
+            setReviewDuplicatesKey({merchant: data.data});
+        }
+        navigateToNextScreen();
+    };
+
     return (
         <ScreenWrapper testID={ReviewMerchant.displayName}>
             <HeaderWithBackButton title="Review duplicates" />
@@ -35,7 +45,7 @@ function ReviewMerchant() {
                 label="Choose which merchant to keep"
                 options={options}
                 index={currentScreenIndex}
-                onSelectRow={navigateToNextScreen}
+                onSelectRow={onSelectRow}
             />
         </ScreenWrapper>
     );

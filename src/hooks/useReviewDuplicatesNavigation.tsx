@@ -12,7 +12,7 @@ function useReviewDuplicatesNavigation(stepNames: string[], currentScreenName: s
         const currentIndex = intersection.indexOf(currentScreenName);
         const nextScreenIndex = currentIndex + 1;
         setCurrentScreenIndex(currentIndex);
-        setNextScreen(intersection[nextScreenIndex] ?? currentScreenName);
+        setNextScreen(intersection[nextScreenIndex] ?? '');
     }, [currentScreenName, intersection]);
 
     const navigateToNextScreen = () => {
@@ -26,14 +26,12 @@ function useReviewDuplicatesNavigation(stepNames: string[], currentScreenName: s
             case 'tag':
                 Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAG_PAGE.getRoute(threadReportID));
                 break;
-
             case 'description':
                 Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION_PAGE.getRoute(threadReportID));
                 break;
             case 'taxCode':
                 Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAX_CODE_PAGE.getRoute(threadReportID));
                 break;
-
             case 'reimbursable':
                 Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_REIMBURSABLE_PAGE.getRoute(threadReportID));
                 break;
@@ -41,7 +39,7 @@ function useReviewDuplicatesNavigation(stepNames: string[], currentScreenName: s
                 Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_BILLABLE_PAGE.getRoute(threadReportID));
                 break;
             default:
-                //   Navigation.navigate(CONST.SCREENS.TRANSACTION_DUPLICATE.REVIEW_CATEGORY);
+                // Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_CONFIRM_PAGE.getRoute(threadReportID));
                 break;
         }
     };

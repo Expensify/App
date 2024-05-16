@@ -3,7 +3,9 @@ import {useRoute} from '@react-navigation/native';
 import React, {useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import type {ListItem} from '@components/SelectionList/types';
 import useReviewDuplicatesNavigation from '@hooks/useReviewDuplicatesNavigation';
+import {setReviewDuplicatesKey} from '@libs/actions/Transaction';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import type SCREENS from '@src/SCREENS';
@@ -23,6 +25,14 @@ function ReviewReimbursable() {
             })),
         [compareResult.change.reimbursable],
     );
+
+    const onSelectRow = (data: ListItem) => {
+        if (data.data !== undefined) {
+            setReviewDuplicatesKey({reimbursable: data.data});
+        }
+        navigateToNextScreen();
+    };
+
     return (
         <ScreenWrapper testID={ReviewReimbursable.displayName}>
             <HeaderWithBackButton title="Review duplicates" />
@@ -31,7 +41,7 @@ function ReviewReimbursable() {
                 label="Choose if transaction is reimbursable"
                 options={options}
                 index={currentScreenIndex}
-                onSelectRow={navigateToNextScreen}
+                onSelectRow={onSelectRow}
             />
         </ScreenWrapper>
     );

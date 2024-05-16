@@ -3,7 +3,9 @@ import {useRoute} from '@react-navigation/native';
 import React, {useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import type {ListItem} from '@components/SelectionList/types';
 import useReviewDuplicatesNavigation from '@hooks/useReviewDuplicatesNavigation';
+import {setReviewDuplicatesKey} from '@libs/actions/Transaction';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import type SCREENS from '@src/SCREENS';
@@ -23,6 +25,12 @@ function ReviewBillable() {
             })),
         [compareResult.change.billable],
     );
+
+    const onSelectRow = (data: ListItem) => {
+        if (data.data !== undefined) {
+        }
+        navigateToNextScreen();
+    };
     return (
         <ScreenWrapper testID={ReviewBillable.displayName}>
             <HeaderWithBackButton title="Review duplicates" />
@@ -31,7 +39,7 @@ function ReviewBillable() {
                 label="Choose if transaction is billable"
                 options={options}
                 index={currentScreenIndex}
-                onSelectRow={navigateToNextScreen}
+                onSelectRow={onSelectRow}
             />
         </ScreenWrapper>
     );

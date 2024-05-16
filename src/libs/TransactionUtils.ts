@@ -784,24 +784,46 @@ function compareDuplicateTransactionFields(transactionID: string) {
     for (const fieldName in fieldsToCompare) {
         if (Object.prototype.hasOwnProperty.call(fieldsToCompare, fieldName)) {
             const keys = fieldsToCompare[fieldName];
+            console.log('keys', keys);
             const firstTransaction = transactions[0];
-
+            console.log('fieldName', fieldName);
             if (fieldName === 'description') {
-                if (transactions.every((item) => keys.every((key) => item && item.comment && key in item.comment && item.comment[key] === firstTransaction?.description?.[key]))) {
-                    keep[fieldName] = firstTransaction?.comment?.[keys[0]];
+                console.log('firstTransaction', firstTransaction);
+                if (transactions.every((item) => keys.every((key) => item && item.comment && item.comment === firstTransaction?.comment))) {
+                    keep[fieldName] = firstTransaction?.comment;
                 } else {
-                    const differentValues = transactions.map((item) => keys.map((key) => (item && item.comment && key in item.comment ? item.comment[key] : undefined))).flat();
+                    const differentValues = transactions
+                        .map((item) => keys.map((key) => (item && item.comment && key in item.comment ? item.comment : undefined)))
+                        .flat()
+                        .filter((item) => item !== undefined);
 
                     if (differentValues.length > 0) {
+                        console.log('description');
+                        console.log('differentValues', differentValues);
                         change[fieldName] = differentValues;
                     }
                 }
             } else if (transactions.every((item) => keys.every((key) => item && key in item && item[key] === firstTransaction?.[key]))) {
                 keep[fieldName] = firstTransaction?.[keys[0]];
             } else {
-                const differentValues = transactions.map((item) => keys.map((key) => (item && key in item ? item[key] : typeof item?.[key] === 'boolean' ? false : undefined))).flat();
+                const differentValues = transactions
+                    .map((item) =>
+                        keys.map((key) => {
+                            console.log('key', key);
+                            console.log('item', item);
+                            console.log('item[key]', item?.[key]);
+                            if (!item?.[key]) {
+                                return;
+                            }
+                            return item && key in item ? item[key] : typeof item?.[key] === 'boolean' ? false : undefined;
+                        }),
+                    )
+                    .flat()
+                    .filter((item) => item !== undefined);
 
                 if (differentValues.length > 0) {
+                    console.log('else');
+                    console.log('differentValues', differentValues);
                     change[fieldName] = differentValues;
                 }
             }
