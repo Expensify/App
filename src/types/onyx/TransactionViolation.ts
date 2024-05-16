@@ -29,7 +29,6 @@ type TransactionViolation = {
         tagListIndex?: number;
         tagListName?: string;
         errorIndexes?: number[];
-        pendingPattern?: boolean;
     };
 };
 

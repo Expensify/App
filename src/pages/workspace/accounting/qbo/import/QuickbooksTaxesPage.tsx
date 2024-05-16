@@ -19,9 +19,7 @@ function QuickbooksTaxesPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
-    const {syncTax, pendingFields, reimbursableExpensesExportDestination} = policy?.connections?.quickbooksOnline?.config ?? {};
-    const isJournalExportEntity = reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY;
-
+    const {syncTax, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
@@ -46,12 +44,10 @@ function QuickbooksTaxesPage({policy}: WithPolicyProps) {
                                     accessibilityLabel={translate('workspace.accounting.taxes')}
                                     isOn={!!syncTax}
                                     onToggle={() => Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.SYNC_TAX, !syncTax)}
-                                    disabled={!syncTax && isJournalExportEntity}
                                 />
                             </View>
                         </OfflineWithFeedback>
                     </View>
-                    {isJournalExportEntity && <Text style={[styles.mutedNormalTextLabel, styles.pt2]}>{translate('workspace.qbo.taxesJournalEntrySwitchNote')}</Text>}
                 </ScrollView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

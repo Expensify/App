@@ -1,3 +1,4 @@
+// @ts-expect-error - This line imports a module from 'pdfjs-dist' package which lacks TypeScript typings.
 import pdfWorkerSource from 'pdfjs-dist/legacy/build/pdf.worker';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';

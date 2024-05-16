@@ -10,7 +10,6 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 
 jest.mock('@libs/Permissions');
 jest.mock('@hooks/usePermissions.ts');
-jest.mock('@src/hooks/useActiveWorkspaceFromNavigationState');
 jest.mock('@libs/Navigation/Navigation');
 jest.mock('@components/Icon/Expensicons');
 

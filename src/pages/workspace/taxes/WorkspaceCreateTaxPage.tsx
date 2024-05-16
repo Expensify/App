@@ -94,6 +94,7 @@ function WorkspaceCreateTaxPage({
                                 maxLength={CONST.TAX_RATES.NAME_MAX_LENGTH}
                                 multiline={false}
                                 role={CONST.ROLE.PRESENTATION}
+                                autoFocus
                             />
                             <InputWrapper
                                 InputComponent={AmountPicker}

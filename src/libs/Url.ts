@@ -1,5 +1,4 @@
 import 'react-native-url-polyfill/auto';
-import type {Route} from '@src/ROUTES';
 
 /**
  * Add / to the end of any URL if not present
@@ -49,12 +48,12 @@ function appendParam(url: string, paramName: string, paramValue: string) {
     // If parameter exists, replace it
     if (url.includes(`${paramName}=`)) {
         const regex = new RegExp(`${paramName}=([^&]*)`);
-        return url.replace(regex, `${paramName}=${paramValue}`) as Route;
+        return url.replace(regex, `${paramName}=${paramValue}`);
     }
 
     // If parameter doesn't exist, append it
     const separator = url.includes('?') ? '&' : '?';
-    return `${url}${separator}${paramName}=${paramValue}` as Route;
+    return `${url}${separator}${paramName}=${paramValue}`;
 }
 
 function hasURL(text: string) {

@@ -24,7 +24,7 @@ function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyConne
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
-    const {creditCards, accountPayable, bankAccounts} = policy?.connections?.quickbooksOnline?.data ?? {};
+    const {creditCards, vendors, bankAccounts} = policy?.connections?.quickbooksOnline?.data ?? {};
 
     const {nonReimbursableExpensesAccount, nonReimbursableExpensesExportDestination} = policy?.connections?.quickbooksOnline?.config ?? {};
 
@@ -38,7 +38,7 @@ function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyConne
                 accounts = bankAccounts ?? [];
                 break;
             case CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL:
-                accounts = accountPayable ?? [];
+                accounts = vendors ?? [];
                 break;
             default:
                 accounts = [];
@@ -50,7 +50,7 @@ function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyConne
             keyForList: card.name,
             isSelected: card.name === nonReimbursableExpensesAccount?.name,
         }));
-    }, [nonReimbursableExpensesAccount, creditCards, bankAccounts, nonReimbursableExpensesExportDestination, accountPayable]);
+    }, [nonReimbursableExpensesAccount, creditCards, bankAccounts, nonReimbursableExpensesExportDestination, vendors]);
 
     const selectExportAccount = useCallback(
         (row: CardListItem) => {
@@ -72,7 +72,7 @@ function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyConne
                 <HeaderWithBackButton
                     title={
                         nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL
-                            ? translate('workspace.qbo.accountsPayable')
+                            ? translate('workspace.qbo.vendor')
                             : translate('workspace.qbo.account')
                     }
                 />

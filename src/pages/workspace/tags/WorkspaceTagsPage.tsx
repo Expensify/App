@@ -26,7 +26,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
-import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
+import type {WorkspacesCentralPaneNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as Policy from '@userActions/Policy';
@@ -37,7 +37,7 @@ import type SCREENS from '@src/SCREENS';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {TagListItem} from './types';
 
-type WorkspaceTagsPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS>;
+type WorkspaceTagsPageProps = StackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS>;
 
 function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -52,8 +52,9 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const {environmentURL} = useEnvironment();
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
-    const [policyTagLists, isMultiLevelTags] = useMemo(() => [PolicyUtils.getTagLists(policyTags), PolicyUtils.isMultiLevelTags(policyTags)], [policyTags]);
-    const canSelectMultiple = !isMultiLevelTags;
+    const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
+    const doesPolicyContainOnlyOneTagList = policyTagLists.length === 1;
+    const canSelectMultiple = doesPolicyContainOnlyOneTagList;
 
     const fetchTags = useCallback(() => {
         Policy.openPolicyTagsPage(policyID);
@@ -71,7 +72,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     }, [isFocused]);
 
     const tagList = useMemo<TagListItem[]>(() => {
-        if (isMultiLevelTags) {
+        if (!doesPolicyContainOnlyOneTagList) {
             return policyTagLists.map((policyTagList) => ({
                 value: policyTagList.name,
                 orderWeight: policyTagList.orderWeight,
@@ -88,7 +89,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 ),
             }));
         }
-        return Object.values(policyTagLists[0]?.tags ?? {})
+        return Object.values(policyTagLists[0].tags)
             .sort((tagA, tagB) => localeCompare(tagA.name, tagB.name))
             .map((tag) => ({
                 value: tag.name,
@@ -101,7 +102,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 isDisabled: tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 rightElement: <ListItemRightCaretWithLabel labelText={tag.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
             }));
-    }, [isMultiLevelTags, policyTagLists, selectedTags, translate]);
+    }, [doesPolicyContainOnlyOneTagList, policyTagLists, selectedTags, translate]);
 
     const tagListKeyedByName = useMemo(
         () =>
@@ -126,15 +127,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const getCustomListHeader = () => {
         const header = (
-            <View
-                style={[
-                    styles.flex1,
-                    styles.flexRow,
-                    styles.justifyContentBetween,
-                    // Required padding accounting for the checkbox and the right arrow in multi-select mode
-                    canSelectMultiple && [styles.pl3, styles.pr9],
-                ]}
-            >
+            <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, canSelectMultiple && styles.pl3, styles.pr9]}>
                 <Text style={styles.searchInputStyle}>{translate('common.name')}</Text>
                 <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{translate('statusPage.status')}</Text>
             </View>
@@ -173,11 +166,12 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const getHeaderButtons = () => {
         const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
+        const isMultiLevelTags = PolicyUtils.isMultiLevelTags(policyTags);
 
         if (selectedTagsArray.length === 0) {
             return (
                 <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
-                    {!isThereAnyAccountingConnection && !isMultiLevelTags && (
+                    {doesPolicyContainOnlyOneTagList && !isThereAnyAccountingConnection && (
                         <Button
                             medium
                             success
@@ -336,12 +330,12 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         onCheckboxPress={toggleTag}
                         onSelectRow={navigateToTagSettings}
                         onSelectAll={toggleAllTags}
+                        showScrollIndicator
                         ListItem={TableListItem}
                         customListHeader={getCustomListHeader()}
                         shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         onDismissError={(item) => Policy.clearPolicyTagErrors(policyID, item.value)}
-                        showScrollIndicator={false}
                     />
                 )}
             </ScreenWrapper>

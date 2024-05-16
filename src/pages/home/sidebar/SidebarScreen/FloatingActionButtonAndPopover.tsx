@@ -19,7 +19,6 @@ import getIconForAction from '@libs/getIconForAction';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import type {CentralPaneName, NavigationPartialRoute, RootStackParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as App from '@userActions/App';
@@ -41,7 +40,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 const useIsFocused = () => {
     const {isSmallScreenWidth} = useWindowDimensions();
     const isFocused = useIsFocusedOriginal();
-    const topmostCentralPane = useNavigationState<RootStackParamList, NavigationPartialRoute<CentralPaneName> | undefined>(getTopmostCentralPaneRoute);
+    const topmostCentralPane = useNavigationState(getTopmostCentralPaneRoute);
     return isFocused || (topmostCentralPane?.name === SCREENS.SEARCH.CENTRAL_PANE && isSmallScreenWidth);
 };
 
@@ -175,6 +174,7 @@ function FloatingActionButtonAndPopover(
     const {translate} = useLocalize();
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
     const fabRef = useRef<HTMLDivElement>(null);
+    const {canUseTrackExpense} = usePermissions();
     const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
     const isFocused = useIsFocused();
     const prevIsFocused = usePrevious(isFocused);
@@ -339,7 +339,7 @@ function FloatingActionButtonAndPopover(
                         text: translate('sidebarScreen.fabNewChat'),
                         onSelected: () => interceptAnonymousUser(Report.startNewChat),
                     },
-                    ...(selfDMReportID
+                    ...(canUseTrackExpense && selfDMReportID
                         ? [
                               {
                                   icon: getIconForAction(CONST.IOU.TYPE.TRACK),

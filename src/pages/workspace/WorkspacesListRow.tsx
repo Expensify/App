@@ -196,7 +196,7 @@ function WorkspacesListRow({
                             size={CONST.AVATAR_SIZE.DEFAULT}
                             source={workspaceIcon}
                             fallbackIcon={fallbackWorkspaceIcon}
-                            avatarID={policyID}
+                            accountID={policyID}
                             name={title}
                             type={CONST.ICON_TYPE_WORKSPACE}
                         />

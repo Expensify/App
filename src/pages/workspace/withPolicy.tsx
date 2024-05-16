@@ -12,6 +12,7 @@ import type {
     FullScreenNavigatorParamList,
     ReimbursementAccountNavigatorParamList,
     SettingsNavigatorParamList,
+    WorkspacesCentralPaneNavigatorParamList,
 } from '@navigation/types';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
@@ -19,7 +20,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 
-type NavigatorsParamList = BottomTabNavigatorParamList & CentralPaneNavigatorParamList & SettingsNavigatorParamList & ReimbursementAccountNavigatorParamList & FullScreenNavigatorParamList;
+type NavigatorsParamList = BottomTabNavigatorParamList &
+    CentralPaneNavigatorParamList &
+    SettingsNavigatorParamList &
+    ReimbursementAccountNavigatorParamList &
+    FullScreenNavigatorParamList &
+    WorkspacesCentralPaneNavigatorParamList;
 
 type PolicyRoute = RouteProp<
     NavigatorsParamList,

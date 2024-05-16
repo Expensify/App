@@ -1,6 +1,6 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Switch from '@components/Switch';
@@ -15,15 +15,11 @@ type ToggleSettingOptionRowProps = {
     /** Title of the option */
     title: string;
     /** Subtitle of the option */
-    subtitle?: string;
-    /** Accessibility label for the switch */
-    switchAccessibilityLabel: string;
+    subtitle: string;
     /** subtitle should show below switch and title */
     shouldPlaceSubtitleBelowSwitch?: boolean;
     /** Used to apply styles to the outermost container */
     wrapperStyle?: StyleProp<ViewStyle>;
-    /** Used to apply styles to the Title */
-    titleStyle?: StyleProp<TextStyle>;
     /** Whether the option is enabled or not */
     isActive: boolean;
     /** Callback to be called when the switch is toggled */
@@ -45,10 +41,8 @@ function ToggleSettingOptionRow({
     icon,
     title,
     subtitle,
-    switchAccessibilityLabel,
     shouldPlaceSubtitleBelowSwitch,
     wrapperStyle,
-    titleStyle,
     onToggle,
     subMenuItems,
     isActive,
@@ -60,8 +54,8 @@ function ToggleSettingOptionRow({
     const styles = useThemeStyles();
 
     const subTitleView = useMemo(
-        () => <Text style={[styles.textLabel, shouldPlaceSubtitleBelowSwitch ? styles.mt1 : {...styles.mt1, ...styles.mr5}, styles.textSupporting]}>{subtitle}</Text>,
-        [shouldPlaceSubtitleBelowSwitch, subtitle, styles.mr5, styles.mt1, styles.textLabel, styles.textSupporting],
+        () => <Text style={[styles.textLabel, shouldPlaceSubtitleBelowSwitch ? styles.mt4 : {...styles.mt1, ...styles.mr5}, styles.textSupporting]}>{subtitle}</Text>,
+        [shouldPlaceSubtitleBelowSwitch, subtitle, styles.mr5, styles.mt1, styles.mt4, styles.textLabel, styles.textSupporting],
     );
 
     return (
@@ -84,18 +78,18 @@ function ToggleSettingOptionRow({
                             />
                         )}
                         <View style={[styles.flexColumn, styles.flex1]}>
-                            <Text style={[styles.textNormal, styles.lh20, titleStyle]}>{title}</Text>
-                            {!shouldPlaceSubtitleBelowSwitch && subtitle && subTitleView}
+                            <Text style={[!shouldPlaceSubtitleBelowSwitch && styles.textMicroBold, styles.textNormal, styles.lh20]}>{title}</Text>
+                            {!shouldPlaceSubtitleBelowSwitch && subTitleView}
                         </View>
                     </View>
                     <Switch
-                        accessibilityLabel={switchAccessibilityLabel}
+                        accessibilityLabel={subtitle}
                         onToggle={onToggle}
                         isOn={isActive}
                         disabled={disabled}
                     />
                 </View>
-                {shouldPlaceSubtitleBelowSwitch && subtitle && subTitleView}
+                {shouldPlaceSubtitleBelowSwitch && subTitleView}
                 {isActive && subMenuItems}
             </View>
         </OfflineWithFeedback>

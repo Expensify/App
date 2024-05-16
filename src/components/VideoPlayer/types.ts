@@ -29,7 +29,6 @@ type VideoPlayerProps = {
     shouldUseControlsBottomMargin?: boolean;
     controlsStatus?: ValueOf<typeof CONST.VIDEO_PLAYER.CONTROLS_STATUS>;
     shouldPlay?: boolean;
-    isPreview?: boolean;
 };
 
 export type {VideoPlayerProps, VideoWithOnFullScreenUpdate};

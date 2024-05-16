@@ -42,9 +42,9 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
     const customUnit = customUnits[Object.keys(customUnits)[0]];
     const customUnitID = customUnit?.customUnitID ?? '';
 
-    const defaultCategory = customUnits[customUnitID]?.defaultCategory;
-    const defaultUnit = customUnits[customUnitID]?.attributes.unit;
-    const errorFields = customUnits[customUnitID]?.errorFields;
+    const defaultCategory = customUnits[customUnitID].defaultCategory;
+    const defaultUnit = customUnits[customUnitID].attributes.unit;
+    const errorFields = customUnits[customUnitID].errorFields;
 
     const setNewUnit = (unit: UnitItemType) => {
         Policy.setPolicyDistanceRatesUnit(policyID, customUnit, {...customUnit, attributes: {unit: unit.value}});
@@ -79,8 +79,8 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
                 <HeaderWithBackButton title={translate('workspace.common.settings')} />
                 <View style={styles.flexGrow1}>
                     <OfflineWithFeedback
-                        errors={ErrorUtils.getLatestErrorField(customUnits[customUnitID] ?? {}, 'attributes')}
-                        pendingAction={customUnits[customUnitID]?.pendingFields?.attributes}
+                        errors={ErrorUtils.getLatestErrorField(customUnits[customUnitID], 'attributes')}
+                        pendingAction={customUnits[customUnitID].pendingFields?.attributes}
                         errorRowStyles={styles.mh5}
                         onClose={() => clearErrorFields('attributes')}
                     >
@@ -93,8 +93,8 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
                     </OfflineWithFeedback>
                     {policy?.areCategoriesEnabled && OptionsListUtils.hasEnabledOptions(policyCategories ?? {}) && (
                         <OfflineWithFeedback
-                            errors={ErrorUtils.getLatestErrorField(customUnits[customUnitID] ?? {}, 'defaultCategory')}
-                            pendingAction={customUnits[customUnitID]?.pendingFields?.defaultCategory}
+                            errors={ErrorUtils.getLatestErrorField(customUnits[customUnitID], 'defaultCategory')}
+                            pendingAction={customUnits[customUnitID].pendingFields?.defaultCategory}
                             errorRowStyles={styles.mh5}
                             onClose={() => clearErrorFields('defaultCategory')}
                         >

@@ -10,7 +10,6 @@ import {CurrentReportIDContextProvider} from '@components/withCurrentReportID';
 import {EnvironmentProvider} from '@components/withEnvironment';
 import {ReportIDsContextProvider} from '@hooks/useReportIDs';
 import DateUtils from '@libs/DateUtils';
-import * as ReportUtils from '@libs/ReportUtils';
 import ReportActionItemSingle from '@pages/home/report/ReportActionItemSingle';
 import SidebarLinksData from '@pages/home/sidebar/SidebarLinksData';
 import CONST from '@src/CONST';
@@ -129,7 +128,7 @@ function getFakeReport(participantAccountIDs = [1, 2], millisecondsInThePast = 0
         reportName: 'Report',
         lastVisibleActionCreated,
         lastReadTime: isUnread ? DateUtils.subtractMillisecondsFromDateTime(lastVisibleActionCreated, 1) : lastVisibleActionCreated,
-        participants: ReportUtils.buildParticipantsFromAccountIDs(participantAccountIDs),
+        participantAccountIDs,
     };
 }
 

@@ -41,7 +41,7 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
             brickRoadIndicator: errorFields?.exporter ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: exportConfiguration?.exporter ?? policyOwner,
             pendingAction: pendingFields?.export,
-            errorText: errorFields?.exporter ? translate('common.genericErrorMessage') : undefined,
+            error: errorFields?.exporter ? translate('common.genericErrorMessage') : undefined,
         },
         {
             description: translate('workspace.qbo.date'),
@@ -49,7 +49,7 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
             brickRoadIndicator: errorFields?.exportDate ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: exportDate ? translate(`workspace.qbo.exportDate.values.${exportDate}.label`) : undefined,
             pendingAction: pendingFields?.exportDate,
-            errorText: errorFields?.exportDate ? translate('common.genericErrorMessage') : undefined,
+            error: errorFields?.exportDate ? translate('common.genericErrorMessage') : undefined,
         },
         {
             description: translate('workspace.qbo.exportExpenses'),
@@ -65,7 +65,7 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
             brickRoadIndicator: errorFields?.receivableAccount ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: receivableAccount?.name,
             pendingAction: pendingFields?.receivableAccount,
-            errorText: errorFields?.receivableAccount ? translate('common.genericErrorMessage') : undefined,
+            error: errorFields?.receivableAccount ? translate('common.genericErrorMessage') : undefined,
         },
         {
             description: translate('workspace.qbo.exportCompany'),
@@ -73,7 +73,7 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
             brickRoadIndicator: errorFields?.exportCompanyCard ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: nonReimbursableExpensesExportDestination ? translate(`workspace.qbo.accounts.${nonReimbursableExpensesExportDestination}`) : undefined,
             pendingAction: pendingFields?.nonReimbursableExpensesExportDestination,
-            errorText: errorFields?.nonReimbursableExpensesExportDestination ? translate('common.genericErrorMessage') : undefined,
+            error: errorFields?.nonReimbursableExpensesExportDestination ? translate('common.genericErrorMessage') : undefined,
         },
         {
             description: translate('workspace.qbo.exportExpensifyCard'),
@@ -108,7 +108,9 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
                                 shouldShowRightIcon={menuItem?.shouldShowRightIcon ?? true}
                                 onPress={menuItem?.onPress}
                                 brickRoadIndicator={menuItem?.brickRoadIndicator}
-                                errorText={menuItem?.errorText}
+                                // TODO uncomment when errorText will be fixed
+                                // errorText={menuItem?.errorText}
+                                error={menuItem?.error}
                             />
                         </OfflineWithFeedback>
                     ))}

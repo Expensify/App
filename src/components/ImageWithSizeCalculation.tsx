@@ -6,7 +6,6 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
-import AttachmentOfflineIndicator from './AttachmentOfflineIndicator';
 import FullscreenLoadingIndicator from './FullscreenLoadingIndicator';
 import Image from './Image';
 import RESIZE_MODES from './Image/resizeModes';
@@ -109,8 +108,7 @@ function ImageWithSizeCalculation({url, style, onMeasure, onLoadFailure, isAuthT
                 onLoad={imageLoadedSuccessfully}
                 objectPosition={objectPosition}
             />
-            {isLoading && !isImageCached && !isOffline && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
-            {isLoading && !isImageCached && <AttachmentOfflineIndicator isPreview />}
+            {isLoading && !isImageCached && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
         </View>
     );
 }

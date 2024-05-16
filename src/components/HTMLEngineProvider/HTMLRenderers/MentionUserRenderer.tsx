@@ -105,7 +105,7 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
                             {...defaultRendererProps}
                             style={[styles.link, styleWithoutColor, StyleUtils.getMentionStyle(isOurMention), {color: StyleUtils.getMentionTextColor(isOurMention)}]}
                             role={CONST.ROLE.LINK}
-                            testID="mention-user"
+                            testID="span"
                             href={`/${navigationRoute}`}
                         >
                             {htmlAttribAccountID ? `@${mentionDisplayText}` : <TNodeChildrenRenderer tnode={tnodeClone} />}

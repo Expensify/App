@@ -1,9 +1,6 @@
 import after from 'lodash/after';
 import Onyx from 'react-native-onyx';
-import type {KeyValueMapping, OnyxEntry} from 'react-native-onyx';
-import type {Account} from 'src/types/onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OnyxKey} from '@src/ONYXKEYS';
 
 // These are the oldKeyName: newKeyName of the NVPs we can migrate without any processing
 const migrations = {
@@ -30,30 +27,35 @@ export default function () {
 
         for (const [oldKey, newKey] of Object.entries(migrations)) {
             const connectionID = Onyx.connect({
-                key: oldKey as OnyxKey,
+                // @ts-expect-error oldKey is a variable
+                key: oldKey,
                 callback: (value) => {
                     Onyx.disconnect(connectionID);
                     if (value === null) {
                         resolveWhenDone();
                         return;
                     }
+                    // @ts-expect-error These keys are variables, so we can't check the type
                     Onyx.multiSet({
                         [newKey]: value,
                         [oldKey]: null,
-                    } as KeyValueMapping).then(resolveWhenDone);
+                    }).then(resolveWhenDone);
                 },
             });
         }
         const connectionIDAccount = Onyx.connect({
             key: ONYXKEYS.ACCOUNT,
-            callback: (value: OnyxEntry<Account & {activePolicyID?: string}>) => {
+            callback: (value) => {
                 Onyx.disconnect(connectionIDAccount);
+                // @ts-expect-error we are removing this property, so it is not in the type anymore
                 if (!value?.activePolicyID) {
                     resolveWhenDone();
                     return;
                 }
+                // @ts-expect-error we are removing this property, so it is not in the type anymore
                 const activePolicyID = value.activePolicyID;
                 const newValue = {...value};
+                // @ts-expect-error we are removing this property, so it is not in the type anymore
                 delete newValue.activePolicyID;
                 Onyx.multiSet({
                     [ONYXKEYS.NVP_ACTIVE_POLICY_ID]: activePolicyID,
@@ -70,12 +72,14 @@ export default function () {
                     resolveWhenDone();
                     return;
                 }
-                const newValue = {} as Record<string, unknown>;
+                const newValue = {};
                 for (const key of Object.keys(value)) {
+                    // @ts-expect-error We have no fixed types here
                     newValue[`nvp_${key}`] = value[key];
+                    // @ts-expect-error We have no fixed types here
                     newValue[key] = null;
                 }
-                Onyx.multiSet(newValue as KeyValueMapping).then(resolveWhenDone);
+                Onyx.multiSet(newValue).then(resolveWhenDone);
             },
         });
     });

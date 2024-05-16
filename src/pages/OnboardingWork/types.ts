@@ -6,9 +6,6 @@ type OnboardingWorkProps = Record<string, unknown>;
 type BaseOnboardingWorkOnyxProps = {
     /** Saved onboarding purpose selected by the user */
     onboardingPurposeSelected: OnyxEntry<OnboardingPurposeType>;
-
-    /** Saved onboarding purpose selected by the user */
-    onboardingPolicyID: OnyxEntry<string>;
 };
 
 type BaseOnboardingWorkProps = BaseOnboardingWorkOnyxProps & {

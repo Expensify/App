@@ -93,7 +93,7 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
         }
 
         const logins: string[] = (newGroupDraft.participants ?? []).map((participant) => participant.login);
-        Report.navigateToAndOpenReport(logins, true, newGroupDraft.reportName ?? '', newGroupDraft.avatarUri ?? '', fileRef.current, optimisticReportID.current, true);
+        Report.navigateToAndOpenReport(logins, true, newGroupDraft.reportName ?? '', newGroupDraft.avatarUri ?? '', fileRef.current, optimisticReportID.current);
     };
 
     const navigateBack = () => {
@@ -144,9 +144,9 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
                     sections={[{title: translate('common.members'), data: sections}]}
                     ListItem={InviteMemberListItem}
                     onSelectRow={unselectOption}
-                    showConfirmButton={Boolean(selectedOptions.length)}
+                    showConfirmButton={selectedOptions.length > 1}
                     confirmButtonText={translate('newChatPage.startGroup')}
-                    onConfirm={createGroup}
+                    onConfirm={selectedOptions.length > 1 ? createGroup : undefined}
                     shouldHideListOnInitialRender={false}
                 />
             </View>

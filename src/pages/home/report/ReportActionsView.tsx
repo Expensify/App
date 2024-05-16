@@ -62,14 +62,8 @@ type ReportActionsViewProps = ReportActionsViewOnyxProps & {
     /** The report actions are loading more data */
     isLoadingOlderReportActions?: boolean;
 
-    /** There an error when loading older report actions */
-    hasLoadingOlderReportActionsError?: boolean;
-
     /** The report actions are loading newer data */
     isLoadingNewerReportActions?: boolean;
-
-    /** There an error when loading newer report actions */
-    hasLoadingNewerReportActionsError?: boolean;
 
     /** Whether the report is ready for comment linking */
     isReadyForCommentLinking?: boolean;
@@ -93,9 +87,7 @@ function ReportActionsView({
     transactionThreadReportActions = [],
     isLoadingInitialReportActions = false,
     isLoadingOlderReportActions = false,
-    hasLoadingOlderReportActionsError = false,
     isLoadingNewerReportActions = false,
-    hasLoadingNewerReportActionsError = false,
     isReadyForCommentLinking = false,
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
@@ -103,8 +95,6 @@ function ReportActionsView({
     const route = useRoute<RouteProp<CentralPaneNavigatorParamList, typeof SCREENS.REPORT>>();
     const reportActionID = route?.params?.reportActionID;
     const didLayout = useRef(false);
-    const didLoadOlderChats = useRef(false);
-    const didLoadNewerChats = useRef(false);
 
     // triggerListID is used when navigating to a chat with messages loaded from LHN. Typically, these include thread actions, task actions, etc. Since these messages aren't the latest,we don't maintain their position and instead trigger a recalculation of their positioning in the list.
     // we don't set currentReportActionID on initial render as linkedID as it should trigger visibleReportActions after linked message was positioned
@@ -244,6 +234,24 @@ function ReportActionsView({
     const hasCreatedAction = oldestReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
 
     useEffect(() => {
+        if (reportActionID) {
+            return;
+        }
+
+        const interactionTask = InteractionManager.runAfterInteractions(() => {
+            openReportIfNecessary();
+        });
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        if (interactionTask) {
+            return () => {
+                interactionTask.cancel();
+            };
+        }
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    useEffect(() => {
         if (!reportActionID || indexOfLinkedAction > -1) {
             return;
         }
@@ -287,118 +295,85 @@ function ReportActionsView({
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
      * displaying.
      */
-    const loadOlderChats = useCallback(
-        (force = false) => {
-            Log.info(
-                `[ReportActionsView] loadOlderChats ${JSON.stringify({
-                    isOffline: network.isOffline,
-                    isLoadingOlderReportActions,
-                    isLoadingInitialReportActions,
-                    oldestReportActionID: oldestReportAction?.reportActionID,
-                    hasCreatedAction,
-                    isTransactionThread: !isEmptyObject(transactionThreadReport),
-                })}`,
-            );
+    const loadOlderChats = useCallback(() => {
+        Log.info(
+            `[ReportActionsView] loadOlderChats ${JSON.stringify({
+                isOffline: network.isOffline,
+                isLoadingOlderReportActions,
+                isLoadingInitialReportActions,
+                oldestReportActionID: oldestReportAction?.reportActionID,
+                hasCreatedAction,
+                isTransactionThread: !isEmptyObject(transactionThreadReport),
+            })}`,
+        );
 
-            // Only fetch more if we are neither already fetching (so that we don't initiate duplicate requests) nor offline.
-            if (
-                !force &&
-                (!!network.isOffline ||
-                    isLoadingOlderReportActions ||
-                    // If there was an error only try again once on initial mount.
-                    (didLoadOlderChats.current && hasLoadingOlderReportActionsError) ||
-                    isLoadingInitialReportActions)
-            ) {
-                return;
-            }
+        // Only fetch more if we are neither already fetching (so that we don't initiate duplicate requests) nor offline.
+        if (!!network.isOffline || isLoadingOlderReportActions || isLoadingInitialReportActions) {
+            return;
+        }
 
-            // Don't load more chats if we're already at the beginning of the chat history
-            if (!oldestReportAction || hasCreatedAction) {
-                return;
-            }
+        // Don't load more chats if we're already at the beginning of the chat history
+        if (!oldestReportAction || hasCreatedAction) {
+            return;
+        }
 
-            didLoadOlderChats.current = true;
+        if (!isEmptyObject(transactionThreadReport)) {
+            // Get older actions based on the oldest reportAction for the current report
+            const oldestActionCurrentReport = reportActionIDMap.findLast((item) => item.reportID === reportID);
+            Report.getOlderActions(oldestActionCurrentReport?.reportID ?? '0', oldestActionCurrentReport?.reportActionID ?? '0');
 
-            if (!isEmptyObject(transactionThreadReport)) {
-                // Get older actions based on the oldest reportAction for the current report
-                const oldestActionCurrentReport = reportActionIDMap.findLast((item) => item.reportID === reportID);
-                Report.getOlderActions(oldestActionCurrentReport?.reportID ?? '0', oldestActionCurrentReport?.reportActionID ?? '0');
+            // Get older actions based on the oldest reportAction for the transaction thread report
+            const oldestActionTransactionThreadReport = reportActionIDMap.findLast((item) => item.reportID === transactionThreadReport.reportID);
+            Report.getOlderActions(oldestActionTransactionThreadReport?.reportID ?? '0', oldestActionTransactionThreadReport?.reportActionID ?? '0');
+        } else {
+            // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
+            Report.getOlderActions(reportID, oldestReportAction.reportActionID);
+        }
+    }, [network.isOffline, isLoadingOlderReportActions, isLoadingInitialReportActions, oldestReportAction, hasCreatedAction, reportID, reportActionIDMap, transactionThreadReport]);
 
-                // Get older actions based on the oldest reportAction for the transaction thread report
-                const oldestActionTransactionThreadReport = reportActionIDMap.findLast((item) => item.reportID === transactionThreadReport.reportID);
-                Report.getOlderActions(oldestActionTransactionThreadReport?.reportID ?? '0', oldestActionTransactionThreadReport?.reportActionID ?? '0');
-            } else {
-                // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
-                Report.getOlderActions(reportID, oldestReportAction.reportActionID);
-            }
-        },
-        [
-            network.isOffline,
-            isLoadingOlderReportActions,
-            isLoadingInitialReportActions,
-            oldestReportAction,
-            hasCreatedAction,
-            reportID,
-            reportActionIDMap,
-            transactionThreadReport,
-            hasLoadingOlderReportActionsError,
-        ],
-    );
+    const loadNewerChats = useCallback(() => {
+        // Determines if loading older reports is necessary when the content is smaller than the list
+        // and there are fewer than 23 items, indicating we've reached the oldest message.
+        const isLoadingOlderReportsFirstNeeded = checkIfContentSmallerThanList() && reportActions.length > 23;
 
-    const loadNewerChats = useCallback(
-        (force = false) => {
-            // Determines if loading older reports is necessary when the content is smaller than the list
-            // and there are fewer than 23 items, indicating we've reached the oldest message.
-            const isLoadingOlderReportsFirstNeeded = checkIfContentSmallerThanList() && reportActions.length > 23;
+        Log.info(
+            `[ReportActionsView] loadNewerChats ${JSON.stringify({
+                isOffline: network.isOffline,
+                isLoadingOlderReportActions,
+                isLoadingInitialReportActions,
+                newestReportAction: newestReportAction.pendingAction,
+                firstReportActionID: newestReportAction?.reportActionID,
+                isLoadingOlderReportsFirstNeeded,
+                reportActionID,
+            })}`,
+        );
 
-            Log.info(
-                `[ReportActionsView] loadNewerChats ${JSON.stringify({
-                    isOffline: network.isOffline,
-                    isLoadingNewerReportActions,
-                    isLoadingInitialReportActions,
-                    newestReportAction: newestReportAction.pendingAction,
-                    firstReportActionID: newestReportAction?.reportActionID,
-                    isLoadingOlderReportsFirstNeeded,
-                    reportActionID,
-                })}`,
-            );
+        if (
+            !reportActionID ||
+            !isFocused ||
+            isLoadingInitialReportActions ||
+            isLoadingOlderReportActions ||
+            network.isOffline ||
+            newestReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
+        ) {
+            return;
+        }
 
-            if (
-                !force &&
-                (!reportActionID ||
-                    !isFocused ||
-                    isLoadingInitialReportActions ||
-                    isLoadingNewerReportActions ||
-                    // If there was an error only try again once on initial mount. We should also still load
-                    // more in case we have cached messages.
-                    (!hasMoreCached && didLoadNewerChats.current && hasLoadingNewerReportActionsError) ||
-                    network.isOffline ||
-                    newestReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
-            ) {
-                return;
-            }
-
-            didLoadNewerChats.current = true;
-
-            if ((reportActionID && indexOfLinkedAction > -1 && !isLoadingOlderReportsFirstNeeded) || (!reportActionID && !isLoadingOlderReportsFirstNeeded)) {
-                handleReportActionPagination({firstReportActionID: newestReportAction?.reportActionID});
-            }
-        },
-        [
-            isLoadingInitialReportActions,
-            isLoadingNewerReportActions,
-            checkIfContentSmallerThanList,
-            reportActionID,
-            indexOfLinkedAction,
-            handleReportActionPagination,
-            network.isOffline,
-            reportActions.length,
-            newestReportAction,
-            isFocused,
-            hasLoadingNewerReportActionsError,
-            hasMoreCached,
-        ],
-    );
+        if ((reportActionID && indexOfLinkedAction > -1 && !isLoadingOlderReportsFirstNeeded) || (!reportActionID && !isLoadingOlderReportsFirstNeeded)) {
+            handleReportActionPagination({firstReportActionID: newestReportAction?.reportActionID});
+        }
+    }, [
+        isLoadingInitialReportActions,
+        isLoadingOlderReportActions,
+        checkIfContentSmallerThanList,
+        reportActionID,
+        indexOfLinkedAction,
+        handleReportActionPagination,
+        network.isOffline,
+        reportActions.length,
+        newestReportAction,
+        isFocused,
+    ]);
 
     /**
      * Runs when the FlatList finishes laying out
@@ -557,9 +532,7 @@ function ReportActionsView({
                 loadNewerChats={loadNewerChats}
                 isLoadingInitialReportActions={isLoadingInitialReportActions}
                 isLoadingOlderReportActions={isLoadingOlderReportActions}
-                hasLoadingOlderReportActionsError={hasLoadingOlderReportActionsError}
                 isLoadingNewerReportActions={isLoadingNewerReportActions}
-                hasLoadingNewerReportActionsError={hasLoadingNewerReportActionsError}
                 listID={listID}
                 onContentSizeChange={onContentSizeChange}
                 shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScroll}
@@ -602,14 +575,6 @@ function arePropsEqual(oldProps: ReportActionsViewProps, newProps: ReportActions
     }
 
     if (oldProps.isLoadingNewerReportActions !== newProps.isLoadingNewerReportActions) {
-        return false;
-    }
-
-    if (oldProps.hasLoadingOlderReportActionsError !== newProps.hasLoadingOlderReportActionsError) {
-        return false;
-    }
-
-    if (oldProps.hasLoadingNewerReportActionsError !== newProps.hasLoadingNewerReportActionsError) {
         return false;
     }
 

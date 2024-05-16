@@ -190,7 +190,7 @@ function getGlobalFetchMock() {
     mockFetch.fail = () => (shouldFail = true);
     mockFetch.succeed = () => (shouldFail = false);
 
-    return mockFetch as typeof fetch;
+    return mockFetch;
 }
 
 function setPersonalDetails(login: string, accountID: number) {
@@ -242,5 +242,4 @@ const createAddListenerMock = () => {
     return {triggerTransitionEnd, addListener};
 };
 
-export type {MockFetch};
 export {assertFormDataMatchesObject, buildPersonalDetails, buildTestReportComment, createAddListenerMock, getGlobalFetchMock, setPersonalDetails, signInWithTestUser, signOutTestUser};
