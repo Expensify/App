@@ -27,7 +27,6 @@ const SCREENS = {
         MY_TRIPS: 'Travel_MyTrips',
         TCS: 'Travel_TCS',
     },
-    WORKSPACES_CENTRAL_PANE: 'WorkspacesCentralPane',
     SEARCH: {
         CENTRAL_PANE: 'Search_Central_Pane',
         REPORT_RHP: 'Search_Report_RHP',
@@ -111,9 +110,6 @@ const SCREENS = {
     LEFT_MODAL: {
         CHAT_FINDER: 'ChatFinder',
         WORKSPACE_SWITCHER: 'WorkspaceSwitcher',
-    },
-    WORKSPACE_SWITCHER: {
-        ROOT: 'WorkspaceSwitcher_Root',
     },
     RIGHT_MODAL: {
         SETTINGS: 'Settings',
@@ -233,7 +229,6 @@ const SCREENS = {
             QUICKBOOKS_ONLINE_EXPORT_INVOICE_ACCOUNT_SELECT: 'Workspace_Accounting_Quickbooks_Online_Export_Invoice_Account_Select',
             QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT: 'Workspace_Accounting_Quickbooks_Online_Export_Company_Card_Expense',
             QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT: 'Workspace_Accounting_Quickbooks_Online_Export_Company_Card_Expense_Account_Select',
-            QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_PAYABLE_SELECT: 'Workspace_Accounting_Quickbooks_Online_Export_Company_Card_Expense_Account_Payable_Select',
             QUICKBOOKS_ONLINE_NON_REIMBURSABLE_DEFAULT_VENDOR_SELECT: 'Workspace_Accounting_Quickbooks_Online_Export_Non_Reimbursable_Default_Vendor_Select',
             QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_COMPANY_CARD_SELECT: 'Workspace_Accounting_Quickbooks_Online_Export_Company_Card_Expense_Select',
             QUICKBOOKS_ONLINE_EXPORT_PREFERRED_EXPORTER: 'Workspace_Accounting_Quickbooks_Online_Export_Preferred_Exporter',
@@ -364,7 +359,6 @@ const SCREENS = {
     },
     ROOM_MEMBERS_ROOT: 'RoomMembers_Root',
     ROOM_INVITE_ROOT: 'RoomInvite_Root',
-    CHAT_FINDER_ROOT: 'ChatFinder_Root',
     FLAG_COMMENT_ROOT: 'FlagComment_Root',
     REIMBURSEMENT_ACCOUNT: 'ReimbursementAccount',
     GET_ASSISTANCE: 'GetAssistance',
