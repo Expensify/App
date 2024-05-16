@@ -2753,7 +2753,6 @@ function clearAddRoomMemberError(reportID: string, invitedAccountID: string) {
     const report = currentReportData?.[reportID];
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
         pendingChatMembers: report?.pendingChatMembers?.filter((pendingChatMember) => pendingChatMember.accountID !== invitedAccountID),
-        participantAccountIDs: report?.parentReportActionIDs?.filter((parentReportActionID) => parentReportActionID !== Number(invitedAccountID)),
         participants: {
             [invitedAccountID]: null,
         },
