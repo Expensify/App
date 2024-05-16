@@ -67,7 +67,9 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
         // Which means that the currentReportID is not the same as the reportID. The currentReportID
         // in this case is empty and hence the component is not focused.
         return <View style={sidebarInnerRowStyle} />;
-    } else if (!optionItem) {
+    }
+
+    if (!optionItem) {
         // This is the case when the component is focused and the optionItem is null.
         // For example, when you submit an expense in offline mode and click on the
         // generated expense report, we would only see the Report Details but no item in LHN.
