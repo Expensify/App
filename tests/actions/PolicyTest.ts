@@ -109,7 +109,7 @@ describe('actions/Policy', () => {
                 });
             });
 
-            // Each of the three reports should have a a `CREATED` action.
+            // Each of the three reports should have a a `CREATED` action
             let adminReportActions: ReportAction[] = Object.values(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminReportID}`] ?? {});
             let announceReportActions: ReportAction[] = Object.values(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceReportID}`] ?? {});
             let expenseReportActions: ReportAction[] = Object.values(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReportID}`] ?? {});
