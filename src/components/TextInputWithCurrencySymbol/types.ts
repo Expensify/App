@@ -67,6 +67,6 @@ type TextInputWithCurrencySymbolProps = {
 
     /** Hide the focus styles on TextInput */
     hideFocusedState?: boolean;
-} & Pick<BaseTextInputProps, 'autoFocus'>;
+} & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrow'>;
 
 export default TextInputWithCurrencySymbolProps;

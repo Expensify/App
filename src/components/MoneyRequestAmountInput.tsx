@@ -74,6 +74,11 @@ type MoneyRequestAmountInputProps = {
 
     /** Hide the focus styles on TextInput */
     hideFocusedState?: boolean;
+
+    /**
+     * Autogrow input container length based on the entered text.
+     */
+    autoGrow?: boolean;
 };
 
 type Selection = {
@@ -104,6 +109,7 @@ function MoneyRequestAmountInput(
         formatAmountOnBlur,
         maxLength,
         hideFocusedState = true,
+        autoGrow = true,
         ...props
     }: MoneyRequestAmountInputProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
@@ -248,6 +254,7 @@ function MoneyRequestAmountInput(
 
     return (
         <TextInputWithCurrencySymbol
+            autoGrow={autoGrow}
             disableKeyboard={disableKeyboard}
             formattedAmount={formattedAmount}
             onChangeAmount={setNewAmount}

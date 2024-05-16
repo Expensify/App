@@ -497,6 +497,7 @@ function MoneyRequestConfirmationList({
             isSelected: false,
             rightElement: (
                 <MoneyRequestAmountInput
+                    autoGrow={false}
                     amount={transaction?.splitShares?.[participantOption.accountID ?? 0]?.amount}
                     currency={iouCurrencyCode}
                     prefixCharacter={currencySymbol}
@@ -507,7 +508,7 @@ function MoneyRequestConfirmationList({
                     formatAmountOnBlur
                     prefixContainerStyle={[styles.pv0]}
                     inputStyle={[styles.optionRowAmountInput, amountWidth] as TextStyle[]}
-                    containerStyle={[styles.textInputContainer]}
+                    containerStyle={[styles.textInputContainer, amountWidth]}
                     touchableInputWrapperStyle={[styles.ml3]}
                     onAmountChange={(value: string) => onSplitShareChange(participantOption.accountID ?? 0, Number(value))}
                     maxLength={formattedTotalAmount.length}
