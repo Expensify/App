@@ -267,7 +267,7 @@ type MenuItemBaseProps = {
     onFocus?: () => void;
 
     /** Optional account id if it's user avatar or policy id if it's workspace avatar */
-    accountID?: number | string;
+    avatarID?: number | string;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -345,7 +345,7 @@ function MenuItem(
         isPaneMenu = false,
         shouldPutLeftPaddingWhenNoIcon = false,
         onFocus,
-        accountID,
+        avatarID,
     }: MenuItemProps,
     ref: PressableRef,
 ) {
@@ -476,8 +476,8 @@ function MenuItem(
                         onFocus={onFocus}
                     >
                         {({pressed}) => (
-                            <View style={[styles.flexColumn, styles.flex1]}>
-                                <View style={[styles.flexRow, styles.flex1]}>
+                            <View style={[styles.flex1]}>
+                                <View style={[styles.flexRow]}>
                                     <View style={[styles.flexColumn, styles.flex1]}>
                                         {!!label && isLabelHoverable && (
                                             <View style={[icon ? styles.mb2 : null, labelStyle]}>
@@ -528,9 +528,9 @@ function MenuItem(
                                                             imageStyles={[styles.alignSelfCenter]}
                                                             size={CONST.AVATAR_SIZE.DEFAULT}
                                                             source={icon}
-                                                            accountID={accountID}
                                                             fallbackIcon={fallbackIcon}
                                                             name={title}
+                                                            avatarID={avatarID}
                                                             type={CONST.ICON_TYPE_WORKSPACE}
                                                         />
                                                     )}

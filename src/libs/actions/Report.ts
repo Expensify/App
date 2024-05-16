@@ -3129,6 +3129,7 @@ function completeOnboarding(
             actorAccountID,
             index + 3,
         );
+        currentTask.parentReportActionID = taskReportAction.reportAction.reportActionID;
 
         const completedTaskReportAction = task.autoCompleted
             ? ReportUtils.buildOptimisticTaskReportAction(currentTask.reportID, CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED, 'marked as complete', actorAccountID, 2)

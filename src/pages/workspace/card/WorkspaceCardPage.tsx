@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import type {WorkspacesCentralPaneNavigatorParamList} from '@libs/Navigation/types';
+import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
@@ -12,7 +12,7 @@ import WorkspaceCardNoVBAView from './WorkspaceCardNoVBAView';
 import WorkspaceCardVBANoECardView from './WorkspaceCardVBANoECardView';
 import WorkspaceCardVBAWithECardView from './WorkspaceCardVBAWithECardView';
 
-type WorkspaceCardPageProps = StackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.CARD>;
+type WorkspaceCardPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.CARD>;
 
 function WorkspaceCardPage({route}: WorkspaceCardPageProps) {
     const {translate} = useLocalize();
