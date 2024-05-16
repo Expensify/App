@@ -10,6 +10,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullComposerAvailable';
+import {containsOnlyEmojis} from '@libs/EmojiUtils';
 import type {ComposerProps} from './types';
 
 function Composer(
@@ -34,8 +35,9 @@ function Composer(
 ) {
     const textInput = useRef<AnimatedMarkdownTextInputRef | null>(null);
     const {isFocused, shouldResetFocus} = useResetComposerFocus(textInput);
+    const textContainsOnlyEmojis = containsOnlyEmojis(value ?? '');
     const theme = useTheme();
-    const markdownStyle = useMarkdownStyle(value, !isGroupPolicyReport ? ['mentionReport'] : []);
+    const markdownStyle = useMarkdownStyle(textContainsOnlyEmojis, !isGroupPolicyReport ? ['mentionReport'] : []);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
@@ -66,7 +68,7 @@ function Composer(
     }, [shouldClear, onClear]);
 
     const maxHeightStyle = useMemo(() => StyleUtils.getComposerMaxHeightStyle(maxLines, isComposerFullSize), [StyleUtils, isComposerFullSize, maxLines]);
-    const composerStyle = useMemo(() => StyleSheet.flatten(style), [style]);
+    const composerStyle = useMemo(() => StyleSheet.flatten([style, textContainsOnlyEmojis ? {lineHeight: 32} : null]), [style, textContainsOnlyEmojis]);
 
     return (
         <RNMarkdownTextInput

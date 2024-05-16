@@ -16,6 +16,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
 import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullComposerAvailable';
+import {containsOnlyEmojis} from '@libs/EmojiUtils';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
@@ -75,9 +76,10 @@ function Composer(
     }: ComposerProps,
     ref: ForwardedRef<TextInput | HTMLInputElement>,
 ) {
+    const textContainsOnlyEmojis = containsOnlyEmojis(value ?? '');
     const theme = useTheme();
     const styles = useThemeStyles();
-    const markdownStyle = useMarkdownStyle(value, !isGroupPolicyReport ? ['mentionReport'] : []);
+    const markdownStyle = useMarkdownStyle(textContainsOnlyEmojis, !isGroupPolicyReport ? ['mentionReport'] : []);
     const StyleUtils = useStyleUtils();
     const textRef = useRef<HTMLElement & RNText>(null);
     const textInput = useRef<AnimatedMarkdownTextInputRef | null>(null);
@@ -314,9 +316,10 @@ function Composer(
             scrollStyleMemo,
             StyleUtils.getComposerMaxHeightStyle(maxLines, isComposerFullSize),
             isComposerFullSize ? ({height: '100%', maxHeight: 'none' as DimensionValue} as TextStyle) : undefined,
+            textContainsOnlyEmojis ? {paddingBottom: 0} : null,
         ],
 
-        [style, styles.rtlTextRenderForSafari, scrollStyleMemo, StyleUtils, maxLines, isComposerFullSize],
+        [style, styles.rtlTextRenderForSafari, scrollStyleMemo, StyleUtils, maxLines, isComposerFullSize, textContainsOnlyEmojis],
     );
 
     return (

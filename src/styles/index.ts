@@ -1662,6 +1662,14 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.fontSizeOnlyEmojisHeight,
         },
 
+        emojisWithinText: {
+            fontSize: variables.fontSizeEmojisWithinText,
+        },
+
+        enhancedLineHeight: {
+            lineHeight: variables.lineHeightComment,
+        },
+
         createMenuPositionSidebar: (windowHeight: number) =>
             ({
                 horizontal: 18,
@@ -1982,7 +1990,7 @@ const styles = (theme: ThemeColors) =>
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             fontSize: variables.fontSizeNormal,
             fontWeight: FontUtils.fontWeight.bold,
-            lineHeight: variables.lineHeightXLarge,
+            lineHeight: variables.lineHeightXXLarge,
             ...wordBreak.breakWord,
         },
 
