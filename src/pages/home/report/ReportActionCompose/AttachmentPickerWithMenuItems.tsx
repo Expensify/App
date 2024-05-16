@@ -13,7 +13,6 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import useIsReportOpenInRHP from '@hooks/useIsReportOpenInRHP';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -118,7 +117,6 @@ function AttachmentPickerWithMenuItems({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {windowHeight, windowWidth} = useWindowDimensions();
-    const {canUseTrackExpense} = usePermissions();
     const {isSmallScreenWidth} = useWindowDimensions();
     const isReportOpenInRHP = useIsReportOpenInRHP();
     const shouldUseNarrowLayout = isReportOpenInRHP || isSmallScreenWidth;
@@ -149,16 +147,16 @@ function AttachmentPickerWithMenuItems({
                 onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, report?.reportID ?? ''),
             },
             [CONST.IOU.TYPE.INVOICE]: {
-                icon: Expensicons.Invoice,
+                icon: Expensicons.InvoiceGeneric,
                 text: translate('workspace.invoices.sendInvoice'),
                 onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.INVOICE, report?.reportID ?? ''),
             },
         };
 
-        return ReportUtils.temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? [], canUseTrackExpense).map((option) => ({
+        return ReportUtils.temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? []).map((option) => ({
             ...options[option],
         }));
-    }, [translate, report, policy, reportParticipantIDs, canUseTrackExpense]);
+    }, [translate, report, policy, reportParticipantIDs]);
 
     /**
      * Determines if we can show the task option
@@ -330,5 +328,6 @@ AttachmentPickerWithMenuItems.displayName = 'AttachmentPickerWithMenuItems';
 export default withOnyx<AttachmentPickerWithMenuItemsProps, AttachmentPickerWithMenuItemsOnyxProps>({
     policy: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`,
+        initialValue: {} as OnyxTypes.Policy,
     },
 })(AttachmentPickerWithMenuItems);
