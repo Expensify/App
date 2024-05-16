@@ -64,7 +64,6 @@ function useTabNavigatorFocus({tabIndex}: UseTabNavigatorFocusParams): boolean {
         // We need to get the position animation value on component initialization to determine
         // if the tab is focused or not. Since it's an Animated.Value the only synchronous way
         // to retrieve the value is to use a private method.
-        // @ts-expect-error -- __getValue is a private method
         // eslint-disable-next-line no-underscore-dangle
         const initialTabPositionValue = tabPositionAnimation.__getValue();
 
