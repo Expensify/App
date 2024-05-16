@@ -70,11 +70,12 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
     }
 
     const rootState = navigation.getRootState() as NavigationState<RootStackParamList>;
+    const topmostCentralPaneRoute = getTopmostCentralPaneRoute(rootState);
     let newPath = route ?? getPathFromState({routes: rootState.routes} as State, linkingConfig.config);
 
     // Currently, the search page displayed in the bottom tab has the same URL as the page in the central pane, so we need to redirect to the correct search route.
     // Here's the configuration: src/libs/Navigation/AppNavigator/createCustomStackNavigator/index.tsx
-    const isOpeningSearchFromBottomTab = newPath.startsWith(CONST.SEARCH_BOTTOM_TAB_URL);
+    const isOpeningSearchFromBottomTab = topmostCentralPaneRoute?.name === SCREENS.SEARCH.CENTRAL_PANE;
     if (isOpeningSearchFromBottomTab) {
         newPath = ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.ALL);
     }
@@ -99,7 +100,6 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
 
     // If the layout is wide we need to push matching central pane route to the stack.
     if (shouldAddToCentralPane) {
-        const topmostCentralPaneRoute = getTopmostCentralPaneRoute(rootState);
         const screen = topmostCentralPaneRoute?.name;
         const params: CentralPaneRouteParams = {...topmostCentralPaneRoute?.params};
 

@@ -156,7 +156,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
     if (action?.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE) {
         const targetScreen = action.payload.params?.screen;
 
-        if (targetScreen === SCREENS.SEARCH.CENTRAL_PANE && action.payload?.params?.params) {
+        if (targetScreen === SCREENS.SEARCH.CENTRAL_PANE && action.payload?.params?.params && policyID) {
             action.payload.params.params.policyIDs = policyID;
         }
 

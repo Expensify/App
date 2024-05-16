@@ -4767,8 +4767,6 @@ const CONST = {
         DISTANCE: 'distance',
     },
 
-    SEARCH_BOTTOM_TAB_URL: '/Search_Bottom_Tab',
-
     SEARCH_DATA_TYPES: {
         TRANSACTION: 'transaction',
     },
