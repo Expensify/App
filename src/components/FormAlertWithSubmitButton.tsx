@@ -54,9 +54,6 @@ type FormAlertWithSubmitButtonProps = {
 
     /** Style for the error message for submit button */
     errorMessageStyle?: StyleProp<ViewStyle>;
-
-    /** The priority to assign the enter key event listener to buttons. 0 is the highest priority. */
-    enterKeyEventListenerPriority?: number;
 };
 
 function FormAlertWithSubmitButton({
@@ -76,7 +73,6 @@ function FormAlertWithSubmitButton({
     onSubmit,
     useSmallerSubmitButtonSize = false,
     errorMessageStyle,
-    enterKeyEventListenerPriority = 0,
 }: FormAlertWithSubmitButtonProps) {
     const styles = useThemeStyles();
     const style = [!footerContent ? {} : styles.mb3, buttonStyles];
@@ -106,7 +102,6 @@ function FormAlertWithSubmitButton({
                         <Button
                             success
                             pressOnEnter={!disablePressOnEnter}
-                            enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                             text={buttonText}
                             style={style}
                             onPress={onSubmit}

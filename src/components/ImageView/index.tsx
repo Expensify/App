@@ -2,13 +2,11 @@ import type {SyntheticEvent} from 'react';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
-import AttachmentOfflineIndicator from '@components/AttachmentOfflineIndicator';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Image from '@components/Image';
 import RESIZE_MODES from '@components/Image/resizeModes';
 import type {ImageOnLoadEvent} from '@components/Image/types';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
@@ -35,7 +33,6 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
     const [imgHeight, setImgHeight] = useState(0);
     const [zoomScale, setZoomScale] = useState(0);
     const [zoomDelta, setZoomDelta] = useState<ZoomDelta>();
-    const {isOffline} = useNetwork();
 
     const scrollableRef = useRef<HTMLDivElement>(null);
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
@@ -213,8 +210,7 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
                     onLoad={imageLoad}
                     onError={onError}
                 />
-                {((isLoading && !isOffline) || (!isLoading && zoomScale === 0)) && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
-                {isLoading && <AttachmentOfflineIndicator />}
+                {(isLoading || zoomScale === 0) && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
             </View>
         );
     }
@@ -247,8 +243,7 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
                 />
             </PressableWithoutFeedback>
 
-            {isLoading && !isOffline && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
-            {isLoading && <AttachmentOfflineIndicator />}
+            {isLoading && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
         </View>
     );
 }

@@ -118,7 +118,6 @@ function FormWrapper({
                         enabledWhenOffline={enabledWhenOffline}
                         isSubmitActionDangerous={isSubmitActionDangerous}
                         disablePressOnEnter={disablePressOnEnter}
-                        enterKeyEventListenerPriority={1}
                     />
                 )}
             </FormElement>

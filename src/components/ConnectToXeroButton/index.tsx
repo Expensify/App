@@ -3,7 +3,6 @@ import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {removePolicyConnection} from '@libs/actions/connections';
 import {getXeroSetupLink} from '@libs/actions/connections/ConnectToXero';
@@ -15,7 +14,6 @@ function ConnectToXeroButton({policyID, shouldDisconnectIntegrationBeforeConnect
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
-    const {isOffline} = useNetwork();
 
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
 
@@ -32,7 +30,6 @@ function ConnectToXeroButton({policyID, shouldDisconnectIntegrationBeforeConnect
                 text={translate('workspace.accounting.setup')}
                 style={styles.justifyContentCenter}
                 small
-                isDisabled={isOffline}
             />
             {shouldDisconnectIntegrationBeforeConnecting && isDisconnectModalOpen && integrationToDisconnect && (
                 <ConfirmModal

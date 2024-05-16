@@ -119,7 +119,7 @@ describe('ReportUtils', () => {
                 expect(
                     ReportUtils.getReportName({
                         reportID: '',
-                        participants: ReportUtils.buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
+                        participantAccountIDs: [currentUserAccountID, 1],
                     }),
                 ).toBe('Ragnar Lothbrok');
             });
@@ -128,7 +128,7 @@ describe('ReportUtils', () => {
                 expect(
                     ReportUtils.getReportName({
                         reportID: '',
-                        participants: ReportUtils.buildParticipantsFromAccountIDs([currentUserAccountID, 2]),
+                        participantAccountIDs: [currentUserAccountID, 2],
                     }),
                 ).toBe('floki@vikings.net');
             });
@@ -137,7 +137,7 @@ describe('ReportUtils', () => {
                 expect(
                     ReportUtils.getReportName({
                         reportID: '',
-                        participants: ReportUtils.buildParticipantsFromAccountIDs([currentUserAccountID, 4]),
+                        participantAccountIDs: [currentUserAccountID, 4],
                     }),
                 ).toBe('(833) 240-3627');
             });
@@ -147,7 +147,7 @@ describe('ReportUtils', () => {
             expect(
                 ReportUtils.getReportName({
                     reportID: '',
-                    participants: ReportUtils.buildParticipantsFromAccountIDs([currentUserAccountID, 1, 2, 3, 4]),
+                    participantAccountIDs: [currentUserAccountID, 1, 2, 3, 4],
                 }),
             ).toBe('Ragnar, floki@vikings.net, Lagertha, (833) 240-3627');
         });

@@ -8,14 +8,13 @@ import CONST from '@src/CONST';
 type ListItemSkeletonProps = {
     shouldAnimate?: boolean;
     renderSkeletonItem: (args: {itemIndex: number}) => React.ReactNode;
-    fixedNumItems?: number;
 };
 
-function ItemListSkeletonView({shouldAnimate = true, renderSkeletonItem, fixedNumItems}: ListItemSkeletonProps) {
+function ItemListSkeletonView({shouldAnimate = true, renderSkeletonItem}: ListItemSkeletonProps) {
     const theme = useTheme();
     const themeStyles = useThemeStyles();
 
-    const [numItems, setNumItems] = useState(fixedNumItems ?? 0);
+    const [numItems, setNumItems] = useState(0);
     const skeletonViewItems = useMemo(() => {
         const items = [];
         for (let i = 0; i < numItems; i++) {
@@ -39,10 +38,6 @@ function ItemListSkeletonView({shouldAnimate = true, renderSkeletonItem, fixedNu
         <View
             style={[themeStyles.flex1, themeStyles.overflowHidden]}
             onLayout={(event) => {
-                if (fixedNumItems) {
-                    return;
-                }
-
                 const newNumItems = Math.ceil(event.nativeEvent.layout.height / CONST.LHN_SKELETON_VIEW_ITEM_HEIGHT);
                 if (newNumItems === numItems) {
                     return;

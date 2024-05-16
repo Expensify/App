@@ -236,7 +236,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
             options.push({
                 text: translate('workspace.people.makeMember'),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
-                icon: Expensicons.User,
+                icon: Expensicons.MakeAdmin,
                 onSelected: () => changeUserRole(CONST.REPORT.ROLE.MEMBER),
             });
         }

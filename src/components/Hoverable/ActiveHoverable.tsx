@@ -8,7 +8,7 @@ import type HoverableProps from './types';
 
 type ActiveHoverableProps = Omit<HoverableProps, 'disabled'>;
 
-function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, shouldFreezeCapture, children}: ActiveHoverableProps, outerRef: Ref<HTMLElement>) {
+function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, children}: ActiveHoverableProps, outerRef: Ref<HTMLElement>) {
     const [isHovered, setIsHovered] = useState(false);
 
     const elementRef = useRef<HTMLElement | null>(null);
@@ -19,16 +19,12 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, shouldFreez
     const updateIsHovered = useCallback(
         (hovered: boolean) => {
             isHoveredRef.current = hovered;
-            // Nullish coalescing operator (`??`) wouldn't be appropriate here because
-            // it's not a matter of providing a default when encountering `null` or `undefined`
-            // but rather making a decision based on the truthy nature of the complete expressions.
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            if ((shouldHandleScroll && isScrollingRef.current) || shouldFreezeCapture) {
+            if (shouldHandleScroll && isScrollingRef.current) {
                 return;
             }
             setIsHovered(hovered);
         },
-        [shouldHandleScroll, shouldFreezeCapture],
+        [shouldHandleScroll],
     );
 
     useEffect(() => {
@@ -67,9 +63,7 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, shouldFreez
          * @param event The hover event object.
          */
         const unsetHoveredIfOutside = (event: MouseEvent) => {
-            // We're also returning early if shouldFreezeCapture is true in order
-            // to not update the hover state but keep it frozen.
-            if (!elementRef.current || elementRef.current.contains(event.target as Node) || shouldFreezeCapture) {
+            if (!elementRef.current || elementRef.current.contains(event.target as Node)) {
                 return;
             }
 
@@ -79,7 +73,7 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, shouldFreez
         document.addEventListener('mouseover', unsetHoveredIfOutside);
 
         return () => document.removeEventListener('mouseover', unsetHoveredIfOutside);
-    }, [isHovered, elementRef, shouldFreezeCapture]);
+    }, [isHovered, elementRef]);
 
     useEffect(() => {
         const unsetHoveredWhenDocumentIsHidden = () => {

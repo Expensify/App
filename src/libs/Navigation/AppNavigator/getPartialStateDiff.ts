@@ -53,7 +53,7 @@ function getPartialStateDiff(state: State<RootStackParamList>, templateState: St
             (stateTopmostCentralPane &&
                 templateStateTopmostCentralPane &&
                 stateTopmostCentralPane.name !== templateStateTopmostCentralPane.name &&
-                !shallowCompare(stateTopmostCentralPane.params as Record<string, unknown> | undefined, templateStateTopmostCentralPane.params as Record<string, unknown> | undefined))
+                !shallowCompare(stateTopmostCentralPane.params, templateStateTopmostCentralPane.params))
         ) {
             // We need to wrap central pane routes in the central pane navigator.
             diff[NAVIGATORS.CENTRAL_PANE_NAVIGATOR] = templateStateTopmostCentralPane;
@@ -73,7 +73,7 @@ function getPartialStateDiff(state: State<RootStackParamList>, templateState: St
             (stateTopmostFullScreen &&
                 templateStateTopmostFullScreen &&
                 stateTopmostFullScreen.name !== templateStateTopmostFullScreen.name &&
-                !shallowCompare(stateTopmostFullScreen.params as Record<string, unknown> | undefined, templateStateTopmostFullScreen.params as Record<string, unknown> | undefined))
+                !shallowCompare(stateTopmostFullScreen.params, templateStateTopmostFullScreen.params))
         ) {
             diff[NAVIGATORS.FULL_SCREEN_NAVIGATOR] = fullScreenDiff;
         }

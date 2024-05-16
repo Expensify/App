@@ -1,5 +1,7 @@
 import type {Locale} from '@src/types/onyx';
 import emojis from './common';
+import enEmojis from './en';
+import esEmojis from './es';
 import type {Emoji, EmojisList} from './types';
 
 type EmojiTable = Record<string, Emoji>;
@@ -28,22 +30,10 @@ const emojiCodeTableWithSkinTones = emojis.reduce<EmojiTable>((prev, cur) => {
 }, {});
 
 const localeEmojis: LocaleEmojis = {
-    en: undefined,
-    es: undefined,
-};
-
-const importEmojiLocale = (locale: Locale) => {
-    const normalizedLocale = locale.toLowerCase().split('-')[0] as Locale;
-    if (!localeEmojis[normalizedLocale]) {
-        const emojiImportPromise = normalizedLocale === 'en' ? import('./en') : import('./es');
-        return emojiImportPromise.then((esEmojiModule) => {
-            // it is needed because in jest test the modules are imported in double nested default object
-            localeEmojis[normalizedLocale] = esEmojiModule.default.default ? (esEmojiModule.default.default as unknown as EmojisList) : esEmojiModule.default;
-        });
-    }
-    return Promise.resolve();
+    en: enEmojis,
+    es: esEmojis,
 };
 
 export default emojis;
-export {emojiNameTable, emojiCodeTableWithSkinTones, localeEmojis, importEmojiLocale};
+export {emojiNameTable, emojiCodeTableWithSkinTones, localeEmojis};
 export {skinTones, categoryFrequentlyUsed} from './common';

@@ -51,7 +51,7 @@ function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyConnectionsProps
 
     const initiallyFocusedOptionKey = useMemo(() => qboOnlineSelectorOptions?.find((mode) => mode.isSelected)?.keyForList, [qboOnlineSelectorOptions]);
 
-    const updateAccount = useCallback(
+    const updateMode = useCallback(
         ({value}: SelectorType) => {
             Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.COLLECTION_ACCOUNT_ID, value);
             Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED.getRoute(policyID));
@@ -75,7 +75,7 @@ function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyConnectionsProps
                     sections={[{data: qboOnlineSelectorOptions}]}
                     ListItem={RadioListItem}
                     headerContent={listHeaderComponent}
-                    onSelectRow={updateAccount}
+                    onSelectRow={updateMode}
                     initiallyFocusedOptionKey={initiallyFocusedOptionKey}
                 />
             </ScreenWrapper>

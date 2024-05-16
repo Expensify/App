@@ -16,9 +16,9 @@ The sky's the limit for this referral program! Your referral can be anyone - a f
 
 1. There are a bunch of different ways to refer someone to New Expensify:
    - Start a chat
-   - Submit an expense to them
-   - Split an expense with them
-   - Pay someone (them)
+   - Request money
+   - Send money
+   - Split a bill
    - Assign them a task
    - @ mention them
    - Invite them to a room

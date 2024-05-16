@@ -47,7 +47,6 @@ function IOURequestStepSendFrom({route, transaction, allPolicies}: IOURequestSte
             keyForList: policy.id,
             icons: [
                 {
-                    id: policy.id,
                     source: policy?.avatarURL ? policy.avatarURL : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
                     fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
                     name: policy.name,

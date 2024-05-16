@@ -1,10 +1,8 @@
-import type {ValueOf} from 'react-native-gesture-handler/lib/typescript/typeUtils';
 import TransactionListItem from '@components/SelectionList/TransactionListItem';
-import type {TransactionListItemType} from '@components/SelectionList/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {SearchDataTypes, SearchTypeToItemMap} from '@src/types/onyx/SearchResults';
+import type {SearchDataTypes, SearchTransaction, SearchTypeToItemMap} from '@src/types/onyx/SearchResults';
 import * as UserUtils from './UserUtils';
 
 function getSearchType(search: OnyxTypes.SearchResults['search']): SearchDataTypes | undefined {
@@ -23,15 +21,8 @@ function getShouldShowMerchant(data: OnyxTypes.SearchResults['data']): boolean {
     });
 }
 
-function getShouldShowColumn(data: OnyxTypes.SearchResults['data'], columnName: ValueOf<typeof CONST.SEARCH_TABLE_COLUMNS>) {
-    return Object.values(data).some((item) => !!item[columnName]);
-}
-
-function getTransactionsSections(data: OnyxTypes.SearchResults['data']): TransactionListItemType[] {
+function getTransactionsSections(data: OnyxTypes.SearchResults['data']): SearchTransaction[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
-    const shouldShowCategory = getShouldShowColumn(data, CONST.SEARCH_TABLE_COLUMNS.CATEGORY);
-    const shouldShowTag = getShouldShowColumn(data, CONST.SEARCH_TABLE_COLUMNS.TAG);
-    const shouldShowTax = getShouldShowColumn(data, CONST.SEARCH_TABLE_COLUMNS.TAX_AMOUNT);
     return Object.entries(data)
         .filter(([key]) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION))
         .map(([, value]) => {
@@ -41,9 +32,6 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data']): Transac
                 from: data.personalDetailsList?.[value.accountID],
                 to: isExpenseReport ? data[`${ONYXKEYS.COLLECTION.POLICY}${value.policyID}`] : data.personalDetailsList?.[value.managerID],
                 shouldShowMerchant,
-                shouldShowCategory,
-                shouldShowTag,
-                shouldShowTax,
                 keyForList: value.transactionID,
             };
         })
@@ -69,9 +57,8 @@ function getSections<K extends keyof SearchTypeToItemMap>(data: OnyxTypes.Search
     return searchTypeToItemMap[type].getSections(data) as ReturnType<SearchTypeToItemMap[K]['getSections']>;
 }
 
-function getQueryHash(query: string, policyID?: string): number {
-    const textToHash = [query, policyID].filter(Boolean).join('_');
-    return UserUtils.hashText(textToHash, 2 ** 32);
+function getQueryHash(query: string): number {
+    return UserUtils.hashText(query, 2 ** 32);
 }
 
-export {getListItem, getQueryHash, getSections, getShouldShowColumn, getShouldShowMerchant, getSearchType};
+export {getListItem, getQueryHash, getSections, getShouldShowMerchant, getSearchType};

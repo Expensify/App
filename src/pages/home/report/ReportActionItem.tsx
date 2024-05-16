@@ -64,7 +64,6 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import {RestrictedReadOnlyContextMenuActions} from './ContextMenu/ContextMenuActions';
@@ -90,6 +89,9 @@ const getDraftMessage = (drafts: OnyxCollection<OnyxTypes.ReportActionsDrafts>, 
 };
 
 type ReportActionItemOnyxProps = {
+    /** Stores user's preferred skin tone */
+    preferredSkinTone: OnyxEntry<string | number>;
+
     /** IOU report for this action, if any */
     iouReport: OnyxEntry<OnyxTypes.Report>;
 
@@ -103,9 +105,6 @@ type ReportActionItemOnyxProps = {
 
     /** Transaction associated with this report, if any */
     transaction: OnyxEntry<OnyxTypes.Transaction>;
-
-    /** The transaction (linked with the report action) route error */
-    linkedTransactionRouteError: OnyxEntry<Errors>;
 };
 
 type ReportActionItemProps = {
@@ -174,6 +173,7 @@ function ReportActionItem({
     iouReport,
     isMostRecentIOUReportAction,
     parentReportAction,
+    preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE,
     shouldDisplayNewMarker,
     userWallet,
     shouldHideThreadDividerLine = false,
@@ -183,7 +183,6 @@ function ReportActionItem({
     onPress = undefined,
     isFirstVisibleReportAction = false,
     shouldUseThreadDividerLine = false,
-    linkedTransactionRouteError,
 }: ReportActionItemProps) {
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -673,6 +672,8 @@ function ReportActionItem({
                             reportID={report.reportID}
                             index={index}
                             ref={textInputRef}
+                            // Avoid defining within component due to an existing Onyx bug
+                            preferredSkinTone={preferredSkinTone}
                             shouldDisableEmojiPicker={(ReportUtils.chatIncludesConcierge(report) && User.isBlockedFromConcierge(blockedFromConcierge)) || ReportUtils.isArchivedRoom(report)}
                         />
                     )}
@@ -976,7 +977,7 @@ function ReportActionItem({
                                     draftMessage !== undefined ? undefined : action.pendingAction ?? (action.isOptimisticAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : undefined)
                                 }
                                 shouldHideOnDelete={!ReportActionsUtils.isThreadParentMessage(action, report.reportID)}
-                                errors={linkedTransactionRouteError ?? ErrorUtils.getLatestErrorMessageField(action as ErrorUtils.OnyxDataWithErrors)}
+                                errors={ErrorUtils.getLatestErrorMessageField(action as ErrorUtils.OnyxDataWithErrors)}
                                 errorRowStyles={[styles.ml10, styles.mr2]}
                                 needsOffscreenAlphaCompositing={ReportActionsUtils.isMoneyRequestAction(action)}
                                 shouldDisableStrikeThrough
@@ -1018,6 +1019,10 @@ function ReportActionItem({
 }
 
 export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
+    preferredSkinTone: {
+        key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
+        initialValue: CONST.EMOJI_DEFAULT_SKIN_TONE,
+    },
     iouReport: {
         key: ({action}) => {
             const iouReportID = ReportActionsUtils.getIOUReportIDFromReportActionPreview(action);
@@ -1043,10 +1048,6 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
                 : 0;
             return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
         },
-    },
-    linkedTransactionRouteError: {
-        key: ({action}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${(action as OnyxTypes.OriginalMessageIOU)?.originalMessage?.IOUTransactionID ?? 0}`,
-        selector: (transaction: OnyxEntry<OnyxTypes.Transaction>) => transaction?.errorFields?.route ?? null,
     },
 })(
     memo(ReportActionItem, (prevProps, nextProps) => {
@@ -1082,7 +1083,6 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
             lodashIsEqual(prevProps.transactionThreadReport, nextProps.transactionThreadReport) &&
             lodashIsEqual(prevProps.reportActions, nextProps.reportActions) &&
             lodashIsEqual(prevProps.transaction, nextProps.transaction) &&
-            lodashIsEqual(prevProps.linkedTransactionRouteError, nextProps.linkedTransactionRouteError) &&
             lodashIsEqual(prevParentReportAction, nextParentReportAction)
         );
     }),

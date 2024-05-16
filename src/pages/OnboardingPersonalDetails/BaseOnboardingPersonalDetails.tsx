@@ -62,7 +62,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             );
 
             Welcome.setOnboardingAdminsChatReportID();
-            Welcome.setOnboardingPolicyID();
 
             Navigation.dismissModal();
 

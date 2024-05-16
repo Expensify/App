@@ -23,9 +23,6 @@ type PolicyCategory = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** The external accounting service that this category comes from */
     origin: string;
 
-    /** The old category name of the category when we edit the category name */
-    previousCategoryName?: string;
-
     /** A list of errors keyed by microtime */
     errors?: OnyxCommon.Errors | null;
 }>;

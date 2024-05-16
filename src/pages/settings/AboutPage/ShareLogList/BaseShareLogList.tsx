@@ -108,7 +108,7 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
                         onChangeText={setSearchValue}
                         textInputValue={searchValue}
                         headerMessage={searchOptions.headerMessage}
-                        textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
+                        textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                         textInputHint={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
                         showLoadingPlaceholder={!didScreenTransitionEnd}
                         isLoadingNewOptions={!!isSearchingForReports}

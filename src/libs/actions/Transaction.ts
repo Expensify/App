@@ -262,7 +262,7 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection, i
 }
 
 function clearError(transactionID: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {errors: null, errorFields: {route: null}});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {errors: null});
 }
 
 function markAsCash(transactionID: string, transactionThreadReportID: string, existingViolations: TransactionViolation[]) {

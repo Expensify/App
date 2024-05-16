@@ -45,6 +45,7 @@ function useOptions({isGroupChat}: NewChatPageProps) {
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [newGroupDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
     const personalData = useCurrentUserPersonalDetails();
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const {didScreenTransitionEnd} = useScreenWrapperTranstionStatus();
     const {options: listOptions, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
@@ -94,28 +95,13 @@ function useOptions({isGroupChat}: NewChatPageProps) {
         if (!newGroupDraft?.participants) {
             return;
         }
-        const newSelectedOptions: OptionData[] = [];
-        newGroupDraft.participants.forEach((participant) => {
-            if (participant.accountID === personalData.accountID) {
-                return;
-            }
-            let participantOption: OptionData | undefined | null = listOptions.personalDetails.find((option) => option.accountID === participant.accountID);
-            if (!participantOption) {
-                participantOption = OptionsListUtils.getUserToInviteOption({
-                    searchValue: participant.login,
-                    betas,
-                });
-            }
-            if (!participantOption) {
-                return;
-            }
-            newSelectedOptions.push({
-                ...participantOption,
-                isSelected: true,
-            });
+        const selectedParticipants = newGroupDraft.participants.filter((participant) => participant.accountID !== personalData.accountID);
+        const newSelectedOptions = selectedParticipants.map((participant): OptionData => {
+            const baseOption = OptionsListUtils.getParticipantsOption({accountID: participant.accountID, login: participant.login, reportID: ''}, personalDetails);
+            return {...baseOption, reportID: baseOption.reportID ?? '', isSelected: true};
         });
         setSelectedOptions(newSelectedOptions);
-    }, [newGroupDraft?.participants, listOptions.personalDetails, betas, personalData.accountID]);
+    }, [newGroupDraft, personalData, personalDetails]);
 
     return {...options, searchTerm, debouncedSearchTerm, setSearchTerm, areOptionsInitialized: areOptionsInitialized && didScreenTransitionEnd, selectedOptions, setSelectedOptions};
 }
@@ -306,7 +292,7 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
                     textInputValue={searchTerm}
                     textInputHint={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
                     onChangeText={setSearchTerm}
-                    textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
+                    textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                     headerMessage={headerMessage}
                     onSelectRow={createChat}
                     onConfirm={(e, option) => (selectedOptions.length > 0 ? createGroup() : createChat(option))}

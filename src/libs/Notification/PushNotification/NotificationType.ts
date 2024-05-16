@@ -1,30 +1,25 @@
-import type {ValueOf} from 'type-fest';
 import type {OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
 
 const NotificationType = {
     REPORT_COMMENT: 'reportComment',
-    MONEY_REQUEST: 'moneyRequest',
 } as const;
 
 type NotificationDataMap = {
-    [NotificationType.REPORT_COMMENT]: ReportActionPushNotificationData;
-    [NotificationType.MONEY_REQUEST]: ReportActionPushNotificationData;
+    [NotificationType.REPORT_COMMENT]: ReportCommentNotificationData;
 };
 
-type PushNotificationData = ReportActionPushNotificationData;
+type NotificationData = ReportCommentNotificationData;
 
-type BasePushNotificationData = {
+type ReportCommentNotificationData = {
     title: string;
-    type: ValueOf<typeof NotificationType>;
+    type: typeof NotificationType.REPORT_COMMENT;
+    reportID: number;
+    reportActionID: string;
+    shouldScrollToLastUnread?: boolean;
+    roomName?: string;
     onyxData?: OnyxServerUpdate[];
     lastUpdateID?: number;
     previousUpdateID?: number;
-};
-
-type ReportActionPushNotificationData = BasePushNotificationData & {
-    reportID: number;
-    reportActionID: string;
-    roomName?: string;
 };
 
 /**
@@ -32,4 +27,4 @@ type ReportActionPushNotificationData = BasePushNotificationData & {
  * types of push notifications sent by our API.
  */
 export default NotificationType;
-export type {NotificationDataMap, PushNotificationData, ReportActionPushNotificationData};
+export type {NotificationDataMap, NotificationData, ReportCommentNotificationData};

@@ -14,7 +14,7 @@ import type {PlaybackSpeed, VideoPopoverMenuContext} from './types';
 const Context = React.createContext<VideoPopoverMenuContext | null>(null);
 
 function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
-    const {currentlyPlayingURL} = usePlaybackContext();
+    const {currentVideoPlayerRef, currentlyPlayingURL} = usePlaybackContext();
     const {translate} = useLocalize();
     const [currentPlaybackSpeed, setCurrentPlaybackSpeed] = useState<PlaybackSpeed>(CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS[2]);
     const {isOffline} = useNetwork();
@@ -24,9 +24,9 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
     const updatePlaybackSpeed = useCallback(
         (speed: PlaybackSpeed) => {
             setCurrentPlaybackSpeed(speed);
-            videoPopoverMenuPlayerRef.current?.setStatusAsync?.({rate: speed});
+            currentVideoPlayerRef.current?.setStatusAsync?.({rate: speed});
         },
-        [videoPopoverMenuPlayerRef],
+        [currentVideoPlayerRef],
     );
 
     const downloadAttachment = useCallback(() => {
@@ -69,10 +69,7 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
         return items;
     }, [currentPlaybackSpeed, downloadAttachment, translate, updatePlaybackSpeed, isOffline, isLocalFile]);
 
-    const contextValue = useMemo(
-        () => ({menuItems, videoPopoverMenuPlayerRef, updatePlaybackSpeed, setCurrentPlaybackSpeed}),
-        [menuItems, videoPopoverMenuPlayerRef, updatePlaybackSpeed, setCurrentPlaybackSpeed],
-    );
+    const contextValue = useMemo(() => ({menuItems, videoPopoverMenuPlayerRef, updatePlaybackSpeed}), [menuItems, videoPopoverMenuPlayerRef, updatePlaybackSpeed]);
     return <Context.Provider value={contextValue}>{children}</Context.Provider>;
 }
 

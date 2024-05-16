@@ -20,14 +20,14 @@ type ConnectionLayoutProps = {
     /** Header title for the connection */
     headerTitle: TranslationPaths;
 
-    /** The subtitle to show in the header */
-    headerSubtitle?: string;
-
     /** React nodes that will be shown */
     children?: React.ReactNode;
 
     /** Title of the connection component */
     title?: TranslationPaths;
+
+    /** Subtitle of the connection */
+    subtitle?: TranslationPaths;
 
     /** The current policyID */
     policyID: string;
@@ -44,18 +44,22 @@ type ConnectionLayoutProps = {
     /** Style of the title text */
     titleStyle?: StyleProp<TextStyle> | undefined;
 
+    /** Style of the subtitle text */
+    subTitleStyle?: StyleProp<TextStyle> | undefined;
+
     /** Whether to use ScrollView or not */
     shouldUseScrollView?: boolean;
 };
 
-type ConnectionLayoutContentProps = Pick<ConnectionLayoutProps, 'title' | 'titleStyle' | 'children'>;
+type ConnectionLayoutContentProps = Pick<ConnectionLayoutProps, 'title' | 'titleStyle' | 'subtitle' | 'subTitleStyle' | 'children'>;
 
-function ConnectionLayoutContent({title, titleStyle, children}: ConnectionLayoutContentProps) {
+function ConnectionLayoutContent({title, titleStyle, subtitle, subTitleStyle, children}: ConnectionLayoutContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     return (
         <>
             {title && <Text style={[styles.pb5, titleStyle]}>{translate(title)}</Text>}
+            {subtitle && <Text style={[styles.textLabelSupporting, subTitleStyle]}>{translate(subtitle)}</Text>}
             {children}
         </>
     );
@@ -66,12 +70,13 @@ function ConnectionLayout({
     headerTitle,
     children,
     title,
-    headerSubtitle,
+    subtitle,
     policyID,
     accessVariants,
     featureName,
     contentContainerStyle,
     titleStyle,
+    subTitleStyle,
     shouldUseScrollView = true,
 }: ConnectionLayoutProps) {
     const {translate} = useLocalize();
@@ -80,12 +85,14 @@ function ConnectionLayout({
         () => (
             <ConnectionLayoutContent
                 title={title}
+                subtitle={subtitle}
+                subTitleStyle={subTitleStyle}
                 titleStyle={titleStyle}
             >
                 {children}
             </ConnectionLayoutContent>
         ),
-        [title, titleStyle, children],
+        [title, subtitle, titleStyle, subTitleStyle, children],
     );
 
     return (
@@ -101,7 +108,6 @@ function ConnectionLayout({
             >
                 <HeaderWithBackButton
                     title={translate(headerTitle)}
-                    subtitle={headerSubtitle}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 {shouldUseScrollView ? (

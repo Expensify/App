@@ -86,9 +86,11 @@ function createFullScreenNavigator(route?: NavigationPartialRoute<FullScreenName
             policyID,
         },
     });
-
     if (route) {
-        routes.push(route);
+        routes.push({
+            name: SCREENS.WORKSPACES_CENTRAL_PANE,
+            state: getRoutesWithIndex([route]),
+        });
     }
     return {
         name: NAVIGATORS.FULL_SCREEN_NAVIGATOR,
