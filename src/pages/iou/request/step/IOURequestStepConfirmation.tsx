@@ -312,10 +312,10 @@ function IOURequestStepConfirmation({
                 policyTags,
                 policyCategories,
                 customUnitRateID,
-         currentUserPersonalDetails.login,
+                currentUserPersonalDetails.login,
                 currentUserPersonalDetails.accountID,
                 transaction.splitShares,
-                            // splitPayerAccountIDs: transaction.splitPayerAccountIDs,
+                // splitPayerAccountIDs: transaction.splitPayerAccountIDs,
             );
         },
         [policy, policyCategories, policyTags, report, transaction, transactionTaxCode, transactionTaxAmount, currentUserPersonalDetails],
@@ -408,7 +408,6 @@ function IOURequestStepConfirmation({
                             splitPayerAccountIDs: transaction.splitPayerAccountIDs,
                         });
                     }
-
                 }
                 return;
             }

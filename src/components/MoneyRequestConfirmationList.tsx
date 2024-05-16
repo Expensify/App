@@ -309,10 +309,7 @@ function MoneyRequestConfirmationList({
     const distanceRequestAmount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate ?? 0);
     const formattedAmount = isDistanceRequestWithPendingRoute
         ? ''
-        : CurrencyUtils.convertToDisplayString(
-              shouldCalculateDistanceAmount ? distanceRequestAmount : iouAmount,
-              isDistanceRequest ? currency : iouCurrencyCode,
-          );
+        : CurrencyUtils.convertToDisplayString(shouldCalculateDistanceAmount ? distanceRequestAmount : iouAmount, isDistanceRequest ? currency : iouCurrencyCode);
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transaction?.taxAmount, iouCurrencyCode);
     const taxRateTitle = TransactionUtils.getTaxName(policy, transaction);
 
