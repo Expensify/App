@@ -147,7 +147,7 @@ function AttachmentPickerWithMenuItems({
                 onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, report?.reportID ?? ''),
             },
             [CONST.IOU.TYPE.INVOICE]: {
-                icon: Expensicons.Invoice,
+                icon: Expensicons.InvoiceGeneric,
                 text: translate('workspace.invoices.sendInvoice'),
                 onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.INVOICE, report?.reportID ?? ''),
             },
