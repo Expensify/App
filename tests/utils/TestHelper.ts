@@ -1,22 +1,22 @@
+import * as NativeNavigation from '@react-navigation/native';
+import {fireEvent, screen} from '@testing-library/react-native';
 import Str from 'expensify-common/lib/str';
+import {func} from 'prop-types';
+import {Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
+import * as Localize from '@libs/Localize';
+import * as Pusher from '@libs/Pusher/pusher';
+import PusherConnectionManager from '@libs/PusherConnectionManager';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import * as Session from '@src/libs/actions/Session';
 import HttpUtils from '@src/libs/HttpUtils';
 import * as NumberUtils from '@src/libs/NumberUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import appSetup from '@src/setup';
 import type {Response as OnyxResponse, PersonalDetails, Report} from '@src/types/onyx';
 import waitForBatchedUpdates from './waitForBatchedUpdates';
-import * as Localize from "@libs/Localize";
-import {fireEvent, screen} from "@testing-library/react-native";
-import waitForBatchedUpdatesWithAct from "./waitForBatchedUpdatesWithAct";
-import {Linking} from "react-native";
-import appSetup from "@src/setup";
-import PusherConnectionManager from "@libs/PusherConnectionManager";
-import CONFIG from "@src/CONFIG";
-import * as Pusher from '@libs/Pusher/pusher';
-import {func} from "prop-types";
-import * as NativeNavigation from "@react-navigation/native";
+import waitForBatchedUpdatesWithAct from './waitForBatchedUpdatesWithAct';
 
 type MockFetch = ReturnType<typeof jest.fn> & {
     pause?: () => void;
@@ -281,4 +281,15 @@ function beforeAllSetupUITests(shouldConnectToPusher: boolean = false) {
 }
 
 export type {MockFetch};
-export {assertFormDataMatchesObject, buildPersonalDetails, buildTestReportComment, createAddListenerMock, getGlobalFetchMock, setPersonalDetails, signInWithTestUser, signOutTestUser, navigateToSidebarOption, beforeAllSetupUITests};
+export {
+    assertFormDataMatchesObject,
+    buildPersonalDetails,
+    buildTestReportComment,
+    createAddListenerMock,
+    getGlobalFetchMock,
+    setPersonalDetails,
+    signInWithTestUser,
+    signOutTestUser,
+    navigateToSidebarOption,
+    beforeAllSetupUITests,
+};

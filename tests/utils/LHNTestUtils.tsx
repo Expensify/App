@@ -131,14 +131,14 @@ let lastFakeReportActionID = 0;
 function getFakeReport(participantAccountIDs = [1, 2], millisecondsInThePast = 0, isUnread = false, adminIDs: number[] = []): Report {
     const lastVisibleActionCreated = DateUtils.getDBTime(Date.now() - millisecondsInThePast);
 
-    const participants: Participants = {};
+    const participants = ReportUtils.buildParticipantsFromAccountIDs(participantAccountIDs);
 
-    participantAccountIDs.forEach((id) => {
+    adminIDs.forEach((id) => {
         participants[id] = {
             hidden: false,
-            role: adminIDs.includes(id) ? 'admin' : 'member',
-        } as Participant;
-    });
+            role: CONST.REPORT.ROLE.ADMIN,
+        }
+    })
 
     return {
         type: CONST.REPORT.TYPE.CHAT,
@@ -146,7 +146,6 @@ function getFakeReport(participantAccountIDs = [1, 2], millisecondsInThePast = 0
         reportName: 'Report',
         lastVisibleActionCreated,
         lastReadTime: isUnread ? DateUtils.subtractMillisecondsFromDateTime(lastVisibleActionCreated, 1) : lastVisibleActionCreated,
-        participants: ReportUtils.buildParticipantsFromAccountIDs(participantAccountIDs),
         participants,
     };
 }

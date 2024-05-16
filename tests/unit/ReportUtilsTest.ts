@@ -835,53 +835,28 @@ describe('ReportUtils', () => {
 
         describe('When participantAccountIDs is passed to getGroupChatName', () => {
             it('Should show all participants name if count <= 5 and shouldApplyLimit is false', async () => {
-                const report = {
-                    ...LHNTestUtils.getFakeReport([1, 2, 3, 4], 0, false, [1]),
-                    chatType: CONST.REPORT.CHAT_TYPE.GROUP,
-                };
-
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(ReportUtils.getGroupChatName(report?.participantAccountIDs ?? [])).toEqual('Four, One, Three, Two');
+                expect(ReportUtils.getGroupChatName([1, 2, 3, 4])).toEqual('Four, One, Three, Two');
             });
 
             it('Should show all participants name if count <= 5 and shouldApplyLimit is true', async () => {
-                const report = {
-                    ...LHNTestUtils.getFakeReport([1, 2, 3, 4], 0, false, [1]),
-                    chatType: CONST.REPORT.CHAT_TYPE.GROUP,
-                };
-
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(ReportUtils.getGroupChatName(report?.participantAccountIDs ?? [], true)).toEqual('Four, One, Three, Two');
+                expect(ReportUtils.getGroupChatName([1, 2, 3, 4], true)).toEqual('Four, One, Three, Two');
             });
 
             it('Should show 5 participants name if count > 5 and shouldApplyLimit is true', async () => {
-                const report = {
-                    ...LHNTestUtils.getFakeReport([1, 2, 3, 4, 5, 6, 7, 8], 0, false, [1, 2]),
-                    chatType: CONST.REPORT.CHAT_TYPE.GROUP,
-                };
-
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(ReportUtils.getGroupChatName(report?.participantAccountIDs ?? [], true)).toEqual('Five, Four, One, Three, Two');
+                expect(ReportUtils.getGroupChatName([1, 2, 3, 4, 5, 6, 7, 8], true)).toEqual('Five, Four, One, Three, Two');
             });
 
             it('Should show all participants name if count > 5 and shouldApplyLimit is false', async () => {
-                const report = {
-                    ...LHNTestUtils.getFakeReport([1, 2, 3, 4, 5, 6, 7, 8], 0, false, [1, 2]),
-                    chatType: CONST.REPORT.CHAT_TYPE.GROUP,
-                };
-
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(ReportUtils.getGroupChatName(report?.participantAccountIDs ?? [], false)).toEqual('Eight, Five, Four, One, Seven, Six, Three, Two');
+                expect(ReportUtils.getGroupChatName([1, 2, 3, 4, 5, 6, 7, 8], false)).toEqual('Eight, Five, Four, One, Seven, Six, Three, Two');
             });
 
             it('Should use correct display name for participants', async () => {
-                const report = {
-                    ...LHNTestUtils.getFakeReport([1, 2, 3, 4], 0, false, [1]),
-                    chatType: CONST.REPORT.CHAT_TYPE.GROUP,
-                };
-
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, participantsPersonalDetails);
-                expect(ReportUtils.getGroupChatName(report?.participantAccountIDs ?? [], true)).toEqual('(833) 240-3627, floki@vikings.net, Lagertha, Ragnar');
+                expect(ReportUtils.getGroupChatName([1, 2, 3, 4], true)).toEqual('(833) 240-3627, floki@vikings.net, Lagertha, Ragnar');
             });
         });
 

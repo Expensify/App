@@ -23,9 +23,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
+import {navigateToSidebarOption} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
-import {navigateToSidebarOption} from "../utils/TestHelper";
 
 // We need a large timeout here as we are lazy loading React Navigation screens and this test is running against the entire mounted App
 jest.setTimeout(30000);
@@ -111,7 +111,7 @@ jest.mock('@react-navigation/native', () => {
 });
 
 beforeAll(() => {
-    TestHelper.beforeAllSetupUITests(true)
+    TestHelper.beforeAllSetupUITests(true);
 });
 
 function scrollUpToRevealNewMessagesBadge() {
