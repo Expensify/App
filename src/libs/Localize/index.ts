@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import * as RNLocalize from 'react-native-localize';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -176,14 +175,6 @@ function translateLocal<TKey extends TranslationPaths>(phrase: TKey, ...variable
     return translate(BaseLocaleListener.getPreferredLocale(), phrase, ...variables);
 }
 
-/**
- * Traslatable text with phrase key and/or variables
- * Use MaybePhraseKey for Typescript
- *
- * E.g. ['common.error.characterLimitExceedCounter', {length: 5, limit: 20}]
- */
-const translatableTextPropTypes = PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.object]))]);
-
 type MaybePhraseKey = string | null | [string, Record<string, unknown> & {isTranslated?: boolean}] | [];
 
 /**
@@ -263,5 +254,5 @@ function getDevicePreferredLocale(): Locale {
     return RNLocalize.findBestAvailableLanguage([CONST.LOCALES.EN, CONST.LOCALES.ES])?.languageTag ?? CONST.LOCALES.DEFAULT;
 }
 
-export {translatableTextPropTypes, translate, translateLocal, translateIfPhraseKey, formatList, formatMessageElementList, getDevicePreferredLocale};
+export {translate, translateLocal, translateIfPhraseKey, formatList, formatMessageElementList, getDevicePreferredLocale};
 export type {PhraseParameters, Phrase, MaybePhraseKey};
