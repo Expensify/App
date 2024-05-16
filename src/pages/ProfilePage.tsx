@@ -156,6 +156,8 @@ function ProfilePage({route}: ProfilePageProps) {
         return result;
     }, [accountID, isCurrentUser, report]);
 
+    console.log('promo', promotedActions.length);
+
     return (
         <ScreenWrapper testID={ProfilePage.displayName}>
             <FullPageNotFoundView shouldShow={shouldShowBlockingView || CONST.RESTRICTED_ACCOUNT_IDS.includes(accountID)}>
@@ -191,7 +193,10 @@ function ProfilePage({route}: ProfilePageProps) {
                                         {displayName}
                                     </Text>
                                 )}
-                                <PromotedActionsBar promotedActions={promotedActions} />
+                                <PromotedActionsBar
+                                    promotedActions={promotedActions}
+                                    containerStyle={[styles.ph0]}
+                                />
                                 {hasStatus && (
                                     <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.mw100]}>
                                         <Text
