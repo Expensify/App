@@ -17,7 +17,8 @@ import {DeviceEventEmitter, findNodeHandle, InteractionManager, NativeModules, V
 import {useFocusedInputHandler} from 'react-native-keyboard-controller';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import Reanimated, {typeuseAnimatedRef, useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
+import {useSharedValue} from 'react-native-reanimated';
+import type {useAnimatedRef} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
 import type {FileObject} from '@components/AttachmentModal';
 import type {MeasureParentContainerAndCursorCallback} from '@components/AutoCompleteSuggestions/types';
@@ -41,9 +42,9 @@ import * as KeyDownListener from '@libs/KeyboardShortcut/KeyDownPressListener';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as SuggestionUtils from '@libs/SuggestionUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
+import getCursorPosition from '@pages/home/report/ReportActionCompose/getCursorPosition';
 import getScrollPosition from '@pages/home/report/ReportActionCompose/getScrollPosition';
 import type {ComposerRef, SuggestionsRef} from '@pages/home/report/ReportActionCompose/ReportActionCompose';
 import SilentCommentUpdater from '@pages/home/report/ReportActionCompose/SilentCommentUpdater';
@@ -136,9 +137,6 @@ type ComposerWithSuggestionsProps = ComposerWithSuggestionsOnyxProps &
 
         /** Function to measure the parent container */
         measureParentContainer: (callback: MeasureInWindowOnSuccessCallback) => void;
-
-        /** The height of the list */
-        listHeight: number;
 
         /** Whether the scroll is likely to trigger a layout */
         isScrollLikelyLayoutTriggered: RefObject<boolean>;
@@ -247,7 +245,6 @@ function ComposerWithSuggestions(
         handleSendMessage,
         shouldShowComposeInput,
         measureParentContainer = () => {},
-        listHeight,
         isScrollLikelyLayoutTriggered,
         raiseIsScrollLikelyLayoutTriggered,
 
@@ -271,7 +268,7 @@ function ComposerWithSuggestions(
     const navigation = useNavigation();
     const emojisPresentBefore = useRef<Emoji[]>([]);
     const mobileInputScrollPosition = useRef(0);
-    const position = useSharedValue({x: 0, y: 0});
+    const cursorPositionValue = useSharedValue({x: 0, y: 0});
     const tag = useSharedValue(-1);
     const draftComment = getDraftComment(reportID) ?? '';
     const [value, setValue] = useState(() => {
@@ -293,7 +290,7 @@ function ComposerWithSuggestions(
     const valueRef = useRef(value);
     valueRef.current = value;
 
-    const [selection, setSelection] = useState(() => ({start: 0, end: 0}));
+    const [selection, setSelection] = useState(() => ({start: 0, end: 0, positionX: 0, positionY: 0}));
 
     const [composerHeight, setComposerHeight] = useState(0);
 
@@ -440,10 +437,12 @@ function ComposerWithSuggestions(
                     syncSelectionWithOnChangeTextRef.current = {position, value: newComment};
                 }
 
-                setSelection({
+                setSelection((prevSelection) => ({
                     start: position,
                     end: position,
-                });
+                    positionX: prevSelection.positionX,
+                    positionY: prevSelection.positionY,
+                }));
             }
 
             commentRef.current = newCommentConverted;
@@ -741,6 +740,7 @@ function ComposerWithSuggestions(
 
     useEffect(() => {
         tag.value = findNodeHandle(textInputRef.current) ?? -1;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
     useFocusedInputHandler(
         {
@@ -748,7 +748,7 @@ function ComposerWithSuggestions(
                 'worklet';
 
                 if (event.target === tag.value) {
-                    position.value = {
+                    cursorPositionValue.value = {
                         x: event.selection.end.x,
                         y: event.selection.end.y,
                     };
@@ -757,10 +757,10 @@ function ComposerWithSuggestions(
         },
         [],
     );
-
     const measureParentContainerAndReportCursor = useCallback(
         (callback: MeasureParentContainerAndCursorCallback) => {
             const {scrollValue} = getScrollPosition({mobileInputScrollPosition, textInputRef});
+            const {x: xPosition, y: yPosition} = getCursorPosition({positionOnMobile: cursorPositionValue.value, positionOnWeb: selection});
             measureParentContainer((x, y, width, height) => {
                 callback({
                     x,
@@ -768,11 +768,11 @@ function ComposerWithSuggestions(
                     width,
                     height,
                     scrollValue,
-                    cursorCoordinates: {x: position.value.x, y: position.value.y},
+                    cursorCoordinates: {x: xPosition, y: yPosition},
                 });
             });
         },
-        [measureParentContainer, position],
+        [measureParentContainer, cursorPositionValue, selection],
     );
 
     return (
