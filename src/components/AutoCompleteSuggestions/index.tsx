@@ -37,6 +37,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
     const isInitialRender = React.useRef<boolean>(true);
     const isSuggestionAboveRef = React.useRef<boolean>(false);
     const leftValue = React.useRef<number>(0);
+    const prevLeftValue = React.useRef<number>(0);
     const {windowHeight, windowWidth, isSmallScreenWidth} = useWindowDimensions();
     const [suggestionHeight, setSuggestionHeight] = React.useState(0);
     const [containerState, setContainerState] = React.useState({
@@ -85,10 +86,14 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
             const isEnoughSpaceAboveForBig = windowHeight - bottomValue - contentMaxHeight > CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_BOX_MAX_SAFE_DISTANCE;
             const isEnoughSpaceAboveForSmall = windowHeight - bottomValue - contentMinHeight > CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_BOX_MAX_SAFE_DISTANCE;
 
-            if (isInitialRender.current) {
+            const newLeftValue = isSmallScreenWidth ? x : leftValueForBigScreen;
+            // If the suggested word is longer than half the width of the suggestion popup, then adjust a new position of popup
+            const isAdjustmentNeeded = Math.abs(prevLeftValue.current - leftValueForBigScreen) > widthValue / 2;
+            if (isInitialRender.current || isAdjustmentNeeded) {
                 isSuggestionAboveRef.current = isSuggestionRenderedAbove(isEnoughSpaceAboveForBig, isEnoughSpaceAboveForSmall);
-                leftValue.current = isSmallScreenWidth ? x : leftValueForBigScreen;
+                leftValue.current = newLeftValue;
                 isInitialRender.current = false;
+                prevLeftValue.current = newLeftValue;
             }
 
             let measuredHeight = 0;
