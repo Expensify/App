@@ -64,14 +64,13 @@ function RoomInvitePage({
     }, []);
 
     // Any existing participants and Expensify emails should not be eligible for invitation
-    const excludedUsers = useMemo(() => {
-        const visibleParticipantAccountIDs = Object.entries(report.participants ?? {})
-            .filter(([, participant]) => participant && !participant.hidden)
-            .map(([accountID]) => Number(accountID));
-        return [...PersonalDetailsUtils.getLoginsByAccountIDs(visibleParticipantAccountIDs), ...CONST.EXPENSIFY_EMAILS].map((participant) =>
-            PhoneNumber.addSMSDomainIfPhoneNumber(participant),
-        );
-    }, [report.participants]);
+    const excludedUsers = useMemo(
+        () =>
+            [...PersonalDetailsUtils.getLoginsByAccountIDs(report?.visibleChatMemberAccountIDs ?? []), ...CONST.EXPENSIFY_EMAILS].map((participant) =>
+                PhoneNumber.addSMSDomainIfPhoneNumber(participant),
+            ),
+        [report],
+    );
 
     useEffect(() => {
         const inviteOptions = OptionsListUtils.getMemberInviteOptions(options.personalDetails, betas ?? [], debouncedSearchTerm, excludedUsers);
@@ -241,7 +240,7 @@ function RoomInvitePage({
                     canSelectMultiple
                     sections={sections}
                     ListItem={UserListItem}
-                    textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
+                    textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                     textInputValue={searchTerm}
                     onChangeText={(value) => {
                         SearchInputManager.searchInput = value;

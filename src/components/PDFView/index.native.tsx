@@ -5,6 +5,7 @@ import PDF from 'react-native-pdf';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import Text from '@components/Text';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -28,11 +29,7 @@ import type {PDFViewNativeProps} from './types';
  * so that PDFPasswordForm doesn't bounce when react-native-pdf/PDF
  * is (temporarily) rendered.
  */
-
-const LOADING_THUMBNAIL_HEIGHT = 250;
-const LOADING_THUMBNAIL_WIDTH = 250;
-
-function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused, onScaleChanged, sourceURL, onLoadError, isUsedAsChatAttachment}: PDFViewNativeProps) {
+function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused, onScaleChanged, sourceURL, errorLabelStyles}: PDFViewNativeProps) {
     const [shouldRequestPassword, setShouldRequestPassword] = useState(false);
     const [shouldAttemptPDFLoad, setShouldAttemptPDFLoad] = useState(true);
     const [shouldShowLoadingIndicator, setShouldShowLoadingIndicator] = useState(true);
@@ -83,7 +80,6 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
         setShouldShowLoadingIndicator(false);
         setShouldRequestPassword(false);
         setShouldAttemptPDFLoad(false);
-        onLoadError?.();
         // eslint-disable-next-line @typescript-eslint/ban-types
     }) as (error: object) => void;
 
@@ -116,9 +112,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
     };
 
     function renderPDFView() {
-        const pdfWidth = isUsedAsChatAttachment ? LOADING_THUMBNAIL_WIDTH : windowWidth;
-        const pdfHeight = isUsedAsChatAttachment ? LOADING_THUMBNAIL_HEIGHT : windowHeight;
-        const pdfStyles: StyleProp<ViewStyle> = [themeStyles.imageModalPDF, StyleUtils.getWidthAndHeightStyle(pdfWidth, pdfHeight)];
+        const pdfStyles: StyleProp<ViewStyle> = [themeStyles.imageModalPDF, StyleUtils.getWidthAndHeightStyle(windowWidth, windowHeight)];
 
         // If we haven't yet successfully validated the password and loaded the PDF,
         // then we need to hide the react-native-pdf/PDF component so that PDFPasswordForm
@@ -127,20 +121,21 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
         if (shouldRequestPassword) {
             pdfStyles.push(themeStyles.invisible);
         }
-        const containerStyles =
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            isUsedAsChatAttachment || (shouldRequestPassword && isSmallScreenWidth) ? [themeStyles.w100, themeStyles.flex1] : [themeStyles.alignItemsCenter, themeStyles.flex1];
-        const loadingIndicatorStyles = isUsedAsChatAttachment
-            ? [themeStyles.chatItemPDFAttachmentLoading, StyleUtils.getWidthAndHeightStyle(LOADING_THUMBNAIL_WIDTH, LOADING_THUMBNAIL_HEIGHT)]
-            : [];
+
+        const containerStyles = shouldRequestPassword && isSmallScreenWidth ? [themeStyles.w100, themeStyles.flex1] : [themeStyles.alignItemsCenter, themeStyles.flex1];
 
         return (
             <View style={containerStyles}>
+                {failedToLoadPDF && (
+                    <View style={[themeStyles.flex1, themeStyles.justifyContentCenter]}>
+                        <Text style={errorLabelStyles}>{translate('attachmentView.failedToLoadPDF')}</Text>
+                    </View>
+                )}
                 {shouldAttemptPDFLoad && (
                     <PDF
                         fitPolicy={0}
                         trustAllCerts={false}
-                        renderActivityIndicator={() => <FullScreenLoadingIndicator style={loadingIndicatorStyles} />}
+                        renderActivityIndicator={() => <FullScreenLoadingIndicator />}
                         source={{uri: sourceURL, cache: true, expiration: 864000}}
                         style={pdfStyles}
                         onError={handleFailureToLoadPDF}

@@ -3,7 +3,6 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
 import useActiveRoute from '@hooks/useActiveRoute';
-import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -19,7 +18,7 @@ function SearchPageBottomTab() {
     const {isSmallScreenWidth} = useWindowDimensions();
     const activeRoute = useActiveRoute();
     const styles = useThemeStyles();
-    const {activeWorkspaceID} = useActiveWorkspace();
+
     const currentQuery = activeRoute?.params && 'query' in activeRoute.params ? activeRoute?.params?.query : '';
     const query = currentQuery as SearchQuery;
     const isValidQuery = Object.values(CONST.TAB_SEARCH).includes(query);
@@ -37,17 +36,11 @@ function SearchPageBottomTab() {
                 shouldShowLink={false}
             >
                 <TopBar
-                    activeWorkspaceID={activeWorkspaceID}
                     breadcrumbLabel={translate('common.search')}
                     shouldDisplaySearch={false}
                 />
                 <SearchFilters query={query} />
-                {isSmallScreenWidth && (
-                    <Search
-                        policyIDs={activeWorkspaceID}
-                        query={query}
-                    />
-                )}
+                {isSmallScreenWidth && <Search query={query} />}
             </FullPageNotFoundView>
         </ScreenWrapper>
     );

@@ -5,13 +5,11 @@ import type {MutableRefObject} from 'react';
 import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
-import AttachmentOfflineIndicator from '@components/AttachmentOfflineIndicator';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Hoverable from '@components/Hoverable';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {useFullScreenContext} from '@components/VideoPlayerContexts/FullScreenContext';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
-import type {PlaybackSpeed} from '@components/VideoPlayerContexts/types';
 import {useVideoPopoverMenuContext} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
 import {useVolumeContext} from '@components/VideoPlayerContexts/VolumeContext';
 import VideoPopoverMenu from '@components/VideoPopoverMenu';
@@ -47,7 +45,6 @@ function BaseVideoPlayer({
     // user hovers the mouse over the carousel arrows, but this UI bug feels much less troublesome for now.
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     isVideoHovered = false,
-    isPreview,
 }: VideoPlayerProps) {
     const styles = useThemeStyles();
     const {
@@ -83,7 +80,7 @@ function BaseVideoPlayer({
     const isUploading = CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => url.startsWith(prefix));
     const videoStateRef = useRef<AVPlaybackStatus | null>(null);
     const {updateVolume} = useVolumeContext();
-    const {videoPopoverMenuPlayerRef, setCurrentPlaybackSpeed} = useVideoPopoverMenuContext();
+    const {videoPopoverMenuPlayerRef} = useVideoPopoverMenuContext();
 
     const togglePlayCurrentVideo = useCallback(() => {
         videoResumeTryNumber.current = 0;
@@ -97,14 +94,8 @@ function BaseVideoPlayer({
     }, [isCurrentlyURLSet, isPlaying, pauseVideo, playVideo, updateCurrentlyPlayingURL, url, videoResumeTryNumber]);
 
     const showPopoverMenu = (event?: GestureResponderEvent | KeyboardEvent) => {
+        setIsPopoverVisible(true);
         videoPopoverMenuPlayerRef.current = videoPlayerRef.current;
-        videoPlayerRef.current?.getStatusAsync().then((status) => {
-            if (!('rate' in status && status.rate)) {
-                return;
-            }
-            setIsPopoverVisible(true);
-            setCurrentPlaybackSpeed(status.rate as PlaybackSpeed);
-        });
         if (!event || !('nativeEvent' in event)) {
             return;
         }
@@ -297,7 +288,7 @@ function BaseVideoPlayer({
                 accessible={false}
                 style={[styles.cursorDefault, style]}
             >
-                <Hoverable shouldFreezeCapture={isPopoverVisible}>
+                <Hoverable>
                     {(isHovered) => (
                         <View style={[styles.w100, styles.h100]}>
                             <PressableWithoutFeedback
@@ -361,8 +352,9 @@ function BaseVideoPlayer({
                                     </View>
                                 )}
                             </PressableWithoutFeedback>
-                            {((isLoading && !isOffline) || isBuffering) && <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
-                            {isLoading && !isBuffering && <AttachmentOfflineIndicator isPreview={isPreview} />}
+
+                            {(isLoading || isBuffering) && <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
+
                             {controlsStatus !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE && !isLoading && (isPopoverVisible || isHovered || canUseTouchScreen) && (
                                 <VideoPlayerControls
                                     duration={duration}

@@ -5,12 +5,12 @@ import Log from '@libs/Log';
 import * as PushNotificationActions from '@userActions/PushNotification';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ForegroundNotifications from './ForegroundNotifications';
-import type {PushNotificationData} from './NotificationType';
+import type {NotificationData} from './NotificationType';
 import NotificationType from './NotificationType';
 import type {ClearNotifications, Deregister, Init, OnReceived, OnSelected, Register} from './types';
 import type PushNotificationType from './types';
 
-type NotificationEventActionCallback = (data: PushNotificationData) => Promise<void>;
+type NotificationEventActionCallback = (data: NotificationData) => Promise<void>;
 
 type NotificationEventActionMap = Partial<Record<EventType, Record<string, NotificationEventActionCallback>>>;
 
@@ -34,7 +34,7 @@ function pushNotificationEventCallback(eventType: EventType, notification: PushP
         payload = JSON.parse(payload);
     }
 
-    const data = payload as PushNotificationData;
+    const data = payload as NotificationData;
 
     Log.info(`[PushNotification] Callback triggered for ${eventType}`);
 

@@ -57,5 +57,3 @@ function MoneyRequestHeaderStatusBar({title, description, shouldShowBorderBottom
 MoneyRequestHeaderStatusBar.displayName = 'MoneyRequestHeaderStatusBar';
 
 export default MoneyRequestHeaderStatusBar;
-
-export type {MoneyRequestHeaderStatusBarProps};

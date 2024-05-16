@@ -1,4 +1,4 @@
-import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -26,7 +26,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import * as Report from './Report';
 
-type OptimisticReport = Pick<OnyxTypes.Report, 'reportName' | 'managerID' | 'notificationPreference' | 'pendingFields' | 'participants'>;
+type OptimisticReport = Pick<OnyxTypes.Report, 'reportName' | 'managerID' | 'participantAccountIDs' | 'notificationPreference' | 'pendingFields' | 'visibleChatMemberAccountIDs'>;
 type Assignee = {
     icons: Icon[];
     displayName: string;
@@ -180,8 +180,6 @@ function createTaskAndNavigate(
                     managerID: null,
                 },
                 isOptimisticReport: false,
-                // BE will send a different participant. We clear the optimistic one to avoid duplicated entries
-                participants: {[assigneeAccountID]: null},
             },
         },
         {
@@ -440,8 +438,7 @@ function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task
     const reportName = (title ?? report?.reportName)?.trim();
 
     // Description can be unset, so we default to an empty string if so
-    const newDescription = description ? ReportUtils.getParsedComment(description) : report.description;
-    const reportDescription = (newDescription ?? '').trim();
+    const reportDescription = (description ?? report.description ?? '').trim();
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -532,7 +529,6 @@ function editTaskAssignee(
             ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS
             : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
     };
-    const successReport: NullishDeep<OnyxTypes.Report> = {pendingFields: {...(assigneeAccountID && {managerID: null})}};
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -556,7 +552,7 @@ function editTaskAssignee(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
-            value: successReport,
+            value: {pendingFields: {...(assigneeAccountID && {managerID: null})}},
         },
     ];
 
@@ -576,7 +572,12 @@ function editTaskAssignee(
     // If we make a change to the assignee, we want to add a comment to the assignee's chat
     // Check if the assignee actually changed
     if (assigneeAccountID && assigneeAccountID !== report.managerID && assigneeAccountID !== ownerAccountID && assigneeChatReport) {
-        optimisticReport.participants = {[assigneeAccountID]: {hidden: false}};
+        const participants = report?.participantAccountIDs ?? [];
+        const visibleMembers = report.visibleChatMemberAccountIDs ?? [];
+        if (!visibleMembers.includes(assigneeAccountID)) {
+            optimisticReport.participantAccountIDs = [...participants, assigneeAccountID];
+            optimisticReport.visibleChatMemberAccountIDs = [...visibleMembers, assigneeAccountID];
+        }
 
         assigneeChatReportOnyxData = ReportUtils.getTaskAssigneeChatOnyxData(
             currentUserAccountID,
@@ -587,11 +588,6 @@ function editTaskAssignee(
             reportName ?? '',
             assigneeChatReport,
         );
-
-        if (assigneeChatReport?.isOptimisticReport && assigneeChatReport.pendingFields?.createChat !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-            // BE will send a different participant. We clear the optimistic one to avoid duplicated entries
-            successReport.participants = {[assigneeAccountID]: null};
-        }
 
         optimisticData.push(...assigneeChatReportOnyxData.optimisticData);
         successData.push(...assigneeChatReportOnyxData.successData);
@@ -655,7 +651,7 @@ function setAssigneeChatReport(chatReport: OnyxTypes.Report) {
 }
 
 function setNewOptimisticAssignee(assigneeLogin: string, assigneeAccountID: number) {
-    const report: ReportUtils.OptimisticChatReport = ReportUtils.buildOptimisticChatReport([assigneeAccountID, currentUserAccountID]);
+    const report: ReportUtils.OptimisticChatReport = ReportUtils.buildOptimisticChatReport([assigneeAccountID]);
 
     // When assigning a task to a new user, by default we share the task in their DM
     // However, the DM doesn't exist yet - and will be created optimistically once the task is created
@@ -691,7 +687,7 @@ function setAssigneeValue(
     if (!isCurrentUser) {
         // Check for the chatReport by participants IDs
         if (!report) {
-            report = ReportUtils.getChatByParticipants([assigneeAccountID, currentUserAccountID]);
+            report = ReportUtils.getChatByParticipants([assigneeAccountID]);
         }
         // If chat report is still not found we need to build new optimistic chat report
         if (!report) {
@@ -773,18 +769,13 @@ function getAssignee(assigneeAccountID: number, personalDetails: OnyxEntry<OnyxT
 function getShareDestination(reportID: string, reports: OnyxCollection<OnyxTypes.Report>, personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>): ShareDestination {
     const report = reports?.[`report_${reportID}`] ?? null;
 
-    const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
-
-    const participants = Object.keys(report?.participants ?? {})
-        .map(Number)
-        .filter((accountID) => accountID !== currentUserAccountID || !isOneOnOneChat);
-
-    const isMultipleParticipant = participants.length > 1;
-    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs(participants, personalDetails), isMultipleParticipant);
+    const participantAccountIDs = report?.participantAccountIDs ?? [];
+    const isMultipleParticipant = participantAccountIDs.length > 1;
+    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails), isMultipleParticipant);
 
     let subtitle = '';
-    if (isOneOnOneChat) {
-        const participantAccountID = participants[0] ?? -1;
+    if (ReportUtils.isChatReport(report) && ReportUtils.isDM(report) && ReportUtils.hasSingleParticipant(report)) {
+        const participantAccountID = report?.participantAccountIDs?.[0] ?? -1;
 
         const displayName = personalDetails?.[participantAccountID]?.displayName ?? '';
         const login = personalDetails?.[participantAccountID]?.login ?? '';

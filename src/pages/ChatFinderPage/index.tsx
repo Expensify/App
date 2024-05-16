@@ -12,6 +12,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useThemeStyles from '@hooks/useThemeStyles';
 import type {MaybePhraseKey} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {RootStackParamList} from '@libs/Navigation/types';
@@ -34,7 +35,7 @@ type ChatFinderPageOnyxProps = {
     isSearchingForReports: OnyxEntry<boolean>;
 };
 
-type ChatFinderPageProps = ChatFinderPageOnyxProps & StackScreenProps<RootStackParamList, typeof SCREENS.LEFT_MODAL.CHAT_FINDER>;
+type ChatFinderPageProps = ChatFinderPageOnyxProps & StackScreenProps<RootStackParamList, typeof SCREENS.CHAT_FINDER_ROOT>;
 
 type ChatFinderPageSectionItem = {
     data: OptionData[];
@@ -52,6 +53,7 @@ const ChatFinderPageFooterInstance = <ChatFinderPageFooter />;
 
 function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPageProps) {
     const [isScreenTransitionEnd, setIsScreenTransitionEnd] = useState(false);
+    const themeStyles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {options, areOptionsInitialized} = useOptionsList({
@@ -173,10 +175,11 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
                 sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
                 ListItem={UserListItem}
                 textInputValue={searchValue}
-                textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
+                textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                 textInputHint={offlineMessage}
                 onChangeText={setSearchValue}
                 headerMessage={headerMessage}
+                headerMessageStyle={headerMessage === translate('common.noResultsFound') ? [themeStyles.ph4, themeStyles.pb5] : undefined}
                 onLayout={setPerformanceTimersEnd}
                 onSelectRow={selectReport}
                 showLoadingPlaceholder={!areOptionsInitialized || !isScreenTransitionEnd}

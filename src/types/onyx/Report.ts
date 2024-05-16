@@ -156,6 +156,8 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         ownerAccountID?: number;
         ownerEmail?: string;
         participants?: Participants;
+        participantAccountIDs?: number[];
+        visibleChatMemberAccountIDs?: number[];
         total?: number;
         unheldTotal?: number;
         currency?: string;

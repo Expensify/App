@@ -129,7 +129,7 @@ const lightTheme = {
             backgroundColor: colors.productLight100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
         },
-        [SCREENS.LEFT_MODAL.WORKSPACE_SWITCHER]: {
+        [SCREENS.WORKSPACE_SWITCHER.ROOT]: {
             backgroundColor: colors.productLight100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
         },

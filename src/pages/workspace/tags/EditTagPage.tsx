@@ -61,7 +61,7 @@ function EditTagPage({route, policyTags}: EditTagPageProps) {
                 Policy.renamePolicyTag(route.params.policyID, {oldName: currentTagName, newName: values.tagName.trim()});
             }
             Keyboard.dismiss();
-            Navigation.goBack();
+            Navigation.dismissModal();
         },
         [route.params.policyID, currentTagName],
     );

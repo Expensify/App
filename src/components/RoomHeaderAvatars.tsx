@@ -47,7 +47,7 @@ function RoomHeaderAvatars({icons, reportID}: RoomHeaderAvatarsProps) {
                     imageStyles={styles.avatarLarge}
                     size={CONST.AVATAR_SIZE.LARGE}
                     name={icons[0].name}
-                    avatarID={icons[0].id}
+                    accountID={icons[0].id}
                     type={icons[0].type}
                     fallbackIcon={icons[0].fallbackIcon}
                 />
@@ -83,7 +83,7 @@ function RoomHeaderAvatars({icons, reportID}: RoomHeaderAvatarsProps) {
                                 size={CONST.AVATAR_SIZE.LARGE}
                                 containerStyles={[...iconStyle, StyleUtils.getAvatarBorderRadius(CONST.AVATAR_SIZE.LARGE_BORDERED, icon.type)]}
                                 name={icon.name}
-                                avatarID={icon.id}
+                                accountID={icon.id}
                                 type={icon.type}
                                 fallbackIcon={icon.fallbackIcon}
                             />

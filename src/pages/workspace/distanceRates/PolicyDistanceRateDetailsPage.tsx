@@ -18,7 +18,6 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
-import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
@@ -46,26 +45,19 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
     const rateID = route.params.rateID;
     const customUnits = policy?.customUnits ?? {};
     const customUnit = customUnits[Object.keys(customUnits)[0]];
-    const rate = customUnit?.rates[rateID];
-    const currency = rate?.currency ?? CONST.CURRENCY.USD;
-
-    // Rates can be disabled or deleted as long as in the remaining rates there is always at least one enabled rate and there are no pending delete action
-    const canDisableOrDeleteRate = Object.values(customUnit?.rates).some(
-        (distanceRate: Rate) => distanceRate?.enabled && rateID !== distanceRate?.customUnitRateID && distanceRate?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-    );
-    const errorFields = rate?.errorFields;
-
-    if (!rate) {
-        return <NotFoundPage />;
-    }
+    const rate = customUnit.rates[rateID];
+    const currency = rate.currency ?? CONST.CURRENCY.USD;
+    const canDeleteRate = Object.values(customUnit.rates).filter((distanceRate) => distanceRate.enabled).length > 1 || !rate.enabled;
+    const canDisableRate = Object.values(customUnit.rates).filter((distanceRate) => distanceRate.enabled).length > 1;
+    const errorFields = rate.errorFields;
 
     const editRateValue = () => {
         Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATE_EDIT.getRoute(policyID, rateID));
     };
 
     const toggleRate = () => {
-        if (!rate?.enabled || canDisableOrDeleteRate) {
-            Policy.setPolicyDistanceRatesEnabled(policyID, customUnit, [{...rate, enabled: !rate?.enabled}]);
+        if (!rate.enabled || canDisableRate) {
+            Policy.setPolicyDistanceRatesEnabled(policyID, customUnit, [{...rate, enabled: !rate.enabled}]);
         } else {
             setIsWarningModalVisible(true);
         }
@@ -77,7 +69,7 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
         setIsDeleteModalVisible(false);
     };
 
-    const rateValueToDisplay = CurrencyUtils.convertAmountToDisplayString(rate?.rate, currency);
+    const rateValueToDisplay = CurrencyUtils.convertAmountToDisplayString(rate.rate, currency);
     const unitToDisplay = translate(`common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`);
 
     const threeDotsMenuItems = [
@@ -85,7 +77,7 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
             icon: Expensicons.Trashcan,
             text: translate('workspace.distanceRates.deleteDistanceRate'),
             onSelected: () => {
-                if (canDisableOrDeleteRate) {
+                if (canDeleteRate) {
                     setIsDeleteModalVisible(true);
                     return;
                 }
@@ -118,7 +110,7 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
                 />
                 <View style={styles.flexGrow1}>
                     <OfflineWithFeedback
-                        errors={ErrorUtils.getLatestErrorField(rate ?? {}, 'enabled')}
+                        errors={ErrorUtils.getLatestErrorField(rate, 'enabled')}
                         pendingAction={rate?.pendingFields?.enabled}
                         errorRowStyles={styles.mh5}
                         onClose={() => clearErrorFields('enabled')}
@@ -126,14 +118,14 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
                         <View style={[styles.flexRow, styles.justifyContentBetween, styles.p5]}>
                             <Text>{translate('workspace.distanceRates.enableRate')}</Text>
                             <Switch
-                                isOn={rate?.enabled ?? false}
+                                isOn={rate.enabled ?? false}
                                 onToggle={toggleRate}
                                 accessibilityLabel={translate('workspace.distanceRates.enableRate')}
                             />
                         </View>
                     </OfflineWithFeedback>
                     <OfflineWithFeedback
-                        errors={ErrorUtils.getLatestErrorField(rate ?? {}, 'rate')}
+                        errors={ErrorUtils.getLatestErrorField(rate, 'rate')}
                         pendingAction={rate?.pendingFields?.rate ?? rate?.pendingFields?.currency}
                         errorRowStyles={styles.mh5}
                         onClose={() => clearErrorFields('rate')}

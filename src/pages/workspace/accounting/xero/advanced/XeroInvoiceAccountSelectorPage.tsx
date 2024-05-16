@@ -44,7 +44,7 @@ function XeroInvoiceAccountSelectorPage({policy}: WithPolicyConnectionsProps) {
 
     const initiallyFocusedOptionKey = useMemo(() => xeroSelectorOptions?.find((mode) => mode.isSelected)?.keyForList, [xeroSelectorOptions]);
 
-    const updateAccount = useCallback(
+    const updateMode = useCallback(
         ({value}: SelectorType) => {
             Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.SYNC, {
                 invoiceCollectionsAccountID: value,
@@ -63,7 +63,7 @@ function XeroInvoiceAccountSelectorPage({policy}: WithPolicyConnectionsProps) {
             sections={[{data: xeroSelectorOptions}]}
             listItem={RadioListItem}
             shouldBeBlocked={!syncReimbursedReports}
-            onSelectRow={updateAccount}
+            onSelectRow={updateMode}
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
             headerContent={listHeaderComponent}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID))}

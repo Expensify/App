@@ -5,7 +5,6 @@ type SendInvoiceParams = {
     receiverInvoiceRoomID?: string;
     amount: number;
     currency: string;
-    comment: string;
     merchant: string;
     date: string;
     category?: string;

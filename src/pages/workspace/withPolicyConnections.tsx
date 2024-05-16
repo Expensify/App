@@ -1,6 +1,7 @@
 import React, {useEffect} from 'react';
 import type {ComponentType} from 'react';
 import {useOnyx} from 'react-native-onyx';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useNetwork from '@hooks/useNetwork';
 import {openPolicyAccountingPage} from '@libs/actions/PolicyConnections';
@@ -8,9 +9,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import withPolicy from './withPolicy';
 import type {WithPolicyProps} from './withPolicy';
 
-type WithPolicyConnectionsProps = WithPolicyProps & {
-    isConnectionDataFetchNeeded: boolean;
-};
+type WithPolicyConnectionsProps = WithPolicyProps;
 
 /**
  * Higher-order component that fetches the connections data and populates
@@ -22,33 +21,35 @@ type WithPolicyConnectionsProps = WithPolicyProps & {
  * Only the active policy gets the complete policy data upon app start that includes the connections data.
  * For other policies, the connections data needs to be fetched when it's needed.
  */
-function withPolicyConnections<TProps extends WithPolicyConnectionsProps>(WrappedComponent: ComponentType<TProps>, shouldBlockView = true) {
+function withPolicyConnections<TProps extends WithPolicyConnectionsProps>(WrappedComponent: ComponentType<TProps>) {
     function WithPolicyConnections(props: TProps) {
         const {isOffline} = useNetwork();
-        const [hasConnectionsDataBeenFetched] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${props.policy?.id ?? '0'}`, {
+        const [hasConnectionsDataBeenFetched, {status}] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${props.policy?.id ?? '0'}`, {
             initWithStoredValues: false,
         });
-        const isConnectionDataFetchNeeded = !isOffline && props.policy && props.policy.areConnectionsEnabled && !props.policy.connections && !hasConnectionsDataBeenFetched;
 
         useEffect(() => {
             // When the accounting feature is not enabled, or if the connections data already exists,
             // there is no need to fetch the connections data.
-            if (!isConnectionDataFetchNeeded || !props.policy?.id) {
+            if (!props.policy || !props.policy.areConnectionsEnabled || !!hasConnectionsDataBeenFetched || !!props.policy.connections) {
                 return;
             }
 
             openPolicyAccountingPage(props.policy.id);
-        }, [props.policy?.id, isConnectionDataFetchNeeded]);
+        }, [hasConnectionsDataBeenFetched, props.policy, isOffline]);
 
-        if (isConnectionDataFetchNeeded && shouldBlockView) {
-            return <FullScreenLoadingIndicator />;
+        if (props.policy?.areConnectionsEnabled && (!props.policy || status === 'loading' || hasConnectionsDataBeenFetched === false)) {
+            return (
+                <FullPageOfflineBlockingView>
+                    <FullScreenLoadingIndicator />
+                </FullPageOfflineBlockingView>
+            );
         }
 
         return (
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
-                isConnectionDataFetchNeeded={isConnectionDataFetchNeeded}
             />
         );
     }

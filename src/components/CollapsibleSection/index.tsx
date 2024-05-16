@@ -18,9 +18,6 @@ type CollapsibleSectionProps = ChildrenProps & {
     /** Style of title of the collapsible section */
     titleStyle?: StyleProp<TextStyle>;
 
-    /** Style for the text */
-    textStyle?: StyleProp<TextStyle>;
-
     /** Style for the wrapper view */
     wrapperStyle?: StyleProp<ViewStyle>;
 
@@ -28,7 +25,7 @@ type CollapsibleSectionProps = ChildrenProps & {
     shouldShowSectionBorder?: boolean;
 };
 
-function CollapsibleSection({title, children, titleStyle, textStyle, wrapperStyle, shouldShowSectionBorder}: CollapsibleSectionProps) {
+function CollapsibleSection({title, children, titleStyle, wrapperStyle, shouldShowSectionBorder}: CollapsibleSectionProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const [isExpanded, setIsExpanded] = useState(false);
@@ -53,7 +50,7 @@ function CollapsibleSection({title, children, titleStyle, textStyle, wrapperStyl
                 pressDimmingValue={0.2}
             >
                 <Text
-                    style={textStyle ?? [styles.flex1, styles.textStrong, styles.userSelectNone, titleStyle]}
+                    style={[styles.flex1, styles.textStrong, styles.userSelectNone, titleStyle]}
                     dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                 >
                     {title}

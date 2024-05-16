@@ -1,8 +1,7 @@
-import type {ReactNode} from 'react';
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -17,14 +16,12 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report, ReportAction, ReportActions, Session, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportActions, Session, Transaction} from '@src/types/onyx';
 import type {OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
-import type IconAsset from '@src/types/utils/IconAsset';
 import ConfirmModal from './ConfirmModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusBar';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import ProcessMoneyRequestHoldMenu from './ProcessMoneyRequestHoldMenu';
 
@@ -37,9 +34,6 @@ type MoneyRequestHeaderOnyxProps = {
 
     /** All the data for the transaction */
     transaction: OnyxEntry<Transaction>;
-
-    /** The violations of the transaction */
-    transactionViolations: OnyxCollection<TransactionViolations>;
 
     /** All report actions */
     // eslint-disable-next-line react/no-unused-prop-types
@@ -71,7 +65,6 @@ function MoneyRequestHeader({
     parentReport,
     report,
     parentReportAction,
-    transactionViolations,
     transaction,
     shownHoldUseExplanation = false,
     policy,
@@ -108,6 +101,7 @@ function MoneyRequestHeader({
     }, [parentReport?.reportID, parentReportAction, setIsDeleteModalVisible]);
 
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
+    const isPending = TransactionUtils.isExpensifyCardTransaction(transaction) && TransactionUtils.isPending(transaction);
 
     const isDeletedParentAction = ReportActionsUtils.isDeletedAction(parentReportAction);
     const canHoldOrUnholdRequest = !isSettled && !isApproved && !isDeletedParentAction;
@@ -125,33 +119,6 @@ function MoneyRequestHeader({
             Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy?.type ?? CONST.POLICY.TYPE.PERSONAL, iouTransactionID, report?.reportID, activeRoute));
         }
     };
-
-    const getStatusIcon: (src: IconAsset) => ReactNode = (src) => (
-        <Icon
-            src={src}
-            height={variables.iconSizeSmall}
-            width={variables.iconSizeSmall}
-            fill={theme.icon}
-        />
-    );
-
-    const getStatusBarProps: () => MoneyRequestHeaderStatusBarProps | undefined = () => {
-        if (isOnHold) {
-            return {title: translate('iou.hold'), description: translate('iou.expenseOnHold'), danger: true, shouldShowBorderBottom: true};
-        }
-
-        if (TransactionUtils.isExpensifyCardTransaction(transaction) && TransactionUtils.isPending(transaction)) {
-            return {title: getStatusIcon(Expensicons.CreditCardHourglass), description: translate('iou.transactionPendingDescription'), shouldShowBorderBottom: true};
-        }
-        if (isScanning) {
-            return {title: getStatusIcon(Expensicons.ReceiptScan), description: translate('iou.receiptScanInProgressDescription'), shouldShowBorderBottom: true};
-        }
-        if (TransactionUtils.hasPendingRTERViolation(TransactionUtils.getTransactionViolations(transaction?.transactionID ?? '', transactionViolations))) {
-            return {title: getStatusIcon(Expensicons.Hourglass), description: translate('iou.pendingMatchWithCreditCardDescription'), shouldShowBorderBottom: true};
-        }
-    };
-
-    const statusBarProps = getStatusBarProps();
 
     useEffect(() => {
         if (canDeleteRequest) {
@@ -177,7 +144,7 @@ function MoneyRequestHeader({
         if (!isOnHold && (isRequestIOU || canModifyStatus) && !isScanning) {
             threeDotsMenuItems.push({
                 icon: Expensicons.Stopwatch,
-                text: translate('iou.hold'),
+                text: translate('iou.holdExpense'),
                 onSelected: () => changeMoneyRequestStatus(),
             });
         }
@@ -217,7 +184,7 @@ function MoneyRequestHeader({
         <>
             <View style={[styles.pl0]}>
                 <HeaderWithBackButton
-                    shouldShowBorderBottom={!statusBarProps && !isOnHold}
+                    shouldShowBorderBottom={!isScanning && !isPending && !isOnHold}
                     shouldShowReportAvatarWithDisplay
                     shouldEnableDetailPageNavigation
                     shouldShowPinButton={false}
@@ -232,12 +199,40 @@ function MoneyRequestHeader({
                     shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={onBackButtonPress}
                 />
-                {statusBarProps && (
+                {isPending && (
                     <MoneyRequestHeaderStatusBar
-                        title={statusBarProps.title}
-                        description={statusBarProps.description}
-                        danger={statusBarProps.danger}
-                        shouldShowBorderBottom={statusBarProps.shouldShowBorderBottom}
+                        title={
+                            <Icon
+                                src={Expensicons.CreditCardHourglass}
+                                height={variables.iconSizeSmall}
+                                width={variables.iconSizeSmall}
+                                fill={theme.icon}
+                            />
+                        }
+                        description={translate('iou.transactionPendingDescription')}
+                        shouldShowBorderBottom={!isScanning}
+                    />
+                )}
+                {isScanning && (
+                    <MoneyRequestHeaderStatusBar
+                        title={
+                            <Icon
+                                src={Expensicons.ReceiptScan}
+                                height={variables.iconSizeSmall}
+                                width={variables.iconSizeSmall}
+                                fill={theme.icon}
+                            />
+                        }
+                        description={translate('iou.receiptScanInProgressDescription')}
+                        shouldShowBorderBottom
+                    />
+                )}
+                {isOnHold && (
+                    <MoneyRequestHeaderStatusBar
+                        title={translate('iou.hold')}
+                        description={translate('iou.expenseOnHold')}
+                        shouldShowBorderBottom
+                        danger
                     />
                 )}
             </View>
@@ -264,7 +259,7 @@ function MoneyRequestHeader({
 
 MoneyRequestHeader.displayName = 'MoneyRequestHeader';
 
-const MoneyRequestHeaderWithTransaction = withOnyx<MoneyRequestHeaderProps, Pick<MoneyRequestHeaderOnyxProps, 'transactionViolations' | 'transaction' | 'shownHoldUseExplanation'>>({
+const MoneyRequestHeaderWithTransaction = withOnyx<MoneyRequestHeaderProps, Pick<MoneyRequestHeaderOnyxProps, 'transaction' | 'shownHoldUseExplanation'>>({
     transaction: {
         key: ({report, parentReportActions}) => {
             const parentReportAction = (report.parentReportActionID && parentReportActions ? parentReportActions[report.parentReportActionID] : {}) as ReportAction & OriginalMessageIOU;
@@ -275,15 +270,9 @@ const MoneyRequestHeaderWithTransaction = withOnyx<MoneyRequestHeaderProps, Pick
         key: ONYXKEYS.NVP_HOLD_USE_EXPLAINED,
         initWithStoredValues: true,
     },
-    transactionViolations: {
-        key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-    },
 })(MoneyRequestHeader);
 
-export default withOnyx<
-    Omit<MoneyRequestHeaderProps, 'transactionViolations' | 'transaction' | 'shownHoldUseExplanation'>,
-    Omit<MoneyRequestHeaderOnyxProps, 'transactionViolations' | 'transaction' | 'shownHoldUseExplanation'>
->({
+export default withOnyx<Omit<MoneyRequestHeaderProps, 'transaction' | 'shownHoldUseExplanation'>, Omit<MoneyRequestHeaderOnyxProps, 'transaction' | 'shownHoldUseExplanation'>>({
     session: {
         key: ONYXKEYS.SESSION,
     },

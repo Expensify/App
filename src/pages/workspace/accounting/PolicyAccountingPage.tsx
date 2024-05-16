@@ -2,7 +2,6 @@ import React, {useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import AccountingListSkeletonView from '@components/AccountingListSkeletonView';
 import CollapsibleSection from '@components/CollapsibleSection';
 import ConfirmModal from '@components/ConfirmModal';
 import ConnectToQuickbooksOnlineButton from '@components/ConnectToQuickbooksOnlineButton';
@@ -26,10 +25,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {removePolicyConnection} from '@libs/actions/connections';
 import {syncConnection} from '@libs/actions/connections/QuickBooksOnline';
-import {findCurrentXeroOrganization, getCurrentXeroOrganizationName, getXeroTenants} from '@libs/PolicyUtils';
+import {findCurrentXeroOrganization, getXeroTenants} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
+import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
@@ -44,7 +43,7 @@ type PolicyAccountingPageOnyxProps = {
     connectionSyncProgress: OnyxEntry<PolicyConnectionSyncProgress>;
 };
 
-type PolicyAccountingPageProps = WithPolicyConnectionsProps &
+type PolicyAccountingPageProps = WithPolicyProps &
     PolicyAccountingPageOnyxProps & {
         // This is not using OnyxEntry<OnyxTypes.Policy> because the HOC withPolicyConnections will only render this component if there is a policy
         policy: Policy;
@@ -101,7 +100,7 @@ function accountingIntegrationData(
     }
 }
 
-function PolicyAccountingPage({policy, connectionSyncProgress, isConnectionDataFetchNeeded}: PolicyAccountingPageProps) {
+function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccountingPageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -121,8 +120,8 @@ function PolicyAccountingPage({policy, connectionSyncProgress, isConnectionDataF
     const policyConnectedToXero = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.XERO;
 
     const tenants = useMemo(() => getXeroTenants(policy), [policy]);
+
     const currentXeroOrganization = findCurrentXeroOrganization(tenants, policy?.connections?.xero?.config?.tenantID);
-    const currentXeroOrganizationName = useMemo(() => getCurrentXeroOrganizationName(policy), [policy]);
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
         () => [
@@ -201,7 +200,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress, isConnectionDataF
                       {
                           description: translate('workspace.xero.organization'),
                           iconRight: Expensicons.ArrowRight,
-                          title: currentXeroOrganizationName,
+                          title: currentXeroOrganization?.name,
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
                           titleStyle: styles.fontWeightNormal,
                           shouldShowRightIcon: tenants.length > 1,
@@ -248,7 +247,6 @@ function PolicyAccountingPage({policy, connectionSyncProgress, isConnectionDataF
         connectedIntegration,
         connectionSyncProgress?.stageInProgress,
         currentXeroOrganization,
-        currentXeroOrganizationName,
         tenants,
         isSyncInProgress,
         overflowMenu,
@@ -336,30 +334,21 @@ function PolicyAccountingPage({policy, connectionSyncProgress, isConnectionDataF
                             titleStyles={styles.accountSettingsSectionTitle}
                             childrenStyles={styles.pt5}
                         >
-                            {isConnectionDataFetchNeeded ? (
-                                <View style={styles.mnh20}>
-                                    <AccountingListSkeletonView shouldAnimate />
-                                </View>
-                            ) : (
-                                <>
+                            <MenuItemList
+                                menuItems={connectionsMenuItems}
+                                shouldUseSingleExecution
+                            />
+                            {otherIntegrationsItems && (
+                                <CollapsibleSection
+                                    title={translate('workspace.accounting.other')}
+                                    wrapperStyle={styles.pr3}
+                                    titleStyle={[styles.textNormal, styles.colorMuted]}
+                                >
                                     <MenuItemList
-                                        menuItems={connectionsMenuItems}
+                                        menuItems={otherIntegrationsItems}
                                         shouldUseSingleExecution
                                     />
-                                    {otherIntegrationsItems && (
-                                        <CollapsibleSection
-                                            title={translate('workspace.accounting.other')}
-                                            wrapperStyle={[styles.pr3, styles.mt5, styles.pv3]}
-                                            titleStyle={[styles.textNormal, styles.colorMuted]}
-                                            textStyle={[styles.flex1, styles.userSelectNone, styles.textNormal, styles.colorMuted]}
-                                        >
-                                            <MenuItemList
-                                                menuItems={otherIntegrationsItems}
-                                                shouldUseSingleExecution
-                                            />
-                                        </CollapsibleSection>
-                                    )}
-                                </>
+                                </CollapsibleSection>
                             )}
                         </Section>
                     </View>
@@ -392,5 +381,4 @@ export default withPolicyConnections(
             key: (props) => `${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${props.route.params.policyID}`,
         },
     })(PolicyAccountingPage),
-    false,
 );

@@ -27,7 +27,7 @@ import type {BaseOnboardingWorkOnyxProps, BaseOnboardingWorkProps} from './types
 
 const OPEN_WORK_PAGE_PURPOSES = [CONST.ONBOARDING_CHOICES.MANAGE_TEAM];
 
-function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, onboardingPolicyID}: BaseOnboardingWorkProps) {
+function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected}: BaseOnboardingWorkProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -41,17 +41,11 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
                 return;
             }
             const work = values.work.trim();
-            if (!onboardingPolicyID) {
-                const {adminsChatReportID, policyID} = Policy.createWorkspace(undefined, true, work);
-                Welcome.setOnboardingAdminsChatReportID(adminsChatReportID);
-                Welcome.setOnboardingPolicyID(policyID);
-            } else {
-                Policy.updateGeneralSettings(onboardingPolicyID, work);
-            }
-
+            const {adminsChatReportID} = Policy.createWorkspace(undefined, true, work);
+            Welcome.setOnboardingAdminsChatReportID(adminsChatReportID);
             Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS);
         },
-        [onboardingPurposeSelected, onboardingPolicyID],
+        [onboardingPurposeSelected],
     );
 
     const validate = (values: FormOnyxValues<'onboardingWorkForm'>) => {
@@ -123,8 +117,5 @@ BaseOnboardingWork.displayName = 'BaseOnboardingWork';
 export default withOnyx<BaseOnboardingWorkProps, BaseOnboardingWorkOnyxProps>({
     onboardingPurposeSelected: {
         key: ONYXKEYS.ONBOARDING_PURPOSE_SELECTED,
-    },
-    onboardingPolicyID: {
-        key: ONYXKEYS.ONBOARDING_POLICY_ID,
     },
 })(BaseOnboardingWork);

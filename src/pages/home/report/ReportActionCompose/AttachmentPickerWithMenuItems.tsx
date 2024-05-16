@@ -13,6 +13,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import useIsReportOpenInRHP from '@hooks/useIsReportOpenInRHP';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -117,6 +118,7 @@ function AttachmentPickerWithMenuItems({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {windowHeight, windowWidth} = useWindowDimensions();
+    const {canUseTrackExpense} = usePermissions();
     const {isSmallScreenWidth} = useWindowDimensions();
     const isReportOpenInRHP = useIsReportOpenInRHP();
     const shouldUseNarrowLayout = isReportOpenInRHP || isSmallScreenWidth;
@@ -147,16 +149,16 @@ function AttachmentPickerWithMenuItems({
                 onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, report?.reportID ?? ''),
             },
             [CONST.IOU.TYPE.INVOICE]: {
-                icon: Expensicons.InvoiceGeneric,
+                icon: Expensicons.Invoice,
                 text: translate('workspace.invoices.sendInvoice'),
                 onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.INVOICE, report?.reportID ?? ''),
             },
         };
 
-        return ReportUtils.temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? []).map((option) => ({
+        return ReportUtils.temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? [], canUseTrackExpense).map((option) => ({
             ...options[option],
         }));
-    }, [translate, report, policy, reportParticipantIDs]);
+    }, [translate, report, policy, reportParticipantIDs, canUseTrackExpense]);
 
     /**
      * Determines if we can show the task option
