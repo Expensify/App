@@ -41,7 +41,7 @@ import SCREENS from '@src/SCREENS';
 import type {IOUMessage} from '@src/types/onyx/OriginalMessage';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {MoneyRequestPreviewProps} from './types';
+import type {MoneyRequestPreviewProps, PendingMessageProps} from './types';
 
 function MoneyRequestPreviewContent({
     iouReport,
@@ -90,7 +90,6 @@ function MoneyRequestPreviewContent({
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
-    const isPending = TransactionUtils.isPending(transaction);
     const isOnHold = TransactionUtils.isOnHold(transaction);
     const isSettlementOrApprovalPartial = Boolean(iouReport?.pendingFields?.partial);
     const isPartialHold = isSettlementOrApprovalPartial && isOnHold;
@@ -195,6 +194,21 @@ function MoneyRequestPreviewContent({
         }
         return message;
     };
+
+    const getPendingMessageProps: () => PendingMessageProps = () => {
+        if (isScanning) {
+            return {shouldShow: true, messageIcon: ReceiptScan, messageDescription: translate('iou.receiptScanInProgress')};
+        }
+        if (TransactionUtils.isPending(transaction)) {
+            return {shouldShow: true, messageIcon: Expensicons.CreditCardHourglass, messageDescription: translate('iou.transactionPending')};
+        }
+        if (TransactionUtils.hasPendingUI(transaction, TransactionUtils.getTransactionViolations(transaction?.transactionID ?? '', transactionViolations))) {
+            return {shouldShow: true, messageIcon: Expensicons.Hourglass, messageDescription: translate('iou.pendingMatchWithCreditCard')};
+        }
+        return {shouldShow: false};
+    };
+
+    const pendingMessageProps = getPendingMessageProps();
 
     const getDisplayAmountText = (): string => {
         if (isScanning) {
@@ -324,26 +338,15 @@ function MoneyRequestPreviewContent({
                                                 </Text>
                                             )}
                                         </View>
-                                        {isScanning && (
+                                        {pendingMessageProps.shouldShow && (
                                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
                                                 <Icon
-                                                    src={ReceiptScan}
+                                                    src={pendingMessageProps.messageIcon}
                                                     height={variables.iconSizeExtraSmall}
                                                     width={variables.iconSizeExtraSmall}
-                                                    fill={theme.textSupporting}
+                                                    fill={theme.icon}
                                                 />
-                                                <Text style={[styles.textMicroSupporting, styles.ml1, styles.amountSplitPadding]}>{translate('iou.receiptScanInProgress')}</Text>
-                                            </View>
-                                        )}
-                                        {isPending && (
-                                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
-                                                <Icon
-                                                    src={Expensicons.CreditCardHourglass}
-                                                    height={variables.iconSizeExtraSmall}
-                                                    width={variables.iconSizeExtraSmall}
-                                                    fill={theme.textSupporting}
-                                                />
-                                                <Text style={[styles.textMicroSupporting, styles.ml1, styles.amountSplitPadding]}>{translate('iou.transactionPending')}</Text>
+                                                <Text style={[styles.textMicroSupporting, styles.ml1, styles.amountSplitPadding]}>{pendingMessageProps.messageDescription}</Text>
                                             </View>
                                         )}
                                     </View>
