@@ -104,7 +104,7 @@ function MoneyReportHeader({
     const isDraft = ReportUtils.isOpenExpenseReport(moneyRequestReport);
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
 
-    const hasScanningReceipt = ReportUtils.getTransactionsWithReceipts(moneyRequestReport.reportID).some((transaction) => TransactionUtils.isReceiptBeingScanned(transaction))
+    const hasScanningReceipt = ReportUtils.getTransactionsWithReceipts(moneyRequestReport.reportID).some((transaction) => TransactionUtils.isReceiptBeingScanned(transaction));
     const transactionIDs = TransactionUtils.getAllReportTransactions(moneyRequestReport?.reportID).map((transaction) => transaction.transactionID);
     const allHavePendingRTERViolation = TransactionUtils.allHavePendingRTERViolation(transactionIDs);
 
@@ -127,7 +127,8 @@ function MoneyReportHeader({
     const shouldShowSubmitButton = isDraft && reimbursableSpend !== 0 && !allHavePendingRTERViolation;
     const shouldDisableSubmitButton = shouldShowSubmitButton && !ReportUtils.isAllowedToSubmitDraftExpenseReport(moneyRequestReport);
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
-    const shouldShowNextStep = !ReportUtils.isClosedExpenseReportWithNoExpenses(moneyRequestReport) && isFromPaidPolicy && !!nextStep?.message?.length && !allHavePendingRTERViolation && !hasScanningReceipt;
+    const shouldShowNextStep =
+        !ReportUtils.isClosedExpenseReportWithNoExpenses(moneyRequestReport) && isFromPaidPolicy && !!nextStep?.message?.length && !allHavePendingRTERViolation && !hasScanningReceipt;
     const shouldShowAnyButton = shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextStep;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
     const formattedAmount = CurrencyUtils.convertToDisplayString(reimbursableSpend, moneyRequestReport.currency);
