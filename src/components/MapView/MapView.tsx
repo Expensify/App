@@ -33,11 +33,13 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
         const {translate} = useLocalize();
         const styles = useThemeStyles();
         const theme = useTheme();
-        const centerButtonOpacity = useSharedValue(1);
+        const centerButtonOpacity = useSharedValue(0);
         const [shouldDisplayCenterButton, setShouldDisplayCenterButton] = useState(false);
         const centerButtonAnimatedStyle = useAnimatedStyle(() => ({
             opacity: centerButtonOpacity.value,
         }));
+        const isCentering = useRef(false);
+        const indexTime = useRef(0);
 
         const toggleCenterButton = useCallback(
             (toggleOn: boolean) => {
@@ -45,6 +47,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                     setShouldDisplayCenterButton(true);
                     centerButtonOpacity.value = withTiming(1, {duration: CONST.MAPBOX.CENTER_BUTTON_FADE_DURATION});
                 } else {
+                    isCentering.current = true;
                     centerButtonOpacity.value = withTiming(0, {duration: CONST.MAPBOX.CENTER_BUTTON_FADE_DURATION}, () => runOnJS(setShouldDisplayCenterButton)(false));
                 }
             },
@@ -163,6 +166,16 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
         }, [accessToken]);
 
         const setMapIdle = (e: MapState) => {
+            if (userInteractedWithMap) {
+                if (!isCentering.current) {
+                    toggleCenterButton(true);
+                }
+                if (isCentering.current) {
+                    indexTime.current = indexTime.current + 1;
+                }
+
+                isCentering.current = false;
+            }
             if (e.gestures.isGestureActive) {
                 return;
             }
@@ -191,11 +204,13 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
         return !isOffline && Boolean(accessToken) && Boolean(currentPosition) ? (
             <View style={[style, !interactive ? styles.pointerEventsNone : {}]}>
                 <Mapbox.MapView
-                    onTouchCancel={() => toggleCenterButton(true)}
                     style={{flex: 1}}
                     styleURL={styleURL}
                     onMapIdle={setMapIdle}
-                    onTouchStart={() => setUserInteractedWithMap(true)}
+                    onTouchStart={() => {
+                        setUserInteractedWithMap(true);
+                        isCentering.current = false;
+                    }}
                     pitchEnabled={pitchEnabled}
                     attributionPosition={{...styles.r2, ...styles.b2}}
                     scaleBarEnabled={false}
@@ -258,7 +273,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                     {directionCoordinates && <Direction coordinates={directionCoordinates} />}
                 </Mapbox.MapView>
                 {shouldDisplayCenterButton && (
-                    <Animated.View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, {zIndex: 1}, {opacity: 1}, centerButtonAnimatedStyle]}>
+                    <Animated.View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, {zIndex: 1}, centerButtonAnimatedStyle]}>
                         <PressableWithoutFeedback
                             accessibilityRole={CONST.ROLE.BUTTON}
                             onPress={centerMap}
