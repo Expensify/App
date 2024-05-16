@@ -10,11 +10,8 @@ function clamp(value: number, lowerBound: number, upperBound: number) {
 }
 
 const getCanvasFitScale: GetCanvasFitScale = ({canvasSize, contentSize}) => {
-    const trueScaleX = canvasSize.width / contentSize.width;
-    const trueScaleY = canvasSize.height / contentSize.height;
-
-    const scaleX = clamp(trueScaleX, 0, 1);
-    const scaleY = clamp(trueScaleY, 0, 1);
+    const scaleX = clamp(canvasSize.width / contentSize.width, 0, 1);
+    const scaleY = clamp(canvasSize.height / contentSize.height, 0, 1);
     const minScale = Math.min(scaleX, scaleY);
     const maxScale = Math.max(scaleX, scaleY);
 
