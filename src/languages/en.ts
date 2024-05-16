@@ -647,6 +647,9 @@ export default {
         canceled: 'Canceled',
         posted: 'Posted',
         deleteReceipt: 'Delete receipt',
+        pendingMatchWithCreditCard: 'Receipt pending match with credit card.',
+        pendingMatchWithCreditCardDescription: 'Receipt pending match with credit card. Mark as cash to ignore and request payment.',
+        routePending: 'Route pending...',
         receiptScanning: 'Receipt scanning...',
         receiptScanInProgress: 'Receipt scan in progress.',
         receiptScanInProgressDescription: 'Receipt scan in progress. Check back later or enter the details now.',
@@ -1295,7 +1298,7 @@ export default {
                 label: 'Light',
             },
             system: {
-                label: 'Use Device Settings',
+                label: 'Use device settings',
             },
         },
         chooseThemeBelowOrSync: 'Choose a theme below, or sync with your device settings.',
@@ -1931,6 +1934,8 @@ export default {
             customersDescription: 'Choose whether to import customers/projects and see where customers/projects are displayed.',
             locationsDescription: 'Choose whether to import locations, and see where locations are displayed.',
             taxesDescription: 'Choose whether to import tax rates and tax defaults from your accounting integration.',
+            taxesJournalEntrySwitchNote:
+                'Note: QuickBooks Online does not support a field for tax on Journal Entry exports. Change your export preference to Vendor Bill or Check to import taxes.',
             locationsAdditionalDescription:
                 'Locations are imported as Tags. This limits exporting expense reports as Vendor Bills or Checks to QuickBooks Online. To unlock these export options, either disable Locations import or upgrade to the Control Plan to export Locations encoded as a Report Field.',
             export: 'Export',
@@ -2974,7 +2979,7 @@ export default {
             body: `Get paid to talk to your friends! Start a chat with a new Expensify account and get $${CONST.REFERRAL_PROGRAM.REVENUE} when they become a customer.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
-            buttonText1: 'Submit expense, ',
+            buttonText1: 'Submit an expense, ',
             buttonText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
             header: `Submit an expense, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             body: `It pays to get paid! Submit an expense to a new Expensify account and get $${CONST.REFERRAL_PROGRAM.REVENUE} when they become a customer.`,
