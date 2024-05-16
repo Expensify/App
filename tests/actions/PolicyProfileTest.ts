@@ -19,8 +19,7 @@ describe('actions/PolicyProfile', () => {
 
     let mockFetch: MockFetch;
     beforeEach(() => {
-        global.fetch = TestHelper.getGlobalFetchMock();
-        mockFetch = fetch as MockFetch;
+        mockFetch = TestHelper.getGlobalFetchMock() as MockFetch;
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
@@ -31,7 +30,7 @@ describe('actions/PolicyProfile', () => {
             const oldDescription = fakePolicy.description ?? '';
             const newDescription = 'Updated description';
             const parsedDescription = ReportUtils.getParsedComment(newDescription);
-            mockFetch?.pause?.();
+            mockFetch.pause();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Policy.updateWorkspaceDescription(fakePolicy.id, newDescription, oldDescription);
             await waitForBatchedUpdates();
@@ -49,7 +48,7 @@ describe('actions/PolicyProfile', () => {
                     },
                 });
             });
-            await mockFetch?.resume?.();
+            await mockFetch.resume?.();
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connectionID = Onyx.connect({

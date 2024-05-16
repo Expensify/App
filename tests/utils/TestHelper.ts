@@ -9,10 +9,10 @@ import type {Response as OnyxResponse, PersonalDetails, Report} from '@src/types
 import waitForBatchedUpdates from './waitForBatchedUpdates';
 
 type MockFetch = ReturnType<typeof jest.fn> & {
-    pause?: () => void;
-    fail?: () => void;
-    succeed?: () => void;
-    resume?: () => Promise<void>;
+    pause: () => void;
+    fail: () => void;
+    succeed: () => void;
+    resume: () => Promise<void>;
 };
 
 type QueueItem = (value: Partial<Response> | PromiseLike<Partial<Response>>) => void;
@@ -172,14 +172,14 @@ function getGlobalFetchMock() {
                   json: () => Promise.resolve({jsonCode: 200}),
               };
 
-    const mockFetch: MockFetch = jest.fn().mockImplementation(() => {
+    const mockFetch = jest.fn().mockImplementation(() => {
         if (!isPaused) {
             return Promise.resolve(getResponse());
         }
         return new Promise((resolve) => {
             queue.push(resolve);
         });
-    });
+    }) as MockFetch;
 
     mockFetch.pause = () => (isPaused = true);
     mockFetch.resume = () => {

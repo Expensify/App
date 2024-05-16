@@ -63,8 +63,7 @@ describe('actions/IOU', () => {
 
     let mockFetch: MockFetch;
     beforeEach(() => {
-        global.fetch = TestHelper.getGlobalFetchMock();
-        mockFetch = fetch as MockFetch;
+        mockFetch = TestHelper.getGlobalFetchMock() as MockFetch;
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
@@ -79,7 +78,7 @@ describe('actions/IOU', () => {
             let transactionID: string | undefined;
             let transactionThread: OnyxEntry<OnyxTypes.Report>;
             let transactionThreadCreatedAction: OnyxEntry<OnyxTypes.ReportAction>;
-            mockFetch?.pause?.();
+            mockFetch.pause();
             IOU.requestMoney({reportID: ''}, amount, CONST.CURRENCY.USD, '', merchant, RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment, {});
             return waitForBatchedUpdates()
                 .then(
@@ -218,7 +217,7 @@ describe('actions/IOU', () => {
                             });
                         }),
                 )
-                .then(mockFetch?.resume)
+                .then(mockFetch.resume)
                 .then(
                     () =>
                         new Promise<void>((resolve) => {
@@ -267,7 +266,7 @@ describe('actions/IOU', () => {
             let iouAction: OnyxEntry<OnyxTypes.ReportAction>;
             let iouCreatedAction: OnyxEntry<OnyxTypes.ReportAction>;
             let transactionID: string | undefined;
-            mockFetch?.pause?.();
+            mockFetch.pause();
             return Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport)
                 .then(() =>
                     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, {
@@ -378,7 +377,7 @@ describe('actions/IOU', () => {
                             });
                         }),
                 )
-                .then(mockFetch?.resume)
+                .then(mockFetch.resume)
                 .then(waitForBatchedUpdates)
                 .then(
                     () =>
@@ -462,7 +461,7 @@ describe('actions/IOU', () => {
             };
             let newIOUAction: OnyxEntry<OnyxTypes.ReportAction>;
             let newTransaction: OnyxEntry<OnyxTypes.Transaction>;
-            mockFetch?.pause?.();
+            mockFetch.pause?.();
             return Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, chatReport)
                 .then(() => Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport))
                 .then(() =>
@@ -567,7 +566,7 @@ describe('actions/IOU', () => {
                             });
                         }),
                 )
-                .then(mockFetch?.resume)
+                .then(mockFetch.resume)
                 .then(waitForNetworkPromises)
                 .then(
                     () =>
@@ -610,7 +609,7 @@ describe('actions/IOU', () => {
             let transactionID: string;
             let transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
             let transactionThreadAction: OnyxEntry<OnyxTypes.ReportAction>;
-            mockFetch?.pause?.();
+            mockFetch.pause();
             IOU.requestMoney({reportID: ''}, amount, CONST.CURRENCY.USD, '', '', RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment, {});
             return (
                 waitForBatchedUpdates()
@@ -721,8 +720,8 @@ describe('actions/IOU', () => {
                             }),
                     )
                     .then((): Promise<unknown> => {
-                        mockFetch?.fail?.();
-                        return mockFetch?.resume?.() as Promise<unknown>;
+                        mockFetch.fail();
+                        return mockFetch.resume?.() as Promise<unknown>;
                     })
                     .then(
                         () =>
@@ -910,7 +909,7 @@ describe('actions/IOU', () => {
                     )
 
                     // Cleanup
-                    .then(mockFetch?.succeed)
+                    .then(mockFetch.succeed)
             );
         });
     });
@@ -1061,7 +1060,7 @@ describe('actions/IOU', () => {
                 .then(() => Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${julesExistingTransaction?.transactionID}`, julesExistingTransaction))
                 .then(() => {
                     // When we split a bill offline
-                    mockFetch?.pause?.();
+                    mockFetch.pause();
                     IOU.splitBill(
                         // TODO: Migrate after the backend accepts accountIDs
                         {
@@ -1343,7 +1342,7 @@ describe('actions/IOU', () => {
                             });
                         }),
                 )
-                .then(mockFetch?.resume)
+                .then(mockFetch.resume)
                 .then(waitForNetworkPromises)
                 .then(
                     () =>
@@ -1480,7 +1479,7 @@ describe('actions/IOU', () => {
                         }),
                 )
                 .then(() => {
-                    mockFetch?.pause?.();
+                    mockFetch.pause();
                     if (chatReport && iouReport) {
                         IOU.payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, chatReport, iouReport);
                     }
@@ -1535,7 +1534,7 @@ describe('actions/IOU', () => {
                             });
                         }),
                 )
-                .then(mockFetch?.resume)
+                .then(mockFetch.resume)
                 .then(
                     () =>
                         new Promise<void>((resolve) => {
@@ -1593,7 +1592,7 @@ describe('actions/IOU', () => {
         const merchant = 'NASDAQ';
 
         afterEach(() => {
-            mockFetch?.resume?.();
+            mockFetch.resume?.();
         });
 
         it('updates the IOU request and IOU report when offline', () => {
@@ -1602,7 +1601,7 @@ describe('actions/IOU', () => {
             let iouAction: OnyxEntry<OnyxTypes.ReportAction> = null;
             let transaction: OnyxEntry<OnyxTypes.Transaction> = null;
 
-            mockFetch?.pause?.();
+            mockFetch.pause();
             IOU.requestMoney({reportID: ''}, amount, CONST.CURRENCY.USD, '', merchant, RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment, {});
             return waitForBatchedUpdates()
                 .then(() => {
@@ -1745,7 +1744,7 @@ describe('actions/IOU', () => {
                         }),
                 )
                 .then(() => {
-                    mockFetch?.resume?.();
+                    mockFetch.resume?.();
                 });
         });
 
@@ -1811,7 +1810,7 @@ describe('actions/IOU', () => {
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
-                    mockFetch?.fail?.();
+                    mockFetch.fail();
 
                     if (transaction) {
                         IOU.editMoneyRequest(
@@ -1904,14 +1903,14 @@ describe('actions/IOU', () => {
         const merchant = 'NASDAQ';
 
         afterEach(() => {
-            mockFetch?.resume?.();
+            mockFetch.resume?.();
         });
 
         it('updates the expense request and expense report when paid while offline', () => {
             let expenseReport: OnyxEntry<OnyxTypes.Report>;
             let chatReport: OnyxEntry<OnyxTypes.Report>;
 
-            mockFetch?.pause?.();
+            mockFetch.pause();
             Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
             return waitForBatchedUpdates()
                 .then(() => {
@@ -2068,7 +2067,7 @@ describe('actions/IOU', () => {
                         }),
                 )
                 .then(() => {
-                    mockFetch?.fail?.();
+                    mockFetch.fail();
                     if (chatReport && expenseReport) {
                         IOU.payMoneyRequest('ACH', chatReport, expenseReport);
                     }
@@ -2218,7 +2217,7 @@ describe('actions/IOU', () => {
 
         it('delete an expense (IOU Action and transaction) successfully', async () => {
             // Given the fetch operations are paused and an expense is initiated
-            mockFetch?.pause?.();
+            mockFetch.pause();
 
             if (transaction && createIOUAction) {
                 // When the expense is deleted
@@ -2257,7 +2256,7 @@ describe('actions/IOU', () => {
             expect(t).toBeFalsy();
 
             // Given fetch operations are resumed
-            mockFetch?.resume?.();
+            mockFetch.resume?.();
             await waitForBatchedUpdates();
 
             // Then we recheck the IOU report action from the report actions collection
@@ -2292,7 +2291,7 @@ describe('actions/IOU', () => {
 
         it('delete the IOU report when there are no visible comments left in the IOU report', async () => {
             // Given an IOU report and a paused fetch state
-            mockFetch?.pause?.();
+            mockFetch.pause();
 
             if (transaction && createIOUAction) {
                 // When the IOU expense is deleted
@@ -2315,7 +2314,7 @@ describe('actions/IOU', () => {
             expect(report).toBeTruthy();
 
             // Given the resumed fetch state
-            mockFetch?.resume?.();
+            mockFetch.resume?.();
             await waitForBatchedUpdates();
 
             report = await new Promise<OnyxEntry<OnyxTypes.Report>>((resolve) => {
@@ -2367,7 +2366,7 @@ describe('actions/IOU', () => {
             expect(resultActionAfterUpdate?.pendingAction).toBeUndefined();
 
             // When we attempt to delete an expense from the IOU report
-            mockFetch?.pause?.();
+            mockFetch.pause();
             if (transaction && createIOUAction) {
                 IOU.deleteMoneyRequest(transaction?.transactionID, createIOUAction, false);
             }
@@ -2393,7 +2392,7 @@ describe('actions/IOU', () => {
             expect(iouReport).toHaveProperty('chatReportID');
 
             // Given the resumed fetch state
-            mockFetch?.resume?.();
+            mockFetch.resume?.();
 
             allReports = await new Promise<OnyxCollection<OnyxTypes.Report>>((resolve) => {
                 const connectionID = Onyx.connect({
@@ -2457,7 +2456,7 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             // Given Fetch is paused and timers have advanced
-            mockFetch?.pause?.();
+            mockFetch.pause();
             jest.advanceTimersByTime(10);
 
             if (transaction && createIOUAction) {
@@ -2479,7 +2478,7 @@ describe('actions/IOU', () => {
             });
 
             expect(report).toBeFalsy();
-            mockFetch?.resume?.();
+            mockFetch.resume?.();
 
             // Then After resuming fetch, the report for the given thread ID still does not exist
             report = await new Promise<OnyxEntry<OnyxTypes.Report>>((resolve) => {
@@ -2647,7 +2646,7 @@ describe('actions/IOU', () => {
             const resultActionAfter = reportActions?.[reportActionID];
             expect(resultActionAfter?.pendingAction).toBeUndefined();
 
-            mockFetch?.pause?.();
+            mockFetch.pause();
 
             if (transaction && createIOUAction) {
                 // When deleting expense
@@ -2670,7 +2669,7 @@ describe('actions/IOU', () => {
 
             // When fetch resumes
             // Then the transaction thread report should still exist
-            mockFetch?.resume?.();
+            mockFetch.resume?.();
             await new Promise<void>((resolve) => {
                 const connectionID = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
@@ -2793,7 +2792,7 @@ describe('actions/IOU', () => {
             // Verify that our action is no longer in the loading state
             expect(resultActionAfterUpdate?.pendingAction).toBeUndefined();
 
-            mockFetch?.pause?.();
+            mockFetch.pause();
             if (transaction && createIOUAction) {
                 // When we delete the expense
                 IOU.deleteMoneyRequest(transaction.transactionID, createIOUAction, false);
@@ -2816,7 +2815,7 @@ describe('actions/IOU', () => {
             });
 
             // When we resume fetch
-            mockFetch?.resume?.();
+            mockFetch.resume?.();
 
             // Then we expect the moneyRequestPreview to show [Deleted expense]
 
@@ -2865,7 +2864,7 @@ describe('actions/IOU', () => {
             expect(ioupreview?.message?.[0]?.text).toBe('rory@expensifail.com owes $300.00');
 
             // When we delete the first expense
-            mockFetch?.pause?.();
+            mockFetch.pause();
             jest.advanceTimersByTime(10);
             if (transaction && createIOUAction) {
                 IOU.deleteMoneyRequest(transaction.transactionID, createIOUAction, false);
@@ -2880,7 +2879,7 @@ describe('actions/IOU', () => {
             expect(iouReport?.total).toBe(20000);
 
             // When we resume
-            mockFetch?.resume?.();
+            mockFetch.resume?.();
 
             // Then we expect the IOU report and reportPreview to update with new totals
             expect(iouReport).toBeTruthy();
@@ -2956,7 +2955,7 @@ describe('actions/IOU', () => {
 
             // When we delete the expense in SingleTransactionView and we should not delete the IOU report
 
-            mockFetch?.pause?.();
+            mockFetch.pause();
 
             if (transaction && createIOUAction) {
                 IOU.deleteMoneyRequest(transaction.transactionID, createIOUAction, true);
@@ -2981,7 +2980,7 @@ describe('actions/IOU', () => {
             expect(iouReport).toHaveProperty('reportID');
             expect(iouReport).toHaveProperty('chatReportID');
 
-            mockFetch?.resume?.();
+            mockFetch.resume?.();
 
             allReports = await new Promise<OnyxCollection<OnyxTypes.Report>>((resolve) => {
                 const connectionID = Onyx.connect({
@@ -3307,7 +3306,7 @@ describe('actions/IOU', () => {
                         }),
                 )
                 .then(() => {
-                    mockFetch?.fail?.();
+                    mockFetch.fail();
                     if (expenseReport) {
                         IOU.submitReport(expenseReport);
                     }
