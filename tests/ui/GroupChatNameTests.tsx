@@ -131,7 +131,7 @@ function signInAndGetApp(reportName = '', participantAccountIDs?: number[]): Pro
     participantAccountIDs?.forEach((id) => {
         participants[id] = {
             hidden: false,
-            role: id === 1 ? 'admin' : 'member',
+            role: id === 1 ? CONST.REPORT.ROLE.ADMIN : CONST.REPORT.ROLE.MEMBER,
         } as Participant;
     });
 

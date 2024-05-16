@@ -10,6 +10,7 @@ import {CurrentReportIDContextProvider} from '@components/withCurrentReportID';
 import {EnvironmentProvider} from '@components/withEnvironment';
 import {ReportIDsContextProvider} from '@hooks/useReportIDs';
 import DateUtils from '@libs/DateUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import ReportActionItemSingle from '@pages/home/report/ReportActionItemSingle';
 import SidebarLinksData from '@pages/home/sidebar/SidebarLinksData';
 import CONST from '@src/CONST';
@@ -145,7 +146,7 @@ function getFakeReport(participantAccountIDs = [1, 2], millisecondsInThePast = 0
         reportName: 'Report',
         lastVisibleActionCreated,
         lastReadTime: isUnread ? DateUtils.subtractMillisecondsFromDateTime(lastVisibleActionCreated, 1) : lastVisibleActionCreated,
-        participantAccountIDs,
+        participants: ReportUtils.buildParticipantsFromAccountIDs(participantAccountIDs),
         participants,
     };
 }
@@ -176,7 +177,6 @@ function getFakeReportAction(actor = 'email1@test.com', millisecondsInThePast = 
                 text: 'Email One',
             },
         ],
-        whisperedToAccountIDs: [],
         automatic: false,
         message: [
             {
@@ -200,6 +200,7 @@ function getFakeReportAction(actor = 'email1@test.com', millisecondsInThePast = 
             },
         ],
         originalMessage: {
+            whisperedTo: [],
             childReportID: `${reportActionID}`,
             emojiReactions: {
                 heart: {

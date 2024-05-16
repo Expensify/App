@@ -205,7 +205,7 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
                     canSelectMultiple
                     sections={sections}
                     ListItem={InviteMemberListItem}
-                    textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+                    textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
                     textInputValue={searchTerm}
                     onChangeText={setSearchTerm}
                     headerMessage={headerMessage}

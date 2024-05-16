@@ -200,7 +200,7 @@ function getGlobalFetchMock() {
     mockFetch.fail = () => (shouldFail = true);
     mockFetch.succeed = () => (shouldFail = false);
 
-    return mockFetch;
+    return mockFetch as typeof fetch;
 }
 
 function setPersonalDetails(login: string, accountID: number) {
@@ -280,4 +280,5 @@ function beforeAllSetupUITests(shouldConnectToPusher: boolean = false) {
     }
 }
 
+export type {MockFetch};
 export {assertFormDataMatchesObject, buildPersonalDetails, buildTestReportComment, createAddListenerMock, getGlobalFetchMock, setPersonalDetails, signInWithTestUser, signOutTestUser, navigateToSidebarOption, beforeAllSetupUITests};
