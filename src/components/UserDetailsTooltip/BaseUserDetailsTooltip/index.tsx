@@ -60,11 +60,10 @@ function BaseUserDetailsTooltip({accountID, fallbackUserDetails, icon, delegateA
                     <Avatar
                         containerStyles={[styles.actionAvatar]}
                         source={icon?.source ?? userAvatar}
-                        accountID={userAccountID}
+                        avatarID={icon?.id ?? userAccountID}
                         type={icon?.type ?? CONST.ICON_TYPE_AVATAR}
                         name={icon?.name ?? userLogin}
                         fallbackIcon={icon?.fallbackIcon}
-                        avatarID={icon?.id}
                     />
                 </View>
                 <Text style={[styles.mt2, styles.textMicroBold, styles.textReactionSenders, styles.textAlignCenter]}>{title}</Text>

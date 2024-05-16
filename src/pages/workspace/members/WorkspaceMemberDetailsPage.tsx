@@ -159,7 +159,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 containerStyles={[styles.avatarXLarge, styles.mv5, styles.noOutline]}
                                 imageStyles={[styles.avatarXLarge]}
                                 source={details.avatar}
-                                accountID={accountID}
+                                avatarID={accountID}
                                 size={CONST.AVATAR_SIZE.XLARGE}
                                 fallbackIcon={fallbackIcon}
                             />

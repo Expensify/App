@@ -159,7 +159,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                         containerStyles={[styles.avatarXLarge, styles.mb3]}
                                         imageStyles={[styles.avatarXLarge]}
                                         source={details.avatar}
-                                        accountID={accountID}
+                                        avatarID={accountID}
                                         size={CONST.AVATAR_SIZE.XLARGE}
                                         fallbackIcon={fallbackIcon}
                                     />

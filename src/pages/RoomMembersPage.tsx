@@ -216,7 +216,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                             source: details.avatar ?? FallbackAvatar,
                             name: details.login ?? '',
                             type: CONST.ICON_TYPE_AVATAR,
-                            id: Number(accountID),
+                            id: accountID,
                         },
                     ],
                     pendingAction: pendingChatMember?.pendingAction,

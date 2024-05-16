@@ -538,7 +538,7 @@ function MenuItem(
                                                         <Avatar
                                                             imageStyles={[styles.alignSelfCenter]}
                                                             source={icon}
-                                                            accountID={accountID}
+                                                            avatarID={avatarID}
                                                             fallbackIcon={fallbackIcon}
                                                             size={avatarSize}
                                                         />
