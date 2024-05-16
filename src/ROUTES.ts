@@ -2,6 +2,8 @@ import type {ValueOf} from 'type-fest';
 import type CONST from './CONST';
 import type {IOUAction, IOUType} from './CONST';
 import type {IOURequestType} from './libs/actions/IOU';
+import type {CentralPaneNavigatorParamList} from './libs/Navigation/types';
+import type {SearchQuery} from './types/onyx/SearchResults';
 import type AssertTypesNotEqual from './types/utils/AssertTypesNotEqual';
 
 // This is a file containing constants for all the routes we want to be able to go to
@@ -25,7 +27,15 @@ const ROUTES = {
 
     SEARCH: {
         route: '/search/:query',
-        getRoute: (query: string) => `search/${query}` as const,
+        getRoute: (searchQuery: SearchQuery, queryParams?: CentralPaneNavigatorParamList['Search_Central_Pane']) => {
+            const {sortBy, sortOrder} = queryParams ?? {};
+
+            if (!sortBy && !sortOrder) {
+                return `search/${searchQuery}` as const;
+            }
+
+            return `search/${searchQuery}?sortBy=${sortBy}&sortOrder=${sortOrder}` as const;
+        },
     },
 
     SEARCH_REPORT: {

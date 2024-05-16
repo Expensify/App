@@ -10,20 +10,69 @@ import Navigation from '@navigation/Navigation';
 import EmptySearchView from '@pages/Search/EmptySearchView';
 import useCustomBackHandler from '@pages/Search/useCustomBackHandler';
 import CONST from '@src/CONST';
+import type {SearchColumnType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {SearchQuery} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import SelectionList from './SelectionList';
 import SearchTableHeader from './SelectionList/SearchTableHeader';
+import type {TransactionListItemType} from './SelectionList/types';
 import TableListItemSkeleton from './Skeletons/TableListItemSkeleton';
 
-type SearchProps = {
-    query: string;
-    policyIDs?: string;
+const columnNamesToPropertyMap = {
+    [CONST.SEARCH_TABLE_COLUMNS.TO]: 'to',
+    [CONST.SEARCH_TABLE_COLUMNS.FROM]: 'from',
+    [CONST.SEARCH_TABLE_COLUMNS.DATE]: 'created',
+    [CONST.SEARCH_TABLE_COLUMNS.TAG]: '',
+    [CONST.SEARCH_TABLE_COLUMNS.MERCHANT]: 'merchant',
+    [CONST.SEARCH_TABLE_COLUMNS.TOTAL]: 'amount',
+    [CONST.SEARCH_TABLE_COLUMNS.CATEGORY]: 'category',
+    [CONST.SEARCH_TABLE_COLUMNS.TYPE]: null,
+    [CONST.SEARCH_TABLE_COLUMNS.ACTION]: null,
+    [CONST.SEARCH_TABLE_COLUMNS.DESCRIPTION]: null,
+    [CONST.SEARCH_TABLE_COLUMNS.TAX_AMOUNT]: null,
 };
 
-function Search({query, policyIDs}: SearchProps) {
+function getSortedData(data: TransactionListItemType[], sortBy?: SearchColumnType, sortOrder?: 'asc' | 'desc') {
+    if (!sortBy || !sortOrder) {
+        return data;
+    }
+
+    const sortingProp = columnNamesToPropertyMap[sortBy] as keyof TransactionListItemType;
+
+    if (!sortingProp) {
+        return data;
+    }
+
+    // Todo sorting needs more work
+    return data.sort((a, b) => {
+        const aValue = a[sortingProp];
+        const bValue = b[sortingProp];
+
+        if (!aValue || !bValue) {
+            return 0;
+        }
+
+        if (typeof aValue === 'string' && typeof bValue === 'string') {
+            return sortOrder === 'asc' ? aValue.toLowerCase().localeCompare(bValue) : bValue.toLowerCase().localeCompare(aValue);
+        }
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        return sortOrder === 'asc' ? aValue - bValue : bValue - aValue;
+    });
+}
+
+type SearchProps = {
+    query: SearchQuery;
+    policyIDs?: string;
+    sortBy?: SearchColumnType;
+    sortOrder?: 'asc' | 'desc';
+};
+
+function Search({query, policyIDs, sortOrder, sortBy}: SearchProps) {
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     useCustomBackHandler();
@@ -31,14 +80,16 @@ function Search({query, policyIDs}: SearchProps) {
     const hash = SearchUtils.getQueryHash(query, policyIDs);
     const [searchResults, searchResultsMeta] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
 
+    const offset = 0;
+
     useEffect(() => {
         if (isOffline) {
             return;
         }
 
-        SearchActions.search(hash, query, 0, policyIDs);
+        SearchActions.search({hash, query, policyIDs, offset, sortBy, sortOrder});
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [hash, isOffline]);
+    }, [hash, isOffline, sortBy, sortOrder]);
 
     const isLoadingInitialItems = (!isOffline && isLoadingOnyxValue(searchResultsMeta)) || searchResults?.data === undefined;
     const isLoadingMoreItems = !isLoadingInitialItems && searchResults?.search?.isLoading;
@@ -65,7 +116,7 @@ function Search({query, policyIDs}: SearchProps) {
             return;
         }
         const currentOffset = searchResults?.search?.offset ?? 0;
-        SearchActions.search(hash, query, currentOffset + CONST.SEARCH_RESULTS_PAGE_SIZE);
+        SearchActions.search({hash, query, offset: currentOffset + CONST.SEARCH_RESULTS_PAGE_SIZE});
     };
 
     const type = SearchUtils.getSearchType(searchResults?.search);
@@ -78,11 +129,30 @@ function Search({query, policyIDs}: SearchProps) {
     const ListItem = SearchUtils.getListItem(type);
     const data = SearchUtils.getSections(searchResults?.data ?? {}, type);
 
+    const onSortPress = (column: SearchColumnType, order: 'asc' | 'desc') => {
+        const newRoute = ROUTES.SEARCH.getRoute(query, {
+            query,
+            sortBy: column,
+            sortOrder: order,
+        });
+
+        Navigation.navigate(newRoute);
+    };
+
+    const sortedData = getSortedData(data, sortBy, sortOrder);
+
     return (
         <SelectionList
-            customListHeader={<SearchTableHeader data={searchResults?.data} />}
+            customListHeader={
+                <SearchTableHeader
+                    data={searchResults?.data}
+                    onSortPress={onSortPress}
+                    sortOrder={sortOrder}
+                    sortBy={sortBy}
+                />
+            }
             ListItem={ListItem}
-            sections={[{data, isDisabled: false}]}
+            sections={[{data: sortedData, isDisabled: false}]}
             onSelectRow={(item) => {
                 openReport(item.transactionThreadReportID);
             }}

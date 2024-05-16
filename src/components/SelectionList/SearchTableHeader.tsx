@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -6,12 +6,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as SearchUtils from '@libs/SearchUtils';
 import CONST from '@src/CONST';
+import type {SearchColumnType} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type * as OnyxTypes from '@src/types/onyx';
 import SortableHeaderText from './SortableHeaderText';
 
 type SearchColumnConfig = {
-    columnName: (typeof CONST.SEARCH_TABLE_COLUMNS)[keyof typeof CONST.SEARCH_TABLE_COLUMNS];
+    columnName: SearchColumnType;
     translationKey: TranslationPaths;
     isSortable?: boolean;
     shouldShowFn: (data: OnyxTypes.SearchResults['data']) => boolean;
@@ -78,37 +79,32 @@ const SearchColumns: SearchColumnConfig[] = [
 
 type SearchTableHeaderProps = {
     data: OnyxTypes.SearchResults['data'];
+    sortBy?: SearchColumnType;
+    sortOrder?: 'asc' | 'desc';
+    onSortPress: (column: SearchColumnType, order: 'asc' | 'desc') => void;
 };
 
-function SearchTableHeader({data}: SearchTableHeaderProps) {
+function SearchTableHeader({data, sortBy, sortOrder, onSortPress}: SearchTableHeaderProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth, isMediumScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const displayNarrowVersion = isMediumScreenWidth || isSmallScreenWidth;
 
-    const [sortColumn, setSortColumn] = useState<SearchColumnConfig['columnName'] | undefined>();
-    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
-
     if (displayNarrowVersion) {
         return;
     }
-
-    const onSortPress = (columnName: SearchColumnConfig['columnName'], order: 'asc' | 'desc') => {
-        setSortColumn(columnName);
-        setSortOrder(order);
-    };
 
     return (
         <View style={[styles.ph5, styles.pb3]}>
             <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.ph4]}>
                 {SearchColumns.map(({columnName, translationKey, shouldShowFn, isSortable}) => {
-                    const isActive = sortColumn === columnName;
+                    const isActive = sortBy === columnName;
 
                     return (
                         <SortableHeaderText
                             text={translate(translationKey)}
-                            sortOrder={sortOrder}
+                            sortOrder={sortOrder ?? 'asc'}
                             isActive={isActive}
                             containerStyle={[StyleUtils.getSearchTableColumnStyles(columnName)]}
                             shouldShow={shouldShowFn(data)}

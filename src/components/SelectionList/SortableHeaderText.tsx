@@ -7,6 +7,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 
 type SearchTableHeaderColumnProps = {
     text: string;
@@ -36,7 +37,9 @@ export default function SortableHeaderText({text, sortOrder, isActive, textStyle
         <View style={containerStyle}>
             <PressableWithFeedback
                 onPress={() => onPress(newSortOrder)}
-                accessibilityLabel={''}
+                role={CONST.ROLE.BUTTON}
+                accessibilityLabel={CONST.ROLE.BUTTON}
+                accessible
                 disabled={!isSortable}
             >
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
@@ -47,9 +50,9 @@ export default function SortableHeaderText({text, sortOrder, isActive, textStyle
                         {text}
                     </Text>
                     <Icon
-                        additionalStyles={iconStyles}
                         src={icon}
                         fill={theme.icon}
+                        additionalStyles={iconStyles}
                         height={12}
                         width={12}
                     />

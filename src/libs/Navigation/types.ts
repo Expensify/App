@@ -13,7 +13,7 @@ import type {
 import type {ValueOf} from 'type-fest';
 import type {IOURequestType} from '@libs/actions/IOU';
 import type CONST from '@src/CONST';
-import type {Country, IOUAction, IOUType} from '@src/CONST';
+import type {Country, IOUAction, IOUType, SearchColumnType} from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
 import type {HybridAppRoute, Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -64,6 +64,10 @@ type CentralPaneNavigatorParamList = {
     [SCREENS.SETTINGS.WORKSPACES]: undefined;
     [SCREENS.SEARCH.CENTRAL_PANE]: {
         query: string;
+        policyIDs?: string;
+        offset?: number;
+        sortBy?: SearchColumnType;
+        sortOrder?: 'asc' | 'desc';
     };
     [SCREENS.SETTINGS.SAVE_THE_WORLD]: undefined;
 };
