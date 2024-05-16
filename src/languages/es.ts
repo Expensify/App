@@ -403,7 +403,7 @@ export default {
         splitAmounts: 'Importes a dividir',
         whatsItFor: '¿Para qué es?',
     },
-    optionsSelector: {
+    selectionList: {
         nameEmailOrPhoneNumber: 'Nombre, email o número de teléfono',
         findMember: 'Encuentra un miembro',
     },
@@ -640,6 +640,9 @@ export default {
         canceled: 'Canceló',
         posted: 'Contabilizado',
         deleteReceipt: 'Eliminar recibo',
+        pendingMatchWithCreditCard: 'Recibo pendiente de adjuntar con la tarjeta de crédito.',
+        pendingMatchWithCreditCardDescription: 'Recibo pendiente de adjuntar con tarjeta de crédito. Marca como efectivo para ignorar y solicitar pago.',
+        routePending: 'Ruta pendiente...',
         receiptIssuesFound: (count: number) => `${count === 1 ? 'Problema encontrado' : 'Problemas encontrados'}`,
         fieldPending: 'Pendiente...',
         receiptScanning: 'Escaneando recibo...',
@@ -740,10 +743,10 @@ export default {
         reason: 'Razón',
         holdReasonRequired: 'Se requiere una razón para bloquear.',
         expenseOnHold: 'Este gasto está bloqueado. Revisa los comentarios para saber como proceder.',
-        confirmApprove: 'Confirma que quieres aprobar',
-        confirmApprovalAmount: 'Aprobar el total o solo la parte no bloqueada.',
-        confirmPay: 'Confirma que quieres pagar',
-        confirmPayAmount: 'Pagar todos los gastos por cuenta propia o solo el monto no bloqueado.',
+        confirmApprove: 'Confirmar importe a aprobar',
+        confirmApprovalAmount: 'Aprueba lo que no está bloqueado, o aprueba todo el informe.',
+        confirmPay: 'Confirmar importe de pago',
+        confirmPayAmount: 'Paga lo que no está bloqueado, o paga todos los gastos por cuenta propia.',
         payOnly: 'Solo pagar',
         approveOnly: 'Solo aprobar',
         hold: 'Bloqueada',
@@ -1020,7 +1023,7 @@ export default {
     privateNotes: {
         title: 'Notas privadas',
         personalNoteMessage: 'Guarda notas sobre este chat aquí. Usted es la única persona que puede añadir, editar o ver estas notas.',
-        sharedNoteMessage: 'Guarda notas sobre este chat aquí. Los empleados de Expensify y otros usuarios del dominio team.expensify.com pueden ver estas notas.',
+        sharedNoteMessage: 'Guarda notas sobre este chat aquí. Los empleados de Expensify y otros miembros del dominio team.expensify.com pueden ver estas notas.',
         composerLabel: 'Notas',
         myNote: 'Mi nota',
         error: {
@@ -1955,6 +1958,8 @@ export default {
             customersDescription: 'Elige si queres importar clientes/proyectos y donde los clientes/proyectos son mostrados.',
             locationsDescription: 'Elige si quieres importar lugares y donde los lugares son mostrados.',
             taxesDescription: 'Elige si quires importar las tasas de impuestos y  los impuestos por defecto de tu integración de contaduría.',
+            taxesJournalEntrySwitchNote:
+                'Nota: QuickBooks Online no admite un campo para impuestos al exportar entradas en el libro diario. Cambia tu preferencia de exportación a Factura de Proveedor o Cheque para importar impuestos.',
             locationsAdditionalDescription:
                 'Los lugares son importados como Etiquegas. Esto limita a exportar los informes de gastos como Factura del Proveedor o Cheques a Quicbooks Online. Para desbloquear estas opciones de exportación desactiva la importación de Lugares o cambia al Plan Control para exportar Lugares como Campos de Informes.',
             export: 'Exportar',
