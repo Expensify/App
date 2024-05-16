@@ -4739,6 +4739,7 @@ function createDistanceRequest(
 ) {
     // If the report is an iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
+    const activeReportID = isMoneyRequestReport ? report?.reportID ?? '' : chatReport.reportID;
     const currentChatReport = isMoneyRequestReport ? ReportUtils.getReport(report?.chatReportID) : report;
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
     const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
@@ -4749,9 +4750,9 @@ function createDistanceRequest(
     };
 
     let parameters: CreateDistanceRequestParams;
-
+    let onyxData: OnyxData;
     if (participants.length > 1) {
-        const {splitData, splits, onyxData} = createSplitsAndOnyxData(
+        const {splitData, splits, onyxData: splitOnyxData} = createSplitsAndOnyxData(
             participants,
             currentUserLogin ?? '',
             currentUserAccountID,
@@ -4767,6 +4768,7 @@ function createDistanceRequest(
             billable,
             CONST.IOU.REQUEST_TYPE.DISTANCE,
         );
+        onyxData = splitOnyxData;
 
         // Splits don't use the IOU report param. The split transaction isn't linked to a report shown in the UI, it's linked to a special default reportID of -2.
         // Therefore, anything related to the IOU report is irrelevant.
@@ -4806,7 +4808,7 @@ function createDistanceRequest(
             transactionThreadReportID,
             createdReportActionIDForThread,
             payerEmail,
-            onyxData,
+            onyxData: moneyRequestOnyxData,
         } = getMoneyRequestInformation(
             currentChatReport,
             participant,
@@ -4829,8 +4831,8 @@ function createDistanceRequest(
             currentUserEmail,
             moneyRequestReportID,
         );
+        onyxData = moneyRequestOnyxData;
 
-        const activeReportID = isMoneyRequestReport ? report?.reportID ?? '' : chatReport.reportID;
         parameters = {
             comment,
             iouReportID: iouReport.reportID,
