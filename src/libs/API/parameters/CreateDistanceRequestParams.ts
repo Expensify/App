@@ -18,6 +18,8 @@ type CreateDistanceRequestParams = {
     createdReportActionIDForThread: string;
     payerEmail: string;
     customUnitRateID?: string;
+    splits?: string;
+    chatType?: string;
 };
 
 export default CreateDistanceRequestParams;

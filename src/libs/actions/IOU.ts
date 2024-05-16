@@ -4768,15 +4768,17 @@ function createDistanceRequest(
             CONST.IOU.REQUEST_TYPE.DISTANCE,
         );
 
+        // Splits don't use the IOU report param. The split transaction isn't linked to a report shown in the UI, it's linked to a special default reportID of -2.
+        // Therefore, anything related to the IOU report is irrelevant.
         parameters = {
             comment,
-            iouReportID: iouReport.reportID,
+            iouReportID: '',
             chatReportID: splitData.chatReportID,
             transactionID: splitData.transactionID,
             reportActionID: splitData.reportActionID,
-            createdChatReportActionID,
-            createdIOUReportActionID: splitData.createdReportActionID,
-            reportPreviewReportActionID: reportPreviewAction.reportActionID,
+            createdChatReportActionID: splitData.createdReportActionID ?? '',
+            createdIOUReportActionID: '',
+            reportPreviewReportActionID: '', // No report preview needed, since the split transaction report is not shown in the UI
             waypoints: JSON.stringify(validWaypoints),
             created: currentCreated,
             category,
@@ -4784,9 +4786,10 @@ function createDistanceRequest(
             taxCode,
             taxAmount,
             billable,
-            transactionThreadReportID,
-            createdReportActionIDForThread,
+            transactionThreadReportID: '',
+            createdReportActionIDForThread: '',
             customUnitRateID,
+            payerEmail: '',
             splits: JSON.stringify(splits),
             chatType: splitData.chatType,
         };

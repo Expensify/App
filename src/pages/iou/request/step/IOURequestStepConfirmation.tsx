@@ -315,7 +315,6 @@ function IOURequestStepConfirmation({
                 currentUserPersonalDetails.login,
                 currentUserPersonalDetails.accountID,
                 transaction.splitShares,
-                // splitPayerAccountIDs: transaction.splitPayerAccountIDs,
             );
         },
         [policy, policyCategories, policyTags, report, transaction, transactionTaxCode, transactionTaxAmount, currentUserPersonalDetails],
