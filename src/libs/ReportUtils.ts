@@ -4809,7 +4809,7 @@ function buildOptimisticTaskReport(
     return {
         reportID: generateReportID(),
         reportName: title,
-        description,
+        description: getParsedComment(description ?? ''),
         ownerAccountID,
         participants,
         managerID: assigneeAccountID,
@@ -5295,13 +5295,9 @@ function canFlagReportAction(reportAction: OnyxEntry<ReportAction>, reportID: st
         report = getReport(report?.parentReportID);
     }
     const isCurrentUserAction = reportAction?.actorAccountID === currentUserAccountID;
-    const isOriginalMessageHaveHtml =
-        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT ||
-        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED ||
-        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CHRONOS_OOO_LIST;
     if (ReportActionsUtils.isWhisperAction(reportAction)) {
-        // Allow flagging welcome message whispers as they can be set by any room creator
-        if (report?.description && !isCurrentUserAction && isOriginalMessageHaveHtml && reportAction?.originalMessage?.html === report.description) {
+        // Allow flagging whispers that are sent by other users
+        if (!isCurrentUserAction && reportAction?.actorAccountID !== CONST.ACCOUNT_ID.CONCIERGE) {
             return true;
         }
 
