@@ -667,9 +667,9 @@ const CONST = {
                 DELETED_ACCOUNT: 'DELETEDACCOUNT', // OldDot Action
                 DISMISSED_VIOLATION: 'DISMISSEDVIOLATION',
                 DONATION: 'DONATION', // OldDot Action
-                EXPORTED_TO_CSV: 'EXPORTEDTOCSV', // OldDot Action
-                EXPORTED_TO_INTEGRATION: 'EXPORTEDTOINTEGRATION', // OldDot Action
-                EXPORTED_TO_QUICK_BOOKS: 'EXPORTEDTOQUICKBOOKS', // OldDot Action
+                EXPORTED_TO_CSV: 'EXPORTEDCSV', // OldDot Action
+                EXPORTED_TO_INTEGRATION: 'EXPORTINTEGRATION', // OldDot Action
+                EXPORTED_TO_QUICK_BOOKS: 'EXPORTED', // OldDot Action
                 FORWARDED: 'FORWARDED', // OldDot Action
                 HOLD: 'HOLD',
                 HOLD_COMMENT: 'HOLDCOMMENT',
