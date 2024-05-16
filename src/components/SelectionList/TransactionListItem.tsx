@@ -80,7 +80,7 @@ function TransactionListItem<TItem extends ListItem>({
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
             text={transactionItem.shouldShowMerchant ? merchant : description}
-            style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter]}
+            style={[styles.label, styles.pre, styles.justifyContentCenter]}
         />
     );
 
