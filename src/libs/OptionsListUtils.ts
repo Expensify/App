@@ -301,7 +301,7 @@ Onyx.connect({
                     reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED &&
                     reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             );
-            visibleReportActionItems[reportID] = reportActionsForDisplay[reportActionsForDisplay.length - 1];
+            visibleReportActionItems[reportID] = reportActionsForDisplay[0];
         });
     },
 });
