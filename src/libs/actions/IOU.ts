@@ -4748,6 +4748,8 @@ function createDistanceRequest(
         state: CONST.IOU.RECEIPT_STATE.OPEN,
     };
 
+    let parameters: CreateDistanceRequestParams;
+
     if (participants.length > 1) {
         const {splitData, splits, onyxData} = createSplitsAndOnyxData(
             participants,
@@ -4766,66 +4768,88 @@ function createDistanceRequest(
             CONST.IOU.REQUEST_TYPE.DISTANCE,
         );
 
+        parameters = {
+            comment,
+            iouReportID: iouReport.reportID,
+            chatReportID: splitData.chatReportID,
+            transactionID: splitData.transactionID,
+            reportActionID: splitData.reportActionID,
+            createdChatReportActionID,
+            createdIOUReportActionID: splitData.createdReportActionID,
+            reportPreviewReportActionID: reportPreviewAction.reportActionID,
+            waypoints: JSON.stringify(validWaypoints),
+            created: currentCreated,
+            category,
+            tag,
+            taxCode,
+            taxAmount,
+            billable,
+            transactionThreadReportID,
+            createdReportActionIDForThread,
+            customUnitRateID,
+            splits: JSON.stringify(splits),
+            chatType: splitData.chatType,
+        };
+    } else {
+        const participant = participants[0] ?? {};
+        const {
+            iouReport,
+            chatReport,
+            transaction,
+            iouAction,
+            createdChatReportActionID,
+            createdIOUReportActionID,
+            reportPreviewAction,
+            transactionThreadReportID,
+            createdReportActionIDForThread,
+            payerEmail,
+            onyxData,
+        } = getMoneyRequestInformation(
+            currentChatReport,
+            participant,
+            comment,
+            amount,
+            currency,
+            currentCreated,
+            merchant,
+            optimisticReceipt,
+            undefined,
+            category,
+            tag,
+            taxCode,
+            taxAmount,
+            billable,
+            policy,
+            policyTagList,
+            policyCategories,
+            userAccountID,
+            currentUserEmail,
+            moneyRequestReportID,
+        );
+
+        const activeReportID = isMoneyRequestReport ? report?.reportID ?? '' : chatReport.reportID;
+        parameters = {
+            comment,
+            iouReportID: iouReport.reportID,
+            chatReportID: chatReport.reportID,
+            transactionID: transaction.transactionID,
+            reportActionID: iouAction.reportActionID,
+            createdChatReportActionID,
+            createdIOUReportActionID,
+            reportPreviewReportActionID: reportPreviewAction.reportActionID,
+            waypoints: JSON.stringify(validWaypoints),
+            created: currentCreated,
+            category,
+            tag,
+            taxCode,
+            taxAmount,
+            billable,
+            transactionThreadReportID,
+            createdReportActionIDForThread,
+            payerEmail,
+            customUnitRateID,
+        };
     }
-
-    const participant = participants[0] ?? {};
-    const {
-        iouReport,
-        chatReport,
-        transaction,
-        iouAction,
-        createdChatReportActionID,
-        createdIOUReportActionID,
-        reportPreviewAction,
-        transactionThreadReportID,
-        createdReportActionIDForThread,
-        payerEmail,
-        onyxData,
-    } = getMoneyRequestInformation(
-        currentChatReport,
-        participant,
-        comment,
-        amount,
-        currency,
-        currentCreated,
-        merchant,
-        optimisticReceipt,
-        undefined,
-        category,
-        tag,
-        taxCode,
-        taxAmount,
-        billable,
-        policy,
-        policyTagList,
-        policyCategories,
-        userAccountID,
-        currentUserEmail,
-        moneyRequestReportID,
-    );
-
-    const activeReportID = isMoneyRequestReport ? report?.reportID ?? '' : chatReport.reportID;
-    const parameters: CreateDistanceRequestParams = {
-        comment,
-        iouReportID: iouReport.reportID,
-        chatReportID: chatReport.reportID,
-        transactionID: transaction.transactionID,
-        reportActionID: iouAction.reportActionID,
-        createdChatReportActionID,
-        createdIOUReportActionID,
-        reportPreviewReportActionID: reportPreviewAction.reportActionID,
-        waypoints: JSON.stringify(validWaypoints),
-        created: currentCreated,
-        category,
-        tag,
-        taxCode,
-        taxAmount,
-        billable,
-        transactionThreadReportID,
-        createdReportActionIDForThread,
-        payerEmail,
-        customUnitRateID,
-    };
 
     API.write(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData);
     Navigation.dismissModal(activeReportID);
