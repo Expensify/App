@@ -3,7 +3,9 @@ import {useRoute} from '@react-navigation/native';
 import React, {useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import type {ListItem} from '@components/SelectionList/types';
 import useReviewDuplicatesNavigation from '@hooks/useReviewDuplicatesNavigation';
+import {setReviewDuplicatesKey} from '@libs/actions/Transaction';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import type SCREENS from '@src/SCREENS';
@@ -27,6 +29,13 @@ function ReviewDescription() {
             ),
         [compareResult.change.description],
     );
+    const onSelectRow = (data: ListItem) => {
+        console.log(data);
+        if (data.data !== undefined) {
+            setReviewDuplicatesKey({description: data.data});
+        }
+        navigateToNextScreen();
+    };
     return (
         <ScreenWrapper testID={ReviewDescription.displayName}>
             <HeaderWithBackButton title="Review duplicates" />
@@ -35,7 +44,7 @@ function ReviewDescription() {
                 label="Choose which description to keep"
                 options={options}
                 index={currentScreenIndex}
-                onSelectRow={navigateToNextScreen}
+                onSelectRow={onSelectRow}
             />
         </ScreenWrapper>
     );
