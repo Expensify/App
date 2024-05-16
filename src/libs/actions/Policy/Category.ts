@@ -2,11 +2,7 @@ import lodashUnion from 'lodash/union';
 import type {NullishDeep, OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {
-    EnablePolicyCategoriesParams,
-    OpenPolicyCategoriesPageParams,
-    SetPolicyDistanceRatesDefaultCategoryParams,
-} from '@libs/API/parameters';
+import type {EnablePolicyCategoriesParams, OpenPolicyCategoriesPageParams, SetPolicyDistanceRatesDefaultCategoryParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
@@ -15,13 +11,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {
-    Policy,
-    PolicyCategories,
-    PolicyCategory,
-    RecentlyUsedCategories,
-    Report,
-} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyCategory, RecentlyUsedCategories, Report} from '@src/types/onyx';
 import type {CustomUnit} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {navigateWhenEnableFeature, removePendingFieldsFromCustomUnit} from './Policy';
