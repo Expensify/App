@@ -213,7 +213,7 @@ function MoneyReportHeader({
                 shouldShowBackButton={shouldUseNarrowLayout}
                 onBackButtonPress={onBackButtonPress}
                 // Shows border if no buttons or next steps are showing below the header
-                shouldShowBorderBottom={!(shouldShowAnyButton && shouldUseNarrowLayout) && !(shouldShowNextStep && !shouldUseNarrowLayout) && !allHavePendingRTERViolation}
+                shouldShowBorderBottom={!isMoreContentShown && !allHavePendingRTERViolation}
                 shouldShowThreeDotsButton
                 threeDotsMenuItems={threeDotsMenuItems}
                 threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
