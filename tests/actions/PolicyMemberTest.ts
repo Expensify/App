@@ -41,7 +41,7 @@ describe('actions/PolicyMember', () => {
                 actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST,
             } as ReportAction;
 
-            mockFetch.pause();
+            mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`, fakeReport);
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fakeReport.reportID}`, {
@@ -68,7 +68,7 @@ describe('actions/PolicyMember', () => {
                     },
                 });
             });
-            await mockFetch.resume();
+            await mockFetch?.resume?.();
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connectionID = Onyx.connect({
@@ -101,7 +101,7 @@ describe('actions/PolicyMember', () => {
                 },
             };
 
-            mockFetch.pause();
+            mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {[fakeUser2.accountID]: fakeUser2});
             await waitForBatchedUpdates();
@@ -120,7 +120,7 @@ describe('actions/PolicyMember', () => {
                     },
                 });
             });
-            await mockFetch.resume();
+            await mockFetch?.resume?.();
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connectionID = Onyx.connect({
@@ -142,7 +142,7 @@ describe('actions/PolicyMember', () => {
             const fakeEmail = 'fake@gmail.com';
             const fakeAccountID = 1;
 
-            mockFetch.pause();
+            mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Onyx.merge(ONYXKEYS.SESSION, {email: fakeEmail, accountID: fakeAccountID});
             Policy.requestWorkspaceOwnerChange(fakePolicy.id);
@@ -161,7 +161,7 @@ describe('actions/PolicyMember', () => {
                     },
                 });
             });
-            await mockFetch.resume();
+            await mockFetch?.resume?.();
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connectionID = Onyx.connect({
@@ -193,7 +193,7 @@ describe('actions/PolicyMember', () => {
             };
             const fakeAccountID = 1;
 
-            mockFetch.pause();
+            mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Onyx.merge(ONYXKEYS.SESSION, {email: fakeEmail, accountID: fakeAccountID});
             Policy.addBillingCardAndRequestPolicyOwnerChange(fakePolicy.id, fakeCard);
@@ -212,7 +212,7 @@ describe('actions/PolicyMember', () => {
                     },
                 });
             });
-            await mockFetch.resume();
+            await mockFetch?.resume?.();
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connectionID = Onyx.connect({

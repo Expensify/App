@@ -29,7 +29,7 @@ describe('actions/PolicyCategory', () => {
             const fakePolicy = createRandomPolicy(0);
             fakePolicy.requiresCategory = false;
 
-            mockFetch.pause();
+            mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Policy.setWorkspaceRequiresCategory(fakePolicy.id, true);
             await waitForBatchedUpdates();
@@ -47,7 +47,7 @@ describe('actions/PolicyCategory', () => {
                     },
                 });
             });
-            await mockFetch.resume();
+            await mockFetch?.resume?.();
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connectionID = Onyx.connect({
@@ -68,7 +68,7 @@ describe('actions/PolicyCategory', () => {
             const fakePolicy = createRandomPolicy(0);
             const fakeCategories = createRandomPolicyCategories(3);
             const newCategoryName = 'New category';
-            mockFetch.pause();
+            mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakeCategories);
             Policy.createPolicyCategory(fakePolicy.id, newCategoryName);
@@ -88,7 +88,7 @@ describe('actions/PolicyCategory', () => {
                     },
                 });
             });
-            await mockFetch.resume();
+            await mockFetch?.resume?.();
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connectionID = Onyx.connect({
@@ -113,7 +113,7 @@ describe('actions/PolicyCategory', () => {
             const fakeCategories = createRandomPolicyCategories(3);
             const oldCategoryName = Object.keys(fakeCategories)[0];
             const newCategoryName = 'Updated category';
-            mockFetch.pause();
+            mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakeCategories);
             Policy.renamePolicyCategory(fakePolicy.id, {
@@ -137,7 +137,7 @@ describe('actions/PolicyCategory', () => {
                     },
                 });
             });
-            await mockFetch.resume();
+            await mockFetch?.resume?.();
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connectionID = Onyx.connect({
@@ -166,7 +166,7 @@ describe('actions/PolicyCategory', () => {
                     enabled: true,
                 },
             };
-            mockFetch.pause();
+            mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakeCategories);
             Policy.setWorkspaceCategoryEnabled(fakePolicy.id, categoriesToUpdate);
@@ -186,7 +186,7 @@ describe('actions/PolicyCategory', () => {
                     },
                 });
             });
-            await mockFetch.resume();
+            await mockFetch?.resume?.();
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connectionID = Onyx.connect({
@@ -211,7 +211,7 @@ describe('actions/PolicyCategory', () => {
             const fakeCategories = createRandomPolicyCategories(3);
             const categoryNameToDelete = Object.keys(fakeCategories)[0];
             const categoriesToDelete = [categoryNameToDelete];
-            mockFetch.pause();
+            mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakeCategories);
             Policy.deleteWorkspaceCategories(fakePolicy.id, categoriesToDelete);
@@ -228,7 +228,7 @@ describe('actions/PolicyCategory', () => {
                     },
                 });
             });
-            await mockFetch.resume();
+            await mockFetch?.resume?.();
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connectionID = Onyx.connect({

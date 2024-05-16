@@ -23,14 +23,15 @@ describe('actions/Policy', () => {
         });
     });
 
+    let mockFetch: MockFetch;
     beforeEach(() => {
-        global.fetch = TestHelper.getGlobalFetchMock();
+        mockFetch = TestHelper.getGlobalFetchMock() as MockFetch;
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
     describe('createWorkspace', () => {
         it('creates a new workspace', async () => {
-            (fetch as MockFetch).pause();
+            mockFetch?.pause?.();
             Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             await waitForBatchedUpdates();
 
@@ -108,7 +109,7 @@ describe('actions/Policy', () => {
                 });
             });
 
-            // Each of the three reports should have a a `CREATED` action
+            // Each of the three reports should have a a `CREATED` action.
             let adminReportActions: ReportAction[] = Object.values(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminReportID}`] ?? {});
             let announceReportActions: ReportAction[] = Object.values(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceReportID}`] ?? {});
             let expenseReportActions: ReportAction[] = Object.values(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReportID}`] ?? {});
@@ -123,7 +124,7 @@ describe('actions/Policy', () => {
             });
 
             // Check for success data
-            (fetch as MockFetch).resume();
+            mockFetch?.resume?.();
             await waitForBatchedUpdates();
 
             policy = await new Promise((resolve) => {

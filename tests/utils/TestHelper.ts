@@ -9,10 +9,10 @@ import type {Response as OnyxResponse, PersonalDetails, Report} from '@src/types
 import waitForBatchedUpdates from './waitForBatchedUpdates';
 
 type MockFetch = ReturnType<typeof jest.fn> & {
-    pause: () => void;
-    fail: () => void;
-    succeed: () => void;
-    resume: () => Promise<void>;
+    pause?: () => void;
+    fail?: () => void;
+    succeed?: () => void;
+    resume?: () => Promise<void>;
 };
 
 type QueueItem = (value: Partial<Response> | PromiseLike<Partial<Response>>) => void;
