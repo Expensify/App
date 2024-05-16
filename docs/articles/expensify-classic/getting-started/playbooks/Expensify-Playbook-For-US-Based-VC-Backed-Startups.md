@@ -175,7 +175,7 @@ Here’s how to enable it:
 
 Once the Expensify Cards have been assigned, each employee will be prompted to enter their mailing address so they can receive their physical card. In the meantime, a virtual card will be ready to use immediately.
 
-If you have an accounting system we directly integrate with, check out how we take automation a step further with [Auto-Reconciliation](https://community.expensify.com/discussion/7335/faq-what-is-the-expensify-card-auto-reconciliation-process). We’ll create an Expensify Card clearing and liability account for you. Each time settlement occurs, we’ll take the total amount of your purchases and create a journal entry that credits the settlement account and debits the liability account - saving you hours of manual reconciliation work at the end of your statement period.
+If you have an accounting system we directly integrate with, check out how we take automation a step further with [Continuous Reconciliation](https://community.expensify.com/discussion/7335/faq-what-is-the-expensify-card-auto-reconciliation-process). We’ll create an Expensify Card clearing and liability account for you. Each time settlement occurs, we’ll take the total amount of your purchases and create a journal entry that credits the settlement account and debits the liability account - saving you hours of manual reconciliation work at the end of your statement period.
 
 _“Moving from our other bank and getting Expensify cards into the hands of employees was super easy. I also love how simple it is to adjust credit limits and the auto reconciliation with the daily settlement.”_
 _- Robin Gresham, Senior Accounting Systems Manager at SunCommon_

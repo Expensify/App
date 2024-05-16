@@ -218,7 +218,7 @@ Here’s how to enable it:
 
 Once the Expensify Cards have been assigned, each employee will be prompted to enter their mailing address so they can receive their physical card. In the meantime, a virtual card will be ready to use immediately.
 
-If you have an accounting system we directly integrate with, check out how we take automation a step further with [Continuous Reconciliation](https://help.expensify.com/articles/expensify-classic/expensify-card/Auto-Reconciliation). We’ll create an Expensify Card clearing and liability account for you. Each time settlement occurs, we’ll take the total amount of your purchases and create a journal entry that credits the settlement account and debits the liability account - saving you hours of manual reconciliation work at the end of your statement period. 
+If you have an accounting system we directly integrate with, check out how we take automation a step further with [Continuous Reconciliation](https://help.expensify.com/articles/expensify-classic/expensify-card/Continuous-Reconciliation). We’ll create an Expensify Card clearing and liability account for you. Each time settlement occurs, we’ll take the total amount of your purchases and create a journal entry that credits the settlement account and debits the liability account - saving you hours of manual reconciliation work at the end of your statement period. 
 
 ## Step 12: Set up Bill Pay and Invoicing
 As a small business, managing bills and invoices can be a complex and time-consuming task. Whether you receive bills from vendors or need to invoice clients, it's important to have a solution that makes the process simple, efficient, and cost-effective.

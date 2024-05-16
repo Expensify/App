@@ -1,6 +1,6 @@
 ---
-title: Expensify Card Auto-Reconciliation
-description: Everything you need to know about Expensify Card Auto-Reconciliation
+title: Expensify Card Continuous Reconciliation
+description: Everything you need to know about Expensify Card Continuous Reconciliation
 ---
 <!-- The lines above are required by Jekyll to process the .md file -->
 
@@ -14,9 +14,9 @@ The integrations that auto-reconciliation are available on are:
 - NetSuite
 - Sage Intacct
 
-# How-to Set Up Expensify Card Auto-Reconciliation
+# How-to Set Up Expensify Card Continuous Reconciliation
 
-## Auto-Reconciliation Prerequisites
+## Continuous Reconciliation Prerequisites
 
 - Connection: 
 1. A Preferred Workspace is set. 
@@ -39,8 +39,8 @@ To set up your auto-reconciliation account with the Expensify Card, follow these
 
 That's it! You've successfully set up your auto-reconciliation account.
 
-## How does Auto-Reconciliation work
-Once Auto-Reconciliation is enabled, there are a few things that happen. Let’s go over those! 
+## How does Continuous Reconciliation work
+Once Continuous Reconciliation is enabled, there are a few things that happen. Let’s go over those! 
 
 ### Handling Purchases and Card Balance Payments
 **What happens**: When an Expensify Card is used to make purchases, the amount spent is automatically deducted from your company’s 'Settlement Account' (your business checking account). This deduction happens on a daily or monthly basis, depending on your chosen settlement frequency. Don't worry; this settlement account is pre-defined when you apply for the Expensify Card, and you can't accidentally change it.
@@ -80,7 +80,7 @@ Once Auto-Reconciliation is enabled, there are a few things that happen. Let’s
 - Each expense will also create a credit card expense, similar to how we do it today, exported upon final approval. This action debits the expense account (category) and includes any other line item data.
 - This process occurs daily during the QuickBooks Online Auto-Sync to ensure your card remains reconciled.
 
-**Note:** If Auto-Reconciliation is disabled for your company's Expensify Cards, a Domain Admin can set an export account for individual cards via **Settings > Domains > *Domain Name* > Company Cards > Edit Exports**. The Expensify Card transactions will always export as Credit Card charges in your accounting software, even if the non-reimbursable setting is configured differently, such as a Vendor Bill.
+**Note:** If Continuous Reconciliation is disabled for your company's Expensify Cards, a Domain Admin can set an export account for individual cards via **Settings > Domains > *Domain Name* > Company Cards > Edit Exports**. The Expensify Card transactions will always export as Credit Card charges in your accounting software, even if the non-reimbursable setting is configured differently, such as a Vendor Bill.
 
 ## Xero 
 
@@ -107,7 +107,7 @@ Once Auto-Reconciliation is enabled, there are a few things that happen. Let’s
 - You can run a Bank Reconciliation Summary displaying entries in the Liability Account referencing individual payments, as well as entries that reduce the Clearing Account balance to unapproved expenses.
 - **Important**: To bring your Liability Account balance to 0, enable marking transactions as reconciled in Xero. When a Spend Money bank transaction in the Liability Account has a matching Receive Transaction, you can mark both as Reconciled using the provided hyperlink.
 
-**Note**: If Auto-Reconciliation is disabled for your company's Expensify Cards, a Domain Admin can set an export account for individual cards via **Settings > Domains > *Domain Name* > Company Cards > Edit Exports**. The Expensify Card transactions will always export as a Credit Card charge in your accounting software, regardless of the non-reimbursable setting in their accounting configuration.
+**Note**: If Continuous Reconciliation is disabled for your company's Expensify Cards, a Domain Admin can set an export account for individual cards via **Settings > Domains > *Domain Name* > Company Cards > Edit Exports**. The Expensify Card transactions will always export as a Credit Card charge in your accounting software, regardless of the non-reimbursable setting in their accounting configuration.
 
 ## NetSuite
 
@@ -144,7 +144,7 @@ Once Auto-Reconciliation is enabled, there are a few things that happen. Let’s
 
 **Note**: Currently, only Journal Entry export is supported for auto-reconciliation. You can set other export options for all other non-reimbursable spend in the **Configure > Export** tab. Be on the lookout for Expense Report export in the future!
 
-If Auto-Reconciliation is disabled for your company's Expensify Cards, a Domain Admin can set an export account for individual Expensify Cards via **Settings > Domains > Company Cards > Edit Exports**. The Expensify Card transactions will always export as a Credit Card charge in your accounting software, regardless of the non-reimbursable setting in their accounting configuration.
+If Continuous Reconciliation is disabled for your company's Expensify Cards, a Domain Admin can set an export account for individual Expensify Cards via **Settings > Domains > Company Cards > Edit Exports**. The Expensify Card transactions will always export as a Credit Card charge in your accounting software, regardless of the non-reimbursable setting in their accounting configuration.
 
 ## Sage Intacct 
 
