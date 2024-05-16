@@ -4005,7 +4005,7 @@ function navigateWhenEnableFeature(policyID: string, featureRoute: Route) {
         return;
     }
 
-    Navigation.setNabigationActionToMicrotaskQueue(() => Navigation.navigate(featureRoute));
+    Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(featureRoute));
 }
 
 function enablePolicyCategories(policyID: string, enabled: boolean) {
