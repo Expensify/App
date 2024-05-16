@@ -3686,7 +3686,6 @@ function trackExpense(
             if (actionableWhisperReportActionIDParam) {
                 parameters.actionableWhisperReportActionID = actionableWhisperReportActionIDParam;
             }
-            console.log('222222222', onyxData);
             API.write(WRITE_COMMANDS.TRACK_EXPENSE, parameters, onyxData);
         }
     }
