@@ -268,7 +268,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 <HeaderWithBackButton
                     title={translate('common.details')}
                     onBackButtonPress={Navigation.goBack}
-                    shouldNavigateToTopMostReport={!(route.params && 'backTo' in route.params)}
                 />
                 <ScrollView style={[styles.flex1]}>
                     <View style={styles.reportDetailsTitleContainer}>
