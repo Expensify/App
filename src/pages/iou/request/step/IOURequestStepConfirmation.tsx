@@ -289,13 +289,14 @@ function IOURequestStepConfirmation({
     );
 
     const createDistanceRequest = useCallback(
-        (selectedParticipants: Participant[], trimmedComment: string, customUnitRateID: string) => {
+        (selectedParticipants: Participant[], trimmedComment: string) => {
             if (!transaction) {
                 return;
             }
+            const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '';
             IOU.createDistanceRequest(
                 report,
-                selectedParticipants[0],
+                selectedParticipants,
                 trimmedComment,
                 transaction.created,
                 transaction.category,
@@ -311,9 +312,13 @@ function IOURequestStepConfirmation({
                 policyTags,
                 policyCategories,
                 customUnitRateID,
+         currentUserPersonalDetails.login,
+                currentUserPersonalDetails.accountID,
+                transaction.splitShares,
+                            // splitPayerAccountIDs: transaction.splitPayerAccountIDs,
             );
         },
-        [policy, policyCategories, policyTags, report, transaction, transactionTaxCode, transactionTaxAmount],
+        [policy, policyCategories, policyTags, report, transaction, transactionTaxCode, transactionTaxAmount, currentUserPersonalDetails],
     );
 
     const createTransaction = useCallback(
@@ -383,22 +388,27 @@ function IOURequestStepConfirmation({
             // If the split expense is created from the global create menu, we also navigate the user to the group report
             if (iouType === CONST.IOU.TYPE.SPLIT) {
                 if (currentUserPersonalDetails.login && !!transaction) {
-                    IOU.splitBillAndOpenReport({
-                        participants: splitParticipants,
-                        currentUserLogin: currentUserPersonalDetails.login,
-                        currentUserAccountID: currentUserPersonalDetails.accountID,
-                        amount: transaction.amount,
-                        comment: trimmedComment,
-                        currency: transaction.currency,
-                        merchant: transaction.merchant,
-                        created: transaction.created,
-                        category: transaction.category,
-                        tag: transaction.tag,
-                        billable: !!transaction.billable,
-                        iouRequestType: transaction.iouRequestType,
-                        splitShares: transaction.splitShares,
-                        splitPayerAccountIDs: transaction.splitPayerAccountIDs,
-                    });
+                    if (requestType === CONST.IOU.REQUEST_TYPE.DISTANCE) {
+                        createDistanceRequest(splitParticipants, trimmedComment);
+                    } else {
+                        IOU.splitBillAndOpenReport({
+                            participants: splitParticipants,
+                            currentUserLogin: currentUserPersonalDetails.login,
+                            currentUserAccountID: currentUserPersonalDetails.accountID,
+                            amount: transaction.amount,
+                            comment: trimmedComment,
+                            currency: transaction.currency,
+                            merchant: transaction.merchant,
+                            created: transaction.created,
+                            category: transaction.category,
+                            tag: transaction.tag,
+                            billable: !!transaction.billable,
+                            iouRequestType: transaction.iouRequestType,
+                            splitShares: transaction.splitShares,
+                            splitPayerAccountIDs: transaction.splitPayerAccountIDs,
+                        });
+                    }
+
                 }
                 return;
             }
@@ -469,8 +479,7 @@ function IOURequestStepConfirmation({
             }
 
             if (requestType === CONST.IOU.REQUEST_TYPE.DISTANCE && !IOUUtils.isMovingTransactionFromTrackExpense(action)) {
-                const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '';
-                createDistanceRequest(selectedParticipants, trimmedComment, customUnitRateID);
+                createDistanceRequest(selectedParticipants, trimmedComment);
                 return;
             }
 
