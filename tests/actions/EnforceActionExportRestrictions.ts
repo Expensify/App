@@ -1,5 +1,5 @@
 import * as IOU from '@libs/actions/IOU';
-import * as Policy from '@libs/actions/Policy';
+import * as Policy from '@libs/actions/Policy/Policy';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as Task from '@userActions/Task';
 
