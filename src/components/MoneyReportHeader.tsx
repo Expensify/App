@@ -104,6 +104,7 @@ function MoneyReportHeader({
     const isDraft = ReportUtils.isOpenExpenseReport(moneyRequestReport);
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
 
+    const hasScanningReceipt = ReportUtils.getTransactionsWithReceipts(moneyRequestReport.reportID).some((transaction) => TransactionUtils.isReceiptBeingScanned(transaction))
     const transactionIDs = TransactionUtils.getAllReportTransactions(moneyRequestReport?.reportID).map((transaction) => transaction.transactionID);
     const allHavePendingRTERViolation = TransactionUtils.allHavePendingRTERViolation(transactionIDs);
 
@@ -126,13 +127,13 @@ function MoneyReportHeader({
     const shouldShowSubmitButton = isDraft && reimbursableSpend !== 0 && !allHavePendingRTERViolation;
     const shouldDisableSubmitButton = shouldShowSubmitButton && !ReportUtils.isAllowedToSubmitDraftExpenseReport(moneyRequestReport);
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
-    const shouldShowNextStep = !ReportUtils.isClosedExpenseReportWithNoExpenses(moneyRequestReport) && isFromPaidPolicy && !!nextStep?.message?.length && !allHavePendingRTERViolation;
+    const shouldShowNextStep = !ReportUtils.isClosedExpenseReportWithNoExpenses(moneyRequestReport) && isFromPaidPolicy && !!nextStep?.message?.length && !allHavePendingRTERViolation && !hasScanningReceipt;
     const shouldShowAnyButton = shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextStep;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
     const formattedAmount = CurrencyUtils.convertToDisplayString(reimbursableSpend, moneyRequestReport.currency);
     const [nonHeldAmount, fullAmount] = ReportUtils.getNonHeldAndFullAmount(moneyRequestReport, policy);
     const displayedAmount = ReportUtils.hasHeldExpenses(moneyRequestReport.reportID) && canAllowSettlement ? nonHeldAmount : formattedAmount;
-    const isMoreContentShown = shouldShowNextStep || (shouldShowAnyButton && shouldUseNarrowLayout);
+    const isMoreContentShown = shouldShowNextStep || hasScanningReceipt || (shouldShowAnyButton && shouldUseNarrowLayout);
 
     const confirmPayment = (type?: PaymentMethodType | undefined) => {
         if (!type) {
@@ -300,6 +301,20 @@ function MoneyReportHeader({
                     <View style={[styles.ph5, styles.pb3]}>
                         <MoneyReportHeaderStatusBar nextStep={nextStep} />
                     </View>
+                )}
+                {hasScanningReceipt && (
+                    <MoneyRequestHeaderStatusBar
+                        title={
+                            <Icon
+                                src={Expensicons.ReceiptScan}
+                                height={variables.iconSizeSmall}
+                                width={variables.iconSizeSmall}
+                                fill={theme.icon}
+                            />
+                        }
+                        description={translate('iou.receiptScanInProgressDescription')}
+                        shouldShowBorderBottom={false}
+                    />
                 )}
             </View>
             {isHoldMenuVisible && requestType !== undefined && (
