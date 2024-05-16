@@ -23,15 +23,14 @@ describe('actions/Policy', () => {
         });
     });
 
-    let mockFetch: MockFetch;
     beforeEach(() => {
-        mockFetch = TestHelper.getGlobalFetchMock() as MockFetch;
+        global.fetch = TestHelper.getGlobalFetchMock();
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
     describe('createWorkspace', () => {
         it('creates a new workspace', async () => {
-            mockFetch?.pause?.();
+            (fetch as MockFetch)?.pause?.();
             Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             await waitForBatchedUpdates();
 
@@ -124,7 +123,7 @@ describe('actions/Policy', () => {
             });
 
             // Check for success data
-            mockFetch?.resume?.();
+            (fetch as MockFetch)?.resume?.();
             await waitForBatchedUpdates();
 
             policy = await new Promise((resolve) => {

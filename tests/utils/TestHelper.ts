@@ -172,14 +172,14 @@ function getGlobalFetchMock() {
                   json: () => Promise.resolve({jsonCode: 200}),
               };
 
-    const mockFetch = jest.fn().mockImplementation(() => {
+    const mockFetch: MockFetch = jest.fn().mockImplementation(() => {
         if (!isPaused) {
             return Promise.resolve(getResponse());
         }
         return new Promise((resolve) => {
             queue.push(resolve);
         });
-    }) as MockFetch;
+    });
 
     mockFetch.pause = () => (isPaused = true);
     mockFetch.resume = () => {
