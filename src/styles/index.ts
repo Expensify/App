@@ -3228,7 +3228,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         blockquote: {
-            borderLeftColor: theme.border,
+            borderLeftColor: theme.borderDarker,
             borderLeftWidth: 4,
             paddingLeft: 12,
             marginVertical: 4,
