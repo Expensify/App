@@ -113,7 +113,8 @@ function trimEmojiUnicode(emojiCode: string): string {
  */
 function isFirstLetterEmoji(message: string): boolean {
     const trimmedMessage = Str.replaceAll(message.replace(/ /g, ''), '\n', '');
-    const match = trimmedMessage.match(CONST.REGEX.EMOJIS);
+    const emojisRegex = new RegExp(CONST.REGEX.EMOJIS, CONST.REGEX.EMOJIS.flags.concat('g'));
+    const match = trimmedMessage.match(emojisRegex);
 
     if (!match) {
         return false;
@@ -269,7 +270,8 @@ function extractEmojis(text: string): Emoji[] {
     }
 
     // Parse Emojis including skin tones - Eg: ['👩🏻', '👩🏻', '👩🏼', '👩🏻', '👩🏼', '👩']
-    const parsedEmojis = text.match(CONST.REGEX.EMOJIS);
+    const emojisRegex = new RegExp(CONST.REGEX.EMOJIS, CONST.REGEX.EMOJIS.flags.concat('g'));
+    const parsedEmojis = text.match(emojisRegex);
 
     if (!parsedEmojis) {
         return [];

@@ -9,16 +9,24 @@ import {splitTextWithEmojis} from '@libs/EmojiUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
-type ComponentProps = {
+type TextWithEmojiFragmentProps = {
+    /** The message to be displayed */
     message: string;
-    passedStyles: StyleProp<TextStyle>;
+    /** Additional styles to add after local styles. */
+    passedStyles?: StyleProp<TextStyle>;
+    /** Should this message fragment be styled as deleted? */
     styleAsDeleted?: boolean;
+    /** Should this message fragment be styled as muted? */
     styleAsMuted?: boolean;
+    /** Is message displayed on narrow screen? */
     isSmallScreenWidth?: boolean;
+    /** Should "(edited)" suffix be rendered? */
     isEdited?: boolean;
+    /** Does message contain only emojis? */
     emojisOnly?: boolean;
 };
-function TextWithEmojiFragment({message, passedStyles, styleAsDeleted, styleAsMuted, isSmallScreenWidth, isEdited, emojisOnly}: ComponentProps) {
+
+function TextWithEmojiFragment({message, passedStyles, styleAsDeleted, styleAsMuted, isSmallScreenWidth, isEdited, emojisOnly}: TextWithEmojiFragmentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();

@@ -11,6 +11,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullComposerAvailable';
 import {containsOnlyEmojis} from '@libs/EmojiUtils';
+import variables from '@styles/variables';
 import type {ComposerProps} from './types';
 
 function Composer(
@@ -68,7 +69,7 @@ function Composer(
     }, [shouldClear, onClear]);
 
     const maxHeightStyle = useMemo(() => StyleUtils.getComposerMaxHeightStyle(maxLines, isComposerFullSize), [StyleUtils, isComposerFullSize, maxLines]);
-    const composerStyle = useMemo(() => StyleSheet.flatten([style, textContainsOnlyEmojis ? {lineHeight: 32} : null]), [style, textContainsOnlyEmojis]);
+    const composerStyle = useMemo(() => StyleSheet.flatten([style, textContainsOnlyEmojis ? {lineHeight: variables.lineHeightEmojisOnlyComposer} : null]), [style, textContainsOnlyEmojis]);
 
     return (
         <RNMarkdownTextInput
