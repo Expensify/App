@@ -10,7 +10,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 type ComponentProps = {
-    text: string;
+    message: string;
     passedStyles: StyleProp<TextStyle>;
     styleAsDeleted?: boolean;
     styleAsMuted?: boolean;
@@ -18,17 +18,17 @@ type ComponentProps = {
     isEdited?: boolean;
     emojisOnly?: boolean;
 };
-function TextWithEmojiFragment({text, passedStyles, styleAsDeleted, styleAsMuted, isSmallScreenWidth, isEdited, emojisOnly}: ComponentProps) {
+function TextWithEmojiFragment({message, passedStyles, styleAsDeleted, styleAsMuted, isSmallScreenWidth, isEdited, emojisOnly}: ComponentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
-    const processedTextArray = splitTextWithEmojis(text);
+    const processedTextArray = splitTextWithEmojis(message);
 
     return (
         <Text style={[emojisOnly ? styles.onlyEmojisText : undefined, styles.ltr, passedStyles]}>
-            {processedTextArray.map((word: string) =>
-                CONST.REGEX.EMOJIS.test(word) ? (
-                    <Text style={[emojisOnly ? styles.onlyEmojisText : styles.emojisWithinText]}>{word}</Text>
+            {processedTextArray.map(({text, isEmoji}) =>
+                isEmoji ? (
+                    <Text style={[emojisOnly ? styles.onlyEmojisText : styles.emojisWithinText]}>{text}</Text>
                 ) : (
                     <Text
                         style={[
@@ -40,7 +40,7 @@ function TextWithEmojiFragment({text, passedStyles, styleAsDeleted, styleAsMuted
                             emojisOnly ? styles.onlyEmojisText : styles.enhancedLineHeight,
                         ]}
                     >
-                        {word}
+                        {text}
                     </Text>
                 ),
             )}

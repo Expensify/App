@@ -30,6 +30,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import {splitTextWithEmojis} from '@libs/EmojiUtils';
+import type {TextWithEmoji} from '@libs/EmojiUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import shouldShowSubscriptionsMenu from '@libs/shouldShowSubscriptionsMenu';
 import * as UserUtils from '@libs/UserUtils';
@@ -362,7 +363,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
     const avatarURL = currentUserDetails?.avatar ?? '';
     const accountID = currentUserDetails?.accountID ?? '';
     const usernameContainEmojis = CONST.REGEX.EMOJIS.test(currentUserPersonalDetails?.displayName ?? '');
-    let processedTextArray: string[] = [];
+    let processedTextArray: TextWithEmoji[] = [];
     if (usernameContainEmojis) {
         processedTextArray = splitTextWithEmojis(currentUserPersonalDetails?.displayName ?? '');
     }
@@ -441,7 +442,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                             style={[styles.textHeadline, styles.pre, styles.textAlignCenter]}
                             numberOfLines={1}
                         >
-                            {processedTextArray.map((word: string) => (CONST.REGEX.EMOJIS.test(word) ? <Text style={styles.initialSettingsUsernameEmoji}>{word}</Text> : word))}
+                            {processedTextArray.map(({text, isEmoji}) => (isEmoji ? <Text style={styles.initialSettingsUsernameEmoji}>{text}</Text> : text))}
                         </Text>
                     ) : (
                         <Text

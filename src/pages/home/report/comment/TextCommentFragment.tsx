@@ -73,6 +73,7 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
     }
 
     const message = isEmpty(iouMessage) ? text : iouMessage;
+    const emojisRegex = new RegExp(CONST.REGEX.EMOJIS, CONST.REGEX.EMOJIS.flags.concat('g'));
 
     return (
         <Text style={[textContainsOnlyEmojis && styles.onlyEmojisText, styles.ltr, style]}>
@@ -80,9 +81,9 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
                 text={text}
                 displayAsGroup={displayAsGroup}
             />
-            {CONST.REGEX.EMOJIS.test(message ?? '') && !textContainsOnlyEmojis ? (
+            {emojisRegex.test(message ?? '') && !textContainsOnlyEmojis ? (
                 <TextWithEmojiFragment
-                    text={message}
+                    message={message}
                     passedStyles={style}
                     styleAsDeleted={styleAsDeleted}
                     styleAsMuted={styleAsMuted}
