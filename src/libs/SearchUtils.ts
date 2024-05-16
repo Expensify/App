@@ -7,6 +7,10 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes, SearchTypeToItemMap} from '@src/types/onyx/SearchResults';
 import * as UserUtils from './UserUtils';
 
+type SortOrder = 'asc' | 'desc';
+
+type SearchColumnType = (typeof CONST.SEARCH_TABLE_COLUMNS)[keyof typeof CONST.SEARCH_TABLE_COLUMNS];
+
 function getSearchType(search: OnyxTypes.SearchResults['search']): SearchDataTypes | undefined {
     switch (search.type) {
         case CONST.SEARCH_DATA_TYPES.TRANSACTION:
@@ -75,3 +79,4 @@ function getQueryHash(query: string, policyID?: string): number {
 }
 
 export {getListItem, getQueryHash, getSections, getShouldShowColumn, getShouldShowMerchant, getSearchType};
+export type {SearchColumnType, SortOrder};

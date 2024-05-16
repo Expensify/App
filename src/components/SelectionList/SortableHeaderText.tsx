@@ -7,17 +7,18 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {SortOrder} from '@libs/SearchUtils';
 import CONST from '@src/CONST';
 
 type SearchTableHeaderColumnProps = {
     text: string;
     isActive: boolean;
-    sortOrder: 'asc' | 'desc';
+    sortOrder: SortOrder;
     shouldShow?: boolean;
     isSortable?: boolean;
     containerStyle?: StyleProp<ViewStyle>;
     textStyle?: StyleProp<TextStyle>;
-    onPress: (order: 'asc' | 'desc') => void;
+    onPress: (order: SortOrder) => void;
 };
 
 export default function SortableHeaderText({text, sortOrder, isActive, textStyle, containerStyle, shouldShow = true, isSortable = true, onPress}: SearchTableHeaderColumnProps) {
@@ -28,15 +29,15 @@ export default function SortableHeaderText({text, sortOrder, isActive, textStyle
         return null;
     }
 
-    const icon = sortOrder === 'asc' ? Expensicons.UpArrow : Expensicons.DownArrow;
+    const icon = sortOrder === 'asc' ? Expensicons.ArrowUpLong : Expensicons.ArrowDownLong;
     const iconStyles = isActive ? [] : [styles.visibilityHidden];
 
-    const newSortOrder = isActive && sortOrder === 'asc' ? 'desc' : 'asc';
+    const nextSortOrder = isActive && sortOrder === 'asc' ? 'desc' : 'asc';
 
     return (
         <View style={containerStyle}>
             <PressableWithFeedback
-                onPress={() => onPress(newSortOrder)}
+                onPress={() => onPress(nextSortOrder)}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={CONST.ROLE.BUTTON}
                 accessible

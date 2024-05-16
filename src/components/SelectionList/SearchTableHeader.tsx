@@ -5,8 +5,8 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as SearchUtils from '@libs/SearchUtils';
+import type {SearchColumnType, SortOrder} from '@libs/SearchUtils';
 import CONST from '@src/CONST';
-import type {SearchColumnType} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type * as OnyxTypes from '@src/types/onyx';
 import SortableHeaderText from './SortableHeaderText';
@@ -80,8 +80,8 @@ const SearchColumns: SearchColumnConfig[] = [
 type SearchTableHeaderProps = {
     data: OnyxTypes.SearchResults['data'];
     sortBy?: SearchColumnType;
-    sortOrder?: 'asc' | 'desc';
-    onSortPress: (column: SearchColumnType, order: 'asc' | 'desc') => void;
+    sortOrder?: SortOrder;
+    onSortPress: (column: SearchColumnType, order: SortOrder) => void;
 };
 
 function SearchTableHeader({data, sortBy, sortOrder, onSortPress}: SearchTableHeaderProps) {
@@ -109,7 +109,7 @@ function SearchTableHeader({data, sortBy, sortOrder, onSortPress}: SearchTableHe
                             containerStyle={[StyleUtils.getSearchTableColumnStyles(columnName)]}
                             shouldShow={shouldShowFn(data)}
                             isSortable={isSortable}
-                            onPress={(order: 'asc' | 'desc') => onSortPress(columnName, order)}
+                            onPress={(order: SortOrder) => onSortPress(columnName, order)}
                         />
                     );
                 })}

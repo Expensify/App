@@ -6,11 +6,11 @@ import * as SearchActions from '@libs/actions/Search';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import * as SearchUtils from '@libs/SearchUtils';
+import type {SearchColumnType, SortOrder} from '@libs/SearchUtils';
 import Navigation from '@navigation/Navigation';
 import EmptySearchView from '@pages/Search/EmptySearchView';
 import useCustomBackHandler from '@pages/Search/useCustomBackHandler';
 import CONST from '@src/CONST';
-import type {SearchColumnType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchQuery} from '@src/types/onyx/SearchResults';
@@ -35,7 +35,7 @@ const columnNamesToPropertyMap = {
     [CONST.SEARCH_TABLE_COLUMNS.TAX_AMOUNT]: null,
 };
 
-function getSortedData(data: TransactionListItemType[], sortBy?: SearchColumnType, sortOrder?: 'asc' | 'desc') {
+function getSortedData(data: TransactionListItemType[], sortBy?: SearchColumnType, sortOrder?: SortOrder) {
     if (!sortBy || !sortOrder) {
         return data;
     }
@@ -69,7 +69,7 @@ type SearchProps = {
     query: SearchQuery;
     policyIDs?: string;
     sortBy?: SearchColumnType;
-    sortOrder?: 'asc' | 'desc';
+    sortOrder?: SortOrder;
 };
 
 function Search({query, policyIDs, sortOrder, sortBy}: SearchProps) {
@@ -129,7 +129,7 @@ function Search({query, policyIDs, sortOrder, sortBy}: SearchProps) {
     const ListItem = SearchUtils.getListItem(type);
     const data = SearchUtils.getSections(searchResults?.data ?? {}, type);
 
-    const onSortPress = (column: SearchColumnType, order: 'asc' | 'desc') => {
+    const onSortPress = (column: SearchColumnType, order: SortOrder) => {
         const newRoute = ROUTES.SEARCH.getRoute(query, {
             query,
             sortBy: column,

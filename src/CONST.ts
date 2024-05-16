@@ -4786,8 +4786,6 @@ type IOUType = ValueOf<typeof CONST.IOU.TYPE>;
 type IOUAction = ValueOf<typeof CONST.IOU.ACTION>;
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
-type SearchColumnType = (typeof CONST.SEARCH_TABLE_COLUMNS)[keyof typeof CONST.SEARCH_TABLE_COLUMNS];
-
-export type {Country, IOUAction, IOUType, RateAndUnit, OnboardingPurposeType, IOURequestType, SearchColumnType};
+export type {Country, IOUAction, IOUType, RateAndUnit, OnboardingPurposeType, IOURequestType};
 
 export default CONST;

@@ -12,8 +12,9 @@ import type {
 } from '@react-navigation/native';
 import type {ValueOf} from 'type-fest';
 import type {IOURequestType} from '@libs/actions/IOU';
+import type {SearchColumnType, SortOrder} from '@libs/SearchUtils';
 import type CONST from '@src/CONST';
-import type {Country, IOUAction, IOUType, SearchColumnType} from '@src/CONST';
+import type {Country, IOUAction, IOUType} from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
 import type {HybridAppRoute, Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -67,7 +68,7 @@ type CentralPaneNavigatorParamList = {
         policyIDs?: string;
         offset?: number;
         sortBy?: SearchColumnType;
-        sortOrder?: 'asc' | 'desc';
+        sortOrder?: SortOrder;
     };
     [SCREENS.SETTINGS.SAVE_THE_WORLD]: undefined;
 };
