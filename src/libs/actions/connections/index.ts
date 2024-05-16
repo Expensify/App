@@ -1,7 +1,7 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {RemovePolicyConnectionParams, SyncPolicyToQuickbooksOnlineParams, SyncPolicyToXeroParams, UpdatePolicyConnectionConfigParams} from '@libs/API/parameters';
+import type {RemovePolicyConnectionParams, SyncPolicyToQuickbooksOnlineParams, SyncPolicyToXeroParams, UpdatePolicyConnectionConfigParams, UpdateManyPolicyConnectionConfigurationsParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
@@ -157,4 +157,72 @@ function syncConnection(policyID: string, connectionName: PolicyConnectionName |
     });
 }
 
-export {removePolicyConnection, updatePolicyConnectionConfig, syncConnection};
+function updateManyPolicyConnectionConfigs<TConnectionName extends ConnectionName, TConfigUpdate extends Partial<Connections[TConnectionName]['config']>>(
+    policyID: string,
+    connectionName: TConnectionName,
+    configUpdate: TConfigUpdate,
+    configCurrentData: TConfigUpdate,
+) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    [connectionName]: {
+                        config: {
+                            configUpdate,
+                            pendingFields: Object.fromEntries(Object.keys(configUpdate).map((settingName) => [settingName, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE])),
+                            errorFields: Object.fromEntries(Object.keys(configUpdate).map((settingName) => [settingName, null])),
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    [connectionName]: {
+                        config: {
+                            configCurrentData,
+                            pendingFields: Object.fromEntries(Object.keys(configUpdate).map((settingName) => [settingName, null])),
+                            errorFields: Object.fromEntries(Object.keys(configUpdate).map((settingName) => [settingName, ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')])),
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    [connectionName]: {
+                        config: {
+                            pendingFields: Object.fromEntries(Object.keys(configUpdate).map((settingName) => [settingName, null])),
+                            errorFields: Object.fromEntries(Object.keys(configUpdate).map((settingName) => [settingName, null])),
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const parameters: UpdateManyPolicyConnectionConfigurationsParams = {
+        policyID,
+        connectionName,
+        configUpdate: JSON.stringify(configUpdate),
+        idempotencyKey: Object.keys(configUpdate).join(','),
+    };
+    API.write(WRITE_COMMANDS.UPDATE_MANY_POLICY_CONNECTION_CONFIGS, parameters, {optimisticData, failureData, successData});
+}
+
+export {removePolicyConnection, updatePolicyConnectionConfig, updateManyPolicyConnectionConfigs, syncConnection};
