@@ -45,19 +45,19 @@ type SearchPolicyDetails = {
 
 type SearchReport = {
     /** The ID of the report */
-    reportID: string;
+    reportID?: string;
 
     /** The name of the report */
-    reportName: string;
+    reportName?: string;
 
     /** The report total amount */
-    total: number;
+    total?: number;
 
     /** The report currency */
-    currency: string;
+    currency?: string;
 
     /** The action that can be performed for the report */
-    action: string;
+    action?: string;
 };
 
 type SearchTransaction = {

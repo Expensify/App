@@ -151,7 +151,7 @@ type TransactionListItemType = ListItem &
 
 type ReportListItemType = ListItem &
     SearchReport & {
-        transactions: SearchTransaction[];
+        transactions: TransactionListItemType[];
     };
 
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {

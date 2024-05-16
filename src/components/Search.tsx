@@ -66,7 +66,20 @@ function Search({query, policyIDs}: SearchProps) {
     }
 
     const ListItem = SearchUtils.getListItem(type);
-    const data = SearchUtils.getSections(searchResults?.data ?? {}, type);
+
+    const data = SearchUtils.getSections(
+        {
+            ...searchResults?.data,
+            report_5985708612548179: {
+                reportID: 5985708612548179,
+                reportName: 'name',
+                total: 1000,
+                currency: 'USD',
+                action: 'pay',
+            },
+        } ?? {},
+        type,
+    );
 
     return (
         <SelectionList
@@ -74,6 +87,10 @@ function Search({query, policyIDs}: SearchProps) {
             ListItem={ListItem}
             sections={[{data, isDisabled: false}]}
             onSelectRow={(item) => {
+                if (!item?.transactionThreadReportID) {
+                    return;
+                }
+
                 openReport(item.transactionThreadReportID);
             }}
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
