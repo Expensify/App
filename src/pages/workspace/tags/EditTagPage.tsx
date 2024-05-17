@@ -50,7 +50,7 @@ function EditTagPage({route, policyTags}: EditTagPageProps) {
 
             return errors;
         },
-        [currentTagName, policyTags],
+        [route.params.orderWeight, currentTagName, policyTags],
     );
 
     const editTag = useCallback(

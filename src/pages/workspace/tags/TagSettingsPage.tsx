@@ -38,7 +38,7 @@ type TagSettingsPageProps = TagSettingsPageOnyxProps & StackScreenProps<Settings
 function TagSettingsPage({route, policyTags, navigation}: TagSettingsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const policyTag = useMemo(() => PolicyUtils.getTagList(policyTags, route.params.orderWeight), [policyTags]);
+    const policyTag = useMemo(() => PolicyUtils.getTagList(policyTags, route.params.orderWeight), [policyTags, route.params.orderWeight]);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`);
 
     const {windowWidth} = useWindowDimensions();
