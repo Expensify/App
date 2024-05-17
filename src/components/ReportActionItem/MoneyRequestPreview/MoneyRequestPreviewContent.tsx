@@ -6,6 +6,7 @@ import type {GestureResponderEvent} from 'react-native';
 import ConfirmedRoute from '@components/ConfirmedRoute';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {ReceiptScan} from '@components/Icon/Expensicons';
 import MoneyRequestSkeletonView from '@components/MoneyRequestSkeletonView';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -29,13 +30,14 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
+import variables from '@styles/variables';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {IOUMessage} from '@src/types/onyx/OriginalMessage';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {MoneyRequestPreviewProps} from './types';
+import type {MoneyRequestPreviewProps, PendingMessageProps} from './types';
 
 function MoneyRequestPreviewContent({
     iouReport,
@@ -146,14 +148,6 @@ function MoneyRequestPreviewContent({
             message = translate('iou.split');
         }
 
-        if (isCardTransaction) {
-            message = translate('iou.card');
-            if (TransactionUtils.isPending(transaction)) {
-                message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.pending')}`;
-                return message;
-            }
-        }
-
         if (isSettled && !iouReport?.isCancelledIOU && !isPartialHold) {
             message += ` ${CONST.DOT_SEPARATOR} ${getSettledMessage()}`;
             return message;
@@ -185,8 +179,6 @@ function MoneyRequestPreviewContent({
             message += ` • ${translate('violations.reviewRequired')}`;
         } else if (ReportUtils.isPaidGroupPolicyExpenseReport(iouReport) && ReportUtils.isReportApproved(iouReport) && !ReportUtils.isSettled(iouReport?.reportID) && !isPartialHold) {
             message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.approved')}`;
-        } else if (iouReport?.isWaitingOnBankAccount) {
-            message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.pending')}`;
         } else if (iouReport?.isCancelledIOU) {
             message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
         } else if (!(isSettled && !isSettlementOrApprovalPartial) && isOnHold) {
@@ -194,6 +186,21 @@ function MoneyRequestPreviewContent({
         }
         return message;
     };
+
+    const getPendingMessageProps: () => PendingMessageProps = () => {
+        if (isScanning) {
+            return {shouldShow: true, messageIcon: ReceiptScan, messageDescription: translate('iou.receiptScanInProgress')};
+        }
+        if (TransactionUtils.isPending(transaction)) {
+            return {shouldShow: true, messageIcon: Expensicons.CreditCardHourglass, messageDescription: translate('iou.transactionPending')};
+        }
+        if (TransactionUtils.hasPendingUI(transaction, TransactionUtils.getTransactionViolations(transaction?.transactionID ?? '', transactionViolations))) {
+            return {shouldShow: true, messageIcon: Expensicons.Hourglass, messageDescription: translate('iou.pendingMatchWithCreditCard')};
+        }
+        return {shouldShow: false};
+    };
+
+    const pendingMessageProps = getPendingMessageProps();
 
     const getDisplayAmountText = (): string => {
         if (isScanning) {
@@ -323,6 +330,17 @@ function MoneyRequestPreviewContent({
                                                 </Text>
                                             )}
                                         </View>
+                                        {pendingMessageProps.shouldShow && (
+                                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
+                                                <Icon
+                                                    src={pendingMessageProps.messageIcon}
+                                                    height={variables.iconSizeExtraSmall}
+                                                    width={variables.iconSizeExtraSmall}
+                                                    fill={theme.icon}
+                                                />
+                                                <Text style={[styles.textMicroSupporting, styles.ml1, styles.amountSplitPadding]}>{pendingMessageProps.messageDescription}</Text>
+                                            </View>
+                                        )}
                                     </View>
                                 </View>
                             </View>

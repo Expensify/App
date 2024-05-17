@@ -125,7 +125,10 @@ const ROUTES = {
     SETTINGS_ADD_BANK_ACCOUNT: 'settings/wallet/add-bank-account',
     SETTINGS_ADD_BANK_ACCOUNT_REFACTOR: 'settings/wallet/add-bank-account-refactor',
     SETTINGS_ENABLE_PAYMENTS: 'settings/wallet/enable-payments',
+    // TODO: Added temporarily for testing purposes, remove after refactor - https://github.com/Expensify/App/issues/36648
     SETTINGS_ENABLE_PAYMENTS_REFACTOR: 'settings/wallet/enable-payments-refactor',
+    // TODO: Added temporarily for testing purposes, remove after refactor - https://github.com/Expensify/App/issues/36648
+    SETTINGS_ENABLE_PAYMENTS_TEMPORARY_TERMS: 'settings/wallet/enable-payments-temporary-terms',
     SETTINGS_WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS: {
         route: 'settings/wallet/card/:domain/digital-details/update-address',
         getRoute: (domain: string) => `settings/wallet/card/${domain}/digital-details/update-address` as const,
@@ -209,7 +212,11 @@ const ROUTES = {
     REPORT: 'r',
     REPORT_WITH_ID: {
         route: 'r/:reportID?/:reportActionID?',
-        getRoute: (reportID: string, reportActionID?: string) => (reportActionID ? (`r/${reportID}/${reportActionID}` as const) : (`r/${reportID}` as const)),
+        getRoute: (reportID: string, reportActionID?: string, referrer?: string) => {
+            const baseRoute = reportActionID ? (`r/${reportID}/${reportActionID}` as const) : (`r/${reportID}` as const);
+            const referrerParam = referrer ? `?referrer=${encodeURIComponent(referrer)}` : '';
+            return `${baseRoute}${referrerParam}` as const;
+        },
     },
     REPORT_AVATAR: {
         route: 'r/:reportID/avatar',
@@ -508,10 +515,6 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/invoice-account-select',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/invoice-account-select` as const,
     },
-    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_PAYABLE_SELECT: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/company-card-expense-account/account-payable-select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/company-card-expense-account/account-payable-select` as const,
-    },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/preferred-exporter',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/preferred-exporter` as const,
@@ -665,8 +668,8 @@ const ROUTES = {
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/tags/settings` as const,
     },
     WORKSPACE_EDIT_TAGS: {
-        route: 'settings/workspaces/:policyID/tags/edit',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/tags/edit` as const,
+        route: 'settings/workspaces/:policyID/tags/:orderWeight/edit',
+        getRoute: (policyID: string, orderWeight: number) => `settings/workspaces/${policyID}/tags/${orderWeight}/edit` as const,
     },
     WORKSPACE_TAG_EDIT: {
         route: 'settings/workspace/:policyID/tag/:tagName/edit',
@@ -675,6 +678,10 @@ const ROUTES = {
     WORKSPACE_TAG_SETTINGS: {
         route: 'settings/workspaces/:policyID/tag/:tagName',
         getRoute: (policyID: string, tagName: string) => `settings/workspaces/${policyID}/tag/${encodeURIComponent(tagName)}` as const,
+    },
+    WORKSPACE_TAG_LIST_VIEW: {
+        route: 'settings/workspaces/:policyID/tag-list/:orderWeight',
+        getRoute: (policyID: string, orderWeight: number) => `settings/workspaces/${policyID}/tag-list/${orderWeight}` as const,
     },
     WORKSPACE_TAXES: {
         route: 'settings/workspaces/:policyID/taxes',
@@ -776,6 +783,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/xero/import',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/import` as const,
     },
+    POLICY_ACCOUNTING_XERO_CHART_OF_ACCOUNTS: {
+        route: 'settings/workspaces/:policyID/accounting/xero/import/accounts',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/import/accounts` as const,
+    },
     POLICY_ACCOUNTING_XERO_ORGANIZATION: {
         route: 'settings/workspaces/:policyID/accounting/xero/organization/:currentOrganizationID',
         getRoute: (policyID: string, currentOrganizationID: string) => `settings/workspaces/${policyID}/accounting/xero/organization/${currentOrganizationID}` as const,
@@ -804,6 +815,18 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/xero/export',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/export` as const,
     },
+    POLICY_ACCOUNTING_XERO_PREFERRED_EXPORTER_SELECT: {
+        route: '/settings/workspaces/:policyID/connections/xero/export/preferred-exporter/select',
+        getRoute: (policyID: string) => `/settings/workspaces/${policyID}/connections/xero/export/preferred-exporter/select` as const,
+    },
+    POLICY_ACCOUNTING_XERO_EXPORT_PURCHASE_BILL_DATE_SELECT: {
+        route: 'settings/workspaces/:policyID/accounting/xero/export/purchase-bill-date-select',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/export/purchase-bill-date-select` as const,
+    },
+    POLICY_ACCOUNTING_XERO_EXPORT_BANK_ACCOUNT_SELECT: {
+        route: 'settings/workspaces/:policyID/accounting/xero/export/bank-account-select',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/export/bank-account-select` as const,
+    },
     POLICY_ACCOUNTING_XERO_ADVANCED: {
         route: 'settings/workspaces/:policyID/accounting/xero/advanced',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/advanced` as const,
@@ -811,6 +834,10 @@ const ROUTES = {
     POLICY_ACCOUNTING_XERO_INVOICE_SELECTOR: {
         route: 'settings/workspaces/:policyID/accounting/xero/advanced/invoice-account-selector',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/advanced/invoice-account-selector` as const,
+    },
+    POLICY_ACCOUNTING_XERO_BILL_PAYMENT_ACCOUNT_SELECTOR: {
+        route: 'settings/workspaces/:policyID/accounting/xero/advanced/bill-payment-account-selector',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/advanced/bill-payment-account-selector` as const,
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_IMPORT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import',

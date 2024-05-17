@@ -1,3 +1,4 @@
+import type {ReactNode} from 'react';
 import React from 'react';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -6,7 +7,7 @@ import Text from './Text';
 
 type MoneyRequestHeaderStatusBarProps = {
     /** Title displayed in badge */
-    title: string;
+    title: string | ReactNode;
 
     /** Banner Description */
     description: string;
@@ -35,13 +36,17 @@ function MoneyRequestHeaderStatusBar({title, description, shouldShowBorderBottom
                 styles.headerStatusBarContainer,
             ]}
         >
-            <View style={[styles.mr3]}>
-                <Badge
-                    text={title}
-                    badgeStyles={styles.ml0}
-                    error={danger}
-                />
-            </View>
+            {typeof title === 'string' ? (
+                <View style={[styles.mr3]}>
+                    <Badge
+                        text={title}
+                        badgeStyles={styles.ml0}
+                        error={danger}
+                    />
+                </View>
+            ) : (
+                <View style={styles.mr2}>{title}</View>
+            )}
             <View style={[styles.flexShrink1]}>
                 <Text style={[styles.textLabelSupporting]}>{description}</Text>
             </View>
@@ -52,3 +57,5 @@ function MoneyRequestHeaderStatusBar({title, description, shouldShowBorderBottom
 MoneyRequestHeaderStatusBar.displayName = 'MoneyRequestHeaderStatusBar';
 
 export default MoneyRequestHeaderStatusBar;
+
+export type {MoneyRequestHeaderStatusBarProps};
