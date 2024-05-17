@@ -27,11 +27,12 @@ function OnboardingModalNavigator() {
         if (!hasCompletedGuidedSetupFlow) {
             return;
         }
-
-        // Need to go back to previous route and then redirect to Concierge,
-        // otherwise going back on concierge will go to onboarding and then redirected to concierge again
-        Navigation.goBack();
-        Report.navigateToConciergeChat();
+        Navigation.isNavigationReady().then(() => {
+            // Need to go back to previous route and then redirect to Concierge,
+            // otherwise going back on concierge will go to onboarding and then redirected to concierge again
+            Navigation.goBack();
+            Report.navigateToConciergeChat();
+        });
     }, [hasCompletedGuidedSetupFlow]);
 
     if (hasCompletedGuidedSetupFlow) {
