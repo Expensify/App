@@ -276,7 +276,7 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection, i
 
 function dismissDuplicateTransactionViolation(transactionID: string, transactionIDs: string[], dissmissedPersonalDetails: PersonalDetails | CurrentUserPersonalDetails) {
     const currentTransactionViolations = allTransactionViolation?.[transactionID] ?? [];
-    const optimisticTransactionViolation = currentTransactionViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
+    const optimisticTransactionViolation = currentTransactionViolations.filter((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
     const transactionIDList = transactionIDs.join(',');
 
     const optimisticData: OnyxUpdate[] = [
