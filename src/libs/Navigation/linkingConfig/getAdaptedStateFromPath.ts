@@ -2,7 +2,7 @@ import type {NavigationState, PartialState, Route} from '@react-navigation/nativ
 import {getStateFromPath} from '@react-navigation/native';
 import {isAnonymousUser} from '@libs/actions/Session';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
-import getTopmostNestedRHPRoute from '@libs/Navigation/getTopmostNestedRHPRoute';
+import getFocusedSideModalRoute from '@libs/Navigation/getFocusedSideModalRoute';
 import type {BottomTabName, CentralPaneName, FullScreenName, NavigationPartialRoute, RootStackParamList} from '@libs/Navigation/types';
 import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -114,9 +114,9 @@ function getMatchingRootRouteForRHPRoute(
 
             // If there is rhpNavigator in the state generated for backTo url, we want to get root route matching to this rhp screen.
             if (rhpNavigator && rhpNavigator.state) {
-                const topmostNestedRHPRoute = getTopmostNestedRHPRoute(stateForBackTo);
-                if (topmostNestedRHPRoute) {
-                    return getMatchingRootRouteForRHPRoute(topmostNestedRHPRoute);
+                const focusedRHPRoute = getFocusedSideModalRoute(stateForBackTo);
+                if (focusedRHPRoute) {
+                    return getMatchingRootRouteForRHPRoute(focusedRHPRoute);
                 }
             }
 
@@ -176,12 +176,12 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
         // - found rhp
 
         // This one will be defined because rhpNavigator is defined.
-        const topmostNestedRHPRoute = getTopmostNestedRHPRoute(state);
+        const focusedRHPRoute = getFocusedSideModalRoute(state);
         const routes = [];
 
-        if (topmostNestedRHPRoute) {
-            let matchingRootRoute = getMatchingRootRouteForRHPRoute(topmostNestedRHPRoute);
-            const isRHPScreenOpenedFromLHN = topmostNestedRHPRoute?.name && RHP_SCREENS_OPENED_FROM_LHN.includes(topmostNestedRHPRoute?.name as RHPScreenOpenedFromLHN);
+        if (focusedRHPRoute) {
+            let matchingRootRoute = getMatchingRootRouteForRHPRoute(focusedRHPRoute);
+            const isRHPScreenOpenedFromLHN = focusedRHPRoute?.name && RHP_SCREENS_OPENED_FROM_LHN.includes(focusedRHPRoute?.name as RHPScreenOpenedFromLHN);
             // This may happen if this RHP doens't have a route that should be under the overlay defined.
             if (!matchingRootRoute || isRHPScreenOpenedFromLHN) {
                 metainfo.isCentralPaneAndBottomTabMandatory = false;

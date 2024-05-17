@@ -12,11 +12,13 @@ import SCREENS from '@src/SCREENS';
 import getActionsFromPartialDiff from './AppNavigator/getActionsFromPartialDiff';
 import getPartialStateDiff from './AppNavigator/getPartialStateDiff';
 import dismissModal from './dismissModal';
+import getFocusedSideModalRoute from './getFocusedSideModalRoute';
 import getPolicyIDFromState from './getPolicyIDFromState';
 import getStateFromPath from './getStateFromPath';
 import getTopmostBottomTabRoute from './getTopmostBottomTabRoute';
 import getTopmostCentralPaneRoute from './getTopmostCentralPaneRoute';
 import getTopmostReportId from './getTopmostReportId';
+import isSideModalNavigator from './isSideModalNavigator';
 import linkingConfig from './linkingConfig';
 import getAdaptedStateFromPath from './linkingConfig/getAdaptedStateFromPath';
 import getMatchingBottomTabRouteForState from './linkingConfig/getMatchingBottomTabRouteForState';
@@ -113,10 +115,6 @@ function getActionForBottomTabNavigator(
     };
 }
 
-function isModalNavigator(targetNavigator?: string) {
-    return targetNavigator === NAVIGATORS.LEFT_MODAL_NAVIGATOR || targetNavigator === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
-}
-
 export default function linkTo(navigation: NavigationContainerRef<RootStackParamList> | null, path: Route, type?: string, isActiveRoute?: boolean) {
     if (!navigation) {
         throw new Error("Couldn't find a navigation object. Is your component inside a screen in a navigator?");
@@ -158,7 +156,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
         const topRouteName = rootState?.routes?.at(-1)?.name;
         const isTargetNavigatorOnTop = topRouteName === action.payload.name;
 
-        const isTargetScreenDifferentThanCurrent = Boolean(topmostCentralPaneRoute && topmostCentralPaneRoute.name !== action.payload.params?.screen);
+        const isTargetScreenDifferentThanCurrent = Boolean(!topmostCentralPaneRoute || topmostCentralPaneRoute.name !== action.payload.params?.screen);
         const areParamsDifferent =
             action.payload.params?.screen === SCREENS.REPORT
                 ? getTopmostReportId(rootState) !== getTopmostReportId(stateFromPath)
@@ -166,6 +164,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
                       omitBy(topmostCentralPaneRoute?.params as Record<string, unknown> | undefined, (value) => value === undefined),
                       omitBy(action.payload.params?.params as Record<string, unknown> | undefined, (value) => value === undefined),
                   );
+
         // In case if type is 'FORCED_UP' we replace current screen with the provided. This means the current screen no longer exists in the stack
         if (type === CONST.NAVIGATION.TYPE.FORCED_UP) {
             action.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
@@ -197,8 +196,8 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
             action.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
 
             // If this action is navigating to ModalNavigator or FullScreenNavigator and the last route on the root navigator is not already opened Navigator then push
-        } else if ((action.payload.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR || isModalNavigator(action.payload.name)) && !isTargetNavigatorOnTop) {
-            if (isModalNavigator(topRouteName)) {
+        } else if ((action.payload.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR || isSideModalNavigator(action.payload.name)) && !isTargetNavigatorOnTop) {
+            if (isSideModalNavigator(topRouteName)) {
                 dismissModal(navigation);
             }
 
@@ -257,7 +256,15 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
         }
     }
 
-    if (action && 'payload' in action && action.payload && 'name' in action.payload && isModalNavigator(action.payload.name)) {
+    if (action && 'payload' in action && action.payload && 'name' in action.payload && isSideModalNavigator(action.payload.name)) {
+        const currentFocusedRoute = getFocusedSideModalRoute(rootState);
+        const targetFocusedRoute = getFocusedSideModalRoute(stateFromPath);
+
+        // If the current focused route is the same as the target focused route, we don't want to navigate.
+        if (currentFocusedRoute?.name === targetFocusedRoute?.name) {
+            return;
+        }
+
         const minimalAction = getMinimalAction(action, navigation.getRootState());
         if (minimalAction) {
             // There are situations where a route already exists on the current navigation stack
