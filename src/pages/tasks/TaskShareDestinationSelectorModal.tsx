@@ -108,7 +108,7 @@ function TaskShareDestinationSelectorModal() {
                         onChangeText={setSearchValue}
                         textInputValue={searchValue}
                         headerMessage={options.headerMessage}
-                        textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+                        textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
                         showLoadingPlaceholder={areOptionsInitialized && debouncedSearchValue.trim() === '' ? options.sections.length === 0 : !didScreenTransitionEnd}
                         isLoadingNewOptions={!!isSearchingForReports}
                         textInputHint={textInputHint}
