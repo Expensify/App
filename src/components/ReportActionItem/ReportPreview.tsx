@@ -1,3 +1,4 @@
+import {truncate} from 'lodash';
 import React, {useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -18,6 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import lineBreaksToSpaces from '@libs/lineBreaksToSpaces';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionUtils from '@libs/ReportActionsUtils';
@@ -249,10 +251,10 @@ function ReportPreview({
 
     const {supportText} = useMemo(() => {
         if (formattedMerchant) {
-            return {supportText: formattedMerchant};
+            return {supportText: truncate(formattedMerchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH})};
         }
         if (formattedDescription ?? moneyRequestComment) {
-            return {supportText: formattedDescription ?? moneyRequestComment};
+            return {supportText: truncate(lineBreaksToSpaces(formattedDescription ?? moneyRequestComment), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH})};
         }
         return {
             supportText: translate('iou.expenseCount', {

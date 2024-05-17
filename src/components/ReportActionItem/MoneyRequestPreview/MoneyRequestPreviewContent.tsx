@@ -23,6 +23,7 @@ import ControlSelection from '@libs/ControlSelection';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as IOUUtils from '@libs/IOUUtils';
+import lineBreaksToSpaces from '@libs/lineBreaksToSpaces';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -80,7 +81,7 @@ function MoneyRequestPreviewContent({
     const isCurrentUserManager = managerID === sessionAccountID;
 
     const {amount: requestAmount, currency: requestCurrency, comment: requestComment, merchant} = ReportUtils.getTransactionDetails(transaction) ?? {};
-    const description = truncate(requestComment, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
+    const description = truncate(lineBreaksToSpaces(requestComment), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
