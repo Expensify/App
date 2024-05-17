@@ -1,0 +1,74 @@
+diff --git a/node_modules/@expensify/react-native-live-markdown/ios/RCTLiveMarkdownModule.mm b/node_modules/@expensify/react-native-live-markdown/ios/RCTLiveMarkdownModule.mm
+index fa6eb39..24bbcb8 100644
+--- a/node_modules/@expensify/react-native-live-markdown/ios/RCTLiveMarkdownModule.mm
++++ b/node_modules/@expensify/react-native-live-markdown/ios/RCTLiveMarkdownModule.mm
+@@ -14,24 +14,54 @@
+ @implementation RCTLiveMarkdownModule {
+   BOOL installed_;
+   std::shared_ptr<livemarkdown::MarkdownCommitHook> commitHook_;
++  __weak RCTSurfacePresenter *surfacePresenter_;
+ }
+ 
+ RCT_EXPORT_MODULE(@"LiveMarkdownModule")
+ 
+ - (NSNumber *)install {
+-  if (!installed_) {
+-    installed_ = YES;
+-
+-    RCTBridge *bridge = self.bridge;
+-    RCTSurfacePresenter *surfacePresenter = bridge.surfacePresenter;
+-    RCTScheduler *scheduler = [surfacePresenter scheduler];
++  if (!installed_ && surfacePresenter_ != nil) {
++    RCTScheduler *scheduler = [surfacePresenter_ scheduler];
+ 
+     commitHook_ =
+-        std::make_shared<livemarkdown::MarkdownCommitHook>(scheduler.uiManager);
++      std::make_shared<livemarkdown::MarkdownCommitHook>(scheduler.uiManager);
++    installed_ = YES;
+   }
+   return @1;
+ }
+ 
++- (void)handleJavaScriptDidLoadNotification:(NSNotification *)notification
++{
++  surfacePresenter_ = self.bridge.surfacePresenter;
++  [self install];
++}
++
++- (void)setBridge:(RCTBridge *)bridge
++{
++  [super setBridge:bridge];
++
++  [[NSNotificationCenter defaultCenter] addObserver:self
++                                           selector:@selector(handleJavaScriptDidLoadNotification:)
++                                               name:RCTJavaScriptDidLoadNotification
++                                             object:nil];
++
++  // only within the first loading `self.bridge.surfacePresenter` exists
++  // during the reload `self.bridge.surfacePresenter` is null
++  if (self.bridge.surfacePresenter) {
++    surfacePresenter_ = self.bridge.surfacePresenter;
++  }
++}
++
++/*
++ * Taken from RCTNativeAnimatedTurboModule:
++ * This selector is invoked via BridgelessTurboModuleSetup.
++ */
++- (void)setSurfacePresenter:(id<RCTSurfacePresenterStub>)surfacePresenter
++{
++  surfacePresenter_ = surfacePresenter;
++}
++
++
+ - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
+     (const facebook::react::ObjCTurboModule::InitParams &)params {
+   return std::make_shared<facebook::react::NativeLiveMarkdownModuleSpecJSI>(
+@@ -40,6 +70,7 @@ - (NSNumber *)install {
+ 
+ - (void)invalidate {
+   MarkdownShadowFamilyRegistry::reset();
++  [[NSNotificationCenter defaultCenter] removeObserver:self];
+   [super invalidate];
+ }
+ 
