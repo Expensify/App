@@ -344,7 +344,6 @@ function MoneyRequestView({
                             Transaction.clearError(transaction.transactionID);
                         }}
                     >
-                        <Text>transactionId: {transaction?.transactionID}</Text>
                         <View style={styles.moneyRequestViewImage}>
                             {showMapAsImage ? (
                                 <ConfirmedRoute
