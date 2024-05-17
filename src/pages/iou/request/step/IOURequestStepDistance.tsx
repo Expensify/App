@@ -408,7 +408,7 @@ function IOURequestStepDistance({
         transaction?.transactionID,
         transaction?.routes,
         report?.reportID,
-        policy
+        policy,
     ]);
 
     const renderItem = useCallback(

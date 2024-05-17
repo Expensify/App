@@ -32,6 +32,7 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import * as IOUUtils from '@libs/IOUUtils';
+import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
@@ -57,6 +58,7 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 import type {ReportPreviewAction} from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Comment, Receipt, ReceiptSource, Routes, SplitShares, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CachedPDFPaths from './CachedPDFPaths';
@@ -266,6 +268,17 @@ Onyx.connect({
             return;
         }
         allReportActions = actions;
+    },
+});
+
+let preferredLocale: DeepValueOf<typeof CONST.LOCALES> = CONST.LOCALES.DEFAULT;
+Onyx.connect({
+    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+        preferredLocale = value;
     },
 });
 
@@ -2315,16 +2328,20 @@ function calculateDiffAmount(iouReport: OnyxEntry<OnyxTypes.Report>, updatedTran
 }
 
 function calculateAmountForUpdatedWaypoint(transaction: OnyxEntry<OnyxTypes.Transaction>, transactionChanges: TransactionChanges, policy: OnyxEntry<OnyxTypes.Policy>) {
-    let updateAmount: number = CONST.IOU.DEFAULT_AMOUNT;
+    let updatedAmount: number = CONST.IOU.DEFAULT_AMOUNT;
+    let updatedMerchant = Localize.translateLocal('iou.fieldPending');
     if (transactionChanges?.routes) {
         const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '';
         const mileageRates = DistanceRequestUtils.getMileageRates(policy);
         const mileageRate = mileageRates?.[customUnitRateID];
         const {unit, rate} = mileageRate;
         const distance = TransactionUtils.getDistance(transaction);
-        updateAmount = -DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate ?? 0);
+        updatedAmount = -DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate ?? 0);
+        updatedMerchant = DistanceRequestUtils.getDistanceMerchant(true, distance, unit, rate, transaction?.currency ?? CONST.CURRENCY.USD, Localize.translateLocal, (digit) =>
+            toLocaleDigit(preferredLocale, digit),
+        );
     }
-    return updateAmount;
+    return {updatedAmount, updatedMerchant};
 }
 
 /**
@@ -2384,13 +2401,13 @@ function getUpdateMoneyRequestParams(
 
     const hasPendingWaypoints = 'waypoints' in transactionChanges;
     if (transaction && updatedTransaction && hasPendingWaypoints) {
-        const updatedAmount = calculateAmountForUpdatedWaypoint(transaction, transactionChanges, policy);
+        const {updatedAmount, updatedMerchant} = calculateAmountForUpdatedWaypoint(transaction, transactionChanges, policy);
 
         updatedTransaction = {
             ...updatedTransaction,
             amount: updatedAmount,
             modifiedAmount: updatedAmount,
-            modifiedMerchant: Localize.translateLocal('iou.fieldPending'),
+            modifiedMerchant: updatedMerchant,
         };
 
         // Delete the draft transaction when editing waypoints when the server responds successfully and there are no errors
@@ -2672,13 +2689,13 @@ function getUpdateTrackExpenseParams(
 
     const hasPendingWaypoints = 'waypoints' in transactionChanges;
     if (transaction && updatedTransaction && hasPendingWaypoints) {
-        const updatedAmount = calculateAmountForUpdatedWaypoint(transaction, transactionChanges, policy);
+        const {updatedAmount, updatedMerchant} = calculateAmountForUpdatedWaypoint(transaction, transactionChanges, policy);
 
         updatedTransaction = {
             ...updatedTransaction,
             amount: updatedAmount,
             modifiedAmount: updatedAmount,
-            modifiedMerchant: Localize.translateLocal('iou.fieldPending'),
+            modifiedMerchant: updatedMerchant,
         };
 
         // Delete the draft transaction when editing waypoints when the server responds successfully and there are no errors
