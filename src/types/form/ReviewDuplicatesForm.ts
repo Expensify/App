@@ -2,10 +2,7 @@ import type {ValueOf} from 'type-fest';
 import type Form from './Form';
 
 const INPUT_IDS = {
-    REVIEW_DUPLICATES_MERCHANT: 'reviewDuplicatesMerchant',
-    REVIEW_DUPLICATES_CATEGORY: 'reviewDuplicatesCategory',
-    REVIEW_DUPLICATES_TAG: 'reviewDuplicatesTag',
-    REVIEW_DUPLICATES_DESCRIPTION: 'reviewDuplicatesDescription',
+    REVIEW_DUPLICATES: 'duplicates',
 } as const;
 
 type InputID = ValueOf<typeof INPUT_IDS>;
@@ -13,10 +10,7 @@ type InputID = ValueOf<typeof INPUT_IDS>;
 type ReviewDuplicatesForm = Form<
     InputID,
     {
-        [INPUT_IDS.REVIEW_DUPLICATES_MERCHANT]: string;
-        [INPUT_IDS.REVIEW_DUPLICATES_CATEGORY]: string;
-        [INPUT_IDS.REVIEW_DUPLICATES_TAG]: string;
-        [INPUT_IDS.REVIEW_DUPLICATES_DESCRIPTION]: string;
+        [INPUT_IDS.REVIEW_DUPLICATES]: string;
     }
 >;
 
