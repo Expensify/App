@@ -336,12 +336,12 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         onCheckboxPress={toggleTag}
                         onSelectRow={navigateToTagSettings}
                         onSelectAll={toggleAllTags}
-                        showScrollIndicator
                         ListItem={TableListItem}
                         customListHeader={getCustomListHeader()}
                         shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         onDismissError={(item) => Policy.clearPolicyTagErrors(policyID, item.value)}
+                        showScrollIndicator={false}
                     />
                 )}
             </ScreenWrapper>
