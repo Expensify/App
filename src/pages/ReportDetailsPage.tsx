@@ -344,7 +344,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                         </View>
                     </View>
                     {shouldShowRoomName && (
-                        <View style={[styles.flex1, styles.mt3, isGroupChat && styles.mb5]}>
+                        <View style={[styles.flex1, !shouldDisableRename && styles.mt3, isGroupChat && styles.mb5]}>
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon={!shouldDisableRename}
                                 interactive={!shouldDisableRename}
