@@ -132,7 +132,6 @@ function MoneyRequestView({
     const taxRates = policy?.taxRates;
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transactionTaxAmount, transactionCurrency);
 
-    const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '';
     const taxRatesDescription = taxRates?.name;
     const taxRateTitle = TransactionUtils.getTaxName(policy, transaction);
 
