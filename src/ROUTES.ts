@@ -783,26 +783,7 @@ const ROUTES = {
         route: 'r/:threadReportID/duplicates/review',
         getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review` as const,
     },
-    // TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE: {
-    //     route: 'r/:threadReportID/duplicates/review/merchant',
-    //     getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review/merchant` as const,
-    // },
-    // TRANSACTION_DUPLICATE_REVIEW_CATEGORY_PAGE: {
-    //     route: 'r/:threadReportID/duplicates/review/category',
-    //     getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review/category` as const,
-    // },
-    // TRANSACTION_DUPLICATE_REVIEW_TAG_PAGE: {
-    //     route: 'r/:threadReportID/duplicates/review/tag',
-    //     getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review/tag` as const,
-    // },
-    // TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION_PAGE: {
-    //     route: 'r/:threadReportID/duplicates/confirm',
-    //     getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/confirm` as const,
-    // },
-    // TRANSACTION_DUPLICATE_CONFIRM: {
-    //     route: 'r/:threadReportID/duplicates/review/description',
-    //     getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review/description` as const,
-    // },
+
     POLICY_ACCOUNTING_XERO_IMPORT: {
         route: 'settings/workspaces/:policyID/accounting/xero/import',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/import` as const,

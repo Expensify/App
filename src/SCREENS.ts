@@ -179,11 +179,6 @@ const SCREENS = {
 
     TRANSACTION_DUPLICATE: {
         REVIEW: 'Transaction_Duplicate_Review',
-        // MERCHANT: 'Transaction_Duplicate_Merchant',
-        // CATEGORY: 'Transaction_Duplicate_Category',
-        // TAG: 'Transaction_Duplicate_Tag',
-        // DESCRIPTION: 'Transaction_Duplicate_Description',
-        // CONFIRM: 'Transaction_Duplicate_Confirm',
     },
 
     IOU_SEND: {

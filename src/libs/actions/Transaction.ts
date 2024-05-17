@@ -274,55 +274,55 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection, i
     });
 }
 
-function dismissDuplicateTransactionViolation(transactionID: string, transactionIDs: string[], dissmissedPersonalDetails: PersonalDetails | CurrentUserPersonalDetails) {
-    const currentTransactionViolations = allTransactionViolation?.[transactionID] ?? [];
-    const optimisticTransactionViolation = currentTransactionViolations.filter((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
-    const transactionIDList = transactionIDs.join(',');
+function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmissedPersonalDetails: PersonalDetails | CurrentUserPersonalDetails) {
+    const currentTransactionViolations = transactionIDs.map((id) => ({transactionID: id, violations: allTransactionViolation?.[id] ?? []}));
+    const currentTransactions = transactionIDs.map((id) => allTransactions?.[id]);
 
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-            value: optimisticTransactionViolation,
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: {
-                comment: {
-                    dismissedViolations: {
-                        [CONST.VIOLATIONS.DUPLICATED_TRANSACTION]: {
-                            [dissmissedPersonalDetails.login ?? '']: dissmissedPersonalDetails.accountID,
-                        },
+    const optimisticDataTransactionViolations: OnyxUpdate[] = currentTransactionViolations.map((transactionViolations) => ({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionViolations.transactionID}`,
+        value: transactionViolations.violations?.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
+    }));
+
+    const optimisticDataTransactions: OnyxUpdate[] = currentTransactions.map((transaction) => ({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+        value: {
+            ...transaction,
+            comment: {
+                ...transaction.comment,
+                dismissedViolations: {
+                    duplicatedTransaction: {
+                        [dissmissedPersonalDetails.login ?? '']: dissmissedPersonalDetails.accountID,
                     },
                 },
             },
         },
-    ];
+    }));
 
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-            value: currentTransactionViolations,
+    const failureDataTransactionViolations: OnyxUpdate[] = currentTransactionViolations.map((transactionViolations) => ({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionViolations.transactionID}`,
+        value: transactionViolations.violations?.map((violation) => violation),
+    }));
+
+    const failureDataTransaction: OnyxUpdate[] = currentTransactions.map((transaction) => ({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+        value: {
+            ...transaction,
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: {
-                comment: {
-                    dismissedViolations: {},
-                },
-            },
-        },
-    ];
+    }));
 
     const params: DismissViolationParams = {
         name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
-        transactionIDList,
+        transactionIDList: transactionIDList.join(','),
     };
 
-    API.write(WRITE_COMMANDS.DISMISS_VIOLATION, params, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.DISMISS_VIOLATION, params, {
+        optimisticData: [...optimisticDataTransactionViolations, ...optimisticDataTransactions],
+        failureData: [...failureDataTransactionViolations, ...failureDataTransaction],
+    });
 }
 
 function setReviewDuplicatesKey(transactionID: string, transactionIDs: string[]) {
