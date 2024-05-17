@@ -21,10 +21,10 @@ function ReviewDescription() {
         () =>
             compareResult.change.description.map((description) =>
                 !description
-                    ? {text: 'None', value: undefined}
+                    ? {text: 'None', value: ''}
                     : {
                           text: description.comment,
-                          value: description,
+                          value: description.comment,
                       },
             ),
         [compareResult.change.description],
@@ -35,7 +35,7 @@ function ReviewDescription() {
         }
         navigateToNextScreen();
     };
-    console.log('options', options);
+
     return (
         <ScreenWrapper testID={ReviewDescription.displayName}>
             <HeaderWithBackButton title="Review duplicates" />

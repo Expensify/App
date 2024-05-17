@@ -831,8 +831,7 @@ function compareDuplicateTransactionFields(transactionID: string) {
                             return item && key in item ? item[key] : typeof item?.[key] === 'boolean' ? false : undefined;
                         }),
                     )
-                    .flat()
-                    .filter((item) => item !== undefined);
+                    .flat();
 
                 if (differentValues.length > 0) {
                     change[fieldName] = differentValues;
