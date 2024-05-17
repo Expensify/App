@@ -17,15 +17,6 @@ function SilentCommentUpdater({comment, commentRef, reportID, value, updateComme
     const prevPreferredLocale = usePrevious(preferredLocale);
 
     useEffect(() => {
-        /**
-         * Schedules the callback to run when the main thread is idle.
-         */
-        if ('requestIdleCallback' in window) {
-            const callbackID = requestIdleCallback(() => {
-                updateComment(comment ?? '');
-            });
-            return () => cancelIdleCallback(callbackID);
-        }
         updateComment(comment ?? '');
 
         // eslint-disable-next-line react-hooks/exhaustive-deps -- We need to run this on mount

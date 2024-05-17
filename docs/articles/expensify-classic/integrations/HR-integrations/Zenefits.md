@@ -17,7 +17,7 @@ Expensify's direct integration with Zenefits will automatically:
 - Every employee record in Zenefits must have a work email address since we use this as the unique identifier in Expensify. 
 - Zenefits will add all your employees to one Expensify workspace. If your company uses multiple Expensify workspaces, you'll be given the option to choose which workspace to connect to when you're setting up the integration.
 
-## To connect your Expensify workspace to Gusto:
+## To connect your Expensify workspace to Zenefits:
 
 1. Navigate to **Settings > Workspaces > Group > _[Workspace Name]_ > Connections**
 2. Scroll down to HR Integrations, click the **Connect to Zenefits** radio button, then click **Sync with Zenefits**

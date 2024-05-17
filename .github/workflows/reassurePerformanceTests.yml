@@ -2,7 +2,7 @@ name: Reassure Performance Tests
 
 on:
   pull_request:
-    types: [opened, synchronize, closed]
+    types: [opened, synchronize]
     branches-ignore: [staging, production]
     paths-ignore: [docs/**, .github/**, contributingGuides/**, tests/**, workflow_tests/**, '**.md', '**.sh']
 
@@ -61,14 +61,3 @@ jobs:
         with:
           DURATION_DEVIATION_PERCENTAGE: 20
           COUNT_DEVIATION: 0
-
-      - name: Get and save graphite string
-        # run only when merged to main
-        if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main'
-        id: saveGraphiteString
-        uses: ./.github/actions/javascript/getGraphiteString
-
-      - name: Send graphite data
-        # run only when merged to main
-        if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main'
-        run: echo -e "${{ steps.saveGraphiteString.outputs.GRAPHITE_STRING }}" | nc -q0 stats.expensify.com 3003

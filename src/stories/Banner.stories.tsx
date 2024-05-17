@@ -1,9 +1,9 @@
-import type {ComponentStory} from '@storybook/react';
+import type {StoryFn} from '@storybook/react';
 import React from 'react';
 import type {BannerProps} from '@components/Banner';
 import Banner from '@components/Banner';
 
-type BannerStory = ComponentStory<typeof Banner>;
+type BannerStory = StoryFn<typeof Banner>;
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:

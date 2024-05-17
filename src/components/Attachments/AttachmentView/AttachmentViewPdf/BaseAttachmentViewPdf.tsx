@@ -13,8 +13,9 @@ function BaseAttachmentViewPdf({
     onScaleChanged: onScaleChangedProp,
     onToggleKeyboard,
     onLoadComplete,
-    errorLabelStyles,
     style,
+    isUsedAsChatAttachment,
+    onLoadError,
 }: AttachmentViewPdfProps) {
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
     const isScrollEnabled = attachmentCarouselPagerContext === null ? undefined : attachmentCarouselPagerContext.isScrollEnabled;
@@ -67,7 +68,6 @@ function BaseAttachmentViewPdf({
 
     return (
         <PDFView
-            // @ts-expect-error waiting for https://github.com/Expensify/App/issues/16186 merge
             onPress={onPress}
             isFocused={isFocused}
             sourceURL={encryptedSourceUrl}
@@ -76,7 +76,8 @@ function BaseAttachmentViewPdf({
             onToggleKeyboard={onToggleKeyboard}
             onScaleChanged={onScaleChanged}
             onLoadComplete={onLoadComplete}
-            errorLabelStyles={errorLabelStyles}
+            isUsedAsChatAttachment={isUsedAsChatAttachment}
+            onLoadError={onLoadError}
         />
     );
 }

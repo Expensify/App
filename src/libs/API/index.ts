@@ -5,9 +5,9 @@ import * as Middleware from '@libs/Middleware';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import * as Pusher from '@libs/Pusher/pusher';
 import * as Request from '@libs/Request';
+import * as PersistedRequests from '@userActions/PersistedRequests';
 import CONST from '@src/CONST';
 import type OnyxRequest from '@src/types/onyx/Request';
-import type {RequestConflictResolver} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 import pkg from '../../../package.json';
 import type {ApiRequest, ApiRequestCommandParameters, ReadCommand, SideEffectRequestCommand, WriteCommand} from './types';
@@ -52,14 +52,8 @@ type OnyxData = {
  * @param [onyxData.successData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200.
  * @param [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
  * @param [onyxData.finallyData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200 or jsonCode !== 200.
- * @param [conflictResolver] - callbacks used in special cases to detect and handle conflicting requests in the sequential queue
  */
-function write<TCommand extends WriteCommand>(
-    command: TCommand,
-    apiCommandParameters: ApiRequestCommandParameters[TCommand],
-    onyxData: OnyxData = {},
-    conflictResolver: RequestConflictResolver = {},
-) {
+function write<TCommand extends WriteCommand>(command: TCommand, apiCommandParameters: ApiRequestCommandParameters[TCommand], onyxData: OnyxData = {}) {
     Log.info('Called API write', false, {command, ...apiCommandParameters});
     const {optimisticData, ...onyxDataWithoutOptimisticData} = onyxData;
 
@@ -90,7 +84,6 @@ function write<TCommand extends WriteCommand>(
             canCancel: true,
         },
         ...onyxDataWithoutOptimisticData,
-        ...conflictResolver,
     };
 
     // Write commands can be saved and retried, so push it to the SequentialQueue
@@ -167,6 +160,9 @@ function read<TCommand extends ReadCommand>(command: TCommand, apiCommandParamet
     // Ensure all write requests on the sequential queue have finished responding before running read requests.
     // Responses from read requests can overwrite the optimistic data inserted by
     // write requests that use the same Onyx keys and haven't responded yet.
+    if (PersistedRequests.getLength() > 0) {
+        Log.info(`[API] '${command}' is waiting on ${PersistedRequests.getLength()} write commands`);
+    }
     SequentialQueue.waitForIdle().then(() => makeRequestWithSideEffects(command, apiCommandParameters, onyxData, CONST.API_REQUEST_TYPE.READ));
 }
 

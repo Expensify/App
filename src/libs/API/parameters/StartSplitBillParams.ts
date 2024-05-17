@@ -9,6 +9,7 @@ type StartSplitBillParams = {
     comment: string;
     category: string;
     tag: string;
+    currency: string;
     isFromGroupDM: boolean;
     createdReportActionID?: string;
     billable: boolean;

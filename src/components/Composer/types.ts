@@ -21,14 +21,8 @@ type ComposerProps = TextInputProps & {
     /** The value of the comment box */
     value?: string;
 
-    /** Number of lines for the comment */
-    numberOfLines?: number;
-
     /** Callback method handle when the input is changed  */
     onChangeText?: (numberOfLines: string) => void;
-
-    /** Callback method to update number of lines for the comment */
-    onNumberOfLinesChange?: (numberOfLines: number) => void;
 
     /** Callback method to handle pasting a file */
     onPasteFile?: (file: File) => void;
@@ -76,6 +70,9 @@ type ComposerProps = TextInputProps & {
 
     /** Should make the input only scroll inside the element avoid scroll out to parent */
     shouldContainScroll?: boolean;
+
+    /** Indicates whether the composer is in a group policy report. Used for disabling report mentioning style in markdown input */
+    isGroupPolicyReport?: boolean;
 };
 
 export type {TextSelection, ComposerProps};

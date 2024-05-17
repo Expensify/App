@@ -68,6 +68,18 @@ type BaseModalProps = Partial<ModalProps> & {
 
     /** Should we use a custom backdrop for the modal? (This prevents focus issues on desktop) */
     shouldUseCustomBackdrop?: boolean;
+
+    /**
+     * Whether the modal should enable the new focus manager.
+     * We are attempting to migrate to a new refocus manager, adding this property for gradual migration.
+     * */
+    shouldEnableNewFocusManagement?: boolean;
+
+    /** How to re-focus after the modal is dismissed */
+    restoreFocusType?: ValueOf<typeof CONST.MODAL.RESTORE_FOCUS_TYPE>;
+
+    /** Should we apply padding style in modal itself. If this value is false, we will handle it in ScreenWrapper */
+    shouldUseModalPaddingStyle?: boolean;
 };
 
 export default BaseModalProps;

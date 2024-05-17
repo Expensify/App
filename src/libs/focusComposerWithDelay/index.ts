@@ -1,4 +1,5 @@
 import ComposerFocusManager from '@libs/ComposerFocusManager';
+import isWindowReadyToFocus from '@libs/isWindowReadyToFocus';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 import setTextInputSelection from './setTextInputSelection';
 import type {FocusComposerWithDelay, InputType} from './types';
@@ -26,7 +27,7 @@ function focusComposerWithDelay(textInput: InputType | null): FocusComposerWithD
             }
             return;
         }
-        ComposerFocusManager.isReadyToFocus().then(() => {
+        Promise.all([ComposerFocusManager.isReadyToFocus(), isWindowReadyToFocus()]).then(() => {
             if (!textInput) {
                 return;
             }

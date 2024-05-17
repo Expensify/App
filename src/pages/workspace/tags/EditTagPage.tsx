@@ -16,9 +16,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
-import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
-import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
-import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -37,7 +35,7 @@ function EditTagPage({route, policyTags}: EditTagPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
-    const currentTagName = route.params.tagName;
+    const currentTagName = PolicyUtils.getCleanedTagName(route.params.tagName);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
@@ -63,51 +61,48 @@ function EditTagPage({route, policyTags}: EditTagPageProps) {
                 Policy.renamePolicyTag(route.params.policyID, {oldName: currentTagName, newName: values.tagName.trim()});
             }
             Keyboard.dismiss();
-            Navigation.dismissModal();
+            Navigation.goBack();
         },
         [route.params.policyID, currentTagName],
     );
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
-            <PaidPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
-                <FeatureEnabledAccessOrNotFoundWrapper
-                    policyID={route.params.policyID}
-                    featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
+        <AccessOrNotFoundWrapper
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyID={route.params.policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
+        >
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                style={[styles.defaultModalContainer]}
+                testID={EditTagPage.displayName}
+                shouldEnableMaxHeight
+            >
+                <HeaderWithBackButton
+                    title={translate('workspace.tags.editTag')}
+                    onBackButtonPress={Navigation.goBack}
+                />
+                <FormProvider
+                    formID={ONYXKEYS.FORMS.WORKSPACE_TAG_FORM}
+                    onSubmit={editTag}
+                    submitButtonText={translate('common.save')}
+                    validate={validate}
+                    style={[styles.mh5, styles.flex1]}
+                    enabledWhenOffline
                 >
-                    <ScreenWrapper
-                        includeSafeAreaPaddingBottom={false}
-                        style={[styles.defaultModalContainer]}
-                        testID={EditTagPage.displayName}
-                        shouldEnableMaxHeight
-                    >
-                        <HeaderWithBackButton
-                            title={translate('workspace.tags.editTag')}
-                            onBackButtonPress={Navigation.goBack}
-                        />
-                        <FormProvider
-                            formID={ONYXKEYS.FORMS.WORKSPACE_TAG_FORM}
-                            onSubmit={editTag}
-                            submitButtonText={translate('common.save')}
-                            validate={validate}
-                            style={[styles.mh5, styles.flex1]}
-                            enabledWhenOffline
-                        >
-                            <InputWrapper
-                                InputComponent={TextInput}
-                                maxLength={CONST.TAG_NAME_LIMIT}
-                                defaultValue={currentTagName}
-                                label={translate('common.name')}
-                                accessibilityLabel={translate('common.name')}
-                                inputID={INPUT_IDS.TAG_NAME}
-                                role={CONST.ROLE.PRESENTATION}
-                                ref={inputCallbackRef}
-                            />
-                        </FormProvider>
-                    </ScreenWrapper>
-                </FeatureEnabledAccessOrNotFoundWrapper>
-            </PaidPolicyAccessOrNotFoundWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        maxLength={CONST.TAG_NAME_LIMIT}
+                        defaultValue={currentTagName}
+                        label={translate('common.name')}
+                        accessibilityLabel={translate('common.name')}
+                        inputID={INPUT_IDS.TAG_NAME}
+                        role={CONST.ROLE.PRESENTATION}
+                        ref={inputCallbackRef}
+                    />
+                </FormProvider>
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 

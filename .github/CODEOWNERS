@@ -1,2 +1,6 @@
 # Every PR gets a review from an internal Expensify engineer
 * @Expensify/pullerbear
+
+# Assign the Design team to review changes to our styles & assets
+src/styles/ @Expensify/design @Expensify/pullerbear
+assets/ @Expensify/design @Expensify/pullerbear

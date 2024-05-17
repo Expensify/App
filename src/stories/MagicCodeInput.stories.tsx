@@ -1,16 +1,16 @@
-import type {ComponentMeta, ComponentStory} from '@storybook/react';
+import type {Meta, StoryFn} from '@storybook/react';
 import React, {useState} from 'react';
 import MagicCodeInput from '@components/MagicCodeInput';
 import type {MagicCodeInputProps} from '@components/MagicCodeInput';
 
-type MagicCodeInputStory = ComponentStory<typeof MagicCodeInput>;
+type MagicCodeInputStory = StoryFn<typeof MagicCodeInput>;
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
  *
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
-const story: ComponentMeta<typeof MagicCodeInput> = {
+const story: Meta<typeof MagicCodeInput> = {
     title: 'Components/MagicCodeInput',
     component: MagicCodeInput,
 };

@@ -1,4 +1,4 @@
-import {cleanup, screen} from '@testing-library/react-native';
+import {screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
 import * as Localize from '@libs/Localize';
@@ -24,6 +24,7 @@ const ONYXKEYS = {
         REPORT: 'report_',
         REPORT_ACTIONS: 'reportActions_',
         POLICY: 'policy_',
+        REPORT_DRAFT_COMMENT: 'reportDraftComment_',
     },
     NETWORK: 'network',
 } as const;
@@ -44,11 +45,8 @@ xdescribe('Sidebar', () => {
         return Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
     });
 
-    // Cleanup (ie. unmount) all rendered components and clear out Onyx after each test so that each test starts with a clean slate
-    afterEach(() => {
-        cleanup();
-        return Onyx.clear();
-    });
+    // clear out Onyx after each test so that each test starts with a clean slate
+    afterEach(() => Onyx.clear());
 
     describe('in default (most recent) mode', () => {
         it('excludes a report with no participants', () => {
@@ -110,7 +108,6 @@ xdescribe('Sidebar', () => {
             // Given a new report with a draft text
             const report: Report = {
                 ...LHNTestUtils.getFakeReport([1, 2], 0),
-                hasDraft: true,
             };
 
             const reportCollectionDataSet: ReportCollectionDataSet = {
@@ -124,6 +121,7 @@ xdescribe('Sidebar', () => {
                         Onyx.multiSet({
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
+                            [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`]: 'This is a draft message',
                             ...reportCollectionDataSet,
                         }),
                     )
@@ -330,9 +328,9 @@ xdescribe('Sidebar', () => {
                 // const boolArr = [false, false, false, false, false];
 
                 it(`the booleans ${JSON.stringify(boolArr)}`, () => {
-                    const [isArchived, isUserCreatedPolicyRoom, hasAddWorkspaceError, isUnread, isPinned, hasDraft] = boolArr;
+                    const [isArchived, isUserCreatedPolicyRoom, hasAddWorkspaceError, isUnread, isPinned] = boolArr;
                     const report2: Report = {
-                        ...LHNTestUtils.getAdvancedFakeReport(isArchived, isUserCreatedPolicyRoom, hasAddWorkspaceError, isUnread, isPinned, hasDraft),
+                        ...LHNTestUtils.getAdvancedFakeReport(isArchived, isUserCreatedPolicyRoom, hasAddWorkspaceError, isUnread, isPinned),
                         policyID: policy.policyID,
                     };
                     LHNTestUtils.getDefaultRenderedSidebarLinks(report1.reportID);
@@ -364,7 +362,7 @@ xdescribe('Sidebar', () => {
                                     const navigatesToChatHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
                                     expect(screen.queryAllByAccessibilityHint(navigatesToChatHintText)).toHaveLength(1);
                                     expect(displayNames).toHaveLength(1);
-                                    expect(displayNames[0].props.children[0]).toBe('Three, Four');
+                                    expect(screen.getByText('One, Two')).toBeOnTheScreen();
                                 } else {
                                     // Both reports visible
                                     const navigatesToChatHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
@@ -409,8 +407,9 @@ xdescribe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(2);
-                        expect(displayNames[0].props.children[0]).toBe('One, Two');
-                        expect(displayNames[1].props.children[0]).toBe('Three, Four');
+
+                        expect(screen.getByText('One, Two')).toBeOnTheScreen();
+                        expect(screen.getByText('Three, Four')).toBeOnTheScreen();
                     })
 
                     // When report3 becomes unread
@@ -453,7 +452,6 @@ xdescribe('Sidebar', () => {
             // Given a draft report and a pinned report
             const draftReport = {
                 ...LHNTestUtils.getFakeReport([1, 2]),
-                hasDraft: true,
             };
             const pinnedReport = {
                 ...LHNTestUtils.getFakeReport([3, 4]),
@@ -474,6 +472,7 @@ xdescribe('Sidebar', () => {
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
+                            [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${draftReport.reportID}`]: 'draft report message',
                             ...reportCollectionDataSet,
                         }),
                     )
@@ -483,8 +482,9 @@ xdescribe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(2);
-                        expect(displayNames[0].props.children[0]).toBe('Three, Four');
-                        expect(displayNames[1].props.children[0]).toBe('One, Two');
+
+                        expect(screen.getByText('One, Two')).toBeOnTheScreen();
+                        expect(screen.getByText('Three, Four')).toBeOnTheScreen();
                     })
             );
         });
@@ -676,7 +676,7 @@ xdescribe('Sidebar', () => {
             it(`the booleans ${JSON.stringify(boolArr)}`, () => {
                 const [isArchived, isUserCreatedPolicyRoom, hasAddWorkspaceError, isUnread, isPinned, hasDraft] = boolArr;
                 const report2 = {
-                    ...LHNTestUtils.getAdvancedFakeReport(isArchived, isUserCreatedPolicyRoom, hasAddWorkspaceError, isUnread, isPinned, hasDraft),
+                    ...LHNTestUtils.getAdvancedFakeReport(isArchived, isUserCreatedPolicyRoom, hasAddWorkspaceError, isUnread, isPinned),
                     policyID: policy.policyID,
                 };
                 LHNTestUtils.getDefaultRenderedSidebarLinks(report1.reportID);
@@ -696,6 +696,7 @@ xdescribe('Sidebar', () => {
                                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                                 [ONYXKEYS.IS_LOADING_APP]: false,
                                 [`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`]: policy,
+                                [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report2.reportID}`]: hasDraft ? 'report2 draft' : null,
                                 ...reportCollectionDataSet,
                             }),
                         )
@@ -709,7 +710,7 @@ xdescribe('Sidebar', () => {
                                 const navigatesToChatHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
                                 expect(screen.queryAllByAccessibilityHint(navigatesToChatHintText)).toHaveLength(1);
                                 expect(displayNames).toHaveLength(1);
-                                expect(displayNames[0].props.children[0]).toBe('Three, Four');
+                                expect(screen.getByText('One, Two')).toBeOnTheScreen();
                             } else {
                                 // Both reports visible
                                 const navigatesToChatHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');

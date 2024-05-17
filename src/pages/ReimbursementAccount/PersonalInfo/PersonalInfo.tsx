@@ -1,3 +1,4 @@
+import type {RefAttributes} from 'react';
 import React, {forwardRef, useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -46,12 +47,23 @@ function PersonalInfo({reimbursementAccount, reimbursementAccountDraft, onBackBu
     const policyID = reimbursementAccount?.achData?.policyID ?? '';
     const values = useMemo(() => getSubstepValues(PERSONAL_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
     const bankAccountID = Number(reimbursementAccount?.achData?.bankAccountID ?? '0');
-    const submit = useCallback(() => {
-        BankAccounts.updatePersonalInformationForBankAccount(bankAccountID, {...values}, policyID);
-    }, [values, bankAccountID, policyID]);
+    const submit = useCallback(
+        (isConfirmPage: boolean) => {
+            BankAccounts.updatePersonalInformationForBankAccount(bankAccountID, {...values}, policyID, isConfirmPage);
+        },
+        [values, bankAccountID, policyID],
+    );
     const startFrom = useMemo(() => getInitialSubstepForPersonalInfo(values), [values]);
 
-    const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo, goToTheLastStep} = useSubStep({bodyContent, startFrom, onFinished: submit});
+    const {
+        componentToRender: SubStep,
+        isEditing,
+        screenIndex,
+        nextScreen,
+        prevScreen,
+        moveTo,
+        goToTheLastStep,
+    } = useSubStep({bodyContent, startFrom, onFinished: () => submit(true), onNextSubStep: () => submit(false)});
 
     const handleBackButtonPress = () => {
         if (isEditing) {
@@ -95,7 +107,7 @@ function PersonalInfo({reimbursementAccount, reimbursementAccountDraft, onBackBu
 
 PersonalInfo.displayName = 'PersonalInfo';
 
-export default withOnyx<PersonalInfoProps, PersonalInfoOnyxProps>({
+export default withOnyx<RefAttributes<View> & PersonalInfoProps, PersonalInfoOnyxProps>({
     // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,

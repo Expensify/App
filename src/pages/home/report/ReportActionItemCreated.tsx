@@ -10,7 +10,6 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import reportWithoutHasDraftSelector from '@libs/OnyxSelectors/reportWithoutHasDraftSelector';
 import * as ReportUtils from '@libs/ReportUtils';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -48,8 +47,12 @@ function ReportActionItemCreated(props: ReportActionItemCreatedProps) {
         return null;
     }
 
-    const icons = ReportUtils.getIcons(props.report, props.personalDetails);
+    let icons = ReportUtils.getIcons(props.report, props.personalDetails);
     const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(props.report);
+
+    if (ReportUtils.isInvoiceRoom(props.report) && ReportUtils.isCurrentUserInvoiceReceiver(props.report)) {
+        icons = [...icons].reverse();
+    }
 
     return (
         <OfflineWithFeedback
@@ -97,7 +100,6 @@ ReportActionItemCreated.displayName = 'ReportActionItemCreated';
 export default withOnyx<ReportActionItemCreatedProps, ReportActionItemCreatedOnyxProps>({
     report: {
         key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-        selector: reportWithoutHasDraftSelector,
     },
 
     policy: {
@@ -112,13 +114,15 @@ export default withOnyx<ReportActionItemCreatedProps, ReportActionItemCreatedOny
         ReportActionItemCreated,
         (prevProps, nextProps) =>
             prevProps.policy?.name === nextProps.policy?.name &&
-            prevProps.policy?.avatar === nextProps.policy?.avatar &&
+            prevProps.policy?.avatarURL === nextProps.policy?.avatarURL &&
             prevProps.report?.stateNum === nextProps.report?.stateNum &&
             prevProps.report?.statusNum === nextProps.report?.statusNum &&
             prevProps.report?.lastReadTime === nextProps.report?.lastReadTime &&
             prevProps.report?.description === nextProps.report?.description &&
             prevProps.personalDetails === nextProps.personalDetails &&
             prevProps.policy?.description === nextProps.policy?.description &&
-            prevProps.report?.reportName === nextProps.report?.reportName,
+            prevProps.report?.reportName === nextProps.report?.reportName &&
+            prevProps.report?.avatarUrl === nextProps.report?.avatarUrl &&
+            prevProps.report?.errorFields === nextProps.report?.errorFields,
     ),
 );

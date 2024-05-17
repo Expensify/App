@@ -30,7 +30,7 @@ const includeModules = [
 ].join('|');
 
 const environmentToLogoSuffixMap: Record<string, string> = {
-    production: '',
+    production: '-dark',
     staging: '-stg',
     dev: '-dev',
     adhoc: '-adhoc',

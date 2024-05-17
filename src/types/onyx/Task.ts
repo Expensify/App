@@ -25,6 +25,9 @@ type Task = {
 
     /** Chat report with assignee of task */
     assigneeChatReport?: Report;
+
+    /** If set, skip confirmation when creating the task */
+    skipConfirmation?: boolean;
 };
 
 export default Task;

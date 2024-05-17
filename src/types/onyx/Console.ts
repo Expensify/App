@@ -6,4 +6,6 @@ type Log = {
     message: string;
 };
 
-export default Log;
+type CapturedLogs = Record<number, Log>;
+
+export type {Log, CapturedLogs};

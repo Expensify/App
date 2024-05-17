@@ -1,9 +1,11 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 
+type QuickActionName = ValueOf<typeof CONST.QUICK_ACTIONS>;
+
 type QuickAction = {
     /** The action to take */
-    action?: ValueOf<typeof CONST.QUICK_ACTIONS>;
+    action?: QuickActionName;
 
     /** ID of the report */
     chatReportID?: string;
@@ -16,3 +18,5 @@ type QuickAction = {
 };
 
 export default QuickAction;
+
+export type {QuickActionName};

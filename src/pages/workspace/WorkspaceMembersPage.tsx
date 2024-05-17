@@ -32,7 +32,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import type {WorkspacesCentralPaneNavigatorParamList} from '@libs/Navigation/types';
+import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -42,27 +42,23 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {InvitedEmailsToAccountIDs, PersonalDetailsList, PolicyMember, PolicyMembers, Session} from '@src/types/onyx';
+import type {InvitedEmailsToAccountIDs, PersonalDetailsList, PolicyEmployee, PolicyEmployeeList, Session} from '@src/types/onyx';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
 type WorkspaceMembersPageOnyxProps = {
-    /** Personal details of all users */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
-
     /** Session info for the currently logged in user. */
     session: OnyxEntry<Session>;
 
     /** An object containing the accountID for every invited user email */
     invitedEmailsToAccountIDsDraft: OnyxEntry<InvitedEmailsToAccountIDs>;
 };
-
 type WorkspaceMembersPageProps = WithPolicyAndFullscreenLoadingProps &
     WithCurrentUserPersonalDetailsProps &
     WorkspaceMembersPageOnyxProps &
-    StackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS>;
+    StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS>;
 
 /**
  * Inverts an object, equivalent of _.invert
@@ -75,16 +71,8 @@ function invertObject(object: Record<string, string>): Record<string, string> {
 
 type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 
-function WorkspaceMembersPage({
-    policyMembers,
-    personalDetails,
-    invitedEmailsToAccountIDsDraft,
-    route,
-    policy,
-    session,
-    currentUserPersonalDetails,
-    isLoadingReportData = true,
-}: WorkspaceMembersPageProps) {
+function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, route, policy, session, currentUserPersonalDetails, isLoadingReportData = true}: WorkspaceMembersPageProps) {
+    const policyMemberEmailsToAccountIDs = useMemo(() => PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList, true), [policy?.employeeList]);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [selectedEmployees, setSelectedEmployees] = useState<number[]>([]);
@@ -92,44 +80,41 @@ function WorkspaceMembersPage({
     const [errors, setErrors] = useState({});
     const {isOffline} = useNetwork();
     const prevIsOffline = usePrevious(isOffline);
-    const accountIDs = useMemo(() => Object.keys(policyMembers ?? {}).map((accountID) => Number(accountID)), [policyMembers]);
+    const accountIDs = useMemo(() => Object.values(policyMemberEmailsToAccountIDs ?? {}).map((accountID) => Number(accountID)), [policyMemberEmailsToAccountIDs]);
     const prevAccountIDs = usePrevious(accountIDs);
     const textInputRef = useRef<TextInput>(null);
-    const isOfflineAndNoMemberDataAvailable = isEmptyObject(policyMembers) && isOffline;
+    const isOfflineAndNoMemberDataAvailable = isEmptyObject(policy?.employeeList) && isOffline;
     const prevPersonalDetails = usePrevious(personalDetails);
     const {translate, formatPhoneNumber, preferredLocale} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const dropdownButtonRef = useRef(null);
     const isPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
     const isLoading = useMemo(
-        () => !isOfflineAndNoMemberDataAvailable && (!OptionsListUtils.isPersonalDetailsReady(personalDetails) || isEmptyObject(policyMembers)),
-        [isOfflineAndNoMemberDataAvailable, personalDetails, policyMembers],
+        () => !isOfflineAndNoMemberDataAvailable && (!OptionsListUtils.isPersonalDetailsReady(personalDetails) || isEmptyObject(policy?.employeeList)),
+        [isOfflineAndNoMemberDataAvailable, personalDetails, policy?.employeeList],
     );
     const selectionListRef = useRef<SelectionListHandle>(null);
     const isFocused = useIsFocused();
-
     const policyID = route.params.policyID;
-
     /**
-     * Get filtered personalDetails list with current policyMembers
+     * Get filtered personalDetails list with current employeeList
      */
-    const filterPersonalDetails = (members: OnyxEntry<PolicyMembers>, details: OnyxEntry<PersonalDetailsList>): PersonalDetailsList =>
+    const filterPersonalDetails = (members: OnyxEntry<PolicyEmployeeList>, details: OnyxEntry<PersonalDetailsList>): PersonalDetailsList =>
         Object.keys(members ?? {}).reduce((result, key) => {
-            if (details?.[key]) {
+            const memberAccountIdKey = policyMemberEmailsToAccountIDs[key] ?? '';
+            if (details?.[memberAccountIdKey]) {
                 return {
                     ...result,
-                    [key]: details[key],
+                    [memberAccountIdKey]: details[memberAccountIdKey],
                 };
             }
             return result;
         }, {});
-
     /**
      * Get members for the current workspace
      */
     const getWorkspaceMembers = useCallback(() => {
-        Policy.openWorkspaceMembersPage(route.params.policyID, Object.keys(PolicyUtils.getMemberAccountIDsForWorkspace(policyMembers, personalDetails)));
-    }, [route.params.policyID, policyMembers, personalDetails]);
+        Policy.openWorkspaceMembersPage(route.params.policyID, Object.keys(PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList)));
+    }, [route.params.policyID, policy?.employeeList]);
 
     /**
      * Check if the current selection includes members that cannot be removed
@@ -146,10 +131,15 @@ function WorkspaceMembersPage({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedEmployees, policy?.owner, session?.accountID]);
 
+    // useFocus would make getWorkspaceMembers get called twice on fresh login because policyEmployee is a dependency of getWorkspaceMembers.
     useEffect(() => {
+        if (!isFocused) {
+            setSelectedEmployees([]);
+            return;
+        }
         getWorkspaceMembers();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [isFocused]);
 
     useEffect(() => {
         validateSelection();
@@ -161,20 +151,23 @@ function WorkspaceMembersPage({
         }
         setSelectedEmployees((prevSelected) => {
             // Filter all personal details in order to use the elements needed for the current workspace
-            const currentPersonalDetails = filterPersonalDetails(policyMembers, personalDetails);
+            const currentPersonalDetails = filterPersonalDetails(policy?.employeeList ?? {}, personalDetails);
             // We need to filter the previous selected employees by the new personal details, since unknown/new user id's change when transitioning from offline to online
             const prevSelectedElements = prevSelected.map((id) => {
                 const prevItem = prevPersonalDetails?.id;
                 const res = Object.values(currentPersonalDetails).find((item) => prevItem?.login === item?.login);
                 return res?.accountID ?? id;
             });
+
+            const currentSelectedElements = Object.entries(PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList))
+                .filter((employee) => policy?.employeeList?.[employee[0]]?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+                .map((employee) => employee[1]);
+
             // This is an equivalent of the lodash intersection function. The reduce method below is used to filter the items that exist in both arrays.
-            return [prevSelectedElements, Object.values(PolicyUtils.getMemberAccountIDsForWorkspace(policyMembers, personalDetails))].reduce((prev, members) =>
-                prev.filter((item) => members.includes(item)),
-            );
+            return [prevSelectedElements, currentSelectedElements].reduce((prev, members) => prev.filter((item) => members.includes(item)));
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [policyMembers]);
+    }, [policy?.employeeList, policyMemberEmailsToAccountIDs]);
 
     useEffect(() => {
         const isReconnecting = prevIsOffline && !isOffline;
@@ -283,9 +276,8 @@ function WorkspaceMembersPage({
                 Navigation.navigate(ROUTES.PROFILE.getRoute(item.accountID));
                 return;
             }
-
             Policy.clearWorkspaceOwnerChangeFlow(policyID);
-            Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(route.params.policyID, item.accountID, Navigation.getActiveRoute()));
+            Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(route.params.policyID, item.accountID));
         },
         [isPolicyAdmin, policy, policyID, route.params.policyID],
     );
@@ -307,21 +299,20 @@ function WorkspaceMembersPage({
     /**
      * Check if the policy member is deleted from the workspace
      */
-    const isDeletedPolicyMember = useCallback(
-        (policyMember: PolicyMember): boolean => !isOffline && policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isEmptyObject(policyMember.errors),
+    const isDeletedPolicyEmployee = useCallback(
+        (policyEmployee: PolicyEmployee): boolean => !isOffline && policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isEmptyObject(policyEmployee.errors),
         [isOffline],
     );
+
     const policyOwner = policy?.owner;
     const currentUserLogin = currentUserPersonalDetails.login;
-
     const invitedPrimaryToSecondaryLogins = invertObject(policy?.primaryLoginsInvited ?? {});
-
     const getUsers = useCallback((): MemberOption[] => {
         let result: MemberOption[] = [];
 
-        Object.entries(policyMembers ?? {}).forEach(([accountIDKey, policyMember]) => {
-            const accountID = Number(accountIDKey);
-            if (isDeletedPolicyMember(policyMember)) {
+        Object.entries(policy?.employeeList ?? {}).forEach(([email, policyEmployee]) => {
+            const accountID = Number(policyMemberEmailsToAccountIDs[email] ?? '');
+            if (isDeletedPolicyEmployee(policyEmployee)) {
                 return;
             }
 
@@ -344,25 +335,18 @@ function WorkspaceMembersPage({
             const isSelected = selectedEmployees.includes(accountID);
 
             const isOwner = policy?.owner === details.login;
-            const isAdmin = policyMember.role === CONST.POLICY.ROLE.ADMIN;
-
+            const isAdmin = policyEmployee.role === CONST.POLICY.ROLE.ADMIN;
             let roleBadge = null;
             if (isOwner || isAdmin) {
-                roleBadge = (
-                    <Badge
-                        text={isOwner ? translate('common.owner') : translate('common.admin')}
-                        textStyles={styles.textStrong}
-                        badgeStyles={[styles.justifyContentCenter, StyleUtils.getMinimumWidth(60), styles.badgeBordered, isSelected && styles.activeItemBadge]}
-                    />
-                );
+                roleBadge = <Badge text={isOwner ? translate('common.owner') : translate('common.admin')} />;
             }
 
             result.push({
-                keyForList: accountIDKey,
+                keyForList: String(accountID),
                 accountID,
                 isSelected,
                 isDisabledCheckbox: !(isPolicyAdmin && accountID !== policy?.ownerAccountID && accountID !== session?.accountID),
-                isDisabled: isPolicyAdmin && (policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyMember.errors)),
+                isDisabled: isPolicyAdmin && (policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyEmployee.errors)),
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: formatPhoneNumber(details?.login ?? ''),
                 rightElement: roleBadge,
@@ -374,35 +358,28 @@ function WorkspaceMembersPage({
                         id: accountID,
                     },
                 ],
-                errors: policyMember.errors,
-                pendingAction: policyMember.pendingAction,
-
+                errors: policyEmployee.errors,
+                pendingAction: policyEmployee.pendingAction,
                 // Note which secondary login was used to invite this primary login
                 invitedSecondaryLogin: details?.login ? invitedPrimaryToSecondaryLogins[details.login] ?? '' : '',
             });
         });
-
         result = result.sort((a, b) => (a.text ?? '').toLowerCase().localeCompare((b.text ?? '').toLowerCase()));
-
         return result;
     }, [
-        StyleUtils,
         currentUserLogin,
         formatPhoneNumber,
         invitedPrimaryToSecondaryLogins,
-        isDeletedPolicyMember,
+        isDeletedPolicyEmployee,
         isPolicyAdmin,
         personalDetails,
         policy?.owner,
         policy?.ownerAccountID,
-        policyMembers,
+        policy?.employeeList,
+        policyMemberEmailsToAccountIDs,
         policyOwner,
         selectedEmployees,
         session?.accountID,
-        styles.activeItemBadge,
-        styles.badgeBordered,
-        styles.justifyContentCenter,
-        styles.textStrong,
         translate,
     ]);
 
@@ -425,7 +402,7 @@ function WorkspaceMembersPage({
             return translate('workspace.common.mustBeOnlineToViewMembers');
         }
 
-        return !isLoading && isEmptyObject(policyMembers) ? translate('workspace.common.memberNotFound') : '';
+        return !isLoading && isEmptyObject(policy?.employeeList) ? translate('workspace.common.memberNotFound') : '';
     };
 
     const getHeaderContent = () => (
@@ -454,11 +431,9 @@ function WorkspaceMembersPage({
                 </View>
             </View>
         );
-
         if (isPolicyAdmin) {
             return header;
         }
-
         return <View style={[styles.peopleRow, styles.userSelectNone, styles.ph9, styles.pv3, styles.pb5]}>{header}</View>;
     };
 
@@ -467,7 +442,10 @@ function WorkspaceMembersPage({
             return;
         }
 
-        const accountIDsToUpdate = selectedEmployees.filter((id) => policyMembers?.[id].role !== role);
+        const accountIDsToUpdate = selectedEmployees.filter((accountID) => {
+            const email = personalDetails?.[accountID]?.login ?? '';
+            return policy?.employeeList?.[email]?.role !== role;
+        });
 
         Policy.updateWorkspaceMembersRole(route.params.policyID, accountIDsToUpdate, role);
         setSelectedEmployees([]);
@@ -483,26 +461,31 @@ function WorkspaceMembersPage({
             },
         ];
 
-        if (PolicyUtils.isPaidGroupPolicy(policy)) {
-            if (selectedEmployees.find((employee) => policyMembers?.[employee]?.role === CONST.POLICY.ROLE.ADMIN)) {
-                options.push({
-                    text: translate('workspace.people.makeMember'),
-                    value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
-                    icon: Expensicons.User,
-                    onSelected: () => changeUserRole(CONST.POLICY.ROLE.USER),
-                });
-            }
-
-            if (selectedEmployees.find((employee) => policyMembers?.[employee]?.role === CONST.POLICY.ROLE.USER)) {
-                options.push({
-                    text: translate('workspace.people.makeAdmin'),
-                    value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN,
-                    icon: Expensicons.MakeAdmin,
-                    onSelected: () => changeUserRole(CONST.POLICY.ROLE.ADMIN),
-                });
-            }
+        if (!PolicyUtils.isPaidGroupPolicy(policy)) {
+            return options;
         }
 
+        const selectedEmployeesRoles = selectedEmployees.map((accountID) => {
+            const email = personalDetails?.[accountID]?.login ?? '';
+            return policy?.employeeList?.[email]?.role;
+        });
+        if (selectedEmployeesRoles.find((role) => role === CONST.POLICY.ROLE.ADMIN)) {
+            options.push({
+                text: translate('workspace.people.makeMember'),
+                value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
+                icon: Expensicons.User,
+                onSelected: () => changeUserRole(CONST.POLICY.ROLE.USER),
+            });
+        }
+
+        if (selectedEmployeesRoles.find((role) => role === CONST.POLICY.ROLE.USER)) {
+            options.push({
+                text: translate('workspace.people.makeAdmin'),
+                value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN,
+                icon: Expensicons.MakeAdmin,
+                onSelected: () => changeUserRole(CONST.POLICY.ROLE.ADMIN),
+            });
+        }
         return options;
     };
 
@@ -510,7 +493,6 @@ function WorkspaceMembersPage({
         if (!isPolicyAdmin) {
             return null;
         }
-
         return (
             <View style={styles.w100}>
                 {selectedEmployees.length > 0 ? (
@@ -521,7 +503,7 @@ function WorkspaceMembersPage({
                         buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                         onPress={() => null}
                         options={getBulkActionsButtonOptions()}
-                        buttonRef={dropdownButtonRef}
+                        isSplitButton={false}
                         style={[isSmallScreenWidth && styles.flexGrow1]}
                     />
                 ) : (
@@ -596,11 +578,11 @@ function WorkspaceMembersPage({
                         onSelectAll={() => toggleAllUsers(data)}
                         onDismissError={dismissError}
                         showLoadingPlaceholder={isLoading}
-                        showScrollIndicator
                         shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                         textInputRef={textInputRef}
                         customListHeader={getCustomListHeader()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                        showScrollIndicator={false}
                     />
                 </View>
             </FullPageNotFoundView>
@@ -613,9 +595,6 @@ WorkspaceMembersPage.displayName = 'WorkspaceMembersPage';
 export default withCurrentUserPersonalDetails(
     withPolicyAndFullscreenLoading(
         withOnyx<WorkspaceMembersPageProps, WorkspaceMembersPageOnyxProps>({
-            personalDetails: {
-                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            },
             invitedEmailsToAccountIDsDraft: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`,
             },

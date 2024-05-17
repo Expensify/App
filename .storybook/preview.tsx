@@ -1,5 +1,5 @@
 import {PortalProvider} from '@gorhom/portal';
-import type {Parameters} from '@storybook/addons';
+import type {Parameters} from '@storybook/types';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
@@ -16,7 +16,7 @@ import './fonts.css';
 Onyx.init({
     keys: ONYXKEYS,
     initialKeyStates: {
-        [ONYXKEYS.NETWORK]: {isOffline: false},
+        [ONYXKEYS.NETWORK]: {isOffline: false, isBackendReachable: true},
     },
 });
 

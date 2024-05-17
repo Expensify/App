@@ -88,11 +88,6 @@ function AboutPage() {
                 link: CONST.UPWORK_URL,
             },
             {
-                translationKey: 'initialSettingsPage.aboutPage.troubleshoot',
-                icon: Expensicons.Lightbulb,
-                action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_TROUBLESHOOT)),
-            },
-            {
                 translationKey: 'initialSettingsPage.aboutPage.reportABug',
                 icon: Expensicons.Bug,
                 action: waitForNavigate(Report.navigateToConciergeChat),

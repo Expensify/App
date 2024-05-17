@@ -5,7 +5,6 @@ import {withOnyx} from 'react-native-onyx';
 import AddPlaidBankAccount from '@components/AddPlaidBankAccount';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -31,29 +30,11 @@ type PlaidProps = PlaidOnyxProps & SubStepProps;
 
 const BANK_INFO_STEP_KEYS = INPUT_IDS.BANK_INFO_STEP;
 
-const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-    const errorFields: FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> = {};
-
-    if (!values.selectedPlaidAccountID) {
-        errorFields.selectedPlaidAccountID = 'bankAccount.error.youNeedToSelectAnOption';
-    }
-
-    return errorFields;
-};
-
 function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidData}: PlaidProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
     const selectedPlaidAccountID = reimbursementAccountDraft?.[BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID] ?? '';
-
-    useEffect(() => {
-        const plaidBankAccounts = plaidData?.bankAccounts ?? [];
-        if (isFocused || plaidBankAccounts.length) {
-            return;
-        }
-        BankAccounts.setBankAccountSubStep(null);
-    }, [isFocused, plaidData]);
 
     const handleNextPress = useCallback(() => {
         const selectedPlaidBankAccount = (plaidData?.bankAccounts ?? []).find(
@@ -76,10 +57,18 @@ function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidDa
 
     const bankAccountID = Number(reimbursementAccount?.achData?.bankAccountID ?? '0');
 
+    useEffect(() => {
+        const plaidBankAccounts = plaidData?.bankAccounts ?? [];
+        if (isFocused || plaidBankAccounts.length) {
+            return;
+        }
+        BankAccounts.setBankAccountSubStep(null);
+    }, [isFocused, plaidData]);
+
     return (
         <FormProvider
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
-            validate={validate}
+            validate={BankAccounts.validatePlaidSelection}
             onSubmit={handleNextPress}
             scrollContextEnabled
             submitButtonText={translate('common.next')}

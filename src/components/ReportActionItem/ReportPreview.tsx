@@ -24,6 +24,7 @@ import * as ReportActionUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import variables from '@styles/variables';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -31,10 +32,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolations, UserWallet} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import type {PendingMessageProps} from './MoneyRequestPreview/types';
 import ReportActionItemImages from './ReportActionItemImages';
 
 type ReportPreviewOnyxProps = {
-    /** The policy tied to the money request report */
+    /** The policy tied to the expense report */
     policy: OnyxEntry<Policy>;
 
     /** ChatReport associated with iouReport */
@@ -126,7 +128,7 @@ function ReportPreview({
     const isOpenExpenseReport = isPolicyExpenseChat && ReportUtils.isOpenExpenseReport(iouReport);
 
     const isApproved = ReportUtils.isReportApproved(iouReport);
-    const canAllowSettlement = ReportUtils.hasUpdatedTotal(iouReport);
+    const canAllowSettlement = ReportUtils.hasUpdatedTotal(iouReport, policy);
     const allTransactions = TransactionUtils.getAllReportTransactions(iouReportID);
     const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(iouReportID);
     const numberOfScanningReceipts = transactionsWithReceipts.filter((transaction) => TransactionUtils.isReceiptBeingScanned(transaction)).length;
@@ -134,10 +136,13 @@ function ReportPreview({
 
     const hasReceipts = transactionsWithReceipts.length > 0;
     const isScanning = hasReceipts && areAllRequestsBeingSmartScanned;
+
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const hasErrors = hasMissingSmartscanFields || (canUseViolations && ReportUtils.hasViolations(iouReportID, transactionViolations)) || ReportUtils.hasActionsWithErrors(iouReportID);
     const lastThreeTransactionsWithReceipts = transactionsWithReceipts.slice(-3);
     const lastThreeReceipts = lastThreeTransactionsWithReceipts.map((transaction) => ReceiptUtils.getThumbnailAndImageURIs(transaction));
+    const showRTERViolationMessage =
+        numberOfRequests === 1 && TransactionUtils.hasPendingUI(allTransactions[0], TransactionUtils.getTransactionViolations(allTransactions[0].transactionID, transactionViolations));
 
     let formattedMerchant = numberOfRequests === 1 ? TransactionUtils.getMerchant(allTransactions[0]) : null;
     const formattedDescription = numberOfRequests === 1 ? TransactionUtils.getDescription(allTransactions[0]) : null;
@@ -145,17 +150,8 @@ function ReportPreview({
     if (TransactionUtils.isPartialMerchant(formattedMerchant ?? '')) {
         formattedMerchant = null;
     }
-    const previewSubtitle =
-        // Formatted merchant can be an empty string
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        (formattedMerchant ?? formattedDescription) ||
-        translate('iou.requestCount', {
-            count: numberOfRequests - numberOfScanningReceipts - numberOfPendingRequests,
-            scanningReceipts: numberOfScanningReceipts,
-            pendingReceipts: numberOfPendingRequests,
-        });
 
-    const shouldShowSubmitButton = isOpenExpenseReport && reimbursableSpend !== 0;
+    const shouldShowSubmitButton = isOpenExpenseReport && reimbursableSpend !== 0 && !showRTERViolationMessage;
     const shouldDisableSubmitButton = shouldShowSubmitButton && !ReportUtils.isAllowedToSubmitDraftExpenseReport(iouReport);
 
     // The submit button should be success green colour only if the user is submitter and the policy does not have Scheduled Submit turned on
@@ -172,7 +168,7 @@ function ReportPreview({
             return translate('iou.receiptScanning');
         }
         if (hasOnlyTransactionsWithPendingRoutes) {
-            return translate('iou.routePending');
+            return translate('iou.fieldPending');
         }
 
         // If iouReport is not available, get amount from the action message (Ex: "Domain20821's Workspace owes $33.00" or "paid ₫60" or "paid -₫60 elsewhere")
@@ -217,22 +213,55 @@ function ReportPreview({
 
     const shouldDisableApproveButton = shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(iouReport);
 
-    const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
+    const shouldShowSettlementButton = !ReportUtils.isInvoiceReport(iouReport) && (shouldShowPayButton || shouldShowApproveButton) && !showRTERViolationMessage;
 
     const shouldPromptUserToAddBankAccount = ReportUtils.hasMissingPaymentMethod(userWallet, iouReportID);
     const shouldShowRBR = !iouSettled && hasErrors;
 
     /*
-     Show subtitle if at least one of the money requests is not being smart scanned, and either:
-     - There is more than one money request – in this case, the "X requests, Y scanning" subtitle is shown;
-     - There is only one money request, it has a receipt and is not being smart scanned – in this case, the request merchant or description is shown;
+     Show subtitle if at least one of the expenses is not being smart scanned, and either:
+     - There is more than one expense – in this case, the "X expenses, Y scanning" subtitle is shown;
+     - There is only one expense, it has a receipt and is not being smart scanned – in this case, the expense merchant or description is shown;
 
-     * There is an edge case when there is only one distance request with a pending route and amount = 0.
+     * There is an edge case when there is only one distance expense with a pending route and amount = 0.
        In this case, we don't want to show the merchant or description because it says: "Pending route...", which is already displayed in the amount field.
      */
     const shouldShowSingleRequestMerchantOrDescription =
         numberOfRequests === 1 && (!!formattedMerchant || !!formattedDescription) && !(hasOnlyTransactionsWithPendingRoutes && !totalDisplaySpend);
     const shouldShowSubtitle = !isScanning && (shouldShowSingleRequestMerchantOrDescription || numberOfRequests > 1);
+    const shouldShowScanningSubtitle = numberOfScanningReceipts === 1 && numberOfRequests === 1;
+    const shouldShowPendingSubtitle = numberOfPendingRequests === 1 && numberOfRequests === 1;
+
+    const getPendingMessageProps: () => PendingMessageProps = () => {
+        if (shouldShowScanningSubtitle) {
+            return {shouldShow: true, messageIcon: Expensicons.ReceiptScan, messageDescription: translate('iou.receiptScanInProgress')};
+        }
+        if (shouldShowPendingSubtitle) {
+            return {shouldShow: true, messageIcon: Expensicons.CreditCardHourglass, messageDescription: translate('iou.transactionPending')};
+        }
+        if (showRTERViolationMessage) {
+            return {shouldShow: true, messageIcon: Expensicons.Hourglass, messageDescription: translate('iou.pendingMatchWithCreditCard')};
+        }
+        return {shouldShow: false};
+    };
+
+    const pendingMessageProps = getPendingMessageProps();
+
+    const {supportText} = useMemo(() => {
+        if (formattedMerchant) {
+            return {supportText: formattedMerchant};
+        }
+        if (formattedDescription ?? moneyRequestComment) {
+            return {supportText: formattedDescription ?? moneyRequestComment};
+        }
+        return {
+            supportText: translate('iou.expenseCount', {
+                count: numberOfRequests - numberOfScanningReceipts - numberOfPendingRequests,
+                scanningReceipts: numberOfScanningReceipts,
+                pendingReceipts: numberOfPendingRequests,
+            }),
+        };
+    }, [formattedMerchant, formattedDescription, moneyRequestComment, translate, numberOfRequests, numberOfScanningReceipts, numberOfPendingRequests]);
 
     return (
         <OfflineWithFeedback
@@ -296,11 +325,22 @@ function ReportPreview({
                                                 )}
                                             </View>
                                         </View>
-                                        {shouldShowSubtitle && (
+                                        {shouldShowSubtitle && supportText && (
                                             <View style={styles.flexRow}>
                                                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                                    <Text style={[styles.textLabelSupporting, styles.textNormal, styles.lh20]}>{previewSubtitle || moneyRequestComment}</Text>
+                                                    <Text style={[styles.textLabelSupporting, styles.textNormal, styles.lh20]}>{supportText}</Text>
                                                 </View>
+                                            </View>
+                                        )}
+                                        {pendingMessageProps.shouldShow && (
+                                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
+                                                <Icon
+                                                    src={pendingMessageProps.messageIcon}
+                                                    height={variables.iconSizeExtraSmall}
+                                                    width={variables.iconSizeExtraSmall}
+                                                    fill={theme.icon}
+                                                />
+                                                <Text style={[styles.textMicroSupporting, styles.ml1, styles.amountSplitPadding]}>{pendingMessageProps.messageDescription}</Text>
                                             </View>
                                         )}
                                     </View>

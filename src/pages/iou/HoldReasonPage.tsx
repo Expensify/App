@@ -46,6 +46,10 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
     const {transactionID, reportID, backTo} = route.params;
 
     const report = ReportUtils.getReport(reportID);
+
+    // We first check if the report is part of a policy - if not, then it's a personal request (1:1 request)
+    // For personal requests, we need to allow both users to put the request on hold
+    const isWorkspaceRequest = ReportUtils.isReportInGroupPolicy(report);
     const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
 
     const navigateBack = () => {
@@ -53,7 +57,10 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
     };
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
-        if (!ReportUtils.canEditMoneyRequest(parentReportAction)) {
+        // We have extra isWorkspaceRequest condition since, for 1:1 requests, canEditMoneyRequest will rightly return false
+        // as we do not allow requestee to edit fields like description and amount.
+        // But, we still want the requestee to be able to put the request on hold
+        if (!ReportUtils.canEditMoneyRequest(parentReportAction) && isWorkspaceRequest) {
             return;
         }
 
@@ -68,7 +75,10 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
             if (!values.comment) {
                 errors.comment = 'common.error.fieldRequired';
             }
-            if (!ReportUtils.canEditMoneyRequest(parentReportAction)) {
+            // We have extra isWorkspaceRequest condition since, for 1:1 requests, canEditMoneyRequest will rightly return false
+            // as we do not allow requestee to edit fields like description and amount.
+            // But, we still want the requestee to be able to put the request on hold
+            if (!ReportUtils.canEditMoneyRequest(parentReportAction) && isWorkspaceRequest) {
                 const formErrors = {};
                 ErrorUtils.addErrorMessage(formErrors, 'reportModified', 'common.error.requestModified');
                 FormActions.setErrors(ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM, formErrors);
@@ -76,7 +86,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
 
             return errors;
         },
-        [parentReportAction],
+        [parentReportAction, isWorkspaceRequest],
     );
 
     useEffect(() => {
@@ -91,12 +101,12 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
             testID={HoldReasonPage.displayName}
         >
             <HeaderWithBackButton
-                title={translate('iou.holdRequest')}
+                title={translate('iou.holdExpense')}
                 onBackButtonPress={navigateBack}
             />
             <FormProvider
                 formID="moneyHoldReasonForm"
-                submitButtonText={translate('iou.holdRequest')}
+                submitButtonText={translate('iou.holdExpense')}
                 style={[styles.flexGrow1, styles.ph5]}
                 onSubmit={onSubmit}
                 validate={validate}
