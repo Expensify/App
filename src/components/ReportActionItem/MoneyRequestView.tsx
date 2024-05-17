@@ -324,12 +324,13 @@ function MoneyRequestView({
     const shouldShowReceiptEmptyState = isReceiptAllowed && !hasReceipt && !isApproved && !isSettled && (canEditReceipt || isAdmin || isApprover);
     const noticeTypeViolations = transactionViolations?.filter((violation) => violation.type === 'notice').map((v) => ViolationsUtils.getViolationTranslation(v, translate)) ?? [];
     const shouldShowNotesViolations = !isReceiptBeingScanned && canUseViolations && ReportUtils.isPaidGroupPolicy(report);
+    const shouldShowReceiptHeader = isReceiptAllowed && (shouldShowReceiptEmptyState || shouldShowMapOrReceipt) && canUseViolations && ReportUtils.isPaidGroupPolicy(report);
 
     return (
         <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true, shouldShowAnimatedBackground)]}>
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
             <View style={shouldShowAnimatedBackground && [StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth, true)]}>
-                {isReceiptAllowed && (
+                {shouldShowReceiptHeader && (
                     <ReceiptAuditHeader
                         notes={noticeTypeViolations}
                         shouldShowAuditMessage={Boolean(shouldShowNotesViolations && didRceiptScanSucceed)}
