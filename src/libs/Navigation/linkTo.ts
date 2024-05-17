@@ -143,6 +143,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
 
     const isFullScreenOnTop = rootState.routes?.at(-1)?.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR;
 
+    // policyIDs is present only on SCREENS.SEARCH.CENTRAL_PANE and it's displayed in the url as a query param, on the other pages this parameter is called policyID and it's shown in the url in the format: /w/:policyID
     if (policyID && !isFullScreenOnTop && !policyIDs) {
         // The stateFromPath doesn't include proper path if there is a policy passed with /w/id.
         // We need to replace the path in the state with the proper one.
@@ -156,6 +157,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
     if (action?.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE) {
         const targetScreen = action.payload.params?.screen;
 
+        // If we navigate to SCREENS.SEARCH.CENTRAL_PANE, it's necessary to pass the current policyID, but we have to remember that this param is called policyIDs on this page
         if (targetScreen === SCREENS.SEARCH.CENTRAL_PANE && action.payload?.params?.params && policyID) {
             action.payload.params.params.policyIDs = policyID;
         }
