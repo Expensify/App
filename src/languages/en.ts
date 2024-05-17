@@ -3062,6 +3062,14 @@ export default {
         taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams) => `${taxName ?? 'Tax'} no longer valid`,
         taxRateChanged: 'Tax rate was modified',
         taxRequired: 'Missing tax rate',
+        none: 'None',
+        taxCodeToKeep: 'Choose which tax code to keep',
+        tagToKeep: 'Choose which tag to keep',
+        isTransactionReimbursable: 'Choose if transaction is reimbursable',
+        merchantToKeep: 'Choose which merchant to keep',
+        descriptionToKeep: 'Choose which description to keep',
+        categoryToKeep: 'Choose which category to keep',
+        isTransactionBillable: 'Choose if transaction is billable',
     },
     violationDismissal: {
         rter: {
