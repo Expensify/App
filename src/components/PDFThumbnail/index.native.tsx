@@ -2,24 +2,20 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 import Pdf from 'react-native-pdf';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
-import variables from '@styles/variables';
+import PDFThumbnailError from './PDFThumbnailError';
 import type PDFThumbnailProps from './types';
 
 function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, enabled = true, onPassword, onLoadError}: PDFThumbnailProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
     const sizeStyles = [styles.w100, styles.h100];
-    const [hasError, setHasError] = useState(false);
+    const [failedToLoad, setFailedToLoad] = useState(false);
 
     return (
         <View style={[style, styles.overflowHidden]}>
-            <View style={[sizeStyles, !hasError && styles.alignItemsCenter, styles.justifyContentCenter]}>
-                {enabled && !hasError && (
+            <View style={[sizeStyles, !failedToLoad && styles.alignItemsCenter, styles.justifyContentCenter]}>
+                {enabled && !failedToLoad && (
                     <Pdf
                         fitPolicy={0}
                         trustAllCerts={false}
@@ -35,20 +31,11 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ena
                                 onPassword();
                                 return;
                             }
-                            setHasError(true);
+                            setFailedToLoad(true);
                         }}
                     />
                 )}
-                {hasError && (
-                    <View style={[styles.justifyContentCenter, styles.pdfErrorPlaceholder, styles.alignItemsCenter]}>
-                        <Icon
-                            src={Expensicons.ReceiptSlash}
-                            width={variables.receiptPlaceholderIconWidth}
-                            height={variables.receiptPlaceholderIconHeight}
-                            fill={theme.icon}
-                        />
-                    </View>
-                )}
+                {failedToLoad && <PDFThumbnailError />}
             </View>
         </View>
     );
