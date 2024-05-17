@@ -56,7 +56,7 @@ import type {IOUMessage, PaymentMethodType} from '@src/types/onyx/OriginalMessag
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {ReportPreviewAction} from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
-import type {Comment, Receipt, ReceiptSource, SplitShares, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
+import type {Comment, Receipt, ReceiptSource, Routes, SplitShares, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CachedPDFPaths from './CachedPDFPaths';
@@ -2314,6 +2314,19 @@ function calculateDiffAmount(iouReport: OnyxEntry<OnyxTypes.Report>, updatedTran
     return 0;
 }
 
+function calculateAmountForUpdatedWaypoint(transaction: OnyxEntry<OnyxTypes.Transaction>, transactionChanges: TransactionChanges, policy: OnyxEntry<OnyxTypes.Policy>) {
+    let updateAmount: number = CONST.IOU.DEFAULT_AMOUNT;
+    if (transactionChanges?.routes) {
+        const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '';
+        const mileageRates = DistanceRequestUtils.getMileageRates(policy);
+        const mileageRate = mileageRates?.[customUnitRateID];
+        const {unit, rate} = mileageRate;
+        const distance = TransactionUtils.getDistance(transaction);
+        updateAmount = -DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate ?? 0);
+    }
+    return updateAmount;
+}
+
 /**
  * @param transactionID
  * @param transactionThreadReportID
@@ -2371,10 +2384,12 @@ function getUpdateMoneyRequestParams(
 
     const hasPendingWaypoints = 'waypoints' in transactionChanges;
     if (transaction && updatedTransaction && hasPendingWaypoints) {
+        const updatedAmount = calculateAmountForUpdatedWaypoint(transaction, transactionChanges, policy);
+
         updatedTransaction = {
             ...updatedTransaction,
-            amount: CONST.IOU.DEFAULT_AMOUNT,
-            modifiedAmount: CONST.IOU.DEFAULT_AMOUNT,
+            amount: updatedAmount,
+            modifiedAmount: updatedAmount,
             modifiedMerchant: Localize.translateLocal('iou.fieldPending'),
         };
 
@@ -2657,10 +2672,12 @@ function getUpdateTrackExpenseParams(
 
     const hasPendingWaypoints = 'waypoints' in transactionChanges;
     if (transaction && updatedTransaction && hasPendingWaypoints) {
+        const updatedAmount = calculateAmountForUpdatedWaypoint(transaction, transactionChanges, policy);
+
         updatedTransaction = {
             ...updatedTransaction,
-            amount: CONST.IOU.DEFAULT_AMOUNT,
-            modifiedAmount: CONST.IOU.DEFAULT_AMOUNT,
+            amount: updatedAmount,
+            modifiedAmount: updatedAmount,
             modifiedMerchant: Localize.translateLocal('iou.fieldPending'),
         };
 
@@ -2908,6 +2925,7 @@ type UpdateMoneyRequestDistanceParams = {
     transactionID: string;
     transactionThreadReportID: string;
     waypoints: WaypointCollection;
+    routes?: Routes;
     policy?: OnyxEntry<OnyxTypes.Policy>;
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>;
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
@@ -2918,12 +2936,14 @@ function updateMoneyRequestDistance({
     transactionID,
     transactionThreadReportID,
     waypoints,
+    routes = undefined,
     policy = {} as OnyxTypes.Policy,
     policyTagList = {},
     policyCategories = {},
 }: UpdateMoneyRequestDistanceParams) {
     const transactionChanges: TransactionChanges = {
         waypoints,
+        routes,
     };
     const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.parentReportID}`] ?? null;

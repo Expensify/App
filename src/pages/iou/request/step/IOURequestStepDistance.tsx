@@ -377,11 +377,18 @@ function IOURequestStepDistance({
             const oldWaypoints = transactionBackup?.comment.waypoints ?? {};
             const oldAddresses = Object.fromEntries(Object.entries(oldWaypoints).map(([key, waypoint]) => [key, 'address' in waypoint ? waypoint.address : {}]));
             const addresses = Object.fromEntries(Object.entries(waypoints).map(([key, waypoint]) => [key, 'address' in waypoint ? waypoint.address : {}]));
-            if (isEqual(oldAddresses, addresses)) {
+            const isRouteChanged = !isEqual(transactionBackup?.routes, transaction?.routes);
+            if (isEqual(oldAddresses, addresses) && !isRouteChanged) {
                 Navigation.dismissModal();
                 return;
             }
-            IOU.updateMoneyRequestDistance({transactionID: transaction?.transactionID ?? '', transactionThreadReportID: report?.reportID ?? '', waypoints});
+            IOU.updateMoneyRequestDistance({
+                transactionID: transaction?.transactionID ?? '',
+                transactionThreadReportID: report?.reportID ?? '',
+                waypoints,
+                ...(isRouteChanged ? {routes: transaction?.routes} : {}),
+                policy,
+            });
             Navigation.dismissModal();
             return;
         }
@@ -399,7 +406,9 @@ function IOURequestStepDistance({
         transactionBackup,
         waypoints,
         transaction?.transactionID,
+        transaction?.routes,
         report?.reportID,
+        policy
     ]);
 
     const renderItem = useCallback(
