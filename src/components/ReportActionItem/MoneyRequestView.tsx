@@ -340,7 +340,7 @@ function MoneyRequestView({
                 {(shouldShowMapOrReceipt || errors) && (
                     <OfflineWithFeedback
                         pendingAction={pendingAction}
-                        errors={errors}
+                        errors={transaction?.errorFields?.route ?? transaction?.errors}
                         errorRowStyles={[styles.mh4]}
                         onClose={() => {
                             if (!transaction?.transactionID) {
