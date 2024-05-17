@@ -127,6 +127,7 @@ const WRITE_COMMANDS = {
     CREATE_WORKSPACE_FROM_IOU_PAYMENT: 'CreateWorkspaceFromIOUPayment',
     SET_WORKSPACE_CATEGORIES_ENABLED: 'SetWorkspaceCategoriesEnabled',
     SET_POLICY_TAGS_ENABLED: 'SetPolicyTagsEnabled',
+    SET_POLICY_TAGS_REQUIRED: 'SetPolicyTagsRequired',
     CREATE_WORKSPACE_CATEGORIES: 'CreateWorkspaceCategories',
     RENAME_WORKSPACE_CATEGORY: 'RenameWorkspaceCategory',
     CREATE_POLICY_TAG: 'CreatePolicyTag',
