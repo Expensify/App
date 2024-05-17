@@ -478,8 +478,6 @@ const ONYXKEYS = {
         WORKSPACE_TAX_VALUE_FORM_DRAFT: 'workspaceTaxValueFormDraft',
         NEW_CHAT_NAME_FORM: 'newChatNameForm',
         NEW_CHAT_NAME_FORM_DRAFT: 'newChatNameFormDraft',
-        REVIEW_DUPLICATES_FORM: 'reviewDuplicatesForm',
-        REVIEW_DUPLICATES_FORM_DRAFT: 'reviewDuplicatesFormDraft',
     },
 } as const;
 
