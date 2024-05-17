@@ -774,12 +774,13 @@ function ReportActionItem({
         return <ReportActionItemGrouped wrapperStyle={isWhisper ? styles.pt1 : {}}>{content}</ReportActionItemGrouped>;
     };
 
+    console.log(report);
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.TRIPPREVIEW) {
         if (ReportUtils.isTripRoom(report)) {
             return (
                 <OfflineWithFeedback pendingAction={action.pendingAction}>
                     <TripDetailsView
-                        iouReportID={report.iouReportID}
+                        iouReportID={report.reportID}
                         shouldShowHorizontalRule={!shouldHideThreadDividerLine}
                     />
                 </OfflineWithFeedback>

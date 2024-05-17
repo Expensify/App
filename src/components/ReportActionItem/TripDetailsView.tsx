@@ -185,10 +185,11 @@ function TripDetailsView({iouReportID, shouldShowHorizontalRule}: TripDetailsVie
     const {translate} = useLocalize();
 
     // TODO: once backend is ready uncomment lines below and remove test data
-    const reservations = testReservationsList;
-    // const tripTransactions = ReportUtils.getTripTransactions(iouReportID);
-
-    // const reservations: Reservation[] = TripReservationUtils.getReservationsFromTripTransactions(tripTransactions);
+    // const reservations = testReservationsList;
+    const tripTransactions = ReportUtils.getTripTransactions(iouReportID);
+    console.log('reportId: ', iouReportID);
+    console.log('**', tripTransactions);
+    const reservations: Reservation[] = TripReservationUtils.getReservationsFromTripTransactions(tripTransactions);
 
     return (
         <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true)]}>
