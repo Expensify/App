@@ -268,6 +268,9 @@ type MenuItemBaseProps = {
 
     /** Optional account id if it's user avatar or policy id if it's workspace avatar */
     avatarID?: number | string;
+
+    /** Should we center text or not */
+    shouldCenter?: boolean;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -346,6 +349,7 @@ function MenuItem(
         shouldPutLeftPaddingWhenNoIcon = false,
         onFocus,
         avatarID,
+        shouldCenter = false,
     }: MenuItemProps,
     ref: PressableRef,
 ) {
@@ -558,7 +562,14 @@ function MenuItem(
                                                     />
                                                 </View>
                                             )}
-                                            <View style={[styles.justifyContentCenter, styles.flex1, StyleUtils.getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu)]}>
+                                            <View
+                                                style={[
+                                                    styles.justifyContentCenter,
+                                                    styles.flex1,
+                                                    StyleUtils.getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu),
+                                                    shouldCenter && styles.alignItemsCenter,
+                                                ]}
+                                            >
                                                 {!!description && shouldShowDescriptionOnTop && (
                                                     <Text
                                                         style={descriptionTextStyles}

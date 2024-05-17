@@ -351,13 +351,14 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                                 title={roomTitle}
                                 titleStyle={styles.newKansasLarge}
                                 shouldCheckActionAllowedOnPress={false}
-                                description={roomDescription}
+                                description={!shouldDisableRename ? roomDescription : ''}
                                 furtherDetails={chatRoomSubtitle && !isGroupChat ? roomFurtherDetails : ''}
                                 onPress={() =>
                                     isGroupChat
                                         ? Navigation.navigate(ROUTES.REPORT_SETTINGS_GROUP_NAME.getRoute(report.reportID))
                                         : Navigation.navigate(ROUTES.REPORT_SETTINGS_ROOM_NAME.getRoute(report.reportID))
                                 }
+                                shouldCenter={shouldDisableRename}
                             />
                         </View>
                     )}
