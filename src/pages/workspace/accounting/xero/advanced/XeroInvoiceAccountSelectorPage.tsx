@@ -22,16 +22,16 @@ function XeroInvoiceAccountSelectorPage({policy}: WithPolicyConnectionsProps) {
 
     const {invoiceCollectionsAccountID, syncReimbursedReports} = policy?.connections?.xero?.config.sync ?? {};
 
-    const xeroSelectorOptions = useMemo<SelectorType[]>(
-        () =>
-            (bankAccounts ?? []).map(({id, name}) => ({
-                value: id,
-                text: name,
-                keyForList: id,
-                isSelected: invoiceCollectionsAccountID === id,
-            })),
-        [invoiceCollectionsAccountID, bankAccounts],
-    );
+    const xeroSelectorOptions = useMemo<SelectorType[]>(() => {
+        const isMatchFound = bankAccounts?.some(({id}) => id === invoiceCollectionsAccountID);
+
+        return (bankAccounts ?? []).map(({id, name}, index) => ({
+            value: id,
+            text: name,
+            keyForList: id,
+            isSelected: isMatchFound ? invoiceCollectionsAccountID === id : index === 0,
+        }));
+    }, [invoiceCollectionsAccountID, bankAccounts]);
 
     const listHeaderComponent = useMemo(
         () => (
