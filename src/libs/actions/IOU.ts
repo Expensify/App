@@ -6791,6 +6791,18 @@ function getIOURequestPolicyID(transaction: OnyxEntry<OnyxTypes.Transaction>, re
     return workspaceSender?.policyID ?? report?.policyID ?? '0';
 }
 
+function mergeDuplicates(transactionID: string, duplicates: string[], changedFields: Record<string, any>) {
+    const params = {
+        transactionID,
+        transactionIDs: duplicates.join(''),
+        ...changedFields,
+    };
+
+    const optimisticData: OnyxUpdate[] = [];
+    const failureData: OnyxUpdate[] = [];
+    API.write('MergeDuplicates', params, {optimisticData, failureData});
+}
+
 export {
     approveMoneyRequest,
     canApproveIOU,
@@ -6855,5 +6867,6 @@ export {
     updateMoneyRequestTaxRate,
     sendInvoice,
     getIOURequestPolicyID,
+    mergeDuplicates,
 };
 export type {GPSPoint as GpsPoint, IOURequestType};
