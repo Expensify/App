@@ -1,4 +1,3 @@
-import {FSPage} from '@libs/Fullstory';
 import type {NavigationState} from '@react-navigation/native';
 import {DefaultTheme, findFocusedRoute, NavigationContainer} from '@react-navigation/native';
 import React, {useContext, useEffect, useMemo, useRef} from 'react';
@@ -7,6 +6,7 @@ import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useTheme from '@hooks/useTheme';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {FSPage} from '@libs/Fullstory';
 import Log from '@libs/Log';
 import {getPathFromURL} from '@libs/Url';
 import {updateLastVisitedPath} from '@userActions/App';
@@ -61,7 +61,7 @@ function parseAndLogRoute(state: NavigationState) {
 
     // Fullstory Page navigation tracking
     const focusedRouteName = focusedRoute?.name;
-    if(focusedRouteName){
+    if (focusedRouteName) {
         new FSPage(focusedRouteName, {path: currentPath}).start();
     }
 }

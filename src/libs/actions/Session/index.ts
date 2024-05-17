@@ -3,7 +3,6 @@ import type {ChannelAuthorizationData} from 'pusher-js/types/src/core/auth/optio
 import type {ChannelAuthorizationCallback} from 'pusher-js/with-encryption';
 import {InteractionManager, Linking, NativeModules} from 'react-native';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Fullstory from '@libs/Fullstory';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as PersistedRequests from '@libs/actions/PersistedRequests';
@@ -24,6 +23,7 @@ import type SignInUserParams from '@libs/API/parameters/SignInUserParams';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as Authentication from '@libs/Authentication';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import Fullstory from '@libs/Fullstory';
 import HttpUtils from '@libs/HttpUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
