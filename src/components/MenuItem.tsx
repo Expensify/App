@@ -367,6 +367,7 @@ function MenuItem(
         [
             styles.flexShrink1,
             styles.popoverMenuText,
+            shouldCenter ? styles.textAlignCenter : {},
             // eslint-disable-next-line no-nested-ternary
             shouldPutLeftPaddingWhenNoIcon || (icon && !Array.isArray(icon)) ? (avatarSize === CONST.AVATAR_SIZE.SMALL ? styles.ml2 : styles.ml3) : {},
             shouldShowBasicTitle ? {} : styles.textStrong,
@@ -562,14 +563,7 @@ function MenuItem(
                                                     />
                                                 </View>
                                             )}
-                                            <View
-                                                style={[
-                                                    styles.justifyContentCenter,
-                                                    styles.flex1,
-                                                    StyleUtils.getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu),
-                                                    shouldCenter && styles.alignItemsCenter,
-                                                ]}
-                                            >
+                                            <View style={[styles.justifyContentCenter, styles.flex1, StyleUtils.getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu)]}>
                                                 {!!description && shouldShowDescriptionOnTop && (
                                                     <Text
                                                         style={descriptionTextStyles}
@@ -578,7 +572,7 @@ function MenuItem(
                                                         {description}
                                                     </Text>
                                                 )}
-                                                <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                                <View style={[!shouldCenter && styles.flexRow, styles.alignItemsCenter]}>
                                                     {!!title && (shouldRenderAsHTML || (shouldParseTitle && !!html.length)) && (
                                                         <View style={styles.renderHTMLTitle}>
                                                             <RenderHTML html={processedTitle} />
@@ -611,7 +605,7 @@ function MenuItem(
                                                     </Text>
                                                 )}
                                                 {!!furtherDetails && (
-                                                    <View style={[styles.flexRow, styles.mt1, styles.alignItemsCenter]}>
+                                                    <View style={[!shouldCenter && styles.flexRow, styles.mt1, styles.alignItemsCenter]}>
                                                         {!!furtherDetailsIcon && (
                                                             <Icon
                                                                 src={furtherDetailsIcon}
@@ -621,7 +615,10 @@ function MenuItem(
                                                             />
                                                         )}
                                                         <Text
-                                                            style={furtherDetailsIcon ? [styles.furtherDetailsText, styles.ph2, styles.pt1] : styles.textLabelSupporting}
+                                                            style={[
+                                                                furtherDetailsIcon ? [styles.furtherDetailsText, styles.ph2, styles.pt1] : styles.textLabelSupporting,
+                                                                shouldCenter && styles.textAlignCenter,
+                                                            ]}
                                                             numberOfLines={2}
                                                         >
                                                             {furtherDetails}
