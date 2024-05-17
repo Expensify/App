@@ -187,6 +187,7 @@ module.exports = {
                 touchables: ['PressableWithoutFeedback', 'PressableWithFeedback'],
             },
         ],
+        'react-compiler/react-compiler': 'error',
 
         // Disallow usage of certain functions and imports
         'no-restricted-syntax': [
@@ -276,7 +277,4 @@ module.exports = {
             },
         },
     ],
-    rules: {
-        'react-compiler/react-compiler': 'error',
-    }
 };
