@@ -1392,14 +1392,14 @@ const styles = (theme: ThemeColors) =>
         formHelp: {
             color: theme.textSupporting,
             fontSize: variables.fontSizeLabel,
-            lineHeight: variables.lineHeightLarge,
+            lineHeight: variables.lineHeightNormal,
             marginBottom: 4,
         },
 
         formError: {
             color: theme.textError,
             fontSize: variables.fontSizeLabel,
-            lineHeight: variables.formErrorLineHeight,
+            lineHeight: variables.lineHeightNormal,
             marginBottom: 4,
         },
 
@@ -2234,6 +2234,15 @@ const styles = (theme: ThemeColors) =>
             textAlign: 'center',
             verticalAlign: 'middle',
             width: 200,
+        },
+
+        chatItemPDFAttachmentLoading: {
+            backgroundColor: 'transparent',
+            borderColor: theme.border,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadiusNormal,
+            ...flex.alignItemsCenter,
+            ...flex.justifyContentCenter,
         },
 
         sidebarVisible: {
@@ -4478,10 +4487,8 @@ const styles = (theme: ThemeColors) =>
             width: '100%',
         },
         menuItemError: {
-            position: 'absolute',
-            bottom: -4,
-            left: 20,
-            right: 20,
+            marginTop: 4,
+            marginBottom: 0,
         },
         formHelperMessage: {
             height: 32,
@@ -4895,6 +4902,7 @@ const styles = (theme: ThemeColors) =>
         workspaceTitleStyle: {
             ...headlineFont,
             fontSize: variables.fontSizeXLarge,
+            flex: 1,
         },
 
         textLineThrough: {
