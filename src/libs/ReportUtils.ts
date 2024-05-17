@@ -1234,6 +1234,13 @@ function isArchivedRoom(report: OnyxEntry<Report> | EmptyObject, reportNameValue
 }
 
 /**
+ * Whether the provided report is a closed report
+ */
+function isClosedReport(report: OnyxEntry<Report> | EmptyObject): boolean {
+    return report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED && report?.stateNum === CONST.REPORT.STATE_NUM.APPROVED;
+}
+
+/**
  * Whether the provided report is the admin's room
  */
 function isJoinRequestInAdminRoom(report: OnyxEntry<Report>): boolean {
@@ -6844,6 +6851,7 @@ export {
     isAllowedToSubmitDraftExpenseReport,
     isAnnounceRoom,
     isArchivedRoom,
+    isClosedReport,
     isCanceledTaskReport,
     isChatReport,
     isChatRoom,
