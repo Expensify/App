@@ -25,7 +25,9 @@ const WHITELIST_CHANNELS_MAIN_TO_RENDERER = [
     ELECTRON_EVENTS.UPDATE_DOWNLOADED,
     ELECTRON_EVENTS.FOCUS,
     ELECTRON_EVENTS.BLUR,
-    ELECTRON_EVENTS.DOWNLOAD_STARTED,
+    ELECTRON_EVENTS.DOWNLOAD_COMPLETED,
+    ELECTRON_EVENTS.DOWNLOAD_FAILED,
+    ELECTRON_EVENTS.DOWNLOAD_CANCELED,
 ] as const;
 
 const getErrorMessage = (channel: string): string => `Electron context bridge cannot be used with channel '${channel}'`;

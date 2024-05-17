@@ -18,17 +18,19 @@ const fileDownload: FileDownload = (url, fileName) => {
             resolve();
         }, CONST.DOWNLOADS_TIMEOUT);
 
-        window.electron.on(ELECTRON_EVENTS.DOWNLOAD_STARTED, (...args: unknown[]) => {
+        const handleDownloadStatus = (...args: unknown[]) => {
             const arg = Array.isArray(args) ? args[0] : null;
             const eventUrl = arg && typeof arg === 'object' && 'url' in arg ? arg.url : null;
 
-            // This event is triggered for all active download instances. We intentionally keep other promises waiting.
-            // Early resolution or rejection of other promises could prematurely stop the loading spinner or prevent the promise from being resolved.
             if (eventUrl === url) {
                 clearTimeout(downloadTimeout);
                 resolve();
             }
-        });
+        };
+
+        window.electron.on(ELECTRON_EVENTS.DOWNLOAD_COMPLETED, handleDownloadStatus);
+        window.electron.on(ELECTRON_EVENTS.DOWNLOAD_FAILED, handleDownloadStatus);
+        window.electron.on(ELECTRON_EVENTS.DOWNLOAD_CANCELED, handleDownloadStatus);
     });
 };
 

@@ -34,7 +34,6 @@ const createDownloadQueue = () => {
             let downloadTimeout: NodeJS.Timeout;
             let downloadListener: (event: Electron.Event, electronDownloadItem: Electron.DownloadItem) => void;
 
-            // Define the timeout function
             const timeoutFunction = () => {
                 item.win.webContents.session.removeListener('will-download', downloadListener);
                 resolve();
@@ -74,6 +73,7 @@ const createDownloadQueue = () => {
                         return;
                     }
 
+                    item.win.webContents.send(ELECTRON_EVENTS.DOWNLOAD_CANCELED, {url: item.url});
                     cleanup();
                     reject(new Error(errorMessage));
                     electronDownloadItem.cancel();
@@ -82,19 +82,20 @@ const createDownloadQueue = () => {
                 electronDownloadItem.on('done', (_, state) => {
                     cleanup();
                     if (state === 'cancelled') {
+                        item.win.webContents.send(ELECTRON_EVENTS.DOWNLOAD_CANCELED, {url: item.url});
                         resolve();
                     } else if (state === 'interrupted') {
+                        item.win.webContents.send(ELECTRON_EVENTS.DOWNLOAD_FAILED, {url: item.url});
                         reject(new Error(errorMessage));
                     } else if (state === 'completed') {
                         if (process.platform === 'darwin') {
                             const savePath = electronDownloadItem.getSavePath();
                             app.dock.downloadFinished(savePath);
                         }
+                        item.win.webContents.send(ELECTRON_EVENTS.DOWNLOAD_COMPLETED, {url: item.url});
                         resolve();
                     }
                 });
-
-                item.win.webContents.send(ELECTRON_EVENTS.DOWNLOAD_STARTED, {url: item.url});
             };
 
             downloadTimeout = setTimeout(timeoutFunction, CONST.DOWNLOADS_TIMEOUT);
