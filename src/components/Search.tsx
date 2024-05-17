@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -11,6 +11,7 @@ import EmptySearchView from '@pages/Search/EmptySearchView';
 import useCustomBackHandler from '@pages/Search/useCustomBackHandler';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import SelectionList from './SelectionList';
@@ -23,6 +24,7 @@ type SearchProps = {
 };
 
 function Search({query, policyIDs}: SearchProps) {
+    const [selectedItems, setSelectedItems] = useState<Array<SearchTransaction | SearchReport>>([]);
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     useCustomBackHandler();
@@ -65,6 +67,10 @@ function Search({query, policyIDs}: SearchProps) {
         return null;
     }
 
+    const toggleListItem = (listItem: SearchTransaction | SearchReport) => {
+        console.log(listItem);
+    };
+
     const ListItem = SearchUtils.getListItem(type);
 
     const data = SearchUtils.getSections(
@@ -81,8 +87,19 @@ function Search({query, policyIDs}: SearchProps) {
         type,
     );
 
+    const toggleAllItems = () => {
+        if (selectedItems.length === data.length) {
+            setSelectedItems([]);
+        } else {
+            setSelectedItems([...data]);
+        }
+    };
+
     return (
         <SelectionList
+            canSelectMultiple
+            onSelectAll={toggleAllItems}
+            onCheckboxPress={toggleListItem}
             customListHeader={<SearchTableHeader data={searchResults?.data} />}
             ListItem={ListItem}
             sections={[{data, isDisabled: false}]}

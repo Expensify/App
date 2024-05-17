@@ -30,7 +30,7 @@ function SearchTableHeader({data}: SearchTableHeaderProps) {
     }
 
     return (
-        <View style={[styles.ph5, styles.pb3]}>
+        <View style={[styles.flex1]}>
             <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.ph4]}>
                 <SearchTableHeaderColumn
                     containerStyle={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DATE)]}
