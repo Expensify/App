@@ -27,7 +27,7 @@ import WorkspacesSectionHeader from './WorkspacesSectionHeader';
 
 type WorkspaceListItem = {
     text: string;
-    policyID: string;
+    policyID?: string;
     isPolicyAdmin?: boolean;
     brickRoadIndicator?: BrickRoad;
 } & ListItem;
@@ -158,7 +158,6 @@ function WorkspaceSwitcherPage() {
 
     const defaultPolicy = {
         text: CONST.WORKSPACE_SWITCHER.NAME,
-        policyID: '',
         icons: [{source: Expensicons.ExpensifyAppIcon, name: CONST.WORKSPACE_SWITCHER.NAME, type: CONST.ICON_TYPE_AVATAR}],
         brickRoadIndicator: getIndicatorTypeForPolicy(undefined),
         keyForList: CONST.WORKSPACE_SWITCHER.NAME,

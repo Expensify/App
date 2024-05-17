@@ -290,7 +290,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                         <SelectionList
                             canSelectMultiple
                             sections={[{data, isDisabled: false}]}
-                            textInputLabel={translate('optionsSelector.findMember')}
+                            textInputLabel={translate('selectionList.findMember')}
                             disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                             textInputValue={searchValue}
                             onChangeText={(value) => {
