@@ -89,13 +89,14 @@ function MoneyRequestHeader({
     const isSettled = ReportUtils.isSettled(moneyRequestReport?.reportID);
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
     const isOnHold = TransactionUtils.isOnHold(transaction);
-    const {windowWidth} = useWindowDimensions();
+    const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
 
     // Only the requestor can take delete the expense, admins can only edit it.
     const isActionOwner = typeof parentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && parentReportAction.actorAccountID === session?.accountID;
     const isPolicyAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isApprover = ReportUtils.isMoneyRequestReport(moneyRequestReport) && moneyRequestReport?.managerID !== null && session?.accountID === moneyRequestReport?.managerID;
     const hasAllPendingRTERViolations = TransactionUtils.allHavePendingRTERViolation([transaction?.transactionID ?? '']);
+    const showFullWidthMarkAsCashButton = isSmallScreenWidth && hasAllPendingRTERViolations;
 
     const deleteTransaction = useCallback(() => {
         if (parentReportAction) {
@@ -150,7 +151,11 @@ function MoneyRequestHeader({
             return {title: getStatusIcon(Expensicons.ReceiptScan), description: translate('iou.receiptScanInProgressDescription'), shouldShowBorderBottom: true};
         }
         if (TransactionUtils.hasPendingRTERViolation(TransactionUtils.getTransactionViolations(transaction?.transactionID ?? '', transactionViolations))) {
-            return {title: getStatusIcon(Expensicons.Hourglass), description: translate('iou.pendingMatchWithCreditCardDescription'), shouldShowBorderBottom: !hasAllPendingRTERViolations};
+            return {
+                title: getStatusIcon(Expensicons.Hourglass),
+                description: translate('iou.pendingMatchWithCreditCardDescription'),
+                shouldShowBorderBottom: !showFullWidthMarkAsCashButton,
+            };
         }
     };
 
@@ -234,7 +239,19 @@ function MoneyRequestHeader({
                     policy={policy}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={onBackButtonPress}
-                />
+                >
+                    {!isSmallScreenWidth && hasAllPendingRTERViolations && (
+                        <Button
+                            success
+                            medium
+                            text={translate('iou.markAsCash')}
+                            style={[styles.p0]}
+                            onPress={() => {
+                                TransactionActions.markAsCash(transaction?.transactionID ?? '', transaction?.reportID ?? '');
+                            }}
+                        />
+                    )}
+                </HeaderWithBackButton>
                 {statusBarProps && (
                     <MoneyRequestHeaderStatusBar
                         title={statusBarProps.title}
@@ -243,7 +260,7 @@ function MoneyRequestHeader({
                         shouldShowBorderBottom={statusBarProps.shouldShowBorderBottom}
                     />
                 )}
-                {hasAllPendingRTERViolations && (
+                {showFullWidthMarkAsCashButton && (
                     <View style={[styles.ph5, styles.pb3, styles.borderBottom]}>
                         <Button
                             medium
