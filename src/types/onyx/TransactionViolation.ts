@@ -31,6 +31,7 @@ type TransactionViolation = {
         errorIndexes?: number[];
         pendingPattern?: boolean;
     };
+    displayPercentVariance?: number;
 };
 
 type TransactionViolations = TransactionViolation[];

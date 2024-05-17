@@ -48,10 +48,13 @@ const violationFields: Record<ViolationName, ViolationField> = {
 
 type ViolationsMap = Map<ViolationField, TransactionViolation[]>;
 
+// We don't want to show these violations on NewDot
+const excludedViolationsName = ['taxAmountChanged', 'taxRateChanged'];
+
 function useViolations(violations: TransactionViolation[], shouldIncludeNoticeViolations?: boolean) {
     const violationsByField = useMemo((): ViolationsMap => {
         const filteredViolations = violations.filter((violation) => {
-            if (violation.name === 'taxRateChanged' || violation.name === 'taxAmountChanged') {
+            if (excludedViolationsName.includes(violation.name)) {
                 return false;
             }
             if (!shouldIncludeNoticeViolations) {

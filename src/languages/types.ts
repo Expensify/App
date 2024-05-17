@@ -222,7 +222,7 @@ type ViolationsMaxAgeParams = {maxAge: number};
 
 type ViolationsMissingTagParams = {tagName?: string};
 
-type ViolationsModifiedAmountParams = {type: string; displayPercentVariance?: string};
+type ViolationsModifiedAmountParams = {type: string; displayPercentVariance?: number};
 
 type ViolationsOverAutoApprovalLimitParams = {formattedLimit?: string};
 

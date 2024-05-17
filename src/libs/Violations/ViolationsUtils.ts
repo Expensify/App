@@ -239,7 +239,7 @@ const ViolationsUtils = {
             case 'missingTag':
                 return translate('violations.missingTag', {tagName});
             case 'modifiedAmount':
-                return translate('violations.modifiedAmount', {type: 'card'});
+                return translate('violations.modifiedAmount', {type: violation.type, displayPercentVariance: violation.displayPercentVariance});
             case 'modifiedDate':
                 return translate('violations.modifiedDate');
             case 'nonExpensiworksExpense':
@@ -276,6 +276,8 @@ const ViolationsUtils = {
                 return translate('violations.taxAmountChanged');
             case 'taxOutOfPolicy':
                 return translate('violations.taxOutOfPolicy', {taxName});
+            case 'taxRateChanged':
+                return translate('violations.taxRateChanged');
             case 'taxRequired':
                 return translate('violations.taxRequired');
             default:
