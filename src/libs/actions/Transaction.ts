@@ -326,7 +326,7 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
 }
 
 function setReviewDuplicatesKey(transactionID: string, transactionIDs: string[]) {
-    Onyx.merge(`${ONYXKEYS.FORMS.REVIEW_DUPLICATES_FORM}`, {
+    Onyx.merge(`${ONYXKEYS.REVIEW_DUPLICATES}`, {
         [transactionID]: {
             duplicates: transactionIDs,
         },

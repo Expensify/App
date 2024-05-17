@@ -318,6 +318,8 @@ const ONYXKEYS = {
     /** Holds the checks used while transferring the ownership of the workspace */
     POLICY_OWNERSHIP_CHANGE_CHECKS: 'policyOwnershipChangeChecks',
 
+    REVIEW_DUPLICATES: 'reviewDuplicates',
+
     /** Collection Keys */
     COLLECTION: {
         DOWNLOAD: 'download_',
@@ -535,7 +537,6 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.WORKSPACE_TAX_NAME_FORM]: FormTypes.WorkspaceTaxNameForm;
     [ONYXKEYS.FORMS.WORKSPACE_TAX_VALUE_FORM]: FormTypes.WorkspaceTaxValueForm;
     [ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM]: FormTypes.NewChatNameForm;
-    [ONYXKEYS.FORMS.REVIEW_DUPLICATES_FORM]: FormTypes.ReviewDuplicatesForm;
 };
 
 type OnyxFormDraftValuesMapping = {
@@ -683,6 +684,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.CACHED_PDF_PATHS]: Record<string, string>;
     [ONYXKEYS.POLICY_OWNERSHIP_CHANGE_CHECKS]: Record<string, OnyxTypes.PolicyOwnershipChangeChecks>;
     [ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE]: OnyxTypes.QuickAction;
+    [ONYXKEYS.REVIEW_DUPLICATES]: OnyxTypes.ReviewDuplicates;
 };
 
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping;
