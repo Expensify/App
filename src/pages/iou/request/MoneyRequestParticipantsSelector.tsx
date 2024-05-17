@@ -329,7 +329,7 @@ function MoneyRequestParticipantsSelector({participants = [], onFinish, onPartic
 
         return (
             <>
-                {shouldShowReferralBanner && (
+                {shouldShowReferralBanner && !isCategorizeOrShareAction && (
                     <ReferralProgramCTA
                         referralContentType={referralContentType}
                         style={[styles.flexShrink0, !!participants.length && !shouldShowSplitBillErrorMessage && styles.mb5]}
@@ -344,7 +344,7 @@ function MoneyRequestParticipantsSelector({participants = [], onFinish, onPartic
                     />
                 )}
 
-                {!!participants.length && (
+                {!!participants.length && !isCategorizeOrShareAction && (
                     <Button
                         success
                         text={translate('common.next')}
@@ -354,9 +354,29 @@ function MoneyRequestParticipantsSelector({participants = [], onFinish, onPartic
                         isDisabled={shouldShowSplitBillErrorMessage}
                     />
                 )}
+                {isCategorizeOrShareAction && (
+                    <Button
+                        success
+                        text={translate('workspace.new.newWorkspace')}
+                        onPress={() => onFinish()}
+                        pressOnEnter
+                        large
+                    />
+                )}
             </>
         );
-    }, [handleConfirmSelection, participants.length, isDismissed, referralContentType, shouldShowSplitBillErrorMessage, styles, translate, shouldShowReferralBanner]);
+    }, [
+        handleConfirmSelection,
+        participants.length,
+        isDismissed,
+        referralContentType,
+        shouldShowSplitBillErrorMessage,
+        styles,
+        translate,
+        shouldShowReferralBanner,
+        isCategorizeOrShareAction,
+        onFinish,
+    ]);
 
     return (
         <SelectionList
@@ -364,7 +384,7 @@ function MoneyRequestParticipantsSelector({participants = [], onFinish, onPartic
             sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
             ListItem={InviteMemberListItem}
             textInputValue={searchTerm}
-            textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+            textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
             textInputHint={offlineMessage}
             onChangeText={setSearchTerm}
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
