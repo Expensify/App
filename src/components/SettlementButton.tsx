@@ -206,6 +206,27 @@ function SettlementButton({
                 text: translate('iou.settlePersonal', {formattedAmount}),
                 icon: Expensicons.User,
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                subMenuItems: [
+                    {
+                        text: translate('iou.payElsewhere', {formattedAmount}),
+                        icon: Expensicons.Cash,
+                        value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                        onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.ELSEWHERE),
+                    },
+                ],
+            });
+            buttonOptions.push({
+                text: translate('iou.settleBusiness', {formattedAmount}),
+                icon: Expensicons.User,
+                value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                subMenuItems: [
+                    {
+                        text: translate('iou.payElsewhere', {formattedAmount}),
+                        icon: Expensicons.Cash,
+                        value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                        onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.ELSEWHERE),
+                    },
+                ],
             });
         }
 
@@ -263,6 +284,10 @@ function SettlementButton({
                 <ButtonWithDropdownMenu<PaymentType>
                     success
                     buttonRef={buttonRef}
+                    shouldAlwaysShowDropdownMenu={isInvoiceReport}
+                    customText={isInvoiceReport ? translate('iou.settlePayment', {formattedAmount}) : undefined}
+                    menuHeaderText={isInvoiceReport ? translate('workspace.invoices.paymentMethods.chooseInvoiceMethod') : undefined}
+                    isSplitButton={!isInvoiceReport}
                     isDisabled={isDisabled}
                     isLoading={isLoading}
                     onPress={(event, iouPaymentType) => selectPaymentType(event, iouPaymentType, triggerKYCFlow)}
