@@ -63,6 +63,7 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
                 title={translate('workspace.accounting.import')}
                 switchAccessibilityLabel={translate('workspace.xero.trackingCategories')}
                 isActive={isSwitchOn}
+                wrapperStyle={styles.mv3}
                 onToggle={() =>
                     Connections.updatePolicyConnectionConfig(
                         policyID,
