@@ -1,4 +1,5 @@
 import {useNavigation} from '@react-navigation/native';
+import type {StackNavigationProp} from '@react-navigation/stack';
 import React, {useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import useNetwork from '@hooks/useNetwork';
@@ -9,6 +10,7 @@ import Log from '@libs/Log';
 import * as SearchUtils from '@libs/SearchUtils';
 import type {SearchColumnType, SortOrder} from '@libs/SearchUtils';
 import Navigation from '@navigation/Navigation';
+import type {CentralPaneNavigatorParamList} from '@navigation/types';
 import EmptySearchView from '@pages/Search/EmptySearchView';
 import useCustomBackHandler from '@pages/Search/useCustomBackHandler';
 import CONST from '@src/CONST';
@@ -76,7 +78,7 @@ type SearchProps = {
 function Search({query, policyIDs, sortOrder, sortBy}: SearchProps) {
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
-    const navigation = useNavigation();
+    const navigation = useNavigation<StackNavigationProp<CentralPaneNavigatorParamList>>();
 
     useCustomBackHandler();
 
