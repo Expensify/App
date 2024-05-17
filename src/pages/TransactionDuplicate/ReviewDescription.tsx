@@ -4,6 +4,7 @@ import React, {useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {ListItem} from '@components/SelectionList/types';
+import useLocalize from '@hooks/useLocalize';
 import useReviewDuplicatesNavigation from '@hooks/useReviewDuplicatesNavigation';
 import {setReviewDuplicatesKey} from '@libs/actions/Transaction';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
@@ -13,6 +14,7 @@ import ReviewFields from './ReviewFields';
 
 function ReviewDescription() {
     const route = useRoute<RouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.DESCRIPTION>>();
+    const {translate} = useLocalize();
     const transactionID = TransactionUtils.getTransactionID(route.params.threadReportID ?? '');
     const compareResult = TransactionUtils.compareDuplicateTransactionFields(transactionID);
     const stepNames = Object.keys(compareResult.change ?? {}).map((key, index) => (index + 1).toString());
@@ -21,13 +23,13 @@ function ReviewDescription() {
         () =>
             compareResult.change.description.map((description) =>
                 !description
-                    ? {text: 'None', value: ''}
+                    ? {text: translate('violations.none'), value: ''}
                     : {
                           text: description.comment,
                           value: description.comment,
                       },
             ),
-        [compareResult.change.description],
+        [compareResult.change.description, translate],
     );
     const onSelectRow = (data: ListItem) => {
         if (data.data !== undefined) {
@@ -38,10 +40,10 @@ function ReviewDescription() {
 
     return (
         <ScreenWrapper testID={ReviewDescription.displayName}>
-            <HeaderWithBackButton title="Review duplicates" />
+            <HeaderWithBackButton title={translate('iou.reviewDuplicates')} />
             <ReviewFields
                 stepNames={stepNames}
-                label="Choose which description to keep"
+                label={translate('violations.descriptionToKeep')}
                 options={options}
                 index={currentScreenIndex}
                 onSelectRow={onSelectRow}

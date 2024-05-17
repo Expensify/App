@@ -5,6 +5,7 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem, SectionListDataType} from '@components/SelectionList/types';
 import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -19,9 +20,10 @@ type ReviewFieldsProps = {
 
 function ReviewFields({stepNames, label, options, index, onSelectRow}: ReviewFieldsProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     let falsyCount = 0;
     const filteredOptions = options.filter((name) => {
-        if (name.text !== 'None') {
+        if (name.text !== translate('violations.none')) {
             return true;
         }
         falsyCount++;

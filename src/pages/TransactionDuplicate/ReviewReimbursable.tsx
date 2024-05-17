@@ -4,6 +4,7 @@ import React, {useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {ListItem} from '@components/SelectionList/types';
+import useLocalize from '@hooks/useLocalize';
 import useReviewDuplicatesNavigation from '@hooks/useReviewDuplicatesNavigation';
 import {setReviewDuplicatesKey} from '@libs/actions/Transaction';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
@@ -13,6 +14,7 @@ import ReviewFields from './ReviewFields';
 
 function ReviewReimbursable() {
     const route = useRoute<RouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.TAG>>();
+    const {translate} = useLocalize();
     const transactionID = TransactionUtils.getTransactionID(route.params.threadReportID ?? '');
     const compareResult = TransactionUtils.compareDuplicateTransactionFields(transactionID);
     const stepNames = Object.keys(compareResult.change ?? {}).map((key, index) => (index + 1).toString());
@@ -20,10 +22,10 @@ function ReviewReimbursable() {
     const options = useMemo(
         () =>
             compareResult.change.reimbursable.map((reimbursable) => ({
-                text: reimbursable ? 'Yes' : 'No',
+                text: reimbursable ? translate('common.yes') : translate('common.no'),
                 value: reimbursable,
             })),
-        [compareResult.change.reimbursable],
+        [compareResult.change.reimbursable, translate],
     );
 
     const onSelectRow = (data: ListItem) => {
@@ -35,10 +37,10 @@ function ReviewReimbursable() {
 
     return (
         <ScreenWrapper testID={ReviewReimbursable.displayName}>
-            <HeaderWithBackButton title="Review duplicates" />
+            <HeaderWithBackButton title={translate('iou.reviewDuplicates')} />
             <ReviewFields
                 stepNames={stepNames}
-                label="Choose if transaction is reimbursable"
+                label={translate('violations.isTransactionReimbursable')}
                 options={options}
                 index={currentScreenIndex}
                 onSelectRow={onSelectRow}

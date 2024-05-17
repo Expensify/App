@@ -3566,6 +3566,14 @@ export default {
         taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams) => `${taxName ?? 'El impuesto'} ya no es válido`,
         taxRateChanged: 'La tasa de impuesto fue modificada',
         taxRequired: 'Falta la tasa de impuesto',
+        none: 'Ninguno',
+        taxCodeToKeep: 'Elegir qué código fiscal mantener',
+        tagToKeep: 'Elija la etiqueta que desea conservar',
+        isTransactionReimbursable: 'Elija si la transacción es reembolsable',
+        merchantToKeep: 'Elija con qué comerciante quedarse',
+        descriptionToKeep: 'Elija la descripción que desea conservar',
+        categoryToKeep: 'Elija la categoría que desea conservar',
+        isTransactionBillable: 'Elija si la transacción es facturable',
     },
     violationDismissal: {
         rter: {
