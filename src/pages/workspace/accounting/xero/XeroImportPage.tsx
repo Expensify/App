@@ -37,7 +37,7 @@ function XeroImportPage({policy}: WithPolicyProps) {
                 description: translate('workspace.xero.trackingCategories'),
                 action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES.getRoute(policyID)),
                 hasError: !!errorFields?.importTrackingCategories,
-                title: importTrackingCategories ? translate('workspace.accounting.importTypes.TAG') : translate('workspace.xero.notImported'),
+                title: importTrackingCategories ? translate('workspace.accounting.imported') : translate('workspace.xero.notImported'),
                 pendingAction: pendingFields?.importTrackingCategories,
             },
             {
