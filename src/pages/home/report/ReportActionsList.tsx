@@ -18,7 +18,6 @@ import useReportScrollManager from '@hooks/useReportScrollManager';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import DateUtils from '@libs/DateUtils';
-import getPlatform from '@libs/getPlatform';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -600,12 +599,8 @@ function ReportActionsList({
     const canShowHeader = !isOffline && !hasHeaderRendered.current && scrollingVerticalOffset.current > VERTICAL_OFFSET_THRESHOLD;
 
     const contentContainerStyle: StyleProp<ViewStyle> = useMemo(
-        () => [
-            getPlatform() === CONST.PLATFORM.WEB || getPlatform() === CONST.PLATFORM.DESKTOP ? styles.overflowHidden : {},
-            styles.chatContentScrollView,
-            isLoadingNewerReportActions && canShowHeader ? styles.chatContentScrollViewWithHeaderLoader : {},
-        ],
-        [isLoadingNewerReportActions, styles.overflowHidden, styles.chatContentScrollView, styles.chatContentScrollViewWithHeaderLoader, canShowHeader],
+        () => [styles.chatContentScrollView, isLoadingNewerReportActions && canShowHeader ? styles.chatContentScrollViewWithHeaderLoader : {}],
+        [isLoadingNewerReportActions, styles.chatContentScrollView, styles.chatContentScrollViewWithHeaderLoader, canShowHeader],
     );
 
     const lastReportAction: OnyxTypes.ReportAction | EmptyObject = useMemo(() => sortedReportActions.at(-1) ?? {}, [sortedReportActions]);
