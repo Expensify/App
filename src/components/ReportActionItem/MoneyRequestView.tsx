@@ -323,7 +323,7 @@ function MoneyRequestView({
     const shouldShowNotesViolations = !isReceiptBeingScanned && canUseViolations && ReportUtils.isPaidGroupPolicy(report);
 
     const errors = {
-        ...transaction?.errorFields?.route ?? transaction?.errors,
+        ...(transaction?.errorFields?.route ?? transaction?.errors),
         ...parentReportAction?.errors,
     };
 
