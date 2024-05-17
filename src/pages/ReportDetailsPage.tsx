@@ -81,7 +81,8 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const isInvoiceRoom = useMemo(() => ReportUtils.isInvoiceRoom(report), [report]);
     const canEditReportDescription = useMemo(() => ReportUtils.canEditReportDescription(report, policy), [report, policy]);
     const shouldShowReportDescription = isChatRoom && (canEditReportDescription || report.description !== '');
-    const shouldDisableRename = useMemo(() => ReportUtils.shouldDisableRename(report, policy), [policy, report]);
+    const linkedWorkspace = useMemo(() => Object.values(policies ?? {}).find((linkedPolicy) => linkedPolicy && linkedPolicy.id === report?.policyID) ?? null, [policies, report?.policyID]);
+    const shouldDisableRename = useMemo(() => ReportUtils.shouldDisableRename(report, linkedWorkspace), [report, linkedWorkspace]);
     const isDeprecatedGroupDM = useMemo(() => ReportUtils.isDeprecatedGroupDM(report), [report]);
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(report), [report]);
     const shouldShowRoomName = isPolicyExpenseChat || (!ReportUtils.isChatThread(report) && !isTaskReport && !isDeprecatedGroupDM && !isMoneyRequestReport);
