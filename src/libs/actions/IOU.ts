@@ -40,7 +40,7 @@ import Permissions from '@libs/Permissions';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import {generateReportID, OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction, TransactionDetails} from '@libs/ReportUtils';
+import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction, TransactionDetails} from '@libs/ReportUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as UserUtils from '@libs/UserUtils';
@@ -50,7 +50,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import {ReportActions} from '@src/types/onyx';
 import type {Participant, Split} from '@src/types/onyx/IOU';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type {IOUMessage, PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -5811,35 +5810,48 @@ function getPayMoneyRequestParams(
     const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`] ?? null;
     const optimisticNextStep = NextStepUtils.buildNextStep(iouReport, CONST.REPORT.STATUS_NUM.REIMBURSED, {isPaidWithExpensify: paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA});
 
-    let holdTransactions = Object.values(allTransactions ?? {}).filter((transaction) => {
-        if (`${transaction?.reportID}` === `${iouReport.reportID}` && transaction?.comment?.hold) return transaction;
+    const holdTransactions = Object.values(allTransactions ?? {}).filter((transaction) => {
+        if (`${transaction?.reportID}` === `${iouReport.reportID}` && transaction?.comment?.hold) {
+            return transaction;
+        }
     });
-    console.log(holdTransactions);
 
-    let reportActionsToBeMoved = Object.values(allReportActions?.[`reportActions_${iouReport.reportID}`] ?? {}).filter((reportAction) => {
+    const reportActionsToBeMoved = Object.values(allReportActions?.[`reportActions_${iouReport.reportID}`] ?? {}).filter((reportAction) => {
         let hasHoldTransaction = holdTransactions.find((transaction) => transaction?.transactionID === reportAction.originalMessage?.IOUTransactionID);
 
         if (hasHoldTransaction) {
             return reportAction;
         }
     });
-    console.log(reportActionsToBeMoved);
 
-    let removeReportActions: Record<string, null> = {};
+    const removeReportActions: Record<string, null> = {};
     reportActionsToBeMoved.forEach((reportAction) => {
         removeReportActions[reportAction.reportActionID] = null;
     });
-    console.log(removeReportActions);
 
-    let setReportActions: ReportActions = {};
+    const setReportActions: OnyxTypes.ReportActions = {};
     reportActionsToBeMoved.forEach((reportAction) => {
         setReportActions[reportAction.reportActionID] = reportAction;
     });
-    console.log(setReportActions);
 
-    let newIOUReportID = generateReportID();
-    let newIOUReport = iouReport;
-    newIOUReport.reportID = newIOUReportID;
+    const optimisticExpenseReport = ReportUtils.buildOptimisticExpenseReport(
+        chatReport.reportID,
+        chatReport.policyID ?? iouReport.policyID ?? '',
+        recipient.accountID ?? 1,
+        holdTransactions[0]?.amount * -1 ?? 0,
+        iouReport.currency ?? 'PLN',
+        true,
+    );
+    const optimisticExpenseReportPreview = ReportUtils.buildOptimisticReportPreview(chatReport, optimisticExpenseReport, '', holdTransactions[0]);
+
+    const movedTransactions: Record<string, OnyxTypes.Transaction> = {};
+    holdTransactions.forEach((transaction) => {
+        if (transaction !== null) {
+            transaction.reportID = optimisticExpenseReport.reportID;
+
+            movedTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
+        }
+    });
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -5850,12 +5862,32 @@ function getPayMoneyRequestParams(
                 lastReadTime: DateUtils.getDBTime(),
                 lastVisibleActionCreated: optimisticIOUReportAction.created,
                 hasOutstandingChildRequest: false,
-                iouReportID: newIOUReportID,
+                iouReportID: optimisticExpenseReport.reportID,
                 lastMessageText: optimisticIOUReportAction.message?.[0]?.text,
                 lastMessageHtml: optimisticIOUReportAction.message?.[0]?.html,
             },
         },
-        // removed hold report actions from old iou report
+        // add new optimistic expense report
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticExpenseReport.reportID}`,
+            value: optimisticExpenseReport,
+        },
+        // add transaction to the new expense report
+        {
+            onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}`,
+            value: movedTransactions,
+        },
+        // add preview report action to main chat
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            value: {
+                [optimisticExpenseReportPreview.reportActionID]: optimisticExpenseReportPreview,
+            },
+        },
+        // remove hold report actions from old iou report
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
@@ -5867,10 +5899,10 @@ function getPayMoneyRequestParams(
                 ...removeReportActions,
             },
         },
-        // added hold report actions to new iou report
+        // add hold report actions to new iou report
         {
             onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newIOUReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticExpenseReport.reportID}`,
             value: setReportActions,
         },
         {
@@ -5888,12 +5920,6 @@ function getPayMoneyRequestParams(
                     partial: full ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
             },
-        },
-        // added new iou report
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${newIOUReport.reportID}`,
-            value: newIOUReport,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
