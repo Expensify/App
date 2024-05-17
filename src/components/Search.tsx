@@ -86,9 +86,9 @@ function Search({query, policyIDs}: SearchProps) {
     const data = SearchUtils.getSections(
         {
             ...searchResults?.data,
-            report_5985708612548179: {
-                reportID: 5985708612548179,
-                reportName: 'name',
+            report_0: {
+                reportID: 0,
+                reportName: 'Alice’s Apples owes $110.00',
                 total: 1000,
                 currency: 'USD',
                 action: 'pay',
