@@ -25,7 +25,7 @@ function DuplicateTransactionItem(props: DuplicateTransactionItemProps) {
                 action={
                     // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                     Object.values(reportActions ?? {})?.find(
-                        (reportAction) => reportAction.actionName === 'IOU' && reportAction.originalMessage?.IOUTransactionID === props.transaction?.transactionID,
+                        (reportAction) => reportAction.actionName === 'IOU' && reportAction.originalMessage.IOUTransactionID === props.transaction?.transactionID,
                     ) as ReportAction
                 }
                 // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style

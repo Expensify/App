@@ -689,7 +689,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.TRANSACTION_DUPLICATE_REVIEW_BILLABLE_PAGE.route,
                             exact: true,
                         },
-                        // [SCREENS.TRANSACTION_DUPLICATE.CONFIRM]: ROUTES.TRANSACTION_DUPLICATE_CONFIRM.route,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.SPLIT_DETAILS]: {

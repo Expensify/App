@@ -811,10 +811,7 @@ const ROUTES = {
         route: 'r/:threadReportID/duplicates/review/billable',
         getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review/billable` as const,
     },
-    // TRANSACTION_DUPLICATE_CONFIRM: {
-    //     route: 'r/:threadReportID/duplicates/review/description',
-    //     getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review/description` as const,
-    // },
+
     POLICY_ACCOUNTING_XERO_IMPORT: {
         route: 'settings/workspaces/:policyID/accounting/xero/import',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/import` as const,

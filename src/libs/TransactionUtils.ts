@@ -635,30 +635,6 @@ function getRecentTransactions(transactions: Record<string, string>, size = 2): 
 }
 
 /**
- * Check if transaction is duplicated
- */
-function isDuplicate(transactionID: string, checkDissmissed: boolean): boolean {
-    const hasDuplicatedViolation = !!allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]?.some(
-        (violation: TransactionViolation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
-    );
-    if (!checkDissmissed) {
-        return hasDuplicatedViolation;
-    }
-    const didDismissedViolation =
-        allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.comment?.dismissedViolations?.duplicatedTransaction?.[currentUserEmail] === `${currentUserAccountID}`;
-    return hasDuplicatedViolation && !didDismissedViolation;
-}
-
-/**
- * Checks if any violations for the provided transaction are of type 'warning'
- */
-function hasWarning(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
-    return Boolean(
-        transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some((violation: TransactionViolation) => violation.type === CONST.VIOLATION_TYPES.WARNING),
-    );
-}
-
-/**
  * Check if transaction is on hold
  */
 function isOnHold(transaction: OnyxEntry<Transaction>): boolean {
@@ -666,7 +642,7 @@ function isOnHold(transaction: OnyxEntry<Transaction>): boolean {
         return false;
     }
 
-    return !!transaction.comment?.hold || isDuplicate(transaction?.transactionID, true);
+    return !!transaction.comment?.hold;
 }
 
 /**
@@ -911,9 +887,7 @@ export {
     waypointHasValidAddress,
     getRecentTransactions,
     hasViolation,
-    isDuplicate,
     hasNoticeTypeViolation,
-    hasWarning,
     isCustomUnitRateIDForP2P,
     getRateID,
     getTransaction,
