@@ -58,7 +58,7 @@ function MoneyReportView({report, policy}: MoneyReportViewProps) {
     }, [policy, report]);
 
     return (
-        <View style={[styles.pRelative, styles.overflowHidden]}>
+        <View style={[styles.pRelative]}>
             <AnimatedEmptyStateBackground />
             {!ReportUtils.isClosedExpenseReportWithNoExpenses(report) && (
                 <>
