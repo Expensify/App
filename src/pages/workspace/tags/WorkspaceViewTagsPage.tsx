@@ -14,6 +14,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRightCaretWithLabel';
 import TableListItem from '@components/SelectionList/TableListItem';
+import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -66,6 +67,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     }, [isFocused]);
 
     const policyTagList = useMemo(() => PolicyUtils.getTagLists(policyTags).find((policyTag) => policyTag.name === currentTagListName), [currentTagListName, policyTags]);
+
     const tagList = useMemo<TagListItem[]>(
         () =>
             Object.values(policyTagList?.tags ?? {})
@@ -244,6 +246,16 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         shouldShowRightIcon
                     />
                 </OfflineWithFeedback>
+                <View style={[styles.pv4, styles.ph5]}>
+                    <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                        <Text style={[styles.textNormal]}>{translate('workspace.tags.requiresTag')}</Text>
+                        <Switch
+                            isOn={Boolean(policyTagList?.required)}
+                            accessibilityLabel={translate('workspace.tags.requiresTag')}
+                            onToggle={(on) => Policy.setWorkspaceTagListRequired(policyID, route.params.orderWeight ?? 0, on)}
+                        />
+                    </View>
+                </View>
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
