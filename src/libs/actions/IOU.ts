@@ -5810,19 +5810,13 @@ function getPayMoneyRequestParams(
     const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`] ?? null;
     const optimisticNextStep = NextStepUtils.buildNextStep(iouReport, CONST.REPORT.STATUS_NUM.REIMBURSED, {isPaidWithExpensify: paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA});
 
-    const holdTransactions = Object.values(allTransactions ?? {}).filter((transaction) => {
-        if (`${transaction?.reportID}` === `${iouReport.reportID}` && transaction?.comment?.hold) {
-            return transaction;
-        }
-    });
+    const holdTransactions: OnyxTypes.Transaction[] = Object.values(allTransactions).filter(
+        (transaction): transaction is OnyxTypes.Transaction => transaction !== null && transaction.reportID === iouReport.reportID && !!transaction.comment?.hold,
+    );
 
-    const reportActionsToBeMoved = Object.values(allReportActions?.[`reportActions_${iouReport.reportID}`] ?? {}).filter((reportAction) => {
-        let hasHoldTransaction = holdTransactions.find((transaction) => transaction?.transactionID === reportAction.originalMessage?.IOUTransactionID);
-
-        if (hasHoldTransaction) {
-            return reportAction;
-        }
-    });
+    const reportActionsToBeMoved = Object.values(allReportActions?.[`reportActions_${iouReport.reportID}`] ?? {}).filter((reportAction) =>
+        holdTransactions.find((transaction) => transaction?.transactionID === (reportAction.originalMessage as IOUMessage)?.IOUTransactionID),
+    );
 
     const removeReportActions: Record<string, null> = {};
     reportActionsToBeMoved.forEach((reportAction) => {
@@ -5845,12 +5839,8 @@ function getPayMoneyRequestParams(
     const optimisticExpenseReportPreview = ReportUtils.buildOptimisticReportPreview(chatReport, optimisticExpenseReport, '', holdTransactions[0]);
 
     const movedTransactions: Record<string, OnyxTypes.Transaction> = {};
-    holdTransactions.forEach((transaction) => {
-        if (transaction !== null) {
-            transaction.reportID = optimisticExpenseReport.reportID;
-
-            movedTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
-        }
+    holdTransactions.forEach((transaction: OnyxTypes.Transaction) => {
+        movedTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {...transaction, reportID: optimisticExpenseReport.reportID};
     });
 
     const optimisticData: OnyxUpdate[] = [
