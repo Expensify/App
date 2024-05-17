@@ -10,20 +10,24 @@ import * as UserUtils from '@libs/UserUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Policy, Report} from '@src/types/onyx';
+import type {NewGroupChatDraft, Policy, Report} from '@src/types/onyx';
 
 type ReportAvatarOnyxProps = {
     report: OnyxEntry<Report>;
     isLoadingApp: OnyxEntry<boolean>;
     policies: OnyxCollection<Policy>;
+    groupChatDraft: OnyxEntry<NewGroupChatDraft>;
 };
 
 type ReportAvatarProps = ReportAvatarOnyxProps & StackScreenProps<AuthScreensParamList, typeof SCREENS.REPORT_AVATAR>;
 
-function ReportAvatar({report = {} as Report, policies, isLoadingApp = true}: ReportAvatarProps) {
+function ReportAvatar({report = {} as Report, policies, isLoadingApp = true, groupChatDraft}: ReportAvatarProps) {
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? '0'}`];
     const title = policy ? ReportUtils.getPolicyName(report, false, policy) : report?.reportName;
-    const avatarURL = policy ? ReportUtils.getWorkspaceAvatar(report) : report?.avatarUrl;
+    let avatarURL = policy ? ReportUtils.getWorkspaceAvatar(report) : report?.avatarUrl;
+    if(!avatarURL && groupChatDraft?.avatarUri) {
+      avatarURL = `${groupChatDraft.avatarUri}.jpg`;
+    }
     const fileName = policy?.originalFileName ?? title;
 
     return (
@@ -37,7 +41,7 @@ function ReportAvatar({report = {} as Report, policies, isLoadingApp = true}: Re
             isWorkspaceAvatar
             maybeIcon
             originalFileName={fileName}
-            shouldShowNotFoundPage={!report?.reportID && !isLoadingApp}
+            shouldShowNotFoundPage={!report?.reportID && !groupChatDraft && !isLoadingApp}
             isLoading={(!report?.reportID || !policy?.id) && !!isLoadingApp}
         />
     );
@@ -54,5 +58,8 @@ export default withOnyx<ReportAvatarProps, ReportAvatarOnyxProps>({
     },
     policies: {
         key: ONYXKEYS.COLLECTION.POLICY,
+    },
+    groupChatDraft: {
+        key: ONYXKEYS.NEW_GROUP_CHAT_DRAFT,
     },
 })(ReportAvatar);

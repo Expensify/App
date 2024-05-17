@@ -186,6 +186,15 @@ function AttachmentView({
     // We also check for numeric source since this is how static images (used for preview) are represented in RN.
     const isImage = typeof source === 'number' || (typeof source === 'string' && Str.isImage(source));
     if (isImage || (file?.name && Str.isImage(file.name))) {
+        // We are appending .jpg to blob url in NewChatConfirmPage View Photo.
+        // This was added to surpass the above isImage condition as is it image but it does 
+        // not have image extension hence the condition fails.
+        // Finally we need to remove that extension to load the image.
+        if(typeof source === 'string') {
+            const lastDotIndex = source.lastIndexOf(".");
+            source = source.slice(0, lastDotIndex);
+        }
+
         if (imageError) {
             // AttachmentViewImage can't handle icon fallbacks, so we need to handle it here
             if (typeof fallbackSource === 'number' || typeof fallbackSource === 'function') {
