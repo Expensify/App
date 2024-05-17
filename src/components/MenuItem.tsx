@@ -559,7 +559,7 @@ function MenuItem(
                                                                     fallbackIcon={fallbackIcon}
                                                                     name={title}
                                                                     avatarID={avatarID}
-                                                            type={CONST.ICON_TYPE_WORKSPACE}
+                                                                    type={CONST.ICON_TYPE_WORKSPACE}
                                                                 />
                                                             )}
                                                             {iconType === CONST.ICON_TYPE_AVATAR && (
