@@ -316,7 +316,7 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
 
     const params: DismissViolationParams = {
         name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
-        transactionIDList: transactionIDList.join(','),
+        transactionIDList: transactionIDs.join(','),
     };
 
     API.write(WRITE_COMMANDS.DISMISS_VIOLATION, params, {
