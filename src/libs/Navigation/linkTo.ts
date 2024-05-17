@@ -155,13 +155,6 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
 
     // If action type is different than NAVIGATE we can't change it to the PUSH safely
     if (action?.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE) {
-        const targetScreen = action.payload.params?.screen;
-
-        // If we navigate to SCREENS.SEARCH.CENTRAL_PANE, it's necessary to pass the current policyID, but we have to remember that this param is called policyIDs on this page
-        if (targetScreen === SCREENS.SEARCH.CENTRAL_PANE && action.payload?.params?.params && policyID) {
-            action.payload.params.params.policyIDs = policyID;
-        }
-
         const topRouteName = rootState?.routes?.at(-1)?.name;
         const isTargetNavigatorOnTop = topRouteName === action.payload.name;
 
@@ -192,6 +185,11 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
             }
 
             action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
+
+            // If we navigate to SCREENS.SEARCH.CENTRAL_PANE, it's necessary to pass the current policyID, but we have to remember that this param is called policyIDs on this page
+            if (action.payload.params?.screen === SCREENS.SEARCH.CENTRAL_PANE && action.payload?.params?.params && policyID) {
+                action.payload.params.params.policyIDs = policyID;
+            }
 
             // If the type is UP, we deeplinked into one of the RHP flows and we want to replace the current screen with the previous one in the flow
             // and at the same time we want the back button to go to the page we were before the deeplink
