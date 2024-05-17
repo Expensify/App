@@ -26,7 +26,7 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const {bankAccounts} = policy?.connections?.xero?.data ?? {};
     const selectedBankAccountName = useMemo(() => {
         const selectedAccount = (bankAccounts ?? []).find((bank) => bank.id === exportConfiguration?.nonReimbursableAccount);
-        return selectedAccount?.name ?? '';
+        return selectedAccount?.name ?? bankAccounts?.[0]?.name ?? '';
     }, [bankAccounts, exportConfiguration?.nonReimbursableAccount]);
 
     const currentXeroOrganizationName = useMemo(() => getCurrentXeroOrganizationName(policy ?? undefined), [policy]);
