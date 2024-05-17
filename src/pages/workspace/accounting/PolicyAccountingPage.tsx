@@ -24,8 +24,7 @@ import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {removePolicyConnection} from '@libs/actions/connections';
-import {syncConnection} from '@libs/actions/connections/QuickBooksOnline';
+import {removePolicyConnection, syncConnection} from '@libs/actions/connections';
 import {findCurrentXeroOrganization, getCurrentXeroOrganizationName, getXeroTenants} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -129,7 +128,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress, isConnectionDataF
             {
                 icon: Expensicons.Sync,
                 text: translate('workspace.accounting.syncNow'),
-                onSelected: () => syncConnection(policyID),
+                onSelected: () => syncConnection(policyID, connectedIntegration),
                 disabled: isOffline,
             },
             {
@@ -138,7 +137,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress, isConnectionDataF
                 onSelected: () => setIsDisconnectModalOpen(true),
             },
         ],
-        [translate, policyID, isOffline],
+        [translate, policyID, isOffline, connectedIntegration],
     );
 
     const connectionsMenuItems: MenuItemProps[] = useMemo(() => {
