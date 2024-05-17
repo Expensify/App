@@ -86,6 +86,7 @@ function Search({query, policyIDs}: SearchProps) {
             onSelectRow={(item) => {
                 openReport(item.transactionThreadReportID);
             }}
+            shouldDebounceRowSelect
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
             listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
             containerStyle={[styles.pv0]}

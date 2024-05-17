@@ -574,6 +574,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                         headerMessage={getHeaderMessage()}
                         headerContent={getHeaderContent()}
                         onSelectRow={openMemberDetails}
+                        shouldDebounceRowSelect={!isPolicyAdmin}
                         onCheckboxPress={(item) => toggleUser(item.accountID)}
                         onSelectAll={() => toggleAllUsers(data)}
                         onDismissError={dismissError}

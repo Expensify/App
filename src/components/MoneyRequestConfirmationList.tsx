@@ -1229,6 +1229,7 @@ function MoneyRequestConfirmationList({
             sections={sections}
             ListItem={UserListItem}
             onSelectRow={navigateToReportOrUserDetail}
+            shouldDebounceRowSelect
             canSelectMultiple={false}
             shouldPreventDefaultFocusOnSelectRow
             footerContent={footerContent}

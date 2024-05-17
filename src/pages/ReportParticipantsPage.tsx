@@ -351,6 +351,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
                         ListItem={TableListItem}
                         headerContent={headerContent}
                         onSelectRow={openMemberDetails}
+                        shouldDebounceRowSelect={!(isGroupChat && isCurrentUserAdmin)}
                         onCheckboxPress={(item) => toggleUser(item.accountID)}
                         onSelectAll={() => toggleAllUsers(participants)}
                         showScrollIndicator
