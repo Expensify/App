@@ -323,7 +323,7 @@ function MoneyRequestView({
     const shouldShowNotesViolations = !isReceiptBeingScanned && canUseViolations && ReportUtils.isPaidGroupPolicy(report);
 
     const errors = {
-        ...transaction?.errors,
+        ...transaction?.errorFields?.route ?? transaction?.errors,
         ...parentReportAction?.errors,
     };
 
@@ -340,7 +340,7 @@ function MoneyRequestView({
                 {(shouldShowMapOrReceipt || errors) && (
                     <OfflineWithFeedback
                         pendingAction={pendingAction}
-                        errors={transaction?.errorFields?.route ?? transaction?.errors}
+                        errors={errors}
                         errorRowStyles={[styles.mh4]}
                         onClose={() => {
                             if (!transaction?.transactionID) {
