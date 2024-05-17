@@ -240,6 +240,10 @@ function BaseSelectionList<TItem extends ListItem>(
         isFocused,
     });
 
+    const clearInputAfterSelect = useCallback(() => {
+        onChangeText?.('');
+    }, [onChangeText]);
+
     /**
      * Logic to run when a row is selected, either with click/press or keyboard hotkeys.
      *
@@ -258,6 +262,10 @@ function BaseSelectionList<TItem extends ListItem>(
                     // If we're selecting an item, scroll to it's position at the top, so we can see it
                     scrollToIndex(Math.max(selectedOptionsCount - 1, 0), true);
                 }
+            }
+
+            if (shouldShowTextInput) {
+                clearInputAfterSelect();
             }
         }
 
@@ -486,7 +494,7 @@ function BaseSelectionList<TItem extends ListItem>(
         [flattenedSections.allOptions, setFocusedIndex, updateAndScrollToFocusedIndex],
     );
 
-    useImperativeHandle(ref, () => ({scrollAndHighlightItem}), [scrollAndHighlightItem]);
+    useImperativeHandle(ref, () => ({scrollAndHighlightItem, clearInputAfterSelect}), [scrollAndHighlightItem, clearInputAfterSelect]);
 
     /** Selects row when pressing Enter */
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
