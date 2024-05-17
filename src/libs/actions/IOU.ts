@@ -421,9 +421,12 @@ function setCustomUnitRateID(transactionID: string, customUnitRateID: string) {
 }
 
 /** Update transaction distance rate */
-function updateDistanceRequestRate(transactionID: string, rateID: string, policyID: string) {
+function updateDistanceRequestRate(transactionID: string, rateID: string, policyID: string, taxAmount?: number) {
     Onyx.merge(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {[policyID]: rateID});
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {comment: {customUnit: {customUnitRateID: rateID}}});
+    if (taxAmount) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {taxAmount});
+    }
 }
 
 /** Helper function to get the receipt error for expenses, or the generic error if there's no receipt */

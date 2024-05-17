@@ -5,11 +5,14 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as IOU from '@libs/actions/IOU';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
 import type {MileageRate} from '@libs/DistanceRequestUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -45,6 +48,15 @@ function IOURequestStepDistanceRate({
 }: IOURequestStepDistanceRateProps) {
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
+    const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
+    const transactionDetails = ReportUtils.getTransactionDetails(transaction);
+    const currency = transactionDetails?.currency;
+    const distanceUnit = Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+    const customUnitID = distanceUnit?.customUnitID;
+    const {isOffline} = useNetwork();
+
+    const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction, currency) ?? '';
+    const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, defaultTaxCode) ?? '';
 
     const lastSelectedRateID = TransactionUtils.getRateID(transaction) ?? '';
 
@@ -69,7 +81,13 @@ function IOURequestStepDistanceRate({
     const initiallyFocusedOption = sections.find((item) => item.isSelected)?.keyForList;
 
     function selectDistanceRate(customUnitRateID: string) {
-        IOU.updateDistanceRequestRate(transactionID, customUnitRateID, policy?.id ?? '');
+        let taxAmount;
+        if (isDistanceRequest && transaction?.amount && policy?.customUnits && customUnitID && isOffline) {
+            const taxClaimablePercentage = policy?.customUnits[customUnitID].rates[customUnitRateID].attributes?.taxClaimablePercentage ?? 0;
+            const taxableAmount = -1 * transaction.amount * taxClaimablePercentage;
+            taxAmount = CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(taxPercentage, taxableAmount));
+        }
+        IOU.updateDistanceRequestRate(transactionID, customUnitRateID, policy?.id ?? '', taxAmount);
         navigateBack();
     }
 

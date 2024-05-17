@@ -15,10 +15,12 @@ type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     enabled?: boolean;
     errors?: OnyxCommon.Errors;
     errorFields?: OnyxCommon.ErrorFields;
+    attributes?: {taxClaimablePercentage?: number};
 }>;
 
 type Attributes = {
     unit: Unit;
+    taxEnabled?: boolean;
 };
 
 type CustomUnit = OnyxCommon.OnyxValueWithOfflineFeedback<{
