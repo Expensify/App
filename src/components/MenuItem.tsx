@@ -267,6 +267,9 @@ type MenuItemBaseProps = {
     /** Handles what to do when the item is focused */
     onFocus?: () => void;
 
+    /** Optional account id if it's user avatar or policy id if it's workspace avatar */
+    avatarID?: number | string;
+
     /** Whether to show the tooltip */
     shouldRenderTooltip?: boolean;
 
@@ -355,6 +358,7 @@ function MenuItem(
         isPaneMenu = false,
         shouldPutLeftPaddingWhenNoIcon = false,
         onFocus,
+        avatarID,
         shouldRenderTooltip = false,
         shouldForceRenderingTooltipLeft = false,
         tooltipWrapperStyle = {},
@@ -554,7 +558,8 @@ function MenuItem(
                                                                     source={icon as AvatarSource}
                                                                     fallbackIcon={fallbackIcon}
                                                                     name={title}
-                                                                    type={CONST.ICON_TYPE_WORKSPACE}
+                                                                    avatarID={avatarID}
+                                                            type={CONST.ICON_TYPE_WORKSPACE}
                                                                 />
                                                             )}
                                                             {iconType === CONST.ICON_TYPE_AVATAR && (
