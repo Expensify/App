@@ -46,4 +46,8 @@ export type {WorkspaceTaxNameForm} from './WorkspaceTaxNameForm';
 export type {WorkspaceTaxValueForm} from './WorkspaceTaxValueForm';
 export type {WorkspaceTaxCustomName} from './WorkspaceTaxCustomName';
 export type {PolicyCreateDistanceRateForm} from './PolicyCreateDistanceRateForm';
+export type {PolicyDistanceRateEditForm} from './PolicyDistanceRateEditForm';
+export type {WalletAdditionalDetailsForm} from './WalletAdditionalDetailsForm';
+export type {NewChatNameForm} from './NewChatNameForm';
+export type {WorkForm} from './WorkForm';
 export type {default as Form} from './Form';

@@ -7,7 +7,6 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -19,6 +18,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
 import variables from '@styles/variables';
+import * as reportActions from '@src/libs/actions/Report';
 import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyReportField, Report} from '@src/types/onyx';
 
@@ -28,19 +28,16 @@ type MoneyReportViewProps = {
 
     /** Policy that the report belongs to */
     policy: OnyxEntry<Policy>;
-
-    /** Whether we should display the horizontal rule below the component */
-    shouldShowHorizontalRule: boolean;
 };
 
-function MoneyReportView({report, policy, shouldShowHorizontalRule}: MoneyReportViewProps) {
+function MoneyReportView({report, policy}: MoneyReportViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const isSettled = ReportUtils.isSettled(report.reportID);
-    const isTotalUpdated = ReportUtils.hasUpdatedTotal(report);
+    const isTotalUpdated = ReportUtils.hasUpdatedTotal(report, policy);
 
     const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(report);
 
@@ -48,6 +45,7 @@ function MoneyReportView({report, policy, shouldShowHorizontalRule}: MoneyReport
     const formattedTotalAmount = CurrencyUtils.convertToDisplayString(totalDisplaySpend, report.currency);
     const formattedOutOfPocketAmount = CurrencyUtils.convertToDisplayString(reimbursableSpend, report.currency);
     const formattedCompanySpendAmount = CurrencyUtils.convertToDisplayString(nonReimbursableSpend, report.currency);
+    const isPartiallyPaid = Boolean(report?.pendingFields?.partial);
 
     const subAmountTextStyles: StyleProp<TextStyle> = [
         styles.taskTitleMenuItem,
@@ -62,7 +60,7 @@ function MoneyReportView({report, policy, shouldShowHorizontalRule}: MoneyReport
     }, [policy, report]);
 
     return (
-        <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true)]}>
+        <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true), styles.overflowHidden]}>
             <AnimatedEmptyStateBackground />
             <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth, true)]}>
                 {!ReportUtils.isClosedExpenseReportWithNoExpenses(report) && (
@@ -80,6 +78,7 @@ function MoneyReportView({report, policy, shouldShowHorizontalRule}: MoneyReport
                                         errors={report.errorFields?.[fieldKey]}
                                         errorRowStyles={styles.ph5}
                                         key={`menuItem-${fieldKey}`}
+                                        onClose={() => reportActions.clearReportFieldErrors(report.reportID, reportField)}
                                     >
                                         <MenuItemWithTopDescription
                                             description={Str.UCFirst(reportField.name)}
@@ -109,7 +108,7 @@ function MoneyReportView({report, policy, shouldShowHorizontalRule}: MoneyReport
                                 </Text>
                             </View>
                             <View style={[styles.flexRow, styles.justifyContentCenter]}>
-                                {isSettled && (
+                                {isSettled && !isPartiallyPaid && (
                                     <View style={[styles.defaultCheckmarkWrapper, styles.mh2]}>
                                         <Icon
                                             src={Expensicons.Checkmark}
@@ -165,10 +164,6 @@ function MoneyReportView({report, policy, shouldShowHorizontalRule}: MoneyReport
                                 </View>
                             </>
                         )}
-                        <SpacerView
-                            shouldShow={shouldShowHorizontalRule}
-                            style={[shouldShowHorizontalRule && styles.reportHorizontalRule]}
-                        />
                     </>
                 )}
             </View>

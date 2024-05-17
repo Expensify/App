@@ -30,6 +30,7 @@ const getFakeReportAction = (index: number, actionName?: ActionName): ReportActi
             lastModified: '2021-07-14T15:00:00Z',
             // IOUReportID: index,
             linkedReportID: index.toString(),
+            whisperedTo: [],
         },
         pendingAction: null,
         person: [
@@ -39,16 +40,19 @@ const getFakeReportAction = (index: number, actionName?: ActionName): ReportActi
                 text: 'email@test.com',
             },
         ],
-        previousReportActionID: '1',
         reportActionID: index.toString(),
+        previousReportActionID: (index === 0 ? 0 : index - 1).toString(),
         reportActionTimestamp: 1696243169753,
         sequenceNumber: 0,
         shouldShow: true,
         timestamp: 1696243169,
-        whisperedToAccountIDs: [],
     } as ReportAction);
 
-const getMockedSortedReportActions = (length = 100): ReportAction[] => Array.from({length}, (element, index): ReportAction => getFakeReportAction(index));
+const getMockedSortedReportActions = (length = 100): ReportAction[] =>
+    Array.from({length}, (element, index): ReportAction => {
+        const actionName: ActionName = index === 0 ? 'CREATED' : 'ADDCOMMENT';
+        return getFakeReportAction(index + 1, actionName);
+    }).reverse();
 
 const getMockedReportActionsMap = (length = 100): ReportActions => {
     const mockReports: ReportActions[] = Array.from({length}, (element, index): ReportActions => {
@@ -60,6 +64,7 @@ const getMockedReportActionsMap = (length = 100): ReportActions => {
             originalMessage: {
                 linkedReportID: reportID.toString(),
             },
+            previousReportActionID: index.toString(),
         } as ReportAction;
 
         return {[reportID]: reportAction};

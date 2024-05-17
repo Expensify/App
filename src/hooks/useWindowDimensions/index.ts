@@ -1,6 +1,7 @@
-import {useEffect, useRef} from 'react';
+import {useContext, useEffect, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Dimensions, useWindowDimensions} from 'react-native';
+import {FullScreenContext} from '@components/VideoPlayerContexts/FullScreenContext';
 import useDebouncedState from '@hooks/useDebouncedState';
 import * as Browser from '@libs/Browser';
 import variables from '@styles/variables';
@@ -9,11 +10,19 @@ import type WindowDimensions from './types';
 
 const initalViewportHeight = window.visualViewport?.height ?? window.innerHeight;
 const tagNamesOpenKeyboard = ['INPUT', 'TEXTAREA'];
+const isMobile = Browser.isMobile();
 
 /**
  * A convenience wrapper around React Native's useWindowDimensions hook that also provides booleans for our breakpoints.
  */
 export default function (useCachedViewportHeight = false): WindowDimensions {
+    const {isFullScreenRef, lockedWindowDimensionsRef, lockWindowDimensions, unlockWindowDimensions} = useContext(FullScreenContext) ?? {
+        isFullScreenRef: useRef(false),
+        lockedWindowDimensionsRef: useRef<WindowDimensions | null>(null),
+        lockWindowDimensions: () => {},
+        unlockWindowDimensions: () => {},
+    };
+
     const isCachedViewportHeight = useCachedViewportHeight && Browser.isMobileSafari();
     const cachedViewportHeightWithKeyboardRef = useRef(initalViewportHeight);
     const {width: windowWidth, height: windowHeight} = useWindowDimensions();
@@ -82,7 +91,7 @@ export default function (useCachedViewportHeight = false): WindowDimensions {
         cachedViewportHeightWithKeyboardRef.current = windowHeight;
     }, [isCachedViewportHeight, windowHeight]);
 
-    return {
+    const windowDimensions = {
         windowWidth,
         windowHeight: isCachedViewportHeight ? cachedViewportHeight : windowHeight,
         isExtraSmallScreenHeight,
@@ -92,4 +101,35 @@ export default function (useCachedViewportHeight = false): WindowDimensions {
         isExtraSmallScreenWidth,
         isSmallScreen,
     };
+
+    if (!lockedWindowDimensionsRef.current && !isFullScreenRef.current) {
+        return windowDimensions;
+    }
+
+    const didScreenChangeOrientation =
+        isMobile &&
+        lockedWindowDimensionsRef.current &&
+        isExtraSmallScreenWidth === lockedWindowDimensionsRef.current.isExtraSmallScreenWidth &&
+        isSmallScreenWidth === lockedWindowDimensionsRef.current.isSmallScreen &&
+        isMediumScreenWidth === lockedWindowDimensionsRef.current.isMediumScreenWidth &&
+        isLargeScreenWidth === lockedWindowDimensionsRef.current.isLargeScreenWidth &&
+        lockedWindowDimensionsRef.current.windowWidth !== windowWidth &&
+        lockedWindowDimensionsRef.current.windowHeight !== windowHeight;
+
+    // if video is in fullscreen mode, lock the window dimensions since they can change and casue whole app to re-render
+    if (!lockedWindowDimensionsRef.current || didScreenChangeOrientation) {
+        lockWindowDimensions(windowDimensions);
+        return windowDimensions;
+    }
+
+    const didScreenReturnToOriginalSize = lockedWindowDimensionsRef.current.windowWidth === windowWidth && lockedWindowDimensionsRef.current.windowHeight === windowHeight;
+
+    // if video exits fullscreen mode, unlock the window dimensions
+    if (lockedWindowDimensionsRef.current && !isFullScreenRef.current && didScreenReturnToOriginalSize) {
+        const lastLockedWindowDimensions = {...lockedWindowDimensionsRef.current};
+        unlockWindowDimensions();
+        return lastLockedWindowDimensions;
+    }
+
+    return lockedWindowDimensionsRef.current;
 }

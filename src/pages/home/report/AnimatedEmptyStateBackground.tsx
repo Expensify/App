@@ -6,14 +6,14 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
-const IMAGE_OFFSET_Y = 75;
+// Maximum horizontal and vertical shift in pixels on sensor value change
+const IMAGE_OFFSET_X = 30;
+const IMAGE_OFFSET_Y = 20;
 
 function AnimatedEmptyStateBackground() {
     const StyleUtils = useStyleUtils();
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
     const illustrations = useThemeIllustrations();
-    const IMAGE_OFFSET_X = windowWidth / 2;
-
     // If window width is greater than the max background width, repeat the background image
     const maxBackgroundWidth = variables.sideBarWidth + CONST.EMPTY_STATE_BACKGROUND.ASPECT_RATIO * CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.IMAGE_HEIGHT;
 
@@ -37,7 +37,9 @@ function AnimatedEmptyStateBackground() {
         xOffset.value = clamp(xOffset.value + y * CONST.ANIMATION_GYROSCOPE_VALUE, -IMAGE_OFFSET_X, IMAGE_OFFSET_X);
         yOffset.value = clamp(yOffset.value - x * CONST.ANIMATION_GYROSCOPE_VALUE, -IMAGE_OFFSET_Y, IMAGE_OFFSET_Y);
         return {
-            transform: [{translateX: withSpring(-IMAGE_OFFSET_X - xOffset.value)}, {translateY: withSpring(yOffset.value)}],
+            // On Android, scroll view sub views gets clipped beyond container bounds. Set the top position so that image wouldn't get clipped
+            top: IMAGE_OFFSET_Y,
+            transform: [{translateX: withSpring(xOffset.value)}, {translateY: withSpring(yOffset.value, {overshootClamping: true})}, {scale: 1.15}],
         };
     }, [isReducedMotionEnabled]);
 

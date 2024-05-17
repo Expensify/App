@@ -12,6 +12,7 @@ import calculateAnchorPosition from '@libs/calculateAnchorPosition';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as IOU from '@userActions/IOU';
 import * as Report from '@userActions/Report';
+import type {AnchorDimensions} from '@src/styles';
 import type {ReportAction} from '@src/types/onyx';
 import BaseReportActionContextMenu from './BaseReportActionContextMenu';
 import type {ContextMenuAction} from './ContextMenuActions';
@@ -61,12 +62,17 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
     const [isChatPinned, setIsChatPinned] = useState(false);
     const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
     const [disabledActions, setDisabledActions] = useState<ContextMenuAction[]>([]);
+    const [shoudSwitchPositionIfOverflow, setShoudSwitchPositionIfOverflow] = useState(false);
 
     const contentRef = useRef<View>(null);
     const anchorRef = useRef<View | HTMLDivElement | null>(null);
     const dimensionsEventListener = useRef<EmitterSubscription | null>(null);
     const contextMenuAnchorRef = useRef<ContextMenuAnchor>(null);
     const contextMenuTargetNode = useRef<HTMLDivElement | null>(null);
+    const contextMenuDimensions = useRef<AnchorDimensions>({
+        width: 0,
+        height: 0,
+    });
 
     const onPopoverShow = useRef(() => {});
     const onPopoverHide = useRef(() => {});
@@ -164,6 +170,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         disabledOptions = [],
         shouldCloseOnTarget = false,
         setIsEmojiPickerActive = () => {},
+        isOverflowMenu = false,
     ) => {
         const {pageX = 0, pageY = 0} = extractPointerEvent(event);
         contextMenuAnchorRef.current = contextMenuAnchor;
@@ -180,9 +187,10 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         onEmojiPickerToggle.current = setIsEmojiPickerActive;
 
         new Promise<void>((resolve) => {
-            if (!pageX && !pageY && contextMenuAnchorRef.current) {
+            if (Boolean(!pageX && !pageY && contextMenuAnchorRef.current) || isOverflowMenu) {
                 calculateAnchorPosition(contextMenuAnchorRef.current).then((position) => {
-                    popoverAnchorPosition.current = position;
+                    popoverAnchorPosition.current = {horizontal: position.horizontal, vertical: position.vertical};
+                    contextMenuDimensions.current = {width: position.vertical, height: position.height};
                     resolve();
                 });
             } else {
@@ -211,6 +219,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
             setIsChronosReportEnabled(isChronosReport);
             setIsChatPinned(isPinnedChat);
             setHasUnreadMessages(isUnreadChat);
+            setShoudSwitchPositionIfOverflow(isOverflowMenu);
         });
     };
 
@@ -319,7 +328,9 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
                 shouldSetModalVisibility={false}
                 fullscreen
                 withoutOverlay
+                anchorDimensions={contextMenuDimensions.current}
                 anchorRef={anchorRef}
+                shoudSwitchPositionIfOverflow={shoudSwitchPositionIfOverflow}
             >
                 <BaseReportActionContextMenu
                     isVisible

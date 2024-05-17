@@ -4,13 +4,14 @@ import lodashHas from 'lodash/has';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {GetRouteForDraftParams, GetRouteParams} from '@libs/API/parameters';
-import {READ_COMMANDS} from '@libs/API/types';
+import type {GetRouteParams, MarkAsCashParams} from '@libs/API/parameters';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CollectionUtils from '@libs/CollectionUtils';
+import {buildOptimisticDismissedViolationReportAction} from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {RecentWaypoint, Transaction} from '@src/types/onyx';
+import type {RecentWaypoint, ReportActions, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 
@@ -67,7 +68,7 @@ function saveWaypoint(transactionID: string, index: string, waypoint: RecentWayp
                 [`waypoint${index}`]: waypoint,
             },
         },
-        // We want to reset the amount only for draft transactions (when creating the request).
+        // We want to reset the amount only for draft transactions (when creating the expense).
         // When modifying an existing transaction, the amount will be updated on the actual IOU update operation.
         ...(isDraft && {amount: CONST.IOU.DEFAULT_AMOUNT}),
         // Empty out errors when we're saving a new waypoint as this indicates the user is updating their input
@@ -107,7 +108,7 @@ function saveWaypoint(transactionID: string, index: string, waypoint: RecentWayp
     }
 }
 
-function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: string, isDraft?: boolean): Promise<void> {
+function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: string, isDraft?: boolean): Promise<void | void[]> {
     // Index comes from the route params and is a string
     const index = Number(currentIndex);
     const existingWaypoints = transaction?.comment?.waypoints ?? {};
@@ -141,7 +142,7 @@ function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: strin
             ...transaction?.comment,
             waypoints: reIndexedWaypoints,
         },
-        // We want to reset the amount only for draft transactions (when creating the request).
+        // We want to reset the amount only for draft transactions (when creating the expense).
         // When modifying an existing transaction, the amount will be updated on the actual IOU update operation.
         ...(isDraft && {amount: CONST.IOU.DEFAULT_AMOUNT}),
     };
@@ -218,26 +219,13 @@ function getOnyxDataForRouteRequest(transactionID: string, isDraft = false): Ony
  * Gets the route for a set of waypoints
  * Used so we can generate a map view of the provided waypoints
  */
-function getRoute(transactionID: string, waypoints: WaypointCollection) {
+function getRoute(transactionID: string, waypoints: WaypointCollection, isDraft: boolean) {
     const parameters: GetRouteParams = {
         transactionID,
         waypoints: JSON.stringify(waypoints),
     };
 
-    API.read(READ_COMMANDS.GET_ROUTE, parameters, getOnyxDataForRouteRequest(transactionID));
-}
-
-/**
- * Gets the route for a set of waypoints
- * Used so we can generate a map view of the provided waypoints
- */
-function getRouteForDraft(transactionID: string, waypoints: WaypointCollection) {
-    const parameters: GetRouteForDraftParams = {
-        transactionID,
-        waypoints: JSON.stringify(waypoints),
-    };
-
-    API.read(READ_COMMANDS.GET_ROUTE_FOR_DRAFT, parameters, getOnyxDataForRouteRequest(transactionID, true));
+    API.read(isDraft ? READ_COMMANDS.GET_ROUTE_FOR_DRAFT : READ_COMMANDS.GET_ROUTE, parameters, getOnyxDataForRouteRequest(transactionID, isDraft));
 }
 
 /**
@@ -247,12 +235,12 @@ function getRouteForDraft(transactionID: string, waypoints: WaypointCollection) 
  * @param waypoints - An object containing all the waypoints
  *                             which will replace the existing ones.
  */
-function updateWaypoints(transactionID: string, waypoints: WaypointCollection, isDraft = false): Promise<void> {
+function updateWaypoints(transactionID: string, waypoints: WaypointCollection, isDraft = false): Promise<void | void[]> {
     return Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         comment: {
             waypoints,
         },
-        // We want to reset the amount only for draft transactions (when creating the request).
+        // We want to reset the amount only for draft transactions (when creating the expense).
         // When modifying an existing transaction, the amount will be updated on the actual IOU update operation.
         ...(isDraft && {amount: CONST.IOU.DEFAULT_AMOUNT}),
         // Empty out errors when we're saving new waypoints as this indicates the user is updating their input
@@ -274,7 +262,55 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection, i
 }
 
 function clearError(transactionID: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {errors: null});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {errors: null, errorFields: {route: null}});
 }
 
-export {addStop, createInitialWaypoints, saveWaypoint, removeWaypoint, getRoute, getRouteForDraft, updateWaypoints, clearError};
+function markAsCash(transactionID: string, transactionThreadReportID: string, existingViolations: TransactionViolation[]) {
+    const optimisticReportAction = buildOptimisticDismissedViolationReportAction({
+        reason: 'manual',
+        violationName: CONST.VIOLATIONS.RTER,
+    });
+    const optimisticReportActions = {
+        [optimisticReportAction.reportActionID]: optimisticReportAction,
+    };
+    const onyxData: OnyxData = {
+        optimisticData: [
+            // Optimistically dismissing the violation, removing it from the list of violations
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+                value: existingViolations.filter((violation: TransactionViolation) => violation.name !== CONST.VIOLATIONS.RTER),
+            },
+            // Optimistically adding the system message indicating we dismissed the violation
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+                value: optimisticReportActions as ReportActions,
+            },
+        ],
+        failureData: [
+            // Rolling back the dismissal of the violation
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+                value: existingViolations,
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+                value: {
+                    [optimisticReportAction.reportActionID]: null,
+                },
+            },
+        ],
+    };
+
+    const parameters: MarkAsCashParams = {
+        transactionID,
+        reportActionID: optimisticReportAction.reportActionID,
+    };
+
+    return API.write(WRITE_COMMANDS.MARK_AS_CASH, parameters, onyxData);
+}
+
+export {addStop, createInitialWaypoints, saveWaypoint, removeWaypoint, getRoute, updateWaypoints, clearError, markAsCash};

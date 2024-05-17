@@ -2,6 +2,8 @@ import reject from 'lodash/reject';
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
 import type {Phrase, PhraseParameters} from '@libs/Localize';
+import {getSortedTagKeys} from '@libs/PolicyUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,7 +28,7 @@ function getTagViolationsForSingleLevelTags(
 
     // Add 'tagOutOfPolicy' violation if tag is not in policy
     if (!hasTagOutOfPolicyViolation && updatedTransaction.tag && !isTagInPolicy) {
-        newTransactionViolations.push({name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY, type: 'violation'});
+        newTransactionViolations.push({name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION});
     }
 
     // Remove 'tagOutOfPolicy' violation if tag is in policy
@@ -41,7 +43,7 @@ function getTagViolationsForSingleLevelTags(
 
     // Add 'missingTag violation' if tag is required and not set
     if (!hasMissingTagViolation && !updatedTransaction.tag && policyRequiresTags) {
-        newTransactionViolations.push({name: CONST.VIOLATIONS.MISSING_TAG, type: 'violation'});
+        newTransactionViolations.push({name: CONST.VIOLATIONS.MISSING_TAG, type: CONST.VIOLATION_TYPES.VIOLATION});
     }
     return newTransactionViolations;
 }
@@ -55,7 +57,7 @@ function getTagViolationsForMultiLevelTags(
     policyRequiresTags: boolean,
     policyTagList: PolicyTagList,
 ): TransactionViolation[] {
-    const policyTagKeys = Object.keys(policyTagList);
+    const policyTagKeys = getSortedTagKeys(policyTagList);
     const selectedTags = updatedTransaction.tag?.split(CONST.COLON) ?? [];
     let newTransactionViolations = [...transactionViolations];
     newTransactionViolations = newTransactionViolations.filter(
@@ -75,7 +77,7 @@ function getTagViolationsForMultiLevelTags(
     if (errorIndexes.length !== 0) {
         newTransactionViolations.push({
             name: CONST.VIOLATIONS.SOME_TAG_LEVELS_REQUIRED,
-            type: 'violation',
+            type: CONST.VIOLATION_TYPES.VIOLATION,
             data: {
                 errorIndexes,
             },
@@ -89,7 +91,7 @@ function getTagViolationsForMultiLevelTags(
             if (!isTagInPolicy) {
                 newTransactionViolations.push({
                     name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
-                    type: 'violation',
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
                     data: {
                         tagName: policyTagKeys[i],
                     },
@@ -120,6 +122,15 @@ const ViolationsUtils = {
         policyRequiresCategories: boolean,
         policyCategories: PolicyCategories,
     ): OnyxUpdate {
+        const isPartialTransaction = TransactionUtils.isPartialMerchant(TransactionUtils.getMerchant(updatedTransaction)) && TransactionUtils.isAmountMissing(updatedTransaction);
+        if (isPartialTransaction) {
+            return {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${updatedTransaction.transactionID}`,
+                value: transactionViolations,
+            };
+        }
+
         let newTransactionViolations = [...transactionViolations];
 
         // Calculate client-side category violations
@@ -131,7 +142,7 @@ const ViolationsUtils = {
 
             // Add 'categoryOutOfPolicy' violation if category is not in policy
             if (!hasCategoryOutOfPolicyViolation && categoryKey && !isCategoryInPolicy) {
-                newTransactionViolations.push({name: 'categoryOutOfPolicy', type: 'violation'});
+                newTransactionViolations.push({name: 'categoryOutOfPolicy', type: CONST.VIOLATION_TYPES.VIOLATION});
             }
 
             // Remove 'categoryOutOfPolicy' violation if category is in policy
@@ -146,7 +157,7 @@ const ViolationsUtils = {
 
             // Add 'missingCategory' violation if category is required and not set
             if (!hasMissingCategoryViolation && policyRequiresCategories && !categoryKey) {
-                newTransactionViolations.push({name: 'missingCategory', type: 'violation'});
+                newTransactionViolations.push({name: 'missingCategory', type: CONST.VIOLATION_TYPES.VIOLATION});
             }
         }
 

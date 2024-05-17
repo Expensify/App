@@ -13,9 +13,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
-import type {WorkspacesCentralPaneNavigatorParamList} from '@libs/Navigation/types';
+import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
 import * as Policy from '@userActions/Policy';
@@ -27,7 +27,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 type AutoReportingFrequencyKey = Exclude<ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>, 'instant'>;
 type Locale = ValueOf<typeof CONST.LOCALES>;
 
-type WorkspaceAutoReportingFrequencyPageProps = WithPolicyOnyxProps & StackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY>;
+type WorkspaceAutoReportingFrequencyPageProps = WithPolicyOnyxProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY>;
 
 type WorkspaceAutoReportingFrequencyPageItem = {
     text: string;
@@ -80,6 +80,9 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
         if (typeof policy?.autoReportingOffset === 'number') {
             return toLocaleOrdinal(policy.autoReportingOffset);
         }
+        if (typeof policy?.autoReportingOffset === 'string' && parseInt(policy?.autoReportingOffset, 10)) {
+            return toLocaleOrdinal(parseInt(policy.autoReportingOffset, 10));
+        }
 
         return translate(`workflowsPage.frequencies.${policy?.autoReportingOffset}`);
     };
@@ -115,7 +118,7 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
     );
 
     return (
-        <FeatureEnabledAccessOrNotFoundWrapper
+        <AccessOrNotFoundWrapper
             policyID={route.params.policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
         >
@@ -146,7 +149,7 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
                     </OfflineWithFeedback>
                 </FullPageNotFoundView>
             </ScreenWrapper>
-        </FeatureEnabledAccessOrNotFoundWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 

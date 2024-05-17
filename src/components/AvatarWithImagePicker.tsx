@@ -16,6 +16,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
 import AttachmentModal from './AttachmentModal';
+import type {FileObject} from './AttachmentModal';
 import AttachmentPicker from './AttachmentPicker';
 import Avatar from './Avatar';
 import AvatarCropModal from './AvatarCropModal/AvatarCropModal';
@@ -34,7 +35,7 @@ type ErrorData = {
 };
 
 type OpenPickerParams = {
-    onPicked: (image: File) => void;
+    onPicked: (image: FileObject) => void;
 };
 type OpenPicker = (args: OpenPickerParams) => void;
 
@@ -116,6 +117,12 @@ type AvatarWithImagePickerProps = {
 
     /** Allows to open an image without Attachment Picker. */
     enablePreview?: boolean;
+
+    /** Hard disables the "View photo" option */
+    shouldDisableViewPhoto?: boolean;
+
+    /** Optionally override the default "Edit" icon */
+    editIcon?: IconAsset;
 };
 
 function AvatarWithImagePicker({
@@ -143,6 +150,8 @@ function AvatarWithImagePicker({
     disabled = false,
     onViewPhotoPress,
     enablePreview = false,
+    shouldDisableViewPhoto = false,
+    editIcon = Expensicons.Pencil,
 }: AvatarWithImagePickerProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -178,7 +187,7 @@ function AvatarWithImagePicker({
     /**
      * Check if the attachment extension is allowed.
      */
-    const isValidExtension = (image: File): boolean => {
+    const isValidExtension = (image: FileObject): boolean => {
         const {fileExtension} = FileUtils.splitExtensionFromFileName(image?.name ?? '');
         return CONST.AVATAR_ALLOWED_EXTENSIONS.some((extension) => extension === fileExtension.toLowerCase());
     };
@@ -186,12 +195,12 @@ function AvatarWithImagePicker({
     /**
      * Check if the attachment size is less than allowed size.
      */
-    const isValidSize = (image: File): boolean => (image?.size ?? 0) < CONST.AVATAR_MAX_ATTACHMENT_SIZE;
+    const isValidSize = (image: FileObject): boolean => (image?.size ?? 0) < CONST.AVATAR_MAX_ATTACHMENT_SIZE;
 
     /**
      * Check if the attachment resolution matches constraints.
      */
-    const isValidResolution = (image: File): Promise<boolean> =>
+    const isValidResolution = (image: FileObject): Promise<boolean> =>
         getImageResolution(image).then(
             ({height, width}) => height >= CONST.AVATAR_MIN_HEIGHT_PX && width >= CONST.AVATAR_MIN_WIDTH_PX && height <= CONST.AVATAR_MAX_HEIGHT_PX && width <= CONST.AVATAR_MAX_WIDTH_PX,
         );
@@ -199,7 +208,7 @@ function AvatarWithImagePicker({
     /**
      * Validates if an image has a valid resolution and opens an avatar crop modal
      */
-    const showAvatarCropModal = (image: File) => {
+    const showAvatarCropModal = (image: FileObject) => {
         if (!isValidExtension(image)) {
             setError('avatarWithImagePicker.notAllowedExtension', {allowedExtensions: CONST.AVATAR_ALLOWED_EXTENSIONS});
             return;
@@ -225,8 +234,8 @@ function AvatarWithImagePicker({
             setIsMenuVisible(false);
             setImageData({
                 uri: image.uri ?? '',
-                name: image.name,
-                type: image.type,
+                name: image.name ?? '',
+                type: image.type ?? '',
             });
         });
     };
@@ -287,11 +296,12 @@ function AvatarWithImagePicker({
 
     return (
         <View style={StyleSheet.flatten([styles.alignItemsCenter, style])}>
-            <View style={[styles.pRelative, avatarStyle]}>
+            <View style={styles.w100}>
                 <OfflineWithFeedback
                     pendingAction={pendingAction}
                     errors={errors}
                     errorRowStyles={errorRowStyles}
+                    style={type === CONST.ICON_TYPE_AVATAR && styles.alignItemsCenter}
                     onClose={onErrorClose}
                 >
                     <Tooltip
@@ -310,6 +320,7 @@ function AvatarWithImagePicker({
                             accessibilityLabel={translate('avatarWithImagePicker.editImage')}
                             disabled={isAvatarCropModalOpen || (disabled && !enablePreview)}
                             disabledStyle={disabledStyle}
+                            style={[styles.pRelative, avatarStyle]}
                             ref={anchorRef}
                         >
                             <View>
@@ -329,7 +340,7 @@ function AvatarWithImagePicker({
                             {!disabled && (
                                 <View style={StyleSheet.flatten([styles.smallEditIcon, styles.smallAvatarEditIcon, editIconStyle])}>
                                     <Icon
-                                        src={Expensicons.Pencil}
+                                        src={editIcon}
                                         width={variables.iconSizeSmall}
                                         height={variables.iconSizeSmall}
                                         fill={theme.icon}
@@ -347,16 +358,12 @@ function AvatarWithImagePicker({
                     maybeIcon={isUsingDefaultAvatar}
                 >
                     {({show}) => (
-                        <AttachmentPicker
-                            // @ts-expect-error TODO: Remove this once AttachmentPicker (https://github.com/Expensify/App/issues/25134) is migrated to TypeScript.
-                            type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}
-                        >
-                            {/* @ts-expect-error TODO: Remove this once AttachmentPicker (https://github.com/Expensify/App/issues/25134) is migrated to TypeScript. */}
+                        <AttachmentPicker type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}>
                             {({openPicker}) => {
                                 const menuItems = createMenuItems(openPicker);
 
-                                // If the current avatar isn't a default avatar, allow the "View Photo" option
-                                if (!isUsingDefaultAvatar) {
+                                // If the current avatar isn't a default avatar and we are not overriding this behavior allow the "View Photo" option
+                                if (!shouldDisableViewPhoto && !isUsingDefaultAvatar) {
                                     menuItems.push({
                                         icon: Expensicons.Eye,
                                         text: translate('avatarWithImagePicker.viewPhoto'),

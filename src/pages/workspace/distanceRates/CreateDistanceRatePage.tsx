@@ -11,11 +11,10 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import validateRateValue from '@libs/PolicyDistanceRatesUtils';
+import {getOptimisticRateName, validateRateValue} from '@libs/PolicyDistanceRatesUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
-import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
-import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {createPolicyDistanceRate, generateCustomUnitID} from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -33,6 +32,7 @@ type CreateDistanceRatePageProps = CreateDistanceRatePageOnyxProps & StackScreen
 function CreateDistanceRatePage({policy, route}: CreateDistanceRatePageProps) {
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
+    const policyID = route.params.policyID;
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
     const customUnits = policy?.customUnits ?? {};
     const customUnitID = customUnits[Object.keys(customUnits)[0]]?.customUnitID ?? '';
@@ -47,48 +47,52 @@ function CreateDistanceRatePage({policy, route}: CreateDistanceRatePageProps) {
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) => {
         const newRate: Rate = {
             currency,
-            name: CONST.CUSTOM_UNITS.DEFAULT_RATE,
+            name: getOptimisticRateName(customUnits[customUnitID]?.rates),
             rate: parseFloat(values.rate) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET,
             customUnitRateID,
             enabled: true,
         };
 
-        createPolicyDistanceRate(route.params.policyID, customUnitID, newRate);
+        createPolicyDistanceRate(policyID, customUnitID, newRate);
         Navigation.goBack();
     };
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
-            <PaidPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
-                <ScreenWrapper
-                    includeSafeAreaPaddingBottom={false}
-                    style={[styles.defaultModalContainer]}
-                    testID={CreateDistanceRatePage.displayName}
+        <AccessOrNotFoundWrapper
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED}
+        >
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                style={[styles.defaultModalContainer]}
+                testID={CreateDistanceRatePage.displayName}
+                shouldEnableMaxHeight
+            >
+                <HeaderWithBackButton title={translate('workspace.distanceRates.addRate')} />
+                <FormProvider
+                    formID={ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM}
+                    submitButtonText={translate('common.save')}
+                    onSubmit={submit}
+                    validate={validate}
+                    enabledWhenOffline
+                    style={[styles.flexGrow1]}
+                    shouldHideFixErrorsAlert
+                    submitFlexEnabled={false}
+                    submitButtonStyles={[styles.mh5, styles.mt0]}
+                    disablePressOnEnter={false}
                 >
-                    <HeaderWithBackButton title={translate('workspace.distanceRates.addRate')} />
-                    <FormProvider
-                        formID={ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM}
-                        submitButtonText={translate('common.save')}
-                        onSubmit={submit}
-                        validate={validate}
-                        enabledWhenOffline
-                        style={[styles.flexGrow1]}
-                        shouldHideFixErrorsAlert
-                        submitFlexEnabled={false}
-                        submitButtonStyles={[styles.mh5, styles.mt0]}
-                    >
-                        <InputWrapperWithRef
-                            InputComponent={AmountForm}
-                            inputID={INPUT_IDS.RATE}
-                            extraDecimals={1}
-                            isCurrencyPressable={false}
-                            currency={currency}
-                            ref={inputCallbackRef}
-                        />
-                    </FormProvider>
-                </ScreenWrapper>
-            </PaidPolicyAccessOrNotFoundWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+                    <InputWrapperWithRef
+                        InputComponent={AmountForm}
+                        inputID={INPUT_IDS.RATE}
+                        extraDecimals={1}
+                        isCurrencyPressable={false}
+                        currency={currency}
+                        ref={inputCallbackRef}
+                    />
+                </FormProvider>
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 

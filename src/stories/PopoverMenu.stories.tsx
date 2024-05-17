@@ -1,4 +1,4 @@
-import type {ComponentMeta, ComponentStory} from '@storybook/react';
+import type {Meta, StoryFn} from '@storybook/react';
 import React from 'react';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -8,14 +8,14 @@ import type {PopoverMenuProps} from '@components/PopoverMenu';
 // eslint-disable-next-line no-restricted-imports
 import themeColors from '@styles/theme/themes/dark';
 
-type PopoverMenuStory = ComponentStory<typeof PopoverMenu>;
+type PopoverMenuStory = StoryFn<typeof PopoverMenu>;
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
  *
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
-const story: ComponentMeta<typeof PopoverMenu> = {
+const story: Meta<typeof PopoverMenu> = {
     title: 'Components/PopoverMenu',
     component: PopoverMenu,
 };

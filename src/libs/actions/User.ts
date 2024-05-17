@@ -2,6 +2,7 @@ import {isBefore} from 'date-fns';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import * as ActiveClientManager from '@libs/ActiveClientManager';
 import * as API from '@libs/API';
 import type {
     AddNewContactMethodParams,
@@ -10,6 +11,7 @@ import type {
     GetStatementPDFParams,
     RequestContactMethodValidateCodeParams,
     SetContactMethodAsDefaultParams,
+    SetNameValuePairParams,
     UpdateChatPriorityModeParams,
     UpdateFrequentlyUsedEmojisParams,
     UpdateNewsletterSubscriptionParams,
@@ -43,8 +45,8 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OriginalMessage} from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
+import applyOnyxUpdatesReliably from './applyOnyxUpdatesReliably';
 import * as Link from './Link';
-import * as OnyxUpdates from './OnyxUpdates';
 import * as Report from './Report';
 import * as Session from './Session';
 
@@ -531,7 +533,7 @@ function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
             const types = flatten.map((data) => data?.originalMessage).filter(Boolean) as OriginalMessage[];
 
             for (const message of types) {
-                // someone sent money
+                // Pay someone flow
                 if ('IOUDetails' in message) {
                     return playSound(SOUNDS.SUCCESS);
                 }
@@ -551,12 +553,12 @@ function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
                     return playSound(SOUNDS.ATTENTION);
                 }
 
-                // request money
+                // Submit expense flow
                 if ('IOUTransactionID' in message) {
                     return playSound(SOUNDS.ATTENTION);
                 }
 
-                // Someone completes a money request
+                // Someone reimburses an expense
                 if ('IOUReportID' in message) {
                     return playSound(SOUNDS.SUCCESS);
                 }
@@ -590,6 +592,11 @@ function subscribeToUserEvents() {
     // Handles the mega multipleEvents from Pusher which contains an array of single events.
     // Each single event is passed to PusherUtils in order to trigger the callbacks for that event
     PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.MULTIPLE_EVENTS, currentUserAccountID.toString(), (pushJSON) => {
+        // If this is not the main client, we shouldn't process any data received from pusher.
+        if (!ActiveClientManager.isClientTheLeader()) {
+            Log.info('[Pusher] Received updates, but ignoring it since this is not the active client');
+            return;
+        }
         // The data for the update is an object, containing updateIDs from the server and an array of onyx updates (this array is the same format as the original format above)
         // Example: {lastUpdateID: 1, previousUpdateID: 0, updates: [{onyxMethod: 'whatever', key: 'foo', value: 'bar'}]}
         const updates = {
@@ -598,7 +605,7 @@ function subscribeToUserEvents() {
             updates: pushJSON.updates ?? [],
             previousUpdateID: Number(pushJSON.previousUpdateID || 0),
         };
-        OnyxUpdates.applyOnyxUpdatesReliably(updates);
+        applyOnyxUpdatesReliably(updates);
     });
 
     // Handles Onyx updates coming from Pusher through the mega multipleEvents.
@@ -606,8 +613,13 @@ function subscribeToUserEvents() {
         playSoundForMessageType(pushJSON);
 
         return SequentialQueue.getCurrentRequest().then(() => {
-            // If we don't have the currentUserAccountID (user is logged out) we don't want to update Onyx with data from Pusher
+            // If we don't have the currentUserAccountID (user is logged out) or this is not the
+            // main client we don't want to update Onyx with data from Pusher
             if (currentUserAccountID === -1) {
+                return;
+            }
+            if (!ActiveClientManager.isClientTheLeader()) {
+                Log.info('[Pusher] Received updates, but ignoring it since this is not the active client');
                 return;
             }
 
@@ -987,10 +999,30 @@ function dismissReferralBanner(type: ValueOf<typeof CONST.REFERRAL_PROGRAM.CONTE
     );
 }
 
+function dismissTrackTrainingModal() {
+    const parameters: SetNameValuePairParams = {
+        name: ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING,
+        value: true,
+    };
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING,
+            value: true,
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, {
+        optimisticData,
+    });
+}
+
 export {
     clearFocusModeNotification,
     closeAccount,
     dismissReferralBanner,
+    dismissTrackTrainingModal,
     resendValidateCode,
     requestContactMethodValidateCode,
     updateNewsletterSubscription,

@@ -1,3 +1,5 @@
+import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
+
 type OpenReportParams = {
     reportID: string;
     reportActionID?: string;
@@ -7,7 +9,11 @@ type OpenReportParams = {
     shouldRetry?: boolean;
     createdReportActionID?: string;
     clientLastReadTime?: string;
-    idempotencyKey?: string;
+    groupChatAdminLogins?: string;
+    reportName?: string;
+    chatType?: string;
+    optimisticAccountIDList?: string;
+    file?: File | CustomRNImageManipulatorResult;
 };
 
 export default OpenReportParams;

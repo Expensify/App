@@ -41,8 +41,17 @@ type ReportActionsListProps = WithCurrentUserPersonalDetailsProps & {
     /** The report currently being looked at */
     report: OnyxTypes.Report;
 
+    /** The transaction thread report associated with the current report, if any */
+    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
+
+    /** Array of report actions for the current report */
+    reportActions: OnyxTypes.ReportAction[];
+
     /** The report's parentReportAction */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
+
+    /** The transaction thread report's parentReportAction */
+    parentReportActionForTransactionThread: OnyxEntry<OnyxTypes.ReportAction>;
 
     /** Sorted actions prepared for display */
     sortedReportActions: OnyxTypes.ReportAction[];
@@ -56,8 +65,14 @@ type ReportActionsListProps = WithCurrentUserPersonalDetailsProps & {
     /** Are we loading more report actions? */
     isLoadingOlderReportActions?: boolean;
 
+    /** Was there an error when loading older report actions? */
+    hasLoadingOlderReportActionsError?: boolean;
+
     /** Are we loading newer report actions? */
     isLoadingNewerReportActions?: boolean;
+
+    /** Was there an error when loading newer report actions? */
+    hasLoadingNewerReportActionsError?: boolean;
 
     /** Callback executed on list layout */
     onLayout: (event: LayoutChangeEvent) => void;
@@ -66,10 +81,10 @@ type ReportActionsListProps = WithCurrentUserPersonalDetailsProps & {
     onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 
     /** Function to load more chats */
-    loadOlderChats: () => void;
+    loadOlderChats: (force?: boolean) => void;
 
     /** Function to load newer chats */
-    loadNewerChats: () => void;
+    loadNewerChats: (force?: boolean) => void;
 
     /** Whether the composer is in full size */
     isComposerFullSize?: boolean;
@@ -125,10 +140,14 @@ const onScrollToIndexFailed = () => {};
 
 function ReportActionsList({
     report,
+    transactionThreadReport,
+    reportActions = [],
     parentReportAction,
     isLoadingInitialReportActions = false,
     isLoadingOlderReportActions = false,
+    hasLoadingOlderReportActionsError = false,
     isLoadingNewerReportActions = false,
+    hasLoadingNewerReportActionsError = false,
     sortedReportActions,
     onScroll,
     mostRecentIOUReportActionID = '',
@@ -140,6 +159,7 @@ function ReportActionsList({
     listID,
     onContentSizeChange,
     shouldEnableAutoScrollToTopThreshold,
+    parentReportActionForTransactionThread,
 }: ReportActionsListProps) {
     const personalDetailsList = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const styles = useThemeStyles();
@@ -181,15 +201,19 @@ function ReportActionsList({
         () =>
             sortedReportActions.filter(
                 (reportAction) =>
-                    (isOffline || reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || reportAction.errors) &&
+                    (isOffline ||
+                        ReportActionsUtils.isDeletedParentAction(reportAction) ||
+                        reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
+                        reportAction.errors) &&
                     ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID),
             ),
         [sortedReportActions, isOffline],
     );
     const lastActionIndex = sortedVisibleReportActions[0]?.reportActionID;
     const reportActionSize = useRef(sortedVisibleReportActions.length);
-    const hasNewestReportAction = sortedReportActions?.[0].created === report.lastVisibleActionCreated;
-
+    const hasNewestReportAction = sortedVisibleReportActions?.[0]?.created === report.lastVisibleActionCreated;
+    const hasNewestReportActionRef = useRef(hasNewestReportAction);
+    hasNewestReportActionRef.current = hasNewestReportAction;
     const previousLastIndex = useRef(lastActionIndex);
 
     const isLastPendingActionIsDelete = sortedReportActions?.[0]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
@@ -236,10 +260,14 @@ function ReportActionsList({
         if (!userActiveSince.current || report.reportID !== prevReportID) {
             return;
         }
-
         if (ReportUtils.isUnread(report)) {
-            if (Visibility.isVisible() && scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD) {
+            // On desktop, when the notification center is displayed, Visibility.isVisible() will return false.
+            // Currently, there's no programmatic way to dismiss the notification center panel.
+            // To handle this, we use the 'referrer' parameter to check if the current navigation is triggered from a notification.
+            const isFromNotification = route?.params?.referrer === CONST.REFERRER.NOTIFICATION;
+            if ((Visibility.isVisible() || isFromNotification) && scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD) {
                 Report.readNewestAction(report.reportID);
+                Navigation.setParams({referrer: undefined});
             } else {
                 readActionSkipped.current = true;
             }
@@ -314,14 +342,13 @@ function ReportActionsList({
         (isFromCurrentUser: boolean) => {
             // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
             // they are now in the list.
-            if (!isFromCurrentUser || !hasNewestReportAction) {
+            if (!isFromCurrentUser || !hasNewestReportActionRef.current) {
                 return;
             }
             InteractionManager.runAfterInteractions(() => reportScrollManager.scrollToBottom());
         },
-        [hasNewestReportAction, reportScrollManager],
+        [reportScrollManager],
     );
-
     useEffect(() => {
         // Why are we doing this, when in the cleanup of the useEffect we are already calling the unsubscribe function?
         // Answer: On web, when navigating to another report screen, the previous report screen doesn't get unmounted,
@@ -340,12 +367,10 @@ function ReportActionsList({
         const unsubscribe = Report.subscribeToNewActionEvent(report.reportID, scrollToBottomForCurrentUserAction);
 
         const cleanup = () => {
-            if (unsubscribe) {
-                unsubscribe();
+            if (!unsubscribe) {
+                return;
             }
-            InteractionManager.runAfterInteractions(() => {
-                Report.unsubscribeFromReportChannel(report.reportID);
-            });
+            unsubscribe();
         };
 
         newActionUnsubscribeMap[report.reportID] = cleanup;
@@ -412,6 +437,8 @@ function ReportActionsList({
         [sortedReportActions, isOffline, currentUnreadMarker],
     );
 
+    const firstVisibleReportActionID = useMemo(() => ReportActionsUtils.getFirstVisibleReportActionID(sortedReportActions, isOffline), [sortedReportActions, isOffline]);
+
     /**
      * Evaluate new unread marker visibility for each of the report actions.
      */
@@ -424,7 +451,7 @@ function ReportActionsList({
                 shouldDisplay = isCurrentMessageUnread && (!nextMessage || !isMessageUnread(nextMessage, lastReadTimeRef.current)) && !ReportActionsUtils.shouldHideNewMarker(reportAction);
                 if (shouldDisplay && !messageManuallyMarkedUnread) {
                     const isWithinVisibleThreshold = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? reportAction.created < (userActiveSince.current ?? '') : true;
-                    // Prevent displaying a new marker line when report action is of type "REPORTPREVIEW" and last actor is the current user
+                    // Prevent displaying a new marker line when report action is of type "REPORT_PREVIEW" and last actor is the current user
                     shouldDisplay =
                         (ReportActionsUtils.isReportPreviewAction(reportAction) ? !reportAction.childLastActorAccountID : reportAction.actorAccountID) !== Report.getCurrentUserAccountID() &&
                         isWithinVisibleThreshold;
@@ -441,6 +468,24 @@ function ReportActionsList({
         [currentUnreadMarker, sortedVisibleReportActions, report.reportID, messageManuallyMarkedUnread],
     );
 
+    const shouldUseThreadDividerLine = useMemo(() => {
+        const topReport = sortedVisibleReportActions.length > 0 ? sortedVisibleReportActions[sortedVisibleReportActions.length - 1] : null;
+
+        if (topReport && topReport.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
+            return false;
+        }
+
+        if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
+            return !ReportActionsUtils.isDeletedParentAction(parentReportAction) && !ReportActionsUtils.isReversedTransaction(parentReportAction);
+        }
+
+        if (ReportUtils.isTaskReport(report)) {
+            return !ReportUtils.isCanceledTaskReport(report, parentReportAction);
+        }
+
+        return ReportUtils.isExpenseReport(report) || ReportUtils.isIOUReport(report);
+    }, [parentReportAction, report, sortedVisibleReportActions]);
+
     const calculateUnreadMarker = useCallback(() => {
         // Iterate through the report actions and set appropriate unread marker.
         // This is to avoid a warning of:
@@ -456,10 +501,10 @@ function ReportActionsList({
                 setCurrentUnreadMarker(reportAction.reportActionID);
             }
         });
-        if (!markerFound) {
+        if (!markerFound && !linkedReportActionID) {
             setCurrentUnreadMarker(null);
         }
-    }, [sortedVisibleReportActions, report.reportID, shouldDisplayNewMarker, currentUnreadMarker]);
+    }, [sortedVisibleReportActions, report.reportID, shouldDisplayNewMarker, currentUnreadMarker, linkedReportActionID]);
 
     useEffect(() => {
         calculateUnreadMarker();
@@ -514,17 +559,36 @@ function ReportActionsList({
         ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => (
             <ReportActionsListItemRenderer
                 reportAction={reportAction}
+                reportActions={reportActions}
                 parentReportAction={parentReportAction}
+                parentReportActionForTransactionThread={parentReportActionForTransactionThread}
                 index={index}
                 report={report}
+                transactionThreadReport={transactionThreadReport}
                 linkedReportActionID={linkedReportActionID}
-                displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(sortedReportActions, index)}
+                displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(sortedVisibleReportActions, index)}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                 shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                 shouldDisplayNewMarker={shouldDisplayNewMarker(reportAction, index)}
+                shouldDisplayReplyDivider={sortedVisibleReportActions.length > 1}
+                isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
+                shouldUseThreadDividerLine={shouldUseThreadDividerLine}
             />
         ),
-        [report, linkedReportActionID, sortedReportActions, mostRecentIOUReportActionID, shouldHideThreadDividerLine, shouldDisplayNewMarker, parentReportAction],
+        [
+            report,
+            linkedReportActionID,
+            sortedVisibleReportActions,
+            mostRecentIOUReportActionID,
+            shouldHideThreadDividerLine,
+            shouldDisplayNewMarker,
+            parentReportAction,
+            reportActions,
+            transactionThreadReport,
+            parentReportActionForTransactionThread,
+            shouldUseThreadDividerLine,
+            firstVisibleReportActionID,
+        ],
     );
 
     // Native mobile does not render updates flatlist the changes even though component did update called.
@@ -541,11 +605,16 @@ function ReportActionsList({
 
     const lastReportAction: OnyxTypes.ReportAction | EmptyObject = useMemo(() => sortedReportActions.at(-1) ?? {}, [sortedReportActions]);
 
-    const listFooterComponent = useCallback(() => {
+    const retryLoadOlderChatsError = useCallback(() => {
+        loadOlderChats(true);
+    }, [loadOlderChats]);
+
+    const listFooterComponent = useMemo(() => {
         // Skip this hook on the first render (when online), as we are not sure if more actions are going to be loaded,
         // Therefore showing the skeleton on footer might be misleading.
-        // When offline, there should be no second render, so we should show the skeleton if the corresponding loading prop is present
-        if (!isOffline && !hasFooterRendered.current) {
+        // When offline, there should be no second render, so we should show the skeleton if the corresponding loading prop is present.
+        // In case of an error we want to display the footer no matter what.
+        if (!isOffline && !hasFooterRendered.current && !hasLoadingOlderReportActionsError) {
             hasFooterRendered.current = true;
             return null;
         }
@@ -556,9 +625,11 @@ function ReportActionsList({
                 isLoadingOlderReportActions={isLoadingOlderReportActions}
                 isLoadingInitialReportActions={isLoadingInitialReportActions}
                 lastReportActionName={lastReportAction.actionName}
+                hasError={hasLoadingOlderReportActionsError}
+                onRetry={retryLoadOlderChatsError}
             />
         );
-    }, [isLoadingInitialReportActions, isLoadingOlderReportActions, lastReportAction.actionName, isOffline]);
+    }, [isLoadingInitialReportActions, isLoadingOlderReportActions, lastReportAction.actionName, isOffline, hasLoadingOlderReportActionsError, retryLoadOlderChatsError]);
 
     const onLayoutInner = useCallback(
         (event: LayoutChangeEvent) => {
@@ -573,8 +644,13 @@ function ReportActionsList({
         [onContentSizeChange],
     );
 
-    const listHeaderComponent = useCallback(() => {
-        if (!canShowHeader) {
+    const retryLoadNewerChatsError = useCallback(() => {
+        loadNewerChats(true);
+    }, [loadNewerChats]);
+
+    const listHeaderComponent = useMemo(() => {
+        // In case of an error we want to display the header no matter what.
+        if (!canShowHeader && !hasLoadingNewerReportActionsError) {
             hasHeaderRendered.current = true;
             return null;
         }
@@ -583,9 +659,19 @@ function ReportActionsList({
             <ListBoundaryLoader
                 type={CONST.LIST_COMPONENTS.HEADER}
                 isLoadingNewerReportActions={isLoadingNewerReportActions}
+                hasError={hasLoadingNewerReportActionsError}
+                onRetry={retryLoadNewerChatsError}
             />
         );
-    }, [isLoadingNewerReportActions, canShowHeader]);
+    }, [isLoadingNewerReportActions, canShowHeader, hasLoadingNewerReportActionsError, retryLoadNewerChatsError]);
+
+    const onStartReached = useCallback(() => {
+        loadNewerChats(false);
+    }, [loadNewerChats]);
+
+    const onEndReached = useCallback(() => {
+        loadOlderChats(false);
+    }, [loadOlderChats]);
 
     // When performing comment linking, initially 25 items are added to the list. Subsequent fetches add 15 items from the cache or 50 items from the server.
     // This is to ensure that the user is able to see the 'scroll to newer comments' button when they do comment linking and have not reached the end of the list yet.
@@ -607,9 +693,9 @@ function ReportActionsList({
                     contentContainerStyle={contentContainerStyle}
                     keyExtractor={keyExtractor}
                     initialNumToRender={initialNumToRender}
-                    onEndReached={loadOlderChats}
+                    onEndReached={onEndReached}
                     onEndReachedThreshold={0.75}
-                    onStartReached={loadNewerChats}
+                    onStartReached={onStartReached}
                     onStartReachedThreshold={0.75}
                     ListFooterComponent={listFooterComponent}
                     ListHeaderComponent={listHeaderComponent}

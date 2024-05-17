@@ -17,19 +17,21 @@ import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, Session as SessionType} from '@src/types/onyx';
 
 type TopBarOnyxProps = {
     policy: OnyxEntry<Policy>;
+    session: OnyxEntry<Pick<SessionType, 'authTokenType'>>;
 };
 
 // eslint-disable-next-line react/no-unused-prop-types
-type TopBarProps = {activeWorkspaceID?: string} & TopBarOnyxProps;
+type TopBarProps = {breadcrumbLabel: string; activeWorkspaceID?: string; shouldDisplaySearch?: boolean} & TopBarOnyxProps;
 
-function TopBar({policy}: TopBarProps) {
+function TopBar({policy, session, breadcrumbLabel, shouldDisplaySearch = true}: TopBarProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
+    const isAnonymousUser = Session.isAnonymousUser(session);
 
     const headerBreadcrumb = policy?.name
         ? {type: CONST.BREADCRUMB_TYPE.STRONG, text: policy.name}
@@ -37,10 +39,13 @@ function TopBar({policy}: TopBarProps) {
               type: CONST.BREADCRUMB_TYPE.ROOT,
           };
 
+    const displaySignIn = isAnonymousUser;
+    const displaySearch = !isAnonymousUser && shouldDisplaySearch;
+
     return (
         <View style={styles.w100}>
             <View
-                style={[styles.flexRow, styles.gap4, styles.mh3, styles.mv5, styles.alignItemsCenter, {justifyContent: 'space-between'}]}
+                style={[styles.flexRow, styles.gap4, styles.mh3, styles.mv5, styles.alignItemsCenter, styles.justifyContentBetween]}
                 dataSet={{dragArea: true}}
             >
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.ml2]}>
@@ -51,20 +56,19 @@ function TopBar({policy}: TopBarProps) {
                             breadcrumbs={[
                                 headerBreadcrumb,
                                 {
-                                    text: translate('common.chats'),
+                                    text: breadcrumbLabel,
                                 },
                             ]}
                         />
                     </View>
                 </View>
-                {Session.isAnonymousUser() ? (
-                    <SignInButton />
-                ) : (
-                    <Tooltip text={translate('common.search')}>
+                {displaySignIn && <SignInButton />}
+                {displaySearch && (
+                    <Tooltip text={translate('common.find')}>
                         <PressableWithoutFeedback
-                            accessibilityLabel={translate('sidebarScreen.buttonSearch')}
+                            accessibilityLabel={translate('sidebarScreen.buttonFind')}
                             style={[styles.flexRow, styles.mr2]}
-                            onPress={Session.checkIfActionIsAllowed(() => Navigation.navigate(ROUTES.SEARCH))}
+                            onPress={Session.checkIfActionIsAllowed(() => Navigation.navigate(ROUTES.CHAT_FINDER))}
                         >
                             <Icon
                                 src={Expensicons.MagnifyingGlass}
@@ -83,5 +87,9 @@ TopBar.displayName = 'TopBar';
 export default withOnyx<TopBarProps, TopBarOnyxProps>({
     policy: {
         key: ({activeWorkspaceID}) => `${ONYXKEYS.COLLECTION.POLICY}${activeWorkspaceID}`,
+    },
+    session: {
+        key: ONYXKEYS.SESSION,
+        selector: (session) => session && {authTokenType: session.authTokenType},
     },
 })(TopBar);

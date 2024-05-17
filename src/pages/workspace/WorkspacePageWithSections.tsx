@@ -1,6 +1,6 @@
-import {useIsFocused} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import type {ReactNode} from 'react';
-import React, {useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -10,13 +10,14 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
 import useNetwork from '@hooks/useNetwork';
+import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import BankAccount from '@libs/models/BankAccount';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as BankAccounts from '@userActions/BankAccounts';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import type {Policy, ReimbursementAccount, User} from '@src/types/onyx';
@@ -102,7 +103,7 @@ function WorkspacePageWithSections({
     headerText,
     policy,
     policyDraft,
-    reimbursementAccount = ReimbursementAccountProps.reimbursementAccountDefaultProps,
+    reimbursementAccount = CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA,
     route,
     shouldUseScrollView = false,
     shouldSkipVBBACall = false,
@@ -127,15 +128,18 @@ function WorkspacePageWithSections({
     const {isSmallScreenWidth} = useWindowDimensions();
     const firstRender = useRef(true);
     const isFocused = useIsFocused();
+    const prevPolicy = usePrevious(policy);
 
     useEffect(() => {
         // Because isLoading is false before merging in Onyx, we need firstRender ref to display loading page as well before isLoading is change to true
         firstRender.current = false;
     }, []);
 
-    useEffect(() => {
-        fetchData(policyID, shouldSkipVBBACall);
-    }, [policyID, shouldSkipVBBACall]);
+    useFocusEffect(
+        useCallback(() => {
+            fetchData(policyID, shouldSkipVBBACall);
+        }, [policyID, shouldSkipVBBACall]),
+    );
 
     const shouldShow = useMemo(() => {
         // If the policy object doesn't exist or contains only error data, we shouldn't display it.
@@ -143,7 +147,11 @@ function WorkspacePageWithSections({
             return true;
         }
 
-        return (!isEmptyObject(policy) && !PolicyUtils.isPolicyAdmin(policy) && !shouldShowNonAdmin) || PolicyUtils.isPendingDeletePolicy(policy);
+        // We check isPendingDelete for both policy and prevPolicy to prevent the NotFound view from showing right after we delete the workspace
+        return (
+            (!isEmptyObject(policy) && !PolicyUtils.isPolicyAdmin(policy) && !shouldShowNonAdmin) ||
+            (PolicyUtils.isPendingDeletePolicy(policy) && PolicyUtils.isPendingDeletePolicy(prevPolicy))
+        );
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [policy, shouldShowNonAdmin]);
 
