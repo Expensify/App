@@ -263,8 +263,10 @@ function isPaidGroupPolicy(policy: OnyxEntry<Policy> | EmptyObject): boolean {
     return policy?.type === CONST.POLICY.TYPE.TEAM || policy?.type === CONST.POLICY.TYPE.CORPORATE;
 }
 
-function isTaxTrackingEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Policy>, customUnitRateID: string, isDistanceRequest: boolean): boolean {
-    const isTaxEnabled = policy?.customUnits?.[customUnitRateID]?.attributes?.taxEnabled;
+function isTaxTrackingEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Policy>, isDistanceRequest: boolean): boolean {
+    const distanceUnit = Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+    const customUnitID = distanceUnit?.customUnitID ?? 0;
+    const isTaxEnabled = policy?.customUnits?.[customUnitID]?.attributes?.taxEnabled;
     const isPolicyTaxTrackingEnabled = isPolicyExpenseChat && policy?.tax?.trackingEnabled;
     return (isDistanceRequest ? isPolicyTaxTrackingEnabled && isTaxEnabled : isPolicyTaxTrackingEnabled) ?? false;
 }

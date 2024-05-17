@@ -173,7 +173,7 @@ function MoneyRequestView({
     const shouldShowTag = isPolicyExpenseChat && (transactionTag || OptionsListUtils.hasEnabledTags(policyTagLists));
     const shouldShowBillable = isPolicyExpenseChat && (!!transactionBillable || !(policy?.disabledFields?.defaultBillable ?? true));
 
-    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, customUnitRateID, isDistanceRequest);
+    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest);
 
     const {getViolationsForField} = useViolations(transactionViolations ?? []);
     const hasViolations = useCallback(

@@ -299,7 +299,7 @@ function MoneyRequestConfirmationList({
     // TODO: remove the !isTypeInvoice from this condition after BE supports tags for invoices: https://github.com/Expensify/App/issues/41281
     const shouldShowTags = useMemo(() => isPolicyExpenseChat && OptionsListUtils.hasEnabledTags(policyTagLists) && !isTypeInvoice, [isPolicyExpenseChat, policyTagLists, isTypeInvoice]);
 
-    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, customUnitRateID, isDistanceRequest) && !isTypeInvoice;
+    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest) && !isTypeInvoice;
 
     // A flag for showing the billable field
     const shouldShowBillable = policy?.disabledFields?.defaultBillable === false;
