@@ -19,6 +19,7 @@ function ReviewCategory() {
     const compareResult = TransactionUtils.compareDuplicateTransactionFields(transactionID);
     const stepNames = Object.keys(compareResult.change ?? {}).map((key, index) => (index + 1).toString());
     const {currentScreenIndex, navigateToNextScreen} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'category', route.params.threadReportID ?? '');
+    console.log('compareResult.change.category', compareResult.change);
     const options = useMemo(
         () =>
             compareResult.change.category.map((category) =>

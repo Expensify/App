@@ -52,7 +52,7 @@ function ReviewFields({stepNames, label, options, index, onSelectRow}: ReviewFie
             key={index}
             style={styles.flex1}
         >
-            <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
+            <View style={[styles.w100, styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
                 {stepNames.length > 1 && (
                     <InteractiveStepSubHeader
                         stepNames={stepNames}

@@ -21,8 +21,8 @@ function ReviewDescription() {
     const {currentScreenIndex, navigateToNextScreen} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'description', route.params.threadReportID ?? '');
     const options = useMemo(
         () =>
-            compareResult.change.description.map((description) =>
-                !description
+            compareResult.change.description?.map((description) =>
+                !description?.comment
                     ? {text: translate('violations.none'), value: ''}
                     : {
                           text: description.comment,

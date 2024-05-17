@@ -1,4 +1,5 @@
 import lodashHas from 'lodash/has';
+import lodashIsEqual from 'lodash/isEqual';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -784,12 +785,27 @@ function compareDuplicateTransactionFields(transactionID: string) {
             const keys = fieldsToCompare[fieldName];
 
             const firstTransaction = transactions[0];
+            const isFirstTransactionCommentEmptyObject = typeof firstTransaction?.comment === 'object' && firstTransaction?.comment.comment === '';
 
             if (fieldName === 'description') {
-                if (transactions.every((item) => keys.every((key) => item && item.comment && item.comment === firstTransaction?.comment))) {
-                    keep[fieldName] = firstTransaction?.comment;
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                if (
+                    transactions.every((item) =>
+                        keys.every(
+                            () =>
+                                !(item && item.comment && lodashIsEqual(item.comment, firstTransaction?.comment)) ||
+                                !(item && item.comment && Boolean(item.comment.comment) === Boolean(firstTransaction?.comment.comment)) ||
+                                (isFirstTransactionCommentEmptyObject && item.comment === undefined),
+                        ),
+                    )
+                ) {
+                    keep[fieldName] = firstTransaction?.comment.comment ?? firstTransaction?.comment;
                 } else {
-                    const differentValues = transactions.map((item) => keys.map((key) => (item && item.comment && key in item.comment ? item.comment : undefined))).flat();
+                    let differentValues = transactions.map((item) => keys.map((key) => (item && item.comment && key in item.comment ? item.comment : undefined))).flat();
+
+                    if (differentValues.every((item) => !item?.comment)) {
+                        differentValues = differentValues.filter((item) => item?.comment);
+                    }
 
                     if (differentValues.length > 0) {
                         change[fieldName] = differentValues;
@@ -798,7 +814,7 @@ function compareDuplicateTransactionFields(transactionID: string) {
             } else if (transactions.every((item) => keys.every((key) => item && key in item && item[key] === firstTransaction?.[key]))) {
                 keep[fieldName] = firstTransaction?.[keys[0]];
             } else {
-                const differentValues = transactions
+                let differentValues = transactions
                     .map((item) =>
                         keys.map((key) => {
                             if (!item?.[key]) {
@@ -808,6 +824,10 @@ function compareDuplicateTransactionFields(transactionID: string) {
                         }),
                     )
                     .flat();
+
+                if (differentValues.every((item) => item === undefined)) {
+                    differentValues = differentValues.filter(Boolean);
+                }
 
                 if (differentValues.length > 0) {
                     change[fieldName] = differentValues;
