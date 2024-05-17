@@ -30,7 +30,7 @@ function search({hash, query, policyIDs, offset, sortBy, sortOrder}: SearchParam
         },
     ];
 
-    API.read(READ_COMMANDS.SEARCH, {hash, query, offset, policyIDs}, {optimisticData, finallyData});
+    API.read(READ_COMMANDS.SEARCH, {hash, query, offset, policyIDs, sortBy, sortOrder}, {optimisticData, finallyData});
 }
 export {
     // eslint-disable-next-line import/prefer-default-export

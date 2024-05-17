@@ -1,3 +1,4 @@
+import {useNavigation} from '@react-navigation/native';
 import React, {useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import useNetwork from '@hooks/useNetwork';
@@ -75,19 +76,19 @@ type SearchProps = {
 function Search({query, policyIDs, sortOrder, sortBy}: SearchProps) {
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
+    const navigation = useNavigation();
+
     useCustomBackHandler();
 
     const hash = SearchUtils.getQueryHash(query, policyIDs);
     const [searchResults, searchResultsMeta] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
-
-    const offset = 0;
 
     useEffect(() => {
         if (isOffline) {
             return;
         }
 
-        SearchActions.search({hash, query, policyIDs, offset, sortBy, sortOrder});
+        SearchActions.search({hash, query, policyIDs, offset: 0, sortBy, sortOrder});
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [hash, isOffline, sortBy, sortOrder]);
 
@@ -116,7 +117,7 @@ function Search({query, policyIDs, sortOrder, sortBy}: SearchProps) {
             return;
         }
         const currentOffset = searchResults?.search?.offset ?? 0;
-        SearchActions.search({hash, query, offset: currentOffset + CONST.SEARCH_RESULTS_PAGE_SIZE});
+        SearchActions.search({hash, query, offset: currentOffset + CONST.SEARCH_RESULTS_PAGE_SIZE, sortBy, sortOrder});
     };
 
     const type = SearchUtils.getSearchType(searchResults?.search);
@@ -130,13 +131,10 @@ function Search({query, policyIDs, sortOrder, sortBy}: SearchProps) {
     const data = SearchUtils.getSections(searchResults?.data ?? {}, type);
 
     const onSortPress = (column: SearchColumnType, order: SortOrder) => {
-        const newRoute = ROUTES.SEARCH.getRoute(query, {
-            query,
+        navigation.setParams({
             sortBy: column,
             sortOrder: order,
         });
-
-        Navigation.navigate(newRoute);
     };
 
     const sortedData = getSortedData(data, sortBy, sortOrder);
