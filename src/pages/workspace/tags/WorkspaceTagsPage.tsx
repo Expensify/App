@@ -26,7 +26,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
-import type {WorkspacesCentralPaneNavigatorParamList} from '@libs/Navigation/types';
+import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as Policy from '@userActions/Policy';
@@ -37,7 +37,7 @@ import type SCREENS from '@src/SCREENS';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {TagListItem} from './types';
 
-type WorkspaceTagsPageProps = StackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS>;
+type WorkspaceTagsPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS>;
 
 function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -336,12 +336,12 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         onCheckboxPress={toggleTag}
                         onSelectRow={navigateToTagSettings}
                         onSelectAll={toggleAllTags}
-                        showScrollIndicator
                         ListItem={TableListItem}
                         customListHeader={getCustomListHeader()}
                         shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         onDismissError={(item) => Policy.clearPolicyTagErrors(policyID, item.value)}
+                        showScrollIndicator={false}
                     />
                 )}
             </ScreenWrapper>

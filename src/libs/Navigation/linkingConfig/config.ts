@@ -73,17 +73,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
         [SCREENS.NOT_FOUND]: '*',
         [NAVIGATORS.LEFT_MODAL_NAVIGATOR]: {
             screens: {
-                [SCREENS.LEFT_MODAL.CHAT_FINDER]: {
-                    screens: {
-                        [SCREENS.CHAT_FINDER_ROOT]: ROUTES.CHAT_FINDER,
-                    },
-                },
+                [SCREENS.LEFT_MODAL.CHAT_FINDER]: ROUTES.CHAT_FINDER,
                 [SCREENS.LEFT_MODAL.WORKSPACE_SWITCHER]: {
-                    screens: {
-                        [SCREENS.WORKSPACE_SWITCHER.ROOT]: {
-                            path: ROUTES.WORKSPACE_SWITCHER,
-                        },
-                    },
+                    path: ROUTES.WORKSPACE_SWITCHER,
                 },
             },
         },
@@ -299,9 +291,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT_INVOICE_ACCOUNT_SELECT]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECT.route},
-                        [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_PAYABLE_SELECT]: {
-                            path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_PAYABLE_SELECT.route,
-                        },
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT]: {
                             path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT.route,
                         },
@@ -738,49 +727,45 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 [SCREENS.WORKSPACE.INITIAL]: {
                     path: ROUTES.WORKSPACE_INITIAL.route,
                 },
-                [SCREENS.WORKSPACES_CENTRAL_PANE]: {
-                    screens: {
-                        [SCREENS.WORKSPACE.PROFILE]: ROUTES.WORKSPACE_PROFILE.route,
-                        [SCREENS.WORKSPACE.CARD]: {
-                            path: ROUTES.WORKSPACE_CARD.route,
-                        },
-                        [SCREENS.WORKSPACE.WORKFLOWS]: {
-                            path: ROUTES.WORKSPACE_WORKFLOWS.route,
-                        },
-                        [SCREENS.WORKSPACE.REIMBURSE]: {
-                            path: ROUTES.WORKSPACE_REIMBURSE.route,
-                        },
-                        [SCREENS.WORKSPACE.BILLS]: {
-                            path: ROUTES.WORKSPACE_BILLS.route,
-                        },
-                        [SCREENS.WORKSPACE.INVOICES]: {
-                            path: ROUTES.WORKSPACE_INVOICES.route,
-                        },
-                        [SCREENS.WORKSPACE.TRAVEL]: {
-                            path: ROUTES.WORKSPACE_TRAVEL.route,
-                        },
-                        [SCREENS.WORKSPACE.MEMBERS]: {
-                            path: ROUTES.WORKSPACE_MEMBERS.route,
-                        },
-                        [SCREENS.WORKSPACE.ACCOUNTING.ROOT]: {
-                            path: ROUTES.POLICY_ACCOUNTING.route,
-                        },
-                        [SCREENS.WORKSPACE.CATEGORIES]: {
-                            path: ROUTES.WORKSPACE_CATEGORIES.route,
-                        },
-                        [SCREENS.WORKSPACE.MORE_FEATURES]: {
-                            path: ROUTES.WORKSPACE_MORE_FEATURES.route,
-                        },
-                        [SCREENS.WORKSPACE.TAGS]: {
-                            path: ROUTES.WORKSPACE_TAGS.route,
-                        },
-                        [SCREENS.WORKSPACE.TAXES]: {
-                            path: ROUTES.WORKSPACE_TAXES.route,
-                        },
-                        [SCREENS.WORKSPACE.DISTANCE_RATES]: {
-                            path: ROUTES.WORKSPACE_DISTANCE_RATES.route,
-                        },
-                    },
+                [SCREENS.WORKSPACE.PROFILE]: ROUTES.WORKSPACE_PROFILE.route,
+                [SCREENS.WORKSPACE.CARD]: {
+                    path: ROUTES.WORKSPACE_CARD.route,
+                },
+                [SCREENS.WORKSPACE.WORKFLOWS]: {
+                    path: ROUTES.WORKSPACE_WORKFLOWS.route,
+                },
+                [SCREENS.WORKSPACE.REIMBURSE]: {
+                    path: ROUTES.WORKSPACE_REIMBURSE.route,
+                },
+                [SCREENS.WORKSPACE.BILLS]: {
+                    path: ROUTES.WORKSPACE_BILLS.route,
+                },
+                [SCREENS.WORKSPACE.INVOICES]: {
+                    path: ROUTES.WORKSPACE_INVOICES.route,
+                },
+                [SCREENS.WORKSPACE.TRAVEL]: {
+                    path: ROUTES.WORKSPACE_TRAVEL.route,
+                },
+                [SCREENS.WORKSPACE.MEMBERS]: {
+                    path: ROUTES.WORKSPACE_MEMBERS.route,
+                },
+                [SCREENS.WORKSPACE.ACCOUNTING.ROOT]: {
+                    path: ROUTES.POLICY_ACCOUNTING.route,
+                },
+                [SCREENS.WORKSPACE.CATEGORIES]: {
+                    path: ROUTES.WORKSPACE_CATEGORIES.route,
+                },
+                [SCREENS.WORKSPACE.MORE_FEATURES]: {
+                    path: ROUTES.WORKSPACE_MORE_FEATURES.route,
+                },
+                [SCREENS.WORKSPACE.TAGS]: {
+                    path: ROUTES.WORKSPACE_TAGS.route,
+                },
+                [SCREENS.WORKSPACE.TAXES]: {
+                    path: ROUTES.WORKSPACE_TAXES.route,
+                },
+                [SCREENS.WORKSPACE.DISTANCE_RATES]: {
+                    path: ROUTES.WORKSPACE_DISTANCE_RATES.route,
                 },
             },
         },

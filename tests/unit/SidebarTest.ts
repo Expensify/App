@@ -12,6 +12,7 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 // Be sure to include the mocked Permissions and Expensicons libraries as well as the usePermissions hook or else the beta tests won't work
 jest.mock('@src/libs/Permissions');
 jest.mock('@src/hooks/usePermissions.ts');
+jest.mock('@src/hooks/useActiveWorkspaceFromNavigationState');
 jest.mock('@src/components/Icon/Expensicons');
 
 describe('Sidebar', () => {
