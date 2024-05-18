@@ -39,7 +39,7 @@ type Waypoint = {
     /** Address street line 2 */
     street2?: string;
 
-    /** The longitude of the waypoint */
+    /** Key used internally by React */
     keyForList?: string;
 };
 

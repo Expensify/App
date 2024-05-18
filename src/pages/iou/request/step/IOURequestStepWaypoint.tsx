@@ -140,6 +140,7 @@ function IOURequestStepWaypoint({
             lng: values.lng ?? 0,
             address: values.address ?? '',
             name: values.name ?? '',
+            keyForList: `${new Date().getTime()}_${Math.random().toString(36).substring(2, 15)}`,
         };
 
         Transaction.saveWaypoint(transactionID, pageIndex, waypoint, action === CONST.IOU.ACTION.CREATE);

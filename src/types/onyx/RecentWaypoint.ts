@@ -11,7 +11,7 @@ type RecentWaypoint = {
     /** The longitude of the waypoint */
     lng?: number;
 
-    /** The longitude of the waypoint */
+    /** Key used internally by React */
     keyForList?: string;
 };
 
