@@ -119,7 +119,7 @@ function IOURequestStepWaypoint({
                 name: values.name ?? '',
                 lat: values.lat ?? 0,
                 lng: values.lng ?? 0,
-                keyForList: `${new Date().getTime()}_${Math.random().toString(36).substring(2, 15)}`,
+                keyForList: `${waypointValue as string}_${Date.now()}`,
             };
             saveWaypoint(waypoint);
         }
@@ -140,7 +140,7 @@ function IOURequestStepWaypoint({
             lng: values.lng ?? 0,
             address: values.address ?? '',
             name: values.name ?? '',
-            keyForList: `${new Date().getTime()}_${Math.random().toString(36).substring(2, 15)}`,
+            keyForList: `${values.name}_${Date.now()}`,
         };
 
         Transaction.saveWaypoint(transactionID, pageIndex, waypoint, action === CONST.IOU.ACTION.CREATE);
