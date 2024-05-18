@@ -184,7 +184,7 @@ function MoneyRequestHeader({
     }
 
     useEffect(() => {
-        setShouldShowHoldMenu(isOnHold && true);
+        setShouldShowHoldMenu(isOnHold && !shownHoldUseExplanation);
     }, [isOnHold, shownHoldUseExplanation]);
 
     useEffect(() => {
