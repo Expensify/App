@@ -119,7 +119,6 @@ beforeAll(() => {
     // fetch() never gets called so it does not need mocking) or we might have fetch throw an error to test error handling
     // behavior. But here we just want to treat all API requests as a generic "success" and in the cases where we need to
     // simulate data arriving we will just set it into Onyx directly with Onyx.merge() or Onyx.set() etc.
-    // @ts-expect-error -- TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated
     global.fetch = TestHelper.getGlobalFetchMock();
 
     Linking.setInitialURL('https://new.expensify.com/');
@@ -228,7 +227,7 @@ function signInAndGetAppWithUnreadChat(): Promise<void> {
                 lastReadTime: reportAction3CreatedDate,
                 lastVisibleActionCreated: reportAction9CreatedDate,
                 lastMessageText: 'Test',
-                participantAccountIDs: [USER_B_ACCOUNT_ID],
+                participants: {[USER_B_ACCOUNT_ID]: {hidden: false}},
                 lastActorAccountID: USER_B_ACCOUNT_ID,
                 type: CONST.REPORT.TYPE.CHAT,
             });
@@ -389,7 +388,7 @@ describe('Unread Indicators', () => {
                             lastVisibleActionCreated: DateUtils.getDBTime(utcToZonedTime(NEW_REPORT_FIST_MESSAGE_CREATED_DATE, 'UTC').valueOf()),
                             lastMessageText: 'Comment 1',
                             lastActorAccountID: USER_C_ACCOUNT_ID,
-                            participantAccountIDs: [USER_C_ACCOUNT_ID],
+                            participants: {[USER_C_ACCOUNT_ID]: {hidden: false}},
                             type: CONST.REPORT.TYPE.CHAT,
                         },
                     },
