@@ -1878,7 +1878,6 @@ function getOptions(
 
             // Skip if we aren't including multiple participant reports and this report has multiple participants
             if (!isCurrentUserOwnedPolicyExpenseChatThatCouldShow && !includeMultipleParticipantReports && !reportOption.login) {
-                console.log(reportOption);
                 continue;
             }
 
