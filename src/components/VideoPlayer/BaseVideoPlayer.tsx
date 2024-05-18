@@ -214,7 +214,7 @@ function BaseVideoPlayer({
             return;
         }
 
-        // If we are uploading a new video, we want to immediately set the video player ref.
+        // If we are uploading a new video, we want to pause previous playing video and immediately set the video player ref.
         if (currentVideoPlayerRef.current) {
             pauseVideo();
         }
