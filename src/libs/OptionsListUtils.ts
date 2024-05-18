@@ -724,7 +724,7 @@ function createOption(
         result.tooltipText = ReportUtils.getReportParticipantsTitle(visibleParticipantAccountIDs);
         result.isOneOnOneChat = isOneOnOneChat;
 
-        hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
+        hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || ReportUtils.isGroupChat(result);
         subtitle = ReportUtils.getChatRoomSubtitle(report);
 
         const lastActorDetails = personalDetailMap[report.lastActorAccountID ?? 0] ?? null;
