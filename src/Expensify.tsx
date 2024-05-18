@@ -3,6 +3,7 @@ import type {NativeEventSubscription} from 'react-native';
 import {AppState, Linking} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {withOnyx} from 'react-native-onyx';
+import { Audio } from 'expo-av';
 import ConfirmModal from './components/ConfirmModal';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
@@ -204,6 +205,10 @@ function Expensify({
             appStateChangeListener.current.remove();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
+    }, []);
+
+    useEffect(() => {
+        Audio.setAudioModeAsync({ playsInSilentModeIOS: true })
     }, []);
 
     // Display a blank page until the onyx migration completes
