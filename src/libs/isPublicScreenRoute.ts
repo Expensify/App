@@ -11,7 +11,7 @@ const publicScreenRoutes: string[] = [
     ROUTES.SAML_SIGN_IN,
 ];
 
-export default function isPublicScreen(route: string) {
+export default function isPublicScreenRoute(route: string) {
     return publicScreenRoutes.some((screenRoute) => {
         const routeRegex = new RegExp(`^${screenRoute.replace(/:\w+/g, '\\w+')}$`);
         return routeRegex.test(route);

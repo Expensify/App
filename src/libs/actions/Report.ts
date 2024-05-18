@@ -57,7 +57,7 @@ import {prepareDraftComment} from '@libs/DraftCommentUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import * as Environment from '@libs/Environment/Environment';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import isPublicScreen from '@libs/isPublicScreen';
+import isPublicScreenRoute from '@libs/isPublicScreenRoute';
 import Log from '@libs/Log';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
@@ -2479,7 +2479,7 @@ function openReportFromDeepLink(url: string) {
     const route = ReportUtils.getRouteFromLink(url);
 
     // If we are not authenticated and are navigating to a public screen, we don't want to navigate again to the screen after sign-in/sign-up
-    if (!isAuthenticated && isPublicScreen(route)) {
+    if (!isAuthenticated && isPublicScreenRoute(route)) {
         return;
     }
 
