@@ -498,6 +498,8 @@ function ComposerWithSuggestions(
      */
     const replaceSelectionWithText = useCallback(
         (text: string) => {
+            // selection replacement should be debounced to avoid conflicts with text typing
+            // (f.e. when emoji is being picked and 1 second still did not pass after user finished typing)
             updateComment(ComposerUtils.insertText(commentRef.current, selection, text), true);
         },
         [selection, updateComment],
