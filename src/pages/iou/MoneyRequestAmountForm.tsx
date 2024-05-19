@@ -148,7 +148,7 @@ function MoneyRequestAmountForm(
     }, [isFocused, wasFocused]);
 
     const initializeAmount = useCallback((newAmount: number) => {
-        const frontendAmount = newAmount ? CurrencyUtils.convertToFrontendAmountAsString(newAmount).toString() : '';
+        const frontendAmount = newAmount ? CurrencyUtils.convertToFrontendAmountAsString(newAmount) : '';
         moneyRequestAmountInput.current?.changeAmount(frontendAmount);
         moneyRequestAmountInput.current?.changeSelection({
             start: frontendAmount.length,

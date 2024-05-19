@@ -108,7 +108,6 @@ function MoneyRequestAmountInput(
         maxLength,
         hideFocusedState = true,
         shouldKeepUserInput = false,
-
         ...props
     }: MoneyRequestAmountInputProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
@@ -118,7 +117,7 @@ function MoneyRequestAmountInput(
     const textInput = useRef<BaseTextInputRef | null>(null);
 
     const decimals = CurrencyUtils.getCurrencyDecimals(currency);
-    const selectedAmountAsString = amount ? CurrencyUtils.convertToFrontendAmountAsString(amount).toString() : '';
+    const selectedAmountAsString = CurrencyUtils.convertToFrontendAmountAsString(amount);
 
     const [currentAmount, setCurrentAmount] = useState(selectedAmountAsString);
 
@@ -187,7 +186,7 @@ function MoneyRequestAmountInput(
         if (!currency || typeof amount !== 'number' || (formatAmountOnBlur && textInput.current?.isFocused()) || shouldKeepUserInput) {
             return;
         }
-        const frontendAmount = formatAmountOnBlur ? CurrencyUtils.convertToDisplayStringWithoutCurrency(amount, currency) : CurrencyUtils.convertToFrontendAmountAsString(amount).toString();
+        const frontendAmount = formatAmountOnBlur ? CurrencyUtils.convertToDisplayStringWithoutCurrency(amount, currency) : CurrencyUtils.convertToFrontendAmountAsString(amount);
         setCurrentAmount(frontendAmount);
 
         // Only update selection if the amount prop was changed from the outside and is not the same as the current amount we just computed
