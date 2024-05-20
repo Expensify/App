@@ -3574,6 +3574,7 @@ export default {
         descriptionToKeep: 'Elija la descripción que desea conservar',
         categoryToKeep: 'Elija la categoría que desea conservar',
         isTransactionBillable: 'Elija si la transacción es facturable',
+        keepThisOne: 'Quédate con éste',
     },
     violationDismissal: {
         rter: {

@@ -412,7 +412,7 @@ function MoneyRequestPreviewContent({
             {childContainer}
             {isReviewDuplicateTransaction && (
                 <Button
-                    text="Keep this one"
+                    text={translate('violations.keepThisOne')}
                     success
                     medium
                     style={styles.p2}

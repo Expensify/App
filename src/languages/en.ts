@@ -3070,6 +3070,7 @@ export default {
         descriptionToKeep: 'Choose which description to keep',
         categoryToKeep: 'Choose which category to keep',
         isTransactionBillable: 'Choose if transaction is billable',
+        keepThisOne: 'Keep this one',
     },
     violationDismissal: {
         rter: {
