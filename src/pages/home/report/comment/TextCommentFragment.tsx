@@ -10,7 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import convertToLTR from '@libs/convertToLTR';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import {containsOnlyEmojis} from '@libs/EmojiUtils';
+import * as EmojiUtils from '@libs/EmojiUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {OriginalMessageSource} from '@src/types/onyx/OriginalMessage';
@@ -52,7 +52,7 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
     // If the only difference between fragment.text and fragment.html is <br /> tags and emoji tag
     // on native, we render it as text, not as html
     // on other device, only render it as text if the only difference is <br /> tag
-    const textContainsOnlyEmojis = containsOnlyEmojis(text ?? '');
+    const textContainsOnlyEmojis = EmojiUtils.containsOnlyEmojis(text ?? '');
     if (!shouldRenderAsText(html, text ?? '') && !(textContainsOnlyEmojis && styleAsDeleted)) {
         const editedTag = fragment?.isEdited ? `<edited ${styleAsDeleted ? 'deleted' : ''}></edited>` : '';
         const htmlWithDeletedTag = styleAsDeleted ? `<del>${html}</del>` : html;

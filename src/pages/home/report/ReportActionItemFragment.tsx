@@ -8,7 +8,7 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import convertToLTR from '@libs/convertToLTR';
 import type {TextWithEmoji} from '@libs/EmojiUtils';
-import {splitTextWithEmojis} from '@libs/EmojiUtils';
+import * as EmojiUtils from '@libs/EmojiUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
@@ -158,10 +158,11 @@ function ReportActionItemFragment({
                 );
             }
 
-            const containEmoji = CONST.REGEX.EMOJIS.test(fragment.text);
+            const emojisRegex = new RegExp(CONST.REGEX.EMOJIS, CONST.REGEX.EMOJIS.flags.concat('g'));
+            const containEmoji = emojisRegex.test(fragment.text);
             let processedTextArray: TextWithEmoji[] = [];
             if (containEmoji) {
-                processedTextArray = splitTextWithEmojis(fragment.text);
+                processedTextArray = EmojiUtils.splitTextWithEmojis(fragment.text);
             }
 
             return (

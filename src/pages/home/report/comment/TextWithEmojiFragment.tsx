@@ -5,7 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import {splitTextWithEmojis} from '@libs/EmojiUtils';
+import * as EmojiUtils from '@libs/EmojiUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
@@ -36,7 +36,7 @@ function TextWithEmojiFragment({message, passedStyles, styleAsDeleted, styleAsMu
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
-    const processedTextArray = splitTextWithEmojis(message);
+    const processedTextArray = EmojiUtils.splitTextWithEmojis(message);
 
     return (
         <Text style={[emojisOnly ? styles.onlyEmojisText : undefined, styles.ltr, passedStyles]}>

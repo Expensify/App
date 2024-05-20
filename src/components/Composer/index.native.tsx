@@ -10,7 +10,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullComposerAvailable';
-import {containsOnlyEmojis} from '@libs/EmojiUtils';
+import * as EmojiUtils from '@libs/EmojiUtils';
 import variables from '@styles/variables';
 import type {ComposerProps} from './types';
 
@@ -36,7 +36,7 @@ function Composer(
 ) {
     const textInput = useRef<AnimatedMarkdownTextInputRef | null>(null);
     const {isFocused, shouldResetFocus} = useResetComposerFocus(textInput);
-    const textContainsOnlyEmojis = containsOnlyEmojis(value ?? '');
+    const textContainsOnlyEmojis = EmojiUtils.containsOnlyEmojis(value ?? '');
     const theme = useTheme();
     const markdownStyle = useMarkdownStyle(textContainsOnlyEmojis, !isGroupPolicyReport ? ['mentionReport'] : []);
     const styles = useThemeStyles();
