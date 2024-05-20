@@ -10,7 +10,9 @@ import type {PolicyFeatureName, Rate, Tenant} from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import Navigation from './Navigation/Navigation';
+import getPolicyIDFromState from './Navigation/getPolicyIDFromState';
+import Navigation, {navigationRef} from './Navigation/Navigation';
+import type {RootStackParamList, State} from './Navigation/types';
 import * as NetworkStore from './Network/NetworkStore';
 import {getAccountIDsByLogins, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 
@@ -129,8 +131,7 @@ function isExpensifyTeam(email: string | undefined): boolean {
 /**
  * Checks if the current user is an admin of the policy.
  */
-const isPolicyAdmin = (policy: OnyxEntry<Policy> | EmptyObject): boolean =>
-    policy?.role === CONST.POLICY.ROLE.ADMIN || policy?.employeeList?.[policy?.owner]?.role === CONST.POLICY.ROLE.ADMIN;
+const isPolicyAdmin = (policy: OnyxEntry<Policy> | EmptyObject): boolean => policy?.role === CONST.POLICY.ROLE.ADMIN;
 /**
  * Checks if the policy is a free group policy.
  */
@@ -209,7 +210,7 @@ function getTagListName(policyTagList: OnyxEntry<PolicyTagList>, orderWeight: nu
 /**
  * Gets all tag lists of a policy
  */
-function getTagLists(policyTagList: OnyxEntry<PolicyTagList>): Array<ValueOf<PolicyTagList>> {
+function getTagLists(policyTagList: OnyxEntry<PolicyTagList>): Array<PolicyTagList[keyof PolicyTagList]> {
     if (isEmptyObject(policyTagList)) {
         return [];
     }
@@ -222,7 +223,7 @@ function getTagLists(policyTagList: OnyxEntry<PolicyTagList>): Array<ValueOf<Pol
 /**
  * Gets a tag list of a policy by a tag index
  */
-function getTagList(policyTagList: OnyxEntry<PolicyTagList>, tagIndex: number): ValueOf<PolicyTagList> {
+function getTagList(policyTagList: OnyxEntry<PolicyTagList>, tagIndex: number): PolicyTagList[keyof PolicyTagList] {
     const tagLists = getTagLists(policyTagList);
 
     return (
@@ -365,6 +366,13 @@ function getPersonalPolicy() {
     return Object.values(allPolicies ?? {}).find((policy) => policy?.type === CONST.POLICY.TYPE.PERSONAL);
 }
 
+/**
+ *  Get the currently selected policy ID stored in the navigation state.
+ */
+function getPolicyIDFromNavigationState() {
+    return getPolicyIDFromState(navigationRef.getRootState() as State<RootStackParamList>);
+}
+
 function getAdminEmployees(policy: OnyxEntry<Policy>): PolicyEmployee[] {
     return Object.values(policy?.employeeList ?? {}).filter((employee) => employee.role === CONST.POLICY.ROLE.ADMIN);
 }
@@ -404,58 +412,54 @@ function findCurrentXeroOrganization(tenants: Tenant[] | undefined, organization
     return tenants?.find((tenant) => tenant.id === organizationID);
 }
 
-function getCurrentXeroOrganizationName(policy: Policy | undefined): string | undefined {
-    return findCurrentXeroOrganization(getXeroTenants(policy), policy?.connections?.xero?.config?.tenantID)?.name;
-}
-
 export {
-    canEditTaxRate,
-    extractPolicyIDFromPath,
     getActivePolicies,
-    getAdminEmployees,
-    getCleanedTagName,
-    getCountOfEnabledTagsOfList,
-    getIneligibleInvitees,
-    getMemberAccountIDsForWorkspace,
-    getNumericValue,
-    isMultiLevelTags,
-    getPathWithoutPolicyID,
-    getPersonalPolicy,
-    getPolicy,
-    getPolicyBrickRoadIndicatorStatus,
-    getPolicyEmployeeListByIdWithoutCurrentUser,
-    getSortedTagKeys,
-    getSubmitToAccountID,
-    getTagList,
-    getTagListName,
-    getTagLists,
-    getTaxByID,
-    getUnitRateValue,
-    goBackFromInvalidPolicy,
     hasAccountingConnections,
-    hasCustomUnitsError,
     hasEmployeeListError,
-    hasPolicyCategoriesError,
     hasPolicyError,
     hasPolicyErrorFields,
-    hasTaxRateError,
-    isExpensifyTeam,
-    isFreeGroupPolicy,
-    isInstantSubmitEnabled,
-    isPaidGroupPolicy,
-    isPendingDeletePolicy,
-    isPolicyAdmin,
-    isPolicyEmployee,
-    isPolicyFeatureEnabled,
-    isPolicyOwner,
-    isSubmitAndClose,
-    isTaxTrackingEnabled,
+    hasCustomUnitsError,
+    getNumericValue,
+    getUnitRateValue,
+    getPolicyBrickRoadIndicatorStatus,
     shouldShowPolicy,
+    isExpensifyTeam,
+    isInstantSubmitEnabled,
+    isFreeGroupPolicy,
+    isPolicyAdmin,
+    isTaxTrackingEnabled,
+    isSubmitAndClose,
+    getMemberAccountIDsForWorkspace,
+    getIneligibleInvitees,
+    getTagLists,
+    getTagListName,
+    getSortedTagKeys,
+    canEditTaxRate,
+    getTagList,
+    getCleanedTagName,
+    getCountOfEnabledTagsOfList,
+    isMultiLevelTags,
+    isPendingDeletePolicy,
+    isPolicyEmployee,
+    isPolicyOwner,
+    isPaidGroupPolicy,
+    extractPolicyIDFromPath,
+    getPathWithoutPolicyID,
+    getPolicyEmployeeListByIdWithoutCurrentUser,
+    goBackFromInvalidPolicy,
+    getPersonalPolicy,
+    isPolicyFeatureEnabled,
+    hasTaxRateError,
+    getTaxByID,
+    hasPolicyCategoriesError,
+    getPolicyIDFromNavigationState,
+    getSubmitToAccountID,
+    getAdminEmployees,
+    getPolicy,
     getActiveAdminWorkspaces,
     canSendInvoice,
     getXeroTenants,
     findCurrentXeroOrganization,
-    getCurrentXeroOrganizationName,
 };
 
 export type {MemberEmailsToAccountIDs};
