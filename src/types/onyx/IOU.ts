@@ -116,46 +116,46 @@ type Split = {
 
 /** Model of IOU request */
 type IOU = {
-    /** IOU ID */
+    /** ID of the IOU request */
     id: string;
 
-    /** IOU amount */
+    /** Amount requested in IOU */
     amount?: number;
 
     /** Selected Currency Code of the current IOU */
     currency?: string;
 
-    /** IOU comment */
+    /** Comment of the IOU request creator */
     comment?: string;
 
-    /** IOU category */
+    /** Category assigned to the IOU request */
     category?: string;
 
-    /** IOU merchant */
+    /** Merchant where the amount was spent */
     merchant?: string;
 
-    /** IOU creation date */
+    /** Date timestamp when the IOU request was created */
     created?: string;
 
-    /** IOU receipt file path */
+    /** Local file path of the expense receipt */
     receiptPath?: string;
 
-    /** IOU comment */
+    /** File name of the expense receipt */
     receiptFilename?: string;
 
-    /** IOU transaction ID */
+    /** Transaction ID assigned to the IOU request */
     transactionID?: string;
 
-    /** IOU participants */
+    /** Users involved in the IOU request */
     participants?: Participant[];
 
-    /** IOU tag */
+    /** Tag assigned to the IOU request */
     tag?: string;
 
-    /** Is IOU billable */
+    /** Whether the IOU request is billable */
     billable?: boolean;
 
-    /** Is an IOU split request */
+    /** Whether the IOU request is to be split with multiple users */
     isSplitRequest?: boolean;
 };
 

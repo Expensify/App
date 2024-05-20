@@ -12,7 +12,7 @@ type Log = {
     message: string;
 };
 
-/** Record of logs */
+/** Record of captured logs */
 type CapturedLogs = Record<number, Log>;
 
 export type {Log, CapturedLogs};

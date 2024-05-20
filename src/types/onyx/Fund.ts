@@ -61,7 +61,7 @@ type Fund = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Debit card description */
     description?: string;
 
-    /** String like 'fund-{<fundID>}' where <fundID> is the fundID */
+    /** String like `fund-<fundID>` */
     key?: string;
 
     /** Alias for fundID */

@@ -39,10 +39,10 @@ type BankAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /* Determines if the bank account is a savings account */
     isSavings?: boolean;
 
-    /** Date when the 3 micro amounts for validation were supposed to reach the bank account. */
+    /** Date when the 3 micro amounts for validation were supposed to reach the bank account */
     validateCodeExpectedDate?: string;
 
-    /** string like 'bankAccount-{\<bankAccountID\>}' where <bankAccountID> is the bankAccountID */
+    /** string like `bankAccount-<bankAccountID>` */
     key?: string;
 
     /** Alias for bankAccountID */

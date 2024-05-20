@@ -2,7 +2,7 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type * as OnyxCommon from './OnyxCommon';
 
-/** Model of expensify card */
+/** Model of Expensify card */
 type Card = {
     /** Card ID number */
     cardID: number;
@@ -22,7 +22,7 @@ type Card = {
     /** Last four Primary Account Number digits */
     lastFourPAN?: string;
 
-    /** Determines if the current card was flagged as fraud */
+    /** Current fraud state of the card */
     fraud: ValueOf<typeof CONST.EXPENSIFY_CARD.FRAUD_TYPES>;
 
     /** Card related error messages */
@@ -64,7 +64,7 @@ type Card = {
     };
 };
 
-/** Model of expensify card details */
+/** Model of Expensify card details */
 type TCardDetails = {
     /** Card Primary Account Number */
     pan: string;
@@ -98,7 +98,7 @@ type TCardDetails = {
     };
 };
 
-/** Record of expensify cards, indexed by cardID */
+/** Record of Expensify cards, indexed by cardID */
 type CardList = Record<string, Card>;
 
 export default Card;
