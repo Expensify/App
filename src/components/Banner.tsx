@@ -75,6 +75,7 @@ function Banner({
                         style={[
                             styles.flexRow,
                             styles.alignItemsCenter,
+                            styles.justifyContentCenter,
                             styles.p5,
                             styles.borderRadiusNormal,
                             shouldHighlight ? styles.activeComponentBG : styles.hoveredComponentBG,
@@ -97,7 +98,7 @@ function Banner({
                                 <RenderHTML html={text} />
                             ) : (
                                 <Text
-                                    style={textStyles}
+                                    style={[styles.flex1, styles.flexWrap, textStyles]}
                                     onPress={onPress}
                                     suppressHighlighting
                                 >
