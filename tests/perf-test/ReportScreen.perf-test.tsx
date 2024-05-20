@@ -4,7 +4,7 @@ import type {ComponentType} from 'react';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import type Animated from 'react-native-reanimated';
-import {measurePerformance} from 'reassure';
+import {measureRenders} from 'reassure';
 import type {WithNavigationFocusProps} from '@components/withNavigationFocus';
 import type Navigation from '@libs/Navigation/Navigation';
 import type {CentralPaneNavigatorParamList} from '@libs/Navigation/types';
@@ -207,7 +207,7 @@ test('[ReportScreen] should render ReportScreen', () => {
             });
         })
         .then(() =>
-            measurePerformance(
+            measureRenders(
                 <ReportScreenWrapper
                     navigation={navigation}
                     route={mockRoute}
