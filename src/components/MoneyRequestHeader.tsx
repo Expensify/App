@@ -88,15 +88,16 @@ function MoneyRequestHeader({
     const moneyRequestReport = parentReport;
     const isSettled = ReportUtils.isSettled(moneyRequestReport?.reportID);
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
+    const isDraft = ReportUtils.isOpenExpenseReport(moneyRequestReport);
     const isOnHold = TransactionUtils.isOnHold(transaction);
-    const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
+    const {windowWidth} = useWindowDimensions();
 
     // Only the requestor can take delete the expense, admins can only edit it.
     const isActionOwner = typeof parentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && parentReportAction.actorAccountID === session?.accountID;
     const isPolicyAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isApprover = ReportUtils.isMoneyRequestReport(moneyRequestReport) && moneyRequestReport?.managerID !== null && session?.accountID === moneyRequestReport?.managerID;
     const hasAllPendingRTERViolations = TransactionUtils.allHavePendingRTERViolation([transaction?.transactionID ?? '']);
-    const showFullWidthMarkAsCashButton = isSmallScreenWidth && hasAllPendingRTERViolations;
+    const shouldShowMarkAsCashButton = isDraft && hasAllPendingRTERViolations;
 
     const deleteTransaction = useCallback(() => {
         if (parentReportAction) {
@@ -154,7 +155,7 @@ function MoneyRequestHeader({
             return {
                 title: getStatusIcon(Expensicons.Hourglass),
                 description: translate('iou.pendingMatchWithCreditCardDescription'),
-                shouldShowBorderBottom: !showFullWidthMarkAsCashButton,
+                shouldShowBorderBottom: true,
             };
         }
     };
@@ -240,7 +241,7 @@ function MoneyRequestHeader({
                     shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={onBackButtonPress}
                 >
-                    {!isSmallScreenWidth && hasAllPendingRTERViolations && (
+                    {shouldShowMarkAsCashButton && !shouldUseNarrowLayout && (
                         <Button
                             success
                             medium
@@ -252,16 +253,8 @@ function MoneyRequestHeader({
                         />
                     )}
                 </HeaderWithBackButton>
-                {statusBarProps && (
-                    <MoneyRequestHeaderStatusBar
-                        title={statusBarProps.title}
-                        description={statusBarProps.description}
-                        danger={statusBarProps.danger}
-                        shouldShowBorderBottom={statusBarProps.shouldShowBorderBottom}
-                    />
-                )}
-                {showFullWidthMarkAsCashButton && (
-                    <View style={[styles.ph5, styles.pb3, styles.borderBottom]}>
+                {shouldShowMarkAsCashButton && shouldUseNarrowLayout && (
+                    <View style={[styles.ph5, styles.pb3]}>
                         <Button
                             medium
                             success
@@ -272,6 +265,14 @@ function MoneyRequestHeader({
                             }}
                         />
                     </View>
+                )}
+                {statusBarProps && (
+                    <MoneyRequestHeaderStatusBar
+                        title={statusBarProps.title}
+                        description={statusBarProps.description}
+                        danger={statusBarProps.danger}
+                        shouldShowBorderBottom={statusBarProps.shouldShowBorderBottom}
+                    />
                 )}
             </View>
             <ConfirmModal
