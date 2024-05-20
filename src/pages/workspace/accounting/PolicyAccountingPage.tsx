@@ -26,8 +26,7 @@ import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {hasSynchronizationError, removePolicyConnection} from '@libs/actions/connections';
-import {syncConnection} from '@libs/actions/connections/QuickBooksOnline';
+import {hasSynchronizationError, removePolicyConnection, syncConnection} from '@libs/actions/connections';
 import {findCurrentXeroOrganization, getCurrentXeroOrganizationName, getXeroTenants} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -133,7 +132,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
             {
                 icon: Expensicons.Sync,
                 text: translate('workspace.accounting.syncNow'),
-                onSelected: () => syncConnection(policyID),
+                onSelected: () => syncConnection(policyID, connectedIntegration),
                 disabled: isOffline,
             },
             {
@@ -142,7 +141,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                 onSelected: () => setIsDisconnectModalOpen(true),
             },
         ],
-        [translate, policyID, isOffline],
+        [translate, policyID, isOffline, connectedIntegration],
     );
 
     const connectionsMenuItems: MenuItemData[] = useMemo(() => {
@@ -218,6 +217,8 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                               }
                               Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ORGANIZATION.getRoute(policyID, currentXeroOrganization?.id ?? ''));
                           },
+                          pendingAction: policy?.connections?.xero?.config?.pendingFields?.tenantID,
+                          brickRoadIndicator: policy?.connections?.xero?.config?.errorFields?.tenantID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                       },
                   ]
                 : []),
