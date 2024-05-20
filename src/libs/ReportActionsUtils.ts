@@ -399,8 +399,7 @@ function getMostRecentIOURequestActionID(reportActions: ReportAction[] | null): 
 function extractLinksFromMessageHtml(reportAction: OnyxEntry<ReportAction>): string[] {
     const htmlContent = reportAction?.message?.[0]?.html;
 
-    // Regex to get link in href prop inside of <a/> component
-    const regex = /<a\s+(?:[^>]*?\s+)?href="([^"]*)"/gi;
+    const regex = CONST.REGEX_LINK_IN_ANCHOR;
 
     if (!htmlContent) {
         return [];
