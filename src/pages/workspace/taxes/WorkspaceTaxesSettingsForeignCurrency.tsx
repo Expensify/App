@@ -11,9 +11,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import type * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
-import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
-import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import CONST from '@src/CONST';
@@ -31,49 +29,43 @@ function WorkspaceTaxesSettingsForeignCurrency({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const taxRates = policy?.taxRates;
-    const foreignTaxDefault = taxRates?.foreignTaxDefault ?? '';
-    const defaultExternalID = taxRates?.defaultExternalID ?? '';
+    const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault ?? '';
 
-    const selectedTaxRate =
-        foreignTaxDefault === defaultExternalID ? taxRates && TransactionUtils.getDefaultTaxName(taxRates) : TransactionUtils.getTaxName(taxRates?.taxes ?? {}, foreignTaxDefault);
+    const selectedTaxRate = TransactionUtils.getWorkspaceTaxesSettingsName(policy, foreignTaxDefault);
 
     const submit = (taxes: OptionsListUtils.TaxRatesOption) => {
-        setForeignCurrencyDefault(policyID, taxes.data.code ?? '');
+        setForeignCurrencyDefault(policyID, taxes.code ?? '');
         Navigation.goBack(ROUTES.WORKSPACE_TAXES_SETTINGS.getRoute(policyID));
     };
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
-            <PaidPolicyAccessOrNotFoundWrapper policyID={policyID}>
-                <FeatureEnabledAccessOrNotFoundWrapper
-                    policyID={policyID}
-                    featureName={CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED}
-                >
-                    <ScreenWrapper
-                        includeSafeAreaPaddingBottom={false}
-                        shouldEnableMaxHeight
-                        testID={WorkspaceTaxesSettingsForeignCurrency.displayName}
-                        style={styles.defaultModalContainer}
-                    >
-                        {({insets}) => (
-                            <>
-                                <HeaderWithBackButton title={translate('workspace.taxes.foreignDefault')} />
+        <AccessOrNotFoundWrapper
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED}
+        >
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                shouldEnableMaxHeight
+                testID={WorkspaceTaxesSettingsForeignCurrency.displayName}
+                style={styles.defaultModalContainer}
+            >
+                {({insets}) => (
+                    <>
+                        <HeaderWithBackButton title={translate('workspace.taxes.foreignDefault')} />
 
-                                <View style={[styles.mb4, styles.flex1]}>
-                                    <TaxPicker
-                                        selectedTaxRate={selectedTaxRate}
-                                        policyID={policyID}
-                                        insets={insets}
-                                        onSubmit={submit}
-                                    />
-                                </View>
-                            </>
-                        )}
-                    </ScreenWrapper>
-                </FeatureEnabledAccessOrNotFoundWrapper>
-            </PaidPolicyAccessOrNotFoundWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+                        <View style={[styles.mb4, styles.flex1]}>
+                            <TaxPicker
+                                selectedTaxRate={selectedTaxRate}
+                                policyID={policyID}
+                                insets={insets}
+                                onSubmit={submit}
+                            />
+                        </View>
+                    </>
+                )}
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 

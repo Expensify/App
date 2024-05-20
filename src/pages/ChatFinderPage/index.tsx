@@ -12,7 +12,6 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useThemeStyles from '@hooks/useThemeStyles';
 import type {MaybePhraseKey} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {RootStackParamList} from '@libs/Navigation/types';
@@ -35,7 +34,7 @@ type ChatFinderPageOnyxProps = {
     isSearchingForReports: OnyxEntry<boolean>;
 };
 
-type ChatFinderPageProps = ChatFinderPageOnyxProps & StackScreenProps<RootStackParamList, typeof SCREENS.CHAT_FINDER_ROOT>;
+type ChatFinderPageProps = ChatFinderPageOnyxProps & StackScreenProps<RootStackParamList, typeof SCREENS.LEFT_MODAL.CHAT_FINDER>;
 
 type ChatFinderPageSectionItem = {
     data: OptionData[];
@@ -53,7 +52,6 @@ const ChatFinderPageFooterInstance = <ChatFinderPageFooter />;
 
 function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPageProps) {
     const [isScreenTransitionEnd, setIsScreenTransitionEnd] = useState(false);
-    const themeStyles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {options, areOptionsInitialized} = useOptionsList({
@@ -101,15 +99,15 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
             };
         }
 
-        const newOptions = OptionsListUtils.filterOptions(searchOptions, debouncedSearchValue);
-        const header = OptionsListUtils.getHeaderMessage(newOptions.recentReports.length > 0, false, debouncedSearchValue);
+        const newOptions = OptionsListUtils.filterOptions(searchOptions, debouncedSearchValue, betas);
+        const header = OptionsListUtils.getHeaderMessage(newOptions.recentReports.length + Number(!!newOptions.userToInvite) > 0, false, debouncedSearchValue);
         return {
             recentReports: newOptions.recentReports,
             personalDetails: newOptions.personalDetails,
-            userToInvite: null,
+            userToInvite: newOptions.userToInvite,
             headerMessage: header,
         };
-    }, [debouncedSearchValue, searchOptions]);
+    }, [debouncedSearchValue, searchOptions, betas]);
 
     const {recentReports, personalDetails: localPersonalDetails, userToInvite, headerMessage} = debouncedSearchValue.trim() !== '' ? filteredOptions : searchOptions;
 
@@ -168,24 +166,22 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
             navigation={navigation}
         >
             <HeaderWithBackButton
-                // ASK: What text do we want to use for the title?
-                title={translate('common.search')}
+                title={translate('common.find')}
                 onBackButtonPress={Navigation.goBack}
             />
             <SelectionList<OptionData>
                 sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
                 ListItem={UserListItem}
                 textInputValue={searchValue}
-                textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+                textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
                 textInputHint={offlineMessage}
                 onChangeText={setSearchValue}
                 headerMessage={headerMessage}
-                headerMessageStyle={headerMessage === translate('common.noResultsFound') ? [themeStyles.ph4, themeStyles.pb5] : undefined}
                 onLayout={setPerformanceTimersEnd}
                 onSelectRow={selectReport}
                 showLoadingPlaceholder={!areOptionsInitialized || !isScreenTransitionEnd}
                 footerContent={!isDismissed && ChatFinderPageFooterInstance}
-                isLoadingNewOptions={isSearchingForReports ?? undefined}
+                isLoadingNewOptions={!!isSearchingForReports}
             />
         </ScreenWrapper>
     );

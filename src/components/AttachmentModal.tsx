@@ -51,15 +51,6 @@ import SafeAreaConsumer from './SafeAreaConsumer';
 type AttachmentModalOnyxProps = {
     /** The transaction associated with the receipt attachment, if any */
     transaction: OnyxEntry<OnyxTypes.Transaction>;
-
-    /** The report associated with the receipt attachment, if any */
-    parentReport: OnyxEntry<OnyxTypes.Report>;
-
-    /** The policy associated with the receipt attachment, if any */
-    policy: OnyxEntry<OnyxTypes.Policy>;
-
-    /** The list of report actions associated with the receipt attachment, if any */
-    parentReportActions: OnyxEntry<OnyxTypes.ReportActions>;
 };
 
 type ImagePickerResponse = {
@@ -99,6 +90,9 @@ type AttachmentModalProps = AttachmentModalOnyxProps & {
 
     /** Determines if download Button should be shown or not */
     allowDownload?: boolean;
+
+    /** Determines if the receipt comes from track expense action */
+    isTrackExpenseAction?: boolean;
 
     /** Title shown in the header of the modal */
     headerTitle?: string;
@@ -145,6 +139,7 @@ function AttachmentModal({
     originalFileName = '',
     isAuthTokenRequired = false,
     allowDownload = false,
+    isTrackExpenseAction = false,
     report,
     onModalShow = () => {},
     onModalHide = () => {},
@@ -153,10 +148,7 @@ function AttachmentModal({
     isWorkspaceAvatar = false,
     maybeIcon = false,
     transaction,
-    parentReport,
-    parentReportActions,
     headerTitle,
-    policy,
     children,
     fallbackSource,
     canEditReceipt = false,
@@ -181,6 +173,7 @@ function AttachmentModal({
     const nope = useSharedValue(false);
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
     const isOverlayModalVisible = (isReceiptAttachment && isDeleteReceiptConfirmModalVisible) || (!isReceiptAttachment && isAttachmentInvalid);
+    const iouType = useMemo(() => (isTrackExpenseAction ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT), [isTrackExpenseAction]);
 
     const [file, setFile] = useState<FileObject | undefined>(
         originalFileName
@@ -408,7 +401,7 @@ function AttachmentModal({
     const sourceForAttachmentView = sourceState || source;
 
     const threeDotsMenuItems = useMemo(() => {
-        if (!isReceiptAttachment || !parentReport || !parentReportActions) {
+        if (!isReceiptAttachment) {
             return [];
         }
 
@@ -422,7 +415,7 @@ function AttachmentModal({
                     Navigation.navigate(
                         ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
                             CONST.IOU.ACTION.EDIT,
-                            CONST.IOU.TYPE.REQUEST,
+                            iouType,
                             transaction?.transactionID ?? '',
                             report?.reportID ?? '',
                             Navigation.getActiveRouteWithoutParams(),
@@ -449,7 +442,7 @@ function AttachmentModal({
         }
         return menuItems;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isReceiptAttachment, parentReport, parentReportActions, policy, transaction, file, sourceState]);
+    }, [isReceiptAttachment, transaction, file, sourceState, iouType]);
 
     // There are a few things that shouldn't be set until we absolutely know if the file is a receipt or an attachment.
     // props.isReceiptAttachment will be null until its certain what the file is, in which case it will then be true|false.
@@ -463,7 +456,7 @@ function AttachmentModal({
     }
     const context = useMemo(
         () => ({
-            pagerItems: [],
+            pagerItems: [{source: sourceForAttachmentView, index: 0, isActive: true}],
             activePage: 0,
             pagerRef: undefined,
             isPagerScrolling: nope,
@@ -472,7 +465,7 @@ function AttachmentModal({
             onScaleChanged: () => {},
             onSwipeDown: closeModal,
         }),
-        [closeModal, nope],
+        [closeModal, nope, sourceForAttachmentView],
     );
 
     return (
@@ -615,16 +608,6 @@ export default withOnyx<AttachmentModalProps, AttachmentModalOnyxProps>({
             return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
         },
         initWithStoredValues: false,
-    },
-    parentReport: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report ? report.parentReportID : '0'}`,
-    },
-    policy: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
-    },
-    parentReportActions: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
-        canEvict: false,
     },
 })(memo(AttachmentModal));
 

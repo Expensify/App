@@ -167,57 +167,61 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
     const getMemberOptions = (): ListItem[] => {
         let result: ListItem[] = [];
 
-        report?.visibleChatMemberAccountIDs?.forEach((accountID) => {
-            const details = personalDetails[accountID];
+        Object.entries(report.participants ?? {})
+            .filter(([, participant]) => participant && !participant.hidden)
+            .forEach(([accountIDKey]) => {
+                const accountID = Number(accountIDKey);
 
-            if (!details) {
-                Log.hmmm(`[RoomMembersPage] no personal details found for room member with accountID: ${accountID}`);
-                return;
-            }
+                const details = personalDetails[accountID];
 
-            // If search value is provided, filter out members that don't match the search value
-            if (searchValue.trim()) {
-                let memberDetails = '';
-                if (details.login) {
-                    memberDetails += ` ${details.login.toLowerCase()}`;
-                }
-                if (details.firstName) {
-                    memberDetails += ` ${details.firstName.toLowerCase()}`;
-                }
-                if (details.lastName) {
-                    memberDetails += ` ${details.lastName.toLowerCase()}`;
-                }
-                if (details.displayName) {
-                    memberDetails += ` ${PersonalDetailsUtils.getDisplayNameOrDefault(details).toLowerCase()}`;
-                }
-                if (details.phoneNumber) {
-                    memberDetails += ` ${details.phoneNumber.toLowerCase()}`;
-                }
-
-                if (!OptionsListUtils.isSearchStringMatch(searchValue.trim(), memberDetails)) {
+                if (!details) {
+                    Log.hmmm(`[RoomMembersPage] no personal details found for room member with accountID: ${accountID}`);
                     return;
                 }
-            }
-            const pendingChatMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
 
-            result.push({
-                keyForList: String(accountID),
-                accountID,
-                isSelected: selectedMembers.includes(accountID),
-                isDisabled: accountID === session?.accountID,
-                text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
-                alternateText: details?.login ? formatPhoneNumber(details.login) : '',
-                icons: [
-                    {
-                        source: UserUtils.getAvatar(details.avatar, accountID),
-                        name: details.login ?? '',
-                        type: CONST.ICON_TYPE_AVATAR,
-                        id: Number(accountID),
-                    },
-                ],
-                pendingAction: pendingChatMember?.pendingAction,
+                // If search value is provided, filter out members that don't match the search value
+                if (searchValue.trim()) {
+                    let memberDetails = '';
+                    if (details.login) {
+                        memberDetails += ` ${details.login.toLowerCase()}`;
+                    }
+                    if (details.firstName) {
+                        memberDetails += ` ${details.firstName.toLowerCase()}`;
+                    }
+                    if (details.lastName) {
+                        memberDetails += ` ${details.lastName.toLowerCase()}`;
+                    }
+                    if (details.displayName) {
+                        memberDetails += ` ${PersonalDetailsUtils.getDisplayNameOrDefault(details).toLowerCase()}`;
+                    }
+                    if (details.phoneNumber) {
+                        memberDetails += ` ${details.phoneNumber.toLowerCase()}`;
+                    }
+
+                    if (!OptionsListUtils.isSearchStringMatch(searchValue.trim(), memberDetails)) {
+                        return;
+                    }
+                }
+                const pendingChatMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
+
+                result.push({
+                    keyForList: String(accountID),
+                    accountID,
+                    isSelected: selectedMembers.includes(accountID),
+                    isDisabled: accountID === session?.accountID || pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
+                    alternateText: details?.login ? formatPhoneNumber(details.login) : '',
+                    icons: [
+                        {
+                            source: UserUtils.getAvatar(details.avatar, accountID),
+                            name: details.login ?? '',
+                            type: CONST.ICON_TYPE_AVATAR,
+                            id: Number(accountID),
+                        },
+                    ],
+                    pendingAction: pendingChatMember?.pendingAction,
+                });
             });
-        });
 
         result = result.sort((value1, value2) => localeCompare(value1.text ?? '', value2.text ?? ''));
 
@@ -286,7 +290,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                         <SelectionList
                             canSelectMultiple
                             sections={[{data, isDisabled: false}]}
-                            textInputLabel={translate('optionsSelector.findMember')}
+                            textInputLabel={translate('selectionList.findMember')}
                             disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                             textInputValue={searchValue}
                             onChangeText={(value) => {

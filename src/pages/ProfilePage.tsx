@@ -64,7 +64,7 @@ const getPhoneNumber = ({login = '', displayName = ''}: PersonalDetails | EmptyO
 const chatReportSelector = (report: OnyxEntry<Report>): OnyxEntry<Report> =>
     report && {
         reportID: report.reportID,
-        participantAccountIDs: report.participantAccountIDs,
+        participants: report.participants,
         parentReportID: report.parentReportID,
         parentReportActionID: report.parentReportActionID,
         type: report.type,
@@ -80,7 +80,7 @@ function ProfilePage({route}: ProfilePageProps) {
 
     const reportKey = useMemo(() => {
         const accountID = Number(route.params?.accountID ?? 0);
-        const reportID = ReportUtils.getChatByParticipants([accountID], reports)?.reportID ?? '';
+        const reportID = ReportUtils.getChatByParticipants(session?.accountID ? [accountID, session.accountID] : [], reports)?.reportID ?? '';
 
         if ((Boolean(session) && Number(session?.accountID) === accountID) || SessionActions.isAnonymousUser() || !reportID) {
             return `${ONYXKEYS.COLLECTION.REPORT}0` as const;
@@ -130,7 +130,8 @@ function ProfilePage({route}: ProfilePageProps) {
 
     const navigateBackTo = route?.params?.backTo;
 
-    const shouldShowNotificationPreference = !isEmptyObject(report) && !isCurrentUser && report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+    const shouldShowNotificationPreference =
+        !isEmptyObject(report) && !isCurrentUser && !!report.notificationPreference && report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
     const notificationPreference = shouldShowNotificationPreference
         ? translate(`notificationPreferencesPage.notificationPreferences.${report.notificationPreference}` as TranslationPaths)
         : '';
@@ -189,7 +190,8 @@ function ProfilePage({route}: ProfilePageProps) {
                                     </View>
                                 )}
 
-                                {login ? (
+                                {/* Don't display email if current user is anonymous */}
+                                {!(isCurrentUser && SessionActions.isAnonymousUser()) && login ? (
                                     <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.w100]}>
                                         <Text
                                             style={[styles.textLabelSupporting, styles.mb1]}
@@ -236,7 +238,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                     shouldShowRightIcon
                                 />
                             )}
-                            {!isEmptyObject(report) && !isCurrentUser && (
+                            {!isEmptyObject(report) && report.reportID && !isCurrentUser && (
                                 <MenuItem
                                     title={`${translate('privateNotes.title')}`}
                                     titleStyle={styles.flex1}

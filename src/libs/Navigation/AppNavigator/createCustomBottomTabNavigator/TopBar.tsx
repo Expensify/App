@@ -25,9 +25,9 @@ type TopBarOnyxProps = {
 };
 
 // eslint-disable-next-line react/no-unused-prop-types
-type TopBarProps = {activeWorkspaceID?: string} & TopBarOnyxProps;
+type TopBarProps = {breadcrumbLabel: string; activeWorkspaceID?: string; shouldDisplaySearch?: boolean} & TopBarOnyxProps;
 
-function TopBar({policy, session}: TopBarProps) {
+function TopBar({policy, session, breadcrumbLabel, shouldDisplaySearch = true}: TopBarProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -39,10 +39,13 @@ function TopBar({policy, session}: TopBarProps) {
               type: CONST.BREADCRUMB_TYPE.ROOT,
           };
 
+    const displaySignIn = isAnonymousUser;
+    const displaySearch = !isAnonymousUser && shouldDisplaySearch;
+
     return (
         <View style={styles.w100}>
             <View
-                style={[styles.flexRow, styles.gap4, styles.mh3, styles.mv5, styles.alignItemsCenter, {justifyContent: 'space-between'}]}
+                style={[styles.flexRow, styles.gap4, styles.mh3, styles.mv5, styles.alignItemsCenter, styles.justifyContentBetween]}
                 dataSet={{dragArea: true}}
             >
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.ml2]}>
@@ -53,18 +56,17 @@ function TopBar({policy, session}: TopBarProps) {
                             breadcrumbs={[
                                 headerBreadcrumb,
                                 {
-                                    text: translate('common.chats'),
+                                    text: breadcrumbLabel,
                                 },
                             ]}
                         />
                     </View>
                 </View>
-                {isAnonymousUser ? (
-                    <SignInButton />
-                ) : (
-                    <Tooltip text={translate('common.search')}>
+                {displaySignIn && <SignInButton />}
+                {displaySearch && (
+                    <Tooltip text={translate('common.find')}>
                         <PressableWithoutFeedback
-                            accessibilityLabel={translate('sidebarScreen.buttonSearch')}
+                            accessibilityLabel={translate('sidebarScreen.buttonFind')}
                             style={[styles.flexRow, styles.mr2]}
                             onPress={Session.checkIfActionIsAllowed(() => Navigation.navigate(ROUTES.CHAT_FINDER))}
                         >

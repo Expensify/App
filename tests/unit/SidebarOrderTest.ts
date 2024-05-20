@@ -1,4 +1,4 @@
-import {cleanup, screen} from '@testing-library/react-native';
+import {screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import * as Report from '@libs/actions/Report';
 import DateUtils from '@libs/DateUtils';
@@ -14,6 +14,7 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 jest.mock('@libs/Permissions');
 jest.mock('@hooks/usePermissions.ts');
 jest.mock('@components/Icon/Expensicons');
+jest.mock('@src/hooks/useActiveWorkspaceFromNavigationState');
 
 const ONYXKEYS = {
     PERSONAL_DETAILS_LIST: 'personalDetailsList',
@@ -48,7 +49,6 @@ describe('Sidebar', () => {
 
     // Clear out Onyx after each test so that each test starts with a clean slate
     afterEach(() => {
-        cleanup();
         Onyx.clear();
     });
 
@@ -122,7 +122,7 @@ describe('Sidebar', () => {
             const report2 = LHNTestUtils.getFakeReport([3, 4], 2);
             const report3 = LHNTestUtils.getFakeReport([5, 6], 1);
 
-            // Each report has at least one ADDCOMMENT action so should be rendered in the LNH
+            // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
             Report.addComment(report1.reportID, 'Hi, this is a comment');
             Report.addComment(report2.reportID, 'Hi, this is a comment');
             Report.addComment(report3.reportID, 'Hi, this is a comment');
@@ -149,11 +149,11 @@ describe('Sidebar', () => {
                     .then(() => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
-
                         expect(displayNames).toHaveLength(3);
-                        expect(displayNames[0].props.children[0]).toBe('Five, Six');
-                        expect(displayNames[1].props.children[0]).toBe('Three, Four');
-                        expect(displayNames[2].props.children[0]).toBe('One, Two');
+
+                        expect(displayNames[0]).toHaveTextContent('Five, Six');
+                        expect(displayNames[1]).toHaveTextContent('Three, Four');
+                        expect(displayNames[2]).toHaveTextContent('One, Two');
                     })
             );
         });
@@ -168,7 +168,7 @@ describe('Sidebar', () => {
             const report2 = LHNTestUtils.getFakeReport([3, 4], 2);
             const report3 = LHNTestUtils.getFakeReport([5, 6], 1);
 
-            // Each report has at least one ADDCOMMENT action so should be rendered in the LNH
+            // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
             Report.addComment(report1.reportID, 'Hi, this is a comment');
             Report.addComment(report2.reportID, 'Hi, this is a comment');
             Report.addComment(report3.reportID, 'Hi, this is a comment');
@@ -204,9 +204,9 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
-                        expect(displayNames[0].props.children[0]).toBe('One, Two'); // this has `hasDraft` flag enabled so it will be on top
-                        expect(displayNames[1].props.children[0]).toBe('Five, Six');
-                        expect(displayNames[2].props.children[0]).toBe('Three, Four');
+                        expect(displayNames[0]).toHaveTextContent('One, Two'); // this has `hasDraft` flag enabled so it will be on top
+                        expect(displayNames[1]).toHaveTextContent('Five, Six');
+                        expect(displayNames[2]).toHaveTextContent('Three, Four');
                     })
             );
         });
@@ -219,7 +219,7 @@ describe('Sidebar', () => {
             const report2 = LHNTestUtils.getFakeReport([3, 4], 2);
             const report3 = LHNTestUtils.getFakeReport([5, 6], 1);
 
-            // Each report has at least one ADDCOMMENT action so should be rendered in the LNH
+            // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
             Report.addComment(report1.reportID, 'Hi, this is a comment');
             Report.addComment(report2.reportID, 'Hi, this is a comment');
             Report.addComment(report3.reportID, 'Hi, this is a comment');
@@ -255,9 +255,9 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
-                        expect(displayNames[0].props.children[0]).toBe('One, Two');
-                        expect(displayNames[1].props.children[0]).toBe('Five, Six');
-                        expect(displayNames[2].props.children[0]).toBe('Three, Four');
+                        expect(displayNames[0]).toHaveTextContent('One, Two');
+                        expect(displayNames[1]).toHaveTextContent('Five, Six');
+                        expect(displayNames[2]).toHaveTextContent('Three, Four');
                     })
             );
         });
@@ -278,7 +278,7 @@ describe('Sidebar', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             };
 
-            // Each report has at least one ADDCOMMENT action so should be rendered in the LNH
+            // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
             Report.addComment(report1.reportID, 'Hi, this is a comment');
             Report.addComment(report2.reportID, 'Hi, this is a comment');
             Report.addComment(report3.reportID, 'Hi, this is a comment');
@@ -299,7 +299,7 @@ describe('Sidebar', () => {
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                            [ONYXKEYS.IS_LOADING_APP]: false,
                             ...reportCollectionDataSet,
                         }),
                     )
@@ -309,10 +309,10 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(4);
-                        expect(displayNames[0].props.children[0]).toBe(taskReportName);
-                        expect(displayNames[1].props.children[0]).toBe('Five, Six');
-                        expect(displayNames[2].props.children[0]).toBe('Three, Four');
-                        expect(displayNames[3].props.children[0]).toBe('One, Two');
+                        expect(displayNames[0]).toHaveTextContent(taskReportName);
+                        expect(displayNames[1]).toHaveTextContent('Five, Six');
+                        expect(displayNames[2]).toHaveTextContent('Three, Four');
+                        expect(displayNames[3]).toHaveTextContent('One, Two');
                     })
             );
         });
@@ -342,7 +342,7 @@ describe('Sidebar', () => {
             };
             report3.iouReportID = iouReport.reportID;
 
-            // Each report has at least one ADDCOMMENT action so should be rendered in the LNH
+            // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
             Report.addComment(report1.reportID, 'Hi, this is a comment');
             Report.addComment(report2.reportID, 'Hi, this is a comment');
             Report.addComment(report3.reportID, 'Hi, this is a comment');
@@ -363,7 +363,7 @@ describe('Sidebar', () => {
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                            [ONYXKEYS.IS_LOADING_APP]: false,
                             ...reportCollectionDataSet,
                         }),
                     )
@@ -373,10 +373,10 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(4);
-                        expect(displayNames[0].props.children[0]).toBe('Email Two owes $100.00');
-                        expect(displayNames[1].props.children[0]).toBe('Five, Six');
-                        expect(displayNames[2].props.children[0]).toBe('Three, Four');
-                        expect(displayNames[3].props.children[0]).toBe('One, Two');
+                        expect(displayNames[0]).toHaveTextContent('Email Two owes $100.00');
+                        expect(displayNames[1]).toHaveTextContent('Five, Six');
+                        expect(displayNames[2]).toHaveTextContent('Three, Four');
+                        expect(displayNames[3]).toHaveTextContent('One, Two');
                     })
             );
         });
@@ -409,7 +409,7 @@ describe('Sidebar', () => {
             };
             report3.iouReportID = expenseReport.reportID;
 
-            // Each report has at least one ADDCOMMENT action so should be rendered in the LNH
+            // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
             Report.addComment(report1.reportID, 'Hi, this is a comment');
             Report.addComment(report2.reportID, 'Hi, this is a comment');
             Report.addComment(report3.reportID, 'Hi, this is a comment');
@@ -430,7 +430,7 @@ describe('Sidebar', () => {
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                            [ONYXKEYS.IS_LOADING_APP]: false,
                             [`${ONYXKEYS.COLLECTION.POLICY}${fakeReport.policyID}`]: fakePolicy,
                             ...reportCollectionDataSet,
                         }),
@@ -441,10 +441,10 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(4);
-                        expect(displayNames[0].props.children[0]).toBe('Workspace owes $100.00');
-                        expect(displayNames[1].props.children[0]).toBe('Email Five');
-                        expect(displayNames[2].props.children[0]).toBe('Three, Four');
-                        expect(displayNames[3].props.children[0]).toBe('One, Two');
+                        expect(displayNames[0]).toHaveTextContent('Workspace owes $100.00');
+                        expect(displayNames[1]).toHaveTextContent('Email Five');
+                        expect(displayNames[2]).toHaveTextContent('Three, Four');
+                        expect(displayNames[3]).toHaveTextContent('One, Two');
                     })
             );
         });
@@ -459,7 +459,7 @@ describe('Sidebar', () => {
             };
             const report3 = LHNTestUtils.getFakeReport([5, 6], 1);
 
-            // Each report has at least one ADDCOMMENT action so should be rendered in the LNH
+            // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
             Report.addComment(report1.reportID, 'Hi, this is a comment');
             Report.addComment(report2.reportID, 'Hi, this is a comment');
             Report.addComment(report3.reportID, 'Hi, this is a comment');
@@ -500,9 +500,9 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
-                        expect(displayNames[0].props.children[0]).toBe('Three, Four');
-                        expect(displayNames[1].props.children[0]).toBe('Five, Six');
-                        expect(displayNames[2].props.children[0]).toBe('One, Two');
+                        expect(displayNames[0]).toHaveTextContent('Three, Four');
+                        expect(displayNames[1]).toHaveTextContent('Five, Six');
+                        expect(displayNames[2]).toHaveTextContent('One, Two');
                     })
             );
         });
@@ -657,9 +657,9 @@ describe('Sidebar', () => {
                         expect(displayNames).toHaveLength(3);
                         expect(screen.queryAllByTestId('Pin Icon')).toHaveLength(1);
                         expect(screen.queryAllByTestId('Pencil Icon')).toHaveLength(1);
-                        expect(displayNames[0].props.children[0]).toBe('Email Two owes $100.00');
-                        expect(displayNames[1].props.children[0]).toBe('One, Two');
-                        expect(displayNames[2].props.children[0]).toBe('Three, Four');
+                        expect(displayNames[0]).toHaveTextContent('Email Two owes $100.00');
+                        expect(displayNames[1]).toHaveTextContent('One, Two');
+                        expect(displayNames[2]).toHaveTextContent('Three, Four');
                     })
             );
         });
@@ -709,9 +709,9 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
-                        expect(displayNames[0].props.children[0]).toBe('Five, Six');
-                        expect(displayNames[1].props.children[0]).toBe('One, Two');
-                        expect(displayNames[2].props.children[0]).toBe('Three, Four');
+                        expect(displayNames[0]).toHaveTextContent('Five, Six');
+                        expect(displayNames[1]).toHaveTextContent('One, Two');
+                        expect(displayNames[2]).toHaveTextContent('Three, Four');
                     })
 
                     // When a new report is added
@@ -722,10 +722,10 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(4);
-                        expect(displayNames[0].props.children[0]).toBe('Five, Six');
-                        expect(displayNames[1].props.children[0]).toBe('One, Two');
-                        expect(displayNames[2].props.children[0]).toBe('Seven, Eight');
-                        expect(displayNames[3].props.children[0]).toBe('Three, Four');
+                        expect(displayNames[0]).toHaveTextContent('Five, Six');
+                        expect(displayNames[1]).toHaveTextContent('One, Two');
+                        expect(displayNames[2]).toHaveTextContent('Seven, Eight');
+                        expect(displayNames[3]).toHaveTextContent('Three, Four');
                     })
             );
         });
@@ -778,17 +778,19 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
-                        expect(displayNames[0].props.children[0]).toBe('Five, Six');
-                        expect(displayNames[1].props.children[0]).toBe('One, Two');
-                        expect(displayNames[2].props.children[0]).toBe('Three, Four');
+                        expect(displayNames[0]).toHaveTextContent('Five, Six');
+                        expect(displayNames[1]).toHaveTextContent('One, Two');
+                        expect(displayNames[2]).toHaveTextContent('Three, Four');
                     })
 
                     // When a new report is added
                     .then(() =>
-                        Promise.all([
-                            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report4.reportID}`, report4),
-                            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report4.reportID}`, 'report4 draft'),
-                        ]),
+                        Onyx.multiSet({
+                            ...reportDraftCommentCollectionDataSet,
+                            [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report4.reportID}`]: 'report4 draft',
+                            ...reportCollectionDataSet,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${report4.reportID}`]: report4,
+                        }),
                     )
 
                     // Then they are still in alphabetical order
@@ -796,10 +798,10 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(4);
-                        expect(displayNames[0].props.children[0]).toBe('Five, Six');
-                        expect(displayNames[1].props.children[0]).toBe('One, Two');
-                        expect(displayNames[2].props.children[0]).toBe('Seven, Eight');
-                        expect(displayNames[3].props.children[0]).toBe('Three, Four');
+                        expect(displayNames[0]).toHaveTextContent('Five, Six');
+                        expect(displayNames[1]).toHaveTextContent('One, Two');
+                        expect(displayNames[2]).toHaveTextContent('Seven, Eight');
+                        expect(displayNames[3]).toHaveTextContent('Three, Four');
                     })
             );
         });
@@ -815,7 +817,7 @@ describe('Sidebar', () => {
             const report2 = LHNTestUtils.getFakeReport([3, 4]);
             const report3 = LHNTestUtils.getFakeReport([5, 6]);
 
-            // Each report has at least one ADDCOMMENT action so should be rendered in the LNH
+            // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
             Report.addComment(report1.reportID, 'Hi, this is a comment');
             Report.addComment(report2.reportID, 'Hi, this is a comment');
             Report.addComment(report3.reportID, 'Hi, this is a comment');
@@ -849,9 +851,9 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
-                        expect(displayNames[0].props.children[0]).toBe('Five, Six');
-                        expect(displayNames[1].props.children[0]).toBe('Three, Four');
-                        expect(displayNames[2].props.children[0]).toBe('Report (archived)');
+                        expect(displayNames[0]).toHaveTextContent('Five, Six');
+                        expect(displayNames[1]).toHaveTextContent('Three, Four');
+                        expect(displayNames[2]).toHaveTextContent('Report (archived)');
                     })
             );
         });
@@ -861,10 +863,10 @@ describe('Sidebar', () => {
         it('alphabetizes chats', () => {
             LHNTestUtils.getDefaultRenderedSidebarLinks();
 
-            const report1 = LHNTestUtils.getFakeReport([1, 2], 3, true);
-            const report2 = LHNTestUtils.getFakeReport([3, 4], 2, true);
-            const report3 = LHNTestUtils.getFakeReport([5, 6], 1, true);
-            const report4 = LHNTestUtils.getFakeReport([7, 8], 0, true);
+            const report1 = {...LHNTestUtils.getFakeReport([1, 2], 3, true), lastMessageText: 'test'};
+            const report2 = {...LHNTestUtils.getFakeReport([3, 4], 2, true), lastMessageText: 'test'};
+            const report3 = {...LHNTestUtils.getFakeReport([5, 6], 1, true), lastMessageText: 'test'};
+            const report4 = {...LHNTestUtils.getFakeReport([7, 8], 0, true), lastMessageText: 'test'};
 
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
@@ -890,9 +892,9 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
-                        expect(displayNames[0].props.children[0]).toBe('Five, Six');
-                        expect(displayNames[1].props.children[0]).toBe('One, Two');
-                        expect(displayNames[2].props.children[0]).toBe('Three, Four');
+                        expect(displayNames[0]).toHaveTextContent('Five, Six');
+                        expect(displayNames[1]).toHaveTextContent('One, Two');
+                        expect(displayNames[2]).toHaveTextContent('Three, Four');
                     })
 
                     // When a new report is added
@@ -903,10 +905,10 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(4);
-                        expect(displayNames[0].props.children[0]).toBe('Five, Six');
-                        expect(displayNames[1].props.children[0]).toBe('One, Two');
-                        expect(displayNames[2].props.children[0]).toBe('Seven, Eight');
-                        expect(displayNames[3].props.children[0]).toBe('Three, Four');
+                        expect(displayNames[0]).toHaveTextContent('Five, Six');
+                        expect(displayNames[1]).toHaveTextContent('One, Two');
+                        expect(displayNames[2]).toHaveTextContent('Seven, Eight');
+                        expect(displayNames[3]).toHaveTextContent('Three, Four');
                     })
             );
         });
@@ -918,9 +920,13 @@ describe('Sidebar', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                lastMessageText: 'test',
             };
-            const report2 = LHNTestUtils.getFakeReport([3, 4], 2, true);
-            const report3 = LHNTestUtils.getFakeReport([5, 6], 1, true);
+            const report2 = {
+                ...LHNTestUtils.getFakeReport([3, 4], 2, true),
+                lastMessageText: 'test',
+            };
+            const report3 = {...LHNTestUtils.getFakeReport([5, 6], 1, true), lastMessageText: 'test'};
 
             // Given the user is in all betas
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
@@ -951,9 +957,9 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
-                        expect(displayNames[0].props.children[0]).toBe('Five, Six');
-                        expect(displayNames[1].props.children[0]).toBe('Three, Four');
-                        expect(displayNames[2].props.children[0]).toBe('Report (archived)');
+                        expect(displayNames[0]).toHaveTextContent('Five, Six');
+                        expect(displayNames[1]).toHaveTextContent('Three, Four');
+                        expect(displayNames[2]).toHaveTextContent('Report (archived)');
                     })
             );
         });
@@ -1092,11 +1098,11 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(5);
-                        expect(displayNames[0].props.children[0]).toBe('Email Five owes $100.00');
-                        expect(displayNames[1].props.children[0]).toBe('Email Four owes $1,000.00');
-                        expect(displayNames[2].props.children[0]).toBe('Email Six owes $100.00');
-                        expect(displayNames[3].props.children[0]).toBe('Email Three owes $100.00');
-                        expect(displayNames[4].props.children[0]).toBe('Email Two owes $100.00');
+                        expect(displayNames[0]).toHaveTextContent('Email Five owes $100.00');
+                        expect(displayNames[1]).toHaveTextContent('Email Four owes $1,000.00');
+                        expect(displayNames[2]).toHaveTextContent('Email Six owes $100.00');
+                        expect(displayNames[3]).toHaveTextContent('Email Three owes $100.00');
+                        expect(displayNames[4]).toHaveTextContent('Email Two owes $100.00');
                     })
             );
         });
@@ -1117,7 +1123,7 @@ describe('Sidebar', () => {
                 lastVisibleActionCreated,
             };
 
-            // Each report has at least one ADDCOMMENT action so should be rendered in the LNH
+            // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
             Report.addComment(report1.reportID, 'Hi, this is a comment');
             Report.addComment(report2.reportID, 'Hi, this is a comment');
             Report.addComment(report3.reportID, 'Hi, this is a comment');
@@ -1147,9 +1153,9 @@ describe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(3);
-                        expect(displayNames[0].props.children[0]).toBe('Five, Six');
-                        expect(displayNames[1].props.children[0]).toBe('One, Two');
-                        expect(displayNames[2].props.children[0]).toBe('Three, Four');
+                        expect(displayNames[0]).toHaveTextContent('Five, Six');
+                        expect(displayNames[1]).toHaveTextContent('One, Two');
+                        expect(displayNames[2]).toHaveTextContent('Three, Four');
                     })
             );
         });

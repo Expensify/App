@@ -85,7 +85,6 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
         merchant: splitMerchant,
         created: splitCreated,
         category: splitCategory,
-        tag: splitTag,
         billable: splitBillable,
     } = ReportUtils.getTransactionDetails(isEditingSplitBill && draftTransaction ? draftTransaction : transaction) ?? {};
 
@@ -108,7 +107,6 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
                     )}
                     {!!participants.length && (
                         <MoneyRequestConfirmationList
-                            hasMultipleParticipants
                             payeePersonalDetails={payeePersonalDetails}
                             selectedParticipants={participantsExcludingPayee}
                             iouAmount={splitAmount ?? 0}
@@ -117,7 +115,6 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
                             iouCreated={splitCreated}
                             iouMerchant={splitMerchant}
                             iouCategory={splitCategory}
-                            iouTag={splitTag}
                             iouIsBillable={splitBillable}
                             iouType={CONST.IOU.TYPE.SPLIT}
                             isReadOnly={!isEditingSplitBill}
@@ -132,6 +129,7 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
                             onConfirm={onConfirm}
                             isPolicyExpenseChat={ReportUtils.isPolicyExpenseChat(report)}
                             policyID={ReportUtils.isPolicyExpenseChat(report) ? report?.policyID : undefined}
+                            action={isEditingSplitBill ? CONST.IOU.ACTION.EDIT : CONST.IOU.ACTION.CREATE}
                         />
                     )}
                 </View>

@@ -1,4 +1,5 @@
 import type {ReportAction} from '@src/types/onyx';
+import type {Unit} from '@src/types/onyx/Policy';
 import type en from './en';
 
 type AddressLineParams = {
@@ -7,10 +8,6 @@ type AddressLineParams = {
 
 type CharacterLimitParams = {
     limit: number;
-};
-
-type MaxParticipantsReachedParams = {
-    count: number;
 };
 
 type ZipCodeExampleFormatParams = {
@@ -115,7 +112,7 @@ type SplitAmountParams = {amount: string};
 
 type DidSplitAmountMessageParams = {formattedAmount: string; comment: string};
 
-type AmountEachParams = {amount: string};
+type UserSplitParams = {amount: string};
 
 type PayerOwesAmountParams = {payer: string; amount: number | string; comment?: string};
 
@@ -299,12 +296,14 @@ type HeldRequestParams = {comment: string};
 
 type DistanceRateOperationsParams = {count: number};
 
+type ReimbursementRateParams = {unit: Unit};
+
 export type {
     AdminCanceledRequestParams,
     ApprovedAmountParams,
     AddressLineParams,
     AlreadySignedInParams,
-    AmountEachParams,
+    UserSplitParams,
     BeginningOfChatHistoryAdminRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartTwo,
@@ -330,7 +329,6 @@ export type {
     LoggedInAsParams,
     ManagerApprovedAmountParams,
     ManagerApprovedParams,
-    MaxParticipantsReachedParams,
     NewFaceEnterMagicCodeParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
@@ -403,4 +401,5 @@ export type {
     LogSizeParams,
     HeldRequestParams,
     PaySomeoneParams,
+    ReimbursementRateParams,
 };
