@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';

@@ -1,4 +1,4 @@
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import {ExpensiMark} from 'expensify-common';
 import type {ImageContentFit} from 'expo-image';
 import type {ReactNode} from 'react';
 import React, {forwardRef, useContext, useMemo} from 'react';
