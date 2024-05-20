@@ -5,12 +5,25 @@ type ReviewDuplicates = {
     /** ID of transaction we want to keep */
     transactionID: string;
 
+    /** Merchant which user want to keep */
     merchant: string;
+
+    /** Category  which user want to keep */
     category: string;
+
+    /** Tag  which user want to keep */
     tag: string;
+
+    /** Tax code  which user want to keep */
     taxCode: string;
+
+    /** Description  which user want to keep */
     description: string;
+
+    /** If transaction is reimbursable */
     reimbursable: boolean;
+
+    /** If transaction is billable */
     billable: boolean;
 };
 
