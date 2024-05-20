@@ -147,16 +147,15 @@ function syncConnection(policyID: string, connectionName: PolicyConnectionName |
         },
     ];
 
-    const parameters: SyncPolicyToQuickbooksOnlineParams | SyncPolicyToXeroParams =
-    isQBOConnection
-            ? ({
-                  policyID,
-                  idempotencyKey: policyID,
-              } as SyncPolicyToQuickbooksOnlineParams)
-            : ({
-                  policyID,
-                  idempotencyKey: policyID,
-              } as SyncPolicyToXeroParams);
+    const parameters: SyncPolicyToQuickbooksOnlineParams | SyncPolicyToXeroParams = isQBOConnection
+        ? ({
+              policyID,
+              idempotencyKey: policyID,
+          } as SyncPolicyToQuickbooksOnlineParams)
+        : ({
+              policyID,
+              idempotencyKey: policyID,
+          } as SyncPolicyToXeroParams);
 
     API.read(isQBOConnection ? READ_COMMANDS.SYNC_POLICY_TO_QUICKBOOKS_ONLINE : READ_COMMANDS.SYNC_POLICY_TO_XERO, parameters, {
         optimisticData,
