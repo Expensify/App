@@ -95,6 +95,7 @@ function ProfilePage({route}: ProfilePageProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const accountID = Number(route.params?.accountID ?? 0);
     const isCurrentUser = session?.accountID === accountID;
+    const loginParams = route.params?.login;
 
     const details = useMemo((): PersonalDetails | EmptyObject => {
         if (personalDetails?.[accountID]) {
@@ -103,16 +104,16 @@ function ProfilePage({route}: ProfilePageProps) {
         if (ValidationUtils.isValidAccountRoute(accountID)) {
             return {};
         }
-        if (!route.params.login) {
+        if (!loginParams) {
             return {accountID: 0, avatar: ''};
         }
-        const foundDetails = Object.values(personalDetails ?? {}).find((personalDetail) => personalDetail?.login === route.params.login?.toLowerCase());
+        const foundDetails = Object.values(personalDetails ?? {}).find((personalDetail) => personalDetail?.login === loginParams?.toLowerCase());
         if (foundDetails) {
             return foundDetails;
         }
-        const optimisticAccountID = UserUtils.generateAccountID(route.params.login);
-        return {accountID: optimisticAccountID, login: route.params.login, displayName: route.params.login, avatar: UserUtils.getDefaultAvatar(optimisticAccountID)};
-    }, [accountID, personalDetails, route.params.login]);
+        const optimisticAccountID = UserUtils.generateAccountID(loginParams);
+        return {accountID: optimisticAccountID, login: loginParams, displayName: loginParams, avatar: UserUtils.getDefaultAvatar(optimisticAccountID)};
+    }, [accountID, personalDetails, loginParams]);
 
     const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(details, undefined, undefined, isCurrentUser);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -169,10 +170,10 @@ function ProfilePage({route}: ProfilePageProps) {
         }
 
         if (!isCurrentUser && !SessionActions.isAnonymousUser()) {
-            result.push(PromotedActions.message(accountID));
+            result.push(PromotedActions.message({accountID, login: loginParams}));
         }
         return result;
-    }, [accountID, isCurrentUser, report]);
+    }, [accountID, isCurrentUser, loginParams, report]);
 
     return (
         <ScreenWrapper testID={ProfilePage.displayName}>
@@ -182,7 +183,7 @@ function ProfilePage({route}: ProfilePageProps) {
                     onBackButtonPress={() => Navigation.goBack(navigateBackTo)}
                 />
                 <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
-                    {true && (
+                    {hasMinimumDetails && (
                         <ScrollView>
                             <View style={[styles.avatarSectionWrapper, styles.pb0]}>
                                 <PressableWithoutFocus

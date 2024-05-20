@@ -21,7 +21,7 @@ type ReportPromotedAction = (report: OnyxReport) => PromotedAction;
 
 type PromotedActionsType = {
     pin: ReportPromotedAction;
-    message: (accountID: number) => PromotedAction;
+    message: (params: {accountID?: number; login?: string}) => PromotedAction;
     // join: ReportPromotedAction;
     // share: ReportPromotedAction;
     // hold: () => PromotedAction;
@@ -32,11 +32,19 @@ const PromotedActions = {
         key: 'pin',
         ...HeaderUtils.getPinMenuItem(report),
     }),
-    message: (accountID) => ({
+    message: ({accountID, login}) => ({
         key: 'message',
         icon: Expensicons.CommentBubbles,
         text: Localize.translateLocal('common.message'),
-        onSelected: () => ReportActions.navigateToAndOpenReportWithAccountIDs([accountID]),
+        onSelected: () => {
+            if (accountID) {
+                ReportActions.navigateToAndOpenReportWithAccountIDs([accountID]);
+                return;
+            }
+            if (login) {
+                ReportActions.navigateToAndOpenReport([login]);
+            }
+        },
     }),
     // join: (report) => ({
     //     key: 'join',
