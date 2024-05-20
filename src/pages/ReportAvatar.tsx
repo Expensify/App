@@ -25,10 +25,12 @@ function ReportAvatar({report = {} as Report, policies, isLoadingApp = true, gro
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? '0'}`];
     const title = policy ? ReportUtils.getPolicyName(report, false, policy) : report?.reportName;
     let avatarURL = policy ? ReportUtils.getWorkspaceAvatar(report) : report?.avatarUrl;
-    if(!avatarURL && groupChatDraft?.avatarUri) {
-      avatarURL = `${groupChatDraft.avatarUri}.jpg`;
+    let fileName = policy?.originalFileName ?? title;
+
+    if (!avatarURL && groupChatDraft?.avatarUri && groupChatDraft?.originalFileName) {
+        avatarURL = groupChatDraft.avatarUri ?? null;
+        fileName = groupChatDraft.originalFileName ?? null;
     }
-    const fileName = policy?.originalFileName ?? title;
 
     return (
         <AttachmentModal

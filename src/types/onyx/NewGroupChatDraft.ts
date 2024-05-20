@@ -7,6 +7,7 @@ type NewGroupChatDraft = {
     participants: SelectedParticipant[];
     reportName: string | null;
     avatarUri: string | null;
+    originalFileName: string | null;
 };
 export type {SelectedParticipant};
 export default NewGroupChatDraft;
