@@ -2,7 +2,6 @@ import React, {useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import AccountingListSkeletonView from '@components/AccountingListSkeletonView';
 import CollapsibleSection from '@components/CollapsibleSection';
 import ConfirmModal from '@components/ConfirmModal';
 import ConnectToQuickbooksOnlineButton from '@components/ConnectToQuickbooksOnlineButton';
@@ -12,7 +11,10 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {MenuItemProps} from '@components/MenuItem';
+import MenuItem from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
+import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
@@ -24,8 +26,7 @@ import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {removePolicyConnection} from '@libs/actions/connections';
-import {syncConnection} from '@libs/actions/connections/QuickBooksOnline';
+import {removePolicyConnection, syncConnection} from '@libs/actions/connections';
 import {findCurrentXeroOrganization, getCurrentXeroOrganizationName, getXeroTenants} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -39,6 +40,8 @@ import type {Policy, PolicyConnectionSyncProgress} from '@src/types/onyx';
 import type {PolicyConnectionName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+type MenuItemData = MenuItemProps & {pendingAction?: OfflineWithFeedbackProps['pendingAction']};
 
 type PolicyAccountingPageOnyxProps = {
     connectionSyncProgress: OnyxEntry<PolicyConnectionSyncProgress>;
@@ -101,7 +104,7 @@ function accountingIntegrationData(
     }
 }
 
-function PolicyAccountingPage({policy, connectionSyncProgress, isConnectionDataFetchNeeded}: PolicyAccountingPageProps) {
+function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccountingPageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -129,7 +132,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress, isConnectionDataF
             {
                 icon: Expensicons.Sync,
                 text: translate('workspace.accounting.syncNow'),
-                onSelected: () => syncConnection(policyID),
+                onSelected: () => syncConnection(policyID, connectedIntegration),
                 disabled: isOffline,
             },
             {
@@ -138,10 +141,10 @@ function PolicyAccountingPage({policy, connectionSyncProgress, isConnectionDataF
                 onSelected: () => setIsDisconnectModalOpen(true),
             },
         ],
-        [translate, policyID, isOffline],
+        [translate, policyID, isOffline, connectedIntegration],
     );
 
-    const connectionsMenuItems: MenuItemProps[] = useMemo(() => {
+    const connectionsMenuItems: MenuItemData[] = useMemo(() => {
         if (isEmptyObject(policy?.connections) && !isSyncInProgress) {
             return accountingIntegrations.map((integration) => {
                 const integrationData = accountingIntegrationData(integration, policyID, translate);
@@ -212,6 +215,8 @@ function PolicyAccountingPage({policy, connectionSyncProgress, isConnectionDataF
                               }
                               Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ORGANIZATION.getRoute(policyID, currentXeroOrganization?.id ?? ''));
                           },
+                          pendingAction: policy?.connections?.xero?.config?.pendingFields?.tenantID,
+                          brickRoadIndicator: policy?.connections?.xero?.config?.errorFields?.tenantID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                       },
                   ]
                 : []),
@@ -336,30 +341,28 @@ function PolicyAccountingPage({policy, connectionSyncProgress, isConnectionDataF
                             titleStyles={styles.accountSettingsSectionTitle}
                             childrenStyles={styles.pt5}
                         >
-                            {isConnectionDataFetchNeeded ? (
-                                <View style={styles.mnh20}>
-                                    <AccountingListSkeletonView shouldAnimate />
-                                </View>
-                            ) : (
-                                <>
+                            {connectionsMenuItems.map((menuItem) => (
+                                <OfflineWithFeedback pendingAction={menuItem.pendingAction}>
+                                    <MenuItem
+                                        key={menuItem.title}
+                                        brickRoadIndicator={menuItem.brickRoadIndicator}
+                                        // eslint-disable-next-line react/jsx-props-no-spreading
+                                        {...menuItem}
+                                    />
+                                </OfflineWithFeedback>
+                            ))}
+                            {otherIntegrationsItems && (
+                                <CollapsibleSection
+                                    title={translate('workspace.accounting.other')}
+                                    wrapperStyle={[styles.pr3, styles.mt5, styles.pv3]}
+                                    titleStyle={[styles.textNormal, styles.colorMuted]}
+                                    textStyle={[styles.flex1, styles.userSelectNone, styles.textNormal, styles.colorMuted]}
+                                >
                                     <MenuItemList
-                                        menuItems={connectionsMenuItems}
+                                        menuItems={otherIntegrationsItems}
                                         shouldUseSingleExecution
                                     />
-                                    {otherIntegrationsItems && (
-                                        <CollapsibleSection
-                                            title={translate('workspace.accounting.other')}
-                                            wrapperStyle={[styles.pr3, styles.mt5, styles.pv3]}
-                                            titleStyle={[styles.textNormal, styles.colorMuted]}
-                                            textStyle={[styles.flex1, styles.userSelectNone, styles.textNormal, styles.colorMuted]}
-                                        >
-                                            <MenuItemList
-                                                menuItems={otherIntegrationsItems}
-                                                shouldUseSingleExecution
-                                            />
-                                        </CollapsibleSection>
-                                    )}
-                                </>
+                                </CollapsibleSection>
                             )}
                         </Section>
                     </View>
