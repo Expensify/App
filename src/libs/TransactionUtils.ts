@@ -765,7 +765,8 @@ function getTransaction(transactionID: string): Transaction | null {
 
 type FieldsToCompare = Record<string, Array<keyof Transaction>>;
 
-function compareDuplicateTransactionFields(transactionID: string) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function compareDuplicateTransactionFields(transactionID: string): {keep: Record<string, any>; change: Record<string, any[]>} {
     const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
     const duplicates = transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [];
     const transactions = [transactionID, ...duplicates].map((item) => getTransaction(item));
@@ -773,6 +774,7 @@ function compareDuplicateTransactionFields(transactionID: string) {
     const keep: Record<string, any> = {};
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const change: Record<string, any[]> = {};
+
     const fieldsToCompare: FieldsToCompare = {
         merchant: ['modifiedMerchant', 'merchant'],
         category: ['category'],
@@ -783,59 +785,37 @@ function compareDuplicateTransactionFields(transactionID: string) {
         reimbursable: ['reimbursable'],
     };
 
+    const getDifferentValues = (items: Array<OnyxEntry<Transaction>>, keys: Array<keyof Transaction>) => items.map((item) => keys.map((key) => item?.[key])).flat();
+
     for (const fieldName in fieldsToCompare) {
         if (Object.prototype.hasOwnProperty.call(fieldsToCompare, fieldName)) {
             const keys = fieldsToCompare[fieldName];
-
             const firstTransaction = transactions[0];
             const isFirstTransactionCommentEmptyObject = typeof firstTransaction?.comment === 'object' && firstTransaction?.comment.comment === '';
 
             if (fieldName === 'description') {
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                if (
-                    transactions.every((item) =>
-                        keys.every(
-                            () =>
-                                !(item && item.comment && lodashIsEqual(item.comment, firstTransaction?.comment)) ||
-                                !(item && item.comment && Boolean(item.comment.comment) === Boolean(firstTransaction?.comment.comment)) ||
-                                (isFirstTransactionCommentEmptyObject && item.comment === undefined),
-                        ),
-                    )
-                ) {
+                const allCommentsAreEqual = transactions.every((item) => lodashIsEqual(item?.comment, firstTransaction?.comment));
+                const allCommentsExist = transactions.every((item) => Boolean(item?.comment.comment) === Boolean(firstTransaction?.comment.comment));
+                const allCommentsAreEmpty = isFirstTransactionCommentEmptyObject && transactions.every((item) => item?.comment === undefined);
+
+                if (allCommentsAreEqual || allCommentsExist || allCommentsAreEmpty) {
                     keep[fieldName] = firstTransaction?.comment.comment ?? firstTransaction?.comment;
                 } else {
-                    let differentValues = transactions.map((item) => keys.map((key) => (item && item.comment && key in item.comment ? item.comment : undefined))).flat();
-
-                    if (differentValues.every((item) => !item?.comment)) {
-                        differentValues = differentValues.filter((item) => item?.comment);
-                    }
-
+                    const differentValues = getDifferentValues(transactions, keys);
                     if (differentValues.length > 0) {
                         change[fieldName] = differentValues;
                     }
                 }
-            } else if (transactions.every((item) => keys.every((key) => item && key in item && item[key] === firstTransaction?.[key]))) {
-                keep[fieldName] = firstTransaction?.[keys[0]];
             } else {
-                let differentValues = transactions
-                    .map((item) =>
-                        keys.map((key) => {
-                            if (!item?.[key]) {
-                                return;
-                            }
+                const allFieldsAreEqual = transactions.every((item) => keys.every((key) => item?.[key] === firstTransaction?.[key]));
 
-                            // eslint-disable-next-line no-nested-ternary
-                            return item && key in item ? item[key] : typeof item?.[key] === 'boolean' ? false : undefined;
-                        }),
-                    )
-                    .flat();
-
-                if (differentValues.every((item) => item === undefined)) {
-                    differentValues = differentValues.filter(Boolean);
-                }
-
-                if (differentValues.length > 0) {
-                    change[fieldName] = differentValues;
+                if (allFieldsAreEqual) {
+                    keep[fieldName] = firstTransaction?.[keys[0]];
+                } else {
+                    const differentValues = getDifferentValues(transactions, keys);
+                    if (differentValues.length > 0) {
+                        change[fieldName] = differentValues;
+                    }
                 }
             }
         }
