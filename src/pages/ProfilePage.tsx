@@ -95,7 +95,24 @@ function ProfilePage({route}: ProfilePageProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const accountID = Number(route.params?.accountID ?? 0);
     const isCurrentUser = session?.accountID === accountID;
-    const details: PersonalDetails | EmptyObject = personalDetails?.[accountID] ?? (ValidationUtils.isValidAccountRoute(accountID) ? {} : {accountID: 0, avatar: ''});
+
+    const details = useMemo((): PersonalDetails | EmptyObject => {
+        if (personalDetails?.[accountID]) {
+            return personalDetails?.[accountID] ?? {};
+        }
+        if (ValidationUtils.isValidAccountRoute(accountID)) {
+            return {};
+        }
+        if (!route.params.login) {
+            return {accountID: 0, avatar: ''};
+        }
+        const foundDetails = Object.values(personalDetails ?? {}).find((personalDetail) => personalDetail?.login === route.params.login?.toLowerCase());
+        if (foundDetails) {
+            return foundDetails;
+        }
+        const optimisticAccountID = UserUtils.generateAccountID(route.params.login);
+        return {accountID: optimisticAccountID, login: route.params.login, displayName: route.params.login, avatar: UserUtils.getDefaultAvatar(optimisticAccountID)};
+    }, [accountID, personalDetails, route.params.login]);
 
     const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(details, undefined, undefined, isCurrentUser);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -123,7 +140,7 @@ function ProfilePage({route}: ProfilePageProps) {
     const isLoading = Boolean(personalDetailsMetadata?.[accountID]?.isLoading) || isEmptyObject(details);
 
     // If the API returns an error for some reason there won't be any details and isLoading will get set to false, so we want to show a blocking screen
-    const shouldShowBlockingView = !hasMinimumDetails && !isLoading;
+    const shouldShowBlockingView = !hasMinimumDetails && !isLoading && !login;
 
     const statusEmojiCode = details?.status?.emojiCode ?? '';
     const statusText = details?.status?.text ?? '';
@@ -165,7 +182,7 @@ function ProfilePage({route}: ProfilePageProps) {
                     onBackButtonPress={() => Navigation.goBack(navigateBackTo)}
                 />
                 <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
-                    {hasMinimumDetails && (
+                    {true && (
                         <ScrollView>
                             <View style={[styles.avatarSectionWrapper, styles.pb0]}>
                                 <PressableWithoutFocus
