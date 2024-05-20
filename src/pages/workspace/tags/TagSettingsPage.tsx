@@ -38,7 +38,7 @@ type TagSettingsPageProps = TagSettingsPageOnyxProps & StackScreenProps<Settings
 function TagSettingsPage({route, policyTags, navigation}: TagSettingsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const policyTag = useMemo(() => PolicyUtils.getTagList(policyTags, 0), [policyTags]);
+    const policyTag = useMemo(() => PolicyUtils.getTagList(policyTags, route.params.orderWeight), [policyTags, route.params.orderWeight]);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`);
 
     const {windowWidth} = useWindowDimensions();
@@ -70,7 +70,7 @@ function TagSettingsPage({route, policyTags, navigation}: TagSettingsPageProps) 
     };
 
     const navigateToEditTag = () => {
-        Navigation.navigate(ROUTES.WORKSPACE_TAG_EDIT.getRoute(route.params.policyID, currentPolicyTag.name));
+        Navigation.navigate(ROUTES.WORKSPACE_TAG_EDIT.getRoute(route.params.policyID, route.params.orderWeight, currentPolicyTag.name));
     };
 
     const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
