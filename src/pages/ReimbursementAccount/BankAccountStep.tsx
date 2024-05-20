@@ -184,6 +184,7 @@ function BankAccountStep({
                                 >
                                     {translate('bankAccount.validateAccountError.phrase2')}
                                 </TextLink>
+                                {translate('bankAccount.validateAccountError.phrase3')}
                                 <TextLink
                                     fontSize={variables.fontSizeLabel}
                                     onPress={() => {
@@ -192,7 +193,7 @@ function BankAccountStep({
                                         Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(login?.partnerUserID ?? loginNames?.[0]));
                                     }}
                                 >
-                                    {translate('bankAccount.validateAccountError.phrase3')}
+                                    {translate('bankAccount.validateAccountError.phrase4')}
                                 </TextLink>
                                 .
                             </Text>

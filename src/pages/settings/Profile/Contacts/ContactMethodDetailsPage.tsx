@@ -23,7 +23,6 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import * as Session from '@userActions/Session';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -156,13 +155,6 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
             return;
         }
 
-        // If the selected contactMethod is the current session['login'] and the account is unvalidated,
-        // the current authToken is invalid after the successful magic code verification.
-        // So we need to sign out the user and redirect to the sign in page.
-        if (isDefaultContactMethod) {
-            Session.signOutAndRedirectToSignIn();
-            return;
-        }
         // Navigate to methods page on successful magic code verification
         // validatedDate property is responsible to decide the status of the magic code verification
         Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route);
