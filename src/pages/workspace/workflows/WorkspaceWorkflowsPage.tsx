@@ -195,6 +195,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                                 title={shouldShowBankAccount ? translate('common.bankAccount') : translate('workflowsPage.connectBankAccount')}
                                 description={bankDisplayName}
                                 disabled={isOffline || !isPolicyAdmin}
+                                shouldGreyOutWhenDisabled={!policy?.pendingFields?.reimbursementChoice}
                                 onPress={() => {
                                     if (!Policy.isCurrencySupportedForDirectReimbursement(policy?.outputCurrency ?? '')) {
                                         setIsCurrencyModalOpen(true);
@@ -209,6 +210,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                             {shouldShowBankAccount && (
                                 <OfflineWithFeedback
                                     pendingAction={policy?.pendingFields?.reimburser}
+                                    shouldDisableOpacity={isOffline && policy?.pendingFields?.reimbursementChoice && policy?.pendingFields?.reimburser}
                                     errors={ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.REIMBURSER)}
                                     onClose={() => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.COLLECTION_KEYS.REIMBURSER)}
                                     errorRowStyles={[styles.ml7]}
@@ -220,7 +222,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                                         description={displayNameForAuthorizedPayer}
                                         onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_PAYER.getRoute(route.params.policyID))}
                                         shouldShowRightIcon
-                                        wrapperStyle={containerStyle}
+                                        wrapperStyle={[...containerStyle, styles.mt0]}
                                         hoverAndPressStyle={[styles.mr0, styles.br2]}
                                         brickRoadIndicator={hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                     />
