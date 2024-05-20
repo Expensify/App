@@ -8,6 +8,7 @@ import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import type {Route} from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import getActionsFromPartialDiff from './AppNavigator/getActionsFromPartialDiff';
 import getPartialStateDiff from './AppNavigator/getPartialStateDiff';
 import dismissModal from './dismissModal';
@@ -15,6 +16,7 @@ import getPolicyIDFromState from './getPolicyIDFromState';
 import getStateFromPath from './getStateFromPath';
 import getTopmostBottomTabRoute from './getTopmostBottomTabRoute';
 import getTopmostCentralPaneRoute from './getTopmostCentralPaneRoute';
+import getTopmostReportId from './getTopmostReportId';
 import linkingConfig from './linkingConfig';
 import getAdaptedStateFromPath from './linkingConfig/getAdaptedStateFromPath';
 import getMatchingBottomTabRouteForState from './linkingConfig/getMatchingBottomTabRouteForState';
@@ -154,10 +156,13 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
         const isTargetNavigatorOnTop = topRouteName === action.payload.name;
 
         const isTargetScreenDifferentThanCurrent = Boolean(topmostCentralPaneRoute && topmostCentralPaneRoute.name !== action.payload.params?.screen);
-        const areParamsDifferent = !shallowCompare(
-            omitBy(topmostCentralPaneRoute?.params, (value) => value === undefined),
-            omitBy(action.payload.params?.params, (value) => value === undefined),
-        );
+        const areParamsDifferent =
+            action.payload.params?.screen === SCREENS.REPORT
+                ? getTopmostReportId(rootState) !== getTopmostReportId(stateFromPath)
+                : !shallowCompare(
+                      omitBy(topmostCentralPaneRoute?.params as Record<string, unknown> | undefined, (value) => value === undefined),
+                      omitBy(action.payload.params?.params as Record<string, unknown> | undefined, (value) => value === undefined),
+                  );
         // In case if type is 'FORCED_UP' we replace current screen with the provided. This means the current screen no longer exists in the stack
         if (type === CONST.NAVIGATION.TYPE.FORCED_UP) {
             action.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
