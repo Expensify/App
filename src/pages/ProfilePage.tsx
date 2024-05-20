@@ -15,7 +15,8 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
-import PromotedActionsBar, {PromotedAction, PromotedActions} from '@components/PromotedActionsBar';
+import type {PromotedAction} from '@components/PromotedActionsBar';
+import PromotedActionsBar, {PromotedActions} from '@components/PromotedActionsBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -156,8 +157,6 @@ function ProfilePage({route}: ProfilePageProps) {
         return result;
     }, [accountID, isCurrentUser, report]);
 
-    console.log('promo', promotedActions.length);
-
     return (
         <ScreenWrapper testID={ProfilePage.displayName}>
             <FullPageNotFoundView shouldShow={shouldShowBlockingView || CONST.RESTRICTED_ACCOUNT_IDS.includes(accountID)}>
@@ -168,16 +167,16 @@ function ProfilePage({route}: ProfilePageProps) {
                 <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                     {hasMinimumDetails && (
                         <ScrollView>
-                            <View style={styles.avatarSectionWrapper}>
+                            <View style={[styles.avatarSectionWrapper, styles.pb0]}>
                                 <PressableWithoutFocus
-                                    style={[styles.noOutline]}
+                                    style={[styles.noOutline, styles.mb4]}
                                     onPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(String(accountID)))}
                                     accessibilityLabel={translate('common.profile')}
                                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                                 >
                                     <OfflineWithFeedback pendingAction={details?.pendingFields?.avatar}>
                                         <Avatar
-                                            containerStyles={[styles.avatarXLarge, styles.mb3]}
+                                            containerStyles={[styles.avatarXLarge]}
                                             imageStyles={[styles.avatarXLarge]}
                                             source={UserUtils.getAvatar(avatar, accountID)}
                                             size={CONST.AVATAR_SIZE.XLARGE}
@@ -187,7 +186,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                 </PressableWithoutFocus>
                                 {Boolean(displayName) && (
                                     <Text
-                                        style={[styles.textHeadline, styles.pre, styles.mb6, styles.w100, styles.textAlignCenter]}
+                                        style={[styles.textHeadline, styles.pre, styles.mb8, styles.w100, styles.textAlignCenter]}
                                         numberOfLines={1}
                                     >
                                         {displayName}
@@ -195,7 +194,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                 )}
                                 <PromotedActionsBar
                                     promotedActions={promotedActions}
-                                    containerStyle={[styles.ph0]}
+                                    containerStyle={[styles.ph0, styles.mb8]}
                                 />
                                 {hasStatus && (
                                     <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.mw100]}>
