@@ -70,10 +70,6 @@ export default function useArrowKeyFocusManager({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => onFocusedIndexChange(focusedIndex), [focusedIndex]);
 
-    useEffect(() => {
-        setFocusedIndex(initialFocusedIndex);
-    }, [initialFocusedIndex]);
-
     const arrowUpCallback = useCallback(() => {
         if (maxIndex < 0 || !isFocused) {
             return;
