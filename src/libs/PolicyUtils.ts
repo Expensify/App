@@ -242,6 +242,13 @@ function getCleanedTagName(tag: string) {
 }
 
 /**
+ * Escape colon from tag name
+ */
+function escapeTagName(tag: String) {
+    return tag?.replaceAll(CONST.COLON, '\\:');
+}
+
+/**
  * Gets a count of enabled tags of a policy
  */
 function getCountOfEnabledTagsOfList(policyTags: PolicyTags) {
@@ -411,6 +418,7 @@ function getCurrentXeroOrganizationName(policy: Policy | undefined): string | un
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
+    escapeTagName,
     getActivePolicies,
     getAdminEmployees,
     getCleanedTagName,
