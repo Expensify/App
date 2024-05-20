@@ -517,7 +517,6 @@ function ReportScreen({
         const didReportClose = wasReportRemoved && prevReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN && report.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
         const isTopLevelPolicyRoomWithNoStatus = !report.statusNum && !prevReport.parentReportID && prevReport.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ROOM;
         const isClosedTopLevelPolicyRoom = wasReportRemoved && prevReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN && isTopLevelPolicyRoomWithNoStatus;
-
         // Navigate to the Concierge chat if the room was removed from another device (e.g. user leaving a room or removed from a room)
         if (
             // non-optimistic case
@@ -526,6 +525,10 @@ function ReportScreen({
             isRemovalExpectedForReportType ||
             isClosedTopLevelPolicyRoom
         ) {
+            // Early return if the report we're passing isn't in a focused state. We only want to navigate to Concierge if the user leaves the room from another device or gets removed from the room while the report is in a focused state.
+            if (!isFocused) {
+                return;
+            }
             Navigation.dismissModal();
             if (Navigation.getTopmostReportId() === prevOnyxReportID) {
                 Navigation.setShouldPopAllStateOnUP();
@@ -540,6 +543,7 @@ function ReportScreen({
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(prevReport.parentReportID));
                 return;
             }
+
             Report.navigateToConciergeChat();
             return;
         }
@@ -567,6 +571,7 @@ function ReportScreen({
         prevReport.chatType,
         prevReport,
         reportIDFromRoute,
+        isFocused,
     ]);
 
     useEffect(() => {

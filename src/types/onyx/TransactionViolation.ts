@@ -72,6 +72,7 @@ type TransactionViolation = {
 
         /** Collection of form fields that triggered this violation */
         errorIndexes?: number[];
+        pendingPattern?: boolean;
     };
 };
 
