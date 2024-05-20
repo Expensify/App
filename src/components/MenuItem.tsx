@@ -159,7 +159,7 @@ type MenuItemBaseProps = {
     /** Hint to display at the bottom of the component */
     hintText?: MaybePhraseKey;
 
-    /** Should the description be shown above the title (instead of the other way around) */
+    /** Should the error text red dot indicator be shown */
     shouldShowErrorTextRedDot?: boolean;
 
     /** A boolean flag that gives the icon a green fill if true */
