@@ -1497,7 +1497,8 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
                 .map(Number)
                 .filter((accountID) => accountID !== currentUserAccountID || !isOneOnOneChat);
 
-            if (!accountIDs || accountIDs.length === 0) {
+            const isChatRoom = ReportUtils.isChatRoom(report);
+            if ((!accountIDs || accountIDs.length === 0) && !isChatRoom) {
                 return;
             }
 
@@ -1788,6 +1789,7 @@ function getOptions(
         const isMoneyRequestReport = option.isMoneyRequestReport;
         const isSelfDM = option.isSelfDM;
         const isOneOnOneChat = option.isOneOnOneChat;
+        const isChatRoom = option.isChatRoom;
 
         // For 1:1 chat, we don't want to include currentUser as participants in order to not mark 1:1 chats as having multiple participants
         const accountIDs = Object.keys(report.participants ?? {})
@@ -1824,7 +1826,7 @@ function getOptions(
             return;
         }
 
-        if (!accountIDs || accountIDs.length === 0) {
+        if ((!accountIDs || accountIDs.length === 0) && !isChatRoom) {
             return;
         }
 
