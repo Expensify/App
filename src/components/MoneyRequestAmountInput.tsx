@@ -125,7 +125,7 @@ function MoneyRequestAmountInput(
     const textInput = useRef<BaseTextInputRef | null>(null);
 
     const decimals = CurrencyUtils.getCurrencyDecimals(currency);
-    const selectedAmountAsString = amount ? onFormatAmount(amount) : '';
+    const selectedAmountAsString = amount ? onFormatAmount(amount, currency) : '';
 
     const [currentAmount, setCurrentAmount] = useState(selectedAmountAsString);
 
@@ -245,7 +245,7 @@ function MoneyRequestAmountInput(
         if (!formatAmountOnBlur) {
             return;
         }
-        const formattedAmount = onFormatAmount(amount);
+        const formattedAmount = onFormatAmount(amount, currency);
         if (maxLength && formattedAmount.length > maxLength) {
             return;
         }
