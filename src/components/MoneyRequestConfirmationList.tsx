@@ -510,6 +510,7 @@ function MoneyRequestConfirmationList({
                     inputStyle={[styles.optionRowAmountInput, amountWidth] as TextStyle[]}
                     containerStyle={[styles.textInputContainer, amountWidth]}
                     touchableInputWrapperStyle={[styles.ml3]}
+                    onFormatAmount={CurrencyUtils.convertToDisplayStringWithoutCurrency}
                     onAmountChange={(value: string) => onSplitShareChange(participantOption.accountID ?? 0, Number(value))}
                     maxLength={formattedTotalAmount.length}
                 />
