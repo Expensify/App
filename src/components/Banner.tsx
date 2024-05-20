@@ -75,7 +75,6 @@ function Banner({
                         style={[
                             styles.flexRow,
                             styles.alignItemsCenter,
-                            styles.justifyContentCenter,
                             styles.p5,
                             styles.borderRadiusNormal,
                             shouldHighlight ? styles.activeComponentBG : styles.hoveredComponentBG,
