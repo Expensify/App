@@ -1,4 +1,5 @@
 import {getActionFromState} from '@react-navigation/core';
+import {findFocusedRoute} from '@react-navigation/native';
 import type {NavigationAction, NavigationContainerRef, NavigationState, PartialState} from '@react-navigation/native';
 import {omitBy} from 'lodash';
 import type {Writable} from 'type-fest';
@@ -12,7 +13,7 @@ import SCREENS from '@src/SCREENS';
 import getActionsFromPartialDiff from './AppNavigator/getActionsFromPartialDiff';
 import getPartialStateDiff from './AppNavigator/getPartialStateDiff';
 import dismissModal from './dismissModal';
-import getFocusedSideModalRoute from './getFocusedSideModalRoute';
+import extrapolateStateFromParams from './extrapolateStateFromParams';
 import getPolicyIDFromState from './getPolicyIDFromState';
 import getStateFromPath from './getStateFromPath';
 import getTopmostBottomTabRoute from './getTopmostBottomTabRoute';
@@ -257,8 +258,8 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
     }
 
     if (action && 'payload' in action && action.payload && 'name' in action.payload && isSideModalNavigator(action.payload.name)) {
-        const currentFocusedRoute = getFocusedSideModalRoute(rootState);
-        const targetFocusedRoute = getFocusedSideModalRoute(stateFromPath);
+        const currentFocusedRoute = findFocusedRoute(extrapolateStateFromParams(rootState));
+        const targetFocusedRoute = findFocusedRoute(stateFromPath);
 
         // If the current focused route is the same as the target focused route, we don't want to navigate.
         if (currentFocusedRoute?.name === targetFocusedRoute?.name) {

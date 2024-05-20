@@ -1,8 +1,7 @@
 import type {NavigationState, PartialState, Route} from '@react-navigation/native';
-import {getStateFromPath} from '@react-navigation/native';
+import {findFocusedRoute, getStateFromPath} from '@react-navigation/native';
 import {isAnonymousUser} from '@libs/actions/Session';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
-import getFocusedSideModalRoute from '@libs/Navigation/getFocusedSideModalRoute';
 import type {BottomTabName, CentralPaneName, FullScreenName, NavigationPartialRoute, RootStackParamList} from '@libs/Navigation/types';
 import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -114,9 +113,10 @@ function getMatchingRootRouteForRHPRoute(
 
             // If there is rhpNavigator in the state generated for backTo url, we want to get root route matching to this rhp screen.
             if (rhpNavigator && rhpNavigator.state) {
-                const focusedRHPRoute = getFocusedSideModalRoute(stateForBackTo);
-                if (focusedRHPRoute) {
-                    return getMatchingRootRouteForRHPRoute(focusedRHPRoute);
+                const isRHPinState = stateForBackTo.routes[0].name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
+
+                if (isRHPinState) {
+                    return getMatchingRootRouteForRHPRoute(findFocusedRoute(stateForBackTo) as NavigationPartialRoute);
                 }
             }
 
@@ -176,7 +176,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
         // - found rhp
 
         // This one will be defined because rhpNavigator is defined.
-        const focusedRHPRoute = getFocusedSideModalRoute(state);
+        const focusedRHPRoute = findFocusedRoute(state);
         const routes = [];
 
         if (focusedRHPRoute) {
@@ -371,7 +371,6 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options) => {
     if (state === undefined) {
         throw new Error('Unable to parse path');
     }
-
     return getAdaptedState(state, policyID);
 };
 
