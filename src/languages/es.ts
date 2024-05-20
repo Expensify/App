@@ -2342,6 +2342,17 @@ export default {
                     }
                 }
             },
+            syncError: (integration?: ConnectionName): string => {
+                switch (integration) {
+                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
+                        return 'No se pudo conectar a QuickBooks Online debido a credenciales incorrectas.';
+                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
+                        return 'No se pudo conectar a Xero debido a credenciales incorrectas.';
+                    default: {
+                        return 'No se pudo conectar a la integración debido a credenciales incorrectas.';
+                    }
+                }
+            },
             accounts: 'Plan de cuentas',
             taxes: 'Impuestos',
             imported: 'Importado',
