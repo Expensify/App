@@ -273,52 +273,65 @@ function buildNextStep(
 
         // Generates an optimistic nextStep once a report has been approved
         case CONST.REPORT.STATUS_NUM.APPROVED:
-            // Self review
-            optimisticNextStep = {
-                type,
-                title: 'Next Steps:',
-                message: [
-                    {
-                        text: 'Waiting for ',
-                    },
-                    {
-                        text: 'you',
-                        type: 'strong',
-                    },
-                    {
-                        text: ' to ',
-                    },
-                    {
-                        text: 'pay',
-                        type: 'strong',
-                    },
-                    {
-                        text: ' %expenses.',
-                    },
-                ],
-            };
+            // Approver is not the owner of the policy
+            if (submitToAccountID === currentUserAccountID && !isOwner) {
+                optimisticNextStep = {
+                    type,
+                    title: 'Finished!',
+                    message: [
+                        {
+                            text: 'No further action required!',
+                        },
+                    ],
+                };
+            } else {
+                // Self review
+                optimisticNextStep = {
+                    type,
+                    title: 'Next Steps:',
+                    message: [
+                        {
+                            text: 'Waiting for ',
+                        },
+                        {
+                            text: 'you',
+                            type: 'strong',
+                        },
+                        {
+                            text: ' to ',
+                        },
+                        {
+                            text: 'pay',
+                            type: 'strong',
+                        },
+                        {
+                            text: ' %expenses.',
+                        },
+                    ],
+                };
 
-            // Another owner
-            if (!isOwner) {
-                optimisticNextStep.message = [
-                    {
-                        text: 'Waiting for ',
-                    },
-                    {
-                        text: managerDisplayName,
-                        type: 'strong',
-                    },
-                    {
-                        text: ' to ',
-                    },
-                    {
-                        text: 'pay',
-                        type: 'strong',
-                    },
-                    {
-                        text: ' %expenses.',
-                    },
-                ];
+                // Another owner
+                if (!isOwner) {
+                    optimisticNextStep.message = [
+                        {
+                            text: 'Waiting for ',
+                        },
+                        {
+                            text: managerDisplayName,
+                            type: 'strong',
+                        },
+                        {
+                            text: ' to ',
+                        },
+                        {
+                            text: 'pay',
+                            type: 'strong',
+                        },
+                        {
+                            text: ' %expenses.',
+                        },
+                    ];
+                }
             }
 
             break;
