@@ -6521,10 +6521,9 @@ function shouldCreateNewMoneyRequestReport(existingIOUReport: OnyxEntry<Report> 
     return !existingIOUReport || hasIOUWaitingOnCurrentUserBankAccount(chatReport) || !canAddOrDeleteTransactions(existingIOUReport);
 }
 
-function getTripTransactions(expenseReportID: string | undefined): Transaction[] {
-    const transactions = TransactionUtils.getAllReportTransactions(expenseReportID);
-    console.log('transactions: ', transactions);
-    return transactions.filter((transaction) => TransactionUtils.hasReservationList(transaction));
+function getTripTransactions(tripRoomReportID: string | undefined): Transaction[] | undefined {
+    const tripTransactionReportIDs = Object.values(allReports ?? {}).filter((report) => report && report?.parentReportID === tripRoomReportID);
+    return Object.values(tripTransactionReportIDs ?? {}).map((report) => report && TransactionUtils.getAllReportTransactions(report?.reportID));
 }
 
 /**
