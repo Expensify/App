@@ -1233,6 +1233,7 @@ function MoneyRequestConfirmationList({
             shouldPreventDefaultFocusOnSelectRow
             footerContent={footerContent}
             listFooterContent={listFooterContent}
+            containerStyle={[styles.flexBasisAuto]}
         />
     );
 }

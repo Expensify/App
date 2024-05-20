@@ -4810,7 +4810,7 @@ function buildOptimisticTaskReport(
     return {
         reportID: generateReportID(),
         reportName: title,
-        description,
+        description: getParsedComment(description ?? ''),
         ownerAccountID,
         participants,
         managerID: assigneeAccountID,
