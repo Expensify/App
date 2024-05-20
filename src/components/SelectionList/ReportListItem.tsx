@@ -14,6 +14,7 @@ import BaseListItem from './BaseListItem';
 import ExpenseItemHeader from './ExpenseItemHeader';
 import ListItemCheckbox from './ListItemCheckbox';
 import TransactionListItem from './TransactionListItem';
+import TransactionListItemRow from './TransactionListItemRow';
 import type {ListItem, ReportListItemProps, ReportListItemType} from './types';
 
 function ReportListItem<TItem extends ListItem>({
@@ -130,22 +131,20 @@ function ReportListItem<TItem extends ListItem>({
                             {totalCell}
                         </View>
                         {isLargeScreenWidth && <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.ACTION)]}>{actionCell}</View>}
-                        {/* {reportItem.transactions.map((transaction) => (
-                        <TransactionListItem
+                    </View>
+                    <View style={[styles.mt3, {borderBottomWidth: 1, borderBottomColor: theme.activeComponentBG}]} />
+                    {reportItem.transactions.map((transaction) => (
+                        <TransactionListItemRow
                             item={transaction}
                             isFocused={isFocused}
                             showTooltip={showTooltip}
-                            isDisabled={isDisabled}
-                            canSelectMultiple={canSelectMultiple}
+                            isDisabled={!!isDisabled}
+                            canSelectMultiple={!!canSelectMultiple}
                             onSelectRow={onSelectRow}
-                            onDismissError={onDismissError}
-                            shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
-                            onFocus={() => {}}
-                            shouldSyncFocus={shouldSyncFocus}
+                            showItemHeaderOnNarrowLayout={false}
+                            containerStyle={styles.mt3}
                         />
-                    ))} */}
-                    </View>
-                    <View style={[styles.mv3, {borderBottomWidth: 1, borderBottomColor: theme.activeComponentBG}]} />
+                    ))}
                 </View>
             </BaseListItem>
         );
