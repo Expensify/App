@@ -3,7 +3,7 @@ import type {ComponentType} from 'react';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import type Animated from 'react-native-reanimated';
-import {measurePerformance} from 'reassure';
+import {measureRenders} from 'reassure';
 import type {WithNavigationFocusProps} from '@components/withNavigationFocus';
 import type {EmojiPickerRef} from '@libs/actions/EmojiPickerAction';
 import type Navigation from '@libs/Navigation/Navigation';
@@ -118,7 +118,7 @@ test('[ReportActionCompose] should render Composer with text input interactions'
         fireEvent.press(composer);
     };
 
-    return waitForBatchedUpdates().then(() => measurePerformance(<ReportActionComposeWrapper />, {scenario}));
+    return waitForBatchedUpdates().then(() => measureRenders(<ReportActionComposeWrapper />, {scenario}));
 });
 
 test('[ReportActionCompose] should press add attachemnt button', async () => {
@@ -130,7 +130,7 @@ test('[ReportActionCompose] should press add attachemnt button', async () => {
         fireEvent.press(attachmentButton, mockEvent);
     };
 
-    return waitForBatchedUpdates().then(() => measurePerformance(<ReportActionComposeWrapper />, {scenario}));
+    return waitForBatchedUpdates().then(() => measureRenders(<ReportActionComposeWrapper />, {scenario}));
 });
 
 test('[ReportActionCompose] should press add emoji button', async () => {
@@ -142,7 +142,7 @@ test('[ReportActionCompose] should press add emoji button', async () => {
         fireEvent.press(emojiButton);
     };
 
-    return waitForBatchedUpdates().then(() => measurePerformance(<ReportActionComposeWrapper />, {scenario}));
+    return waitForBatchedUpdates().then(() => measureRenders(<ReportActionComposeWrapper />, {scenario}));
 });
 
 test('[ReportActionCompose] should press send message button', async () => {
@@ -154,7 +154,7 @@ test('[ReportActionCompose] should press send message button', async () => {
         fireEvent.press(sendButton);
     };
 
-    return waitForBatchedUpdates().then(() => measurePerformance(<ReportActionComposeWrapper />, {scenario}));
+    return waitForBatchedUpdates().then(() => measureRenders(<ReportActionComposeWrapper />, {scenario}));
 });
 
 test('[ReportActionCompose] render composer with attachement modal interactions', async () => {
@@ -174,5 +174,5 @@ test('[ReportActionCompose] render composer with attachement modal interactions'
         fireEvent.press(assignTaskButton, mockEvent);
     };
 
-    return waitForBatchedUpdates().then(() => measurePerformance(<ReportActionComposeWrapper />, {scenario}));
+    return waitForBatchedUpdates().then(() => measureRenders(<ReportActionComposeWrapper />, {scenario}));
 });

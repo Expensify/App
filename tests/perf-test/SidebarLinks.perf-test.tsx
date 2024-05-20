@@ -1,6 +1,6 @@
 import {fireEvent, screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import {measurePerformance} from 'reassure';
+import {measureRenders} from 'reassure';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -71,7 +71,7 @@ describe('SidebarLinks', () => {
         };
 
         await waitForBatchedUpdates();
-        await measurePerformance(<LHNTestUtils.MockedSidebarLinks />, {scenario});
+        await measureRenders(<LHNTestUtils.MockedSidebarLinks />, {scenario});
     });
 
     test('[SidebarLinks] should scroll and click some of the items', async () => {
@@ -106,6 +106,6 @@ describe('SidebarLinks', () => {
 
         await waitForBatchedUpdates();
 
-        await measurePerformance(<LHNTestUtils.MockedSidebarLinks />, {scenario});
+        await measureRenders(<LHNTestUtils.MockedSidebarLinks />, {scenario});
     });
 });
