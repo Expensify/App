@@ -780,7 +780,7 @@ function ReportActionItem({
                 <OfflineWithFeedback pendingAction={action.pendingAction}>
                     <TripDetailsView
                         tripRoomReportID={report.reportID}
-                        shouldShowHorizontalRule={!shouldHideThreadDividerLine}
+                        shouldShowHorizontalRule={false}
                     />
                 </OfflineWithFeedback>
             );
