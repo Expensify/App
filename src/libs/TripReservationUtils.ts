@@ -23,7 +23,8 @@ function getTripReservationIcon(reservationType: ReservationType): IconAsset {
 
 function getReservationsFromTripTransactions(transactions: Transaction[]): Reservation[] {
     return transactions
-        .map((item) => item?.reservationList ?? [])
+        .flat()
+        .map((item) => item?.receipt?.reservationList ?? [])
         .filter((item) => item.length > 0)
         .flat();
 }
