@@ -107,9 +107,14 @@ function MoneyRequestPreviewContent({
     const isFullyApproved = ReportUtils.isReportApproved(iouReport) && !isSettlementOrApprovalPartial;
     const shouldShowRBR = hasNoticeTypeViolations || hasViolations || hasFieldErrors || (!isFullySettled && !isFullyApproved && isOnHold);
 
-    const duplicates =
-        transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`]?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)
-            ?.data?.duplicates ?? [];
+    // Get transaction violations for given transaction id from onyx, find duplicated transactions violations and get duplicates
+    const duplicates = useMemo(
+        () =>
+            transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`]?.find(
+                (violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+            )?.data?.duplicates ?? [],
+        [transaction?.transactionID, transactionViolations],
+    );
 
     /*
      Show the merchant for IOUs and expenses only if:

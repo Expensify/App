@@ -15,15 +15,14 @@ function DuplicateTransactionItem(props: DuplicateTransactionItemProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.transaction?.reportID}`);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`);
     const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/non-nullable-type-assertion-style
+    const action = Object.values(reportActions ?? {})?.find(
+        (reportAction) => reportAction.actionName === 'IOU' && reportAction.originalMessage.IOUTransactionID === props.transaction?.transactionID,
+    ) as ReportAction;
 
     return (
         <ReportActionItem
-            action={
-                // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                Object.values(reportActions ?? {})?.find(
-                    (reportAction) => reportAction.actionName === 'IOU' && reportAction.originalMessage.IOUTransactionID === props.transaction?.transactionID,
-                ) as ReportAction
-            }
+            action={action}
             // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
             report={report as Report}
             parentReportAction={parentReportAction}
