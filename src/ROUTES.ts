@@ -804,8 +804,8 @@ const ROUTES = {
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/import/tracking-categories/region` as const,
     },
     POLICY_ACCOUNTING_XERO_CUSTOMER: {
-        route: '/settings/workspaces/:policyID/accounting/xero/import/customers',
-        getRoute: (policyID: string) => `/settings/workspaces/${policyID}/accounting/xero/import/customers` as const,
+        route: 'settings/workspaces/:policyID/accounting/xero/import/customers',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/import/customers` as const,
     },
     POLICY_ACCOUNTING_XERO_TAXES: {
         route: 'settings/workspaces/:policyID/accounting/xero/import/taxes',
@@ -816,8 +816,8 @@ const ROUTES = {
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/export` as const,
     },
     POLICY_ACCOUNTING_XERO_PREFERRED_EXPORTER_SELECT: {
-        route: '/settings/workspaces/:policyID/connections/xero/export/preferred-exporter/select',
-        getRoute: (policyID: string) => `/settings/workspaces/${policyID}/connections/xero/export/preferred-exporter/select` as const,
+        route: 'settings/workspaces/:policyID/connections/xero/export/preferred-exporter/select',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/xero/export/preferred-exporter/select` as const,
     },
     POLICY_ACCOUNTING_XERO_EXPORT_PURCHASE_BILL_DATE_SELECT: {
         route: 'settings/workspaces/:policyID/accounting/xero/export/purchase-bill-date-select',
