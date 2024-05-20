@@ -500,7 +500,6 @@ function ReportActionItem({
      * @param hovered whether the ReportActionItem is hovered
      * @param isWhisper whether the report action is a whisper
      * @param hasErrors whether the report action has any errors
-     * @param isReviewDuplicateTransaction whether the report action is a review duplicate transaction
      * @returns child component(s)
      */
     const renderItemContent = (hovered = false, isWhisper = false, hasErrors = false): React.JSX.Element => {
