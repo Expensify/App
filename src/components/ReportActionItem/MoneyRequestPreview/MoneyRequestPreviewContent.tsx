@@ -115,9 +115,14 @@ function MoneyRequestPreviewContent({
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params?.threadReportID}`);
     const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
     const reviewingTransactionID = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction?.originalMessage.IOUTransactionID ?? '0' : '0';
-    const duplicates =
-        transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${reviewingTransactionID}`]?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)
-            ?.data?.duplicates ?? [];
+    // Get transaction violations for given transaction id from onyx, find duplicated transactions violations and get duplicates
+    const duplicates = useMemo(
+        () =>
+            transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`]?.find(
+                (violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+            )?.data?.duplicates ?? [],
+        [transaction?.transactionID, transactionViolations],
+    );
 
     /*
      Show the merchant for IOUs and expenses only if:

@@ -20,10 +20,10 @@ type ReviewDuplicates = {
     /** Description  which user want to keep */
     description: string;
 
-    /** If transaction is reimbursable */
+    /** Whether the transaction is reimbursable */
     reimbursable: boolean;
 
-    /** If transaction is billable */
+    /** Whether the transaction is billable */
     billable: boolean;
 };
 

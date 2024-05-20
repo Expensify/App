@@ -275,9 +275,6 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection, i
 }
 
 /**
- *
- * @param transactionIDs
- * @param dissmissedPersonalDetails
  * Dismisses the duplicate transaction violation for the provided transactionIDs
  * and updates the transaction to include the dismissed violation in the comment.
  *
