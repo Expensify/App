@@ -88,10 +88,16 @@ function HeaderView({
     const styles = useThemeStyles();
     const isSelfDM = ReportUtils.isSelfDM(report);
     const isGroupChat = ReportUtils.isGroupChat(report) || ReportUtils.isDeprecatedGroupDM(report);
-    // Currently, currentUser is not included in participantAccountIDs, so for selfDM, we need to add the currentUser as participants.
-    const participants = isSelfDM ? [session?.accountID ?? -1] : (report?.participantAccountIDs ?? []).slice(0, 5);
-    const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participants, personalDetails);
+    const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
+
+    // For 1:1 chat, we don't want to include currentUser as participants in order to not mark 1:1 chats as having multiple participants
+    const participants = Object.keys(report?.participants ?? {})
+        .map(Number)
+        .filter((accountID) => accountID !== session?.accountID || !isOneOnOneChat)
+        .slice(0, 5);
     const isMultipleParticipant = participants.length > 1;
+
+    const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participants, personalDetails);
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(participantPersonalDetails, isMultipleParticipant, undefined, isSelfDM);
 
     const isChatThread = ReportUtils.isChatThread(report);
@@ -103,7 +109,7 @@ function HeaderView({
     const title = ReportUtils.getReportName(reportHeaderData);
     const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(reportHeaderData);
-    const isConcierge = ReportUtils.hasSingleParticipant(report) && participants.includes(CONST.ACCOUNT_ID.CONCIERGE);
+    const isConcierge = ReportUtils.isConciergeChatReport(report);
     const isCanceledTaskReport = ReportUtils.isCanceledTaskReport(report, parentReportAction);
     const isPolicyEmployee = useMemo(() => !isEmptyObject(policy), [policy]);
     const reportDescription = ReportUtils.getReportDescriptionText(report);
