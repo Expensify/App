@@ -127,7 +127,7 @@ type ListItem = {
     brickRoadIndicator?: BrickRoad | '' | null;
 
     /** Element to render below the ListItem */
-    footerComponent?: ReactNode;
+    footerContent?: ReactNode;
 };
 
 type TransactionListItemType = ListItem &
