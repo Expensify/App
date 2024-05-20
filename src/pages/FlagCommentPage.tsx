@@ -19,7 +19,6 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import withReportAndReportActionOrNotFound from './home/report/withReportAndReportActionOrNotFound';
