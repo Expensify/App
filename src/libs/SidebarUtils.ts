@@ -89,7 +89,7 @@ function getOrderedReportIDs(
         }
 
         const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? {};
-        const doesReportHaveViolations = OptionsListUtils.checkReportHasViolations(report, betas, transactionViolations);
+        const doesReportHaveViolations = OptionsListUtils.checkReportHasViolations(report, betas ?? [], transactionViolations);
         const isHidden = report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
         const isFocused = report.reportID === currentReportId;
         const allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions) ?? {};
