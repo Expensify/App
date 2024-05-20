@@ -73,6 +73,10 @@ function setOnboardingAdminsChatReportID(adminsChatReportID?: string) {
     Onyx.set(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID, adminsChatReportID ?? null);
 }
 
+function setOnboardingPolicyID(policyID?: string) {
+    Onyx.set(ONYXKEYS.ONBOARDING_POLICY_ID, policyID ?? null);
+}
+
 Onyx.connect({
     key: ONYXKEYS.NVP_ONBOARDING,
     initWithStoredValues: false,
@@ -134,4 +138,4 @@ function resetAllChecks() {
     isLoadingReportData = true;
 }
 
-export {onServerDataReady, isOnboardingFlowCompleted, setOnboardingPurposeSelected, resetAllChecks, setOnboardingAdminsChatReportID};
+export {onServerDataReady, isOnboardingFlowCompleted, setOnboardingPurposeSelected, resetAllChecks, setOnboardingAdminsChatReportID, setOnboardingPolicyID};
