@@ -1,18 +1,18 @@
 import React from 'react';
-import {useWindowDimensions, View} from 'react-native';
+import {View} from 'react-native';
 import Button from '@components/Button';
-import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
-import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
+import ExpenseItemHeader from './ExpenseItemHeader';
+import ListItemCheckbox from './ListItemCheckbox';
 import TransactionListItem from './TransactionListItem';
 import type {ListItem, ReportListItemProps, ReportListItemType} from './types';
 
@@ -74,6 +74,8 @@ function ReportListItem<TItem extends ListItem>({
             />
         );
     }
+    const participantFrom = reportItem.transactions[0].from;
+    const participantTo = reportItem.transactions[0].to;
 
     if (reportItem?.reportName && reportItem.transactions.length > 1) {
         return (
@@ -97,38 +99,37 @@ function ReportListItem<TItem extends ListItem>({
                 hoverStyle={item.isSelected && styles.activeComponentBG}
             >
                 <View style={styles.flex1}>
-                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.mr4]}>
-                        <View style={[styles.flexRow, styles.flex1, styles.alignItemsCenter, styles.justifyContentBetween, {marginRight: 52}]}>
+                    {!isLargeScreenWidth && (
+                        <ExpenseItemHeader
+                            participantFrom={participantFrom}
+                            participantTo={participantTo}
+                            buttonText={translate('common.view')}
+                            onButtonPress={() => {
+                                onSelectRow(item);
+                            }}
+                        />
+                    )}
+                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, isLargeScreenWidth && styles.mr4]}>
+                        <View style={[styles.flexRow, styles.flex1, styles.alignItemsCenter, styles.justifyContentBetween, isLargeScreenWidth && {marginRight: 52}]}>
                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                 {canSelectMultiple && (
-                                    <PressableWithFeedback
-                                        accessibilityLabel={item.text ?? ''}
-                                        role={CONST.ROLE.BUTTON}
-                                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                                        disabled={isDisabled || item.isDisabledCheckbox}
+                                    <ListItemCheckbox
+                                        accessibilityLabel={item.text}
+                                        isDisabled={!!isDisabled}
+                                        isDisabledCheckbox={!!item.isDisabledCheckbox}
+                                        isSelected={!!item.isSelected}
                                         onPress={() => {}}
-                                        style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled]}
-                                    >
-                                        <View style={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}>
-                                            {item.isSelected && (
-                                                <Icon
-                                                    src={Expensicons.Checkmark}
-                                                    fill={theme.textLight}
-                                                    height={14}
-                                                    width={14}
-                                                />
-                                            )}
-                                        </View>
-                                    </PressableWithFeedback>
+                                    />
                                 )}
-                                <View style={[styles.flexShrink1, styles.ph4]}>
+
+                                <View style={[styles.flexShrink1, isLargeScreenWidth && styles.ph4]}>
                                     <Text style={[styles.textNormalThemeText, {fontWeight: '700'}]}>{reportItem?.reportName}</Text>
                                     <Text style={[styles.textMicroSupporting]}>{`${reportItem.transactions.length} grouped expenses`}</Text>
                                 </View>
                             </View>
                             {totalCell}
                         </View>
-                        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.ACTION)]}>{actionCell}</View>
+                        {isLargeScreenWidth && <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.ACTION)]}>{actionCell}</View>}
                         {/* {reportItem.transactions.map((transaction) => (
                         <TransactionListItem
                             item={transaction}

@@ -21,7 +21,7 @@ type SearchPageProps = StackScreenProps<CentralPaneNavigatorParamList, typeof SC
 function SearchPage({route}: SearchPageProps) {
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const currentQuery = route?.params && 'query' in route.params ? route?.params?.query : '';
+    const currentQuery = route?.params?.query;
     const query = currentQuery as SearchQuery;
     const isValidQuery = Object.values(CONST.TAB_SEARCH).includes(query);
 

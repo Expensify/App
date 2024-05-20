@@ -2,6 +2,7 @@ import React, {useEffect, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as SearchActions from '@libs/actions/Search';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
@@ -28,6 +29,7 @@ function Search({query, policyIDs}: SearchProps) {
     const [selectedItems, setSelectedItems] = useState<Array<SearchTransaction | SearchReport>>([]);
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
+    const {isLargeScreenWidth} = useWindowDimensions();
     useCustomBackHandler();
 
     const hash = SearchUtils.getQueryHash(query, policyIDs);
@@ -107,7 +109,7 @@ function Search({query, policyIDs}: SearchProps) {
 
     return (
         <SelectionList
-            canSelectMultiple
+            canSelectMultiple={isLargeScreenWidth}
             onSelectAll={toggleAllItems}
             onCheckboxPress={toggleListItem}
             customListHeader={<SearchTableHeader data={searchResults?.data} />}

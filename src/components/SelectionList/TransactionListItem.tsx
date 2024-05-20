@@ -1,12 +1,10 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import Avatar from '@components/Avatar';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithFeedback} from '@components/Pressable';
-import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -15,13 +13,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
-import type {SearchAccountDetails, SearchTransactionType} from '@src/types/onyx/SearchResults';
+import type {SearchTransactionType} from '@src/types/onyx/SearchResults';
 import BaseListItem from './BaseListItem';
+import ExpenseItemHeader from './ExpenseItemHeader';
 import TextWithIconCell from './TextWithIconCell';
 import type {ListItem, TransactionListItemProps, TransactionListItemType} from './types';
+import UserInfoCell from './UserInfoCell';
 
 const getTypeIcon = (type?: SearchTransactionType) => {
     switch (type) {
@@ -84,32 +83,6 @@ function TransactionListItem<TItem extends ListItem>({
             style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter]}
         />
     );
-
-    const userCell = (participant: SearchAccountDetails) => {
-        const displayName = participant?.name ?? participant?.displayName ?? participant?.login;
-        const avatarURL = participant?.avatarURL ?? participant?.avatar;
-        const isWorkspace = participant?.avatarURL !== undefined;
-        const iconType = isWorkspace ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR;
-
-        return (
-            <View style={[styles.flexRow, styles.gap1, styles.alignItemsCenter]}>
-                <Avatar
-                    imageStyles={[styles.alignSelfCenter]}
-                    size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
-                    source={avatarURL}
-                    name={displayName}
-                    type={iconType}
-                    avatarID={isWorkspace ? participant?.id : participant?.accountID}
-                />
-                <Text
-                    numberOfLines={1}
-                    style={[styles.textMicroBold, styles.flexShrink1]}
-                >
-                    {displayName}
-                </Text>
-            </View>
-        );
-    };
 
     const categoryCell = isLargeScreenWidth ? (
         <TextWithTooltip
@@ -201,19 +174,14 @@ function TransactionListItem<TItem extends ListItem>({
             >
                 {() => (
                     <>
-                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mb2, styles.gap2]}>
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.flex1]}>
-                                <View style={[styles.mw50]}>{userCell(transactionItem.from)}</View>
-                                <Icon
-                                    src={Expensicons.ArrowRightLong}
-                                    width={variables.iconSizeXXSmall}
-                                    height={variables.iconSizeXXSmall}
-                                    fill={theme.icon}
-                                />
-                                <View style={[styles.flex1, styles.mw50]}>{userCell(transactionItem.to)}</View>
-                            </View>
-                            <View style={[StyleUtils.getWidthStyle(variables.w80)]}>{actionCell}</View>
-                        </View>
+                        <ExpenseItemHeader
+                            participantFrom={transactionItem.from}
+                            participantTo={transactionItem.to}
+                            buttonText={translate('common.view')}
+                            onButtonPress={() => {
+                                onSelectRow(item);
+                            }}
+                        />
                         <View style={[styles.flexRow, styles.justifyContentBetween, styles.gap1]}>
                             <View style={[styles.flex2, styles.gap1]}>
                                 {merchantCell}
@@ -282,8 +250,12 @@ function TransactionListItem<TItem extends ListItem>({
                     <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.ph4, styles.gap3]}>
                         <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DATE)]}>{dateCell}</View>
                         <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.MERCHANT)]}>{merchantCell}</View>
-                        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.FROM)]}>{userCell(transactionItem.from)}</View>
-                        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TO)]}>{userCell(transactionItem.to)}</View>
+                        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.FROM)]}>
+                            <UserInfoCell participant={transactionItem.from} />
+                        </View>
+                        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TO)]}>
+                            <UserInfoCell participant={transactionItem.to} />
+                        </View>
                         {transactionItem.shouldShowCategory && <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.CATEGORY)]}>{categoryCell}</View>}
                         {transactionItem.shouldShowTag && <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TAG)]}>{tagCell}</View>}
                         {transactionItem.shouldShowTax && <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TAX_AMOUNT)]}>{taxCell}</View>}
