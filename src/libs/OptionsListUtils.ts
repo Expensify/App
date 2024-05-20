@@ -694,6 +694,7 @@ function createOption(
         result.isDefaultRoom = ReportUtils.isDefaultRoom(report);
         result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
         result.isExpenseReport = ReportUtils.isExpenseReport(report);
+        result.isInvoiceRoom = ReportUtils.isInvoiceRoom(report);
         result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
         result.isThread = ReportUtils.isChatThread(report);
         result.isTaskReport = ReportUtils.isTaskReport(report);
@@ -806,6 +807,9 @@ function getReportOption(participant: Participant): ReportUtils.OptionData {
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
     if (option.isSelfDM) {
         option.alternateText = Localize.translateLocal('reportActionsView.yourSpace');
+    } else if (option.isInvoiceRoom) {
+        option.text = ReportUtils.getReportName(report);
+        option.alternateText = Localize.translateLocal('workspace.common.invoices');
     } else {
         option.text = ReportUtils.getPolicyName(report);
         option.alternateText = Localize.translateLocal('workspace.common.workspace');
@@ -2039,16 +2043,6 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: Person
 }
 
 /**
- * Build the IOUConfirmationOptions for showing participants
- */
-function getIOUConfirmationOptionsFromParticipants(participants: Array<Participant | ReportUtils.OptionData>, amountText: string): Array<Participant | ReportUtils.OptionData> {
-    return participants.map((participant) => ({
-        ...participant,
-        descriptiveText: amountText,
-    }));
-}
-
-/**
  * Build the options for the New Group view
  */
 function getFilteredOptions(
@@ -2412,7 +2406,6 @@ export {
     getSearchValueForPhoneOrEmail,
     getPersonalDetailsForAccountIDs,
     getIOUConfirmationOptionsFromPayeePersonalDetail,
-    getIOUConfirmationOptionsFromParticipants,
     getSearchText,
     getAllReportErrors,
     getPolicyExpenseReportOption,
