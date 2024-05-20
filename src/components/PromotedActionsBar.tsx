@@ -81,6 +81,10 @@ function PromotedActionsBar({report, promotedActions, containerStyle, shouldShow
     const [isLastMemberLeavingGroupModalVisible, setIsLastMemberLeavingGroupModalVisible] = useState(false);
     const {translate} = useLocalize();
 
+    if (promotedActions.length === 0) {
+        return null;
+    }
+
     return (
         <View style={[styles.flexRow, styles.ph5, styles.mb5, styles.gap2, styles.mw100, styles.w100, containerStyle]}>
             {/* TODO: Remove the `Leave` button when @src/pages/ReportDetailsPage.tsx is updated */}
