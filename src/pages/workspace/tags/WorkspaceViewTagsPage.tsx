@@ -22,6 +22,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -247,15 +248,17 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         shouldShowRightIcon
                     />
                 </OfflineWithFeedback>
-                <ToggleSettingOptionRow
-                    title={translate('workspace.tags.requiresTag')}
-                    switchAccessibilityLabel={translate('workspace.tags.requiresTag')}
-                    isActive={Boolean(policyTagList?.required)}
-                    onToggle={(on) => Policy.setWorkspaceTagListRequired(policyID, route.params.orderWeight ?? 0, on)}
-                    //TODO: add values for errors and pendingAction props
-                    errors={undefined}
-                    pendingAction={undefined}
-                />
+                <View style={[styles.pv4, styles.ph5]}>
+                    <ToggleSettingOptionRow
+                        title={translate('workspace.tags.requiresTag')}
+                        switchAccessibilityLabel={translate('workspace.tags.requiresTag')}
+                        isActive={Boolean(policyTagList?.required)}
+                        onToggle={(on) => Policy.setWorkspaceTagListRequired(policyID, route.params.orderWeight ?? 0, on)}
+                        pendingAction={currentPolicyTag.pendingFields?.required}
+                        errors={ErrorUtils.getLatestErrorField(currentPolicyTag ?? {}, CONST.POLICY)}
+                        disabled={tagList.length === 0}
+                    />
+                </View>
                 <View style={[styles.pv4, styles.ph5]}>
                     <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
                         <Text style={[styles.textNormal]}>{translate('workspace.tags.requiresTag')}</Text>

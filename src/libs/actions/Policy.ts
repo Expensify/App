@@ -3419,7 +3419,7 @@ function createPolicyTag(policyID: string, tagName: string) {
                                 name: tagName,
                                 enabled: true,
                                 errors: null,
-                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                             },
                         },
                     },
@@ -3478,6 +3478,8 @@ function setWorkspaceTagListRequired(policyID: string, tagListIndex: number, req
                 value: {
                     [policyTag.name]: {
                         required,
+                        errors: null,
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     },
                 },
             },
@@ -3489,6 +3491,8 @@ function setWorkspaceTagListRequired(policyID: string, tagListIndex: number, req
                 value: {
                     [policyTag.name]: {
                         required,
+                        errors: null,
+                        pendingAction: null,
                     },
                 },
             },
