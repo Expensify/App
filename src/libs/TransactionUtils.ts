@@ -1,4 +1,5 @@
 import lodashHas from 'lodash/has';
+import lodashIsEqual from 'lodash/isEqual';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -13,6 +14,7 @@ import DateUtils from './DateUtils';
 import * as Localize from './Localize';
 import * as NumberUtils from './NumberUtils';
 import {getCleanedTagName} from './PolicyUtils';
+// eslint-disable-next-line import/no-cycle
 import * as ReportActionsUtils from './ReportActionsUtils';
 
 let allTransactions: OnyxCollection<Transaction> = {};
@@ -635,30 +637,6 @@ function getRecentTransactions(transactions: Record<string, string>, size = 2): 
 }
 
 /**
- * Check if transaction is duplicated
- */
-function isDuplicate(transactionID: string, checkDissmissed: boolean): boolean {
-    const hasDuplicatedViolation = !!allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]?.some(
-        (violation: TransactionViolation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
-    );
-    if (!checkDissmissed) {
-        return hasDuplicatedViolation;
-    }
-    const didDismissedViolation =
-        allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.comment?.dismissedViolations?.duplicatedTransaction?.[currentUserEmail] === `${currentUserAccountID}`;
-    return hasDuplicatedViolation && !didDismissedViolation;
-}
-
-/**
- * Checks if any violations for the provided transaction are of type 'warning'
- */
-function hasWarning(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
-    return Boolean(
-        transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some((violation: TransactionViolation) => violation.type === CONST.VIOLATION_TYPES.WARNING),
-    );
-}
-
-/**
  * Check if transaction is on hold
  */
 function isOnHold(transaction: OnyxEntry<Transaction>): boolean {
@@ -666,7 +644,7 @@ function isOnHold(transaction: OnyxEntry<Transaction>): boolean {
         return false;
     }
 
-    return !!transaction.comment?.hold || isDuplicate(transaction?.transactionID, true);
+    return !!transaction.comment?.hold;
 }
 
 /**
@@ -781,18 +759,22 @@ function getTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transactio
     return Object.values(transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === (transaction?.taxCode ?? defaultTaxCode))?.modifiedName;
 }
 
-function getTransaction(transactionID: string): Transaction | null {
+function getTransaction(transactionID: string): OnyxEntry<Transaction> {
     return allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? null;
 }
 
 type FieldsToCompare = Record<string, Array<keyof Transaction>>;
 
-function compareDuplicateTransactionFields(transactionID: string) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function compareDuplicateTransactionFields(transactionID: string): {keep: Record<string, any>; change: Record<string, any[]>} {
     const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
     const duplicates = transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [];
     const transactions = [transactionID, ...duplicates].map((item) => getTransaction(item));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const keep: Record<string, any> = {};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const change: Record<string, any[]> = {};
+
     const fieldsToCompare: FieldsToCompare = {
         merchant: ['modifiedMerchant', 'merchant'],
         category: ['category'],
@@ -803,39 +785,37 @@ function compareDuplicateTransactionFields(transactionID: string) {
         reimbursable: ['reimbursable'],
     };
 
+    const getDifferentValues = (items: Array<OnyxEntry<Transaction>>, keys: Array<keyof Transaction>) => items.map((item) => keys.map((key) => item?.[key])).flat();
+
     for (const fieldName in fieldsToCompare) {
         if (Object.prototype.hasOwnProperty.call(fieldsToCompare, fieldName)) {
             const keys = fieldsToCompare[fieldName];
-
             const firstTransaction = transactions[0];
+            const isFirstTransactionCommentEmptyObject = typeof firstTransaction?.comment === 'object' && firstTransaction?.comment.comment === '';
 
             if (fieldName === 'description') {
-                if (transactions.every((item) => keys.every((key) => item && item.comment && item.comment === firstTransaction?.comment))) {
-                    keep[fieldName] = firstTransaction?.comment;
-                } else {
-                    const differentValues = transactions.map((item) => keys.map((key) => (item && item.comment && key in item.comment ? item.comment : undefined))).flat();
+                const allCommentsAreEqual = transactions.every((item) => lodashIsEqual(item?.comment, firstTransaction?.comment));
+                const allCommentsExist = transactions.every((item) => Boolean(item?.comment.comment) === Boolean(firstTransaction?.comment.comment));
+                const allCommentsAreEmpty = isFirstTransactionCommentEmptyObject && transactions.every((item) => item?.comment === undefined);
 
+                if (allCommentsAreEqual || allCommentsExist || allCommentsAreEmpty) {
+                    keep[fieldName] = firstTransaction?.comment.comment ?? firstTransaction?.comment;
+                } else {
+                    const differentValues = getDifferentValues(transactions, keys);
                     if (differentValues.length > 0) {
                         change[fieldName] = differentValues;
                     }
                 }
-            } else if (transactions.every((item) => keys.every((key) => item && key in item && item[key] === firstTransaction?.[key]))) {
-                keep[fieldName] = firstTransaction?.[keys[0]];
             } else {
-                const differentValues = transactions
-                    .map((item) =>
-                        keys.map((key) => {
-                            if (!item?.[key]) {
-                                return;
-                            }
-                            return item && key in item ? item[key] : typeof item?.[key] === 'boolean' ? false : undefined;
-                        }),
-                    )
-                    .flat()
-                    .filter((item) => item !== undefined);
+                const allFieldsAreEqual = transactions.every((item) => keys.every((key) => item?.[key] === firstTransaction?.[key]));
 
-                if (differentValues.length > 0) {
-                    change[fieldName] = differentValues;
+                if (allFieldsAreEqual) {
+                    keep[fieldName] = firstTransaction?.[keys[0]];
+                } else {
+                    const differentValues = getDifferentValues(transactions, keys);
+                    if (differentValues.length > 0) {
+                        change[fieldName] = differentValues;
+                    }
                 }
             }
         }
@@ -845,7 +825,7 @@ function compareDuplicateTransactionFields(transactionID: string) {
 }
 
 function getTransactionID(threadReportID: string): string {
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`] ?? [];
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`] ?? null;
     const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
     const transactionID = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction?.originalMessage.IOUTransactionID ?? '0' : '0';
 
@@ -912,9 +892,7 @@ export {
     waypointHasValidAddress,
     getRecentTransactions,
     hasViolation,
-    isDuplicate,
     hasNoticeTypeViolation,
-    hasWarning,
     isCustomUnitRateIDForP2P,
     getRateID,
     getTransaction,

@@ -7,6 +7,7 @@ import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
@@ -20,6 +21,7 @@ import DuplicateTransactionsList from './DuplicateTransactionsList';
 
 function TransactionDuplicateReview() {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const route = useRoute<RouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const currentPersonalDetails = useCurrentUserPersonalDetails();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
@@ -31,19 +33,21 @@ function TransactionDuplicateReview() {
         [transactionViolations],
     );
 
-    const transactions = [transactionID, ...duplicateTransactionIDs].map((item) => TransactionUtils.getTransaction(item)).sort((a, b) => new Date(a.created) - new Date(b.created));
+    const transactions = [transactionID, ...duplicateTransactionIDs]
+        .map((item) => TransactionUtils.getTransaction(item))
+        .sort((a, b) => new Date(a?.created ?? '').getTime() - new Date(b?.created ?? '').getTime());
 
     const keepAll = () => {
-        Transaction.dismissDuplicateTransactionViolation(transactionID, duplicateTransactionIDs, currentPersonalDetails);
+        Transaction.dismissDuplicateTransactionViolation([transactionID, ...duplicateTransactionIDs], currentPersonalDetails);
         Navigation.goBack();
     };
 
     return (
         <ScreenWrapper testID={TransactionDuplicateReview.displayName}>
-            <HeaderWithBackButton title="Review duplicates" />
-            <View style={[styles.justifyContentCenter, styles.pl2, styles.pb4, styles.pr2, styles.borderBottom]}>
+            <HeaderWithBackButton title={translate('iou.reviewDuplicates')} />
+            <View style={[styles.justifyContentCenter, styles.pt3, styles.pl2, styles.pb4, styles.pr2, styles.borderBottom]}>
                 <Button
-                    text="Keep all"
+                    text={translate('iou.keepAll')}
                     onPress={keepAll}
                 />
             </View>

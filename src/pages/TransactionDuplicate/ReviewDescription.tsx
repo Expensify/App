@@ -3,45 +3,47 @@ import {useRoute} from '@react-navigation/native';
 import React, {useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import type {ListItem} from '@components/SelectionList/types';
+import useLocalize from '@hooks/useLocalize';
 import useReviewDuplicatesNavigation from '@hooks/useReviewDuplicatesNavigation';
 import {setReviewDuplicatesKey} from '@libs/actions/Transaction';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import type SCREENS from '@src/SCREENS';
+import type {FieldItemType} from './ReviewFields';
 import ReviewFields from './ReviewFields';
 
 function ReviewDescription() {
     const route = useRoute<RouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.DESCRIPTION>>();
+    const {translate} = useLocalize();
     const transactionID = TransactionUtils.getTransactionID(route.params.threadReportID ?? '');
     const compareResult = TransactionUtils.compareDuplicateTransactionFields(transactionID);
     const stepNames = Object.keys(compareResult.change ?? {}).map((key, index) => (index + 1).toString());
     const {currentScreenIndex, navigateToNextScreen} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'description', route.params.threadReportID ?? '');
     const options = useMemo(
         () =>
-            compareResult.change.description.map((description) =>
-                !description
-                    ? {text: 'None', value: undefined}
+            compareResult.change.description?.map((description) =>
+                !description?.comment
+                    ? {text: translate('violations.none'), value: ''}
                     : {
                           text: description.comment,
-                          value: description,
+                          value: description.comment,
                       },
             ),
-        [compareResult.change.description],
+        [compareResult.change.description, translate],
     );
-    const onSelectRow = (data: ListItem) => {
-        if (data.data !== undefined) {
-            setReviewDuplicatesKey({description: data.data});
+    const onSelectRow = (data: FieldItemType) => {
+        if (data.value !== undefined) {
+            setReviewDuplicatesKey({description: data.value as string});
         }
         navigateToNextScreen();
     };
-    console.log('options', options);
+
     return (
         <ScreenWrapper testID={ReviewDescription.displayName}>
-            <HeaderWithBackButton title="Review duplicates" />
+            <HeaderWithBackButton title={translate('iou.reviewDuplicates')} />
             <ReviewFields
                 stepNames={stepNames}
-                label="Choose which description to keep"
+                label={translate('violations.descriptionToKeep')}
                 options={options}
                 index={currentScreenIndex}
                 onSelectRow={onSelectRow}

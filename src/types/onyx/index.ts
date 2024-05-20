@@ -63,6 +63,7 @@ import type ReportNextStep from './ReportNextStep';
 import type ReportUserIsTyping from './ReportUserIsTyping';
 import type Request from './Request';
 import type Response from './Response';
+import type ReviewDuplicates from './ReviewDuplicates';
 import type ScreenShareRequest from './ScreenShareRequest';
 import type SearchResults from './SearchResults';
 import type SecurityGroup from './SecurityGroup';
@@ -181,4 +182,5 @@ export type {
     PolicyJoinMember,
     CapturedLogs,
     SearchResults,
+    ReviewDuplicates,
 };

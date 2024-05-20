@@ -731,9 +731,6 @@ type TransactionDuplicateNavigatorParamList = {
     [SCREENS.TRANSACTION_DUPLICATE.REIMBURSABLE]: {
         threadReportID: string;
     };
-    // [SCREENS.TRANSACTION_DUPLICATE.CONFIRM]: {
-    //     threadReportID: string;
-    // };
 };
 
 type LeftModalNavigatorParamList = {

@@ -3,16 +3,18 @@ import {useRoute} from '@react-navigation/native';
 import React, {useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import type {ListItem} from '@components/SelectionList/types';
+import useLocalize from '@hooks/useLocalize';
 import useReviewDuplicatesNavigation from '@hooks/useReviewDuplicatesNavigation';
 import {setReviewDuplicatesKey} from '@libs/actions/Transaction';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import type SCREENS from '@src/SCREENS';
+import type {FieldItemType} from './ReviewFields';
 import ReviewFields from './ReviewFields';
 
 function ReviewBillable() {
     const route = useRoute<RouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.TAG>>();
+    const {translate} = useLocalize();
     const transactionID = TransactionUtils.getTransactionID(route.params.threadReportID ?? '');
     const compareResult = TransactionUtils.compareDuplicateTransactionFields(transactionID);
     const stepNames = Object.keys(compareResult.change ?? {}).map((key, index) => (index + 1).toString());
@@ -20,23 +22,24 @@ function ReviewBillable() {
     const options = useMemo(
         () =>
             compareResult.change.billable.map((billable) => ({
-                text: billable ? 'Yes' : 'No',
+                text: billable ? translate('common.yes') : translate('common.no'),
                 value: billable,
             })),
-        [compareResult.change.billable],
+        [compareResult.change.billable, translate],
     );
 
-    const onSelectRow = (data: ListItem) => {
-        if (data.data !== undefined) {
+    const onSelectRow = (data: FieldItemType) => {
+        if (data.value !== undefined) {
+            setReviewDuplicatesKey({billable: data.value as boolean});
         }
         navigateToNextScreen();
     };
     return (
         <ScreenWrapper testID={ReviewBillable.displayName}>
-            <HeaderWithBackButton title="Review duplicates" />
+            <HeaderWithBackButton title={translate('iou.reviewDuplicates')} />
             <ReviewFields
                 stepNames={stepNames}
-                label="Choose if transaction is billable"
+                label={translate('violations.isTransactionBillable')}
                 options={options}
                 index={currentScreenIndex}
                 onSelectRow={onSelectRow}

@@ -4,7 +4,7 @@ import React, {useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import type {ListItem} from '@components/SelectionList/types';
+import useLocalize from '@hooks/useLocalize';
 import useReviewDuplicatesNavigation from '@hooks/useReviewDuplicatesNavigation';
 import {setReviewDuplicatesKey} from '@libs/actions/Transaction';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
@@ -13,10 +13,12 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import ReviewDescription from './ReviewDescription';
+import type {FieldItemType} from './ReviewFields';
 import ReviewFields from './ReviewFields';
 
 function ReviewTaxRate() {
     const route = useRoute<RouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.TAX_CODE>>();
+    const {translate} = useLocalize();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
     const policy = PolicyUtils.getPolicy(report?.policyID ?? '');
     const transactionID = TransactionUtils.getTransactionID(route.params.threadReportID ?? '');
@@ -27,28 +29,28 @@ function ReviewTaxRate() {
         () =>
             compareResult.change.taxCode.map((taxID) =>
                 !taxID
-                    ? {text: 'None', value: undefined}
+                    ? {text: translate('violations.none'), value: undefined}
                     : {
                           text: PolicyUtils.getTaxByID(policy, taxID)?.name ?? '',
                           value: taxID,
                       },
             ),
-        [compareResult.change.taxCode, policy],
+        [compareResult.change.taxCode, policy, translate],
     );
 
-    const onSelectRow = (data: ListItem) => {
-        if (data.data !== undefined) {
-            setReviewDuplicatesKey({taxCode: data.data});
+    const onSelectRow = (data: FieldItemType) => {
+        if (data.value !== undefined) {
+            setReviewDuplicatesKey({taxCode: data.value as string});
         }
         navigateToNextScreen();
     };
 
     return (
         <ScreenWrapper testID={ReviewDescription.displayName}>
-            <HeaderWithBackButton title="Review duplicates" />
+            <HeaderWithBackButton title={translate('iou.reviewDuplicates')} />
             <ReviewFields
                 stepNames={stepNames}
-                label="Choose which tax code to keep"
+                label={translate('violations.taxCodeToKeep')}
                 options={options}
                 index={currentScreenIndex}
                 onSelectRow={onSelectRow}

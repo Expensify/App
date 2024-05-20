@@ -5,7 +5,6 @@ import lodashSortBy from 'lodash/sortBy';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import ConfirmedRoute from '@components/ConfirmedRoute';
@@ -44,7 +43,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {Transaction as OnyxTransaction} from '@src/types/onyx';
 import type {IOUMessage} from '@src/types/onyx/OriginalMessage';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -75,7 +73,7 @@ function MoneyRequestPreviewContent({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
-    const route = useRoute();
+    const route = useRoute<RouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
 
     const sessionAccountID = session?.accountID;
     const managerID = iouReport?.managerID ?? -1;
@@ -117,9 +115,14 @@ function MoneyRequestPreviewContent({
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params?.threadReportID}`);
     const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
     const reviewingTransactionID = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction?.originalMessage.IOUTransactionID ?? '0' : '0';
-    const duplicates =
-        transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${reviewingTransactionID}`]?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)
-            ?.data?.duplicates ?? [];
+    // Get transaction violations for given transaction id from onyx, find duplicated transactions violations and get duplicates
+    const duplicates = useMemo(
+        () =>
+            transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`]?.find(
+                (violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+            )?.data?.duplicates ?? [],
+        [transaction?.transactionID, transactionViolations],
+    );
 
     /*
      Show the merchant for IOUs and expenses only if:
@@ -417,7 +420,7 @@ function MoneyRequestPreviewContent({
             {childContainer}
             {isReviewDuplicateTransaction && (
                 <Button
-                    text="Keep this one"
+                    text={translate('violations.keepThisOne')}
                     success
                     medium
                     style={styles.p2}
