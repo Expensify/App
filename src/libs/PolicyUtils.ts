@@ -266,9 +266,10 @@ function isPaidGroupPolicy(policy: OnyxEntry<Policy> | EmptyObject): boolean {
 function isTaxTrackingEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Policy>, isDistanceRequest: boolean): boolean {
     const distanceUnit = Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
     const customUnitID = distanceUnit?.customUnitID ?? 0;
-    const isTaxEnabled = policy?.customUnits?.[customUnitID]?.attributes?.taxEnabled;
     const isPolicyTaxTrackingEnabled = isPolicyExpenseChat && policy?.tax?.trackingEnabled;
-    return (isDistanceRequest ? isPolicyTaxTrackingEnabled && isTaxEnabled : isPolicyTaxTrackingEnabled) ?? false;
+    const isTaxEnabledForDistance = isPolicyTaxTrackingEnabled && policy?.customUnits?.[customUnitID]?.attributes?.taxEnabled;
+
+    return Boolean(isDistanceRequest ? isTaxEnabledForDistance : isPolicyTaxTrackingEnabled);
 }
 
 /**
