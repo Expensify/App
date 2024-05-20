@@ -218,8 +218,6 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                               }
                               Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ORGANIZATION.getRoute(policyID, currentXeroOrganization?.id ?? ''));
                           },
-                          pendingAction: policy?.connections?.xero?.config?.pendingFields?.tenantID,
-                          brickRoadIndicator: policy?.connections?.xero?.config?.errorFields?.tenantID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                       },
                   ]
                 : []),
