@@ -47,9 +47,9 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ena
     );
 
     return (
-        <View style={[style, styles.h100, styles.overflowHidden]}>
+        <View style={[style, styles.overflowHidden, failedToLoad && styles.h100]}>
             <View style={[styles.w100, styles.h100, !failedToLoad && {...styles.alignItemsCenter, ...styles.justifyContentCenter}]}>
-                {enabled && failedToLoad && thumbnail}
+                {enabled && !failedToLoad && thumbnail}
                 {failedToLoad && <PDFThumbnailError />}
             </View>
         </View>
