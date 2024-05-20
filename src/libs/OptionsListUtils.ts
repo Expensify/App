@@ -1637,6 +1637,16 @@ function getUserToInviteOption({
 }
 
 /**
+ * check whether report has violations
+ */
+function checkReportHasViolations(report: Report, betas: OnyxEntry<Beta[]>, transactionViolations: OnyxCollection<TransactionViolation[]>) {
+    const {parentReportID, parentReportActionID} = report ?? {};
+    const canGetParentReport = parentReportID && parentReportActionID && allReportActions;
+    const parentReportAction = canGetParentReport ? allReportActions[parentReportID]?.[parentReportActionID] ?? null : null;
+    return (Permissions.canUseViolations(betas) && !!parentReportAction && ReportUtils.shouldDisplayTransactionThreadViolations(report, transactionViolations, parentReportAction)) ?? false;
+}
+
+/**
  * filter options based on specific conditions
  */
 function getOptions(
@@ -1743,13 +1753,7 @@ function getOptions(
     // Filter out all the reports that shouldn't be displayed
     const filteredReportOptions = options.reports.filter((option) => {
         const report = option.item;
-
-        const {parentReportID, parentReportActionID} = report ?? {};
-        const canGetParentReport = parentReportID && parentReportActionID && allReportActions;
-        const parentReportAction = canGetParentReport ? allReportActions[parentReportID]?.[parentReportActionID] ?? null : null;
-        const doesReportHaveViolations =
-            (betas?.includes(CONST.BETAS.VIOLATIONS) && ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction)) ?? false;
-
+        const doesReportHaveViolations = checkReportHasViolations(report, betas, transactionViolations);
         return ReportUtils.shouldReportBeInOptionList({
             report,
             currentReportId: topmostReportId,
@@ -2430,6 +2434,7 @@ export {
     getTaxRatesSection,
     getFirstKeyForList,
     getUserToInviteOption,
+    checkReportHasViolations,
 };
 
 export type {MemberForList, CategorySection, CategoryTreeSection, Options, OptionList, SearchOption, PayeePersonalDetails, Category, Tax, TaxRatesOption, Option, OptionTree};
