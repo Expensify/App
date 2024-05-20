@@ -765,6 +765,23 @@ function getTransaction(transactionID: string): OnyxEntry<Transaction> {
 
 type FieldsToCompare = Record<string, Array<keyof Transaction>>;
 
+/**
+ * This function compares fields of duplicate transactions and determines which fields should be kept and which should be changed.
+ *
+ * @returns An object with two properties: 'keep' and 'change'.
+ * 'keep' is an object where each key is a field name and the value is the value of that field in the transaction that should be kept.
+ * 'change' is an object where each key is a field name and the value is an array of different values of that field in the duplicate transactions.
+ *
+ * The function works as follows:
+ * 1. It fetches the transaction violations for the given transaction ID.
+ * 2. It finds the duplicate transactions.
+ * 3. It creates two empty objects, 'keep' and 'change'.
+ * 4. It defines the fields to compare in the transactions.
+ * 5. It iterates over the fields to compare. For each field:
+ *    - If the field is 'description', it checks if all comments are equal, exist, or are empty. If so, it keeps the first transaction's comment. Otherwise, it finds the different values and adds them to 'change'.
+ *    - For other fields, it checks if all fields are equal. If so, it keeps the first transaction's field value. Otherwise, it finds the different values and adds them to 'change'.
+ * 6. It returns the 'keep' and 'change' objects.
+ */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function compareDuplicateTransactionFields(transactionID: string): {keep: Record<string, any>; change: Record<string, any[]>} {
     const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
