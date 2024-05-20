@@ -4,7 +4,8 @@ import type {TransactionListItemType} from '@components/SelectionList/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {SearchDataTypes, SearchTypeToItemMap} from '@src/types/onyx/SearchResults';
+import type {SearchAccountDetails, SearchDataTypes, SearchTypeToItemMap} from '@src/types/onyx/SearchResults';
+import * as TransactionUtils from './TransactionUtils';
 import * as UserUtils from './UserUtils';
 
 type SortOrder = 'asc' | 'desc';
@@ -36,19 +37,34 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data']): Transac
     const shouldShowCategory = getShouldShowColumn(data, CONST.SEARCH_TABLE_COLUMNS.CATEGORY);
     const shouldShowTag = getShouldShowColumn(data, CONST.SEARCH_TABLE_COLUMNS.TAG);
     const shouldShowTax = getShouldShowColumn(data, CONST.SEARCH_TABLE_COLUMNS.TAX_AMOUNT);
+
     return Object.entries(data)
         .filter(([key]) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION))
-        .map(([, value]) => {
-            const isExpenseReport = value.reportType === CONST.REPORT.TYPE.EXPENSE;
+        .map(([, transactionItem]) => {
+            const isExpenseReport = transactionItem.reportType === CONST.REPORT.TYPE.EXPENSE;
+            const from = data.personalDetailsList?.[transactionItem.accountID];
+            const to = isExpenseReport
+                ? (data[`${ONYXKEYS.COLLECTION.POLICY}${transactionItem.policyID}`] as SearchAccountDetails)
+                : (data.personalDetailsList?.[transactionItem.managerID] as SearchAccountDetails);
+
+            const formattedFrom = from.displayName ?? from.login ?? '';
+            const formattedTo = to.name ?? to.displayName ?? to.login ?? '';
+            const formattedTotal = TransactionUtils.getAmount(transactionItem, isExpenseReport);
+            const date = transactionItem?.modifiedCreated ? transactionItem.modifiedCreated : transactionItem?.created;
+
             return {
-                ...value,
-                from: data.personalDetailsList?.[value.accountID],
-                to: isExpenseReport ? data[`${ONYXKEYS.COLLECTION.POLICY}${value.policyID}`] : data.personalDetailsList?.[value.managerID],
+                ...transactionItem,
+                from,
+                to,
+                formattedFrom,
+                formattedTo,
+                date,
+                formattedTotal,
                 shouldShowMerchant,
                 shouldShowCategory,
                 shouldShowTag,
                 shouldShowTax,
-                keyForList: value.transactionID,
+                keyForList: transactionItem.transactionID,
             };
         })
         .sort((a, b) => {

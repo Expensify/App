@@ -67,6 +67,7 @@ const SearchColumns: SearchColumnConfig[] = [
     {
         columnName: CONST.SEARCH_TABLE_COLUMNS.TYPE,
         translationKey: 'common.type',
+        isSortable: false,
         shouldShowFn: () => true,
     },
     {

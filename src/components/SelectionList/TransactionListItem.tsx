@@ -60,11 +60,10 @@ function TransactionListItem<TItem extends ListItem>({
     }
 
     const isFromExpenseReport = transactionItem.reportType === CONST.REPORT.TYPE.EXPENSE;
-    const date = TransactionUtils.getCreated(transactionItem as OnyxEntry<Transaction>, CONST.DATE.MONTH_DAY_ABBR_FORMAT);
-    const amount = TransactionUtils.getAmount(transactionItem as OnyxEntry<Transaction>, isFromExpenseReport);
-    const taxAmount = TransactionUtils.getTaxAmount(transactionItem as OnyxEntry<Transaction>, isFromExpenseReport);
-    const currency = TransactionUtils.getCurrency(transactionItem as OnyxEntry<Transaction>);
-    const description = TransactionUtils.getDescription(transactionItem as OnyxEntry<Transaction>);
+    const date = TransactionUtils.getCreated(transactionItem, CONST.DATE.MONTH_DAY_ABBR_FORMAT);
+    const taxAmount = TransactionUtils.getTaxAmount(transactionItem, isFromExpenseReport);
+    const currency = TransactionUtils.getCurrency(transactionItem);
+    const description = TransactionUtils.getDescription(transactionItem);
     const merchant = getMerchant();
     const typeIcon = getTypeIcon(transactionItem.type);
 
@@ -84,8 +83,7 @@ function TransactionListItem<TItem extends ListItem>({
         />
     );
 
-    const userCell = (participant: SearchAccountDetails) => {
-        const displayName = participant?.name ?? participant?.displayName ?? participant?.login;
+    const userCell = (participant: SearchAccountDetails, displayName: string) => {
         const avatarURL = participant?.avatarURL ?? participant?.avatar;
         const isWorkspace = participant?.avatarURL !== undefined;
         const iconType = isWorkspace ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR;
@@ -149,7 +147,7 @@ function TransactionListItem<TItem extends ListItem>({
     const totalCell = (
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
-            text={CurrencyUtils.convertToDisplayString(amount, currency)}
+            text={CurrencyUtils.convertToDisplayString(transactionItem.formattedTotal, currency)}
             style={[styles.optionDisplayName, styles.textNewKansasNormal, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? undefined : styles.textAlignRight]}
         />
     );
@@ -202,14 +200,14 @@ function TransactionListItem<TItem extends ListItem>({
                     <>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mb2, styles.gap2]}>
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.flex1]}>
-                                <View style={[styles.mw50]}>{userCell(transactionItem.from)}</View>
+                                <View style={[styles.mw50]}>{userCell(transactionItem.from, transactionItem.formattedFrom)}</View>
                                 <Icon
                                     src={Expensicons.ArrowRightLong}
                                     width={variables.iconSizeXXSmall}
                                     height={variables.iconSizeXXSmall}
                                     fill={theme.icon}
                                 />
-                                <View style={[styles.flex1, styles.mw50]}>{userCell(transactionItem.to)}</View>
+                                <View style={[styles.flex1, styles.mw50]}>{userCell(transactionItem.to, transactionItem.formattedTo)}</View>
                             </View>
                             <View style={[StyleUtils.getWidthStyle(variables.w80)]}>{actionCell}</View>
                         </View>
@@ -259,8 +257,8 @@ function TransactionListItem<TItem extends ListItem>({
                 <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
                     <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DATE)]}>{dateCell}</View>
                     <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.MERCHANT)]}>{merchantCell}</View>
-                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.FROM)]}>{userCell(transactionItem.from)}</View>
-                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TO)]}>{userCell(transactionItem.to)}</View>
+                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.FROM)]}>{userCell(transactionItem.from, transactionItem.formattedFrom)}</View>
+                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TO)]}>{userCell(transactionItem.to, transactionItem.formattedTo)}</View>
                     {transactionItem.shouldShowCategory && <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.CATEGORY)]}>{categoryCell}</View>}
                     {transactionItem.shouldShowTag && <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TAG)]}>{tagCell}</View>}
                     {transactionItem.shouldShowTax && <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TAX_AMOUNT)]}>{taxCell}</View>}

@@ -25,13 +25,13 @@ import type {TransactionListItemType} from './SelectionList/types';
 import TableListItemSkeleton from './Skeletons/TableListItemSkeleton';
 
 const columnNamesToPropertyMap = {
-    [CONST.SEARCH_TABLE_COLUMNS.TO]: 'to',
-    [CONST.SEARCH_TABLE_COLUMNS.FROM]: 'from',
-    [CONST.SEARCH_TABLE_COLUMNS.DATE]: 'created',
-    [CONST.SEARCH_TABLE_COLUMNS.TAG]: '',
-    [CONST.SEARCH_TABLE_COLUMNS.MERCHANT]: 'merchant',
-    [CONST.SEARCH_TABLE_COLUMNS.TOTAL]: 'amount',
-    [CONST.SEARCH_TABLE_COLUMNS.CATEGORY]: 'category',
+    [CONST.SEARCH_TABLE_COLUMNS.TO]: 'formattedTo' as const,
+    [CONST.SEARCH_TABLE_COLUMNS.FROM]: 'formattedFrom' as const,
+    [CONST.SEARCH_TABLE_COLUMNS.DATE]: 'date' as const,
+    [CONST.SEARCH_TABLE_COLUMNS.TAG]: 'tag' as const,
+    [CONST.SEARCH_TABLE_COLUMNS.MERCHANT]: 'merchant' as const,
+    [CONST.SEARCH_TABLE_COLUMNS.TOTAL]: 'formattedTotal' as const,
+    [CONST.SEARCH_TABLE_COLUMNS.CATEGORY]: 'category' as const,
     [CONST.SEARCH_TABLE_COLUMNS.TYPE]: null,
     [CONST.SEARCH_TABLE_COLUMNS.ACTION]: null,
     [CONST.SEARCH_TABLE_COLUMNS.DESCRIPTION]: null,
@@ -43,13 +43,12 @@ function getSortedData(data: TransactionListItemType[], sortBy?: SearchColumnTyp
         return data;
     }
 
-    const sortingProp = columnNamesToPropertyMap[sortBy] as keyof TransactionListItemType;
+    const sortingProp = columnNamesToPropertyMap[sortBy];
 
     if (!sortingProp) {
         return data;
     }
 
-    // Todo sorting needs more work
     return data.sort((a, b) => {
         const aValue = a[sortingProp];
         const bValue = b[sortingProp];
@@ -58,13 +57,15 @@ function getSortedData(data: TransactionListItemType[], sortBy?: SearchColumnTyp
             return 0;
         }
 
+        // We are guaranteed that both a and b will be string or number at the same time
         if (typeof aValue === 'string' && typeof bValue === 'string') {
             return sortOrder === 'asc' ? aValue.toLowerCase().localeCompare(bValue) : bValue.toLowerCase().localeCompare(aValue);
         }
 
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error
-        return sortOrder === 'asc' ? aValue - bValue : bValue - aValue;
+        const aNum = aValue as number;
+        const bNum = bValue as number;
+
+        return sortOrder === 'asc' ? aNum - bNum : bNum - aNum;
     });
 }
 

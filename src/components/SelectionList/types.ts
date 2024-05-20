@@ -135,6 +135,18 @@ type TransactionListItemType = ListItem &
         /** The personal details of the user paying the request */
         to: SearchAccountDetails;
 
+        /** final and formatted "from" value used for displaying and sorting */
+        formattedFrom: string;
+
+        /** final and formatted "to" value used for displaying and sorting */
+        formattedTo: string;
+
+        /** final and formatted "total" value used for displaying and sorting */
+        formattedTotal: number;
+
+        /** final "date" value used for sorting */
+        date: string;
+
         /** Whether we should show the merchant column */
         shouldShowMerchant: boolean;
 
