@@ -3571,7 +3571,7 @@ const CONST = {
             TRACK_EXPENSE: 'track-expenses',
         },
         'track-expenses': {
-            VIDEO_URL: `${CLOUDFRONT_URL}/videos/guided-setup-track-business.mp4`,
+            VIDEO_URL: `${CLOUDFRONT_URL}/videos/guided-setup-track-business-v2.mp4`,
             LEARN_MORE_LINK: `${USE_EXPENSIFY_URL}/track-expenses`,
         },
     },
@@ -3587,10 +3587,10 @@ const CONST = {
     BACK_BUTTON_NATIVE_ID: 'backButton',
 
     /**
-     * The maximum count of items per page for OptionsSelector.
+     * The maximum count of items per page for SelectionList.
      * When paginate, it multiplies by page number.
      */
-    MAX_OPTIONS_SELECTOR_PAGE_LENGTH: 500,
+    MAX_SELECTION_LIST_PAGE_LENGTH: 500,
 
     /**
      * Bank account names
@@ -3784,7 +3784,7 @@ const CONST = {
         [onboardingChoices.EMPLOYER]: {
             message: 'Getting paid back is as easy as sending a message. Let’s go over the basics.',
             video: {
-                url: `${CLOUDFRONT_URL}/videos/guided-setup-get-paid-back.mp4`,
+                url: `${CLOUDFRONT_URL}/videos/guided-setup-get-paid-back-v2.mp4`,
                 thumbnailUrl: `${CLOUDFRONT_URL}/images/guided-setup-get-paid-back.jpg`,
                 duration: 55,
                 width: 1280,
@@ -3827,7 +3827,7 @@ const CONST = {
         [onboardingChoices.MANAGE_TEAM]: {
             message: 'Here are some important tasks to help get your team’s expenses under control.',
             video: {
-                url: `${CLOUDFRONT_URL}/videos/guided-setup-manage-team.mp4`,
+                url: `${CLOUDFRONT_URL}/videos/guided-setup-manage-team-v2.mp4`,
                 thumbnailUrl: `${CLOUDFRONT_URL}/images/guided-setup-manage-team.jpg`,
                 duration: 55,
                 width: 1280,
@@ -3913,7 +3913,7 @@ const CONST = {
         [onboardingChoices.PERSONAL_SPEND]: {
             message: 'Here’s how to track your spend in a few clicks.',
             video: {
-                url: `${CLOUDFRONT_URL}/videos/guided-setup-track-personal.mp4`,
+                url: `${CLOUDFRONT_URL}/videos/guided-setup-track-personal-v2.mp4`,
                 thumbnailUrl: `${CLOUDFRONT_URL}/images/guided-setup-track-personal.jpg`,
                 duration: 55,
                 width: 1280,
@@ -3941,7 +3941,7 @@ const CONST = {
         [onboardingChoices.CHAT_SPLIT]: {
             message: 'Splitting bills with friends is as easy as sending a message. Here’s how.',
             video: {
-                url: `${CLOUDFRONT_URL}/videos/guided-setup-chat-split-bills.mp4`,
+                url: `${CLOUDFRONT_URL}/videos/guided-setup-chat-split-bills-v2.mp4`,
                 thumbnailUrl: `${CLOUDFRONT_URL}/images/guided-setup-chat-split-bills.jpg`,
                 duration: 55,
                 width: 1280,
@@ -4770,6 +4770,7 @@ const CONST = {
         DISTANCE: 'distance',
     },
 
+    SEARCH_RESULTS_PAGE_SIZE: 50,
     SEARCH_BOTTOM_TAB_URL: '/Search_Bottom_Tab',
 
     SEARCH_DATA_TYPES: {
