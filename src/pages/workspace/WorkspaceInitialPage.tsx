@@ -144,7 +144,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
     const hasPolicyCategoryError = PolicyUtils.hasPolicyCategoriesError(policyCategories);
     const hasGeneralSettingsError = !isEmptyObject(policy?.errorFields?.generalSettings ?? {}) || !isEmptyObject(policy?.errorFields?.avatarURL ?? {});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const shouldShowProtectedItems = PolicyUtils.isPolicyAdmin(policyProp) || currentUserPersonalDetails.login === policyProp?.owner;
+    const employee = policyProp?.employeeList?.[currentUserPersonalDetails.login ?? ''] ?? {};
+    const shouldShowProtectedItems = PolicyUtils.isPolicyAdmin(policyProp) || (employee && employee.role === CONST.POLICY.ROLE.ADMIN);
     const isPaidGroupPolicy = PolicyUtils.isPaidGroupPolicy(policy);
     const isFreeGroupPolicy = PolicyUtils.isFreeGroupPolicy(policy);
     const [featureStates, setFeatureStates] = useState(policyFeatureStates);
