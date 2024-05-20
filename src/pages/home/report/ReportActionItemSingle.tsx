@@ -88,13 +88,13 @@ function ReportActionItemSingle({
     const isInvoiceReport = ReportUtils.isInvoiceReport(iouReport ?? {});
     const isWorkspaceActor = isInvoiceReport || (ReportUtils.isPolicyExpenseChat(report) && (!actorAccountID || displayAllActors));
     let avatarSource = avatar;
-    let avatarAccountId: number | string | undefined = actorAccountID;
+    let avatarId: number | string | undefined = actorAccountID;
 
     if (isWorkspaceActor) {
         displayName = ReportUtils.getPolicyName(report);
         actorHint = displayName;
         avatarSource = ReportUtils.getWorkspaceAvatar(report);
-        avatarAccountId = report.policyID;
+        avatarId = report.policyID;
     } else if (action?.delegateAccountID && personalDetails[action?.delegateAccountID]) {
         // We replace the actor's email, name, and avatar with the Copilot manually for now. And only if we have their
         // details. This will be improved upon when the Copilot feature is implemented.
@@ -103,7 +103,7 @@ function ReportActionItemSingle({
         actorHint = `${delegateDisplayName} (${translate('reportAction.asCopilot')} ${displayName})`;
         displayName = actorHint;
         avatarSource = delegateDetails?.avatar;
-        avatarAccountId = action.delegateAccountID;
+        avatarId = action.delegateAccountID;
     }
 
     // If this is a report preview, display names and avatars of both people involved
@@ -138,7 +138,7 @@ function ReportActionItemSingle({
         source: avatarSource ?? FallbackAvatar,
         type: isWorkspaceActor ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR,
         name: primaryDisplayName ?? '',
-        id: isWorkspaceActor ? report.policyID : avatarAccountId,
+        id: avatarId,
     };
 
     // Since the display name for a report action message is delivered with the report history as an array of fragments
