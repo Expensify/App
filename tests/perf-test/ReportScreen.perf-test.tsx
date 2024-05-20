@@ -1,4 +1,4 @@
-import type {StackScreenProps} from '@react-navigation/stack';
+import type {StackNavigationProp, StackScreenProps} from '@react-navigation/stack';
 import {screen, waitFor} from '@testing-library/react-native';
 import type {ComponentType} from 'react';
 import React from 'react';
@@ -114,7 +114,6 @@ beforeAll(() =>
 
 // Initialize the network key for OfflineWithFeedback
 beforeEach(() => {
-    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
     global.fetch = TestHelper.getGlobalFetchMock();
     wrapOnyxWithWaitForBatchedUpdates(Onyx);
     Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
@@ -163,7 +162,7 @@ function ReportScreenWrapper(props: ReportScreenWrapperProps) {
 
 const report = {...createRandomReport(1), policyID: '1'};
 const reportActions = ReportTestUtils.getMockedReportActionsMap(1000);
-const mockRoute = {params: {reportID: '1'}};
+const mockRoute = {params: {reportID: '1', reportActionID: ''}, key: 'Report', name: 'Report' as const};
 
 test('[ReportScreen] should render ReportScreen', () => {
     const {triggerTransitionEnd, addListener} = TestHelper.createAddListenerMock();
@@ -185,7 +184,7 @@ test('[ReportScreen] should render ReportScreen', () => {
         await screen.findByTestId('report-actions-list');
     };
 
-    const navigation = {addListener};
+    const navigation = {addListener} as unknown as StackNavigationProp<CentralPaneNavigatorParamList, 'Report', undefined>;
 
     return waitForBatchedUpdates()
         .then(() => {
@@ -210,9 +209,7 @@ test('[ReportScreen] should render ReportScreen', () => {
         .then(() =>
             measurePerformance(
                 <ReportScreenWrapper
-                    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
                     navigation={navigation}
-                    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
                     route={mockRoute}
                 />,
                 {scenario},

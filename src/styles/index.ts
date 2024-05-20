@@ -2235,6 +2235,15 @@ const styles = (theme: ThemeColors) =>
             width: 200,
         },
 
+        chatItemPDFAttachmentLoading: {
+            backgroundColor: 'transparent',
+            borderColor: theme.border,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadiusNormal,
+            ...flex.alignItemsCenter,
+            ...flex.justifyContentCenter,
+        },
+
         sidebarVisible: {
             borderRightWidth: 1,
         },
@@ -4892,6 +4901,7 @@ const styles = (theme: ThemeColors) =>
         workspaceTitleStyle: {
             ...headlineFont,
             fontSize: variables.fontSizeXLarge,
+            flex: 1,
         },
 
         textLineThrough: {

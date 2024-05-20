@@ -196,6 +196,14 @@ declare module 'react-native' {
         touchHistory: TouchHistory;
     };
 
+    interface TextInputFocusEventData extends TargetedEvent {
+        text: string;
+        eventCount: number;
+        relatedTarget?: {
+            id?: string;
+        };
+    }
+
     // https://necolas.github.io/react-native-web/docs/interactions/#responderevent-props-api
     // Extracted from react-native-web, packages/react-native-web/src/modules/useResponderEvents/ResponderSystem.js
     interface ResponderProps {
@@ -359,5 +367,12 @@ declare module 'react-native' {
     interface NativeModulesStatic {
         BootSplash: BootSplashModule;
         HybridAppModule: HybridAppModule;
+    }
+
+    namespace Animated {
+        interface AnimatedInterpolation<OutputT extends number | string> extends AnimatedWithChildren {
+            interpolate(config: InterpolationConfigType): AnimatedInterpolation<OutputT>;
+            __getValue: () => OutputT;
+        }
     }
 }

@@ -64,6 +64,7 @@ function BaseUserDetailsTooltip({accountID, fallbackUserDetails, icon, delegateA
                         type={icon?.type ?? CONST.ICON_TYPE_AVATAR}
                         name={icon?.name ?? userLogin}
                         fallbackIcon={icon?.fallbackIcon}
+                        avatarID={icon?.id}
                     />
                 </View>
                 <Text style={[styles.mt2, styles.textMicroBold, styles.textReactionSenders, styles.textAlignCenter]}>{title}</Text>

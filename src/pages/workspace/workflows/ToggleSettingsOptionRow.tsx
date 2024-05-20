@@ -1,6 +1,6 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Switch from '@components/Switch';
@@ -15,11 +15,15 @@ type ToggleSettingOptionRowProps = {
     /** Title of the option */
     title: string;
     /** Subtitle of the option */
-    subtitle: string;
+    subtitle?: string;
+    /** Accessibility label for the switch */
+    switchAccessibilityLabel: string;
     /** subtitle should show below switch and title */
     shouldPlaceSubtitleBelowSwitch?: boolean;
     /** Used to apply styles to the outermost container */
     wrapperStyle?: StyleProp<ViewStyle>;
+    /** Used to apply styles to the Title */
+    titleStyle?: StyleProp<TextStyle>;
     /** Whether the option is enabled or not */
     isActive: boolean;
     /** Callback to be called when the switch is toggled */
@@ -41,8 +45,10 @@ function ToggleSettingOptionRow({
     icon,
     title,
     subtitle,
+    switchAccessibilityLabel,
     shouldPlaceSubtitleBelowSwitch,
     wrapperStyle,
+    titleStyle,
     onToggle,
     subMenuItems,
     isActive,
@@ -78,18 +84,18 @@ function ToggleSettingOptionRow({
                             />
                         )}
                         <View style={[styles.flexColumn, styles.flex1]}>
-                            <Text style={[!shouldPlaceSubtitleBelowSwitch && styles.textMicroBold, styles.textNormal, styles.lh20]}>{title}</Text>
-                            {!shouldPlaceSubtitleBelowSwitch && subTitleView}
+                            <Text style={[styles.textNormal, styles.lh20, titleStyle]}>{title}</Text>
+                            {!shouldPlaceSubtitleBelowSwitch && subtitle && subTitleView}
                         </View>
                     </View>
                     <Switch
-                        accessibilityLabel={subtitle}
+                        accessibilityLabel={switchAccessibilityLabel}
                         onToggle={onToggle}
                         isOn={isActive}
                         disabled={disabled}
                     />
                 </View>
-                {shouldPlaceSubtitleBelowSwitch && subTitleView}
+                {shouldPlaceSubtitleBelowSwitch && subtitle && subTitleView}
                 {isActive && subMenuItems}
             </View>
         </OfflineWithFeedback>

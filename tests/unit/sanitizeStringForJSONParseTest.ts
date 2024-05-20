@@ -30,7 +30,6 @@ const validJSONData: Array<[string, string]> = [
 describe('santizeStringForJSONParse', () => {
     describe.each(badInputs)('willDetectBadInputs', (input) => {
         test('sanitizeStringForJSONParse', () => {
-            // @ts-expect-error TODO: Remove this once sanitizeStringForJSONParse (https://github.com/Expensify/App/issues/25360) is migrated to TypeScript.
             expect(() => sanitizeStringForJSONParse(input)).toThrow();
         });
     });

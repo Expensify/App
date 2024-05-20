@@ -50,7 +50,7 @@ import SendButton from './SendButton';
 type ComposerRef = {
     blur: () => void;
     focus: (shouldDelay?: boolean) => void;
-    replaceSelectionWithText: (text: string, shouldAddTrailSpace: boolean) => void;
+    replaceSelectionWithText: EmojiPickerActions.OnEmojiSelected;
     prepareCommentAndResetComposer: () => string;
     isFocused: () => boolean;
 };
@@ -75,9 +75,9 @@ type ReportActionComposeOnyxProps = {
 
 type ReportActionComposeProps = ReportActionComposeOnyxProps &
     WithCurrentUserPersonalDetailsProps &
-    Pick<ComposerWithSuggestionsProps, 'reportID' | 'isEmptyChat' | 'isComposerFullSize' | 'disabled' | 'listHeight' | 'lastReportAction'> & {
+    Pick<ComposerWithSuggestionsProps, 'reportID' | 'isEmptyChat' | 'isComposerFullSize' | 'listHeight' | 'lastReportAction'> & {
         /** A method to call when the form is submitted */
-        onSubmit: (newComment: string | undefined) => void;
+        onSubmit: (newComment: string) => void;
 
         /** The report currently being looked at */
         report: OnyxEntry<OnyxTypes.Report>;
@@ -93,6 +93,9 @@ type ReportActionComposeProps = ReportActionComposeOnyxProps &
 
         /** A method to call when the input is blur */
         onComposerBlur?: () => void;
+
+        /** Should the input be disabled  */
+        disabled?: boolean;
     };
 
 // We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
@@ -104,7 +107,7 @@ const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 function ReportActionCompose({
     blockedFromConcierge,
     currentUserPersonalDetails = {},
-    disabled,
+    disabled = false,
     isComposerFullSize = false,
     onSubmit,
     pendingAction,
@@ -486,7 +489,6 @@ function ReportActionCompose({
                             <EmojiPickerButton
                                 isDisabled={isBlockedFromConcierge || disabled}
                                 onModalHide={focus}
-                                //  @ts-expect-error TODO: Remove this once EmojiPickerButton (https://github.com/Expensify/App/issues/25155) is migrated to TypeScript.
                                 onEmojiSelected={(...args) => composerRef.current?.replaceSelectionWithText(...args)}
                                 emojiPickerID={report?.reportID}
                                 shiftVertical={emojiShiftVertical}

@@ -13,8 +13,9 @@ function BaseAttachmentViewPdf({
     onScaleChanged: onScaleChangedProp,
     onToggleKeyboard,
     onLoadComplete,
-    errorLabelStyles,
     style,
+    isUsedAsChatAttachment,
+    onLoadError,
 }: AttachmentViewPdfProps) {
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
     const isScrollEnabled = attachmentCarouselPagerContext === null ? undefined : attachmentCarouselPagerContext.isScrollEnabled;
@@ -75,7 +76,8 @@ function BaseAttachmentViewPdf({
             onToggleKeyboard={onToggleKeyboard}
             onScaleChanged={onScaleChanged}
             onLoadComplete={onLoadComplete}
-            errorLabelStyles={errorLabelStyles}
+            isUsedAsChatAttachment={isUsedAsChatAttachment}
+            onLoadError={onLoadError}
         />
     );
 }

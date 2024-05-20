@@ -176,7 +176,7 @@ function WorkspaceWorkflowsApproverPage({policy, personalDetails, isLoadingRepor
                     />
                     <SelectionList
                         sections={sections}
-                        textInputLabel={translate('optionsSelector.findMember')}
+                        textInputLabel={translate('selectionList.findMember')}
                         textInputValue={searchTerm}
                         onChangeText={setSearchTerm}
                         headerMessage={headerMessage}

@@ -5,7 +5,7 @@ import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter, findNodeHandle, Keyboard, NativeModules, View} from 'react-native';
 import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInput, TextInputFocusEventData, TextInputKeyPressEventData} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
 import ExceededCommentLength from '@components/ExceededCommentLength';
@@ -69,9 +69,6 @@ type ReportActionItemMessageEditProps = {
 
     /** Whether or not the emoji picker is disabled */
     shouldDisableEmojiPicker?: boolean;
-
-    /** Stores user's preferred skin tone */
-    preferredSkinTone?: OnyxEntry<string | number>;
 };
 
 // native ids
@@ -81,18 +78,10 @@ const messageEditInput = 'messageEditInput';
 const shouldUseForcedSelectionRange = shouldUseEmojiPickerSelection();
 
 function ReportActionItemMessageEdit(
-    {
-        action,
-        draftMessage,
-        reportID,
-        policyID,
-        isGroupPolicyReport,
-        index,
-        shouldDisableEmojiPicker = false,
-        preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE,
-    }: ReportActionItemMessageEditProps,
+    {action, draftMessage, reportID, policyID, isGroupPolicyReport, index, shouldDisableEmojiPicker = false}: ReportActionItemMessageEditProps,
     forwardedRef: ForwardedRef<TextInput | HTMLTextAreaElement | undefined>,
 ) {
+    const [preferredSkinTone] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {initialValue: CONST.EMOJI_DEFAULT_SKIN_TONE});
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -496,12 +485,10 @@ function ReportActionItemMessageEdit(
                             }}
                             onBlur={(event: NativeSyntheticEvent<TextInputFocusEventData>) => {
                                 setIsFocused(false);
-                                // suggestionsRef.current?.resetSuggestions();
-                                // clearActiveSuggestionsRef();
-                                // @ts-expect-error TODO: TextInputFocusEventData doesn't contain relatedTarget.
                                 const relatedTargetId = event.nativeEvent?.relatedTarget?.id;
                                 suggestionsRef.current?.resetSuggestions();
                                 clearActiveSuggestionsRef();
+                                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                 if ((relatedTargetId && [messageEditInput, emojiButtonID].includes(relatedTargetId)) || EmojiPickerAction.isEmojiPickerVisible()) {
                                     return;
                                 }

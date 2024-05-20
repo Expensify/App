@@ -202,7 +202,6 @@ describe('EmojiTest', () => {
 
         beforeAll(() => {
             Onyx.init({keys: ONYXKEYS});
-            // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
             global.fetch = TestHelper.getGlobalFetchMock();
             spy = jest.spyOn(User, 'updateFrequentlyUsedEmojis');
         });

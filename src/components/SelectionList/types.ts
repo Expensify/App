@@ -365,6 +365,17 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
      * When false, the list will render immediately and scroll to the bottom which works great for small lists.
      */
     shouldHideListOnInitialRender?: boolean;
+
+    /** Called once when the scroll position gets within onEndReachedThreshold of the rendered content. */
+    onEndReached?: () => void;
+
+    /**
+     * How far from the end (in units of visible length of the list) the bottom edge of the
+     * list must be from the end of the content to trigger the `onEndReached` callback.
+     * Thus a value of 0.5 will trigger `onEndReached` when the end of the content is
+     * within half the visible length of the list.
+     */
+    onEndReachedThreshold?: number;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {

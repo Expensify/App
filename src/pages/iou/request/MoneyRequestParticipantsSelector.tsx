@@ -77,7 +77,7 @@ function MoneyRequestParticipantsSelector({participants = [], onFinish, onPartic
     }, [debouncedSearchTerm]);
 
     /**
-     * Returns the sections needed for the OptionsSelector
+     * Returns the sections needed for the SelectionList
      *
      * @returns {Array}
      */
@@ -353,7 +353,7 @@ function MoneyRequestParticipantsSelector({participants = [], onFinish, onPartic
             sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
             ListItem={InviteMemberListItem}
             textInputValue={searchTerm}
-            textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+            textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
             textInputHint={offlineMessage}
             onChangeText={setSearchTerm}
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
