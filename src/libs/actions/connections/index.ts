@@ -128,12 +128,13 @@ function updatePolicyConnectionConfig<TConnectionName extends ConnectionName, TS
  * @param connectionName - Name of the connection, QBO/Xero
  */
 function syncConnection(policyID: string, connectionName: PolicyConnectionName | undefined) {
+    const isQBOConnection = connectionName === CONST.POLICY.CONNECTIONS.NAME.QBO;
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`,
             value: {
-                stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.STARTING_IMPORT,
+                stageInProgress: isQBOConnection ? CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.STARTING_IMPORT_QBO : CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.STARTING_IMPORT_XERO,
                 connectionName,
             },
         },
@@ -147,7 +148,7 @@ function syncConnection(policyID: string, connectionName: PolicyConnectionName |
     ];
 
     const parameters: SyncPolicyToQuickbooksOnlineParams | SyncPolicyToXeroParams =
-        connectionName === CONST.POLICY.CONNECTIONS.NAME.QBO
+    isQBOConnection
             ? ({
                   policyID,
                   idempotencyKey: policyID,
@@ -157,7 +158,7 @@ function syncConnection(policyID: string, connectionName: PolicyConnectionName |
                   idempotencyKey: policyID,
               } as SyncPolicyToXeroParams);
 
-    API.read(connectionName === CONST.POLICY.CONNECTIONS.NAME.QBO ? READ_COMMANDS.SYNC_POLICY_TO_QUICKBOOKS_ONLINE : READ_COMMANDS.SYNC_POLICY_TO_XERO, parameters, {
+    API.read(isQBOConnection ? READ_COMMANDS.SYNC_POLICY_TO_QUICKBOOKS_ONLINE : READ_COMMANDS.SYNC_POLICY_TO_XERO, parameters, {
         optimisticData,
         failureData,
     });
