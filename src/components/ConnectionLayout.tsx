@@ -44,6 +44,9 @@ type ConnectionLayoutProps = {
     /** Style of the title text */
     titleStyle?: StyleProp<TextStyle> | undefined;
 
+    /** Whether to include safe area padding bottom or not */
+    shouldIncludeSafeAreaPaddingBottom?: boolean;
+
     /** Whether to use ScrollView or not */
     shouldUseScrollView?: boolean;
 };
@@ -72,6 +75,7 @@ function ConnectionLayout({
     featureName,
     contentContainerStyle,
     titleStyle,
+    shouldIncludeSafeAreaPaddingBottom,
     shouldUseScrollView = true,
 }: ConnectionLayoutProps) {
     const {translate} = useLocalize();
@@ -95,7 +99,7 @@ function ConnectionLayout({
             featureName={featureName}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                includeSafeAreaPaddingBottom={!!shouldIncludeSafeAreaPaddingBottom}
                 shouldEnableMaxHeight
                 testID={displayName}
             >
