@@ -24,7 +24,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
-import type {WorkspacesCentralPaneNavigatorParamList} from '@navigation/types';
+import type {FullScreenNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as Policy from '@userActions/Policy';
 import ButtonWithDropdownMenu from '@src/components/ButtonWithDropdownMenu';
@@ -42,7 +42,7 @@ type PolicyDistanceRatesPageOnyxProps = {
     policy: OnyxEntry<OnyxTypes.Policy>;
 };
 
-type PolicyDistanceRatesPageProps = PolicyDistanceRatesPageOnyxProps & StackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATES>;
+type PolicyDistanceRatesPageProps = PolicyDistanceRatesPageOnyxProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATES>;
 
 function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -300,11 +300,11 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
                         onSelectRow={openRateDetails}
                         onSelectAll={toggleAllRates}
                         onDismissError={dismissError}
-                        showScrollIndicator
                         ListItem={TableListItem}
                         shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                         customListHeader={getCustomListHeader()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                        showScrollIndicator={false}
                     />
                 )}
                 <ConfirmModal
