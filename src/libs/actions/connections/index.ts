@@ -233,7 +233,7 @@ function updateManyPolicyConnectionConfigs<TConnectionName extends ConnectionNam
 }
 
 function hasSynchronizationError(policy: OnyxEntry<Policy>, connectionName: PolicyConnectionName): boolean {
-    return policy?.connections?.[connectionName].lastSync?.isSuccessful === false;
+    return policy?.connections?.[connectionName]?.lastSync?.isSuccessful === false;
 }
 
 export {removePolicyConnection, updatePolicyConnectionConfig, updateManyPolicyConnectionConfigs, hasSynchronizationError, syncConnection};
