@@ -5810,39 +5810,6 @@ function getPayMoneyRequestParams(
     const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`] ?? null;
     const optimisticNextStep = NextStepUtils.buildNextStep(iouReport, CONST.REPORT.STATUS_NUM.REIMBURSED, {isPaidWithExpensify: paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA});
 
-    const holdTransactions: OnyxTypes.Transaction[] = Object.values(allTransactions).filter(
-        (transaction): transaction is OnyxTypes.Transaction => transaction !== null && transaction.reportID === iouReport.reportID && !!transaction.comment?.hold,
-    );
-
-    const reportActionsToBeMoved = Object.values(allReportActions?.[`reportActions_${iouReport.reportID}`] ?? {}).filter((reportAction) =>
-        holdTransactions.find((transaction) => transaction?.transactionID === (reportAction.originalMessage as IOUMessage)?.IOUTransactionID),
-    );
-
-    const removeReportActions: Record<string, null> = {};
-    reportActionsToBeMoved.forEach((reportAction) => {
-        removeReportActions[reportAction.reportActionID] = null;
-    });
-
-    const setReportActions: OnyxTypes.ReportActions = {};
-    reportActionsToBeMoved.forEach((reportAction) => {
-        setReportActions[reportAction.reportActionID] = reportAction;
-    });
-
-    const optimisticExpenseReport = ReportUtils.buildOptimisticExpenseReport(
-        chatReport.reportID,
-        chatReport.policyID ?? iouReport.policyID ?? '',
-        recipient.accountID ?? 1,
-        holdTransactions[0]?.amount * -1 ?? 0,
-        iouReport.currency ?? 'PLN',
-        true,
-    );
-    const optimisticExpenseReportPreview = ReportUtils.buildOptimisticReportPreview(chatReport, optimisticExpenseReport, '', holdTransactions[0]);
-
-    const movedTransactions: Record<string, OnyxTypes.Transaction> = {};
-    holdTransactions.forEach((transaction: OnyxTypes.Transaction) => {
-        movedTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {...transaction, reportID: optimisticExpenseReport.reportID};
-    });
-
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -5852,48 +5819,10 @@ function getPayMoneyRequestParams(
                 lastReadTime: DateUtils.getDBTime(),
                 lastVisibleActionCreated: optimisticIOUReportAction.created,
                 hasOutstandingChildRequest: false,
-                iouReportID: optimisticExpenseReport.reportID,
+                iouReportID: null,
                 lastMessageText: optimisticIOUReportAction.message?.[0]?.text,
                 lastMessageHtml: optimisticIOUReportAction.message?.[0]?.html,
             },
-        },
-        // add new optimistic expense report
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticExpenseReport.reportID}`,
-            value: optimisticExpenseReport,
-        },
-        // add transaction to the new expense report
-        {
-            onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}`,
-            value: movedTransactions,
-        },
-        // add preview report action to main chat
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
-            value: {
-                [optimisticExpenseReportPreview.reportActionID]: optimisticExpenseReportPreview,
-            },
-        },
-        // remove hold report actions from old iou report
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
-            value: {
-                [optimisticIOUReportAction.reportActionID]: {
-                    ...(optimisticIOUReportAction as OnyxTypes.ReportAction),
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                },
-                ...removeReportActions,
-            },
-        },
-        // add hold report actions to new iou report
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticExpenseReport.reportID}`,
-            value: setReportActions,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -5922,6 +5851,99 @@ function getPayMoneyRequestParams(
             value: optimisticNextStep,
         },
     ];
+
+    if (!full) {
+        const holdTransactions: OnyxTypes.Transaction[] = Object.values(allTransactions).filter(
+            (transaction): transaction is OnyxTypes.Transaction => transaction !== null && transaction.reportID === iouReport.reportID && !!transaction.comment?.hold,
+        );
+
+        const reportActionsToBeMoved = Object.values(allReportActions?.[`reportActions_${iouReport.reportID}`] ?? {}).filter((reportAction) =>
+            holdTransactions.find((transaction) => transaction?.transactionID === (reportAction.originalMessage as IOUMessage)?.IOUTransactionID),
+        );
+
+        const removeReportActions: Record<string, null> = {};
+        reportActionsToBeMoved.forEach((reportAction) => {
+            removeReportActions[reportAction.reportActionID] = null;
+        });
+
+        const setReportActions: OnyxTypes.ReportActions = {};
+        reportActionsToBeMoved.forEach((reportAction) => {
+            setReportActions[reportAction.reportActionID] = reportAction;
+        });
+
+        const optimisticExpenseReport = ReportUtils.buildOptimisticExpenseReport(
+            chatReport.reportID,
+            chatReport.policyID ?? iouReport.policyID ?? '',
+            recipient.accountID ?? 1,
+            holdTransactions[0]?.amount * -1 ?? 0,
+            iouReport.currency ?? 'PLN',
+            true,
+        );
+        const optimisticExpenseReportPreview = ReportUtils.buildOptimisticReportPreview(chatReport, optimisticExpenseReport, '', holdTransactions[0]);
+
+        const movedTransactions: Record<string, OnyxTypes.Transaction> = {};
+        holdTransactions.forEach((transaction: OnyxTypes.Transaction) => {
+            movedTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {
+                ...transaction,
+                reportID: optimisticExpenseReport.reportID,
+            };
+        });
+
+        optimisticData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+                value: {
+                    hasOutstandingChildRequest: true,
+                    iouReportID: optimisticExpenseReport.reportID,
+                },
+            },
+            // add new optimistic expense report
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticExpenseReport.reportID}`,
+                value: {
+                    ...optimisticExpenseReport,
+                    pendingFields: {
+                        createChat: 'add',
+                        preview: 'update',
+                    },
+                },
+            },
+            // add transaction to the new expense report
+            {
+                onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}`,
+                value: movedTransactions,
+            },
+            // add preview report action to main chat
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+                value: {
+                    [optimisticExpenseReportPreview.reportActionID]: optimisticExpenseReportPreview,
+                },
+            },
+            // remove hold report actions from old iou report
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+                value: {
+                    [optimisticIOUReportAction.reportActionID]: {
+                        ...(optimisticIOUReportAction as OnyxTypes.ReportAction),
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    },
+                    ...removeReportActions,
+                },
+            },
+            // add hold report actions to new iou report
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticExpenseReport.reportID}`,
+                value: setReportActions,
+            },
+        );
+    }
 
     const successData: OnyxUpdate[] = [
         {
