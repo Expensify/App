@@ -5606,28 +5606,25 @@ function temporary_getMoneyRequestOptions(
  * Invoice sender, invoice receiver and auto-invited admins cannot leave
  */
 function canLeaveInvoiceRoom(report: OnyxEntry<Report>): boolean {
-    if (!isInvoiceRoom(report)) {
+    if (!report || !report?.invoiceReceiver) {
         return false;
     }
 
-    const invoiceReport = getReport(report?.iouReportID ?? '');
-
-    if (invoiceReport?.ownerAccountID === currentUserAccountID) {
+    if (report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED) {
         return false;
     }
 
-    if (invoiceReport?.managerID === currentUserAccountID) {
-        return false;
-    }
-
-    const isSenderPolicyAdmin = getPolicy(report?.policyID)?.role === CONST.POLICY.ROLE.ADMIN;
+    const isSenderPolicyAdmin = getPolicy(report.policyID)?.role === CONST.POLICY.ROLE.ADMIN;
 
     if (isSenderPolicyAdmin) {
         return false;
     }
 
-    const isReceiverPolicyAdmin =
-        report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS ? getPolicy(report?.invoiceReceiver?.policyID)?.role === CONST.POLICY.ROLE.ADMIN : false;
+    if (report.invoiceReceiver.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
+        return report?.invoiceReceiver?.accountID !== currentUserAccountID;
+    }
+
+    const isReceiverPolicyAdmin = getPolicy(report.invoiceReceiver.policyID)?.role === CONST.POLICY.ROLE.ADMIN;
 
     if (isReceiverPolicyAdmin) {
         return false;
@@ -6575,8 +6572,8 @@ function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boo
         return false;
     }
 
-    if (canLeaveInvoiceRoom(report)) {
-        return true;
+    if (isInvoiceRoom(report)) {
+        return canLeaveInvoiceRoom(report);
     }
 
     return (isChatThread(report) && !!report?.notificationPreference?.length) || isUserCreatedPolicyRoom(report) || isNonAdminOrOwnerOfPolicyExpenseChat(report, policy);
