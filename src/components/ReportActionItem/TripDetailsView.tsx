@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 import Icon from '@components/Icon';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -91,8 +92,8 @@ const testReservationsList: Reservation[] = [
 ];
 
 type TripDetailsViewProps = {
-    /** The active IOUReport, used for Onyx subscription */
-    iouReportID?: string;
+    /** The active tripRoomReportID, used for Onyx subscription */
+    tripRoomReportID?: string;
 
     /** Whether we should display the horizontal rule below the component */
     shouldShowHorizontalRule: boolean;
@@ -108,14 +109,15 @@ function ReservationView({reservation}: ReservationViewProps) {
 
     const reservationIcon = TripReservationUtils.getTripReservationIcon(reservation.type);
 
-    const formatAirportInfo = (reservationTimeDetails: ReservationTimeDetails) => `${reservationTimeDetails.longName} (${reservationTimeDetails.shortName})`;
-
+    const formatAirportInfo = (reservationTimeDetails: ReservationTimeDetails) =>
+        `${reservationTimeDetails?.longName ? `${reservationTimeDetails?.longName} ` : ''}${reservationTimeDetails?.shortName}`;
     const getFormattedDate = () => {
         switch (reservation.type) {
             case CONST.RESERVATION_TYPE.FLIGHT:
             case CONST.RESERVATION_TYPE.RAIL:
                 return DateUtils.getFormattedTransportDate(new Date(reservation.start.date));
             case CONST.RESERVATION_TYPE.HOTEL:
+            case CONST.RESERVATION_TYPE.CAR:
                 return DateUtils.getFormattedReservationRangeDate(new Date(reservation.start.date), new Date(reservation.end.date));
             default:
                 return DateUtils.formatToLongDateWithWeekday(new Date(reservation.start.date));
@@ -178,17 +180,41 @@ function ReservationView({reservation}: ReservationViewProps) {
     );
 }
 
-function TripDetailsView({iouReportID, shouldShowHorizontalRule}: TripDetailsViewProps) {
+function TripDetailsView({tripRoomReportID, shouldShowHorizontalRule}: TripDetailsViewProps) {
     const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth} = useWindowDimensions();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     // TODO: once backend is ready uncomment lines below and remove test data
-    // const reservations = testReservationsList;
-    const tripTransactions = ReportUtils.getTripTransactions(iouReportID);
-    console.log('reportId: ', iouReportID);
-    console.log('**', tripTransactions);
+    Onyx.merge('transactions_3369516381858695612', {
+        receipt: {reservationList: [{end: {date: '2024-05-24T19:00:00'}, reservationID: '1174780760', start: {date: '2024-05-23T19:00:00'}, type: 'car'}]},
+    });
+
+    Onyx.merge('transactions_2415242883159099811', {
+        receipt: {
+            reservationList: [
+                {
+                    company: {longName: 'Gulf Air', phone: '', shortName: 'GF'},
+                    confirmations: [{name: 'Confirmation Number', value: 'QXHLBH'}],
+                    end: {date: '2024-05-23T07:30:00', shortName: 'BAH', timezoneOffset: ''},
+                    route: {airlineCode: 'GF57', number: '57'},
+                    start: {date: '2024-05-23T06:30:00', shortName: 'BOM', timezoneOffset: ''},
+                    type: 'flight',
+                },
+                {
+                    company: {longName: 'Gulf Air', phone: '', shortName: 'GF'},
+                    confirmations: [{name: 'Confirmation Number', value: 'QXHLBH'}],
+                    end: {date: '2024-05-23T20:55:00', shortName: 'BOM', timezoneOffset: ''},
+                    route: {airlineCode: 'GF64', number: '64'},
+                    start: {date: '2024-05-23T14:30:00', shortName: 'BAH', timezoneOffset: ''},
+                    type: 'flight',
+                },
+            ],
+        },
+    });
+
+    const tripTransactions = ReportUtils.getTripTransactions(tripRoomReportID);
     const reservations: Reservation[] = TripReservationUtils.getReservationsFromTripTransactions(tripTransactions);
 
     return (
