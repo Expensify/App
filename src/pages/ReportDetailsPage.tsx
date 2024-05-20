@@ -263,10 +263,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     return (
         <ScreenWrapper testID={ReportDetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={isEmptyObject(report)}>
-                <HeaderWithBackButton
-                    title={translate('common.details')}
-                    onBackButtonPress={Navigation.goBack}
-                />
+                <HeaderWithBackButton title={translate('common.details')} />
                 <ScrollView style={[styles.flex1]}>
                     <View style={styles.reportDetailsTitleContainer}>
                         <View style={styles.mb3}>
