@@ -41,7 +41,7 @@ function useReviewDuplicatesNavigation(stepNames: string[], currentScreenName: S
                 Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_BILLABLE_PAGE.getRoute(threadReportID));
                 break;
             default:
-                // Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_CONFIRM_PAGE.getRoute(threadReportID));
+                // Navigation to confirm screen will be done in seperate PR
                 break;
         }
     };

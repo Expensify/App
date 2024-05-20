@@ -269,7 +269,7 @@ function MoneyRequestPreviewContent({
         } else if ('description' in comparisonResult.change) {
             Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION_PAGE.getRoute(route.params?.threadReportID));
         } else {
-            // Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_SUMMARY_PAGE.getRoute(route.params.threadReportID));
+            // Navigation to confirm screen will be done in seperate PR
         }
     };
 
