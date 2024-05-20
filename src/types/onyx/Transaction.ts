@@ -79,6 +79,7 @@ type Receipt = {
     filename?: string;
     state?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
     type?: string;
+    reservationList?: Reservation[];
 };
 
 type Route = {
@@ -106,7 +107,6 @@ type TaxRate = {
     isDisabled?: boolean;
     data?: TaxRateData;
 };
-
 
 type Fare = {
     amount: number;
@@ -140,7 +140,8 @@ type Reservation = {
     numPassengers?: number;
     numberOfRooms?: number;
     route?: {
-        class: string;
+        airlineCode: string;
+        class?: string;
         number: string;
     };
 };
@@ -150,7 +151,7 @@ type ReservationTimeDetails = {
     address?: string;
     longName?: string;
     shortName?: string;
-    timezoneOffset?: number;
+    timezoneOffset?: string;
 };
 
 type Company = {
@@ -291,10 +292,6 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Indicates transaction loading */
         isLoading?: boolean;
 
-
-        /** Travel reserviation list */
-        reservationList?: Reservation[];
-
         originalSpotnanaPayload?: SpotnanaPayload;
 
         /** Holds individual shares of a split keyed by accountID, only used locally */
@@ -302,7 +299,6 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Holds the accountIDs of accounts who paid the split, for now only supports a single payer */
         splitPayerAccountIDs?: number[];
-
 
         /** The actionable report action ID associated with the transaction */
         actionableWhisperReportActionID?: string;
