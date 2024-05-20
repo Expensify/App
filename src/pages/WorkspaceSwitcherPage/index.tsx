@@ -173,7 +173,7 @@ function WorkspaceSwitcherPage() {
                 title={translate('workspace.switcher.headerTitle')}
                 onBackButtonPress={Navigation.goBack}
             />
-            <View style={[styles.mh4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mb1]}>
+            <View style={[styles.ph5, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mb1]}>
                 <Text
                     style={styles.label}
                     color={theme.textSupporting}
