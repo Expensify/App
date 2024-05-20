@@ -104,6 +104,7 @@ function ReportActionsView({
     const didLayout = useRef(false);
     const didLoadOlderChats = useRef(false);
     const didLoadNewerChats = useRef(false);
+    const {isOffline} = useNetwork();
 
     // triggerListID is used when navigating to a chat with messages loaded from LHN. Typically, these include thread actions, task actions, etc. Since these messages aren't the latest,we don't maintain their position and instead trigger a recalculation of their positioning in the list.
     // we don't set currentReportActionID on initial render as linkedID as it should trigger visibleReportActions after linked message was positioned
@@ -127,6 +128,14 @@ function ReportActionsView({
 
         Report.openReport(reportID, reportActionID);
     };
+
+    useEffect(() => {
+        // When we linked to message - we do not need to wait for initial actions - they already exists
+        if (!(isNavigatingToLinkedMessage && isOffline)) {
+            return;
+        }
+        Report.updateLoadingInitialReportAction(report.reportID);
+    }, [isNavigatingToLinkedMessage, isOffline, report.reportID]);
 
     useLayoutEffect(() => {
         setCurrentReportActionID('');
@@ -348,7 +357,6 @@ function ReportActionsView({
                     // If there was an error only try again once on initial mount. We should also still load
                     // more in case we have cached messages.
                     (!hasMoreCached && didLoadNewerChats.current && hasLoadingNewerReportActionsError) ||
-                    network.isOffline ||
                     newestReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
             ) {
                 return;
