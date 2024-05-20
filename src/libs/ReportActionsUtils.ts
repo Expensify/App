@@ -32,8 +32,8 @@ import Log from './Log';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import type {OptimisticIOUReportAction} from './ReportUtils';
-import * as TransactionUtils from './TransactionUtils';
 import StringUtils from './StringUtils';
+import * as TransactionUtils from './TransactionUtils';
 
 type LastVisibleMessage = {
     lastMessageTranslationKey?: string;
