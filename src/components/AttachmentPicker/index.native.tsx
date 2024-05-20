@@ -248,7 +248,13 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
                     completeAttachmentSelection.current(result);
                 })
                 .catch((error) => {
-                    showGeneralAlert(error.message);
+                    let errorMessage;
+                    if (error instanceof Error) {
+                        errorMessage = error.message;
+                    } else {
+                        errorMessage = String(error.message);
+                    }
+                    showGeneralAlert(errorMessage);
                     throw error;
                 });
         },

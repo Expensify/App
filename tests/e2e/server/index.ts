@@ -154,7 +154,13 @@ const createServerInstance = (): ServerInstance => {
                         res.end('Error executing command');
                     })
                     .catch((error) => {
-                        Logger.error('Error executing command', error);
+                        let errorString;
+                        if (error instanceof Error) {
+                            errorString = error.toString();
+                        } else {
+                            errorString = String(error);
+                        }
+                        Logger.error('Error executing command', errorString);
                         res.statusCode = 500;
                         res.end('Error executing command');
                     });

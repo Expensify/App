@@ -198,7 +198,7 @@ function bindEventToChannel<EventName extends PusherEventName>(channel: Channel 
         // packet.
         if (chunkedEvent.receivedFinal && chunkedEvent.chunks.length === Object.keys(chunkedEvent.chunks).length) {
             try {
-                eventCallback(JSON.parse(chunkedEvent.chunks.join('')));
+                eventCallback(JSON.parse(chunkedEvent.chunks.join('')) as EventData<EventName>);
             } catch (err) {
                 Log.alert('[Pusher] Unable to parse chunked JSON response from Pusher', {
                     error: err,

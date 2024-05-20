@@ -30,14 +30,19 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
         })
             .then(onSuccess)
             .catch((error) => {
-                const errorMessage = error.message ?? CONST.ERROR.UNKNOWN_ERROR;
+                let errorMessage: string;
+                if (error instanceof Error) {
+                    errorMessage = error.message;
+                } else {
+                    errorMessage = CONST.ERROR.UNKNOWN_ERROR;
+                }
                 const errorType = error.type;
 
                 Log.hmmm('Onfido error on native', {errorType, errorMessage});
 
                 // If the user cancels the Onfido flow we won't log this error as it's normal. In the React Native SDK the user exiting the flow will trigger this error which we can use as
                 // our "user exited the flow" callback. On web, this event has it's own callback passed as a config so we don't need to bother with this there.
-                if ([CONST.ONFIDO.ERROR.USER_CANCELLED, CONST.ONFIDO.ERROR.USER_TAPPED_BACK, CONST.ONFIDO.ERROR.USER_EXITED].includes(errorMessage)) {
+                if (([CONST.ONFIDO.ERROR.USER_CANCELLED, CONST.ONFIDO.ERROR.USER_TAPPED_BACK, CONST.ONFIDO.ERROR.USER_EXITED] as string[]).includes(errorMessage)) {
                     onUserExit();
                     return;
                 }

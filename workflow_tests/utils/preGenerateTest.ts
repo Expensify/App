@@ -275,7 +275,7 @@ checkIfMocksFileExists(workflowTestMocksDirectory, workflowTestMocksFileName);
 const workflowTestAssertionsFileName = `${workflowName}Assertions.ts`;
 checkIfAssertionsFileExists(workflowTestAssertionsDirectory, workflowTestAssertionsFileName);
 
-const workflow = yaml.parse(fs.readFileSync(workflowFilePath, 'utf8'));
+const workflow: YamlWorkflow = yaml.parse(fs.readFileSync(workflowFilePath, 'utf8'));
 const workflowJobs = parseWorkflowFile(workflow);
 
 const mockFileContent = getMockFileContent(workflowName, workflowJobs);

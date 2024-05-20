@@ -43,7 +43,15 @@ function setDeviceID() {
             Log.info('Got new deviceID', false, uniqueID);
             Onyx.set(ONYXKEYS.DEVICE_ID, uniqueID);
         })
-        .catch((err) => Log.info('Found existing deviceID', false, err.message));
+        .catch((err) => {
+            let errorMessage;
+            if (err instanceof Error) {
+                errorMessage = err.message;
+            } else {
+                errorMessage = String(err.message);
+            }
+            Log.info('Found existing deviceID', false, errorMessage);
+        });
 }
 
 /**
