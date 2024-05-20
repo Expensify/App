@@ -3,13 +3,13 @@ import {useRoute} from '@react-navigation/native';
 import React, {useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useReviewDuplicatesNavigation from '@hooks/useReviewDuplicatesNavigation';
 import {setReviewDuplicatesKey} from '@libs/actions/Transaction';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import type SCREENS from '@src/SCREENS';
+import type {FieldItemType} from './ReviewFields';
 import ReviewFields from './ReviewFields';
 
 function ReviewDescription() {
@@ -31,9 +31,9 @@ function ReviewDescription() {
             ),
         [compareResult.change.description, translate],
     );
-    const onSelectRow = (data: ListItem) => {
-        if (data.data !== undefined) {
-            setReviewDuplicatesKey({description: data.data});
+    const onSelectRow = (data: FieldItemType) => {
+        if (data.value !== undefined) {
+            setReviewDuplicatesKey({description: data.value as string});
         }
         navigateToNextScreen();
     };

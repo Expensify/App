@@ -3,8 +3,10 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-function useReviewDuplicatesNavigation(stepNames: string[], currentScreenName: string, threadReportID: string) {
-    const [nextScreen, setNextScreen] = useState(currentScreenName);
+type StepName = 'description' | 'merchant' | 'category' | 'billable' | 'tag' | 'taxCode' | 'reimbursable';
+
+function useReviewDuplicatesNavigation(stepNames: string[], currentScreenName: StepName, threadReportID: string) {
+    const [nextScreen, setNextScreen] = useState<StepName>(currentScreenName);
     const [currentScreenIndex, setCurrentScreenIndex] = useState(0);
     const intersection = useMemo(() => CONST.REVIEW_DUPLICATES_ORDER.filter((element) => stepNames.includes(element)), [stepNames]);
 

@@ -3,13 +3,13 @@ import {useRoute} from '@react-navigation/native';
 import React, {useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useReviewDuplicatesNavigation from '@hooks/useReviewDuplicatesNavigation';
 import {setReviewDuplicatesKey} from '@libs/actions/Transaction';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import type SCREENS from '@src/SCREENS';
+import type {FieldItemType} from './ReviewFields';
 import ReviewFields from './ReviewFields';
 
 function ReviewCategory() {
@@ -19,7 +19,6 @@ function ReviewCategory() {
     const compareResult = TransactionUtils.compareDuplicateTransactionFields(transactionID);
     const stepNames = Object.keys(compareResult.change ?? {}).map((key, index) => (index + 1).toString());
     const {currentScreenIndex, navigateToNextScreen} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'category', route.params.threadReportID ?? '');
-    console.log('compareResult.change.category', compareResult.change);
     const options = useMemo(
         () =>
             compareResult.change.category.map((category) =>
@@ -33,9 +32,9 @@ function ReviewCategory() {
         [compareResult.change.category, translate],
     );
 
-    const onSelectRow = (data: ListItem) => {
-        if (data.data !== undefined) {
-            setReviewDuplicatesKey({category: data.data});
+    const onSelectRow = (data: FieldItemType) => {
+        if (data.value !== undefined) {
+            setReviewDuplicatesKey({category: data.value as string});
         }
         navigateToNextScreen();
     };

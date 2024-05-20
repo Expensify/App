@@ -333,7 +333,7 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
     });
 }
 
-function setReviewDuplicatesKey(values: ReviewDuplicates) {
+function setReviewDuplicatesKey(values: Partial<ReviewDuplicates>) {
     Onyx.merge(`${ONYXKEYS.REVIEW_DUPLICATES}`, {
         ...values,
     });

@@ -4,7 +4,6 @@ import React, {useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useReviewDuplicatesNavigation from '@hooks/useReviewDuplicatesNavigation';
 import {setReviewDuplicatesKey} from '@libs/actions/Transaction';
@@ -14,6 +13,7 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import ReviewDescription from './ReviewDescription';
+import type {FieldItemType} from './ReviewFields';
 import ReviewFields from './ReviewFields';
 
 function ReviewTaxRate() {
@@ -38,9 +38,9 @@ function ReviewTaxRate() {
         [compareResult.change.taxCode, policy, translate],
     );
 
-    const onSelectRow = (data: ListItem) => {
-        if (data.data !== undefined) {
-            setReviewDuplicatesKey({taxCode: data.data});
+    const onSelectRow = (data: FieldItemType) => {
+        if (data.value !== undefined) {
+            setReviewDuplicatesKey({taxCode: data.value as string});
         }
         navigateToNextScreen();
     };

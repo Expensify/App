@@ -14,6 +14,7 @@ import DateUtils from './DateUtils';
 import * as Localize from './Localize';
 import * as NumberUtils from './NumberUtils';
 import {getCleanedTagName} from './PolicyUtils';
+// eslint-disable-next-line import/no-cycle
 import * as ReportActionsUtils from './ReportActionsUtils';
 
 let allTransactions: OnyxCollection<Transaction> = {};
@@ -768,7 +769,9 @@ function compareDuplicateTransactionFields(transactionID: string) {
     const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
     const duplicates = transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [];
     const transactions = [transactionID, ...duplicates].map((item) => getTransaction(item));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const keep: Record<string, any> = {};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const change: Record<string, any[]> = {};
     const fieldsToCompare: FieldsToCompare = {
         merchant: ['modifiedMerchant', 'merchant'],
@@ -820,6 +823,8 @@ function compareDuplicateTransactionFields(transactionID: string) {
                             if (!item?.[key]) {
                                 return;
                             }
+
+                            // eslint-disable-next-line no-nested-ternary
                             return item && key in item ? item[key] : typeof item?.[key] === 'boolean' ? false : undefined;
                         }),
                     )
@@ -840,7 +845,7 @@ function compareDuplicateTransactionFields(transactionID: string) {
 }
 
 function getTransactionID(threadReportID: string): string {
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`] ?? [];
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`] ?? null;
     const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
     const transactionID = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction?.originalMessage.IOUTransactionID ?? '0' : '0';
 
