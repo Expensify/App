@@ -1491,27 +1491,13 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
                 return;
             }
 
-            const isSelfDM = ReportUtils.isSelfDM(report);
-            const isChatRoom = ReportUtils.isChatRoom(report);
-            let accountIDs = [];
-
-            if (isSelfDM) {
-                // For selfDM we need to add the currentUser as participants.
-                accountIDs = [currentUserAccountID ?? 0];
-            } else {
-                accountIDs = Object.keys(report.participants ?? {}).map(Number);
-                if (ReportUtils.isOneOnOneChat(report)) {
-                    // For 1:1 chat, we don't want to include currentUser as participants in order to not mark 1:1 chats as having multiple participants
-                    accountIDs = accountIDs.filter((accountID) => accountID !== currentUserAccountID);
-                }
-            }
             // For 1:1 chat, we don't want to include currentUser as participants in order to not mark 1:1 chats as having multiple participants
             const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
             const accountIDs = Object.keys(report.participants ?? {})
                 .map(Number)
                 .filter((accountID) => accountID !== currentUserAccountID || !isOneOnOneChat);
 
-            if ((!accountIDs || accountIDs.length === 0) && !isChatRoom) {
+            if (!accountIDs || accountIDs.length === 0) {
                 return;
             }
 
@@ -1801,19 +1787,6 @@ function getOptions(
         const isPolicyExpenseChat = option.isPolicyExpenseChat;
         const isMoneyRequestReport = option.isMoneyRequestReport;
         const isSelfDM = option.isSelfDM;
-        const isChatRoom = option.isChatRoom;
-        let accountIDs = [];
-
-        if (isSelfDM) {
-            // For selfDM we need to add the currentUser as participants.
-            accountIDs = [currentUserAccountID ?? 0];
-        } else {
-            accountIDs = Object.keys(report.participants ?? {}).map(Number);
-            if (ReportUtils.isOneOnOneChat(report)) {
-                // For 1:1 chat, we don't want to include currentUser as participants in order to not mark 1:1 chats as having multiple participants
-                accountIDs = accountIDs.filter((accountID) => accountID !== currentUserAccountID);
-            }
-        }
         const isOneOnOneChat = option.isOneOnOneChat;
 
         // For 1:1 chat, we don't want to include currentUser as participants in order to not mark 1:1 chats as having multiple participants
@@ -1851,7 +1824,7 @@ function getOptions(
             return;
         }
 
-        if ((!accountIDs || accountIDs.length === 0) && !isChatRoom) {
+        if (!accountIDs || accountIDs.length === 0) {
             return;
         }
 
