@@ -574,6 +574,7 @@ const CONST = {
     LICENSES_URL: `${USE_EXPENSIFY_URL}/licenses`,
     ACH_TERMS_URL: `${USE_EXPENSIFY_URL}/achterms`,
     WALLET_AGREEMENT_URL: `${USE_EXPENSIFY_URL}/walletagreement`,
+    BANCORP_WALLET_AGREEMENT_URL: `${USE_EXPENSIFY_URL}/bancorp-bank-wallet-terms-of-service`,
     HELP_LINK_URL: `${USE_EXPENSIFY_URL}/usa-patriot-act`,
     ELECTRONIC_DISCLOSURES_URL: `${USE_EXPENSIFY_URL}/esignagreement`,
     GITHUB_RELEASE_URL: 'https://api.github.com/repos/expensify/app/releases/latest',

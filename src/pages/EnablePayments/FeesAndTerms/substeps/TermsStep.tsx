@@ -9,8 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@navigation/Navigation';
-// TODO: uncomment at the end of the refactor https://github.com/Expensify/App/issues/36648
-// import * as BankAccounts from '@userActions/BankAccounts';
+import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -28,13 +27,15 @@ function HaveReadAndAgreeLabel() {
 
 function AgreeToTheLabel() {
     const {translate} = useLocalize();
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
+    const walletAgreementUrl = userWallet?.walletProgramID === CONST.WALLET.MTL_WALLET_PROGRAM_ID ? CONST.WALLET_AGREEMENT_URL : CONST.BANCORP_WALLET_AGREEMENT_URL;
 
     return (
         <Text>
             {`${translate('termsStep.agreeToThe')} `}
             <TextLink href={CONST.PRIVACY_URL}>{`${translate('common.privacy')} `}</TextLink>
             {`${translate('common.and')} `}
-            <TextLink href={CONST.WALLET_AGREEMENT_URL}>{`${translate('termsStep.walletAgreement')}.`}</TextLink>
+            <TextLink href={walletAgreementUrl}>{`${translate('termsStep.walletAgreement')}.`}</TextLink>
         </Text>
     );
 }
@@ -93,11 +94,10 @@ function TermsStep() {
                     }
 
                     setError(false);
-                    // TODO: uncomment at the end of the refactor https://github.com/Expensify/App/issues/36648
-                    // BankAccounts.acceptWalletTerms({
-                    //     hasAcceptedTerms: hasAcceptedDisclosure && hasAcceptedPrivacyPolicyAndWalletAgreement,
-                    //     reportID: walletTerms?.chatReportID ?? '',
-                    // });
+                    BankAccounts.acceptWalletTerms({
+                        hasAcceptedTerms: hasAcceptedDisclosure && hasAcceptedPrivacyPolicyAndWalletAgreement,
+                        reportID: walletTerms?.chatReportID ?? '',
+                    });
                     Navigation.navigate(ROUTES.SETTINGS_WALLET);
                 }}
                 message={errorMessage}
