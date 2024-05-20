@@ -244,7 +244,7 @@ function getCleanedTagName(tag: string) {
 /**
  * Escape colon from tag name
  */
-function escapeTagName(tag: String) {
+function escapeTagName(tag: string) {
     return tag?.replaceAll(CONST.COLON, '\\:');
 }
 
