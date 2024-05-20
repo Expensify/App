@@ -243,7 +243,6 @@ function ProfilePage({route}: ProfilePageProps) {
                                     title={notificationPreference}
                                     description={translate('notificationPreferencesPage.label')}
                                     onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.getRoute(report.reportID))}
-                                    wrapperStyle={[styles.mtn6, styles.mb5]}
                                 />
                             )}
                             {!isEmptyObject(report) && report.reportID && !isCurrentUser && (
