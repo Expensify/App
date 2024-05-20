@@ -97,7 +97,7 @@ const getNewSelection = (oldSelection: Selection, prevLength: number, newLength:
     return {start: cursorPosition, end: cursorPosition};
 };
 
-const defaultOnFormatAmount = (amount: number) => amount ? CurrencyUtils.convertToFrontendAmount(amount).toString() : '';
+const defaultOnFormatAmount = (amount: number) => CurrencyUtils.convertToFrontendAmount(amount).toString();
 
 function MoneyRequestAmountInput(
     {
@@ -125,7 +125,7 @@ function MoneyRequestAmountInput(
     const textInput = useRef<BaseTextInputRef | null>(null);
 
     const decimals = CurrencyUtils.getCurrencyDecimals(currency);
-    const selectedAmountAsString = onFormatAmount(amount);
+    const selectedAmountAsString = amount ? onFormatAmount(amount) : '';
 
     const [currentAmount, setCurrentAmount] = useState(selectedAmountAsString);
 
