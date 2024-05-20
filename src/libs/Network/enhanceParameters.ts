@@ -1,6 +1,7 @@
 import * as Environment from '@libs/Environment/Environment';
 import getPlatform from '@libs/getPlatform';
 import CONFIG from '@src/CONFIG';
+import {version as appVersion} from '../../../package.json';
 import * as NetworkStore from './NetworkStore';
 
 /**
@@ -35,6 +36,8 @@ export default function enhanceParameters(command: string, parameters: Record<st
     finalParameters.email = parameters.email ?? NetworkStore.getCurrentUserEmail();
 
     finalParameters.isFromDevEnv = Environment.isDevelopment();
+
+    finalParameters.appversion = appVersion;
 
     return finalParameters;
 }

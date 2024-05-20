@@ -9,7 +9,6 @@ import * as PersistedRequests from '@userActions/PersistedRequests';
 import CONST from '@src/CONST';
 import type OnyxRequest from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
-import pkg from '../../../package.json';
 import type {ApiRequest, ApiRequestCommandParameters, ReadCommand, SideEffectRequestCommand, WriteCommand} from './types';
 
 // Setup API middlewares. Each request made will pass through a series of middleware functions that will get called in sequence (each one passing the result of the previous to the next).
@@ -65,7 +64,6 @@ function write<TCommand extends WriteCommand>(command: TCommand, apiCommandParam
     // Assemble the data we'll send to the API
     const data = {
         ...apiCommandParameters,
-        appversion: pkg.version,
         apiRequestType: CONST.API_REQUEST_TYPE.WRITE,
 
         // We send the pusherSocketID with all write requests so that the api can include it in push events to prevent Pusher from sending the events to the requesting client. The push event
@@ -128,7 +126,6 @@ function makeRequestWithSideEffects<TCommand extends SideEffectRequestCommand | 
     // Assemble the data we'll send to the API
     const data = {
         ...apiCommandParameters,
-        appversion: pkg.version,
         apiRequestType,
     };
 
