@@ -210,7 +210,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                             {shouldShowBankAccount && (
                                 <OfflineWithFeedback
                                     pendingAction={policy?.pendingFields?.reimburser}
-                                    shouldDisableOpacity={isOffline && policy?.pendingFields?.reimbursementChoice && policy?.pendingFields?.reimburser}
+                                    shouldDisableOpacity={isOffline && !!policy?.pendingFields?.reimbursementChoice && !!policy?.pendingFields?.reimburser}
                                     errors={ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.REIMBURSER)}
                                     onClose={() => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.COLLECTION_KEYS.REIMBURSER)}
                                     errorRowStyles={[styles.ml7]}
