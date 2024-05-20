@@ -98,7 +98,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
             }
 
             if (onNavigate) {
-                onNavigate(entry.item);
+                onNavigate(entry.item as Attachment);
             }
         },
         [isFullScreenRef, onNavigate],

@@ -47,7 +47,7 @@ if (!semanticVersionLevel || !Object.keys(versionUpdater.SEMANTIC_VERSION_LEVELS
     console.log(`Invalid input for 'SEMVER_LEVEL': ${semanticVersionLevel}`, `Defaulting to: ${semanticVersionLevel}`);
 }
 
-const {version: previousVersion} = JSON.parse(fs.readFileSync('./package.json').toString());
+const {version: previousVersion}: {version: string} = JSON.parse(fs.readFileSync('./package.json').toString());
 const newVersion = versionUpdater.incrementVersion(previousVersion, semanticVersionLevel);
 console.log(`Previous version: ${previousVersion}`, `New version: ${newVersion}`);
 

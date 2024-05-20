@@ -411,7 +411,7 @@ function suggestEmojis(text: string, lang: Locale, limit: number = CONST.AUTO_CO
             }
             matching.push({code: node.metaData.code, name: node.name, types: node.metaData.types});
         }
-        const suggestions = node.metaData.suggestions;
+        const suggestions: Emoji[] | undefined = node.metaData.suggestions;
         if (!suggestions) {
             return;
         }

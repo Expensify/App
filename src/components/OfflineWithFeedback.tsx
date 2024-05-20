@@ -116,7 +116,7 @@ function OfflineWithFeedback({
                 };
 
                 if (child.props.children) {
-                    props.children = applyStrikeThrough(child.props.children);
+                    props.children = applyStrikeThrough(child.props.children as React.ReactNode);
                 }
 
                 return React.cloneElement(child, props);
