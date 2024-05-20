@@ -5,6 +5,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useHover from '@hooks/useHover';
+import {useMouseContext} from '@hooks/useMouseContext';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -36,6 +37,7 @@ function BaseListItem<TItem extends ListItem>({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {hovered, bind} = useHover();
+    const {isMouseDownOnInput} = useMouseContext();
 
     const pressableRef = useRef<View>(null);
 
@@ -67,6 +69,11 @@ function BaseListItem<TItem extends ListItem>({
                 {...bind}
                 ref={pressableRef}
                 onPress={(e) => {
+                    if (isMouseDownOnInput) {
+                        e.stopPropagation(); // Preventing the click action
+                        console.log('Click prevented due to mouse down on input');
+                        return;
+                    }
                     if (shouldPreventEnterKeySubmit && e && 'key' in e && e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
                         return;
                     }

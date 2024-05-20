@@ -3,6 +3,7 @@ import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'reac
 import AmountTextInput from '@components/AmountTextInput';
 import CurrencySymbolButton from '@components/CurrencySymbolButton';
 import useLocalize from '@hooks/useLocalize';
+import {useMouseContext} from '@hooks/useMouseContext';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
@@ -31,6 +32,8 @@ function BaseTextInputWithCurrencySymbol(
     const currencySymbol = CurrencyUtils.getLocalizedCurrencySymbol(selectedCurrencyCode);
     const isCurrencySymbolLTR = CurrencyUtils.isCurrencySymbolLTR(selectedCurrencyCode);
     const styles = useThemeStyles();
+
+    const {setMouseDown, setMouseUp} = useMouseContext();
 
     const currencySymbolButton = !hideCurrencySymbol && (
         <CurrencySymbolButton
@@ -62,6 +65,11 @@ function BaseTextInputWithCurrencySymbol(
             }}
             onKeyPress={onKeyPress}
             style={[styles.pr1, style]}
+            onMouseDown={() => {
+                setMouseDown();
+                console.log('mousedown');
+            }}
+            onMouseUp={setMouseUp}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         />
