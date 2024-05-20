@@ -1,4 +1,4 @@
-import {cleanup, screen, waitFor} from '@testing-library/react-native';
+import {screen, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import type {PersonalDetailsList} from '@src/types/onyx';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
@@ -33,7 +33,6 @@ describe('ReportActionItemSingle', () => {
 
     // Clear out Onyx after each test so that each test starts with a clean slate
     afterEach(() => {
-        cleanup();
         Onyx.clear();
     });
 
@@ -54,11 +53,8 @@ describe('ReportActionItemSingle', () => {
                 },
             };
 
-            beforeEach(() => {
-                LHNTestUtils.getDefaultRenderedReportActionItemSingle(shouldShowSubscriptAvatar, fakeReport, fakeReportAction);
-            });
-
             function setup() {
+                LHNTestUtils.getDefaultRenderedReportActionItemSingle(shouldShowSubscriptAvatar, fakeReport, fakeReportAction);
                 const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [fakePolicy], (item) => item.id);
 
                 return waitForBatchedUpdates().then(() =>
@@ -70,13 +66,12 @@ describe('ReportActionItemSingle', () => {
                 );
             }
 
-            it('renders secondary Avatar properly', () => {
+            it('renders secondary Avatar properly', async () => {
                 const expectedSecondaryIconTestId = 'SvgDefaultAvatar_w Icon';
 
-                return setup().then(() => {
-                    waitFor(() => {
-                        expect(screen.getByTestId(expectedSecondaryIconTestId)).toBeDefined();
-                    });
+                await setup();
+                await waitFor(() => {
+                    expect(screen.getByTestId(expectedSecondaryIconTestId)).toBeOnTheScreen();
                 });
             });
 
@@ -84,7 +79,7 @@ describe('ReportActionItemSingle', () => {
                 const [expectedPerson] = fakeReportAction.person ?? [];
 
                 return setup().then(() => {
-                    expect(screen.getByText(expectedPerson.text ?? '')).toBeDefined();
+                    expect(screen.getByText(expectedPerson.text ?? '')).toBeOnTheScreen();
                 });
             });
         });

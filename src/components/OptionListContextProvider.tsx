@@ -64,29 +64,18 @@ function OptionsListContextProvider({reports, children}: OptionsListProviderProp
             return;
         }
 
-        const lastUpdatedReport = ReportUtils.getLastUpdatedReport();
-
-        if (!lastUpdatedReport) {
-            return;
-        }
-
-        const newOption = OptionsListUtils.createOptionFromReport(lastUpdatedReport, personalDetails);
-        const replaceIndex = options.reports.findIndex((option) => option.reportID === lastUpdatedReport.reportID);
-
-        if (replaceIndex === -1) {
-            return;
-        }
+        const newReports = OptionsListUtils.createOptionList(personalDetails, reports).reports;
 
         setOptions((prevOptions) => {
             const newOptions = {...prevOptions};
-            newOptions.reports[replaceIndex] = newOption;
+            newOptions.reports = newReports;
             return newOptions;
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reports]);
 
     /**
-     * This effect is used to add a new report option to the list of options when a new report is added to the collection.
+     * This effect is used to add a new report option or remove a report option from the list of options when a new report is added to/removed from the collection.
      */
     useEffect(() => {
         if (!areOptionsInitialized.current || !reports) {
@@ -95,7 +84,10 @@ function OptionsListContextProvider({reports, children}: OptionsListProviderProp
         const missingReportIds = Object.keys(reports).filter((key) => prevReports && !(key in prevReports));
 
         setOptions((prevOptions) => {
-            const newOptions = {...prevOptions};
+            const newOptions = {
+                ...prevOptions,
+                reports: prevOptions.reports.filter((report) => reports[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] !== null),
+            };
             missingReportIds.forEach((missingReportId) => {
                 const report = missingReportId ? reports[missingReportId] : null;
                 if (!missingReportId || !report) {
@@ -123,16 +115,16 @@ function OptionsListContextProvider({reports, children}: OptionsListProviderProp
             newReportOption: OptionsListUtils.SearchOption<Report>;
         }> = [];
 
-        Object.keys(personalDetails).forEach((accoutID) => {
-            const prevPersonalDetail = prevPersonalDetails?.[accoutID];
-            const personalDetail = personalDetails?.[accoutID];
+        Object.keys(personalDetails).forEach((accountID) => {
+            const prevPersonalDetail = prevPersonalDetails?.[accountID];
+            const personalDetail = personalDetails?.[accountID];
 
             if (isEqualPersonalDetail(prevPersonalDetail, personalDetail)) {
                 return;
             }
 
             Object.values(reports ?? {})
-                .filter((report) => Boolean(report?.participantAccountIDs?.includes(Number(accoutID))) || (ReportUtils.isSelfDM(report) && report?.ownerAccountID === Number(accoutID)))
+                .filter((report) => Boolean(Object.keys(report?.participants ?? {}).includes(accountID)) || (ReportUtils.isSelfDM(report) && report?.ownerAccountID === Number(accountID)))
                 .forEach((report) => {
                     if (!report) {
                         return;

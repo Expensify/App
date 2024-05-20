@@ -50,11 +50,10 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     description={translate('workspace.qbo.advancedConfig.qboBillPaymentAccount')}
                     wrapperStyle={[styles.sectionMenuItemTopDescription]}
                     onPress={waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR.getRoute(policyID)))}
-                    error={errorFields?.reimbursementAccountID ? translate('common.genericErrorMessage') : undefined}
+                    errorText={errorFields?.reimbursementAccountID ? translate('common.genericErrorMessage') : undefined}
                     brickRoadIndicator={errorFields?.reimbursementAccountID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 />
             </OfflineWithFeedback>
-
             <OfflineWithFeedback pendingAction={pendingFields?.collectionAccountID}>
                 <MenuItemWithTopDescription
                     shouldShowRightIcon
@@ -62,7 +61,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     description={translate('workspace.qbo.advancedConfig.qboInvoiceCollectionAccount')}
                     wrapperStyle={[styles.sectionMenuItemTopDescription]}
                     onPress={waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR.getRoute(policyID)))}
-                    error={errorFields?.collectionAccountID ? translate('common.genericErrorMessage') : undefined}
+                    errorText={errorFields?.collectionAccountID ? translate('common.genericErrorMessage') : undefined}
                     brickRoadIndicator={errorFields?.collectionAccountID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 />
             </OfflineWithFeedback>
@@ -73,6 +72,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
         {
             title: translate('workspace.qbo.advancedConfig.autoSync'),
             subtitle: translate('workspace.qbo.advancedConfig.autoSyncDescription'),
+            switchAccessibilityLabel: translate('workspace.qbo.advancedConfig.autoSyncDescription'),
             isActive: Boolean(autoSync?.enabled),
             onToggle: () =>
                 Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.AUTO_SYNC, {
@@ -86,16 +86,18 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
         {
             title: translate('workspace.qbo.advancedConfig.inviteEmployees'),
             subtitle: translate('workspace.qbo.advancedConfig.inviteEmployeesDescription'),
+            switchAccessibilityLabel: translate('workspace.qbo.advancedConfig.inviteEmployeesDescription'),
             isActive: Boolean(syncPeople),
-            onToggle: () => Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.SYNCE_PEOPLE, !syncPeople),
+            onToggle: () => Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.SYNC_PEOPLE, !syncPeople),
             pendingAction: pendingFields?.syncPeople,
-            errors: ErrorUtils.getLatestErrorField(qboConfig ?? {}, CONST.QUICK_BOOKS_CONFIG.SYNCE_PEOPLE),
-            onCloseError: () => Policy.clearQBOErrorField(policyID, CONST.QUICK_BOOKS_CONFIG.SYNCE_PEOPLE),
+            errors: ErrorUtils.getLatestErrorField(qboConfig ?? {}, CONST.QUICK_BOOKS_CONFIG.SYNC_PEOPLE),
+            onCloseError: () => Policy.clearQBOErrorField(policyID, CONST.QUICK_BOOKS_CONFIG.SYNC_PEOPLE),
             wrapperStyle: styles.mv3,
         },
         {
             title: translate('workspace.qbo.advancedConfig.createEntities'),
             subtitle: translate('workspace.qbo.advancedConfig.createEntitiesDescription'),
+            switchAccessibilityLabel: translate('workspace.qbo.advancedConfig.createEntitiesDescription'),
             isActive: Boolean(autoCreateVendor),
             onToggle: () => Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR, !autoCreateVendor),
             pendingAction: pendingFields?.autoCreateVendor,
@@ -106,6 +108,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
         {
             title: translate('workspace.qbo.advancedConfig.reimbursedReports'),
             subtitle: translate('workspace.qbo.advancedConfig.reimbursedReportsDescription'),
+            switchAccessibilityLabel: translate('workspace.qbo.advancedConfig.reimbursedReportsDescription'),
             isActive: isSyncReimbursedSwitchOn,
             onToggle: () =>
                 Connections.updatePolicyConnectionConfig(
@@ -143,6 +146,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                             onCloseError={item.onCloseError}
                             title={item.title}
                             subtitle={item.subtitle}
+                            switchAccessibilityLabel={item.switchAccessibilityLabel}
                             shouldPlaceSubtitleBelowSwitch
                             wrapperStyle={item.wrapperStyle}
                             isActive={item.isActive}
