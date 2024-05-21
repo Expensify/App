@@ -4,7 +4,6 @@ import Mapbox, {MarkerView, setAccessToken} from '@rnmapbox/maps';
 import {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
@@ -33,26 +32,6 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
         const {translate} = useLocalize();
         const styles = useThemeStyles();
         const theme = useTheme();
-        const centerButtonOpacity = useSharedValue(0);
-        const [shouldDisplayCenterButton, setShouldDisplayCenterButton] = useState(false);
-        const centerButtonAnimatedStyle = useAnimatedStyle(() => ({
-            opacity: centerButtonOpacity.value,
-        }));
-        const isCentering = useRef(false);
-
-        const toggleCenterButton = useCallback(
-            (toggleOn: boolean) => {
-                if (toggleOn) {
-                    setShouldDisplayCenterButton(true);
-                    centerButtonOpacity.value = withTiming(1, {duration: CONST.MAPBOX.CENTER_BUTTON_FADE_DURATION});
-                } else {
-                    isCentering.current = true;
-                    centerButtonOpacity.value = withTiming(0, {duration: CONST.MAPBOX.CENTER_BUTTON_FADE_DURATION}, () => runOnJS(setShouldDisplayCenterButton)(false));
-                }
-            },
-            [centerButtonOpacity],
-        );
-
         const cameraRef = useRef<Mapbox.Camera>(null);
         const [isIdle, setIsIdle] = useState(false);
         const [currentPosition, setCurrentPosition] = useState(cachedUserLocation);
@@ -135,22 +114,19 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                 }
 
                 if (waypoints.length === 1) {
-                    const areSameCoordinate = utils.areSameCoordinate([currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0], [...waypoints[0].coordinate]);
-                    toggleCenterButton(!areSameCoordinate);
                     cameraRef.current?.setCamera({
                         zoomLevel: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
                         animationDuration: 1500,
                         centerCoordinate: waypoints[0].coordinate,
                     });
                 } else {
-                    toggleCenterButton(false);
                     const {southWest, northEast} = utils.getBounds(
                         waypoints.map((waypoint) => waypoint.coordinate),
                         directionCoordinates,
                     );
                     cameraRef.current?.fitBounds(northEast, southWest, mapPadding, 1000);
                 }
-            }, [mapPadding, waypoints, isIdle, directionCoordinates, toggleCenterButton, currentPosition]),
+            }, [mapPadding, waypoints, isIdle, directionCoordinates, currentPosition]),
         );
 
         useEffect(() => {
@@ -165,13 +141,6 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
         }, [accessToken]);
 
         const setMapIdle = (e: MapState) => {
-            if (userInteractedWithMap) {
-                if (!isCentering.current) {
-                    toggleCenterButton(true);
-                }
-
-                isCentering.current = false;
-            }
             if (e.gestures.isGestureActive) {
                 return;
             }
@@ -184,7 +153,6 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
             if (directionCoordinates && directionCoordinates.length > 1) {
                 const {southWest, northEast} = utils.getBounds(waypoints?.map((waypoint) => waypoint.coordinate) ?? [], directionCoordinates);
                 cameraRef.current?.fitBounds(southWest, northEast, mapPadding, CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME);
-                toggleCenterButton(false);
                 return;
             }
             cameraRef?.current?.setCamera({
@@ -193,8 +161,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                 animationDuration: CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME,
                 zoomLevel: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
             });
-            toggleCenterButton(false);
-        }, [directionCoordinates, currentPosition, mapPadding, waypoints, toggleCenterButton]);
+        }, [directionCoordinates, currentPosition, mapPadding, waypoints]);
 
         const centerCoordinate = currentPosition ? [currentPosition.longitude, currentPosition.latitude] : initialState?.location;
         return !isOffline && Boolean(accessToken) && Boolean(currentPosition) ? (
@@ -203,10 +170,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                     style={{flex: 1}}
                     styleURL={styleURL}
                     onMapIdle={setMapIdle}
-                    onTouchStart={() => {
-                        setUserInteractedWithMap(true);
-                        isCentering.current = false;
-                    }}
+                    onTouchStart={() => setUserInteractedWithMap(true)}
                     pitchEnabled={pitchEnabled}
                     attributionPosition={{...styles.r2, ...styles.b2}}
                     scaleBarEnabled={false}
@@ -268,24 +232,22 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
 
                     {directionCoordinates && <Direction coordinates={directionCoordinates} />}
                 </Mapbox.MapView>
-                {shouldDisplayCenterButton && (
-                    <Animated.View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, {zIndex: 1}, centerButtonAnimatedStyle]}>
-                        <PressableWithoutFeedback
-                            accessibilityRole={CONST.ROLE.BUTTON}
-                            onPress={centerMap}
-                            accessibilityLabel="Center"
-                        >
-                            <View style={styles.primaryMediumIcon}>
-                                <Icon
-                                    width={variables.iconSizeNormal}
-                                    height={variables.iconSizeNormal}
-                                    src={Expensicons.Crosshair}
-                                    fill={theme.icon}
-                                />
-                            </View>
-                        </PressableWithoutFeedback>
-                    </Animated.View>
-                )}
+                <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, {zIndex: 1}]}>
+                    <PressableWithoutFeedback
+                        accessibilityRole={CONST.ROLE.BUTTON}
+                        onPress={centerMap}
+                        accessibilityLabel="Center"
+                    >
+                        <View style={styles.primaryMediumIcon}>
+                            <Icon
+                                width={variables.iconSizeNormal}
+                                height={variables.iconSizeNormal}
+                                src={Expensicons.Crosshair}
+                                fill={theme.icon}
+                            />
+                        </View>
+                    </PressableWithoutFeedback>
+                </View>
             </View>
         ) : (
             <PendingMapView
