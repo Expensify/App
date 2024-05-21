@@ -5195,7 +5195,7 @@ function shouldReportBeInOptionList({
 /**
  * Attempts to find a report in onyx with the provided list of participants. Does not include threads, task, expense, room, and policy expense chat.
  */
-function getChatByParticipants(newParticipantList: number[], reports: OnyxCollection<Report> = allReports): OnyxEntry<Report> {
+function getChatByParticipants(newParticipantList: number[], reports: OnyxCollection<Report> = allReports, shouldIncludeGroupChats = false): OnyxEntry<Report> {
     const sortedNewParticipantList = newParticipantList.sort();
     return (
         Object.values(reports ?? {}).find((report) => {
@@ -5209,7 +5209,7 @@ function getChatByParticipants(newParticipantList: number[], reports: OnyxCollec
                 isMoneyRequestReport(report) ||
                 isChatRoom(report) ||
                 isPolicyExpenseChat(report) ||
-                isGroupChat(report)
+                (isGroupChat(report) && !shouldIncludeGroupChats)
             ) {
                 return false;
             }

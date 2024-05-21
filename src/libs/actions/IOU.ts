@@ -3662,11 +3662,9 @@ function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string,
     // Check if the report is available locally if we do have one
     let existingSplitChatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${existingChatReportID}`];
 
-    // If we do not have one locally then we will search for a chat with the same participants (only for 1:1 chats).
-    const shouldGetOrCreateOneOneDM = participants.length < 2;
     const allParticipantsAccountIDs = [...participantAccountIDs, currentUserAccountID];
-    if (!existingSplitChatReport && shouldGetOrCreateOneOneDM) {
-        existingSplitChatReport = ReportUtils.getChatByParticipants(allParticipantsAccountIDs);
+    if (!existingSplitChatReport) {
+        existingSplitChatReport = ReportUtils.getChatByParticipants(allParticipantsAccountIDs, undefined, participantAccountIDs.length > 1);
     }
 
     // We found an existing chat report we are done...
