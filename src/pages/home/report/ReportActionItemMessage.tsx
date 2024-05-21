@@ -72,7 +72,7 @@ function ReportActionItemMessage({action, transaction, displayAsGroup, reportID,
 
     const isApprovedOrSubmittedReportAction = ReportActionsUtils.isApprovedOrSubmittedReportAction(action);
 
-    const isHoldReportAction = [CONST.REPORT.ACTIONS.TYPE.HOLD, CONST.REPORT.ACTIONS.TYPE.UNHOLD, CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT].some((type) => type === action.actionName);
+    const isHoldReportAction = [CONST.REPORT.ACTIONS.TYPE.HOLD, CONST.REPORT.ACTIONS.TYPE.UNHOLD, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT].some((type) => type === action.actionName);
 
     /**
      * Get the ReportActionItemFragments
