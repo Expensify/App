@@ -26,5 +26,10 @@ type RequestData = {
 
 type Request = RequestData & OnyxData;
 
+type PaginatedRequest = Request & {
+    isPaginated: true;
+    getSortedItemsFromResponse: (value: Response) => unknown[];
+};
+
 export default Request;
-export type {OnyxData, RequestType};
+export type {OnyxData, RequestType, PaginatedRequest};
