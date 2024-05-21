@@ -20,7 +20,7 @@ function updateNativeVersions(version: string) {
         .then(() => {
             console.log('Successfully updated Android!');
         })
-        .catch((err) => {
+        .catch((err: string | Error) => {
             console.error('Error updating Android');
             core.setFailed(err);
         });

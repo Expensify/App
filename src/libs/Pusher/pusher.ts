@@ -36,7 +36,9 @@ type PusherEventMap = {
     [TYPE.USER_IS_LEAVING_ROOM]: UserIsLeavingRoomEvent;
 };
 
-type EventData<EventName extends string> = EventName extends keyof PusherEventMap ? PusherEventMap[EventName] : OnyxUpdatesFromServer;
+type EventData<EventName extends string> = {chunk?: string; id?: string; index?: number; final?: boolean} & (EventName extends keyof PusherEventMap
+    ? PusherEventMap[EventName]
+    : OnyxUpdatesFromServer);
 
 type EventCallbackError = {type: ValueOf<typeof CONST.ERROR>; data: {code: number}};
 
@@ -164,7 +166,7 @@ function bindEventToChannel<EventName extends PusherEventName>(channel: Channel 
             return;
         }
 
-        let data;
+        let data: EventData<EventName>;
         try {
             data = isObject(eventData) ? eventData : JSON.parse(eventData);
         } catch (err) {
@@ -187,7 +189,9 @@ function bindEventToChannel<EventName extends PusherEventName>(channel: Channel 
 
         // Add it to the rolling list.
         const chunkedEvent = chunkedDataEvents[data.id];
-        chunkedEvent.chunks[data.index] = data.chunk;
+        if (data.index !== undefined) {
+            chunkedEvent.chunks[data.index] = data.chunk;
+        }
 
         // If this is the last packet, mark that we've hit the end.
         if (data.final) {
