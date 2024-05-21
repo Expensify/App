@@ -4777,6 +4777,12 @@ const CONST = {
     REFERRER: {
         NOTIFICATION: 'notification',
     },
+
+    PAGE_MARKER: {
+        START: 'start',
+        GAP: 'gap',
+        END: 'end',
+    },
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;

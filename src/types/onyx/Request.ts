@@ -28,7 +28,7 @@ type Request = RequestData & OnyxData;
 
 type PaginatedRequest = Request & {
     isPaginated: true;
-    getSortedItemsFromResponse: (value: Response) => unknown[];
+    getSortedItemsFromResponse: (value: Response) => Array<Record<string, unknown>>;
 };
 
 export default Request;
