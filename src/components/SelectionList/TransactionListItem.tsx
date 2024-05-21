@@ -19,6 +19,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 import type {SearchAccountDetails, SearchTransactionType} from '@src/types/onyx/SearchResults';
+import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import BaseListItem from './BaseListItem';
 import TextWithIconCell from './TextWithIconCell';
 import type {ListItem, TransactionListItemProps, TransactionListItemType} from './types';
@@ -72,7 +73,7 @@ function TransactionListItem<TItem extends ListItem>({
     const receiptCell = (isHovered = false) => (
         <View style={[StyleUtils.getWidthAndHeightStyle(variables.h36, variables.w40), StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusSmall), styles.overflowHidden]}>
             <ReceiptImage
-                source={transactionItem?.receipt?.source ?? ''}
+                source={tryResolveUrlFromApiRoot(transactionItem?.receipt?.source ?? '')}
                 isEReceipt={transactionItem.hasEReceipt}
                 transactionID={transactionItem.transactionID}
                 shouldUseThumbnailImage={!transactionItem?.receipt?.source}
