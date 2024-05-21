@@ -2120,7 +2120,6 @@ function getShareDestinationOptions(
             maxRecentReportsToShow: 0, // Unlimited
             includeRecentReports: true,
             includeMultipleParticipantReports: true,
-            includeP2P: false,
             showChatPreviewLine: true,
             forcePolicyNamePreview: true,
             includeThreads: true,
