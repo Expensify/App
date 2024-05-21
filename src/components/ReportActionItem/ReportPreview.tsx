@@ -358,6 +358,7 @@ function ReportPreview({
                                 </View>
                                 {shouldShowSettlementButton && (
                                     <SettlementButton
+                                        formattedAmount={getDisplayAmount() ?? ''}
                                         currency={iouReport?.currency}
                                         policyID={policyID}
                                         chatReportID={chatReportID}

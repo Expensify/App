@@ -90,6 +90,9 @@ const getDraftMessage = (drafts: OnyxCollection<OnyxTypes.ReportActionsDrafts>, 
 };
 
 type ReportActionItemOnyxProps = {
+    /** Get modal status */
+    modal: OnyxEntry<OnyxTypes.Modal>;
+
     /** IOU report for this action, if any */
     iouReport: OnyxEntry<OnyxTypes.Report>;
 
@@ -1053,6 +1056,7 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
         const prevParentReportAction = prevProps.parentReportAction;
         const nextParentReportAction = nextProps.parentReportAction;
         return (
+            prevProps.modal?.willAlertModalBecomeVisible === nextProps.modal?.willAlertModalBecomeVisible &&
             prevProps.displayAsGroup === nextProps.displayAsGroup &&
             prevProps.isMostRecentIOUReportAction === nextProps.isMostRecentIOUReportAction &&
             prevProps.shouldDisplayNewMarker === nextProps.shouldDisplayNewMarker &&

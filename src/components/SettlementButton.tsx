@@ -208,7 +208,7 @@ function SettlementButton({
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                 subMenuItems: [
                     {
-                        text: translate('iou.payElsewhere', {formattedAmount}),
+                        text: translate('iou.payElsewhere', {formattedAmount: ''}),
                         icon: Expensicons.Cash,
                         value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                         onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.ELSEWHERE),
@@ -221,7 +221,7 @@ function SettlementButton({
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                 subMenuItems: [
                     {
-                        text: translate('iou.payElsewhere', {formattedAmount}),
+                        text: translate('iou.payElsewhere', {formattedAmount: ''}),
                         icon: Expensicons.Cash,
                         value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                         onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.ELSEWHERE),
