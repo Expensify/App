@@ -167,6 +167,7 @@ const isIOUReport = (actionObj: OnyxEntry<OnyxTypes.ReportAction>): actionObj is
     actionObj?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU;
 
 function ReportActionItem({
+    modal,
     action,
     report,
     transactionThreadReport,
@@ -946,6 +947,7 @@ function ReportActionItem({
             accessible
         >
             <Hoverable
+                shouldFreezeCapture={modal?.willAlertModalBecomeVisible}
                 shouldHandleScroll
                 isDisabled={draftMessage !== undefined}
             >
@@ -1051,6 +1053,9 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
         key: ({action}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${(action as OnyxTypes.OriginalMessageIOU)?.originalMessage?.IOUTransactionID ?? 0}`,
         selector: (transaction: OnyxEntry<OnyxTypes.Transaction>) => transaction?.errorFields?.route ?? null,
     },
+    modal: {
+        key: ONYXKEYS.MODAL,
+    },
 })(
     memo(ReportActionItem, (prevProps, nextProps) => {
         const prevParentReportAction = prevProps.parentReportAction;
@@ -1087,7 +1092,8 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
             lodashIsEqual(prevProps.reportActions, nextProps.reportActions) &&
             lodashIsEqual(prevProps.transaction, nextProps.transaction) &&
             lodashIsEqual(prevProps.linkedTransactionRouteError, nextProps.linkedTransactionRouteError) &&
-            lodashIsEqual(prevParentReportAction, nextParentReportAction)
+            lodashIsEqual(prevParentReportAction, nextParentReportAction) &&
+            prevProps.modal?.willAlertModalBecomeVisible === nextProps.modal?.willAlertModalBecomeVisible
         );
     }),
 );
