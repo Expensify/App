@@ -84,11 +84,13 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
     } | null>(null);
 
     useEffect(() => {
-        if (!navigateBackToPreviousScreenTask.current) {
-            return;
-        }
+        return () => {
+            if (!navigateBackToPreviousScreenTask.current) {
+                return;
+            }
 
-        navigateBackToPreviousScreenTask.current.cancel();
+            navigateBackToPreviousScreenTask.current.cancel();
+        };
     }, []);
 
     const navigateBackToPreviousScreen = useCallback(() => Navigation.goBack(), []);
