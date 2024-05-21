@@ -68,43 +68,6 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
                             onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.getRoute(reportID))}
                         />
                     )}
-                    {shouldShowRoomName && (
-                        <OfflineWithFeedback
-                            pendingAction={report?.pendingFields?.reportName}
-                            errors={report?.errorFields?.reportName}
-                            errorRowStyles={[styles.ph5]}
-                            onClose={() => ReportActions.clearPolicyRoomNameErrors(reportID)}
-                        >
-                            {shouldDisableRename ? (
-                                <View style={[styles.ph5, styles.pv3]}>
-                                    <Text
-                                        style={[styles.textLabelSupporting, styles.lh16, styles.mb1]}
-                                        numberOfLines={1}
-                                    >
-                                        {roomNameLabel}
-                                    </Text>
-                                    <DisplayNames
-                                        fullTitle={reportName ?? ''}
-                                        tooltipEnabled
-                                        numberOfLines={1}
-                                        textStyles={[styles.optionAlternateText, styles.pre]}
-                                        shouldUseFullTitle
-                                    />
-                                </View>
-                            ) : (
-                                <MenuItemWithTopDescription
-                                    shouldShowRightIcon
-                                    title={report?.reportName === '' ? reportName : report?.reportName}
-                                    description={isGroupChat ? translate('common.name') : translate('newRoomPage.roomName')}
-                                    onPress={() =>
-                                        isGroupChat
-                                            ? Navigation.navigate(ROUTES.REPORT_SETTINGS_GROUP_NAME.getRoute(reportID))
-                                            : Navigation.navigate(ROUTES.REPORT_SETTINGS_ROOM_NAME.getRoute(reportID))
-                                    }
-                                />
-                            )}
-                        </OfflineWithFeedback>
-                    )}
                     {shouldShowWriteCapability &&
                         (shouldAllowWriteCapabilityEditing ? (
                             <MenuItemWithTopDescription
@@ -129,25 +92,6 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
                                 </Text>
                             </View>
                         ))}
-                    <View style={[styles.ph5]}>
-                        {linkedWorkspace !== null && (
-                            <View style={[styles.pv3]}>
-                                <Text
-                                    style={[styles.textLabelSupporting, styles.lh16, styles.mb1]}
-                                    numberOfLines={1}
-                                >
-                                    {translate('workspace.common.workspace')}
-                                </Text>
-                                <DisplayNames
-                                    fullTitle={linkedWorkspace.name}
-                                    tooltipEnabled
-                                    numberOfLines={1}
-                                    textStyles={[styles.optionAlternateText, styles.pre]}
-                                    shouldUseFullTitle
-                                />
-                            </View>
-                        )}
-                    </View>
                     {!!report?.visibility &&
                         report.chatType !== CONST.REPORT.CHAT_TYPE.INVOICE &&
                         (shouldAllowChangeVisibility ? (
