@@ -39,6 +39,10 @@ function ReportListItem<TItem extends ListItem>({
 
     const listItemPressableStyle = [styles.selectionListPressableItemWrapper, styles.pv3, item.isSelected && styles.activeComponentBG, isFocused && styles.sidebarLinkActive];
 
+    const handleOnButtonPress = () => {
+        onSelectRow(item);
+    };
+
     const totalCell = (
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
@@ -50,9 +54,7 @@ function ReportListItem<TItem extends ListItem>({
     const actionCell = (
         <Button
             text={translate('common.view')}
-            onPress={() => {
-                onSelectRow(item);
-            }}
+            onPress={handleOnButtonPress}
             small
             pressOnEnter
             style={[styles.p0]}
@@ -60,9 +62,11 @@ function ReportListItem<TItem extends ListItem>({
     );
 
     if (reportItem.transactions.length === 1) {
+        const transactionItem = reportItem.transactions[0] as unknown as TItem;
+
         return (
             <TransactionListItem
-                item={reportItem.transactions[0]}
+                item={transactionItem}
                 isFocused={isFocused}
                 showTooltip={showTooltip}
                 isDisabled={isDisabled}
@@ -105,14 +109,12 @@ function ReportListItem<TItem extends ListItem>({
                             participantFrom={participantFrom}
                             participantTo={participantTo}
                             buttonText={translate('common.view')}
-                            onButtonPress={() => {
-                                onSelectRow(item);
-                            }}
+                            onButtonPress={handleOnButtonPress}
                         />
                     )}
                     <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, isLargeScreenWidth && styles.mr4]}>
                         <View style={[styles.flexRow, styles.flex1, styles.alignItemsCenter, styles.justifyContentBetween, isLargeScreenWidth && {marginRight: 52}]}>
-                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex2]}>
                                 {canSelectMultiple && (
                                     <ListItemCheckbox
                                         accessibilityLabel={item.text}
@@ -128,7 +130,7 @@ function ReportListItem<TItem extends ListItem>({
                                     <Text style={[styles.textMicroSupporting]}>{`${reportItem.transactions.length} grouped expenses`}</Text>
                                 </View>
                             </View>
-                            {totalCell}
+                            <View style={[styles.flexRow, styles.flex1, styles.justifyContentEnd]}>{totalCell}</View>
                         </View>
                         {isLargeScreenWidth && <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.ACTION)]}>{actionCell}</View>}
                     </View>
@@ -136,11 +138,10 @@ function ReportListItem<TItem extends ListItem>({
                     {reportItem.transactions.map((transaction) => (
                         <TransactionListItemRow
                             item={transaction}
-                            isFocused={isFocused}
                             showTooltip={showTooltip}
                             isDisabled={!!isDisabled}
                             canSelectMultiple={!!canSelectMultiple}
-                            onSelectRow={onSelectRow}
+                            onButtonPress={handleOnButtonPress}
                             showItemHeaderOnNarrowLayout={false}
                             containerStyle={styles.mt3}
                         />

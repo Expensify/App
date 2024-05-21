@@ -16,7 +16,7 @@ function TransactionListItem<TItem extends ListItem>({
     shouldPreventDefaultFocusOnSelectRow,
     onFocus,
     shouldSyncFocus,
-}: TransactionListItemProps<TItem>) {
+}: TransactionListItemProps<TItem>) { 
     const transactionItem = item as unknown as TransactionListItemType;
     const styles = useThemeStyles();
 
@@ -56,7 +56,9 @@ function TransactionListItem<TItem extends ListItem>({
                     isDisabled={!!isDisabled}
                     canSelectMultiple={!!canSelectMultiple}
                     showTooltip={showTooltip}
-                    onSelectRow={onSelectRow}
+                    onButtonPress={() => {
+                        onSelectRow(item);
+                    }}
                 />
             )}
         </BaseListItem>

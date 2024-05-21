@@ -25,6 +25,11 @@ type SearchProps = {
     policyIDs?: string;
 };
 
+function isSearchReport(item: SearchReport | SearchTransaction): item is SearchTransaction {
+    const searchTransactionItem = item as SearchTransaction;
+    return searchTransactionItem.transactionID !== undefined && searchTransactionItem.transactionThreadReportID !== undefined;
+}
+
 function Search({query, policyIDs}: SearchProps) {
     const [selectedItems, setSelectedItems] = useState<Array<SearchTransaction | SearchReport>>([]);
     const {isOffline} = useNetwork();
@@ -80,7 +85,13 @@ function Search({query, policyIDs}: SearchProps) {
     }
 
     const toggleListItem = (listItem: SearchTransaction | SearchReport) => {
-        console.log(listItem);
+        // @TODO: Selecting checkboxes will be handled in a separate PR
+        if (isSearchReport(listItem)) {
+            Log.info(listItem.transactionID.toString());
+            return;
+        }
+
+        Log.info(listItem.reportID?.toString() ?? '');
     };
 
     const ListItem = SearchUtils.getListItem(type);
@@ -88,13 +99,14 @@ function Search({query, policyIDs}: SearchProps) {
     const data = SearchUtils.getSections(
         {
             ...searchResults?.data,
-            report_0: {
-                reportID: 0,
-                reportName: 'Alice’s Apples owes $110.00',
-                total: 1000,
-                currency: 'USD',
-                action: 'pay',
-            },
+            // @TODO: Remove this comment when report items are returned from the API, uncomment it to test whether ReportListItem is displayed properly.
+            // report_0: {
+            //     reportID: 0,
+            //     reportName: 'Alice’s Apples owes $110.00',
+            //     total: 1000,
+            //     currency: 'USD',
+            //     action: 'pay',
+            // },
         } ?? {},
         type,
     );
@@ -116,11 +128,12 @@ function Search({query, policyIDs}: SearchProps) {
             ListItem={ListItem}
             sections={[{data, isDisabled: false}]}
             onSelectRow={(item) => {
-                if (!item?.transactionThreadReportID) {
+                if (isSearchReport(item)) {
+                    openReport(item.transactionThreadReportID);
                     return;
                 }
 
-                openReport(item.transactionThreadReportID);
+                openReport(item.reportID);
             }}
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
             listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}

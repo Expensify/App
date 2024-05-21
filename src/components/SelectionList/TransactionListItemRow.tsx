@@ -1,5 +1,6 @@
 import React from 'react';
-import {StyleProp, View, ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
@@ -18,7 +19,7 @@ import type {Transaction} from '@src/types/onyx';
 import type {SearchTransactionType} from '@src/types/onyx/SearchResults';
 import ExpenseItemHeader from './ExpenseItemHeader';
 import TextWithIconCell from './TextWithIconCell';
-import type {ListItem, TransactionListItemType} from './types';
+import type {TransactionListItemType} from './types';
 import UserInfoCell from './UserInfoCell';
 
 type TransactionListItemRowProps = {
@@ -26,7 +27,7 @@ type TransactionListItemRowProps = {
     showTooltip: boolean;
     isDisabled: boolean;
     canSelectMultiple: boolean;
-    onSelectRow: (item: ListItem) => void;
+    onButtonPress: () => void;
     showItemHeaderOnNarrowLayout?: boolean;
     containerStyle?: StyleProp<ViewStyle>;
 };
@@ -44,7 +45,7 @@ const getTypeIcon = (type?: SearchTransactionType) => {
     }
 };
 
-function TransactionListItemRow({item, showTooltip, isDisabled, canSelectMultiple, onSelectRow, showItemHeaderOnNarrowLayout = true, containerStyle}: TransactionListItemRowProps) {
+function TransactionListItemRow({item, showTooltip, isDisabled, canSelectMultiple, onButtonPress, showItemHeaderOnNarrowLayout = true, containerStyle}: TransactionListItemRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -137,9 +138,7 @@ function TransactionListItemRow({item, showTooltip, isDisabled, canSelectMultipl
     const actionCell = (
         <Button
             text={translate('common.view')}
-            onPress={() => {
-                onSelectRow(item);
-            }}
+            onPress={onButtonPress}
             small
             pressOnEnter
             style={[styles.p0]}
@@ -154,9 +153,7 @@ function TransactionListItemRow({item, showTooltip, isDisabled, canSelectMultipl
                         participantFrom={item.from}
                         participantTo={item.to}
                         buttonText={translate('common.view')}
-                        onButtonPress={() => {
-                            onSelectRow(item);
-                        }}
+                        onButtonPress={onButtonPress}
                     />
                 )}
 
