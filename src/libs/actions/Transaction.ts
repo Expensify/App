@@ -336,6 +336,10 @@ function setReviewDuplicatesKey(values: Partial<ReviewDuplicates>) {
     });
 }
 
+function abandonReviewDuplicateTransactions() {
+    Onyx.set(ONYXKEYS.REVIEW_DUPLICATES, null);
+}
+
 function clearError(transactionID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {errors: null, errorFields: {route: null}});
 }
@@ -388,4 +392,16 @@ function markAsCash(transactionID: string, transactionThreadReportID: string, ex
     return API.write(WRITE_COMMANDS.MARK_AS_CASH, parameters, onyxData);
 }
 
-export {addStop, createInitialWaypoints, saveWaypoint, removeWaypoint, getRoute, updateWaypoints, clearError, markAsCash, dismissDuplicateTransactionViolation, setReviewDuplicatesKey};
+export {
+    addStop,
+    createInitialWaypoints,
+    saveWaypoint,
+    removeWaypoint,
+    getRoute,
+    updateWaypoints,
+    clearError,
+    markAsCash,
+    dismissDuplicateTransactionViolation,
+    setReviewDuplicatesKey,
+    abandonReviewDuplicateTransactions,
+};

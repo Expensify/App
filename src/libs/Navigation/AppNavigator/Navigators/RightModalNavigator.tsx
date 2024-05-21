@@ -1,3 +1,4 @@
+import {useNavigation} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import {createStackNavigator} from '@react-navigation/stack';
 import React, {useMemo, useRef} from 'react';
@@ -5,6 +6,7 @@ import {View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {abandonReviewDuplicateTransactions} from '@libs/actions/Transaction';
 import ModalNavigatorScreenOptions from '@libs/Navigation/AppNavigator/ModalNavigatorScreenOptions';
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
 import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigation/types';
@@ -16,7 +18,7 @@ type RightModalNavigatorProps = StackScreenProps<AuthScreensParamList, typeof NA
 
 const Stack = createStackNavigator<RightModalNavigatorParamList>();
 
-function RightModalNavigator({navigation}: RightModalNavigatorProps) {
+function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
     const screenOptions = useMemo(() => ModalNavigatorScreenOptions(styles), [styles]);
@@ -36,7 +38,18 @@ function RightModalNavigator({navigation}: RightModalNavigatorProps) {
                 />
             )}
             <View style={styles.RHPNavigatorContainer(isSmallScreenWidth)}>
-                <Stack.Navigator screenOptions={screenOptions}>
+                <Stack.Navigator
+                    screenOptions={screenOptions}
+                    screenListeners={{
+                        blur: () => {
+                            if (route.params.screen !== SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE) {
+                                return;
+                            }
+
+                            abandonReviewDuplicateTransactions();
+                        },
+                    }}
+                >
                     <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.SETTINGS}
                         component={ModalStackNavigators.SettingsModalStackNavigator}
