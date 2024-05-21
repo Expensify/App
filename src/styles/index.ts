@@ -4335,11 +4335,11 @@ const styles = (theme: ThemeColors) =>
 
         emojiStatusLHN: {
             fontSize: 9,
-            ...(Browser.getBrowser() && !Browser.isMobile() && {transform: 'scale(.65)', lineHeight: 18, fontSize: 15, overflow: 'visible'}),
+            ...(Browser.getBrowser() && !Browser.isMobile() && {transform: 'scale(.5)', fontSize: 22, overflow: 'visible'}),
             ...(Browser.getBrowser() &&
                 Browser.isSafari() &&
                 !Browser.isMobile() && {
-                    transform: 'scale(0.65)',
+                    transform: 'scale(0.7)',
                     fontSize: 13,
                     lineHeight: 15,
                     overflow: 'visible',
