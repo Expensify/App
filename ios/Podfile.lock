@@ -1731,7 +1731,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNCPicker (2.6.1):
+  - RNCPicker (2.7.6):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -2545,7 +2545,7 @@ SPEC CHECKSUMS:
   ReactCommon: 840a955d37b7f3358554d819446bffcf624b2522
   RNAppleAuthentication: 0571c08da8c327ae2afc0261b48b4a515b0286a6
   RNCClipboard: 081418ae3b391b1012c3f41d045e5e39f1beed71
-  RNCPicker: a37026a67de0cf1a33ffe8722783527e3b18ea9f
+  RNCPicker: 106d11a1c159ce937009b2bd52db2bdb1577454f
   RNDeviceInfo: 449272e9faf2afe94a3fe2896d169e92277fffa8
   RNDevMenu: 72807568fe4188bd4c40ce32675d82434b43c45d
   RNFBAnalytics: f76bfa164ac235b00505deb9fc1776634056898c
