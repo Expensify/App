@@ -132,11 +132,11 @@ function ReportActionsView({
 
     useEffect(() => {
         // When we linked to message - we do not need to wait for initial actions - they already exists
-        if (!(isNavigatingToLinkedMessage && isOffline)) {
+        if (!reportActionID || !isOffline) {
             return;
         }
         Report.updateLoadingInitialReportAction(report.reportID);
-    }, [isNavigatingToLinkedMessage, isOffline, report.reportID]);
+    }, [isOffline, report.reportID, reportActionID]);
 
     useLayoutEffect(() => {
         setCurrentReportActionID('');
