@@ -179,6 +179,8 @@ export default {
     eReceiptMCCHeightWidth: 40,
     eReceiptIconHeightSmall: 65,
     eReceiptIconWidthSmall: 46,
+    eReceiptIconHeightXSmall: 24,
+    eReceiptIconWidthXSmall: 20,
     eReceiptMCCHeightWidthSmall: 26,
     eReceiptIconHeightMedium: 82,
     eReceiptIconWidthMedium: 59,

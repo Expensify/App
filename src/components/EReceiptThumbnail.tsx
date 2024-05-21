@@ -75,8 +75,8 @@ function EReceiptThumbnail({transaction, borderRadius, fileExtension, isReceiptT
     let backgroundImageMinWidth: number = variables.eReceiptBackgroundImageMinWidth;
 
     if (iconSize === 'x-small') {
-        receiptIconWidth = variables.iconSizeNormal;
-        receiptIconHeight = variables.iconSizeLarge;
+        receiptIconWidth = variables.eReceiptIconWidthXSmall;
+        receiptIconHeight = variables.eReceiptIconHeightXSmall;
         receiptMCCSize = variables.iconSizeXSmall;
         labelFontSize = variables.fontSizeExtraSmall;
         labelLineHeight = variables.lineHeightXSmall;
