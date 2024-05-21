@@ -37,12 +37,13 @@ const PromotedActions = {
         icon: Expensicons.CommentBubbles,
         text: Localize.translateLocal('common.message'),
         onSelected: () => {
-            if (accountID) {
-                ReportActions.navigateToAndOpenReportWithAccountIDs([accountID]);
-                return;
-            }
+            // The accountID might be optimistic, so we should use the login if we have it
             if (login) {
                 ReportActions.navigateToAndOpenReport([login]);
+                return;
+            }
+            if (accountID) {
+                ReportActions.navigateToAndOpenReportWithAccountIDs([accountID]);
             }
         },
     }),

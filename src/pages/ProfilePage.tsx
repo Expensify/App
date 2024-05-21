@@ -98,26 +98,27 @@ function ProfilePage({route}: ProfilePageProps) {
     const loginParams = route.params?.login;
 
     const details = useMemo((): PersonalDetails | EmptyObject => {
+        // Check if we have the personal details already in Onyx
         if (personalDetails?.[accountID]) {
             return personalDetails?.[accountID] ?? {};
         }
-        if (ValidationUtils.isValidAccountRoute(accountID)) {
+        // Check if we have the login param
+        if (!loginParams) {
             return {};
         }
-        if (!loginParams) {
-            return {accountID: 0, avatar: ''};
-        }
+        // Look up the personal details by login
         const foundDetails = Object.values(personalDetails ?? {}).find((personalDetail) => personalDetail?.login === loginParams?.toLowerCase());
         if (foundDetails) {
             return foundDetails;
         }
+        // If we don't have the personal details in Onyx, we can create an optimistic account
         const optimisticAccountID = UserUtils.generateAccountID(loginParams);
-        return {accountID: optimisticAccountID, login: loginParams, displayName: loginParams, avatar: UserUtils.getDefaultAvatar(optimisticAccountID)};
+        return {accountID: optimisticAccountID, login: loginParams, displayName: loginParams};
     }, [accountID, personalDetails, loginParams]);
 
     const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(details, undefined, undefined, isCurrentUser);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const avatar = details?.avatar || UserUtils.getDefaultAvatar(); // we can have an empty string and in this case, we need to show the default avatar
+    const avatar = details?.avatar; // we can have an empty string and in this case, we need to show the default avatar
     const fallbackIcon = details?.fallbackIcon ?? '';
     const login = details?.login ?? '';
     const timezone = details?.timezone;
@@ -137,7 +138,7 @@ function ProfilePage({route}: ProfilePageProps) {
     const phoneNumber = getPhoneNumber(details);
     const phoneOrEmail = isSMSLogin ? getPhoneNumber(details) : login;
 
-    const hasMinimumDetails = !isEmptyObject(details.avatar);
+    const hasMinimumDetails = !!avatar || !!loginParams;
     const isLoading = Boolean(personalDetailsMetadata?.[accountID]?.isLoading) || isEmptyObject(details);
 
     // If the API returns an error for some reason there won't be any details and isLoading will get set to false, so we want to show a blocking screen
@@ -158,10 +159,10 @@ function ProfilePage({route}: ProfilePageProps) {
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
-        if (ValidationUtils.isValidAccountRoute(accountID)) {
+        if (ValidationUtils.isValidAccountRoute(accountID) && !loginParams) {
             PersonalDetailsActions.openPublicProfilePage(accountID);
         }
-    }, [accountID]);
+    }, [accountID, loginParams]);
 
     const promotedActions = useMemo(() => {
         const result: PromotedAction[] = [];

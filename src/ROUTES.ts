@@ -42,7 +42,7 @@ const ROUTES = {
     CHAT_FINDER: 'chat-finder',
     PROFILE: {
         route: 'a/:accountID',
-        getRoute: (accountID?: string | number, login?: string, backTo?: string) => {
+        getRoute: (accountID?: string | number, backTo?: string, login?: string) => {
             const baseRoute = getUrlWithBackToParam(`a/${accountID}`, backTo);
             const loginParam = login ? `?login=${encodeURIComponent(login)}` : '';
             return `${baseRoute}${loginParam}` as const;
