@@ -22,14 +22,10 @@ type RequestData = {
     resolve?: (value: Response) => void;
     reject?: (value?: unknown) => void;
     shouldSkipWebProxy?: boolean;
+    isPaginated?: boolean;
 };
 
 type Request = RequestData & OnyxData;
 
-type PaginatedRequest = Request & {
-    isPaginated: true;
-    getSortedItemsFromResponse: (value: Response) => Array<Record<string, unknown>>;
-};
-
 export default Request;
-export type {OnyxData, RequestType, PaginatedRequest};
+export type {OnyxData, RequestType};

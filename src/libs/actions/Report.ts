@@ -99,6 +99,7 @@ import type {Decision, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage
 import type {NotificationPreference, Participants, Participant as ReportParticipant, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
 import type Report from '@src/types/onyx/Report';
 import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
+import type ReportActionsPages from '@src/types/onyx/ReportActionsPages';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CachedPDFPaths from './CachedPDFPaths';
@@ -277,6 +278,13 @@ let quickAction: OnyxEntry<QuickAction> = {};
 Onyx.connect({
     key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
     callback: (val) => (quickAction = val),
+});
+
+let reportActionsPages: OnyxCollection<ReportActionsPages> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES,
+    waitForCollectionCallback: true,
+    callback: (pages) => (reportActionsPages = pages),
 });
 
 function clearGroupChat() {
@@ -3731,6 +3739,11 @@ function dismissTrackExpenseActionableWhisper(reportID: string, reportAction: On
 
 function setGroupDraft(newGroupDraft: Partial<NewGroupChatDraft>) {
     Onyx.merge(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, newGroupDraft);
+}
+
+function handleNewPageOfReportActions(reportID: string, pageStart: number, pageEnd: number) {
+    const pagesForReport = reportActionsPages?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${reportID}`] ?? [];
+    const newPage = [pageStart, pageEnd];
 }
 
 export {
