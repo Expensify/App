@@ -23,12 +23,15 @@ function DuplicateTransactionItem(props: DuplicateTransactionItemProps) {
         (reportAction) => reportAction.actionName === 'IOU' && reportAction.originalMessage.IOUTransactionID === props.transaction?.transactionID,
     ) as ReportAction;
 
+    if (!action || !report) {
+        return null;
+    }
+
     return (
         <View style={styles.pb2}>
             <ReportActionItem
                 action={action}
-                // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                report={report as Report}
+                report={report}
                 parentReportAction={parentReportAction}
                 index={props.index}
                 reportActions={Object.values(reportActions ?? {})}
