@@ -103,7 +103,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         return !pendingMember || pendingMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? accountID : [];
     });
 
-    const isGroupDMChat = useMemo(() => ReportUtils.isDM(report) && participants.length > 1, [report, participants.length]);
     const isPrivateNotesFetchTriggered = report?.isLoadingPrivateNotes !== undefined;
 
     const isSelfDM = useMemo(() => ReportUtils.isSelfDM(report), [report]);
@@ -124,16 +123,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
         if (isSelfDM) {
             return [];
-        }
-
-        if (!isGroupDMChat) {
-            items.push({
-                key: CONST.REPORT_DETAILS_MENU_ITEM.SHARE_CODE,
-                translationKey: 'common.shareCode',
-                icon: Expensicons.QrCode,
-                isAnonymousAction: true,
-                action: () => Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.getRoute(report?.reportID ?? '')),
-            });
         }
 
         if (isArchivedRoom) {
@@ -203,22 +192,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         }
 
         return items;
-    }, [
-        isSelfDM,
-        isGroupDMChat,
-        isArchivedRoom,
-        isGroupChat,
-        isDefaultRoom,
-        isChatThread,
-        isPolicyEmployee,
-        isUserCreatedPolicyRoom,
-        participants.length,
-        report,
-        isMoneyRequestReport,
-        isInvoiceReport,
-        activeChatMembers.length,
-        session,
-    ]);
+    }, [isSelfDM, isArchivedRoom, isGroupChat, isDefaultRoom, isChatThread, isPolicyEmployee, isUserCreatedPolicyRoom, participants.length, report, isMoneyRequestReport, isInvoiceReport, activeChatMembers.length, session]);
 
     const displayNamesWithTooltips = useMemo(() => {
         const hasMultipleParticipants = participants.length > 1;
