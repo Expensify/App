@@ -36,7 +36,7 @@ function Confirm() {
     };
 
     const mergeDuplicates = () => {
-        IOU.mergeDuplicates({...transaction}, reviewDuplicates?.duplicates);
+        IOU.mergeDuplicates({...reviewDuplicates}, reviewDuplicates?.duplicates);
     };
 
     return (

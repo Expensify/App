@@ -23,6 +23,7 @@ import type {
     StartSplitBillParams,
     SubmitReportParams,
     TrackExpenseParams,
+    TransactionMergeParams,
     UpdateMoneyRequestParams,
 } from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -6791,18 +6792,26 @@ function getIOURequestPolicyID(transaction: OnyxEntry<OnyxTypes.Transaction>, re
     return workspaceSender?.policyID ?? report?.policyID ?? '0';
 }
 
-function mergeDuplicates(reviewDuplicates: OnyxEntry<OnyxTypes.ReviewDuplicates>, duplicates: string[]) {
-    const params = {
-        ...reviewDuplicates,
-        transactionIDs: duplicates.join(','),
+function mergeDuplicates(params: TransactionMergeParams) {
+    const {transactionID, ...restParams} = params;
+
+    const optimisticTransactionData: OnyxUpdate = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+        value: {
+            ...restParams,
+        },
     };
 
-    console.log('reviewDuplicates', reviewDuplicates);
-    console.log('params', params);
+    const optimisticTransactionDuplicatesData: OnyxUpdate[] = params.transactionIDs.split(',').map((id) => ({
+        onyxMethod: Onyx.METHOD.SET,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${id}`,
+        value: null,
+    }));
 
-    const optimisticData: OnyxUpdate[] = [];
+    const optimisticData: OnyxUpdate[] = [...optimisticTransactionDuplicatesData, optimisticTransactionData];
     const failureData: OnyxUpdate[] = [];
-    API.write(WRITE_COMMANDS.MERGE_DUPLICATES, params, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.TRANSACTION_MERGE, params, {optimisticData, failureData});
 }
 
 export {

@@ -223,4 +223,4 @@ export type {default as DismissViolationParams} from './DismissViolationParams';
 export type {default as SearchParams} from './Search';
 export type {default as SendInvoiceParams} from './SendInvoiceParams';
 export type {default as MarkAsCashParams} from './MarkAsCashParams';
-export type {default as MergeDuplicatesParams} from './MergeDuplicatesParams';
+export type {default as TransactionMergeParams} from './TransactionMergeParams';
