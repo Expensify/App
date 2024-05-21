@@ -6,7 +6,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import type {LngLatLike, MapRef} from 'react-map-gl';
+import type {MapRef} from 'react-map-gl';
 import Map, {Marker} from 'react-map-gl';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -155,7 +155,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                 directionCoordinates,
             );
             map.fitBounds([northEast, southWest], {padding: mapPadding});
-        }, [waypoints, mapRef, mapPadding, directionCoordinates, toggleCenterButton, currentPosition]);
+        }, [waypoints, mapRef, mapPadding, directionCoordinates]);
 
         useEffect(resetBoundaries, [resetBoundaries]);
 
