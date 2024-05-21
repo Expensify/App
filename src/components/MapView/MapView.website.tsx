@@ -6,7 +6,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import type {MapRef} from 'react-map-gl';
+import type {LngLatLike, MapRef} from 'react-map-gl';
 import Map, {Marker} from 'react-map-gl';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -142,8 +142,6 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
             }
 
             if (waypoints.length === 1) {
-                const areSameCoordinate = utils.areSameCoordinate([currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0], [...waypoints[0].coordinate]);
-                toggleCenterButton(!areSameCoordinate);
                 mapRef.flyTo({
                     center: waypoints[0].coordinate,
                     zoom: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
@@ -152,7 +150,6 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
             }
 
             const map = mapRef.getMap();
-            toggleCenterButton(false);
             const {northEast, southWest} = utils.getBounds(
                 waypoints.map((waypoint) => waypoint.coordinate),
                 directionCoordinates,
@@ -211,7 +208,6 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                 const {northEast, southWest} = utils.getBounds(waypoints?.map((waypoint) => waypoint.coordinate) ?? [], directionCoordinates);
                 const map = mapRef?.getMap();
                 map?.fitBounds([southWest, northEast], {padding: mapPadding, animate: true, duration: CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME, maxZoom: currentZoom});
-                toggleCenterButton(false);
                 return;
             }
 
@@ -222,9 +218,23 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                 animate: true,
                 duration: CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME,
             });
-
-            toggleCenterButton(false);
         }, [directionCoordinates, currentPosition, mapRef, waypoints, mapPadding, toggleCenterButton]);
+        const handleOnIdle = () => {
+            const map = mapRef?.getMap();
+            if (!map) {
+                return;
+            }
+
+            if (directionCoordinates && directionCoordinates.length > 1) {
+                const ne = map.getBounds().getNorthEast();
+                const sw = map.getBounds().getSouthWest();
+                const {northEast, southWest} = utils.getBounds(waypoints?.map((waypoint) => waypoint.coordinate) ?? [], directionCoordinates);
+                toggleCenterButton(!(utils.areSameCoordinate(northEast, [ne.lng, ne.lat]) && utils.areSameCoordinate(southWest, [sw.lng, sw.lat])));
+                return;
+            }
+            const centerCoordinate = map.getCenter();
+            toggleCenterButton(!utils.areSameCoordinate([centerCoordinate.lat, centerCoordinate.lng], [currentPosition?.latitude ?? 0, currentPosition?.longitude ?? 0]));
+        };
 
         return !isOffline && Boolean(accessToken) && Boolean(currentPosition) ? (
             <View
@@ -233,8 +243,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                 {...responder.panHandlers}
             >
                 <Map
-                    onDrag={() => setUserInteractedWithMap(true)}
-                    onDragEnd={() => toggleCenterButton(true)}
+                    onIdle={handleOnIdle}
                     ref={setRef}
                     mapLib={mapboxgl}
                     mapboxAccessToken={accessToken}

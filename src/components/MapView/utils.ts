@@ -12,8 +12,25 @@ function getBounds(waypoints: Array<[number, number]>, directionCoordinates: und
     };
 }
 
+function haversineDistance(coordinate1: number[], coordinate2: number[]) {
+    // Radius of the Earth in meters
+    const R = 6371e3;
+    const lat1 = (coordinate1[0] * Math.PI) / 180;
+    const lat2 = (coordinate2[0] * Math.PI) / 180;
+    const deltaLat = ((coordinate2[0] - coordinate1[0]) * Math.PI) / 180;
+    const deltaLon = ((coordinate2[1] - coordinate1[1]) * Math.PI) / 180;
+
+    const a = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) + Math.cos(lat1) * Math.cos(lat2) * Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
+
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    // Distance in meters
+    const distance = R * c;
+    return distance;
+}
+
 function areSameCoordinate(coordinate1: number[], coordinate2: number[]) {
-    return parseFloat(coordinate1[0].toFixed(4)) === parseFloat(coordinate2[0].toFixed(4)) && parseFloat(coordinate1[1].toFixed(4)) === parseFloat(coordinate2[1].toFixed(4));
+    return haversineDistance(coordinate1, coordinate2) < 20;
 }
 
 export default {
