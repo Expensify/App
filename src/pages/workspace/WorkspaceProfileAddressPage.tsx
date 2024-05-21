@@ -2,6 +2,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
 import type {FormOnyxValues} from '@components/Form/types';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AddressPage from '@pages/AddressPage';
@@ -17,6 +18,7 @@ type WorkspaceProfileAddressPagePolicyProps = WithPolicyProps;
 type WorkspaceProfileAddressPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ADDRESS> & WorkspaceProfileAddressPagePolicyProps;
 
 function WorkspaceProfileAddressPage({policy}: WorkspaceProfileAddressPageProps) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const address: Address = useMemo(() => {
         const tempAddress = policy?.address;

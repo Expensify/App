@@ -68,7 +68,7 @@ function TabSelector({state, navigation, onTabPress = () => {}, position}: TabSe
                 return position.interpolate({
                     inputRange,
                     outputRange: inputRange.map((i) => (affectedTabs.includes(tabIndex) && i === tabIndex ? theme.border : theme.appBG)),
-                });
+                }) as unknown as Animated.AnimatedInterpolation<string>;
             }
             return theme.border;
         },
