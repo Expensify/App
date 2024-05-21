@@ -1,3 +1,4 @@
+import lodashIsEqual from 'lodash/isEqual';
 import type {RefObject} from 'react';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -229,5 +230,21 @@ function PopoverMenu({
 
 PopoverMenu.displayName = 'PopoverMenu';
 
-export default React.memo(PopoverMenu);
+export default React.memo(
+    PopoverMenu,
+    (prevProps, nextProps) =>
+        !lodashIsEqual(prevProps.menuItems, nextProps.menuItems) &&
+        prevProps.isVisible === nextProps.isVisible &&
+        lodashIsEqual(prevProps.anchorPosition, nextProps.anchorPosition) &&
+        prevProps.anchorRef === nextProps.anchorRef &&
+        prevProps.headerText === nextProps.headerText &&
+        prevProps.fromSidebarMediumScreen === nextProps.fromSidebarMediumScreen &&
+        lodashIsEqual(prevProps.anchorAlignment, nextProps.anchorAlignment) &&
+        prevProps.animationIn === nextProps.animationIn &&
+        prevProps.animationOut === nextProps.animationOut &&
+        prevProps.animationInTiming === nextProps.animationInTiming &&
+        prevProps.disableAnimation === nextProps.disableAnimation &&
+        prevProps.withoutOverlay === nextProps.withoutOverlay &&
+        prevProps.shouldSetModalVisibility === nextProps.shouldSetModalVisibility,
+);
 export type {PopoverMenuItem, PopoverMenuProps};
