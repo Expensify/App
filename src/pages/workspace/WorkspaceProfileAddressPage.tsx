@@ -18,7 +18,6 @@ type WorkspaceProfileAddressPagePolicyProps = WithPolicyProps;
 type WorkspaceProfileAddressPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ADDRESS> & WorkspaceProfileAddressPagePolicyProps;
 
 function WorkspaceProfileAddressPage({policy}: WorkspaceProfileAddressPageProps) {
-    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const address: Address = useMemo(() => {
         const tempAddress = policy?.address;
