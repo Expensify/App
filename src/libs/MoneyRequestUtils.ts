@@ -40,10 +40,10 @@ function addLeadingZero(amount: string): string {
 /**
  * Calculate the length of the amount with leading zeroes
  */
-function calculateAmountLength(amount: string, decimals: number): number {
+function calculateAmountLength(amount: string): number {
     const leadingZeroes = amount.match(/^0+/);
     const leadingZeroesLength = leadingZeroes?.[0]?.length ?? 0;
-    const absAmount = parseFloat((Number(stripCommaFromAmount(amount)) * 10 ** decimals).toFixed(2)).toString();
+    const absAmount = parseFloat((Number(stripCommaFromAmount(amount)) * 100).toFixed(2)).toString();
 
     if (/\D/.test(absAmount)) {
         return CONST.IOU.AMOUNT_MAX_LENGTH + 1;
