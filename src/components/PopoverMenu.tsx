@@ -95,7 +95,7 @@ function PopoverMenu({
     disableAnimation = true,
     withoutOverlay = false,
     shouldSetModalVisibility = true,
-    shouldEnableNewFocusManagement
+    shouldEnableNewFocusManagement,
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();

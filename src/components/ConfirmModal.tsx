@@ -97,7 +97,7 @@ function ConfirmModal({
     isVisible,
     onConfirm,
     image,
-    shouldEnableNewFocusManagement
+    shouldEnableNewFocusManagement,
 }: ConfirmModalProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const styles = useThemeStyles();
