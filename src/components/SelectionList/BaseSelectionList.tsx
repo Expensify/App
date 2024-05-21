@@ -361,7 +361,12 @@ function BaseSelectionList<TItem extends ListItem>(
                 rightHandSideComponent={rightHandSideComponent}
                 keyForList={item.keyForList ?? ''}
                 isMultilineSupported={isRowMultilineSupported}
-                onFocus={() => setFocusedIndex(normalizedIndex)}
+                onFocus={() => {
+                    if (isDisabled) {
+                        return;
+                    }
+                    setFocusedIndex(normalizedIndex);
+                }}
                 shouldSyncFocus={!isTextInputFocusedRef.current}
             />
         );
