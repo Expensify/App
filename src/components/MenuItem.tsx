@@ -265,6 +265,9 @@ type MenuItemBaseProps = {
 
     /** Handles what to do when the item is focused */
     onFocus?: () => void;
+
+    /** Optional account id if it's user avatar or policy id if it's workspace avatar */
+    avatarID?: number | string;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -342,6 +345,7 @@ function MenuItem(
         isPaneMenu = false,
         shouldPutLeftPaddingWhenNoIcon = false,
         onFocus,
+        avatarID,
     }: MenuItemProps,
     ref: PressableRef,
 ) {
@@ -472,8 +476,8 @@ function MenuItem(
                         onFocus={onFocus}
                     >
                         {({pressed}) => (
-                            <View style={[styles.flexColumn, styles.flex1]}>
-                                <View style={[styles.flexRow, styles.flex1]}>
+                            <View style={[styles.flex1]}>
+                                <View style={[styles.flexRow]}>
                                     <View style={[styles.flexColumn, styles.flex1]}>
                                         {!!label && isLabelHoverable && (
                                             <View style={[icon ? styles.mb2 : null, labelStyle]}>
@@ -526,6 +530,7 @@ function MenuItem(
                                                             source={icon as AvatarSource}
                                                             fallbackIcon={fallbackIcon}
                                                             name={title}
+                                                            avatarID={avatarID}
                                                             type={CONST.ICON_TYPE_WORKSPACE}
                                                         />
                                                     )}
