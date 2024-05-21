@@ -262,7 +262,6 @@ const ContextMenuActions: ContextMenuAction[] = [
         shouldShow: (type, reportAction) =>
             type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canEditReportAction(reportAction) && ReportUtils.canHoldUnholdReportAction(reportAction).canUnholdRequest,
         onPress: (closePopover, {reportAction}) => {
-            // const hold=ReportUtils.changeMoneyRequestHoldStatus().
             if (closePopover) {
                 hideContextMenu(false, () => ReportUtils.changeMoneyRequestHoldStatus(reportAction));
                 return;
@@ -280,7 +279,6 @@ const ContextMenuActions: ContextMenuAction[] = [
         shouldShow: (type, reportAction) =>
             type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canEditReportAction(reportAction) && ReportUtils.canHoldUnholdReportAction(reportAction).canHoldRequest,
         onPress: (closePopover, {reportAction}) => {
-            // const hold=ReportUtils.changeMoneyRequestHoldStatus().
             if (closePopover) {
                 hideContextMenu(false, () => ReportUtils.changeMoneyRequestHoldStatus(reportAction));
                 return;

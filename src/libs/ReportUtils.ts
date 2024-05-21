@@ -2715,26 +2715,15 @@ function canEditReportAction(reportAction: OnyxEntry<ReportAction>): boolean {
     );
 }
 
-function getParentReportAction(parentReportActions: ReportActions | null | undefined, parentReportActionID: string | undefined): ReportAction | null {
-    if (!parentReportActions || !parentReportActionID) {
-        return null;
-    }
-    return parentReportActions[parentReportActionID ?? '0'];
-}
-
 function canHoldUnholdReportAction(reportAction: OnyxEntry<ReportAction>): {canHoldRequest: boolean; canUnholdRequest: boolean} {
     if (reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
         return {canHoldRequest: false, canUnholdRequest: false};
     }
+
     const moneyRequestReportID = reportAction?.originalMessage?.IOUReportID ?? 0;
-
-    if (!moneyRequestReportID) {
-        return {canHoldRequest: false, canUnholdRequest: false};
-    }
-
     const moneyRequestReport = getReport(String(moneyRequestReportID));
 
-    if (!moneyRequestReport) {
+    if (!moneyRequestReportID || !moneyRequestReport) {
         return {canHoldRequest: false, canUnholdRequest: false};
     }
 
@@ -2742,10 +2731,8 @@ function canHoldUnholdReportAction(reportAction: OnyxEntry<ReportAction>): {canH
     const isApproved = isReportApproved(moneyRequestReport);
     const transactionID = moneyRequestReport ? reportAction?.originalMessage?.IOUTransactionID : 0;
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? ({} as Transaction);
-    const parentReportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport.parentReportID}`;
-    const parentReportActions = allReportActions?.[parentReportActionsKey];
     const parentReport = getReport(String(moneyRequestReport.parentReportID));
-    const parentReportAction = getParentReportAction(parentReportActions, moneyRequestReport?.parentReportActionID);
+    const parentReportAction = ReportActionsUtils.getParentReportAction(moneyRequestReport);
 
     const isRequestIOU = parentReport?.type === 'iou';
     const isRequestHoldCreator = isHoldCreator(transaction, moneyRequestReport?.reportID) && isRequestIOU;
@@ -2759,7 +2746,7 @@ function canHoldUnholdReportAction(reportAction: OnyxEntry<ReportAction>): {canH
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
 
     const canModifyStatus = !isTrackExpenseMoneyReport && (isPolicyAdmin || isActionOwner || isApprover);
-    const isDeletedParentAction = ReportActionsUtils.isDeletedAction(parentReportAction);
+    const isDeletedParentAction = !isEmpty(parentReportAction) ? ReportActionsUtils.isDeletedAction(parentReportAction as ReportAction) : true;
 
     const canHoldOrUnholdRequest = !isRequestSettled && !isApproved && !isDeletedParentAction;
     const canHoldRequest = canHoldOrUnholdRequest && !isOnHold && (isRequestHoldCreator || (!isRequestIOU && canModifyStatus)) && !isScanning;
