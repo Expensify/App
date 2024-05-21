@@ -17,7 +17,7 @@ type AddressPageProps = {
     address?: Address;
     /** Whether app is loading */
     isLoadingApp: OnyxEntry<boolean>;
-    /** Whether app is loading */
+    /** Function to call when address form is submitted */
     updateAddress: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>) => void;
     /** Title of address page */
     title: string;
@@ -28,8 +28,7 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true}: Addre
     const {translate} = useLocalize();
 
     // Check if country is valid
-    const street1 = address?.street;
-    const street2 = address?.street2 ?? '';
+    const {street, street2} = address ?? {};
     const [currentCountry, setCurrentCountry] = useState(address?.country);
     const [state, setState] = useState(address?.state);
     const [city, setCity] = useState(address?.city);
@@ -94,7 +93,7 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true}: Addre
                     country={currentCountry}
                     onAddressChanged={handleAddressChange}
                     state={state}
-                    street1={street1}
+                    street1={street}
                     street2={street2}
                     zip={zipcode}
                 />
