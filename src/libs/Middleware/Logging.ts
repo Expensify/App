@@ -65,20 +65,18 @@ const Logging: Middleware = (response, request) => {
                 // incorrect url, bad cors headers returned by the server, DNS lookup failure etc.
                 Log.hmmm('[Network] API request error: Failed to fetch', logParams);
             } else if (
-                (
-                    [
-                        CONST.ERROR.IOS_NETWORK_CONNECTION_LOST,
-                        CONST.ERROR.NETWORK_REQUEST_FAILED,
-                        CONST.ERROR.IOS_NETWORK_CONNECTION_LOST_RUSSIAN,
-                        CONST.ERROR.IOS_NETWORK_CONNECTION_LOST_SWEDISH,
-                        CONST.ERROR.IOS_NETWORK_CONNECTION_LOST_SPANISH,
-                    ] as string[]
-                ).includes(error.message)
+                [
+                    CONST.ERROR.IOS_NETWORK_CONNECTION_LOST,
+                    CONST.ERROR.NETWORK_REQUEST_FAILED,
+                    CONST.ERROR.IOS_NETWORK_CONNECTION_LOST_RUSSIAN,
+                    CONST.ERROR.IOS_NETWORK_CONNECTION_LOST_SWEDISH,
+                    CONST.ERROR.IOS_NETWORK_CONNECTION_LOST_SPANISH,
+                ].some((message) => message === error.message)
             ) {
                 // These errors seem to happen for native devices with interrupted connections. Often we will see logs about Pusher disconnecting together with these.
                 // This type of error may also indicate a problem with SSL certs.
                 Log.hmmm('[Network] API request error: Connection interruption likely', logParams);
-            } else if (([CONST.ERROR.FIREFOX_DOCUMENT_LOAD_ABORTED, CONST.ERROR.SAFARI_DOCUMENT_LOAD_ABORTED] as string[]).includes(error.message)) {
+            } else if ([CONST.ERROR.FIREFOX_DOCUMENT_LOAD_ABORTED, CONST.ERROR.SAFARI_DOCUMENT_LOAD_ABORTED].some((message) => message === error.message)) {
                 // This message can be observed page load is interrupted (closed or navigated away).
                 Log.hmmm('[Network] API request error: User likely navigated away from or closed browser', logParams);
             } else if (error.message === CONST.ERROR.IOS_LOAD_FAILED) {
