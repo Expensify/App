@@ -4912,6 +4912,12 @@ const styles = (theme: ThemeColors) =>
             borderBottomWidth: 1,
             borderBottomColor: theme.activeComponentBG,
         },
+
+        reportListItemTitle: {
+            color: theme.text,
+            fontSize: variables.fontSizeNormal,
+            fontWeight: '700',
+        },
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;

@@ -133,7 +133,7 @@ function ReportListItem<TItem extends ListItem>({
                                 )}
 
                                 <View style={[styles.flexShrink1, isLargeScreenWidth && styles.ph4]}>
-                                    <Text style={[styles.textNormalThemeText, {fontWeight: '700'}]}>{reportItem?.reportName}</Text>
+                                    <Text style={[styles.reportListItemTitle]}>{reportItem?.reportName}</Text>
                                     <Text style={[styles.textMicroSupporting]}>{`${reportItem.transactions.length} grouped expenses`}</Text>
                                 </View>
                             </View>
