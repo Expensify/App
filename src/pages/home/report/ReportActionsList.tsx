@@ -214,8 +214,7 @@ function ReportActionsList({
         const filteredReportActions = sortedVisibleReportActions.filter((reportAction) => !ReportActionsUtils.isWhisperAction(reportAction));
 
         return filteredReportActions[0];
-        },
-    [sortedVisibleReportActions]);
+    }, [sortedVisibleReportActions]);
 
     const lastActionIndex = sortedVisibleReportActions[0]?.reportActionID;
     const reportActionSize = useRef(sortedVisibleReportActions.length);
