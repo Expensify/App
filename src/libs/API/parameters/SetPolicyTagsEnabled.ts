@@ -9,7 +9,7 @@ type SetPolicyTagsEnabled = {
      * When the tags are imported as multi level tags, the index of the top
      * most tag list item
      */
-    tagListIndex?: number;
+    tagListIndex: number;
 };
 
 export default SetPolicyTagsEnabled;
