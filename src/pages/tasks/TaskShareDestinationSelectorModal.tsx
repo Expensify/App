@@ -1,6 +1,7 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import EmptySelectionListContent from '@components/EmptySelectionListContent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -112,6 +113,7 @@ function TaskShareDestinationSelectorModal() {
                         showLoadingPlaceholder={areOptionsInitialized && debouncedSearchValue.trim() === '' ? options.sections.length === 0 : !didScreenTransitionEnd}
                         isLoadingNewOptions={!!isSearchingForReports}
                         textInputHint={textInputHint}
+                        listEmptyContent={<EmptySelectionListContent content="assignTask" />}
                     />
                 </View>
             </>

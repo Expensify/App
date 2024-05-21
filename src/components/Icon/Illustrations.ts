@@ -29,6 +29,7 @@ import TadaYellow from '@assets/images/product-illustrations/tada--yellow.svg';
 import TeleScope from '@assets/images/product-illustrations/telescope.svg';
 import ThreeLeggedLaptopWoman from '@assets/images/product-illustrations/three_legged_laptop_woman.svg';
 import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cloud.svg';
+import ToddWithPhones from '@assets/images/product-illustrations/todd-with-phones.svg';
 import Abacus from '@assets/images/simple-illustrations/simple-illustration__abacus.svg';
 import Accounting from '@assets/images/simple-illustrations/simple-illustration__accounting.svg';
 import Alert from '@assets/images/simple-illustrations/simple-illustration__alert.svg';
@@ -125,6 +126,7 @@ export {
     TadaYellow,
     TadaBlue,
     ToddBehindCloud,
+    ToddWithPhones,
     GpsTrackOrange,
     ShieldYellow,
     MoneyReceipts,

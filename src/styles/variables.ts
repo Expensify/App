@@ -129,6 +129,8 @@ export default {
     emptyLHNIconHeight: 16,
     emptyWorkspaceIconWidth: 84,
     emptyWorkspaceIconHeight: 84,
+    emptyListIconWidth: 176,
+    emptyListIconHeight: 178,
     modalTopIconWidth: 200,
     modalTopIconHeight: 164,
     modalTopBigIconHeight: 244,

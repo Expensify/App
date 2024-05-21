@@ -53,6 +53,7 @@ function BaseSelectionList<TItem extends ListItem>(
         headerContent,
         footerContent,
         listFooterContent,
+        listEmptyContent,
         showScrollIndicator = true,
         showLoadingPlaceholder = false,
         showConfirmButton = false,
@@ -367,6 +368,16 @@ function BaseSelectionList<TItem extends ListItem>(
         );
     };
 
+    const renderListEmptyContent = () => {
+        if (showLoadingPlaceholder) {
+            return <OptionsListSkeletonView shouldAnimate />;
+        }
+        if (!textInputValue && !showLoadingPlaceholder && !!listEmptyContent) {
+            return listEmptyContent;
+        }
+        return null;
+    };
+
     const scrollToFocusedIndexOnFirstRender = useCallback(
         (nativeEvent: LayoutChangeEvent) => {
             if (shouldUseDynamicMaxToRenderPerBatch) {
@@ -565,8 +576,8 @@ function BaseSelectionList<TItem extends ListItem>(
                         </View>
                     )}
                     {!!headerContent && headerContent}
-                    {flattenedSections.allOptions.length === 0 && showLoadingPlaceholder ? (
-                        <OptionsListSkeletonView shouldAnimate />
+                    {flattenedSections.allOptions.length === 0 ? (
+                        renderListEmptyContent()
                     ) : (
                         <>
                             {!headerMessage && canSelectMultiple && shouldShowSelectAll && (

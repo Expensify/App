@@ -416,6 +416,44 @@ export default {
         nameEmailOrPhoneNumber: 'Name, email, or phone number',
         findMember: 'Find a member',
     },
+    emptyList: {
+        [CONST.IOU.TYPE.SUBMIT]: {
+            title: 'Get paid back',
+            subtitle: 'Submit your expense to any email or phone number.',
+        },
+        [CONST.IOU.TYPE.SPLIT]: {
+            title: 'Get paid back',
+            subtitle: 'Submit your expense to any email or phone number.',
+        },
+        [CONST.IOU.TYPE.TRACK]: {
+            title: 'Get paid back',
+            subtitle: 'Submit your expense to any email or phone number.',
+        },
+        [CONST.IOU.TYPE.PAY]: {
+            title: 'Get paid back',
+            subtitle: 'Submit your expense to any email or phone number.',
+        },
+        [CONST.IOU.TYPE.INVOICE]: {
+            title: 'Get paid back',
+            subtitle: 'Submit your expense to any email or phone number.',
+        },
+        [CONST.IOU.TYPE.SEND]: {
+            title: 'Get paid back',
+            subtitle: 'Submit your expense to any email or phone number.',
+        },
+        [CONST.IOU.TYPE.REQUEST]: {
+            title: 'Get paid back',
+            subtitle: 'Submit your expense to any email or phone number.',
+        },
+        startChat: {
+            title: 'Get paid back',
+            subtitle: 'Submit your expense to any email or phone number.',
+        },
+        assignTask: {
+            title: 'Get paid back',
+            subtitle: 'Submit your expense to any email or phone number.',
+        },
+    },
     videoChatButtonAndMenu: {
         tooltip: 'Start a call',
     },

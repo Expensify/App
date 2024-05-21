@@ -6,6 +6,7 @@ import {View} from 'react-native';
 import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import EmptySelectionListContent from '@components/EmptySelectionListContent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useBetas, useSession} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
@@ -223,6 +224,7 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
                         textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
                         showLoadingPlaceholder={!areOptionsInitialized}
                         isLoadingNewOptions={!!isSearchingForReports}
+                        listEmptyContent={<EmptySelectionListContent content="assignTask" />}
                     />
                 </View>
             </FullPageNotFoundView>
