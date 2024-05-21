@@ -75,6 +75,9 @@ const ONYXKEYS = {
      * rates and units for different workspaces at the same time. */
     WORKSPACE_RATE_AND_UNIT: 'workspaceRateAndUnit',
 
+    /** Contains the last active workspace ID */
+    ACTIVE_WORKSPACE_ID: 'activeWorkspaceID',
+
     /** Contains a list of all currencies available to the user - user can
      * select a currency based on the list */
     CURRENCY_LIST: 'currencyList',
@@ -601,6 +604,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.PERSONAL_DETAILS_METADATA]: Record<string, OnyxTypes.PersonalDetailsMetadata>;
     [ONYXKEYS.TASK]: OnyxTypes.Task;
     [ONYXKEYS.WORKSPACE_RATE_AND_UNIT]: OnyxTypes.WorkspaceRateAndUnit;
+    [ONYXKEYS.ACTIVE_WORKSPACE_ID]: string | undefined;
     [ONYXKEYS.CURRENCY_LIST]: OnyxTypes.CurrencyList;
     [ONYXKEYS.UPDATE_AVAILABLE]: boolean;
     [ONYXKEYS.SCREEN_SHARE_REQUEST]: OnyxTypes.ScreenShareRequest;

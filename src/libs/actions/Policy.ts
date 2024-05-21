@@ -3997,6 +3997,10 @@ function openPolicyDistanceRatesPage(policyID?: string) {
     API.read(READ_COMMANDS.OPEN_POLICY_DISTANCE_RATES_PAGE, params);
 }
 
+function setActiveWorkspaceID(policyID: string | undefined) {
+    Onyx.set(ONYXKEYS.ACTIVE_WORKSPACE_ID, policyID);
+}
+
 function navigateWhenEnableFeature(policyID: string, featureRoute: Route) {
     const isNarrowLayout = getIsNarrowLayout();
     if (isNarrowLayout) {
@@ -5241,6 +5245,7 @@ export {
     setWorkspaceCategoryEnabled,
     setWorkspaceRequiresCategory,
     inviteMemberToWorkspace,
+    setActiveWorkspaceID,
     acceptJoinRequest,
     declineJoinRequest,
     createPolicyCategory,

@@ -1,5 +1,5 @@
 import {useNavigation, useNavigationState} from '@react-navigation/native';
-import React, {useEffect} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -24,20 +24,19 @@ import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 type PurposeForUsingExpensifyModalOnyxProps = {
     isLoadingApp: OnyxEntry<boolean>;
+    activeWorkspaceID: OnyxEntry<string | undefined>;
 };
 type PurposeForUsingExpensifyModalProps = PurposeForUsingExpensifyModalOnyxProps;
 
-function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps) {
+function BottomTabBar({isLoadingApp = false, activeWorkspaceID}: PurposeForUsingExpensifyModalProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {activeWorkspaceID} = useActiveWorkspace();
-
     const navigation = useNavigation();
 
     useEffect(() => {
@@ -66,15 +65,18 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
         return topmostBottomTabRoute?.name ?? SCREENS.HOME;
     });
 
-    const chatTabBrickRoad = getChatTabBrickRoad(activeWorkspaceID);
+    const chatTabBrickRoad = getChatTabBrickRoad(activeWorkspaceID as string | undefined);
+
+    const navigateToChats = useCallback(() => {
+        const route = activeWorkspaceID ? (`/w/${activeWorkspaceID}/r` as Route) : ROUTES.HOME;
+        Navigation.navigate(route);
+    }, [activeWorkspaceID]);
 
     return (
         <View style={styles.bottomTabBarContainer}>
             <Tooltip text={translate('common.chats')}>
                 <PressableWithFeedback
-                    onPress={() => {
-                        Navigation.navigate(ROUTES.HOME);
-                    }}
+                    onPress={navigateToChats}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('common.chats')}
                     wrapperStyle={styles.flex1}
@@ -104,5 +106,8 @@ BottomTabBar.displayName = 'BottomTabBar';
 export default withOnyx<PurposeForUsingExpensifyModalProps, PurposeForUsingExpensifyModalOnyxProps>({
     isLoadingApp: {
         key: ONYXKEYS.IS_LOADING_APP,
+    },
+    activeWorkspaceID: {
+        key: ONYXKEYS.ACTIVE_WORKSPACE_ID,
     },
 })(BottomTabBar);
