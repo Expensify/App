@@ -54,7 +54,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                 onboardingPurposeSelected,
                 CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
                 {
-                    login: currentUserPersonalDetails.login ?? '',
                     firstName,
                     lastName,
                 },
