@@ -2400,7 +2400,9 @@ export default {
                             return 'Revisando conexión a QuickBooks Online';
                         case 'quickbooksOnlineImportMain':
                             return 'Importando datos desde QuickBooks Online';
-                        case 'startingImport':
+                        case 'startingImportXero':
+                            return 'Importando datos desde Xero';
+                        case 'startingImportQBO':
                             return 'Importando datos desde QuickBooks Online';
                         case 'quickbooksOnlineSyncTitle':
                             return 'Sincronizando datos desde QuickBooks Online';
