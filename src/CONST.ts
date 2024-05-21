@@ -4779,9 +4779,8 @@ const CONST = {
     },
 
     PAGE_MARKER: {
-        START: 'start',
-        GAP: 'gap',
         END: 'end',
+        GAP: 'gap',
     },
 } as const;
 
