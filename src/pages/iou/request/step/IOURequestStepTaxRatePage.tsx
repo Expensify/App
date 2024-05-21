@@ -40,7 +40,7 @@ function getTaxAmount(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transact
 
 function IOURequestStepTaxRatePage({
     route: {
-        params: {action, backTo},
+        params: {action, backTo, iouType},
     },
     policy,
     transaction,
@@ -51,6 +51,7 @@ function IOURequestStepTaxRatePage({
     const {translate} = useLocalize();
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
+    const isEditingSplitBill = isEditing && iouType === CONST.IOU.TYPE.SPLIT;
     const taxRates = policy?.taxRates;
 
     const navigateBack = () => {
@@ -65,7 +66,16 @@ function IOURequestStepTaxRatePage({
             return;
         }
 
-        const taxAmount = getTaxAmount(policy, transaction, taxes?.code, TransactionUtils.getAmount(transaction, false, true));
+        const taxAmount = getTaxAmount(policy, transaction, taxes.code, TransactionUtils.getAmount(transaction, false, true));
+
+        if (isEditingSplitBill) {
+            IOU.setDraftSplitTransaction(transaction.transactionID, {
+                taxAmount: CurrencyUtils.convertToBackendAmount(taxAmount ?? 0),
+                taxCode: taxes.code,
+            });
+            navigateBack();
+            return;
+        }
 
         if (isEditing) {
             const newTaxCode = taxes.code;

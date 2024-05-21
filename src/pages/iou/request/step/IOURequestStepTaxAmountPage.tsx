@@ -62,6 +62,7 @@ function IOURequestStepTaxAmountPage({
     const {translate} = useLocalize();
     const textInput = useRef<BaseTextInputRef | null>();
     const isEditing = action === CONST.IOU.ACTION.EDIT;
+    const isEditingSplitBill = isEditing && iouType === CONST.IOU.TYPE.SPLIT;
 
     const focusTimeoutRef = useRef<NodeJS.Timeout>();
 
@@ -102,19 +103,25 @@ function IOURequestStepTaxAmountPage({
     };
 
     const updateTaxAmount = (currentAmount: CurrentMoney) => {
-        const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount.amount));
+        const taxAmountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount.amount));
 
-        if (isEditing) {
-            if (amountInSmallestCurrencyUnits === TransactionUtils.getTaxAmount(transaction, false)) {
-                navigateBack();
-                return;
-            }
-            IOU.updateMoneyRequestTaxAmount(transactionID, report?.reportID ?? '', amountInSmallestCurrencyUnits, policy, policyTags, policyCategories);
+        if (isEditingSplitBill) {
+            IOU.setDraftSplitTransaction(transactionID, {taxAmount: taxAmountInSmallestCurrencyUnits});
             navigateBack();
             return;
         }
 
-        IOU.setMoneyRequestTaxAmount(transactionID, amountInSmallestCurrencyUnits, true);
+        if (isEditing) {
+            if (taxAmountInSmallestCurrencyUnits === TransactionUtils.getTaxAmount(transaction, false)) {
+                navigateBack();
+                return;
+            }
+            IOU.updateMoneyRequestTaxAmount(transactionID, report?.reportID ?? '', taxAmountInSmallestCurrencyUnits, policy, policyTags, policyCategories);
+            navigateBack();
+            return;
+        }
+
+        IOU.setMoneyRequestTaxAmount(transactionID, taxAmountInSmallestCurrencyUnits, true);
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         IOU.setMoneyRequestCurrency(transactionID, currency || CONST.CURRENCY.USD);
