@@ -218,7 +218,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                 animate: true,
                 duration: CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME,
             });
-        }, [directionCoordinates, currentPosition, mapRef, waypoints, mapPadding, toggleCenterButton]);
+        }, [directionCoordinates, currentPosition, mapRef, waypoints, mapPadding]);
         const handleOnIdle = () => {
             const map = mapRef?.getMap();
             if (!map) {
