@@ -20,6 +20,7 @@ import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
+import {isEmptyObject} from "@src/types/utils/EmptyObject";
 
 type IOURequestStepTaxAmountPageOnyxProps = {
     policy: OnyxEntry<Policy>;
@@ -27,6 +28,9 @@ type IOURequestStepTaxAmountPageOnyxProps = {
 
     /** Collection of tag list on a policy */
     policyTags: OnyxEntry<PolicyTagList>;
+
+    /** The draft transaction that holds data to be persisted on the current transaction */
+    splitDraftTransaction: OnyxEntry<Transaction>;
 };
 
 type IOURequestStepTaxAmountPageProps = IOURequestStepTaxAmountPageOnyxProps &
@@ -58,6 +62,7 @@ function IOURequestStepTaxAmountPage({
     policy,
     policyTags,
     policyCategories,
+    splitDraftTransaction,
 }: IOURequestStepTaxAmountPageProps) {
     const {translate} = useLocalize();
     const textInput = useRef<BaseTextInputRef | null>();
@@ -66,7 +71,7 @@ function IOURequestStepTaxAmountPage({
 
     const focusTimeoutRef = useRef<NodeJS.Timeout>();
 
-    const transactionDetails = ReportUtils.getTransactionDetails(transaction);
+    const transactionDetails = ReportUtils.getTransactionDetails(isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction);
     const currency = CurrencyUtils.isValidCurrencyCode(selectedCurrency) ? selectedCurrency : transactionDetails?.currency;
 
     useFocusEffect(
@@ -171,6 +176,12 @@ function IOURequestStepTaxAmountPage({
 IOURequestStepTaxAmountPage.displayName = 'IOURequestStepTaxAmountPage';
 
 const IOURequestStepTaxAmountPageWithOnyx = withOnyx<IOURequestStepTaxAmountPageProps, IOURequestStepTaxAmountPageOnyxProps>({
+    splitDraftTransaction: {
+        key: ({route}) => {
+            const transactionID = route?.params.transactionID ?? 0;
+            return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
+        },
+    },
     policy: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
     },
