@@ -3490,7 +3490,6 @@ function setWorkspaceTagListRequired(policyID: string, tagListIndex: number, req
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
                     [policyTag.name]: {
-                        required,
                         errors: null,
                         pendingAction: null,
                     },
