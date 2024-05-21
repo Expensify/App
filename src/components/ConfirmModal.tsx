@@ -68,6 +68,12 @@ type ConfirmModalProps = {
 
     /** Image to display with content */
     image?: IconAsset;
+
+    /**
+     * Whether the modal should enable the new focus manager.
+     * We are attempting to migrate to a new refocus manager, adding this property for gradual migration.
+     * */
+    shouldEnableNewFocusManagement?: boolean;
 };
 
 function ConfirmModal({
@@ -91,6 +97,7 @@ function ConfirmModal({
     isVisible,
     onConfirm,
     image,
+    shouldEnableNewFocusManagement
 }: ConfirmModalProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const styles = useThemeStyles();
@@ -104,6 +111,7 @@ function ConfirmModal({
             onModalHide={onModalHide}
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             innerContainerStyle={image ? styles.pt0 : {}}
+            shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
         >
             <ConfirmContent
                 title={title}

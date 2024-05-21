@@ -250,6 +250,7 @@ function MoneyRequestHeader({
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}
                 danger
+                shouldEnableNewFocusManagement
             />
             {shouldUseNarrowLayout && shouldShowHoldMenu && (
                 <ProcessMoneyRequestHoldMenu

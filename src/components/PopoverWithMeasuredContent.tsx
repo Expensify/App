@@ -7,6 +7,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import PopoverWithMeasuredContentUtils from '@libs/PopoverWithMeasuredContentUtils';
 import CONST from '@src/CONST';
 import type {AnchorDimensions, AnchorPosition} from '@src/styles';
+import ComposerFocusManager from "@libs/ComposerFocusManager";
 import Popover from './Popover';
 import type {PopoverProps} from './Popover/types';
 import type {WindowDimensionsProps} from './withWindowDimensions/types';
@@ -57,6 +58,7 @@ function PopoverWithMeasuredContent({
     },
     shoudSwitchPositionIfOverflow = false,
     shouldHandleNavigationBack = false,
+    shouldEnableNewFocusManagement,
     ...props
 }: PopoverWithMeasuredContentProps) {
     const styles = useThemeStyles();
@@ -66,11 +68,16 @@ function PopoverWithMeasuredContent({
     const [isContentMeasured, setIsContentMeasured] = useState(popoverWidth > 0 && popoverHeight > 0);
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
 
+    const modalId = useMemo(() => ComposerFocusManager.getId(), []);
+
     /**
      * When Popover becomes visible, we need to recalculate the Dimensions.
      * Skip render on Popover until recalculations are done by setting isContentMeasured to false as early as possible.
      */
     if (!isPopoverVisible && isVisible) {
+        if (shouldEnableNewFocusManagement) {
+            ComposerFocusManager.saveFocusState(modalId);
+        }
         // When Popover is shown recalculate
         setIsContentMeasured(popoverDimensions.width > 0 && popoverDimensions.height > 0);
         setIsPopoverVisible(true);
@@ -150,6 +157,8 @@ function PopoverWithMeasuredContent({
             statusBarTranslucent={statusBarTranslucent}
             avoidKeyboard={avoidKeyboard}
             hideModalContentWhileAnimating={hideModalContentWhileAnimating}
+            modalId={modalId}
+            shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             anchorPosition={shiftedAnchorPosition}
