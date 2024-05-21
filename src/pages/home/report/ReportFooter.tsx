@@ -40,6 +40,8 @@ type ReportFooterProps = ReportFooterOnyxProps & {
     /** Report object for the current report */
     report?: OnyxTypes.Report;
 
+    reportNameValuePairs?: OnyxEntry<OnyxTypes.ReportNameValuePairs>;
+
     /** The policy of the report */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
@@ -73,6 +75,7 @@ function ReportFooter({
     pendingAction,
     session,
     report = {reportID: '0'},
+    reportNameValuePairs,
     policy,
     shouldShowComposeInput = false,
     isEmptyChat = true,
@@ -87,11 +90,11 @@ function ReportFooter({
     const {translate} = useLocalize();
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
     const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
-    const isArchivedRoom = ReportUtils.isArchivedRoom(report);
+    const isArchivedRoom = ReportUtils.isArchivedRoom(report, reportNameValuePairs);
     const isAnonymousUser = session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
 
     const isSmallSizeLayout = windowWidth - (isSmallScreenWidth ? 0 : variables.sideBarWidth) < variables.anonymousReportFooterBreakpoint;
-    const hideComposer = !ReportUtils.canUserPerformWriteAction(report);
+    const hideComposer = !ReportUtils.canUserPerformWriteAction(report, reportNameValuePairs);
     const canWriteInReport = ReportUtils.canWriteInReport(report);
     const isSystemChat = ReportUtils.isSystemChat(report);
     const isAdminsOnlyPostingRoom = ReportUtils.isAdminsOnlyPostingRoom(report);
@@ -183,7 +186,6 @@ function ReportFooter({
                 <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
                     <SwipeableView onSwipeDown={Keyboard.dismiss}>
                         <ReportActionCompose
-                            // @ts-expect-error TODO: Remove this once ReportActionCompose (https://github.com/Expensify/App/issues/31984) is migrated to TypeScript.
                             onSubmit={onSubmitComment}
                             onComposerFocus={onComposerFocus}
                             onComposerBlur={onComposerBlur}
