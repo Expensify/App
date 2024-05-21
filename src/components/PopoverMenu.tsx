@@ -1,4 +1,3 @@
-import lodashIsEqual from 'lodash/isEqual';
 import type {RefObject} from 'react';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
