@@ -126,7 +126,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                     );
                     cameraRef.current?.fitBounds(northEast, southWest, mapPadding, 1000);
                 }
-            }, [mapPadding, waypoints, isIdle, directionCoordinates, currentPosition]),
+            }, [mapPadding, waypoints, isIdle, directionCoordinates]),
         );
 
         useEffect(() => {

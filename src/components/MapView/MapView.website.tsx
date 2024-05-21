@@ -132,6 +132,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
             }
 
             const map = mapRef.getMap();
+
             const {northEast, southWest} = utils.getBounds(
                 waypoints.map((waypoint) => waypoint.coordinate),
                 directionCoordinates,
