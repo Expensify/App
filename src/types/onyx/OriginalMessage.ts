@@ -25,6 +25,7 @@ type OriginalMessageActionName =
     | 'TASKREOPENED'
     | 'ACTIONABLEJOINREQUEST'
     | 'ACTIONABLEMENTIONWHISPER'
+    | 'ACTIONABLEREPORTMENTIONWHISPER'
     | 'ACTIONABLETRACKEXPENSEWHISPER'
     | ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>;
 type OriginalMessageApproved = {
@@ -67,8 +68,10 @@ type IOUMessage = {
     type: ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>;
     cancellationReason?: string;
     paymentType?: PaymentMethodType;
+    deleted?: string;
     /** Only exists when we are sending money */
     IOUDetails?: IOUDetails;
+    whisperedTo?: number[];
 };
 
 type ReimbursementDeQueuedMessage = {
@@ -152,6 +155,19 @@ type OriginalMessageActionableMentionWhisper = {
     };
 };
 
+type OriginalMessageActionableReportMentionWhisper = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER;
+    originalMessage: {
+        reportNames: string[];
+        mentionedAccountIDs: number[];
+        reportActionID: number;
+        reportID: number;
+        lastModified: string;
+        resolution?: ValueOf<typeof CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION> | null;
+        whisperedTo?: number[];
+    };
+};
+
 type OriginalMessageSubmitted = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED;
     originalMessage: unknown;
@@ -218,6 +234,7 @@ type OriginalMessageReportPreview = {
     originalMessage: {
         linkedReportID: string;
         lastModified?: string;
+        whisperedTo?: number[];
     };
 };
 
@@ -275,6 +292,7 @@ type OriginalMessageModifiedExpense = {
         taxRate?: string;
         oldBillable?: string;
         billable?: string;
+        whisperedTo?: number[];
     };
 };
 
@@ -311,11 +329,25 @@ type OriginalMessageMoved = {
     };
 };
 
+type OriginalMessageMergedWithCashTransaction = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION;
+    originalMessage: Record<string, never>; // No data is sent with this action
+};
+
+type OriginalMessageDismissedViolation = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION;
+    originalMessage: {
+        reason: string;
+        violationName: string;
+    };
+};
+
 type OriginalMessage =
     | OriginalMessageApproved
     | OriginalMessageIOU
     | OriginalMessageAddComment
     | OriginalMessageActionableMentionWhisper
+    | OriginalMessageActionableReportMentionWhisper
     | OriginalMessageSubmitted
     | OriginalMessageClosed
     | OriginalMessageCreated
@@ -334,7 +366,9 @@ type OriginalMessage =
     | OriginalMessageReimbursementDequeued
     | OriginalMessageMoved
     | OriginalMessageMarkedReimbursed
-    | OriginalMessageActionableTrackedExpenseWhisper;
+    | OriginalMessageActionableTrackedExpenseWhisper
+    | OriginalMessageMergedWithCashTransaction
+    | OriginalMessageDismissedViolation;
 
 export default OriginalMessage;
 export type {
@@ -353,10 +387,15 @@ export type {
     OriginalMessageAddComment,
     OriginalMessageJoinPolicyChangeLog,
     OriginalMessageActionableMentionWhisper,
+    OriginalMessageActionableReportMentionWhisper,
+    OriginalMessageReportPreview,
+    OriginalMessageModifiedExpense,
     OriginalMessageChronosOOOList,
+    OriginalMessageRoomChangeLog,
     OriginalMessageSource,
     OriginalMessageReimbursementDequeued,
     DecisionName,
     PaymentMethodType,
     OriginalMessageActionableTrackedExpenseWhisper,
+    OriginalMessageDismissedViolation,
 };

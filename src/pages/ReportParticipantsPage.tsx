@@ -13,7 +13,6 @@ import type {DropdownOption, WorkspaceMemberBulkActionType} from '@components/Bu
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import TableListItem from '@components/SelectionList/TableListItem';
@@ -28,6 +27,7 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -87,6 +87,8 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
                 roleBadge = <Badge text={translate('common.admin')} />;
             }
 
+            const pendingAction = pendingChatMember?.pendingAction ?? report.participants?.[accountID]?.pendingAction;
+
             result.push({
                 keyForList: `${accountID}`,
                 accountID,
@@ -96,10 +98,10 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: formatPhoneNumber(details?.login ?? ''),
                 rightElement: roleBadge,
-                pendingAction: pendingChatMember?.pendingAction,
+                pendingAction,
                 icons: [
                     {
-                        source: details.avatar ?? FallbackAvatar,
+                        source: UserUtils.getAvatar(details?.avatar, accountID),
                         name: formatPhoneNumber(details?.login ?? ''),
                         type: CONST.ICON_TYPE_AVATAR,
                         id: accountID,
@@ -226,22 +228,32 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
                 icon: Expensicons.RemoveMembers,
                 onSelected: () => setRemoveMembersConfirmModalVisible(true),
             },
-            {
+        ];
+
+        const isAtleastOneAdminSelected = selectedMembers.some((accountId) => report.participants?.[accountId]?.role === CONST.REPORT.ROLE.ADMIN);
+
+        if (isAtleastOneAdminSelected) {
+            options.push({
+                text: translate('workspace.people.makeMember'),
+                value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
+                icon: Expensicons.User,
+                onSelected: () => changeUserRole(CONST.REPORT.ROLE.MEMBER),
+            });
+        }
+
+        const isAtleastOneMemberSelected = selectedMembers.some((accountId) => report.participants?.[accountId]?.role === CONST.REPORT.ROLE.MEMBER);
+
+        if (isAtleastOneMemberSelected) {
+            options.push({
                 text: translate('workspace.people.makeAdmin'),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN,
                 icon: Expensicons.MakeAdmin,
                 onSelected: () => changeUserRole(CONST.REPORT.ROLE.ADMIN),
-            },
-            {
-                text: translate('workspace.people.makeMember'),
-                value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
-                icon: Expensicons.MakeAdmin,
-                onSelected: () => changeUserRole(CONST.REPORT.ROLE.MEMBER),
-            },
-        ];
+            });
+        }
 
         return options;
-    }, [changeUserRole, translate, setRemoveMembersConfirmModalVisible]);
+    }, [changeUserRole, translate, setRemoveMembersConfirmModalVisible, selectedMembers, report.participants]);
 
     const headerButtons = useMemo(() => {
         if (!isGroupChat) {

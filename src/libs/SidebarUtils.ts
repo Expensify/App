@@ -6,6 +6,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList, ReportActions, TransactionViolation} from '@src/types/onyx';
 import type Beta from '@src/types/onyx/Beta';
+import type {ChangeLog} from '@src/types/onyx/OriginalMessage';
 import type Policy from '@src/types/onyx/Policy';
 import type PriorityMode from '@src/types/onyx/PriorityMode';
 import type Report from '@src/types/onyx/Report';
@@ -20,6 +21,7 @@ import * as OptionsListUtils from './OptionsListUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
 import * as TaskUtils from './TaskUtils';
+import * as UserUtils from './UserUtils';
 
 const visibleReportActionItems: ReportActions = {};
 Onyx.connect({
@@ -35,14 +37,18 @@ Onyx.connect({
         // The report is only visible if it is the last action not deleted that
         // does not match a closed or created state.
         const reportActionsForDisplay = actionsArray.filter(
-            (reportAction, actionKey) =>
-                ReportActionsUtils.shouldReportActionBeVisible(reportAction, actionKey) &&
-                !ReportActionsUtils.isWhisperAction(reportAction) &&
-                reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED &&
-                reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            (reportAction) => ReportActionsUtils.shouldReportActionBeVisibleAsLastAction(reportAction) && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
         );
 
         visibleReportActionItems[reportID] = reportActionsForDisplay[reportActionsForDisplay.length - 1];
+    },
+});
+
+let currentUserAccountID: number | undefined;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (value) => {
+        currentUserAccountID = value?.accountID;
     },
 });
 
@@ -70,8 +76,8 @@ function getOrderedReportIDs(
     currentPolicyID = '',
     policyMemberAccountIDs: number[] = [],
 ): string[] {
-    const isInGSDMode = priorityMode === CONST.PRIORITY_MODE.GSD;
-    const isInDefaultMode = !isInGSDMode;
+    const isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
+    const isInDefaultMode = !isInFocusMode;
     const allReportsDictValues = Object.values(allReports ?? {});
 
     // Filter out all the reports that shouldn't be displayed
@@ -101,7 +107,7 @@ function getOrderedReportIDs(
         return ReportUtils.shouldReportBeInOptionList({
             report,
             currentReportId: currentReportId ?? '',
-            isInGSDMode,
+            isInFocusMode,
             betas,
             policies: policies as OnyxCollection<Policy>,
             excludeEmptyChats: true,
@@ -189,7 +195,6 @@ function getOptionData({
     policy,
     parentReportAction,
     hasViolations,
-    transactionThreadReport,
 }: {
     report: OnyxEntry<Report>;
     reportActions: OnyxEntry<ReportActions>;
@@ -198,7 +203,6 @@ function getOptionData({
     policy: OnyxEntry<Policy> | undefined;
     parentReportAction: OnyxEntry<ReportAction> | undefined;
     hasViolations: boolean;
-    transactionThreadReport: OnyxEntry<Report>;
 }): ReportUtils.OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
@@ -235,15 +239,17 @@ function getOptionData({
         isWaitingOnBankAccount: false,
         isAllowedToComment: true,
         isDeletedParentAction: false,
-        transactionThreadReportID: transactionThreadReport?.reportID,
     };
 
-    let participantAccountIDs = report.participantAccountIDs ?? [];
-
-    // Currently, currentUser is not included in participantAccountIDs, so for selfDM we need to add the currentUser(report owner) as participants.
-    if (ReportUtils.isSelfDM(report)) {
-        participantAccountIDs = [report.ownerAccountID ?? 0];
-    }
+    // For 1:1 chat, we don't want to include currentUser as participants in order to not mark 1:1 chats as having multiple participants
+    const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
+    const participantAccountIDs = Object.keys(report.participants ?? {})
+        .map(Number)
+        .filter((accountID) => accountID !== currentUserAccountID || !isOneOnOneChat);
+    const visibleParticipantAccountIDs = Object.entries(report.participants ?? {})
+        .filter(([, participant]) => participant && !participant.hidden)
+        .map(([accountID]) => Number(accountID))
+        .filter((accountID) => accountID !== currentUserAccountID || !isOneOnOneChat);
 
     const participantPersonalDetailList = Object.values(OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails)) as PersonalDetails[];
     const personalDetail = participantPersonalDetailList[0] ?? {};
@@ -252,6 +258,7 @@ function getOptionData({
     result.isThread = ReportUtils.isChatThread(report);
     result.isChatRoom = ReportUtils.isChatRoom(report);
     result.isTaskReport = ReportUtils.isTaskReport(report);
+    result.isInvoiceReport = ReportUtils.isInvoiceReport(report);
     result.parentReportAction = parentReportAction;
     result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
     result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
@@ -268,12 +275,11 @@ function getOptionData({
     result.statusNum = report.statusNum;
     // When the only message of a report is deleted lastVisibileActionCreated is not reset leading to wrongly
     // setting it Unread so we add additional condition here to avoid empty chat LHN from being bold.
-    result.isUnread = (ReportUtils.isUnread(report) && !!report.lastActorAccountID) || (ReportUtils.isUnread(transactionThreadReport) && !!transactionThreadReport?.lastActorAccountID);
+    result.isUnread = ReportUtils.isUnread(report) && !!report.lastActorAccountID;
     result.isUnreadWithMention = ReportUtils.isUnreadWithMention(report);
     result.isPinned = report.isPinned;
     result.iouReportID = report.iouReportID;
     result.keyForList = String(report.reportID);
-    result.tooltipText = ReportUtils.getReportParticipantsTitle(report.visibleChatMemberAccountIDs ?? []);
     result.hasOutstandingChildRequest = report.hasOutstandingChildRequest;
     result.parentReportID = report.parentReportID ?? '';
     result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
@@ -282,6 +288,8 @@ function getOptionData({
     result.chatType = report.chatType;
     result.isDeletedParentAction = report.isDeletedParentAction;
     result.isSelfDM = ReportUtils.isSelfDM(report);
+    result.isOneOnOneChat = isOneOnOneChat;
+    result.tooltipText = ReportUtils.getReportParticipantsTitle(visibleParticipantAccountIDs);
 
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || ReportUtils.isExpenseReport(report);
     const subtitle = ReportUtils.getChatRoomSubtitle(report);
@@ -325,26 +333,30 @@ function getOptionData({
         ReportUtils.isThread(report) && lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && lastAction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
     if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport || isThreadMessage) && !result.isArchivedRoom) {
+        const lastActionName = lastAction?.actionName ?? report.lastActionType;
+
         if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
             const newName = lastAction?.originalMessage?.newName ?? '';
             result.alternateText = Localize.translate(preferredLocale, 'newRoomPage.roomRenamedTo', {newName});
         } else if (ReportActionsUtils.isTaskAction(lastAction)) {
             result.alternateText = ReportUtils.formatReportLastMessageText(TaskUtils.getTaskReportActionMessage(lastAction).text);
         } else if (
-            lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM ||
-            lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.REMOVE_FROM_ROOM ||
-            lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM ||
-            lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_FROM_ROOM
+            lastActionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM ||
+            lastActionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.REMOVE_FROM_ROOM ||
+            lastActionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM ||
+            lastActionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_FROM_ROOM
         ) {
-            const targetAccountIDs = lastAction?.originalMessage?.targetAccountIDs ?? [];
+            const lastActionOriginalMessage = lastAction?.actionName ? (lastAction?.originalMessage as ChangeLog) : null;
+            const targetAccountIDs = lastActionOriginalMessage?.targetAccountIDs ?? [];
+            const targetAccountIDsLength = targetAccountIDs.length !== 0 ? targetAccountIDs.length : report.lastMessageHtml?.match(/<mention-user[^>]*><\/mention-user>/g)?.length ?? 0;
             const verb =
-                lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM
+                lastActionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM || lastActionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM
                     ? Localize.translate(preferredLocale, 'workspace.invite.invited')
                     : Localize.translate(preferredLocale, 'workspace.invite.removed');
-            const users = Localize.translate(preferredLocale, targetAccountIDs.length > 1 ? 'workspace.invite.users' : 'workspace.invite.user');
-            result.alternateText = `${lastActorDisplayName} ${verb} ${targetAccountIDs.length} ${users}`.trim();
+            const users = Localize.translate(preferredLocale, targetAccountIDsLength > 1 ? 'workspace.invite.users' : 'workspace.invite.user');
+            result.alternateText = `${lastActorDisplayName} ${verb} ${targetAccountIDsLength} ${users}`.trim();
 
-            const roomName = lastAction?.originalMessage?.roomName ?? '';
+            const roomName = lastActionOriginalMessage?.roomName ?? '';
             if (roomName) {
                 const preposition =
                     lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM
@@ -414,7 +426,7 @@ function getOptionData({
     result.subtitle = subtitle;
     result.participantsList = participantPersonalDetailList;
 
-    result.icons = ReportUtils.getIcons(report, personalDetails, personalDetail?.avatar, '', -1, policy);
+    result.icons = ReportUtils.getIcons(report, personalDetails, UserUtils.getAvatar(personalDetail?.avatar ?? '', personalDetail?.accountID), '', -1, policy);
     result.searchText = OptionsListUtils.getSearchText(report, reportName, participantPersonalDetailList, result.isChatRoom || result.isPolicyExpenseChat, result.isThread);
     result.displayNamesWithTooltips = displayNamesWithTooltips;
 

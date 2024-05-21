@@ -15,9 +15,12 @@ import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import getIconForAction from '@libs/getIconForAction';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import type {CentralPaneName, NavigationPartialRoute, RootStackParamList} from '@libs/Navigation/types';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as App from '@userActions/App';
 import * as IOU from '@userActions/IOU';
@@ -38,11 +41,11 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 const useIsFocused = () => {
     const {isSmallScreenWidth} = useWindowDimensions();
     const isFocused = useIsFocusedOriginal();
-    const topmostCentralPane = useNavigationState(getTopmostCentralPaneRoute);
+    const topmostCentralPane = useNavigationState<RootStackParamList, NavigationPartialRoute<CentralPaneName> | undefined>(getTopmostCentralPaneRoute);
     return isFocused || (topmostCentralPane?.name === SCREENS.SEARCH.CENTRAL_PANE && isSmallScreenWidth);
 };
 
-type PolicySelector = Pick<OnyxTypes.Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction' | 'avatar' | 'name'>;
+type PolicySelector = Pick<OnyxTypes.Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction' | 'avatarURL' | 'name' | 'id'>;
 
 type FloatingActionButtonAndPopoverOnyxProps = {
     /** The list of policies the user has access to. */
@@ -53,6 +56,12 @@ type FloatingActionButtonAndPopoverOnyxProps = {
 
     /** Information on the last taken action to display as Quick Action */
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+
+    /** The report data of the quick action */
+    quickActionReport: OnyxEntry<OnyxTypes.Report>;
+
+    /** The policy data of the quick action */
+    quickActionPolicy: OnyxEntry<OnyxTypes.Policy>;
 
     /** The current session */
     session: OnyxEntry<OnyxTypes.Session>;
@@ -80,28 +89,35 @@ const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>): PolicySelector =>
     (policy && {
         type: policy.type,
         role: policy.role,
+        id: policy.id,
         isPolicyExpenseChatEnabled: policy.isPolicyExpenseChatEnabled,
         pendingAction: policy.pendingAction,
-        avatar: policy.avatar,
+        avatarURL: policy.avatarURL,
         name: policy.name,
     }) as PolicySelector;
 
 const getQuickActionIcon = (action: QuickActionName): React.FC<SvgProps> => {
     switch (action) {
         case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
-            return Expensicons.MoneyCircle;
+            return getIconForAction(CONST.IOU.TYPE.REQUEST);
         case CONST.QUICK_ACTIONS.REQUEST_SCAN:
-            return Expensicons.Receipt;
+            return Expensicons.ReceiptScan;
         case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
             return Expensicons.Car;
         case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
         case CONST.QUICK_ACTIONS.SPLIT_SCAN:
         case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
-            return Expensicons.Transfer;
+            return getIconForAction(CONST.IOU.TYPE.SPLIT);
         case CONST.QUICK_ACTIONS.SEND_MONEY:
-            return Expensicons.Send;
+            return getIconForAction(CONST.IOU.TYPE.SEND);
         case CONST.QUICK_ACTIONS.ASSIGN_TASK:
             return Expensicons.Task;
+        case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
+            return Expensicons.Car;
+        case CONST.QUICK_ACTIONS.TRACK_MANUAL:
+            return getIconForAction(CONST.IOU.TYPE.TRACK);
+        case CONST.QUICK_ACTIONS.TRACK_SCAN:
+            return Expensicons.ReceiptScan;
         default:
             return Expensicons.MoneyCircle;
     }
@@ -128,7 +144,7 @@ const getQuickActionTitle = (action: QuickActionName): TranslationPaths => {
         case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
             return 'quickAction.trackDistance';
         case CONST.QUICK_ACTIONS.SEND_MONEY:
-            return 'quickAction.sendMoney';
+            return 'quickAction.paySomeone';
         case CONST.QUICK_ACTIONS.ASSIGN_TASK:
             return 'quickAction.assignTask';
         default:
@@ -141,22 +157,31 @@ const getQuickActionTitle = (action: QuickActionName): TranslationPaths => {
  * FAB that can open or close the menu.
  */
 function FloatingActionButtonAndPopover(
-    {onHideCreateMenu, onShowCreateMenu, isLoading = false, allPolicies, quickAction, session, personalDetails, hasSeenTrackTraining}: FloatingActionButtonAndPopoverProps,
+    {
+        onHideCreateMenu,
+        onShowCreateMenu,
+        isLoading = false,
+        allPolicies,
+        quickAction,
+        quickActionReport,
+        quickActionPolicy,
+        session,
+        personalDetails,
+        hasSeenTrackTraining,
+    }: FloatingActionButtonAndPopoverProps,
     ref: ForwardedRef<FloatingActionButtonAndPopoverRef>,
 ) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
     const fabRef = useRef<HTMLDivElement>(null);
-    const {canUseTrackExpense} = usePermissions();
     const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
     const isFocused = useIsFocused();
     const prevIsFocused = usePrevious(isFocused);
     const {isOffline} = useNetwork();
 
-    const quickActionReport: OnyxEntry<OnyxTypes.Report> = useMemo(() => (quickAction ? ReportUtils.getReport(quickAction.chatReportID) : null), [quickAction]);
-
-    const quickActionPolicy = allPolicies ? allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${quickActionReport?.policyID}`] : undefined;
+    const {canUseSpotnanaTravel} = usePermissions();
+    const canSendInvoice = useMemo(() => PolicyUtils.canSendInvoice(allPolicies as OnyxCollection<OnyxTypes.Policy>), [allPolicies]);
 
     const quickActionAvatars = useMemo(() => {
         if (quickActionReport) {
@@ -169,44 +194,64 @@ function FloatingActionButtonAndPopover(
     }, [personalDetails, session?.accountID, quickActionReport, quickActionPolicy]);
 
     const quickActionTitle = useMemo(() => {
+        if (isEmptyObject(quickActionReport)) {
+            return '';
+        }
+        if (quickAction?.action === CONST.QUICK_ACTIONS.SEND_MONEY && quickActionAvatars.length > 0) {
+            const name: string = ReportUtils.getDisplayNameForParticipant(+(quickActionAvatars[0]?.id ?? 0), true) ?? '';
+            return translate('quickAction.paySomeone', {name});
+        }
         const titleKey = getQuickActionTitle(quickAction?.action ?? ('' as QuickActionName));
         return titleKey ? translate(titleKey) : '';
-    }, [quickAction, translate]);
+    }, [quickAction, translate, quickActionAvatars, quickActionReport]);
+
+    const hideQABSubtitle = useMemo(() => {
+        if (isEmptyObject(quickActionReport)) {
+            return true;
+        }
+        if (quickActionAvatars.length === 0) {
+            return false;
+        }
+        const displayName = personalDetails?.[quickActionAvatars[0]?.id ?? 0]?.firstName ?? '';
+        return quickAction?.action === CONST.QUICK_ACTIONS.SEND_MONEY && displayName.length === 0;
+    }, [personalDetails, quickActionReport, quickAction?.action, quickActionAvatars]);
 
     const navigateToQuickAction = () => {
+        const isValidReport = !(isEmptyObject(quickActionReport) || ReportUtils.isArchivedRoom(quickActionReport));
+        const quickActionReportID = isValidReport ? quickActionReport?.reportID ?? '' : ReportUtils.generateReportID();
         switch (quickAction?.action) {
             case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.MANUAL, true);
+                IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.MANUAL, true);
                 return;
             case CONST.QUICK_ACTIONS.REQUEST_SCAN:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.SCAN, true);
+                IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true);
                 return;
             case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.DISTANCE, true);
+                IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.DISTANCE, true);
                 return;
             case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.MANUAL, true);
+                IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.MANUAL, true);
                 return;
             case CONST.QUICK_ACTIONS.SPLIT_SCAN:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.SCAN, true);
+                IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true);
                 return;
             case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.DISTANCE, true);
+                IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.DISTANCE, true);
                 return;
             case CONST.QUICK_ACTIONS.SEND_MONEY:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.PAY, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.MANUAL, true);
+                IOU.startMoneyRequest(CONST.IOU.TYPE.PAY, quickActionReportID, CONST.IOU.REQUEST_TYPE.MANUAL, true);
                 return;
             case CONST.QUICK_ACTIONS.ASSIGN_TASK:
-                Task.clearOutTaskInfoAndNavigate(quickAction?.chatReportID ?? '', quickActionReport, quickAction.targetAccountID ?? 0, true);
+                Task.clearOutTaskInfoAndNavigate(isValidReport ? quickActionReportID : '', isValidReport ? quickActionReport : undefined, quickAction.targetAccountID ?? 0, true);
                 break;
             case CONST.QUICK_ACTIONS.TRACK_MANUAL:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.MANUAL, true);
+                IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickActionReportID, CONST.IOU.REQUEST_TYPE.MANUAL, true);
                 break;
             case CONST.QUICK_ACTIONS.TRACK_SCAN:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.SCAN, true);
+                IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true);
                 break;
             case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.DISTANCE, true);
+                IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickActionReportID, CONST.IOU.REQUEST_TYPE.DISTANCE, true);
                 break;
             default:
         }
@@ -294,10 +339,10 @@ function FloatingActionButtonAndPopover(
                         text: translate('sidebarScreen.fabNewChat'),
                         onSelected: () => interceptAnonymousUser(Report.startNewChat),
                     },
-                    ...(canUseTrackExpense && selfDMReportID
+                    ...(selfDMReportID
                         ? [
                               {
-                                  icon: Expensicons.DocumentPlus,
+                                  icon: getIconForAction(CONST.IOU.TYPE.TRACK),
                                   text: translate('iou.trackExpense'),
                                   onSelected: () => {
                                       interceptAnonymousUser(() =>
@@ -310,14 +355,16 @@ function FloatingActionButtonAndPopover(
                                           ),
                                       );
                                       if (!hasSeenTrackTraining && !isOffline) {
-                                          Navigation.navigate(ROUTES.TRACK_TRAINING_MODAL);
+                                          setTimeout(() => {
+                                              Navigation.navigate(ROUTES.TRACK_TRAINING_MODAL);
+                                          }, CONST.ANIMATED_TRANSITION);
                                       }
                                   },
                               },
                           ]
                         : []),
                     {
-                        icon: Expensicons.MoneyCircle,
+                        icon: getIconForAction(CONST.IOU.TYPE.REQUEST),
                         text: translate('iou.submitExpense'),
                         onSelected: () =>
                             interceptAnonymousUser(() =>
@@ -343,7 +390,7 @@ function FloatingActionButtonAndPopover(
                             ),
                     },
                     {
-                        icon: Expensicons.Send,
+                        icon: getIconForAction(CONST.IOU.TYPE.SEND),
                         text: translate('iou.paySomeone', {}),
                         onSelected: () =>
                             interceptAnonymousUser(() =>
@@ -355,11 +402,37 @@ function FloatingActionButtonAndPopover(
                                 ),
                             ),
                     },
+                    ...(canSendInvoice
+                        ? [
+                              {
+                                  icon: Expensicons.InvoiceGeneric,
+                                  text: translate('workspace.invoices.sendInvoice'),
+                                  onSelected: () =>
+                                      interceptAnonymousUser(() =>
+                                          IOU.startMoneyRequest(
+                                              CONST.IOU.TYPE.INVOICE,
+                                              // When starting to create an invoice from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
+                                              // for all of the routes in the creation flow.
+                                              ReportUtils.generateReportID(),
+                                          ),
+                                      ),
+                              },
+                          ]
+                        : []),
                     {
                         icon: Expensicons.Task,
                         text: translate('newTaskPage.assignTask'),
                         onSelected: () => interceptAnonymousUser(() => Task.clearOutTaskInfoAndNavigate()),
                     },
+                    ...(canUseSpotnanaTravel
+                        ? [
+                              {
+                                  icon: Expensicons.Suitcase,
+                                  text: translate('travel.bookTravel'),
+                                  onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS)),
+                              },
+                          ]
+                        : []),
                     ...(!isLoading && !Policy.hasActiveChatEnabledPolicies(allPolicies)
                         ? [
                               {
@@ -383,7 +456,7 @@ function FloatingActionButtonAndPopover(
                                   isLabelHoverable: false,
                                   floatRightAvatars: quickActionAvatars,
                                   floatRightAvatarSize: CONST.AVATAR_SIZE.SMALL,
-                                  description: !isEmptyObject(quickActionReport) ? ReportUtils.getReportName(quickActionReport) : '',
+                                  description: !hideQABSubtitle ? ReportUtils.getReportName(quickActionReport) ?? translate('quickAction.updateDestination') : '',
                                   numberOfLinesDescription: 1,
                                   onSelected: () => interceptAnonymousUser(() => navigateToQuickAction()),
                                   shouldShowSubscriptRightAvatar: ReportUtils.isPolicyExpenseChat(quickActionReport),
@@ -417,6 +490,12 @@ export default withOnyx<FloatingActionButtonAndPopoverProps & RefAttributes<Floa
     },
     quickAction: {
         key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+    },
+    quickActionReport: {
+        key: ({quickAction}) => `${ONYXKEYS.COLLECTION.REPORT}${quickAction?.chatReportID}`,
+    },
+    quickActionPolicy: {
+        key: ({quickActionReport}) => `${ONYXKEYS.COLLECTION.POLICY}${quickActionReport?.policyID}`,
     },
     personalDetails: {
         key: ONYXKEYS.PERSONAL_DETAILS_LIST,

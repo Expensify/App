@@ -21,13 +21,22 @@ type Note = OnyxCommon.OnyxValueWithOfflineFeedback<{
 type PendingChatMember = {
     accountID: string;
     pendingAction: OnyxCommon.PendingAction;
-    errors?: OnyxCommon.Errors;
 };
 
-type Participant = {
+type Participant = OnyxCommon.OnyxValueWithOfflineFeedback<{
     hidden?: boolean;
     role?: 'admin' | 'member';
-};
+}>;
+
+type InvoiceReceiver =
+    | {
+          type: typeof CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
+          accountID: number;
+      }
+    | {
+          type: typeof CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS;
+          policyID: string;
+      };
 
 type Participants = Record<number, Participant>;
 
@@ -129,6 +138,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Report cached total */
         cachedTotal?: string;
 
+        /** Invoice room receiver data */
+        invoiceReceiver?: InvoiceReceiver;
+
         lastMessageTranslationKey?: string;
         parentReportID?: string;
         parentReportActionID?: string;
@@ -138,11 +150,12 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         displayName?: string;
         lastMessageHtml?: string;
         lastActorAccountID?: number;
+
+        // The type of the last action
+        lastActionType?: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE>;
         ownerAccountID?: number;
         ownerEmail?: string;
         participants?: Participants;
-        participantAccountIDs?: number[];
-        visibleChatMemberAccountIDs?: number[];
         total?: number;
         unheldTotal?: number;
         currency?: string;
@@ -187,6 +200,8 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         transactionThreadReportID?: string;
 
         fieldList?: Record<string, PolicyReportField>;
+
+        permissions?: Array<ValueOf<typeof CONST.REPORT.PERMISSIONS>>;
     },
     PolicyReportField['fieldID']
 >;

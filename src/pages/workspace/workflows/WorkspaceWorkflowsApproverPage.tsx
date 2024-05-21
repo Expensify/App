@@ -5,7 +5,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Badge from '@components/Badge';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import type {ListItem, Section} from '@components/SelectionList/types';
@@ -15,11 +14,12 @@ import useNetwork from '@hooks/useNetwork';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import type {WorkspacesCentralPaneNavigatorParamList} from '@libs/Navigation/types';
+import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
+import * as UserUtils from '@libs/UserUtils';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import * as Policy from '@userActions/Policy';
@@ -35,7 +35,7 @@ type WorkspaceWorkflowsApproverPageOnyxProps = {
 
 type WorkspaceWorkflowsApproverPageProps = WorkspaceWorkflowsApproverPageOnyxProps &
     WithPolicyAndFullscreenLoadingProps &
-    StackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVER>;
+    StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVER>;
 type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 type MembersSection = SectionListData<MemberOption, Section<MemberOption>>;
 
@@ -87,7 +87,7 @@ function WorkspaceWorkflowsApproverPage({policy, personalDetails, isLoadingRepor
                 rightElement: roleBadge,
                 icons: [
                     {
-                        source: details.avatar ?? FallbackAvatar,
+                        source: UserUtils.getAvatar(details.avatar, accountID),
                         name: formatPhoneNumber(details?.login ?? ''),
                         type: CONST.ICON_TYPE_AVATAR,
                         id: accountID,
@@ -155,7 +155,7 @@ function WorkspaceWorkflowsApproverPage({policy, personalDetails, isLoadingRepor
     };
 
     return (
-        <FeatureEnabledAccessOrNotFoundWrapper
+        <AccessOrNotFoundWrapper
             policyID={route.params.policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
         >
@@ -176,7 +176,7 @@ function WorkspaceWorkflowsApproverPage({policy, personalDetails, isLoadingRepor
                     />
                     <SelectionList
                         sections={sections}
-                        textInputLabel={translate('optionsSelector.findMember')}
+                        textInputLabel={translate('selectionList.findMember')}
                         textInputValue={searchTerm}
                         onChangeText={setSearchTerm}
                         headerMessage={headerMessage}
@@ -186,7 +186,7 @@ function WorkspaceWorkflowsApproverPage({policy, personalDetails, isLoadingRepor
                     />
                 </FullPageNotFoundView>
             </ScreenWrapper>
-        </FeatureEnabledAccessOrNotFoundWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 

@@ -10,8 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
 import Navigation from '@navigation/Navigation';
-import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
-import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
@@ -27,8 +26,8 @@ function QuickbooksExportDateSelectPage({policy}: WithPolicyConnectionsProps) {
     const {exportDate} = policy?.connections?.quickbooksOnline?.config ?? {};
     const data: CardListItem[] = Object.values(CONST.QUICKBOOKS_EXPORT_DATE).map((dateType) => ({
         value: dateType,
-        text: translate(`workspace.qbo.${dateType}.label`),
-        alternateText: translate(`workspace.qbo.${dateType}.description`),
+        text: translate(`workspace.qbo.exportDate.values.${dateType}.label`),
+        alternateText: translate(`workspace.qbo.exportDate.values.${dateType}.description`),
         keyForList: dateType,
         isSelected: exportDate === dateType,
     }));
@@ -44,26 +43,25 @@ function QuickbooksExportDateSelectPage({policy}: WithPolicyConnectionsProps) {
     );
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
-            <FeatureEnabledAccessOrNotFoundWrapper
-                policyID={policyID}
-                featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+        <AccessOrNotFoundWrapper
+            policyID={policyID}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+        >
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                testID={QuickbooksExportDateSelectPage.displayName}
             >
-                <ScreenWrapper
-                    includeSafeAreaPaddingBottom={false}
-                    testID={QuickbooksExportDateSelectPage.displayName}
-                >
-                    <HeaderWithBackButton title={translate('workspace.qbo.exportDate')} />
-                    <SelectionList
-                        headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportDateDescription')}</Text>}
-                        sections={[{data}]}
-                        ListItem={RadioListItem}
-                        onSelectRow={selectExportDate}
-                        initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
-                    />
-                </ScreenWrapper>
-            </FeatureEnabledAccessOrNotFoundWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+                <HeaderWithBackButton title={translate('workspace.qbo.exportDate.label')} />
+                <SelectionList
+                    headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportDate.description')}</Text>}
+                    sections={[{data}]}
+                    ListItem={RadioListItem}
+                    onSelectRow={selectExportDate}
+                    initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
+                />
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 

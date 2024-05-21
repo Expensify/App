@@ -19,6 +19,7 @@ import codeStyles from './utils/codeStyles';
 import cursor from './utils/cursor';
 import display from './utils/display';
 import editedLabelStyles from './utils/editedLabelStyles';
+import emojiDefaultStyles from './utils/emojiDefaultStyles';
 import flex from './utils/flex';
 import FontUtils from './utils/FontUtils';
 import getPopOverVerticalOffset from './utils/getPopOverVerticalOffset';
@@ -212,7 +213,6 @@ const webViewStyles = (theme: ThemeColors) =>
                 minWidth: CONST.VIDEO_PLAYER.MIN_WIDTH,
                 minHeight: CONST.VIDEO_PLAYER.MIN_HEIGHT,
                 borderRadius: variables.componentBorderRadiusNormal,
-                overflow: 'hidden',
                 backgroundColor: theme.highlightBG,
                 ...touchCalloutNone,
             },
@@ -256,6 +256,7 @@ const styles = (theme: ThemeColors) =>
         ...objectFit,
         ...textDecorationLine,
         editedLabelStyles,
+        emojiDefaultStyles,
 
         autoCompleteSuggestionsContainer: {
             backgroundColor: theme.appBG,
@@ -438,6 +439,11 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightHero,
         },
 
+        textNewKansasNormal: {
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM,
+            fontSize: variables.fontSizeNormal,
+        },
+
         textStrong: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             fontWeight: FontUtils.fontWeight.bold,
@@ -529,6 +535,10 @@ const styles = (theme: ThemeColors) =>
 
         borderRadiusNormal: {
             borderRadius: variables.buttonBorderRadius,
+        },
+
+        borderRadiusComponentLarge: {
+            borderRadius: variables.componentBorderRadiusLarge,
         },
 
         bottomTabBarContainer: {
@@ -789,6 +799,7 @@ const styles = (theme: ThemeColors) =>
                     fontSize: 17,
                 },
                 modalViewMiddle: {
+                    position: 'relative',
                     backgroundColor: theme.border,
                     borderTopWidth: 0,
                 },
@@ -830,6 +841,10 @@ const styles = (theme: ThemeColors) =>
                 icon: {
                     width: variables.iconSizeExtraSmall,
                     height: variables.iconSizeExtraSmall,
+                },
+                chevronContainer: {
+                    pointerEvents: 'none',
+                    opacity: 0,
                 },
             } satisfies CustomPickerStyle),
 
@@ -1127,9 +1142,8 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.border,
         },
 
-        textInputContainerBorder: {
-            borderBottomWidth: 2,
-            borderColor: theme.border,
+        optionRowAmountInput: {
+            textAlign: 'right',
         },
 
         textInputLabel: {
@@ -1378,14 +1392,14 @@ const styles = (theme: ThemeColors) =>
         formHelp: {
             color: theme.textSupporting,
             fontSize: variables.fontSizeLabel,
-            lineHeight: variables.lineHeightLarge,
+            lineHeight: variables.lineHeightNormal,
             marginBottom: 4,
         },
 
         formError: {
             color: theme.textError,
             fontSize: variables.fontSizeLabel,
-            lineHeight: variables.formErrorLineHeight,
+            lineHeight: variables.lineHeightNormal,
             marginBottom: 4,
         },
 
@@ -1858,6 +1872,11 @@ const styles = (theme: ThemeColors) =>
             marginBottom: -20,
         },
 
+        travelIllustrationStyle: {
+            marginTop: 16,
+            marginBottom: -16,
+        },
+
         overlayStyles: (current: OverlayStylesParams, isModalOnTheLeft: boolean) =>
             ({
                 ...positioning.pFixed,
@@ -2216,6 +2235,15 @@ const styles = (theme: ThemeColors) =>
             width: 200,
         },
 
+        chatItemPDFAttachmentLoading: {
+            backgroundColor: 'transparent',
+            borderColor: theme.border,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadiusNormal,
+            ...flex.alignItemsCenter,
+            ...flex.justifyContentCenter,
+        },
+
         sidebarVisible: {
             borderRightWidth: 1,
         },
@@ -2332,6 +2360,7 @@ const styles = (theme: ThemeColors) =>
             lineHeight: undefined,
             marginLeft: -2,
             textAlign: 'center',
+            zIndex: 10,
         },
 
         emptyAvatar: {
@@ -2805,6 +2834,18 @@ const styles = (theme: ThemeColors) =>
             left: 0,
             width: '100%',
             height: 20,
+            paddingHorizontal: 20,
+            flexDirection: 'row',
+            alignItems: 'center',
+            zIndex: 1,
+            ...cursor.cursorDefault,
+        },
+
+        topUnreadIndicatorContainer: {
+            position: 'relative',
+            width: '100%',
+            /** 17 = height of the indicator 1px + 8px top and bottom */
+            height: 17,
             paddingHorizontal: 20,
             flexDirection: 'row',
             alignItems: 'center',
@@ -3346,6 +3387,7 @@ const styles = (theme: ThemeColors) =>
         shortTermsBorder: {
             borderWidth: 1,
             borderColor: theme.border,
+            borderRadius: variables.componentBorderRadius,
         },
 
         shortTermsHorizontalRule: {
@@ -3380,8 +3422,8 @@ const styles = (theme: ThemeColors) =>
             ...headlineFont,
             ...whiteSpace.preWrap,
             color: theme.heading,
-            fontSize: variables.fontSizeXXXLarge,
-            lineHeight: variables.lineHeightXXXLarge,
+            fontSize: variables.fontSizeXLarge,
+            lineHeight: variables.lineHeightXXLarge,
         },
 
         longTermsRow: {
@@ -3406,30 +3448,10 @@ const styles = (theme: ThemeColors) =>
             ...visibility.hidden,
         },
 
-        floatingMessageCounterWrapperAndroid: {
-            left: 0,
-            width: '100%',
-            alignItems: 'center',
-            position: 'absolute',
-            top: 0,
-            zIndex: 100,
-            ...visibility.hidden,
-        },
-
-        floatingMessageCounterSubWrapperAndroid: {
-            left: '50%',
-            width: 'auto',
-        },
-
         floatingMessageCounter: {
             left: '-50%',
             ...visibility.visible,
         },
-
-        floatingMessageCounterTransformation: (translateY: AnimatableNumericValue) =>
-            ({
-                transform: [{translateY}],
-            } satisfies ViewStyle),
 
         confirmationAnimation: {
             height: 180,
@@ -4202,6 +4224,7 @@ const styles = (theme: ThemeColors) =>
             height: 200,
             borderRadius: 16,
             margin: 20,
+            overflow: 'hidden',
         },
 
         reportPreviewBox: {
@@ -4304,17 +4327,6 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 8,
             overflow: 'hidden',
             alignSelf: 'center',
-        },
-
-        moneyRequestHeaderStatusBarBadge: {
-            width: 68,
-            height: variables.inputHeightSmall,
-            borderRadius: variables.componentBorderRadiusSmall,
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            backgroundColor: theme.border,
-            marginRight: 12,
         },
 
         staticHeaderImage: {
@@ -4474,10 +4486,8 @@ const styles = (theme: ThemeColors) =>
             width: '100%',
         },
         menuItemError: {
-            position: 'absolute',
-            bottom: -4,
-            left: 20,
-            right: 20,
+            marginTop: 4,
+            marginBottom: 0,
         },
         formHelperMessage: {
             height: 32,
@@ -4496,13 +4506,22 @@ const styles = (theme: ThemeColors) =>
             top: -36,
         },
 
-        chatBottomLoader: {
+        listBoundaryLoader: {
             position: 'absolute',
             top: 0,
             bottom: 0,
             left: 0,
             right: 0,
             height: CONST.CHAT_HEADER_LOADER_HEIGHT,
+        },
+        listBoundaryError: {
+            paddingVertical: 15,
+            paddingHorizontal: 20,
+        },
+        listBoundaryErrorText: {
+            color: theme.textSupporting,
+            fontSize: variables.fontSizeLabel,
+            marginBottom: 10,
         },
 
         videoContainer: {
@@ -4532,6 +4551,15 @@ const styles = (theme: ThemeColors) =>
 
             paddingHorizontal: 8,
             paddingVertical: 4,
+        },
+
+        headerStatusBarContainer: {
+            minHeight: variables.componentSizeNormal,
+        },
+
+        walletCardLimit: {
+            color: theme.text,
+            fontSize: variables.fontSizeNormal,
         },
 
         walletCard: {
@@ -4721,6 +4749,13 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightXXLarge,
         },
 
+        videoPlayerPreview: {
+            width: '100%',
+            height: '100%',
+            borderRadius: variables.componentBorderRadiusNormal,
+            backgroundColor: theme.highlightBG,
+        },
+
         videoPlayerControlsContainer: {
             position: 'absolute',
             bottom: CONST.VIDEO_PLAYER.CONTROLS_POSITION.NORMAL,
@@ -4866,6 +4901,7 @@ const styles = (theme: ThemeColors) =>
         workspaceTitleStyle: {
             ...headlineFont,
             fontSize: variables.fontSizeXLarge,
+            flex: 1,
         },
 
         textLineThrough: {
