@@ -255,19 +255,9 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         isActive={Boolean(policyTagList?.required)}
                         onToggle={(on) => Policy.setWorkspaceTagListRequired(policyID, route.params.orderWeight ?? 0, on)}
                         pendingAction={currentPolicyTag.pendingFields?.required}
-                        errors={ErrorUtils.getLatestErrorField(currentPolicyTag ?? {}, CONST.POLICY)}
+                        errors={ErrorUtils.getLatestErrorField(policyTags, CONST.POLICY.TAG.required)}
                         disabled={tagList.length === 0}
                     />
-                </View>
-                <View style={[styles.pv4, styles.ph5]}>
-                    <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                        <Text style={[styles.textNormal]}>{translate('workspace.tags.requiresTag')}</Text>
-                        <Switch
-                            isOn={Boolean(policyTagList?.required)}
-                            accessibilityLabel={translate('workspace.tags.requiresTag')}
-                            onToggle={(on) => Policy.setWorkspaceTagListRequired(policyID, route.params.orderWeight ?? 0, on)}
-                        />
-                    </View>
                 </View>
                 {isLoading && (
                     <ActivityIndicator
