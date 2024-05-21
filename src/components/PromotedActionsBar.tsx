@@ -86,7 +86,7 @@ function PromotedActionsBar({report, promotedActions, containerStyle, shouldShow
     }
 
     return (
-        <View style={[styles.flexRow, styles.ph5, styles.mb5, styles.gap2, styles.mw100, styles.w100, containerStyle]}>
+        <View style={[styles.flexRow, styles.ph5, styles.mb5, styles.gap2, styles.mw100, styles.w100, styles.justifyContentCenter, containerStyle]}>
             {/* TODO: Remove the `Leave` button when @src/pages/ReportDetailsPage.tsx is updated */}
             {shouldShowLeaveButton && report && (
                 // The `Leave` button is left to make the component backward compatible with the existing code.
@@ -123,7 +123,7 @@ function PromotedActionsBar({report, promotedActions, containerStyle, shouldShow
             )}
             {promotedActions.map(({key, onSelected, ...props}) => (
                 <View
-                    style={[styles.flex1]}
+                    style={[styles.flex1, styles.mw50]}
                     key={key}
                 >
                     <Button
