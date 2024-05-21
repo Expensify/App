@@ -80,4 +80,4 @@ export default function createRandomReportAction(index: number): ReportAction {
     };
 }
 
-export {getRandomDate, flattenActionNamesValues};
+export {getRandomDate};

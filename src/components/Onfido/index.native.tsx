@@ -1,4 +1,5 @@
 import {OnfidoCaptureType, OnfidoCountryCode, OnfidoDocumentType, Onfido as OnfidoSDK, OnfidoTheme} from '@onfido/react-native-sdk';
+import type {ErrorType} from 'onfido-sdk-ui/types/Types';
 import React, {useEffect} from 'react';
 import {Alert, Linking} from 'react-native';
 import {checkMultiple, PERMISSIONS, RESULTS} from 'react-native-permissions';
@@ -29,13 +30,8 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
             },
         })
             .then(onSuccess)
-            .catch((error) => {
-                let errorMessage: string;
-                if (error instanceof Error) {
-                    errorMessage = error.message;
-                } else {
-                    errorMessage = CONST.ERROR.UNKNOWN_ERROR;
-                }
+            .catch((error: ErrorType) => {
+                const errorMessage: string = error.message ?? CONST.ERROR.UNKNOWN_ERROR;
                 const errorType = error.type;
 
                 Log.hmmm('Onfido error on native', {errorType, errorMessage});

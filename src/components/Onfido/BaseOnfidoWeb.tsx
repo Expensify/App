@@ -1,4 +1,5 @@
 import {Onfido as OnfidoSDK} from 'onfido-sdk-ui';
+import type {ErrorType} from 'onfido-sdk-ui/types/Types';
 import React, {forwardRef, useEffect} from 'react';
 import type {ForwardedRef} from 'react';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
@@ -92,14 +93,9 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
             }
             onSuccess(data);
         },
-        onError: (error) => {
-            let errorMessage;
-            if (error instanceof Error) {
-                errorMessage = error.message;
-            } else {
-                errorMessage = CONST.ERROR.UNKNOWN_ERROR;
-            }
+        onError: (error: ErrorType) => {
             const errorType = error.type;
+            const errorMessage: string = error.message ?? CONST.ERROR.UNKNOWN_ERROR;
             Log.hmmm('Onfido error', {errorType, errorMessage});
             if (errorType === CONST.WALLET.ERROR.ONFIDO_USER_CONSENT_DENIED) {
                 onUserExit();
