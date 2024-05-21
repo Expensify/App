@@ -3073,7 +3073,7 @@ function completeOnboarding(
     const targetChatReport = ReportUtils.getChatByParticipants([actorAccountID, currentUserAccountID]);
     const {reportID: targetChatReportID = '', policyID: targetChatPolicyID = ''} = targetChatReport ?? {};
 
-    // Introductary message
+    // Introductory message
     const introductionComment = ReportUtils.buildOptimisticAddCommentReportAction(CONST.ONBOARDING_INTRODUCTION, undefined, actorAccountID);
     const introductionCommentAction: OptimisticAddCommentReportAction = introductionComment.reportAction;
     const introductionMessage: AddCommentOrAttachementParams = {
