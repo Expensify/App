@@ -142,11 +142,11 @@ function MoneyReportHeader({
 
     const shouldShowSettlementButton = !ReportUtils.isInvoiceReport(moneyRequestReport) && (shouldShowPayButton || shouldShowApproveButton) && !allHavePendingRTERViolation;
 
-    const shouldShowSubmitButton = isDraft && reimbursableSpend !== 0 && !allHavePendingRTERViolation;
+    const hasOnlyHeldExpenses = ReportUtils.hasOnlyHeldExpenses(moneyRequestReport.reportID);
+    const shouldShowSubmitButton = isDraft && reimbursableSpend !== 0 && !allHavePendingRTERViolation && !hasOnlyHeldExpenses;
     const shouldDisableSubmitButton = shouldShowSubmitButton && !ReportUtils.isAllowedToSubmitDraftExpenseReport(moneyRequestReport);
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
-    const hasOnlyHeldExpenses = ReportUtils.hasOnlyHeldExpenses(moneyRequestReport.reportID);
-    const shouldShowNextStep = !ReportUtils.isClosedExpenseReportWithNoExpenses(moneyRequestReport) && isFromPaidPolicy && !!nextStep?.message?.length && !allHavePendingRTERViolation;
+    const shouldShowNextStep = !ReportUtils.isClosedExpenseReportWithNoExpenses(moneyRequestReport) && isFromPaidPolicy && !!nextStep?.message?.length && !allHavePendingRTERViolation && !hasOnlyHeldExpenses;
     const shouldShowAnyButton = shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextStep;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
     const formattedAmount = CurrencyUtils.convertToDisplayString(reimbursableSpend, moneyRequestReport.currency);
@@ -213,8 +213,8 @@ function MoneyReportHeader({
     );
 
     const getStatusBarProps: () => MoneyRequestHeaderStatusBarProps | undefined = () => {
-        if (isOnHold) {
-            return {title: translate('iou.hold'), description: translate('iou.expenseOnHold'), danger: true, shouldShowBorderBottom: true};
+        if (hasOnlyHeldExpenses) {
+            return {title: translate('iou.hold'), description: translate('iou.expensesOnHold'), danger: true, shouldShowBorderBottom: true};
         }
         if (allHavePendingRTERViolation) {
             return {title: getStatusIcon(Expensicons.Hourglass), description: translate('iou.pendingMatchWithCreditCardDescription'), shouldShowBorderBottom: true};
@@ -309,7 +309,7 @@ function MoneyReportHeader({
                 shouldShowBackButton={shouldUseNarrowLayout}
                 onBackButtonPress={onBackButtonPress}
                 // Shows border if no buttons or next steps are showing below the header
-                shouldShowBorderBottom={!(shouldShowAnyButton && shouldUseNarrowLayout) && !(shouldShowNextStep && !shouldUseNarrowLayout) && !allHavePendingRTERViolation}
+                shouldShowBorderBottom={!(shouldShowAnyButton && shouldUseNarrowLayout) && !(shouldShowNextStep && !shouldUseNarrowLayout) && !allHavePendingRTERViolation && !hasOnlyHeldExpenses}
                 shouldShowThreeDotsButton
                 threeDotsMenuItems={threeDotsMenuItems}
                 threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
