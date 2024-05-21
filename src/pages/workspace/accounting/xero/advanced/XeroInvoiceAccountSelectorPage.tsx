@@ -8,11 +8,11 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
+import {getXeroBankAccountsWithDefaultSelect} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import { getXeroBankAccountsWithDefaultSelect } from '@libs/PolicyUtils';
 
 function XeroInvoiceAccountSelectorPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();

@@ -2,12 +2,12 @@ import Str from 'expensify-common/lib/str';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {SelectorType} from '@components/SelectionScreen';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyCategories, PolicyEmployeeList, PolicyTagList, PolicyTags, TaxRate} from '@src/types/onyx';
 import type {PolicyFeatureName, Rate, Tenant} from '@src/types/onyx/Policy';
-import type {SelectorType} from '@components/SelectionScreen';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -419,7 +419,7 @@ function getXeroBankAccountsWithDefaultSelect(policy: Policy | undefined, select
         keyForList: id,
         isSelected: isMatchFound ? selectedBankAccountId === id : index === 0,
     }));
-} 
+}
 
 export {
     canEditTaxRate,
@@ -469,7 +469,7 @@ export {
     getXeroTenants,
     findCurrentXeroOrganization,
     getCurrentXeroOrganizationName,
-    getXeroBankAccountsWithDefaultSelect
+    getXeroBankAccountsWithDefaultSelect,
 };
 
 export type {MemberEmailsToAccountIDs};
