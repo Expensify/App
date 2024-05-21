@@ -146,13 +146,17 @@ function MoneyReportHeader({
     const shouldShowSubmitButton = isDraft && reimbursableSpend !== 0 && !allHavePendingRTERViolation && !hasOnlyHeldExpenses;
     const shouldDisableSubmitButton = shouldShowSubmitButton && !ReportUtils.isAllowedToSubmitDraftExpenseReport(moneyRequestReport);
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
-    const shouldShowNextStep = !ReportUtils.isClosedExpenseReportWithNoExpenses(moneyRequestReport) && isFromPaidPolicy && !!nextStep?.message?.length && !allHavePendingRTERViolation && !hasOnlyHeldExpenses;
+    const shouldShowNextStep =
+        !ReportUtils.isClosedExpenseReportWithNoExpenses(moneyRequestReport) && isFromPaidPolicy && !!nextStep?.message?.length && !allHavePendingRTERViolation && !hasOnlyHeldExpenses;
     const shouldShowAnyButton = shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextStep;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
     const formattedAmount = CurrencyUtils.convertToDisplayString(reimbursableSpend, moneyRequestReport.currency);
     const [nonHeldAmount, fullAmount] = ReportUtils.getNonHeldAndFullAmount(moneyRequestReport, policy);
     const displayedAmount = ReportUtils.hasHeldExpenses(moneyRequestReport.reportID) && canAllowSettlement ? nonHeldAmount : formattedAmount;
     const isMoreContentShown = shouldShowNextStep || (shouldShowAnyButton && shouldUseNarrowLayout);
+
+    // Shows border if no buttons or banners are showing below the header
+    const shouldShowBorderBottom = !(shouldShowAnyButton && shouldUseNarrowLayout) && !(shouldShowNextStep && !shouldUseNarrowLayout) && !allHavePendingRTERViolation && !hasOnlyHeldExpenses;
 
     const confirmPayment = (type?: PaymentMethodType | undefined) => {
         if (!type) {
@@ -308,8 +312,7 @@ function MoneyReportHeader({
                 policy={policy}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 onBackButtonPress={onBackButtonPress}
-                // Shows border if no buttons or next steps are showing below the header
-                shouldShowBorderBottom={!(shouldShowAnyButton && shouldUseNarrowLayout) && !(shouldShowNextStep && !shouldUseNarrowLayout) && !allHavePendingRTERViolation && !hasOnlyHeldExpenses}
+                shouldShowBorderBottom={shouldShowBorderBottom}
                 shouldShowThreeDotsButton
                 threeDotsMenuItems={threeDotsMenuItems}
                 threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
@@ -388,7 +391,7 @@ function MoneyReportHeader({
                     </View>
                 )}
                 {shouldShowNextStep && (
-                    <View style={[styles.ph5, styles.pv3]}>
+                    <View style={[styles.ph5, styles.pb3]}>
                         <MoneyReportHeaderStatusBar nextStep={nextStep} />
                     </View>
                 )}
