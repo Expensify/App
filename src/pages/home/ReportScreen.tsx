@@ -124,13 +124,6 @@ function isEmpty(report: OnyxTypes.Report): boolean {
     return !Object.values(report).some((value) => value !== undefined && value !== '');
 }
 
-function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportActions>, parentReportActionID: string | undefined): OnyxEntry<OnyxTypes.ReportAction> {
-    if (!parentReportActions || !parentReportActionID) {
-        return null;
-    }
-    return parentReportActions[parentReportActionID ?? '0'];
-}
-
 function ReportScreen({
     betas = [],
     route,
@@ -261,7 +254,7 @@ function ReportScreen({
         ],
     );
 
-    const parentReportAction = useMemo(() => getParentReportAction(parentReportActions, report?.parentReportActionID), [parentReportActions, report.parentReportActionID]);
+    const parentReportAction = useMemo(() => ReportUtils.getParentReportAction(parentReportActions, report?.parentReportActionID), [parentReportActions, report.parentReportActionID]);
 
     const prevReport = usePrevious(report);
     const prevUserLeavingStatus = usePrevious(userLeavingStatus);
@@ -813,8 +806,8 @@ export default withCurrentReportID(
             },
         })(
             memo(ReportScreen, (prevProps, nextProps) => {
-                const prevParentReportAction = getParentReportAction(prevProps.parentReportActions, prevProps.report?.parentReportActionID);
-                const nextParentReportAction = getParentReportAction(nextProps.parentReportActions, nextProps.report?.parentReportActionID);
+                const prevParentReportAction = ReportUtils.getParentReportAction(prevProps.parentReportActions, prevProps.report?.parentReportActionID);
+                const nextParentReportAction = ReportUtils.getParentReportAction(nextProps.parentReportActions, nextProps.report?.parentReportActionID);
                 return (
                     prevProps.isSidebarLoaded === nextProps.isSidebarLoaded &&
                     lodashIsEqual(prevProps.sortedAllReportActions, nextProps.sortedAllReportActions) &&
