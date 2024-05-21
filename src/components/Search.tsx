@@ -18,6 +18,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import SelectionList from './SelectionList';
 import SearchTableHeader from './SelectionList/SearchTableHeader';
+import type {ReportListItemType, TransactionListItemType} from './SelectionList/types';
 import TableListItemSkeleton from './Skeletons/TableListItemSkeleton';
 
 type SearchProps = {
@@ -25,9 +26,9 @@ type SearchProps = {
     policyIDs?: string;
 };
 
-function isSearchReport(item: SearchReport | SearchTransaction): item is SearchTransaction {
-    const searchTransactionItem = item as SearchTransaction;
-    return searchTransactionItem.transactionID !== undefined && searchTransactionItem.transactionThreadReportID !== undefined;
+function isReportListItemType(item: TransactionListItemType | ReportListItemType): item is ReportListItemType {
+    const reportListItem = item as ReportListItemType;
+    return reportListItem.transactions !== undefined;
 }
 
 function Search({query, policyIDs}: SearchProps) {
@@ -84,14 +85,14 @@ function Search({query, policyIDs}: SearchProps) {
         return null;
     }
 
-    const toggleListItem = (listItem: SearchTransaction | SearchReport) => {
+    const toggleListItem = (listItem: TransactionListItemType | ReportListItemType) => {
         // @TODO: Selecting checkboxes will be handled in a separate PR
-        if (isSearchReport(listItem)) {
-            Log.info(listItem.transactionID.toString());
+        if (isReportListItemType(listItem)) {
+            Log.info(listItem?.reportID?.toString() ?? '');
             return;
         }
 
-        Log.info(listItem.reportID?.toString() ?? '');
+        Log.info(listItem.transactionID);
     };
 
     const ListItem = SearchUtils.getListItem(type);
@@ -128,12 +129,12 @@ function Search({query, policyIDs}: SearchProps) {
             ListItem={ListItem}
             sections={[{data, isDisabled: false}]}
             onSelectRow={(item) => {
-                if (isSearchReport(item)) {
-                    openReport(item.transactionThreadReportID);
+                if (isReportListItemType(item)) {
+                    openReport(item.reportID);
                     return;
                 }
 
-                openReport(item.reportID);
+                openReport(item.transactionID);
             }}
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
             listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}

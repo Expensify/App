@@ -5,17 +5,20 @@ import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import BaseListItem from './BaseListItem';
 import ExpenseItemHeader from './ExpenseItemHeader';
 import ListItemCheckbox from './ListItemCheckbox';
 import TransactionListItem from './TransactionListItem';
 import TransactionListItemRow from './TransactionListItemRow';
-import type {ListItem, ReportListItemProps, ReportListItemType} from './types';
+import type {ListItem, ReportListItemProps, ReportListItemType, TransactionListItemType} from './types';
+
+const TYPE_COLUMN_WIDTH = 52;
 
 function ReportListItem<TItem extends ListItem>({
     item,
@@ -33,7 +36,6 @@ function ReportListItem<TItem extends ListItem>({
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const theme = useTheme();
     const {isLargeScreenWidth} = useWindowDimensions();
     const StyleUtils = useStyleUtils();
 
@@ -41,6 +43,10 @@ function ReportListItem<TItem extends ListItem>({
 
     const handleOnButtonPress = () => {
         onSelectRow(item);
+    };
+
+    const openReportInRHP = (transactionItem: TransactionListItemType) => {
+        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(CONST.TAB_SEARCH.ALL, transactionItem.transactionThreadReportID));
     };
 
     const totalCell = (
@@ -62,16 +68,16 @@ function ReportListItem<TItem extends ListItem>({
     );
 
     if (reportItem.transactions.length === 1) {
-        const transactionItem = reportItem.transactions[0] as unknown as TItem;
+        const transactionItem = reportItem.transactions[0];
 
         return (
             <TransactionListItem
-                item={transactionItem}
+                item={transactionItem as unknown as TItem}
                 isFocused={isFocused}
                 showTooltip={showTooltip}
                 isDisabled={isDisabled}
                 canSelectMultiple={canSelectMultiple}
-                onSelectRow={onSelectRow}
+                onSelectRow={() => openReportInRHP(transactionItem)}
                 onDismissError={onDismissError}
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 onFocus={onFocus}
@@ -113,14 +119,15 @@ function ReportListItem<TItem extends ListItem>({
                         />
                     )}
                     <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, isLargeScreenWidth && styles.mr4]}>
-                        <View style={[styles.flexRow, styles.flex1, styles.alignItemsCenter, styles.justifyContentBetween, isLargeScreenWidth && {marginRight: 52}]}>
+                        {/** marginRight added here to move the action button by the type column distance */}
+                        <View style={[styles.flexRow, styles.flex1, styles.alignItemsCenter, styles.justifyContentBetween, isLargeScreenWidth && {marginRight: TYPE_COLUMN_WIDTH}]}>
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex2]}>
                                 {canSelectMultiple && (
                                     <ListItemCheckbox
                                         accessibilityLabel={item.text}
-                                        isDisabled={!!isDisabled}
-                                        isDisabledCheckbox={!!item.isDisabledCheckbox}
-                                        isSelected={!!item.isSelected}
+                                        isDisabled={Boolean(isDisabled)}
+                                        isDisabledCheckbox={Boolean(item.isDisabledCheckbox)}
+                                        isSelected={Boolean(item.isSelected)}
                                         onPress={() => {}}
                                     />
                                 )}
@@ -134,14 +141,16 @@ function ReportListItem<TItem extends ListItem>({
                         </View>
                         {isLargeScreenWidth && <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.ACTION)]}>{actionCell}</View>}
                     </View>
-                    <View style={[styles.mt3, {borderBottomWidth: 1, borderBottomColor: theme.activeComponentBG}]} />
+                    <View style={[styles.mt3, styles.reportListItemSeparator]} />
                     {reportItem.transactions.map((transaction) => (
                         <TransactionListItemRow
                             item={transaction}
                             showTooltip={showTooltip}
-                            isDisabled={!!isDisabled}
-                            canSelectMultiple={!!canSelectMultiple}
-                            onButtonPress={handleOnButtonPress}
+                            isDisabled={Boolean(isDisabled)}
+                            canSelectMultiple={Boolean(canSelectMultiple)}
+                            onButtonPress={() => {
+                                openReportInRHP(transaction);
+                            }}
                             showItemHeaderOnNarrowLayout={false}
                             containerStyle={styles.mt3}
                         />

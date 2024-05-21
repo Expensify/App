@@ -4907,6 +4907,11 @@ const styles = (theme: ThemeColors) =>
         textLineThrough: {
             textDecorationLine: 'line-through',
         },
+
+        reportListItemSeparator: {
+            borderBottomWidth: 1,
+            borderBottomColor: theme.activeComponentBG,
+        },
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;
