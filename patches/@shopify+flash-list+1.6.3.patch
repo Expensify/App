@@ -1290,6 +1290,47 @@ index e3e23d5..7ed83ce 100644
 +#import "CellContainerComponentView.h"
  
  #endif /* FlatListPro_Bridging_Header_h */
+diff --git a/node_modules/@shopify/flash-list/package.json b/node_modules/@shopify/flash-list/package.json
+index b90c287..ccca16d 100644
+--- a/node_modules/@shopify/flash-list/package.json
++++ b/node_modules/@shopify/flash-list/package.json
+@@ -25,6 +25,7 @@
+   "author": "shopify",
+   "license": "MIT",
+   "homepage": "https://shopify.github.io/flash-list/",
++  "react-native": "src/index.ts",
+   "main": "dist/index.js",
+   "types": "dist/index.d.ts",
+   "scripts": {
+@@ -64,7 +65,7 @@
+     "@react-native-community/eslint-config": "^3.0.3",
+     "@shopify/eslint-plugin": "^41.3.1",
+     "@types/jest": "^28.1.3",
+-    "@types/react-native": "0.72.2",
++    "@types/react-native": "^0.72.2",
+     "babel-jest": "^28.1.1",
+     "enhanced-resolve": "^5.9.3",
+     "eslint": "8.18.0",
+@@ -74,7 +75,7 @@
+     "prettier": "^2.7.1",
+     "react": "17.0.2",
+     "react-native": "0.68.5",
+-    "typescript": "^4.7.4"
++    "typescript": "4.8.4"
+   },
+   "files": [
+     "android",
+@@ -87,5 +88,10 @@
+   "dependencies": {
+     "recyclerlistview": "4.2.0",
+     "tslib": "2.4.0"
++  },
++  "codegenConfig": {
++    "name": "rnflashlist",
++    "type": "components",
++    "jsSrcsDir": "./src/fabric"
+   }
+ }
 diff --git a/node_modules/@shopify/flash-list/src/FlashList.tsx b/node_modules/@shopify/flash-list/src/FlashList.tsx
 index 64748fe..87dea16 100644
 --- a/node_modules/@shopify/flash-list/src/FlashList.tsx
