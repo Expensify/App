@@ -42,7 +42,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                     screenOptions={screenOptions}
                     screenListeners={{
                         blur: () => {
-                            if (route.params.screen !== SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE) {
+                            if (route.params?.screen !== SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE) {
                                 return;
                             }
 

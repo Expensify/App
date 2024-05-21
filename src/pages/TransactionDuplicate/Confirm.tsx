@@ -11,6 +11,7 @@ import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import variables from '@styles/variables';
+import * as IOU from '@src/libs/actions/IOU';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
@@ -19,7 +20,7 @@ function Confirm() {
     const styles = useThemeStyles();
     const route = useRoute<RouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
-    const [reviewDuplicates] = useOnyx(ONYXKEYS.FORMS.REVIEW_DUPLICATES_FORM);
+    const [reviewDuplicates] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES);
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${reviewDuplicates?.transactionID}`);
     const transaction: Transaction = {
         ...originalTransaction,
@@ -27,8 +28,15 @@ function Confirm() {
         comment: {comment: reviewDuplicates?.description},
         billable: reviewDuplicates?.billable,
         reimbursable: reviewDuplicates?.reimbursable,
-        tag: 'dklajsdijasoi',
+        tag: reviewDuplicates?.tag,
         taxCode: reviewDuplicates?.taxCode,
+        taxAmount: reviewDuplicates?.taxAmount,
+        modifiedMerchant: reviewDuplicates?.merchant,
+        transactionID: reviewDuplicates?.transactionID ?? '',
+    };
+
+    const mergeDuplicates = () => {
+        IOU.mergeDuplicates({...transaction}, reviewDuplicates?.duplicates);
     };
 
     return (
@@ -56,6 +64,8 @@ function Confirm() {
             <Button
                 text="Confirm"
                 success
+                style={styles.ph5}
+                onPress={mergeDuplicates}
             />
         </ScreenWrapper>
     );

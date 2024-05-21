@@ -6791,16 +6791,18 @@ function getIOURequestPolicyID(transaction: OnyxEntry<OnyxTypes.Transaction>, re
     return workspaceSender?.policyID ?? report?.policyID ?? '0';
 }
 
-function mergeDuplicates(transactionID: string, duplicates: string[], changedFields: Record<string, any>) {
+function mergeDuplicates(reviewDuplicates: OnyxEntry<OnyxTypes.ReviewDuplicates>, duplicates: string[]) {
     const params = {
-        transactionID,
-        transactionIDs: duplicates.join(''),
-        ...changedFields,
+        ...reviewDuplicates,
+        transactionIDs: duplicates.join(','),
     };
+
+    console.log('reviewDuplicates', reviewDuplicates);
+    console.log('params', params);
 
     const optimisticData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
-    API.write('MergeDuplicates', params, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.MERGE_DUPLICATES, params, {optimisticData, failureData});
 }
 
 export {
