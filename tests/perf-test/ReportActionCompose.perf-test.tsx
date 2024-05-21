@@ -27,6 +27,7 @@ jest.mock(
         ({
             ...jest.requireActual('react-native-reanimated/mock'),
             useAnimatedRef: jest.fn(),
+            runOnUI: jest.fn,
         } as typeof Animated),
 );
 
