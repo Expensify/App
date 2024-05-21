@@ -1259,7 +1259,7 @@ export default {
         },
     },
     reportDetailsPage: {
-        in: 'In',
+        in: 'in',
     },
     reportDescriptionPage: {
         roomDescription: 'Room description',

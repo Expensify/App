@@ -192,7 +192,21 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         }
 
         return items;
-    }, [isSelfDM, isArchivedRoom, isGroupChat, isDefaultRoom, isChatThread, isPolicyEmployee, isUserCreatedPolicyRoom, participants.length, report, isMoneyRequestReport, isInvoiceReport, activeChatMembers.length, session]);
+    }, [
+        isSelfDM,
+        isArchivedRoom,
+        isGroupChat,
+        isDefaultRoom,
+        isChatThread,
+        isPolicyEmployee,
+        isUserCreatedPolicyRoom,
+        participants.length,
+        report,
+        isMoneyRequestReport,
+        isInvoiceReport,
+        activeChatMembers.length,
+        session,
+    ]);
 
     const displayNamesWithTooltips = useMemo(() => {
         const hasMultipleParticipants = participants.length > 1;
@@ -314,7 +328,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!shouldDisableRename}
                             title={reportName ?? ''}
-                            style={[isPolicy ? styles.pb2 : undefined]}
+                            style={[isPolicy ? styles.pb1 : undefined]}
                             titleStyle={styles.textHeadline}
                             description={isGroupChat ? translate('common.name') : translate('newRoomPage.roomName')}
                             onPress={() =>
