@@ -121,10 +121,6 @@ function ReportActionItemFragment({
                 );
             }
 
-            if (isHoldReportAction) {
-                return <RenderHTML html={isFragmentContainingDisplayName ? convertToLTR(fragment?.html ?? '') : fragment?.html ?? ''} />;
-            }
-
             return (
                 <TextCommentFragment
                     source={source}
@@ -150,7 +146,14 @@ function ReportActionItemFragment({
             }
 
             if (isHoldReportAction) {
-                return <RenderHTML html={isFragmentContainingDisplayName ? convertToLTR(fragment?.text ?? '') : fragment?.text} />;
+                return (
+                    <Text
+                        numberOfLines={isSingleLine ? 1 : undefined}
+                        style={[styles.chatItemMessage]}
+                    >
+                        {isFragmentContainingDisplayName ? convertToLTR(fragment?.text ?? '') : fragment?.text}
+                    </Text>
+                );
             }
 
             return (
