@@ -3778,6 +3778,7 @@ const CONST = {
     },
 
     ONBOARDING_MESSAGES: {
+        onboardingIntroduction: 'Let’s get you set up 🔧',
         [onboardingChoices.EMPLOYER]: {
             message: 'Getting paid back is as easy as sending a message. Let’s go over the basics.',
             video: {

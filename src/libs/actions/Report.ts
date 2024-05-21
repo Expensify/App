@@ -3076,7 +3076,7 @@ function completeOnboarding(
 
     // Mention message
     const mentionHandle = LoginUtils.isEmailPublicDomain(login) ? login : login.split('@')[0];
-    const mentionComment = ReportUtils.buildOptimisticAddCommentReportAction(`Hey @${mentionHandle} 👋`, undefined, actorAccountID);
+    const mentionComment = ReportUtils.buildOptimisticAddCommentReportAction(CONST.ONBOARDING_MESSAGES.onboardingIntroduction, undefined, actorAccountID);
     const mentionCommentAction: OptimisticAddCommentReportAction = mentionComment.reportAction;
     const mentionMessage: AddCommentOrAttachementParams = {
         reportID: targetChatReportID,
