@@ -79,8 +79,9 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
                       omitBy(action.payload.params?.params as Record<string, unknown> | undefined, (value) => value === undefined),
                   );
 
-        // In case if type is 'FORCED_UP' we replace current screen with the provided. This means the current screen no longer exists in the stack
-        if (type === CONST.NAVIGATION.TYPE.FORCED_UP) {
+        // If the type is UP, we deeplinked into one of the RHP flows and we want to replace the current screen with the previous one in the flow
+        // and at the same time we want the back button to go to the page we were before the deeplink
+        if (type === CONST.NAVIGATION.TYPE.UP) {
             action.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
 
             // If this action is navigating to the report screen and the top most navigator is different from the one we want to navigate - PUSH the new screen to the top of the stack
@@ -103,11 +104,6 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
             if (action.payload.params?.screen === SCREENS.SEARCH.CENTRAL_PANE && action.payload?.params?.params && policyID) {
                 action.payload.params.params.policyIDs = policyID;
             }
-
-            // If the type is UP, we deeplinked into one of the RHP flows and we want to replace the current screen with the previous one in the flow
-            // and at the same time we want the back button to go to the page we were before the deeplink
-        } else if (type === CONST.NAVIGATION.TYPE.UP) {
-            action.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
 
             // If this action is navigating to ModalNavigator or FullScreenNavigator and the last route on the root navigator is not already opened Navigator then push
         } else if ((action.payload.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR || isSideModalNavigator(action.payload.name)) && !isTargetNavigatorOnTop) {
