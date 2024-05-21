@@ -44,6 +44,14 @@ function BaseListItem<TItem extends ListItem>({
     // Sync focus on an item
     useSyncFocus(pressableRef, Boolean(isFocused), shouldSyncFocus);
 
+    const {setMouseUp} = useMouseContext();
+    const handleMouseUp = (e: React.MouseEvent<Element, MouseEvent>) => {
+        e.stopPropagation();
+        // eslint-disable-next-line no-console
+        console.log('mouse up on BaseListItem');
+        setMouseUp();
+    };
+
     const rightHandSideComponentRender = () => {
         if (canSelectMultiple || !rightHandSideComponent) {
             return null;
@@ -70,7 +78,8 @@ function BaseListItem<TItem extends ListItem>({
                 ref={pressableRef}
                 onPress={(e) => {
                     if (isMouseDownOnInput) {
-                        e.stopPropagation(); // Preventing the click action
+                        e?.stopPropagation(); // Preventing the click action
+                        // eslint-disable-next-line no-console
                         console.log('Click prevented due to mouse down on input');
                         return;
                     }
@@ -89,6 +98,8 @@ function BaseListItem<TItem extends ListItem>({
                 id={keyForList ?? ''}
                 style={pressableStyle}
                 onFocus={onFocus}
+                onMouseUp={handleMouseUp}
+                onMouseLeave={handleMouseUp}
             >
                 <View style={wrapperStyle}>
                     {typeof children === 'function' ? children(hovered) : children}
