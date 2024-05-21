@@ -344,6 +344,11 @@ function ReportScreen({
         />
     );
 
+    const transactionThreadReportID = useMemo(
+        () => ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, reportActions ?? [], false, isOffline),
+        [report.reportID, reportActions, isOffline],
+    );
+
     if (isSingleTransactionView) {
         headerView = (
             <MoneyRequestHeader
@@ -352,14 +357,10 @@ function ReportScreen({
                 parentReportAction={parentReportAction}
                 shouldUseNarrowLayout={shouldUseNarrowLayout}
                 onBackButtonPress={onBackButtonPress}
+                transactionThreadReportID={transactionThreadReportID}
             />
         );
     }
-
-    const transactionThreadReportID = useMemo(
-        () => ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, reportActions ?? [], false, isOffline),
-        [report.reportID, reportActions, isOffline],
-    );
 
     useEffect(() => {
         if (!transactionThreadReportID || !route.params.reportActionID) {
