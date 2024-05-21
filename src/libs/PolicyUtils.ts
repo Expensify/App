@@ -7,6 +7,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyCategories, PolicyEmployeeList, PolicyTagList, PolicyTags, TaxRate} from '@src/types/onyx';
 import type {PolicyFeatureName, Rate, Tenant} from '@src/types/onyx/Policy';
+import type {SelectorType} from '@components/SelectionScreen';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -408,6 +409,18 @@ function getCurrentXeroOrganizationName(policy: Policy | undefined): string | un
     return findCurrentXeroOrganization(getXeroTenants(policy), policy?.connections?.xero?.config?.tenantID)?.name;
 }
 
+function getXeroBankAccountsWithDefaultSelect(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
+    const bankAccounts = policy?.connections?.xero?.data?.bankAccounts ?? [];
+    const isMatchFound = bankAccounts?.some(({id}) => id === selectedBankAccountId);
+
+    return (bankAccounts ?? []).map(({id, name}, index) => ({
+        value: id,
+        text: name,
+        keyForList: id,
+        isSelected: isMatchFound ? selectedBankAccountId === id : index === 0,
+    }));
+} 
+
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -456,6 +469,7 @@ export {
     getXeroTenants,
     findCurrentXeroOrganization,
     getCurrentXeroOrganizationName,
+    getXeroBankAccountsWithDefaultSelect
 };
 
 export type {MemberEmailsToAccountIDs};
