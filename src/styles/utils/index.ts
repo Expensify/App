@@ -1582,7 +1582,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 columnWidth = {...getWidthStyle(variables.w28), ...styles.alignItemsCenter};
                 break;
             case CONST.SEARCH_TABLE_COLUMNS.ACTION:
-                columnWidth = getWidthStyle(variables.w80);
+                columnWidth = {...getWidthStyle(variables.w80), ...styles.alignItemsCenter};
                 break;
             default:
                 columnWidth = styles.flex1;

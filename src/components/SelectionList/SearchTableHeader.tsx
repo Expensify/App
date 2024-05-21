@@ -67,13 +67,11 @@ const SearchColumns: SearchColumnConfig[] = [
     {
         columnName: CONST.SEARCH_TABLE_COLUMNS.TYPE,
         translationKey: 'common.type',
-        isSortable: false,
         shouldShowFn: () => true,
     },
     {
         columnName: CONST.SEARCH_TABLE_COLUMNS.ACTION,
         translationKey: 'common.action',
-        isSortable: false,
         shouldShowFn: () => true,
     },
 ];
@@ -104,6 +102,7 @@ function SearchTableHeader({data, sortBy, sortOrder, onSortPress}: SearchTableHe
 
                     return (
                         <SortableHeaderText
+                            key={translationKey}
                             text={translate(translationKey)}
                             sortOrder={sortOrder ?? 'asc'}
                             isActive={isActive}

@@ -32,8 +32,8 @@ const columnNamesToPropertyMap = {
     [CONST.SEARCH_TABLE_COLUMNS.MERCHANT]: 'merchant' as const,
     [CONST.SEARCH_TABLE_COLUMNS.TOTAL]: 'formattedTotal' as const,
     [CONST.SEARCH_TABLE_COLUMNS.CATEGORY]: 'category' as const,
-    [CONST.SEARCH_TABLE_COLUMNS.TYPE]: null,
-    [CONST.SEARCH_TABLE_COLUMNS.ACTION]: null,
+    [CONST.SEARCH_TABLE_COLUMNS.TYPE]: 'type' as const,
+    [CONST.SEARCH_TABLE_COLUMNS.ACTION]: 'action' as const,
     [CONST.SEARCH_TABLE_COLUMNS.DESCRIPTION]: null,
     [CONST.SEARCH_TABLE_COLUMNS.TAX_AMOUNT]: null,
 };

@@ -5,6 +5,7 @@ import ReportScreenWrapper from '@libs/Navigation/AppNavigator/ReportScreenWrapp
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import type {CentralPaneNavigatorParamList} from '@navigation/types';
 import SearchPage from '@pages/Search/SearchPage';
+import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 
 const Stack = createStackNavigator<CentralPaneNavigatorParamList>();
@@ -44,7 +45,7 @@ function BaseCentralPaneNavigator() {
             />
             <Stack.Screen
                 name={SCREENS.SEARCH.CENTRAL_PANE}
-                // We do it this way to avoid adding the url params to url
+                initialParams={{sortBy: CONST.SEARCH_TABLE_COLUMNS.DATE, sortOrder: 'asc'}}
                 component={SearchPage}
             />
 
