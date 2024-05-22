@@ -65,6 +65,8 @@ type TransactionViolationData = {
 
     /** Collection of form fields that triggered this violation */
     errorIndexes?: number[];
+
+    /** Whether the current violation is `pending RTER` */
     pendingPattern?: boolean;
 };
 
