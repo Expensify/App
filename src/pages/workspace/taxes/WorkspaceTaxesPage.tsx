@@ -269,7 +269,7 @@ function WorkspaceTaxesPage({
                 <View style={[styles.ph5, styles.pb5, styles.pt3]}>
                 {isConnectedToAccounting ? (
                         <Text>
-                            <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.categories.importedFromAccountingSoftware')} `}</Text>
+                            <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.taxes.importedFromAccountingSoftware')} `}</Text>
                             <TextLink
                                 style={[styles.textNormal, styles.link]}
                                 href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
