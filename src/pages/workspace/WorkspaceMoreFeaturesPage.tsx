@@ -2,27 +2,27 @@ import {useFocusEffect} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import ROUTES from '@src/ROUTES';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import Icon from '@components/Icon';
-import Section from '@components/Section';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useEnvironment from '@hooks/useEnvironment';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import * as Policy from '@userActions/Policy';
-import * as Expensicons from '@components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -64,29 +64,29 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const isSyncTaxEnabled = !!policy?.connections?.quickbooksOnline?.config.syncTax || !!policy?.connections?.xero?.config.importTaxRates;
 
     const renderIntegrationFooter = () => (
-            <View style={[styles.ph2, styles.pb2, styles.pt10]}>
-                    {hasAccountingConnection ? (
-                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                            <Icon
-                                src={Expensicons.Lock}
-                                fill={styles.colorMuted.color}
-                                />
-                                <Text style={styles.mh1}>
-                            <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.moreFeatures.organizeSection.footer.text')} `}</Text>
-                            <TextLink
-                                style={[styles.textNormal, styles.link]}
-                                href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
-                            >
-                                {`${translate('workspace.moreFeatures.organizeSection.footer.link')}`}
-                            </TextLink>
-                            <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
-                            </Text>
-                        </View>
-                    ) : (
-                        <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
-                    )}
+        <View style={[styles.ph2, styles.pb2, styles.pt10]}>
+            {hasAccountingConnection ? (
+                <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                    <Icon
+                        src={Expensicons.Lock}
+                        fill={styles.colorMuted.color}
+                    />
+                    <Text style={styles.mh1}>
+                        <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.moreFeatures.organizeSection.footer.text')} `}</Text>
+                        <TextLink
+                            style={[styles.textNormal, styles.link]}
+                            href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
+                        >
+                            {`${translate('workspace.moreFeatures.organizeSection.footer.link')}`}
+                        </TextLink>
+                        <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
+                    </Text>
                 </View>
-        )
+            ) : (
+                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
+            )}
+        </View>
+    );
 
     const spendItems: Item[] = [
         {
@@ -173,7 +173,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             titleTranslationKey: 'workspace.moreFeatures.organizeSection.title',
             subtitleTranslationKey: 'workspace.moreFeatures.organizeSection.subtitle',
             items: organizeItems,
-            footer: renderIntegrationFooter()
+            footer: renderIntegrationFooter(),
         },
     ];
 
@@ -226,7 +226,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
 
                     {section.footer}
                 </Section>
-                
             </View>
         ),
         [isSmallScreenWidth, styles, renderItem, translate],

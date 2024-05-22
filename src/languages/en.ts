@@ -2154,8 +2154,8 @@ export default {
                 subtitle: 'Group and analyze spend, record every tax paid.',
                 footer: {
                     text: "These options can't be changed when",
-                    link: "integrated with other systems"
-                }
+                    link: 'integrated with other systems',
+                },
             },
             integrateSection: {
                 title: 'Integrate',
