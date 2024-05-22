@@ -63,12 +63,14 @@ function Image({source: propsSource, isAuthTokenRequired = false, session, onLoa
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [propsSource, isAuthTokenRequired]);
 
+    const shouldOpacityBeZero = isObjectPositionTop && !doNotSetAspectRatio && !aspectRatio;
+
     return (
         <BaseImage
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...forwardedProps}
             onLoad={handleLoad}
-            style={[style, aspectRatio ? {aspectRatio, height: 'auto'} : {}, isObjectPositionTop && !aspectRatio && {opacity: 0}]}
+            style={[style, aspectRatio ? {aspectRatio, height: 'auto'} : {}, shouldOpacityBeZero && {opacity: 0}]}
             source={source}
         />
     );
