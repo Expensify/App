@@ -6793,23 +6793,41 @@ function getIOURequestPolicyID(transaction: OnyxEntry<OnyxTypes.Transaction>, re
 }
 
 function mergeDuplicates(params: TransactionMergeParams) {
-    const {transactionID, ...restParams} = params;
-
+    const originalSelectedTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`];
     const optimisticTransactionData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`,
         value: {
-            ...restParams,
+            ...originalSelectedTransaction,
+            billable: params.billable,
+            comment: {
+                comment: params.comment,
+            },
+            category: params.category,
+            created: params.created,
+            currency: params.currency,
+            merchant: params.merchant,
+            reimbursable: params.reimbursable,
+            tag: params.tag,
         },
     };
 
-    const optimisticTransactionDuplicatesData: OnyxUpdate[] = params.transactionIDs.split(',').map((id) => ({
+    const optimisticTransactionDuplicatesData: OnyxUpdate[] = params.transactionIDs.map((id) => ({
         onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${id}`,
         value: null,
     }));
 
-    const optimisticData: OnyxUpdate[] = [...optimisticTransactionDuplicatesData, optimisticTransactionData];
+    const optimisticTransactionViolations: OnyxUpdate[] = [...params.transactionIDs, params.transactionID].map((id) => {
+        const violations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? [];
+        return {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`,
+            value: violations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
+        };
+    });
+
+    const optimisticData: OnyxUpdate[] = [...optimisticTransactionDuplicatesData, ...optimisticTransactionViolations, optimisticTransactionData];
     const failureData: OnyxUpdate[] = [];
     API.write(WRITE_COMMANDS.TRANSACTION_MERGE, params, {optimisticData, failureData});
 }

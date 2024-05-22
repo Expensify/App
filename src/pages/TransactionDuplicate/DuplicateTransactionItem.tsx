@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
+import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import ReportActionItem from '@pages/home/report/ReportActionItem';
@@ -29,6 +30,7 @@ function DuplicateTransactionItem(props: DuplicateTransactionItemProps) {
 
     return (
         <View style={styles.pb2}>
+            <Text>{props.transaction?.transactionID}</Text>
             <ReportActionItem
                 action={action}
                 report={report}

@@ -12,7 +12,7 @@ type TransactionMergeParams = {
     billable: boolean;
     reimbursable: boolean;
     tag: string;
-    receiptID: string;
+    receiptID: number;
     reportID: string;
 };
 

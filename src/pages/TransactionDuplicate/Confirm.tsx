@@ -9,19 +9,26 @@ import MoneyRequestView from '@components/ReportActionItem/MoneyRequestView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
+import {use} from '@libs/Request';
 import variables from '@styles/variables';
 import * as IOU from '@src/libs/actions/IOU';
+import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 
 function Confirm() {
     const styles = useThemeStyles();
     const route = useRoute<RouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
     const [reviewDuplicates] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES);
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${reviewDuplicates?.transactionID}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalTransaction?.reportID}`);
+    const reportAction = Object.values(reportActions ?? {}).find((action) => action.actionName === 'IOU' && action.originalMessage.IOUTransactionID === reviewDuplicates?.transactionID);
+
     const transaction: Transaction = {
         ...originalTransaction,
         category: reviewDuplicates?.category,
@@ -36,7 +43,31 @@ function Confirm() {
     };
 
     const mergeDuplicates = () => {
-        IOU.mergeDuplicates({...reviewDuplicates}, reviewDuplicates?.duplicates);
+        IOU.mergeDuplicates({
+            transactionID: reviewDuplicates?.transactionID ?? '',
+            transactionIDs: reviewDuplicates?.duplicates ?? [],
+            amount: originalTransaction?.modifiedAmount ?? 0,
+            reportID: originalTransaction?.reportID ?? '',
+            billable: reviewDuplicates?.billable ?? false,
+            reimbursable: reviewDuplicates?.reimbursable ?? false,
+            category: reviewDuplicates?.category ?? '',
+            tag: reviewDuplicates?.tag ?? '',
+            // taxCode: reviewDuplicates?.taxCode,
+            // taxAmount: reviewDuplicates?.taxAmount,
+            merchant: reviewDuplicates?.merchant ?? '',
+            comment: reviewDuplicates?.description ?? '',
+            receiptID: originalTransaction?.receipt?.receiptID ?? 0,
+            created: originalTransaction?.created ?? '',
+            currency: originalTransaction?.currency ?? '',
+        });
+
+        // console.log('originalTransaction', originalTransaction);
+        // console.log('reportID', originalTransaction?.reportID);
+        // console.log('parentReport', parentReport);
+        console.log('reportActions', reportActions);
+        console.log('reportAction', reportAction);
+
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportAction?.childReportID ?? '0'));
     };
 
     return (
@@ -72,4 +103,5 @@ function Confirm() {
 }
 
 Confirm.displayName = 'Confirm';
+
 export default Confirm;
