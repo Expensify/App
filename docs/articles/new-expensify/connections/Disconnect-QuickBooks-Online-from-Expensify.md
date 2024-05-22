@@ -4,7 +4,6 @@ description: Remove QuickBooks Online integration with Expensify
 ---
 <div id="new-expensify" markdown="1">
 
-{% include selector.html values="desktop, mobile" %}
 
 {% include option.html value="desktop" %}
 1. Click your profile image or icon in the bottom left menu.
