@@ -1077,7 +1077,7 @@ export default {
         receiveMoney: 'Receive money in your local currency',
         expensifyWallet: 'Expensify Wallet',
         sendAndReceiveMoney: 'Send and receive money with friends.',
-        enableWalletToSendAndReceiveMoney: 'Enable your Wallet to send and receive money with friends.',
+        enableWalletToSendAndReceiveMoney: 'Enable your wallet to send and receive money with friends.',
         enableWallet: 'Enable wallet',
         bankAccounts: 'Bank accounts',
         addBankAccountToSendAndReceive: 'Add a bank account to send and receive payments directly in the app.',
