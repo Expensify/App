@@ -9,6 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import Icon from '@components/Icon';
 import Section from '@components/Section';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -19,6 +20,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import * as Policy from '@userActions/Policy';
+import * as Expensicons from '@components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type SCREENS from '@src/SCREENS';
@@ -29,7 +31,6 @@ import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import ToggleSettingOptionRow from './workflows/ToggleSettingsOptionRow';
-
 
 type WorkspaceMoreFeaturesPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.MORE_FEATURES>;
 
@@ -60,21 +61,27 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const {environmentURL} = useEnvironment();
     const hasAccountingConnection = !!policy?.areConnectionsEnabled && !isEmptyObject(policy?.connections);
     const policyID = policy?.id ?? '';
-    const isConnectedToQbo = policy?.connections?.quickbooksOnline;
     const isSyncTaxEnabled = !!policy?.connections?.quickbooksOnline?.config.syncTax || !!policy?.connections?.xero?.config.importTaxRates;
 
     const renderIntegrationFooter = () => (
             <View style={[styles.ph2, styles.pb2, styles.pt10]}>
                     {hasAccountingConnection ? (
-                        <Text>
-                            <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.categories.importedFromAccountingSoftware')} `}</Text>
+                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                            <Icon
+                                src={Expensicons.Lock}
+                                fill={styles.colorMuted.color}
+                                />
+                                <Text>
+                            <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.moreFeatures.organizeSection.footer.text')} `}</Text>
                             <TextLink
                                 style={[styles.textNormal, styles.link]}
                                 href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
                             >
-                                {`${translate(isConnectedToQbo ? 'workspace.accounting.qbo' : 'workspace.accounting.xero')} ${translate('workspace.accounting.settings')}`}
+                                {`${translate('workspace.moreFeatures.organizeSection.footer.link')}`}
                             </TextLink>
-                        </Text>
+                            <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
+                            </Text>
+                        </View>
                     ) : (
                         <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
                     )}

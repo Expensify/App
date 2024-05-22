@@ -2188,6 +2188,10 @@ export default {
             organizeSection: {
                 title: 'Organizar',
                 subtitle: 'Agrupa y analiza el gasto, registra cada impuesto pagado.',
+                footer: {
+                    text: "Estas opciones no se pueden cambiar cuando",
+                    link: "integrado con otros sistemas"
+                }
             },
             integrateSection: {
                 title: 'Integrar',
