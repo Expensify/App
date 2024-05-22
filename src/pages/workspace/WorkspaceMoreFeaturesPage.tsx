@@ -2,13 +2,17 @@ import {useFocusEffect} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
+import ROUTES from '@src/ROUTES';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 import Section from '@components/Section';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useEnvironment from '@hooks/useEnvironment';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -25,6 +29,7 @@ import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import ToggleSettingOptionRow from './workflows/ToggleSettingsOptionRow';
+
 
 type WorkspaceMoreFeaturesPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.MORE_FEATURES>;
 
@@ -44,6 +49,7 @@ type SectionObject = {
     titleTranslationKey: TranslationPaths;
     subtitleTranslationKey: TranslationPaths;
     items: Item[];
+    footer?: React.ReactNode;
 };
 
 function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPageProps) {
@@ -51,8 +57,29 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const {canUseAccountingIntegrations} = usePermissions();
+    const {environmentURL} = useEnvironment();
     const hasAccountingConnection = !!policy?.areConnectionsEnabled && !isEmptyObject(policy?.connections);
+    const policyID = policy?.id ?? '';
+    const isConnectedToQbo = policy?.connections?.quickbooksOnline;
     const isSyncTaxEnabled = !!policy?.connections?.quickbooksOnline?.config.syncTax || !!policy?.connections?.xero?.config.importTaxRates;
+
+    const renderIntegrationFooter = () => (
+            <View style={[styles.ph2, styles.pb2, styles.pt10]}>
+                    {hasAccountingConnection ? (
+                        <Text>
+                            <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.categories.importedFromAccountingSoftware')} `}</Text>
+                            <TextLink
+                                style={[styles.textNormal, styles.link]}
+                                href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
+                            >
+                                {`${translate(isConnectedToQbo ? 'workspace.accounting.qbo' : 'workspace.accounting.xero')} ${translate('workspace.accounting.settings')}`}
+                            </TextLink>
+                        </Text>
+                    ) : (
+                        <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
+                    )}
+                </View>
+        )
 
     const spendItems: Item[] = [
         {
@@ -139,6 +166,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             titleTranslationKey: 'workspace.moreFeatures.organizeSection.title',
             subtitleTranslationKey: 'workspace.moreFeatures.organizeSection.subtitle',
             items: organizeItems,
+            footer: renderIntegrationFooter()
         },
     ];
 
@@ -188,7 +216,10 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     subtitleMuted
                 >
                     {section.items.map(renderItem)}
+
+                    {section.footer}
                 </Section>
+                
             </View>
         ),
         [isSmallScreenWidth, styles, renderItem, translate],
