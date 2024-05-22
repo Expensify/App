@@ -10,12 +10,12 @@ import isEqual from 'lodash/isEqual';
  *
  * @example
  * const myArray = // some array
- * const deepComparedArray = useDeepCompare(myArray);
+ * const deepComparedArray = useDeepCompareRef(myArray);
  * useEffect(() => {
  *   // This will run not just when myArray is a new array, but also when its contents change.
  * }, [deepComparedArray]);
  */
-export default function useDeepCompare<T>(value: T): T | undefined {
+export default function useDeepCompareRef<T>(value: T): T | undefined {
   const ref = useRef<T>();
   if (!isEqual(value, ref.current)) {
     ref.current = value;
