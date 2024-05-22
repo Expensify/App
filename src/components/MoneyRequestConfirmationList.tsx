@@ -346,12 +346,13 @@ function MoneyRequestConfirmationList({
     const isCategoryRequired = !!policy?.requiresCategory;
 
     useEffect(() => {
-        if (shouldDisplayFieldError && hasSmartScanFailed) {
-            setFormError('iou.receiptScanningFailed');
-            return;
-        }
         if (shouldDisplayFieldError && didConfirmSplit) {
             setFormError('iou.error.genericSmartscanFailureMessage');
+            return;
+        }
+
+        if (shouldDisplayFieldError && hasSmartScanFailed) {
+            setFormError('iou.receiptScanningFailed');
             return;
         }
         // reset the form error whenever the screen gains or loses focus
@@ -703,11 +704,6 @@ function MoneyRequestConfirmationList({
                 setFormError('iou.error.invalidCategoryLength');
                 return;
             }
-
-            if (formError) {
-                return;
-            }
-
             if (iouType !== CONST.IOU.TYPE.PAY) {
                 // validate the amount for distance expenses
                 const decimals = CurrencyUtils.getCurrencyDecimals(iouCurrencyCode);
@@ -721,6 +717,14 @@ function MoneyRequestConfirmationList({
                     setFormError('iou.error.genericSmartscanFailureMessage');
                     return;
                 }
+
+                playSound(SOUNDS.DONE);
+                setDidConfirm(true);
+                onConfirm?.(selectedParticipants);
+            }
+
+            if (formError) {
+                return;
             }
 
             if (iouType === CONST.IOU.TYPE.PAY) {
@@ -732,10 +736,6 @@ function MoneyRequestConfirmationList({
 
                 Log.info(`[IOU] Sending money via: ${paymentMethod}`);
                 onSendMoney?.(paymentMethod);
-            } else {
-                playSound(SOUNDS.DONE);
-                setDidConfirm(true);
-                onConfirm?.(selectedParticipants);
             }
         },
         [
