@@ -71,7 +71,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 src={Expensicons.Lock}
                                 fill={styles.colorMuted.color}
                                 />
-                                <Text>
+                                <Text style={styles.mh1}>
                             <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.moreFeatures.organizeSection.footer.text')} `}</Text>
                             <TextLink
                                 style={[styles.textNormal, styles.link]}
