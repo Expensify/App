@@ -371,7 +371,15 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options) => {
     if (state === undefined) {
         throw new Error('Unable to parse path');
     }
-    return getAdaptedState(state, policyID);
+
+    // Only on SCREENS.SEARCH.CENTRAL_PANE policyID is stored differently as "policyIDs" param, so we're handling this case here
+    let policyIDs: string | undefined;
+    const focusedRoute = findFocusedRoute(state);
+    if (focusedRoute && focusedRoute.name === SCREENS.SEARCH.CENTRAL_PANE && focusedRoute.params && 'policyIDs' in focusedRoute.params) {
+        policyIDs = focusedRoute.params.policyIDs as string;
+    }
+
+    return getAdaptedState(state, policyID ?? policyIDs);
 };
 
 export default getAdaptedStateFromPath;
