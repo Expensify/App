@@ -120,8 +120,9 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     };
 
     const toggleAllTags = () => {
-        const isAllSelected = tagList.every((tag) => !!selectedTags[tag.value]);
-        setSelectedTags(isAllSelected ? {} : Object.fromEntries(tagList.map((item) => [item.value, true])));
+        const availableTags = tagList.filter((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        const isAllSelected = availableTags.length === Object.keys(selectedTags).length;
+        setSelectedTags(isAllSelected ? {} : Object.fromEntries(availableTags.map((item) => [item.value, true])));
     };
 
     const getCustomListHeader = () => {
