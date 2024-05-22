@@ -7,6 +7,11 @@ import type {WorkspaceTravelSettings} from './TravelSettings';
 
 type Unit = 'mi' | 'km';
 
+type TaxRateAttributes = {
+    taxClaimablePercentage?: number;
+    taxRateExternalID?: string;
+};
+
 type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     name?: string;
     rate?: number;
@@ -15,7 +20,7 @@ type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     enabled?: boolean;
     errors?: OnyxCommon.Errors;
     errorFields?: OnyxCommon.ErrorFields;
-    attributes?: {taxClaimablePercentage?: number};
+    attributes?: TaxRateAttributes;
 }>;
 
 type Attributes = {
