@@ -21,8 +21,17 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
+    const isConnectedToQbo = policy?.connections?.quickbooksOnline;
+    const isConnectedToXero = policy?.connections?.xero;
     const policyID = route.params.policyID ?? '';
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    let toggleSubtitle = '';
+    if (isConnectedToQbo) {
+        toggleSubtitle = `${translate('workspace.categories.needCategoryForExportToIntegration')} ${translate('workspace.accounting.qbo')}`;
+    }
+    if (isConnectedToXero) {
+        toggleSubtitle = `${translate('workspace.categories.needCategoryForExportToIntegration')} ${translate('workspace.accounting.xero')}`;
+    }
 
     const updateWorkspaceRequiresCategory = (value: boolean) => {
         setWorkspaceRequiresCategory(policyID, value);
@@ -44,7 +53,9 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
                 <View style={styles.flexGrow1}>
                     <ToggleSettingOptionRow
                         title={translate('workspace.categories.requiresCategory')}
-                        subtitle={isConnectedToAccounting ? `${translate('workspace.categories.needCategoryForExportToIntegration')} ${translate('workspace.accounting.qbo')}` : ''}
+                        titleStyle={styles.textStrong}
+                        subtitle={toggleSubtitle}
+                        switchAccessibilityLabel={toggleSubtitle}
                         isActive={policy?.requiresCategory ?? false}
                         onToggle={updateWorkspaceRequiresCategory}
                         pendingAction={policy?.pendingFields?.requiresCategory}
@@ -52,6 +63,7 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
                         wrapperStyle={[styles.mt2, styles.mh4]}
                         errors={policy?.errorFields?.requiresCategory ?? undefined}
                         onCloseError={() => Policy.clearPolicyErrorField(policy?.id ?? '', 'requiresCategory')}
+                        shouldPlaceSubtitleBelowSwitch
                     />
                 </View>
             </ScreenWrapper>
