@@ -116,6 +116,10 @@ function MoneyRequestHeader({
         setIsDeleteModalVisible(false);
     }, [parentReport?.reportID, parentReportAction, setIsDeleteModalVisible]);
 
+    const markAsCash = useCallback(() => {
+        TransactionActions.markAsCash(transaction?.transactionID ?? '', transactionThreadReportID ?? '');
+    }, [transaction?.transactionID, transactionThreadReportID]);
+
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
 
     const isDeletedParentAction = ReportActionsUtils.isDeletedAction(parentReportAction);
@@ -152,15 +156,15 @@ function MoneyRequestHeader({
         if (TransactionUtils.isExpensifyCardTransaction(transaction) && TransactionUtils.isPending(transaction)) {
             return {title: getStatusIcon(Expensicons.CreditCardHourglass), description: translate('iou.transactionPendingDescription'), shouldShowBorderBottom: true};
         }
-        if (isScanning) {
-            return {title: getStatusIcon(Expensicons.ReceiptScan), description: translate('iou.receiptScanInProgressDescription'), shouldShowBorderBottom: true};
-        }
         if (TransactionUtils.hasPendingRTERViolation(TransactionUtils.getTransactionViolations(transaction?.transactionID ?? '', transactionViolations))) {
             return {
                 title: getStatusIcon(Expensicons.Hourglass),
                 description: translate('iou.pendingMatchWithCreditCardDescription'),
                 shouldShowBorderBottom: true,
             };
+        }
+        if (isScanning) {
+            return {title: getStatusIcon(Expensicons.ReceiptScan), description: translate('iou.receiptScanInProgressDescription'), shouldShowBorderBottom: true};
         }
     };
 
@@ -251,9 +255,7 @@ function MoneyRequestHeader({
                             medium
                             text={translate('iou.markAsCash')}
                             style={[styles.p0]}
-                            onPress={() => {
-                                TransactionActions.markAsCash(transaction?.transactionID ?? '', transactionThreadReportID ?? '');
-                            }}
+                            onPress={markAsCash}
                         />
                     )}
                 </HeaderWithBackButton>
@@ -264,9 +266,7 @@ function MoneyRequestHeader({
                             success
                             text={translate('iou.markAsCash')}
                             style={[styles.w100, styles.pr0]}
-                            onPress={() => {
-                                TransactionActions.markAsCash(transaction?.transactionID ?? '', transaction?.reportID ?? '');
-                            }}
+                            onPress={markAsCash}
                         />
                     </View>
                 )}
