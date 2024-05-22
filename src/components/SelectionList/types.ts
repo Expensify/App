@@ -413,21 +413,11 @@ type ExtendedSectionListData<TItem extends ListItem, TSection extends SectionWit
 type SectionListDataType<TItem extends ListItem> = ExtendedSectionListData<TItem, SectionWithIndexOffset<TItem>>;
 
 type CellProps = {
-<<<<<<< HEAD
     showTooltip: boolean;
     keyForList: string;
     isLargeScreenWidth: boolean;
 };
 
-=======
-    // eslint-disable-next-line react/no-unused-prop-types
-    showTooltip: boolean;
-    // eslint-disable-next-line react/no-unused-prop-types
-    keyForList: string;
-    // eslint-disable-next-line react/no-unused-prop-types
-    isLargeScreenWidth: boolean;
-};
->>>>>>> b552c4d125 (fix: [Search v1] Search page scroll is not smooth; move type defination into types.ts)
 type TransactionCellProps = {
     transactionItem: TransactionListItemType;
 } & CellProps;
