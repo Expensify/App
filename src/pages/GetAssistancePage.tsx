@@ -37,7 +37,7 @@ function GetAssistancePage({route, account}: GetAssistancePageProps) {
     const menuItems: MenuItemWithLink[] = [
         {
             title: translate('getAssistancePage.chatWithConcierge'),
-            onPress: () => Report.navigateToConciergeChat(true),
+            onPress: () => Report.navigateToConciergeChat(),
             icon: Expensicons.ChatBubble,
             shouldShowRightIcon: true,
             wrapperStyle: [styles.cardMenuItem],
