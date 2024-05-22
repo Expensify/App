@@ -38,9 +38,6 @@ type WalletAdditionalDetails = {
     /** Which field needs attention? */
     errorFields?: OnyxCommon.ErrorFields;
 
-    // TODO: this property is not used in app
-    additionalErrorMessage?: string;
-
     /** Whether the details are being loaded */
     isLoading?: boolean;
 
