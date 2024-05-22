@@ -29,7 +29,7 @@ function OnboardingModalNavigator() {
         }
         Navigation.isNavigationReady().then(() => {
             // Need to go back to previous route and then redirect to Concierge,
-            // otherwise going back on concierge will go to onboarding and then redirected to concierge again
+            // otherwise going back on Concierge will go to onboarding and then redirected to Concierge again
             Navigation.goBack();
             Report.navigateToConciergeChat();
         });
