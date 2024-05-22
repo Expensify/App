@@ -105,7 +105,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             titleTranslationKey: 'workspace.moreFeatures.taxes.title',
             subtitleTranslationKey: 'workspace.moreFeatures.taxes.subtitle',
             isActive: (policy?.tax?.trackingEnabled ?? false) || isSyncTaxEnabled,
-            disabled: isSyncTaxEnabled || policy?.connections?.quickbooksOnline?.data?.country === CONST.COUNTRY.US,
+            disabled: hasAccountingConnection || policy?.connections?.quickbooksOnline?.data?.country === CONST.COUNTRY.US,
             pendingAction: policy?.pendingFields?.tax,
             action: (isEnabled: boolean) => {
                 Policy.enablePolicyTaxes(policy?.id ?? '', isEnabled);
