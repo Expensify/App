@@ -12,7 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {openDraftWorkspaceRequest} from '@libs/actions/Policy/Policy';
+import {openDraftWorkspaceRequest} from '@userActions/Policy/Policy';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import * as IOUUtils from '@libs/IOUUtils';
