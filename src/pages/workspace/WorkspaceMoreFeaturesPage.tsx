@@ -64,7 +64,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const isSyncTaxEnabled = !!policy?.connections?.quickbooksOnline?.config.syncTax || !!policy?.connections?.xero?.config.importTaxRates;
 
     const renderIntegrationFooter = () => (
-        <View style={[styles.ph2, styles.pb2, styles.pt10]}>
+        <View style={[styles.ph2, styles.mt7]}>
             {hasAccountingConnection ? (
                 <View style={[styles.flexRow, styles.alignItemsCenter]}>
                     <Icon
