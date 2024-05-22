@@ -32,7 +32,6 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {AnchorPosition} from '@styles/index';
-import * as PolicyAction from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -370,9 +369,6 @@ function PolicyAccountingPage({policy, connectionSyncProgress, isConnectionDataF
                     isVisible={isDisconnectModalOpen}
                     onConfirm={() => {
                         if (connectedIntegration) {
-                            if (policy?.connections?.xero && policy?.connections?.xero?.config?.importTaxRates) {
-                                PolicyAction.enablePolicyTaxes(policy?.id ?? '', false);
-                            }
                             removePolicyConnection(policyID, connectedIntegration);
                         }
                         setIsDisconnectModalOpen(false);
