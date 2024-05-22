@@ -2,6 +2,7 @@ import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/Vir
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import type {RouteProp} from '@react-navigation/native';
 import type {DebouncedFunc} from 'lodash';
+import cloneDeep from 'lodash/cloneDeep';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter, InteractionManager} from 'react-native';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
@@ -210,12 +211,21 @@ function ReportActionsList({
         [sortedReportActions, isOffline],
     );
 
-    // whisper action doesn't affect lastVisibleActionCreated, so we should not take it into account while checking if there is newest report action
-    const newestVisibleReportAction = useMemo(() => {
-        const filteredReportActions = sortedVisibleReportActions.filter((reportAction) => !ReportActionsUtils.isWhisperAction(reportAction));
+    const filterOutLastWhisperAction = useCallback((actions: OnyxTypes.ReportAction[]): OnyxTypes.ReportAction[] => {
+        if (actions.length > 1 && ReportActionsUtils.isWhisperAction(actions[0])) {
+            actions.shift();
+            return filterOutLastWhisperAction(actions);
+        }
 
-        return filteredReportActions[0];
-    }, [sortedVisibleReportActions]);
+        return actions;
+    }, []);
+
+    const newestVisibleReportAction = useMemo(() => {
+        // whisper action doesn't affect lastVisibleActionCreated, so we should not take it into account while checking if there is the newest report action
+        const filteredActions = filterOutLastWhisperAction(cloneDeep(sortedVisibleReportActions));
+
+        return filteredActions[0];
+    }, [filterOutLastWhisperAction, sortedVisibleReportActions]);
 
     const lastActionIndex = sortedVisibleReportActions[0]?.reportActionID;
     const reportActionSize = useRef(sortedVisibleReportActions.length);
