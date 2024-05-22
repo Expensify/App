@@ -129,7 +129,9 @@ function flush() {
             Onyx.disconnect(connectionID);
             process().finally(() => {
                 isSequentialQueueRunning = false;
-                resolveIsReadyPromise?.();
+                if (NetworkStore.isOffline() || PersistedRequests.getAll().length === 0) {
+                    resolveIsReadyPromise?.();
+                }
                 currentRequest = null;
                 flushOnyxUpdatesQueue();
             });
@@ -169,9 +171,6 @@ function push(request: OnyxRequest) {
 
     // If we are offline we don't need to trigger the queue to empty as it will happen when we come back online
     if (NetworkStore.isOffline()) {
-        isReadyPromise = new Promise((resolve) => {
-            resolveIsReadyPromise = resolve;
-        });
         return;
     }
 
