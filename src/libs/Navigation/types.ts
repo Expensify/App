@@ -48,25 +48,7 @@ type NavigationPartialRoute<TRouteName extends string = string> = PartialRoute<R
 type StateOrRoute = NavigationState | NavigationStateRoute | NavigationPartialRoute;
 type State<TParamList extends ParamListBase = ParamListBase> = NavigationState<TParamList> | PartialState<NavigationState<TParamList>>;
 
-type CentralPaneNavigatorParamList = {
-    [SCREENS.REPORT]: {
-        reportActionID: string;
-        reportID: string;
-        openOnAdminRoom?: boolean;
-        referrer?: string;
-    };
-    [SCREENS.SETTINGS.PROFILE.ROOT]: undefined;
-    [SCREENS.SETTINGS.PREFERENCES.ROOT]: undefined;
-    [SCREENS.SETTINGS.SECURITY]: undefined;
-    [SCREENS.SETTINGS.WALLET.ROOT]: undefined;
-    [SCREENS.SETTINGS.ABOUT]: undefined;
-    [SCREENS.SETTINGS.TROUBLESHOOT]: undefined;
-    [SCREENS.SETTINGS.WORKSPACES]: undefined;
-    [SCREENS.SEARCH.CENTRAL_PANE]: {
-        query: string;
-    };
-    [SCREENS.SETTINGS.SAVE_THE_WORLD]: undefined;
-};
+type CentralPaneNavigatorParamList = {};
 
 type BackToParams = {
     backTo?: Routes;
@@ -895,6 +877,24 @@ type AuthScreensParamList = SharedScreensParamList & {
         transactionID: string;
     };
     [SCREENS.CONNECTION_COMPLETE]: undefined;
+    [SCREENS.REPORT]: {
+        reportActionID: string;
+        reportID: string;
+        openOnAdminRoom?: boolean;
+        referrer?: string;
+    };
+
+    [SCREENS.SEARCH.CENTRAL_PANE]: {
+        query: string;
+    };
+    [SCREENS.SETTINGS.PROFILE.ROOT]: undefined;
+    [SCREENS.SETTINGS.PREFERENCES.ROOT]: undefined;
+    [SCREENS.SETTINGS.SECURITY]: undefined;
+    [SCREENS.SETTINGS.WALLET.ROOT]: undefined;
+    [SCREENS.SETTINGS.ABOUT]: undefined;
+    [SCREENS.SETTINGS.TROUBLESHOOT]: undefined;
+    [SCREENS.SETTINGS.WORKSPACES]: undefined;
+    [SCREENS.SETTINGS.SAVE_THE_WORLD]: undefined;
 };
 
 type SearchReportParamList = {
@@ -908,7 +908,7 @@ type RootStackParamList = PublicScreensParamList & AuthScreensParamList & LeftMo
 
 type BottomTabName = keyof BottomTabNavigatorParamList;
 
-type CentralPaneName = keyof CentralPaneNavigatorParamList;
+type CentralPaneName = keyof AuthScreensParamList;
 
 type FullScreenName = keyof FullScreenNavigatorParamList;
 

@@ -128,10 +128,11 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
     while ((current = root.getParent())) {
         root = current;
     }
+    debugger;
     const pathWithoutPolicyID = getPathWithoutPolicyID(`/${path}`) as Route;
     const rootState = navigation.getRootState() as NavigationState<RootStackParamList>;
     const stateFromPath = getStateFromPath(pathWithoutPolicyID) as PartialState<NavigationState<RootStackParamList>>;
-
+    console.log('stateFromPath', stateFromPath);
     // Creating path with /w/ included if necessary.
     const extractedPolicyID = extractPolicyIDFromPath(`/${path}`);
     const policyIDFromState = getPolicyIDFromState(rootState);
@@ -149,6 +150,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
     }
 
     const action: StackNavigationAction = getActionFromState(stateFromPath, linkingConfig.config);
+    console.log('action', action);
     // If action type is different than NAVIGATE we can't change it to the PUSH safely
     if (action?.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE) {
         const topmostCentralPaneRoute = getTopmostCentralPaneRoute(rootState);
@@ -227,14 +229,12 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 const matchingCentralPaneRoute = getMatchingCentralPaneRouteForState(stateFromPath, rootState)!;
                 if (matchingCentralPaneRoute && 'name' in matchingCentralPaneRoute) {
+                    console.log('matchingCentralPaneRoute', matchingCentralPaneRoute);
                     root.dispatch({
                         type: CONST.NAVIGATION.ACTION_TYPE.PUSH,
                         payload: {
-                            name: NAVIGATORS.CENTRAL_PANE_NAVIGATOR,
-                            params: {
-                                screen: matchingCentralPaneRoute.name,
-                                params: matchingCentralPaneRoute.params,
-                            },
+                            name: matchingCentralPaneRoute.name,
+                            params: matchingCentralPaneRoute.params,
                         },
                     });
                 }

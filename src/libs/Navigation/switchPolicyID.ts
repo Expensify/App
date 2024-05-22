@@ -100,7 +100,6 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
     // If the layout is wide we need to push matching central pane route to the stack.
     if (shouldAddToCentralPane) {
         const topmostCentralPaneRoute = getTopmostCentralPaneRoute(rootState);
-        const screen = topmostCentralPaneRoute?.name;
         const params: CentralPaneRouteParams = {...topmostCentralPaneRoute?.params};
 
         // If the user is on the home page and changes the current workspace, then should be displayed a report from the selected workspace.
@@ -112,11 +111,8 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
         root.dispatch({
             type: CONST.NAVIGATION.ACTION_TYPE.PUSH,
             payload: {
-                name: NAVIGATORS.CENTRAL_PANE_NAVIGATOR,
-                params: {
-                    screen,
-                    params,
-                },
+                name: topmostCentralPaneRoute?.name,
+                params,
             },
         });
     } else {

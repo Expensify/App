@@ -273,6 +273,19 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    type Screens = Partial<Record<keyof AuthScreensParamList, () => React.ComponentType>>;
+
+    const settingsScreens = {
+        [SCREENS.SETTINGS.WORKSPACES]: () => require('../../../pages/workspace/WorkspacesListPage').default as React.ComponentType,
+        [SCREENS.SETTINGS.PREFERENCES.ROOT]: () => require('../../../pages/settings/Preferences/PreferencesPage').default as React.ComponentType,
+        [SCREENS.SETTINGS.SECURITY]: () => require('../../../pages/settings/Security/SecuritySettingsPage').default as React.ComponentType,
+        [SCREENS.SETTINGS.PROFILE.ROOT]: () => require('../../../pages/settings/Profile/ProfilePage').default as React.ComponentType,
+        [SCREENS.SETTINGS.WALLET.ROOT]: () => require('../../../pages/settings/Wallet/WalletPage').default as React.ComponentType,
+        [SCREENS.SETTINGS.ABOUT]: () => require('../../../pages/settings/AboutPage/AboutPage').default as React.ComponentType,
+        [SCREENS.SETTINGS.TROUBLESHOOT]: () => require('../../../pages/settings/Troubleshoot/TroubleshootPage').default as React.ComponentType,
+        [SCREENS.SETTINGS.SAVE_THE_WORLD]: () => require('../../../pages/TeachersUnite/SaveTheWorldPage').default as React.ComponentType,
+    } satisfies Screens;
+
     return (
         <OptionsListContextProvider>
             <View style={styles.rootNavigatorContainerStyles(isSmallScreenWidth)}>
@@ -408,6 +421,14 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         options={defaultScreenOptions}
                         component={ConnectionCompletePage}
                     />
+
+                    {Object.entries(settingsScreens).map(([screenName, componentGetter]) => (
+                        <RootStack.Screen
+                            key={screenName}
+                            name={screenName}
+                            getComponent={componentGetter}
+                        />
+                    ))}
                 </RootStack.Navigator>
             </View>
         </OptionsListContextProvider>
