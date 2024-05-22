@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
+import Checkbox from '@components/Checkbox';
 import BaseListItem from '@components/SelectionList/BaseListItem';
 import type {ListItem, ReportListItemProps, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import Text from '@components/Text';
@@ -14,7 +15,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import ExpenseItemHeader from './ExpenseItemHeader';
-import ListItemCheckbox from './ListItemCheckbox';
 import TransactionListItem from './TransactionListItem';
 import TransactionListItemRow from './TransactionListItemRow';
 
@@ -127,12 +127,13 @@ function ReportListItem<TItem extends ListItem>({
                     <View style={[styles.flexRow, styles.flex1, styles.alignItemsCenter, styles.justifyContentBetween, isLargeScreenWidth && {marginRight: TYPE_COLUMN_WIDTH}]}>
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex2]}>
                             {canSelectMultiple && (
-                                <ListItemCheckbox
-                                    accessibilityLabel={item.text}
-                                    isDisabled={Boolean(isDisabled)}
-                                    isDisabledCheckbox={Boolean(item.isDisabledCheckbox)}
-                                    isSelected={Boolean(item.isSelected)}
+                                <Checkbox
                                     onPress={() => {}}
+                                    isChecked={item.isSelected}
+                                    containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(Boolean(item.isSelected), Boolean(item.isDisabled))]}
+                                    disabled={Boolean(isDisabled) || item.isDisabledCheckbox}
+                                    accessibilityLabel={item.text ?? ''}
+                                    style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled]}
                                 />
                             )}
 

@@ -3,9 +3,9 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
+import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {PressableWithFeedback} from '@components/Pressable';
 import type {TransactionListItemType} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
@@ -185,25 +185,14 @@ function TransactionListItemRow({item, showTooltip, isDisabled, canSelectMultipl
     return (
         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, containerStyle]}>
             {canSelectMultiple && (
-                <PressableWithFeedback
-                    accessibilityLabel={item.text ?? ''}
-                    role={CONST.ROLE.BUTTON}
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    disabled={isDisabled || item.isDisabledCheckbox}
+                <Checkbox
                     onPress={() => {}}
+                    isChecked={item.isSelected}
+                    containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(Boolean(item.isSelected), Boolean(item.isDisabled))]}
+                    disabled={isDisabled || item.isDisabledCheckbox}
+                    accessibilityLabel={item.text ?? ''}
                     style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled]}
-                >
-                    <View style={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(Boolean(item.isSelected), Boolean(item.isDisabled))]}>
-                        {item.isSelected && (
-                            <Icon
-                                src={Expensicons.Checkmark}
-                                fill={theme.textLight}
-                                height={14}
-                                width={14}
-                            />
-                        )}
-                    </View>
-                </PressableWithFeedback>
+                />
             )}
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.ph4, styles.gap3]}>
                 <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DATE)]}>{dateCell}</View>
