@@ -21,7 +21,7 @@ function ReviewMerchant() {
     const {currentScreenIndex, navigateToNextScreen} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'merchant', route.params.threadReportID ?? '');
     const options = useMemo(
         () =>
-            compareResult.change.merchant.map((merchant) =>
+            compareResult.change.merchant?.map((merchant) =>
                 !merchant
                     ? {text: translate('violations.none'), value: undefined}
                     : {
@@ -52,6 +52,7 @@ function ReviewMerchant() {
         </ScreenWrapper>
     );
 }
+
 ReviewMerchant.displayName = 'ReviewMerchant';
 
 export default ReviewMerchant;

@@ -21,7 +21,7 @@ function ReviewCategory() {
     const {currentScreenIndex, navigateToNextScreen} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'category', route.params.threadReportID ?? '');
     const options = useMemo(
         () =>
-            compareResult.change.category.map((category) =>
+            compareResult.change.category?.map((category) =>
                 !category
                     ? {text: translate('violations.none'), value: undefined}
                     : {
@@ -54,4 +54,5 @@ function ReviewCategory() {
 }
 
 ReviewCategory.displayName = 'ReviewCategory';
+
 export default ReviewCategory;

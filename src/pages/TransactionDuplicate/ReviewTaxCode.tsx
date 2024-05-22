@@ -27,7 +27,7 @@ function ReviewTaxRate() {
     const {currentScreenIndex, navigateToNextScreen} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'taxCode', route.params.threadReportID ?? '');
     const options = useMemo(
         () =>
-            compareResult.change.taxCode.map((taxID) =>
+            compareResult.change.taxCode?.map((taxID) =>
                 !taxID
                     ? {text: translate('violations.none'), value: undefined}
                     : {

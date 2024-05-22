@@ -21,7 +21,7 @@ function ReviewReimbursable() {
     const {currentScreenIndex, navigateToNextScreen} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'reimbursable', route.params.threadReportID ?? '');
     const options = useMemo(
         () =>
-            compareResult.change.reimbursable.map((reimbursable) => ({
+            compareResult.change.reimbursable?.map((reimbursable) => ({
                 text: reimbursable ? translate('common.yes') : translate('common.no'),
                 value: reimbursable,
             })),

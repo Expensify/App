@@ -5,7 +5,7 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, RecentWaypoint, Report, TaxRate, TaxRates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {Policy, RecentWaypoint, Report, ReviewDuplicates, TaxRate, TaxRates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {IOURequestType} from './actions/IOU';
@@ -754,6 +754,15 @@ function getTransaction(transactionID: string): OnyxEntry<Transaction> {
 }
 
 type FieldsToCompare = Record<string, Array<keyof Transaction>>;
+type FieldsToChange = {
+    category?: Array<string | undefined>;
+    merchant?: Array<string | undefined>;
+    tag?: Array<string | undefined>;
+    description?: Array<Comment | undefined>;
+    taxCode?: Array<string | undefined>;
+    billable?: Array<boolean | undefined>;
+    reimbursable?: Array<boolean | undefined>;
+};
 
 /**
  * This function compares fields of duplicate transactions and determines which fields should be kept and which should be changed.
@@ -772,8 +781,8 @@ type FieldsToCompare = Record<string, Array<keyof Transaction>>;
  *    - For other fields, it checks if all fields are equal. If so, it keeps the first transaction's field value. Otherwise, it finds the different values and adds them to 'change'.
  * 6. It returns the 'keep' and 'change' objects.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function compareDuplicateTransactionFields(transactionID: string): {keep: Record<string, any>; change: Record<string, any[]>} {
+
+function compareDuplicateTransactionFields(transactionID: string): {keep: Partial<ReviewDuplicates>; change: FieldsToChange} {
     const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
     const duplicates = transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [];
     const transactions = [transactionID, ...duplicates].map((item) => getTransaction(item));
