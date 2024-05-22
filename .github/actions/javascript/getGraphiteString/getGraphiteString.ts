@@ -32,7 +32,8 @@ const run = () => {
             }
 
             if (current.name && current.meanDuration && current.meanCount && timestamp) {
-                const formattedName = current.name.split(' ').join('-');
+                const currentName = current.name as string;
+                const formattedName = currentName.split(' ').join('-');
 
                 const renderDurationString = `${GRAPHITE_PATH}.${formattedName}.renderDuration ${current.meanDuration} ${timestamp}`;
                 const renderCountString = `${GRAPHITE_PATH}.${formattedName}.renderCount ${current.meanCount} ${timestamp}`;
