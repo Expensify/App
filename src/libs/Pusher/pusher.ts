@@ -216,6 +216,9 @@ function bindEventToChannel<EventName extends PusherEventName>(channel: Channel 
     };
 
     channel.bind(eventName, callback);
+    if (!eventsBoundToChannels.has(channel)) {
+        eventsBoundToChannels.set(channel, new Set());
+    }
     eventsBoundToChannels.get(channel)?.add(eventName);
 }
 
@@ -294,6 +297,7 @@ function unsubscribe(channelName: string, eventName: PusherEventName = '') {
         eventsBoundToChannels.get(channel)?.delete(eventName);
         if (eventsBoundToChannels.get(channel)?.size === 0) {
             Log.info(`[Pusher] After unbinding ${eventName} from channel ${channelName}, no other events were bound to that channel. Unsubscribing...`, false);
+            eventsBoundToChannels.delete(channel);
             socket?.unsubscribe(channelName);
         }
     } else {
