@@ -14,7 +14,7 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import ExpenseItemHeader from './ExpenseItemHeader';
+import ExpenseItemHeaderNarrow from './ExpenseItemHeaderNarrow';
 import TransactionListItem from './TransactionListItem';
 import TransactionListItemRow from './TransactionListItemRow';
 
@@ -115,7 +115,7 @@ function ReportListItem<TItem extends ListItem>({
         >
             <View style={styles.flex1}>
                 {!isLargeScreenWidth && (
-                    <ExpenseItemHeader
+                    <ExpenseItemHeaderNarrow
                         participantFrom={participantFrom}
                         participantTo={participantTo}
                         buttonText={translate('common.view')}

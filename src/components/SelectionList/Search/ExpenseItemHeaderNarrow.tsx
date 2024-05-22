@@ -10,14 +10,14 @@ import variables from '@styles/variables';
 import type {SearchAccountDetails} from '@src/types/onyx/SearchResults';
 import UserInfoCell from './UserInfoCell';
 
-type ExpenseItemHeaderProps = {
+type ExpenseItemHeaderNarrowProps = {
     participantFrom: SearchAccountDetails;
     participantTo: SearchAccountDetails;
     buttonText: string;
     onButtonPress: () => void;
 };
 
-function ExpenseItemHeader({participantFrom, participantTo, buttonText, onButtonPress}: ExpenseItemHeaderProps) {
+function ExpenseItemHeaderNarrow({participantFrom, participantTo, buttonText, onButtonPress}: ExpenseItemHeaderNarrowProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
@@ -51,4 +51,4 @@ function ExpenseItemHeader({participantFrom, participantTo, buttonText, onButton
     );
 }
 
-export default ExpenseItemHeader;
+export default ExpenseItemHeaderNarrow;

@@ -18,7 +18,7 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 import type {SearchTransactionType} from '@src/types/onyx/SearchResults';
-import ExpenseItemHeader from './ExpenseItemHeader';
+import ExpenseItemHeaderNarrow from './ExpenseItemHeaderNarrow';
 import TextWithIconCell from './TextWithIconCell';
 import UserInfoCell from './UserInfoCell';
 
@@ -154,7 +154,7 @@ function TransactionListItemRow({item, showTooltip, isDisabled, canSelectMultipl
         return (
             <View style={containerStyle}>
                 {showItemHeaderOnNarrowLayout && (
-                    <ExpenseItemHeader
+                    <ExpenseItemHeaderNarrow
                         participantFrom={item.from}
                         participantTo={item.to}
                         buttonText={translate('common.view')}
