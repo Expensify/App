@@ -1,5 +1,5 @@
 import {createStackNavigator} from '@react-navigation/stack';
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
