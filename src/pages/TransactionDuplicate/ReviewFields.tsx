@@ -23,11 +23,10 @@ type ReviewFieldsProps = {
     onSelectRow: (item: FieldItemType) => void;
 };
 
-let falsyCount = 0;
-
 function ReviewFields({stepNames, label, options, index, onSelectRow}: ReviewFieldsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    let falsyCount = 0;
     const filteredOptions = options?.filter((name) => {
         if (name.text !== translate('violations.none')) {
             return true;
@@ -39,7 +38,7 @@ function ReviewFields({stepNames, label, options, index, onSelectRow}: ReviewFie
         () =>
             filteredOptions?.map((option) => ({
                 text: option.text,
-                keyForList: option.text ?? '',
+                keyForList: option.text,
                 value: option.value ?? '',
             })),
         [filteredOptions],
