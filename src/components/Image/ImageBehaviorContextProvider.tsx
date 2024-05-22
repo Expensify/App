@@ -11,8 +11,8 @@ const ImageBehaviorContext = createContext<ImageBehaviorContextValue>({
     doNotSetAspectRatio: false,
 });
 
-const ImageBehaviorContextProvider = ({children, ...value}: {children: React.ReactNode} & ImageBehaviorContextValue) => {
+function ImageBehaviorContextProvider({children, ...value}: {children: React.ReactNode} & ImageBehaviorContextValue) {
     return <ImageBehaviorContext.Provider value={value}>{children}</ImageBehaviorContext.Provider>;
-};
+}
 
 export {ImageBehaviorContext, ImageBehaviorContextProvider};
