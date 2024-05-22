@@ -63,11 +63,6 @@ function removeInvisibleCharacters(value: string): string {
     return result.trim();
 }
 
-/**
- * Remove accents/diacritics
- * @param text - The input string
- * @returns The string with all accents/diacritics removed
- */
 function normalizeAccents(text: string) {
     return text.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 }

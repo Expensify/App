@@ -34,19 +34,25 @@ type EmojiTrie = {
 function addKeywordsToTrie(trie: Trie<EmojiMetaData>, keywords: string[], item: Emoji, name: string, shouldPrependKeyword = false) {
     keywords.forEach((keyword) => {
         const keywordNode = trie.search(keyword);
+        const normalizedKeyword = StringUtils.normalizeAccents(keyword);
+
         if (!keywordNode) {
-            const keywordWithoutAccents = StringUtils.normalizeAccents(keyword);
-            if (keywordWithoutAccents !== keyword) {
-                trie.add(keywordWithoutAccents, {suggestions: [{code: item.code, types: item.types, name}]});
+            const metadata = {suggestions: [{code: item.code, types: item.types, name}]};
+            if (normalizedKeyword !== keyword) {
+                trie.add(normalizedKeyword, metadata);
             }
-            trie.add(keyword, {suggestions: [{code: item.code, types: item.types, name}]});
+            trie.add(keyword, metadata);
         } else {
             const suggestion = {code: item.code, types: item.types, name};
             const suggestions = shouldPrependKeyword ? [suggestion, ...(keywordNode.metaData.suggestions ?? [])] : [...(keywordNode.metaData.suggestions ?? []), suggestion];
-            trie.update(keyword, {
+            const newMetadata = {
                 ...keywordNode.metaData,
                 suggestions,
-            });
+            };
+            if (normalizedKeyword !== keyword) {
+                trie.update(normalizedKeyword, newMetadata);
+            }
+            trie.update(keyword, newMetadata);
         }
     });
 }
@@ -73,12 +79,21 @@ function createTrie(lang: SupportedLanguage = CONST.LOCALES.DEFAULT): Trie<Emoji
         .forEach((item: Emoji) => {
             const englishName = item.name;
             const localeName = langEmojis?.[item.code]?.name ?? englishName;
+            const normalizedName = StringUtils.normalizeAccents(localeName);
 
             const node = trie.search(localeName);
             if (!node) {
-                trie.add(localeName, {code: item.code, types: item.types, name: localeName, suggestions: []});
+                const metadata = {code: item.code, types: item.types, name: localeName, suggestions: []};
+                if (normalizedName !== localeName) {
+                    trie.add(normalizedName, metadata);
+                }
+                trie.add(localeName, metadata);
             } else {
-                trie.update(localeName, {code: item.code, types: item.types, name: localeName, suggestions: node.metaData.suggestions});
+                const newMetadata = {code: item.code, types: item.types, name: localeName, suggestions: node.metaData.suggestions};
+                if (normalizedName !== localeName) {
+                    trie.update(normalizedName, newMetadata);
+                }
+                trie.update(localeName, newMetadata);
             }
 
             const nameParts = getNameParts(localeName).slice(1); // We remove the first part because we already index the full name.
