@@ -395,7 +395,7 @@ describe('actions/Policy', () => {
                     Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
                 })
                 .then(() => {
-                    Policy.setWorkspaceTagEnabled(fakePolicy.id, tagsToUpdate);
+                    Policy.setWorkspaceTagEnabled(fakePolicy.id, tagsToUpdate, fakePolicyTags[0].orderWeight);
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -468,7 +468,7 @@ describe('actions/Policy', () => {
                 .then(() => {
                     mockFetch?.fail?.();
 
-                    Policy.setWorkspaceTagEnabled(fakePolicy.id, tagsToUpdate);
+                    Policy.setWorkspaceTagEnabled(fakePolicy.id, tagsToUpdate, fakePolicyTags[0].orderWeight);
                     return waitForBatchedUpdates();
                 })
                 .then(mockFetch?.resume)
