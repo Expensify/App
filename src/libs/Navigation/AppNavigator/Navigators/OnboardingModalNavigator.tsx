@@ -2,6 +2,7 @@ import {createStackNavigator} from '@react-navigation/stack';
 import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
+import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import OnboardingModalNavigatorScreenOptions from '@libs/Navigation/AppNavigator/OnboardingModalNavigatorScreenOptions';
@@ -26,19 +27,7 @@ function OnboardingModalNavigator() {
         OnboardingRefManager.handleOuterClick();
     }, []);
 
-    const handleKeyDown = useCallback((e: KeyboardEvent) => {
-        if (e.key !== CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey) {
-            return;
-        }
-        OnboardingRefManager.handleOuterClick();
-    }, []);
-
-    useEffect(() => {
-        window?.addEventListener?.('keydown', handleKeyDown);
-        return () => {
-            window?.removeEventListener?.('keydown', handleKeyDown);
-        };
-    }, [handleKeyDown]);
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, handleOuterClick, {shouldBubble: true});
 
     return (
         <NoDropZone>
