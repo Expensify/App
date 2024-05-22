@@ -1915,22 +1915,20 @@ function getOptions(
         }
     }
 
-    if (includeP2P) {
-        const personalDetailsOptionsToExclude = [...optionsToExclude, {login: currentUserLogin}];
-        // Next loop over all personal details removing any that are selectedUsers or recentChats
-        allPersonalDetailsOptions.forEach((personalDetailOption) => {
-            if (personalDetailsOptionsToExclude.some((optionToExclude) => optionToExclude.login === personalDetailOption.login)) {
-                return;
-            }
-            const {searchText, participantsList, isChatRoom} = personalDetailOption;
-            const participantNames = getParticipantNames(participantsList);
-            if (searchValue && !isSearchStringMatch(searchValue, searchText, participantNames, isChatRoom)) {
-                return;
-            }
+    const personalDetailsOptionsToExclude = [...optionsToExclude, {login: currentUserLogin}];
+    // Next loop over all personal details removing any that are selectedUsers or recentChats
+    allPersonalDetailsOptions.forEach((personalDetailOption) => {
+        if (personalDetailsOptionsToExclude.some((optionToExclude) => optionToExclude.login === personalDetailOption.login)) {
+            return;
+        }
+        const {searchText, participantsList, isChatRoom} = personalDetailOption;
+        const participantNames = getParticipantNames(participantsList);
+        if (searchValue && !isSearchStringMatch(searchValue, searchText, participantNames, isChatRoom)) {
+            return;
+        }
 
-            personalDetailsOptions.push(personalDetailOption);
-        });
-    }
+        personalDetailsOptions.push(personalDetailOption);
+    });
 
     let currentUserOption = allPersonalDetailsOptions.find((personalDetailsOption) => personalDetailsOption.login === currentUserLogin);
     if (searchValue && currentUserOption && !isSearchStringMatch(searchValue, currentUserOption.searchText)) {
