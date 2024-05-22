@@ -14,6 +14,8 @@ import HttpsError from './Errors/HttpsError';
 let shouldFailAllRequests = false;
 let shouldForceOffline = false;
 
+type AbortCommand = 'All' | 'SearchForReports';
+
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
     callback: (network) => {
@@ -26,7 +28,9 @@ Onyx.connect({
 });
 
 // We use the AbortController API to terminate pending request in `cancelPendingRequests`
-let cancellationController = new AbortController();
+const abortControllerMap = new Map<AbortCommand, AbortController>();
+abortControllerMap.set('All', new AbortController());
+abortControllerMap.set('SearchForReports', new AbortController());
 
 // Some existing old commands (6+ years) exempted from the auth writes count check
 const exemptedCommandsWithAuthWrites: string[] = ['SetWorkspaceAutoReportingFrequency'];
@@ -45,11 +49,11 @@ const APICommandRegex = /\/api\/([^&?]+)\??.*/;
  * Send an HTTP request, and attempt to resolve the json response.
  * If there is a network error, we'll set the application offline.
  */
-function processHTTPRequest(url: string, method: RequestType = 'get', body: FormData | null = null, canCancel = true): Promise<Response> {
+function processHTTPRequest(url: string, method: RequestType = 'get', body: FormData | null = null, abortSignal: AbortSignal | undefined = undefined): Promise<Response> {
     const startTime = new Date().valueOf();
     return fetch(url, {
         // We hook requests to the same Controller signal, so we can cancel them all at once
-        signal: canCancel ? cancellationController.signal : undefined,
+        signal: abortSignal,
         method,
         body,
     })
@@ -159,15 +163,19 @@ function xhr(command: string, data: Record<string, unknown>, type: RequestType =
     });
 
     const url = ApiUtils.getCommandURL({shouldUseSecure, command});
-    return processHTTPRequest(url, type, formData, Boolean(data.canCancel));
+
+    const abortSignalController = data.canCancel ? abortControllerMap.get(command as AbortCommand) ?? abortControllerMap.get('All') : undefined;
+    return processHTTPRequest(url, type, formData, abortSignalController?.signal);
 }
 
-function cancelPendingRequests() {
-    cancellationController.abort();
+function cancelPendingRequests(command: AbortCommand = 'All') {
+    const controller = abortControllerMap.get(command) ?? abortControllerMap.get('All');
+
+    controller?.abort();
 
     // We create a new instance because once `abort()` is called any future requests using the same controller would
     // automatically get rejected: https://dom.spec.whatwg.org/#abortcontroller-api-integration
-    cancellationController = new AbortController();
+    abortControllerMap.set(command, new AbortController());
 }
 
 export default {

@@ -3546,7 +3546,7 @@ function searchForReports(searchInput: string, policyID?: string) {
     ];
 
     const searchForRoomToMentionParams: SearchForRoomsToMentionParams = {query: searchInput, policyID: policyID ?? ''};
-    const searchForReportsParams: SearchForReportsParams = {searchInput};
+    const searchForReportsParams: SearchForReportsParams = {searchInput, canCancel: true};
 
     API.read(policyID ? READ_COMMANDS.SEARCH_FOR_ROOMS_TO_MENTION : READ_COMMANDS.SEARCH_FOR_REPORTS, policyID ? searchForRoomToMentionParams : searchForReportsParams, {
         successData,

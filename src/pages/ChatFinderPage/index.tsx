@@ -12,6 +12,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import HttpUtils from '@libs/HttpUtils';
 import type {MaybePhraseKey} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {RootStackParamList} from '@libs/Navigation/types';
@@ -142,6 +143,8 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
         if (!option) {
             return;
         }
+
+        HttpUtils.cancelPendingRequests('SearchForReports');
 
         if (option.reportID) {
             setSearchValue('');
