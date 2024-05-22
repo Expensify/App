@@ -10,7 +10,7 @@ function Image({source: propsSource, isAuthTokenRequired = false, session, onLoa
     const [aspectRatio, setAspectRatio] = useState<string | number | null>(null);
     const isObjectPositionTop = objectPosition === CONST.IMAGE_OBJECT_POSITION.TOP;
 
-    const {doNotSetAspectRatio} = useContext(ImageBehaviorContext);
+    const {doNotSetAspectRatioInStyle} = useContext(ImageBehaviorContext);
 
     const updateAspectRatio = useCallback(
         (width: number, height: number) => {
@@ -33,11 +33,9 @@ function Image({source: propsSource, isAuthTokenRequired = false, session, onLoa
             const {width, height} = event.nativeEvent;
 
             onLoad?.(event);
-            if (!doNotSetAspectRatio) {
-                updateAspectRatio(width, height);
-            }
+            updateAspectRatio(width, height);
         },
-        [onLoad, updateAspectRatio, doNotSetAspectRatio],
+        [onLoad, updateAspectRatio],
     );
     /**
      * Check if the image source is a URL - if so the `encryptedAuthToken` is appended
@@ -63,14 +61,14 @@ function Image({source: propsSource, isAuthTokenRequired = false, session, onLoa
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [propsSource, isAuthTokenRequired]);
 
-    const shouldOpacityBeZero = isObjectPositionTop && !doNotSetAspectRatio && !aspectRatio;
+    const shouldOpacityBeZero = isObjectPositionTop && !aspectRatio;
 
     return (
         <BaseImage
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...forwardedProps}
             onLoad={handleLoad}
-            style={[style, aspectRatio ? {aspectRatio, height: 'auto'} : {}, shouldOpacityBeZero && {opacity: 0}]}
+            style={[style, !doNotSetAspectRatioInStyle && aspectRatio ? {aspectRatio, height: 'auto'} : {}, shouldOpacityBeZero && {opacity: 0}]}
             source={source}
         />
     );

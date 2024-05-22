@@ -66,7 +66,7 @@ function ReportActionItemImages({images, size, total, isHovered = false}: Report
     return (
         <View style={styles.reportActionItemImagesContainer}>
             <View style={[styles.reportActionItemImages, hoverStyle, heightStyle]}>
-                <ImageBehaviorContextProvider doNotSetAspectRatio>
+                <ImageBehaviorContextProvider doNotSetAspectRatioInStyle>
                     {shownImages.map(({thumbnail, isThumbnail, image, transaction, isLocalFile, fileExtension, filename}, index) => {
                         // Show a border to separate multiple images. Shown to the right for each except the last.
                         const shouldShowBorder = shownImages.length > 1 && index < shownImages.length - 1;
