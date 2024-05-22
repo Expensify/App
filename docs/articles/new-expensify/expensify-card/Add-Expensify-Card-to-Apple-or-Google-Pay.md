@@ -6,7 +6,7 @@ description: Pay with your Expensify Card from your Apple or Google Pay wallet
 
 You can use your Expensify Card for contactless in-person payments by adding it to your digital wallet for Apple Pay (for iOS) or Google Pay (for Android).
 
-{% include selector.html values="desktop, mobile" %}
+{% include selector.html values="mobile" %}
 
 {% include option.html value="mobile" %}
 **Apple Pay**
