@@ -2,7 +2,6 @@ import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/Vir
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import type {RouteProp} from '@react-navigation/native';
 import type {DebouncedFunc} from 'lodash';
-import cloneDeep from 'lodash/cloneDeep';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter, InteractionManager} from 'react-native';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
