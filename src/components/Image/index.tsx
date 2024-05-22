@@ -1,13 +1,16 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useContext, useMemo, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import BaseImage from './BaseImage';
+import {ImageBehaviorContext} from './ImageBehaviorContextProvider';
 import type {ImageOnLoadEvent, ImageOnyxProps, ImageOwnProps, ImageProps} from './types';
 
 function Image({source: propsSource, isAuthTokenRequired = false, session, onLoad, objectPosition = CONST.IMAGE_OBJECT_POSITION.INITIAL, style, ...forwardedProps}: ImageProps) {
     const [aspectRatio, setAspectRatio] = useState<string | number | null>(null);
     const isObjectPositionTop = objectPosition === CONST.IMAGE_OBJECT_POSITION.TOP;
+
+    const {doNotSetAspectRatio} = useContext(ImageBehaviorContext);
 
     const updateAspectRatio = useCallback(
         (width: number, height: number) => {
@@ -30,10 +33,11 @@ function Image({source: propsSource, isAuthTokenRequired = false, session, onLoa
             const {width, height} = event.nativeEvent;
 
             onLoad?.(event);
-
-            updateAspectRatio(width, height);
+            if (!doNotSetAspectRatio) {
+                updateAspectRatio(width, height);
+            }
         },
-        [onLoad, updateAspectRatio],
+        [onLoad, updateAspectRatio, doNotSetAspectRatio],
     );
     /**
      * Check if the image source is a URL - if so the `encryptedAuthToken` is appended

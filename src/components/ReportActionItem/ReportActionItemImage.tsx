@@ -46,6 +46,9 @@ type ReportActionItemImageProps = {
 
     /** Whether there are other images displayed in the same parent container */
     isSingleImage?: boolean;
+
+    /** Whether there are other images displayed in the same parent container */
+    doNotSetAspectRatio?: boolean;
 };
 
 /**
