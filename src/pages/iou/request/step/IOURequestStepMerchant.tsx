@@ -63,7 +63,7 @@ function IOURequestStepMerchant({
     const merchant = ReportUtils.getTransactionDetails(isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction)?.merchant;
     const isEmptyMerchant = merchant === '' || merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
 
-    const isMerchantRequired = ReportUtils.isReportInGroupPolicy(report) || transaction?.participants?.some((participant) => Boolean(participant.isPolicyExpenseChat));
+    const isMerchantRequired = ReportUtils.isReportInGroupPolicy(report) || transaction?.participants?.some((participant) => !!participant.isPolicyExpenseChat);
     const navigateBack = () => {
         Navigation.goBack(backTo);
     };

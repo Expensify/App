@@ -145,7 +145,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
         };
 
         const centerCoordinate = currentPosition ? [currentPosition.longitude, currentPosition.latitude] : initialState?.location;
-        return !isOffline && Boolean(accessToken) && Boolean(currentPosition) ? (
+        return !isOffline && !!accessToken && !!currentPosition ? (
             <View style={[style, !interactive ? styles.pointerEventsNone : {}]}>
                 <Mapbox.MapView
                     style={{flex: 1}}

@@ -178,7 +178,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
             [mapRef],
         );
 
-        return !isOffline && Boolean(accessToken) && Boolean(currentPosition) ? (
+        return !isOffline && !!accessToken && !!currentPosition ? (
             <View
                 style={style}
                 // eslint-disable-next-line react/jsx-props-no-spreading

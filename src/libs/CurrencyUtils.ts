@@ -148,7 +148,7 @@ function convertToDisplayStringWithoutCurrency(amountInCents: number, currency: 
  */
 function isValidCurrencyCode(currencyCode: string): boolean {
     const currency = currencyList?.[currencyCode];
-    return Boolean(currency);
+    return !!currency;
 }
 
 export {

@@ -153,7 +153,7 @@ class BankAccount {
      * Return whether this bank account has been risk checked
      */
     isRiskChecked() {
-        return Boolean(this.json.accountData?.riskChecked);
+        return !!this.json.accountData?.riskChecked;
     }
 
     /**

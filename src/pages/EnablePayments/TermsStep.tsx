@@ -113,7 +113,7 @@ function TermsStep(props: TermsStepProps) {
                         });
                     }}
                     message={errorMessage}
-                    isAlertVisible={error || Boolean(errorMessage)}
+                    isAlertVisible={error || !!errorMessage}
                     isLoading={!!props.walletTerms?.isLoading}
                     containerStyles={[styles.mh0, styles.mv4]}
                 />

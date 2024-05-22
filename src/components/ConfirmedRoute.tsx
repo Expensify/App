@@ -90,7 +90,7 @@ function ConfirmedRoute({mapboxAccessToken, transaction, interactive}: Confirmed
         return MapboxToken.stop;
     }, []);
 
-    return !isOffline && Boolean(mapboxAccessToken?.token) ? (
+    return !isOffline && !!mapboxAccessToken?.token ? (
         <DistanceMapView
             interactive={interactive}
             accessToken={mapboxAccessToken?.token ?? ''}

@@ -82,7 +82,7 @@ function ProfilePage({route}: ProfilePageProps) {
         const accountID = Number(route.params?.accountID ?? 0);
         const reportID = ReportUtils.getChatByParticipants(session?.accountID ? [accountID, session.accountID] : [], reports)?.reportID ?? '';
 
-        if ((Boolean(session) && Number(session?.accountID) === accountID) || SessionActions.isAnonymousUser() || !reportID) {
+        if ((!!session && Number(session?.accountID) === accountID) || SessionActions.isAnonymousUser() || !reportID) {
             return `${ONYXKEYS.COLLECTION.REPORT}0` as const;
         }
         return `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
@@ -118,7 +118,7 @@ function ProfilePage({route}: ProfilePageProps) {
     const phoneOrEmail = isSMSLogin ? getPhoneNumber(details) : login;
 
     const hasMinimumDetails = !isEmptyObject(details.avatar);
-    const isLoading = Boolean(personalDetailsMetadata?.[accountID]?.isLoading) || isEmptyObject(details);
+    const isLoading = !!personalDetailsMetadata?.[accountID]?.isLoading || isEmptyObject(details);
 
     // If the API returns an error for some reason there won't be any details and isLoading will get set to false, so we want to show a blocking screen
     const shouldShowBlockingView = !hasMinimumDetails && !isLoading;
@@ -170,7 +170,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                         />
                                     </OfflineWithFeedback>
                                 </PressableWithoutFocus>
-                                {Boolean(displayName) && (
+                                {!!displayName && (
                                     <Text
                                         style={[styles.textHeadline, styles.pre, styles.mb6, styles.w100, styles.textAlignCenter]}
                                         numberOfLines={1}

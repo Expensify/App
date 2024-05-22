@@ -324,7 +324,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                                 floatRightAvatarSize={item.avatarSize}
                                 ref={popoverAnchor}
                                 hoverAndPressStyle={styles.hoveredComponentBG}
-                                shouldBlockSelection={Boolean(item.link)}
+                                shouldBlockSelection={!!item.link}
                                 onSecondaryInteraction={item.link ? (event) => openPopover(item.link, event) : undefined}
                                 focused={
                                     !!activeRoute?.name && !!item.routeName && !!(activeRoute?.name.toLowerCase().replaceAll('_', '') === item.routeName.toLowerCase().replaceAll('/', ''))
@@ -436,7 +436,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                     >
                         {currentUserPersonalDetails.displayName ? currentUserPersonalDetails.displayName : formatPhoneNumber(session?.email ?? '')}
                     </Text>
-                    {Boolean(currentUserPersonalDetails.displayName) && (
+                    {!!currentUserPersonalDetails.displayName && (
                         <Text
                             style={[styles.textLabelSupporting, styles.mt1, styles.w100, styles.textAlignCenter]}
                             numberOfLines={1}

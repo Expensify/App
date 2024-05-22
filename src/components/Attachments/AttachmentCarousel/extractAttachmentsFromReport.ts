@@ -30,7 +30,7 @@ function extractAttachmentsFromReport(parentReportAction?: OnyxEntry<ReportActio
                 const splittedUrl = attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE].split('/');
                 attachments.unshift({
                     source: tryResolveUrlFromApiRoot(attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]),
-                    isAuthTokenRequired: Boolean(attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]),
+                    isAuthTokenRequired: !!attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE],
                     file: {name: splittedUrl[splittedUrl.length - 1]},
                     duration: Number(attribs[CONST.ATTACHMENT_DURATION_ATTRIBUTE]),
                     isReceipt: false,
@@ -62,7 +62,7 @@ function extractAttachmentsFromReport(parentReportAction?: OnyxEntry<ReportActio
                 attachments.unshift({
                     reportActionID: attribs['data-id'],
                     source,
-                    isAuthTokenRequired: Boolean(expensifySource),
+                    isAuthTokenRequired: !!expensifySource,
                     file: {name: fileName},
                     isReceipt: false,
                     hasBeenFlagged: attribs['data-flagged'] === 'true',

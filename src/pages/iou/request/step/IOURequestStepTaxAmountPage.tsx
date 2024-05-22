@@ -144,14 +144,14 @@ function IOURequestStepTaxAmountPage({
             headerTitle={translate('iou.taxAmount')}
             onBackButtonPress={navigateBack}
             testID={IOURequestStepTaxAmountPage.displayName}
-            shouldShowWrapper={Boolean(backTo || isEditing)}
+            shouldShowWrapper={!!(backTo || isEditing)}
             includeSafeAreaPaddingBottom
         >
             <MoneyRequestAmountForm
-                isEditing={Boolean(backTo || isEditing)}
+                isEditing={!!(backTo || isEditing)}
                 currency={currency}
                 amount={Math.abs(transactionDetails?.taxAmount ?? 0)}
-                taxAmount={getTaxAmount(transaction, policy, currency, Boolean(backTo || isEditing))}
+                taxAmount={getTaxAmount(transaction, policy, currency, !!(backTo || isEditing))}
                 ref={(e) => (textInput.current = e)}
                 onCurrencyButtonPress={navigateToCurrencySelectionPage}
                 onSubmitButtonPress={updateTaxAmount}

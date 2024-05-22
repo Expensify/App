@@ -255,7 +255,7 @@ function ReportActionItemSingle({
                                 />
                             ))}
                         </PressableWithoutFeedback>
-                        {Boolean(hasEmojiStatus) && (
+                        {!!hasEmojiStatus && (
                             <Tooltip text={statusTooltipText}>
                                 <Text
                                     style={styles.userReportStatusEmoji}

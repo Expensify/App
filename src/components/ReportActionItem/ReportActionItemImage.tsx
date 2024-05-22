@@ -70,7 +70,7 @@ function ReportActionItemImage({
     const attachmentModalSource = tryResolveUrlFromApiRoot(image ?? '');
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail ?? '');
     const isEReceipt = transaction && TransactionUtils.hasEReceipt(transaction);
-    const isDistanceRequest = Boolean(transaction && TransactionUtils.isDistanceRequest(transaction));
+    const isDistanceRequest = !!(transaction && TransactionUtils.isDistanceRequest(transaction));
 
     let propsObj: ReceiptImageProps;
 

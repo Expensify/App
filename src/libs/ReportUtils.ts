@@ -781,7 +781,7 @@ function isCompletedTaskReport(report: OnyxEntry<Report>): boolean {
  * Checks if the current user is the manager of the supplied report
  */
 function isReportManager(report: OnyxEntry<Report>): boolean {
-    return Boolean(report && report.managerID === currentUserAccountID);
+    return !!(report && report.managerID === currentUserAccountID);
 }
 
 /**
@@ -847,7 +847,7 @@ function isCurrentUserSubmitter(reportID: string): boolean {
         return false;
     }
     const report = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    return Boolean(report && report.ownerAccountID === currentUserAccountID);
+    return !!(report && report.ownerAccountID === currentUserAccountID);
 }
 
 /**
@@ -1020,7 +1020,7 @@ function isWorkspaceTaskReport(report: OnyxEntry<Report>): boolean {
  * Returns true if report has a parent
  */
 function isThread(report: OnyxEntry<Report>): boolean {
-    return Boolean(report?.parentReportID && report?.parentReportActionID);
+    return !!(report?.parentReportID && report?.parentReportActionID);
 }
 
 /**
@@ -1649,14 +1649,12 @@ function canShowReportRecipientLocalTime(personalDetails: OnyxCollection<Persona
     const reportRecipient = personalDetails?.[reportRecipientAccountIDs[0]];
     const reportRecipientTimezone = reportRecipient?.timezone ?? CONST.DEFAULT_TIME_ZONE;
     const isReportParticipantValidated = reportRecipient?.validated ?? false;
-    return Boolean(
-        !hasMultipleParticipants &&
+    return !!(!hasMultipleParticipants &&
             !isChatRoom(report) &&
             !isPolicyExpenseChat(getRootParentReport(report)) &&
             reportRecipient &&
             reportRecipientTimezone?.selected &&
-            isReportParticipantValidated,
-    );
+            isReportParticipantValidated);
 }
 
 /**
@@ -2262,7 +2260,7 @@ function isUnreadWithMention(reportOrOption: OnyxEntry<Report> | OptionData): bo
     // lastMentionedTime and lastReadTime are both datetime strings and can be compared directly
     const lastMentionedTime = reportOrOption.lastMentionedTime ?? '';
     const lastReadTime = reportOrOption.lastReadTime ?? '';
-    return Boolean('isUnreadWithMention' in reportOrOption && reportOrOption.isUnreadWithMention) || lastReadTime < lastMentionedTime;
+    return !!('isUnreadWithMention' in reportOrOption && reportOrOption.isUnreadWithMention) || lastReadTime < lastMentionedTime;
 }
 
 /**
@@ -2696,15 +2694,13 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxEntry<ReportAction>, field
 function canEditReportAction(reportAction: OnyxEntry<ReportAction>): boolean {
     const isCommentOrIOU = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU;
 
-    return Boolean(
-        reportAction?.actorAccountID === currentUserAccountID &&
+    return !!(reportAction?.actorAccountID === currentUserAccountID &&
             isCommentOrIOU &&
             canEditMoneyRequest(reportAction) && // Returns true for non-IOU actions
             !ReportActionsUtils.isReportActionAttachment(reportAction) &&
             !ReportActionsUtils.isDeletedAction(reportAction) &&
             !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
-            reportAction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-    );
+            reportAction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 }
 
 /**
@@ -5302,15 +5298,13 @@ function canFlagReportAction(reportAction: OnyxEntry<ReportAction>, reportID: st
         return false;
     }
 
-    return Boolean(
-        !isCurrentUserAction &&
+    return !!(!isCurrentUserAction &&
             reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT &&
             !ReportActionsUtils.isDeletedAction(reportAction) &&
             !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
             !isEmptyObject(report) &&
             report &&
-            isAllowedToComment(report),
-    );
+            isAllowedToComment(report));
 }
 
 /**
@@ -5464,7 +5458,7 @@ function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, o
 
     let isOwnPolicyExpenseChat = report?.isOwnPolicyExpenseChat ?? false;
     if (isExpenseReport(report) && getParentReport(report)) {
-        isOwnPolicyExpenseChat = Boolean(getParentReport(report)?.isOwnPolicyExpenseChat);
+        isOwnPolicyExpenseChat = !!getParentReport(report)?.isOwnPolicyExpenseChat;
     }
 
     // In case there are no other participants than the current user and it's not user's own policy expense chat, they can't submit expenses from such report
@@ -5688,7 +5682,7 @@ function canLeaveRoom(report: OnyxEntry<Report>, isPolicyEmployee: boolean): boo
 }
 
 function isCurrentUserTheOnlyParticipant(participantAccountIDs?: number[]): boolean {
-    return Boolean(participantAccountIDs?.length === 1 && participantAccountIDs?.[0] === currentUserAccountID);
+    return !!(participantAccountIDs?.length === 1 && participantAccountIDs?.[0] === currentUserAccountID);
 }
 
 /**
@@ -6078,8 +6072,7 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
  *
  */
 function isDeprecatedGroupDM(report: OnyxEntry<Report>): boolean {
-    return Boolean(
-        report &&
+    return !!(report &&
             !isChatThread(report) &&
             !isTaskReport(report) &&
             !isInvoiceReport(report) &&
@@ -6088,8 +6081,7 @@ function isDeprecatedGroupDM(report: OnyxEntry<Report>): boolean {
             !Object.values(CONST.REPORT.CHAT_TYPE).some((chatType) => chatType === getChatType(report)) &&
             Object.keys(report.participants ?? {})
                 .map(Number)
-                .filter((accountID) => accountID !== currentUserAccountID).length > 1,
-    );
+                .filter((accountID) => accountID !== currentUserAccountID).length > 1);
 }
 
 /**
@@ -6103,7 +6095,7 @@ function isRootGroupChat(report: OnyxEntry<Report>): boolean {
  * Assume any report without a reportID is unusable.
  */
 function isValidReport(report?: OnyxEntry<Report>): boolean {
-    return Boolean(report?.reportID);
+    return !!report?.reportID;
 }
 
 /**

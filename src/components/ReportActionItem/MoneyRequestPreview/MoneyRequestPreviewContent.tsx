@@ -85,7 +85,7 @@ function MoneyRequestPreviewContent({
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
     const isOnHold = TransactionUtils.isOnHold(transaction);
-    const isSettlementOrApprovalPartial = Boolean(iouReport?.pendingFields?.partial);
+    const isSettlementOrApprovalPartial = !!iouReport?.pendingFields?.partial;
     const isPartialHold = isSettlementOrApprovalPartial && isOnHold;
     const hasViolations = TransactionUtils.hasViolation(transaction?.transactionID ?? '', transactionViolations);
     const hasNoticeTypeViolations = TransactionUtils.hasNoticeTypeViolation(transaction?.transactionID ?? '', transactionViolations);

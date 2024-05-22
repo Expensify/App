@@ -123,7 +123,7 @@ function DetailsPage({personalDetails, route, session}: DetailsPageProps) {
                                         </PressableWithoutFocus>
                                     )}
                                 </AttachmentModal>
-                                {Boolean(displayName) && (
+                                {!!displayName && (
                                     <Text
                                         style={[styles.textHeadline, styles.mb6, styles.pre]}
                                         numberOfLines={1}

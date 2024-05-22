@@ -51,7 +51,7 @@ function IOURequestStepSplitPayer({
         const participants = transaction?.participants ?? [];
         const participantOptions =
             [currentUserOption, ...participants]
-                ?.filter((participant) => Boolean(participant.accountID))
+                ?.filter((participant) => !!participant.accountID)
                 ?.map((participant) => OptionsListUtils.getParticipantsOption(participant, personalDetails)) ?? [];
         return [
             {

@@ -109,8 +109,8 @@ function ReportActionItemMessageEdit(
         const originalMessage = parser.htmlToMarkdown(action.message?.[0]?.html ?? '');
         if (
             ReportActionsUtils.isDeletedAction(action) ||
-            Boolean(action.message && draftMessage === originalMessage) ||
-            Boolean(prevDraftMessage === draftMessage || isCommentPendingSaved.current)
+            !!(action.message && draftMessage === originalMessage) ||
+            !!(prevDraftMessage === draftMessage || isCommentPendingSaved.current)
         ) {
             return;
         }

@@ -32,7 +32,7 @@ type GroupChatNameEditPageProps = StackScreenProps<NewChatNavigatorParamList, ty
 function GroupChatNameEditPage({groupChatDraft, route}: GroupChatNameEditPageProps) {
     // If we have a reportID this means we are using this page to update an existing Group Chat name
     const reportID = route.params?.reportID ?? '';
-    const isUpdatingExistingReport = Boolean(reportID);
+    const isUpdatingExistingReport = !!reportID;
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();

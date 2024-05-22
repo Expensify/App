@@ -140,7 +140,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
                             saveAndNavigate();
                         }}
                         message={errorMessage}
-                        isAlertVisible={error || Boolean(errorMessage)}
+                        isAlertVisible={error || !!errorMessage}
                         containerStyles={[styles.w100, styles.mb5, styles.mh0, paddingHorizontal]}
                     />
                 </View>

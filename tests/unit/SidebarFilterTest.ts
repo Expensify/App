@@ -320,7 +320,7 @@ xdescribe('Sidebar', () => {
                 const boolArr: boolean[] = [];
                 for (let j = AMOUNT_OF_VARIABLES - 1; j >= 0; j--) {
                     // eslint-disable-next-line no-bitwise
-                    boolArr.push(Boolean(i & (1 << j)));
+                    boolArr.push(!!(i & (1 << j)));
                 }
 
                 // To test a failing set of conditions, comment out the for loop above and then use a hardcoded array
@@ -666,7 +666,7 @@ xdescribe('Sidebar', () => {
             const boolArr: boolean[] = [];
             for (let j = AMOUNT_OF_VARIABLES - 1; j >= 0; j--) {
                 // eslint-disable-next-line no-bitwise
-                boolArr.push(Boolean(i & (1 << j)));
+                boolArr.push(!!(i & (1 << j)));
             }
 
             // To test a failing set of conditions, comment out the for loop above and then use a hardcoded array

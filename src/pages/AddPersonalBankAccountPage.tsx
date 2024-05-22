@@ -80,7 +80,7 @@ function AddPersonalBankAccountPage({personalBankAccount, plaidData}: AddPersona
             ) : (
                 <FormProvider
                     formID={ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM}
-                    isSubmitButtonVisible={Boolean(selectedPlaidAccountId)}
+                    isSubmitButtonVisible={!!selectedPlaidAccountId}
                     submitButtonText={translate('common.saveAndContinue')}
                     scrollContextEnabled
                     onSubmit={submitBankAccountForm}

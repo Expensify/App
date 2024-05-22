@@ -71,7 +71,7 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
                                 title={translate('workspace.qbo.defaultVendor')}
                                 titleStyle={styles.textStrong}
                                 wrapperStyle={[styles.ph5, styles.mb3, styles.mt1]}
-                                isActive={Boolean(autoCreateVendor)}
+                                isActive={!!autoCreateVendor}
                                 onToggle={(isOn) =>
                                     Connections.updateManyPolicyConnectionConfigs(
                                         policyID,

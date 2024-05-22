@@ -187,7 +187,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         onEmojiPickerToggle.current = setIsEmojiPickerActive;
 
         new Promise<void>((resolve) => {
-            if (Boolean(!pageX && !pageY && contextMenuAnchorRef.current) || isOverflowMenu) {
+            if (!!(!pageX && !pageY && contextMenuAnchorRef.current) || isOverflowMenu) {
                 calculateAnchorPosition(contextMenuAnchorRef.current).then((position) => {
                     popoverAnchorPosition.current = {horizontal: position.horizontal, vertical: position.vertical};
                     contextMenuDimensions.current = {width: position.vertical, height: position.height};
