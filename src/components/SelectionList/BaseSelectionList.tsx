@@ -26,6 +26,7 @@ import Log from '@libs/Log';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import arraysEqual from '@src/utils/arraysEqual';
 import type {BaseSelectionListProps, ButtonOrCheckBoxRoles, FlattenedSectionsReturn, ListItem, SectionListDataType, SectionWithIndexOffset, SelectionListHandle} from './types';
 
 function BaseSelectionList<TItem extends ListItem>(
@@ -228,11 +229,21 @@ function BaseSelectionList<TItem extends ListItem>(
         [flattenedSections.allOptions],
     );
 
+    const [disabledIndexes, setDisabledIndexes] = useState(flattenedSections.disabledOptionsIndexes);
+    useEffect(() => {
+        if (arraysEqual(disabledIndexes, flattenedSections.disabledOptionsIndexes)) {
+            return;
+        }
+
+        setDisabledIndexes(flattenedSections.disabledOptionsIndexes);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [flattenedSections.disabledOptionsIndexes]);
+
     // If `initiallyFocusedOptionKey` is not passed, we fall back to `-1`, to avoid showing the highlight on the first member
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: flattenedSections.allOptions.findIndex((option) => option.keyForList === initiallyFocusedOptionKey),
         maxIndex: Math.min(flattenedSections.allOptions.length - 1, CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage - 1),
-        disabledIndexes: flattenedSections.disabledOptionsIndexes,
+        disabledIndexes,
         isActive: true,
         onFocusedIndexChange: (index: number) => {
             scrollToIndex(index, true);
