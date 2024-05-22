@@ -211,26 +211,23 @@ function ReportActionsList({
         [sortedReportActions, isOffline],
     );
 
-    const filterOutLastWhisperAction = useCallback((actions: OnyxTypes.ReportAction[]): OnyxTypes.ReportAction[] => {
-        if (actions.length > 1 && ReportActionsUtils.isWhisperAction(actions[0])) {
-            actions.shift();
-            // repeat the process until the first action is not a whisper action
-            return filterOutLastWhisperAction(actions);
-        }
-
-        return actions;
-    }, []);
-
     const newestVisibleReportAction = useMemo(() => {
         // whisper action doesn't affect lastVisibleActionCreated, so we should not take it into account while checking if there is the newest report action
-        const filteredActions = filterOutLastWhisperAction(cloneDeep(sortedVisibleReportActions));
+        let index = 0;
+        const size = sortedVisibleReportActions.length;
+        while (index < size) {
+            if (!ReportActionsUtils.isWhisperAction(sortedVisibleReportActions[index])) {
+                return sortedVisibleReportActions[index];
+            }
+            index += 1;
+        }
 
-        return filteredActions[0];
-    }, [filterOutLastWhisperAction, sortedVisibleReportActions]);
+        return null;
+    }, [sortedVisibleReportActions]);
 
     const lastActionIndex = sortedVisibleReportActions[0]?.reportActionID;
     const reportActionSize = useRef(sortedVisibleReportActions.length);
-    const hasNewestReportAction = newestVisibleReportAction.created === report.lastVisibleActionCreated;
+    const hasNewestReportAction = newestVisibleReportAction?.created === report.lastVisibleActionCreated;
     const hasNewestReportActionRef = useRef(hasNewestReportAction);
     hasNewestReportActionRef.current = hasNewestReportAction;
     const previousLastIndex = useRef(lastActionIndex);
