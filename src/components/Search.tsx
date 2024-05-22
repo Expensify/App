@@ -81,6 +81,8 @@ function Search({query, policyIDs}: SearchProps) {
     return (
         <SelectionList
             customListHeader={<SearchTableHeader data={searchResults?.data} />}
+            windowSize={111} // 111 is bigger enough to cache all the items not recycled when scrolling
+            updateCellsBatchingPeriod={200} // 200ms a delay to update the cells
             ListItem={ListItem}
             sections={[{data, isDisabled: false}]}
             onSelectRow={(item) => {
