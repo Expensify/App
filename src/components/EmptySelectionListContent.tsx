@@ -1,5 +1,7 @@
 import React from 'react';
+import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import type {IOUType} from '@src/CONST';
 import BlockingView from './BlockingViews/BlockingView';
@@ -10,17 +12,20 @@ type EmptySelectionListContentProps = {
 };
 
 function EmptySelectionListContent({content}: EmptySelectionListContentProps) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     return (
-        <BlockingView
-            icon={Illustrations.ToddWithPhones}
-            iconWidth={variables.modalTopIconWidth}
-            iconHeight={variables.modalTopIconHeight}
-            title={translate(`emptyList.${content}.title`)}
-            shouldShowLink={false}
-            subtitle={translate(`emptyList.${content}.subtitle`)}
-        />
+        <View style={[styles.flex1, styles.overflowHidden]}>
+            <BlockingView
+                icon={Illustrations.ToddWithPhones}
+                iconWidth={variables.modalTopIconWidth}
+                iconHeight={variables.modalTopIconHeight}
+                title={translate(`emptyList.${content}.title`)}
+                shouldShowLink={false}
+                subtitle={translate(`emptyList.${content}.subtitle`)}
+            />
+        </View>
     );
 }
 
