@@ -18,7 +18,7 @@ type FieldItemType = {
 type ReviewFieldsProps = {
     stepNames: string[];
     label: string;
-    options: Array<{text: string; value: string | boolean}>;
+    options: Array<{text: string; value: string | boolean | undefined}> | undefined;
     index: number;
     onSelectRow: (item: FieldItemType) => void;
 };
@@ -27,7 +27,7 @@ function ReviewFields({stepNames, label, options, index, onSelectRow}: ReviewFie
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     let falsyCount = 0;
-    const filteredOptions = options.filter((name) => {
+    const filteredOptions = options?.filter((name) => {
         if (name.text !== translate('violations.none')) {
             return true;
         }
@@ -36,10 +36,10 @@ function ReviewFields({stepNames, label, options, index, onSelectRow}: ReviewFie
     });
     const sections = useMemo(
         () =>
-            filteredOptions.map((option) => ({
+            filteredOptions?.map((option) => ({
                 text: option.text,
                 keyForList: option.text,
-                value: option.value,
+                value: option.value ?? '',
             })),
         [filteredOptions],
     );
@@ -66,7 +66,7 @@ function ReviewFields({stepNames, label, options, index, onSelectRow}: ReviewFie
                 {label}
             </Text>
             <SelectionList
-                sections={[{data: sections}]}
+                sections={[{data: sections ?? []}]}
                 ListItem={RadioListItem}
                 onSelectRow={onSelectRow}
             />

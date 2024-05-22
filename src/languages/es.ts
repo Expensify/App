@@ -743,7 +743,7 @@ export default {
         reason: 'Razón',
         holdReasonRequired: 'Se requiere una razón para bloquear.',
         expenseOnHold: 'Este gasto está bloqueado. Revisa los comentarios para saber como proceder.',
-        expenseDuplicate: 'Esta solicitud tiene los mismos detalles que otra. Revise los duplicados para eliminar la retención.',
+        expenseDuplicate: 'Este gasto tiene los mismos detalles que otro. Revisa los duplicados para eliminar el bloqueo.',
         reviewDuplicates: 'Revisar duplicados',
         keepAll: 'Mantener todos',
         confirmApprove: 'Confirmar importe a aprobar',
@@ -3574,7 +3574,7 @@ export default {
         descriptionToKeep: 'Elija la descripción que desea conservar',
         categoryToKeep: 'Elija la categoría que desea conservar',
         isTransactionBillable: 'Elija si la transacción es facturable',
-        keepThisOne: 'Quédate con éste',
+        keepThisOne: 'Mantener éste',
     },
     violationDismissal: {
         rter: {

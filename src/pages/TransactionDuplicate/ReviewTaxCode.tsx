@@ -29,7 +29,7 @@ function ReviewTaxRate() {
     const transaction = TransactionUtils.getTransaction(transactionID);
     const options = useMemo(
         () =>
-            compareResult.change.taxCode.map((taxID) =>
+            compareResult.change.taxCode?.map((taxID) =>
                 !taxID
                     ? {text: translate('violations.none'), value: TransactionUtils.getDefaultTaxCode(policy, transaction)}
                     : {

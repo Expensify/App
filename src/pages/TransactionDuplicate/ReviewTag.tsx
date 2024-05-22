@@ -22,7 +22,7 @@ function ReviewTag() {
     const {currentScreenIndex, navigateToNextScreen} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'tag', route.params.threadReportID ?? '');
     const options = useMemo(
         () =>
-            compareResult.change.tag.map((tag) =>
+            compareResult.change.tag?.map((tag) =>
                 !tag
                     ? {text: translate('violations.none'), value: undefined}
                     : {
@@ -38,6 +38,7 @@ function ReviewTag() {
         }
         navigateToNextScreen();
     };
+
     return (
         <ScreenWrapper testID={ReviewTag.displayName}>
             <HeaderWithBackButton title={translate('iou.reviewDuplicates')} />

@@ -21,7 +21,7 @@ function ReviewBillable() {
     const {currentScreenIndex, navigateToNextScreen} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'billable', route.params.threadReportID ?? '');
     const options = useMemo(
         () =>
-            compareResult.change.billable.map((billable) => ({
+            compareResult.change.billable?.map((billable) => ({
                 text: billable ? translate('common.yes') : translate('common.no'),
                 value: billable,
             })),
@@ -34,6 +34,7 @@ function ReviewBillable() {
         }
         navigateToNextScreen();
     };
+
     return (
         <ScreenWrapper testID={ReviewBillable.displayName}>
             <HeaderWithBackButton title={translate('iou.reviewDuplicates')} />
@@ -49,4 +50,5 @@ function ReviewBillable() {
 }
 
 ReviewBillable.displayName = 'ReviewBillable';
+
 export default ReviewBillable;
