@@ -371,7 +371,7 @@ function MoneyRequestConfirmationList({
 
     // Calculate and set tax amount in transaction draft
     useEffect(() => {
-        const taxAmount = isDistanceRequest && isOffline ? (transaction?.taxAmount ?? 0).toString() : getTaxAmount(transaction, policy).toString();
+        const taxAmount = getTaxAmount(transaction, policy).toString();
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount));
 
         if (transaction?.taxAmount && previousTransactionAmount === transaction?.amount && previousTransactionCurrency === transaction?.currency) {
@@ -379,7 +379,7 @@ function MoneyRequestConfirmationList({
         }
 
         IOU.setMoneyRequestTaxAmount(transactionID, amountInSmallestCurrencyUnits, true);
-    }, [policy, transaction, transactionID, previousTransactionAmount, previousTransactionCurrency, isOffline, isDistanceRequest]);
+    }, [policy, transaction, transactionID, previousTransactionAmount, previousTransactionCurrency]);
 
     // If completing a split expense fails, set didConfirm to false to allow the user to edit the fields again
     if (isEditingSplitBill && didConfirm) {

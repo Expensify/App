@@ -50,15 +50,13 @@ function IOURequestStepDistanceRate({
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
-    const transactionDetails = ReportUtils.getTransactionDetails(transaction);
-    const currency = transactionDetails?.currency;
     const distanceUnit = Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
     const customUnitID = distanceUnit?.customUnitID;
     const isPolicyExpenseChat = ReportUtils.isReportInGroupPolicy(report);
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest);
 
-    const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction, currency) ?? '';
-    const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, defaultTaxCode) ?? '';
+    const transactionTaxCode = transaction?.taxCode ?? '';
+    const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, transactionTaxCode) ?? '';
 
     const lastSelectedRateID = TransactionUtils.getRateID(transaction) ?? '';
 
@@ -84,18 +82,16 @@ function IOURequestStepDistanceRate({
 
     function selectDistanceRate(customUnitRateID: string) {
         let taxAmount;
-        let taxCode;
+        let taxRateExternalID;
         if (transaction?.amount && policy?.customUnits && customUnitID && shouldShowTax) {
             const taxClaimablePercentage = policy?.customUnits[customUnitID].rates[customUnitRateID].attributes?.taxClaimablePercentage ?? 0;
-            taxCode = policy?.customUnits[customUnitID].rates[customUnitRateID].attributes?.taxRateExternalID ?? '';
+            taxRateExternalID = policy?.customUnits[customUnitID].rates[customUnitRateID].attributes?.taxRateExternalID ?? '';
             const taxableAmount = -1 * transaction.amount * taxClaimablePercentage;
             taxAmount = CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(taxPercentage, taxableAmount));
+            IOU.setMoneyRequestTaxAmount(transactionID, taxAmount, true);
+            IOU.setMoneyRequestTaxRate(transactionID, taxRateExternalID);
         }
         IOU.updateDistanceRequestRate(transactionID, customUnitRateID, policy?.id ?? '');
-        if (taxAmount && taxCode) {
-            IOU.setMoneyRequestTaxAmount(transactionID, taxAmount, true);
-            IOU.setMoneyRequestTaxRate(transactionID, taxCode);
-        }
         navigateBack();
     }
 
