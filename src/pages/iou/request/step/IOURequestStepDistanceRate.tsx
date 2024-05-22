@@ -78,14 +78,12 @@ function IOURequestStepDistanceRate({
     const initiallyFocusedOption = sections.find((item) => item.isSelected)?.keyForList;
 
     function selectDistanceRate(customUnitRateID: string) {
-        let taxAmount;
-        let taxRateExternalID;
         if (transaction?.amount && policy?.customUnits && customUnitID && shouldShowTax) {
             const taxClaimablePercentage = policy?.customUnits[customUnitID].rates[customUnitRateID].attributes?.taxClaimablePercentage ?? 0;
-            taxRateExternalID = policy?.customUnits[customUnitID].rates[customUnitRateID].attributes?.taxRateExternalID ?? '';
+            const taxRateExternalID = policy?.customUnits[customUnitID].rates[customUnitRateID].attributes?.taxRateExternalID ?? '';
             const taxableAmount = -1 * transaction.amount * taxClaimablePercentage;
             const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, taxRateExternalID) ?? '';
-            taxAmount = CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(taxPercentage, taxableAmount));
+            const taxAmount = CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(taxPercentage, taxableAmount));
             IOU.setMoneyRequestTaxAmount(transactionID, taxAmount, true);
             IOU.setMoneyRequestTaxRate(transactionID, taxRateExternalID);
         }
