@@ -36,6 +36,7 @@ When your ID is uploaded successfully, Onfido closes automatically. You can retu
 Plaid is an encrypted third-party financial data platform that Expensify uses to securely verify your banking information.
 {% include end-info.html %}
 
+{:start="5"}
 5. Enter your personal details (including your name, address, date of birth, phone number, and the last 4 digits of your social security number). 
 6. Tap **Save & continue**.
 7. Review the Onfido terms and tap **Accept**.
