@@ -3650,7 +3650,7 @@ function clearPolicyTagErrors(policyID: string, tagName: string) {
 
 function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName: string}) {
     const tagListName = Object.keys(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})[0];
-    const oldTagName = PolicyUtils.escapeTagName(policyTag.oldName);
+    const oldTagName = policyTag.oldName;
     const newTagName = PolicyUtils.escapeTagName(policyTag.newName);
     const oldTag = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`]?.[tagListName]?.tags?.[oldTagName] ?? {};
     const onyxData: OnyxData = {

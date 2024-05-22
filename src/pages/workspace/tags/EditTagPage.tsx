@@ -58,7 +58,7 @@ function EditTagPage({route, policyTags}: EditTagPageProps) {
             const tagName = values.tagName.trim();
             // Do not call the API if the edited tag name is the same as the current tag name
             if (currentTagName !== tagName) {
-                Policy.renamePolicyTag(route.params.policyID, {oldName: currentTagName, newName: values.tagName.trim()});
+                Policy.renamePolicyTag(route.params.policyID, {oldName: route.params.tagName, newName: values.tagName.trim()});
             }
             Keyboard.dismiss();
             Navigation.goBack();
