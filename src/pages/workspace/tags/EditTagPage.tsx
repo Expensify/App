@@ -63,7 +63,7 @@ function EditTagPage({route, policyTags}: EditTagPageProps) {
             Keyboard.dismiss();
             Navigation.goBack();
         },
-        [route.params.policyID, currentTagName],
+        [route.params.policyID, route.params.tagName, currentTagName],
     );
 
     return (
