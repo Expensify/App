@@ -1,5 +1,5 @@
 import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute';
-import type {CentralPaneName, CentralPaneNavigatorParamList, NavigationPartialRoute, RootStackParamList, State} from '@libs/Navigation/types';
+import type {CentralPaneName, AuthScreensParamList, NavigationPartialRoute, RootStackParamList, State} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import TAB_TO_CENTRAL_PANE_MAPPING from './TAB_TO_CENTRAL_PANE_MAPPING';
@@ -48,7 +48,7 @@ function hasRouteMatchingPolicyID(route: NavigationPartialRoute<CentralPaneName>
 }
 
 // Get already opened settings screen within the policy
-function getAlreadyOpenedSettingsScreen(rootState?: State, policyID?: string): keyof CentralPaneNavigatorParamList | undefined {
+function getAlreadyOpenedSettingsScreen(rootState?: State, policyID?: string): keyof AuthScreensParamList | undefined {
     if (!rootState) {
         return undefined;
     }
@@ -57,7 +57,7 @@ function getAlreadyOpenedSettingsScreen(rootState?: State, policyID?: string): k
     // A screen from the navigation state can be pushed to the navigation state again only if it has a matching policyID with the currently selected workspace.
     // Otherwise, when we switch the workspace, we want to display the initial screen in the settings tab.
     const alreadyOpenedSettingsTab = rootState.routes
-        .filter((item) => item.params && 'screen' in item.params && TAB_TO_CENTRAL_PANE_MAPPING[SCREENS.SETTINGS.ROOT].includes(item.params.screen as keyof CentralPaneNavigatorParamList))
+        .filter((item) => item.params && 'screen' in item.params && TAB_TO_CENTRAL_PANE_MAPPING[SCREENS.SETTINGS.ROOT].includes(item.params.screen as keyof AuthScreensParamList))
         .at(-1);
 
     if (!hasRouteMatchingPolicyID(alreadyOpenedSettingsTab as NavigationPartialRoute<CentralPaneName>, policyID)) {
@@ -65,7 +65,7 @@ function getAlreadyOpenedSettingsScreen(rootState?: State, policyID?: string): k
     }
 
     const settingsScreen =
-        alreadyOpenedSettingsTab?.params && 'screen' in alreadyOpenedSettingsTab.params ? (alreadyOpenedSettingsTab?.params?.screen as keyof CentralPaneNavigatorParamList) : undefined;
+        alreadyOpenedSettingsTab?.params && 'screen' in alreadyOpenedSettingsTab.params ? (alreadyOpenedSettingsTab?.params?.screen as keyof AuthScreensParamList) : undefined;
 
     return settingsScreen;
 }

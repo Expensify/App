@@ -19,6 +19,7 @@ import PusherConnectionManager from '@libs/PusherConnectionManager';
 import * as SessionUtils from '@libs/SessionUtils';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import SearchPage from '@pages/Search/SearchPage';
 import DesktopSignInRedirectPage from '@pages/signin/DesktopSignInRedirectPage';
 import SearchInputManager from '@pages/workspace/SearchInputManager';
 import * as App from '@userActions/App';
@@ -49,6 +50,7 @@ import LeftModalNavigator from './Navigators/LeftModalNavigator';
 import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
 import RightModalNavigator from './Navigators/RightModalNavigator';
 import WelcomeVideoModalNavigator from './Navigators/WelcomeVideoModalNavigator';
+import ReportScreenWrapper from './ReportScreenWrapper';
 
 type AuthScreensProps = {
     /** Session of currently logged in user */
@@ -156,6 +158,9 @@ const modalScreenListeners = {
         Modal.willAlertModalBecomeVisible(false);
     },
 };
+
+const url = getCurrentUrl();
+const openOnAdminRoom = url ? new URL(url).searchParams.get('openOnAdminRoom') : undefined;
 
 function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDAppliedToClient}: AuthScreensProps) {
     const styles = useThemeStyles();
@@ -296,11 +301,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         component={BottomTabNavigator}
                     />
                     <RootStack.Screen
-                        name={NAVIGATORS.CENTRAL_PANE_NAVIGATOR}
-                        options={screenOptions.centralPaneNavigator}
-                        component={CentralPaneNavigator}
-                    />
-                    <RootStack.Screen
                         name={SCREENS.VALIDATE_LOGIN}
                         options={{
                             ...screenOptions.fullScreen,
@@ -421,7 +421,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         options={defaultScreenOptions}
                         component={ConnectionCompletePage}
                     />
-
                     {Object.entries(settingsScreens).map(([screenName, componentGetter]) => (
                         <RootStack.Screen
                             key={screenName}
@@ -429,6 +428,17 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                             getComponent={componentGetter}
                         />
                     ))}
+                    <RootStack.Screen
+                        name={SCREENS.REPORT}
+                        // We do it this way to avoid adding the url params to url
+                        initialParams={{openOnAdminRoom: openOnAdminRoom === 'true' || undefined}}
+                        component={ReportScreenWrapper}
+                    />
+                    <RootStack.Screen
+                        name={SCREENS.SEARCH.CENTRAL_PANE}
+                        // We do it this way to avoid adding the url params to url
+                        component={SearchPage}
+                    />
                 </RootStack.Navigator>
             </View>
         </OptionsListContextProvider>

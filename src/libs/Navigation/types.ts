@@ -48,8 +48,6 @@ type NavigationPartialRoute<TRouteName extends string = string> = PartialRoute<R
 type StateOrRoute = NavigationState | NavigationStateRoute | NavigationPartialRoute;
 type State<TParamList extends ParamListBase = ParamListBase> = NavigationState<TParamList> | PartialState<NavigationState<TParamList>>;
 
-type CentralPaneNavigatorParamList = {};
-
 type BackToParams = {
     backTo?: Routes;
 };
@@ -845,7 +843,6 @@ type PublicScreensParamList = SharedScreensParamList & {
 };
 
 type AuthScreensParamList = SharedScreensParamList & {
-    [NAVIGATORS.CENTRAL_PANE_NAVIGATOR]: NavigatorScreenParams<CentralPaneNavigatorParamList>;
     [SCREENS.CONCIERGE]: undefined;
     [SCREENS.REPORT_ATTACHMENTS]: {
         reportID: string;
@@ -925,7 +922,6 @@ export type {
     BottomTabName,
     BottomTabNavigatorParamList,
     CentralPaneName,
-    CentralPaneNavigatorParamList,
     DetailsNavigatorParamList,
     EditRequestNavigatorParamList,
     EnablePaymentsNavigatorParamList,
