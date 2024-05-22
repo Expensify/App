@@ -1,7 +1,20 @@
-// useDeepCompare.ts
 import { useRef } from 'react';
 import isEqual from 'lodash/isEqual';
 
+/**
+ * This hook returns a reference to the provided value,
+ * but only updates that reference if a deep comparison indicates that the value has changed.
+ *
+ * This is useful when working with objects or arrays as dependencies to other hooks like `useEffect` or `useMemo`,
+ * where you want the hook to trigger not just on reference changes, but also when the contents of the object or array change.
+ *
+ * @example
+ * const myArray = // some array
+ * const deepComparedArray = useDeepCompare(myArray);
+ * useEffect(() => {
+ *   // This will run not just when myArray is a new array, but also when its contents change.
+ * }, [deepComparedArray]);
+ */
 export default function useDeepCompare<T>(value: T): T | undefined {
   const ref = useRef<T>();
   if (!isEqual(value, ref.current)) {
