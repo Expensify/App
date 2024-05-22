@@ -63,11 +63,13 @@ type ReportFooterProps = ReportFooterOnyxProps & {
     onComposerBlur: () => void;
 };
 
+const defaultReport = {reportID: '0'};
+
 function ReportFooter({
     lastReportAction,
     pendingAction,
     session,
-    report = {reportID: '0'},
+    report = defaultReport,
     reportNameValuePairs,
     shouldShowComposeInput = false,
     isEmptyChat = true,
