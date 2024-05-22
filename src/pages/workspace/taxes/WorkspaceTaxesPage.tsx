@@ -272,12 +272,12 @@ function WorkspaceTaxesPage({
                     onCheckboxPress={toggleTax}
                     onSelectRow={navigateToEditTaxRate}
                     onSelectAll={toggleAllTaxes}
-                    showScrollIndicator
                     ListItem={TableListItem}
                     customListHeader={getCustomListHeader()}
                     shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                     listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                     onDismissError={(item) => (item.keyForList ? clearTaxRateError(policyID, item.keyForList, item.pendingAction) : undefined)}
+                    showScrollIndicator={false}
                 />
                 <ConfirmModal
                     title={translate('workspace.taxes.actions.delete')}
