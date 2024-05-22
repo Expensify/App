@@ -307,7 +307,6 @@ function PolicyAccountingPage({policy, connectionSyncProgress, isConnectionDataF
                     title={translate('workspace.common.accounting')}
                     shouldShowBackButton={isSmallScreenWidth}
                     icon={Illustrations.Accounting}
-                    shouldShowThreeDotsButton
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
                 />
                 <ScrollView contentContainerStyle={styles.pt3}>
