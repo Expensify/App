@@ -6,10 +6,14 @@ import type ONYXKEYS from '@src/ONYXKEYS';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import type * as OnyxCommon from './OnyxCommon';
-import type {Decision, Reaction} from './OriginalMessage';
+import type {Decision, OriginalMessageModifiedExpense, OriginalMessageReportPreview, Reaction} from './OriginalMessage';
 import type OriginalMessage from './OriginalMessage';
 import type {NotificationPreference} from './Report';
 import type {Receipt} from './Transaction';
+
+type ReportActionMessageJSON = {
+    whisperedTo?: number[];
+};
 
 type Message = {
     /** The type of the action item fragment. Used to render a corresponding component */
@@ -147,9 +151,6 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether we have received a response back from the server */
     isLoading?: boolean;
 
-    /** accountIDs of the people to which the whisper was sent to (if any). Returns empty array if it is not a whisper */
-    whisperedToAccountIDs?: number[];
-
     avatar?: AvatarSource;
 
     automatic?: boolean;
@@ -232,10 +233,12 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
 }>;
 
 type ReportAction = ReportActionBase & OriginalMessage;
+type ReportPreviewAction = ReportActionBase & OriginalMessageReportPreview;
+type ModifiedExpenseAction = ReportActionBase & OriginalMessageModifiedExpense;
 
 type ReportActions = Record<string, ReportAction>;
 
 type ReportActionsCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>;
 
 export default ReportAction;
-export type {ReportActions, ReportActionBase, Message, LinkMetadata, OriginalMessage, ReportActionsCollectionDataSet};
+export type {ReportActions, ReportActionBase, Message, LinkMetadata, OriginalMessage, ReportActionsCollectionDataSet, ReportPreviewAction, ModifiedExpenseAction, ReportActionMessageJSON};
