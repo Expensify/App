@@ -10,9 +10,9 @@ import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type InviteMemberListItem from './InviteMemberListItem';
 import type RadioListItem from './RadioListItem';
-import type ReportListItem from './ReportListItem';
+import type ReportListItem from './Search/ReportListItem';
+import type TransactionListItem from './Search/TransactionListItem';
 import type TableListItem from './TableListItem';
-import type TransactionListItem from './TransactionListItem';
 import type UserListItem from './UserListItem';
 
 type TRightHandSideComponent<TItem extends ListItem> = {

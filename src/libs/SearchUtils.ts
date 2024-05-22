@@ -1,6 +1,6 @@
 import type {ValueOf} from 'react-native-gesture-handler/lib/typescript/typeUtils';
-import ReportListItem from '@components/SelectionList/ReportListItem';
-import TransactionListItem from '@components/SelectionList/TransactionListItem';
+import ReportListItem from '@components/SelectionList/Search/ReportListItem';
+import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
 import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -18,9 +18,9 @@ function getSearchType(search: OnyxTypes.SearchResults['search']): SearchDataTyp
         return undefined;
     }
 
-    // @TODO: It's a temporary setting for testing purposes. Uncomment the comment below when ReportListItem is ready.
-    // return search.type;
-    return 'report';
+    // @TODO: It's a temporary setting for testing purposes. Uncomment to display ReportListItem.
+    // return 'report';
+    return search.type;
 }
 
 function getShouldShowMerchant(data: OnyxTypes.SearchResults['data']): boolean {
@@ -69,10 +69,17 @@ function getReportSections(data: OnyxTypes.SearchResults['data']): ReportListIte
 
     const reportIDToTransactions: Record<string, ReportListItemType> = {};
     for (const key in data) {
-        if (key.startsWith('transactions_')) {
+        if (key.startsWith(ONYXKEYS.COLLECTION.REPORT)) {
+            const value = {...data[key]};
+            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${value.reportID}`;
+            reportIDToTransactions[reportKey] = {
+                ...value,
+                transactions: reportIDToTransactions[reportKey]?.transactions ?? [],
+            };
+        } else if (key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
             const value = {...data[key]};
             const isExpenseReport = value.reportType === CONST.REPORT.TYPE.EXPENSE;
-            const reportKey = `report_${value.reportID}`;
+            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${value.reportID}`;
             const transaction = {
                 ...value,
                 from: data.personalDetailsList?.[value.accountID],
@@ -83,18 +90,11 @@ function getReportSections(data: OnyxTypes.SearchResults['data']): ReportListIte
                 shouldShowTax,
                 keyForList: value.transactionID,
             };
-            if (reportIDToTransactions?.[reportKey]?.transactions) {
+            if (reportIDToTransactions[reportKey]?.transactions) {
                 reportIDToTransactions[reportKey].transactions.push(transaction);
             } else {
                 reportIDToTransactions[reportKey] = {transactions: [transaction]};
             }
-        } else if (key.startsWith('report_')) {
-            const value = {...data[key]};
-            const reportKey = `report_${value.reportID}`;
-            reportIDToTransactions[reportKey] = {
-                ...value,
-                transactions: reportIDToTransactions[reportKey]?.transactions ?? [],
-            };
         }
     }
 

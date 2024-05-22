@@ -6,6 +6,7 @@ import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithFeedback} from '@components/Pressable';
+import type {TransactionListItemType} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -19,7 +20,6 @@ import type {Transaction} from '@src/types/onyx';
 import type {SearchTransactionType} from '@src/types/onyx/SearchResults';
 import ExpenseItemHeader from './ExpenseItemHeader';
 import TextWithIconCell from './TextWithIconCell';
-import type {TransactionListItemType} from './types';
 import UserInfoCell from './UserInfoCell';
 
 type TransactionListItemRowProps = {
@@ -45,6 +45,16 @@ const getTypeIcon = (type?: SearchTransactionType) => {
     }
 };
 
+function getMerchant(item: TransactionListItemType) {
+    const merchant = TransactionUtils.getMerchant(item as OnyxEntry<Transaction>);
+
+    if (merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || merchant === CONST.TRANSACTION.DEFAULT_MERCHANT) {
+        return '';
+    }
+
+    return merchant;
+}
+
 function TransactionListItemRow({item, showTooltip, isDisabled, canSelectMultiple, onButtonPress, showItemHeaderOnNarrowLayout = true, containerStyle}: TransactionListItemRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -52,18 +62,13 @@ function TransactionListItemRow({item, showTooltip, isDisabled, canSelectMultipl
     const {isLargeScreenWidth} = useWindowDimensions();
     const StyleUtils = useStyleUtils();
 
-    function getMerchant() {
-        const merchant = TransactionUtils.getMerchant(item as OnyxEntry<Transaction>);
-        return merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || merchant === CONST.TRANSACTION.DEFAULT_MERCHANT ? '' : merchant;
-    }
-
     const isFromExpenseReport = item.reportType === CONST.REPORT.TYPE.EXPENSE;
     const date = TransactionUtils.getCreated(item as OnyxEntry<Transaction>, CONST.DATE.MONTH_DAY_ABBR_FORMAT);
     const amount = TransactionUtils.getAmount(item as OnyxEntry<Transaction>, isFromExpenseReport);
     const taxAmount = TransactionUtils.getTaxAmount(item as OnyxEntry<Transaction>, isFromExpenseReport);
     const currency = TransactionUtils.getCurrency(item as OnyxEntry<Transaction>);
     const description = TransactionUtils.getDescription(item as OnyxEntry<Transaction>);
-    const merchant = getMerchant();
+    const merchant = getMerchant(item);
     const typeIcon = getTypeIcon(item.type);
 
     const dateCell = (
@@ -188,7 +193,7 @@ function TransactionListItemRow({item, showTooltip, isDisabled, canSelectMultipl
                     onPress={() => {}}
                     style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled]}
                 >
-                    <View style={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}>
+                    <View style={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(Boolean(item.isSelected), Boolean(item.isDisabled))]}>
                         {item.isSelected && (
                             <Icon
                                 src={Expensicons.Checkmark}

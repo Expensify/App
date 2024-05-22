@@ -129,12 +129,9 @@ function Search({query, policyIDs}: SearchProps) {
             ListItem={ListItem}
             sections={[{data, isDisabled: false}]}
             onSelectRow={(item) => {
-                if (isReportListItemType(item)) {
-                    openReport(item.reportID);
-                    return;
-                }
+                const reportID = isReportListItemType(item) ? item.reportID : item.transactionThreadReportID;
 
-                openReport(item.transactionID);
+                openReport(reportID);
             }}
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
             listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}

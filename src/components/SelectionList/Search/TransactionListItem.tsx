@@ -1,9 +1,9 @@
 import React from 'react';
+import BaseListItem from '@components/SelectionList/BaseListItem';
+import type {ListItem, TransactionListItemProps, TransactionListItemType} from '@components/SelectionList/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import BaseListItem from './BaseListItem';
 import TransactionListItemRow from './TransactionListItemRow';
-import type {ListItem, TransactionListItemProps, TransactionListItemType} from './types';
 
 function TransactionListItem<TItem extends ListItem>({
     item,

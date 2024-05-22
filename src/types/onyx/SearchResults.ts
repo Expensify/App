@@ -1,6 +1,6 @@
 import type {ValueOf} from 'type-fest';
-import type ReportListItem from '@components/SelectionList/ReportListItem';
-import type TransactionListItem from '@components/SelectionList/TransactionListItem';
+import type ReportListItem from '@components/SelectionList/Search/ReportListItem';
+import type TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
 import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import type CONST from '@src/CONST';
 
