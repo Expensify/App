@@ -309,7 +309,6 @@ function PolicyAccountingPage({policy, connectionSyncProgress, isConnectionDataF
                     icon={Illustrations.Accounting}
                     shouldShowThreeDotsButton
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
-                    threeDotsMenuItems={headerThreeDotsMenuItems}
                 />
                 <ScrollView contentContainerStyle={styles.pt3}>
                     <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
