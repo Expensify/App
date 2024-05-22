@@ -65,7 +65,7 @@ type Card = {
 };
 
 /** Model of Expensify card details */
-type TCardDetails = {
+type ExpensifyCardDetails = {
     /** Card Primary Account Number */
     pan: string;
 
@@ -102,4 +102,4 @@ type TCardDetails = {
 type CardList = Record<string, Card>;
 
 export default Card;
-export type {TCardDetails, CardList};
+export type {ExpensifyCardDetails, CardList};

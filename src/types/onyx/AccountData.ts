@@ -1,27 +1,5 @@
-import type {BankName} from './Bank';
+import type {BankAccountAdditionalData} from './BankAccount';
 import type * as OnyxCommon from './OnyxCommon';
-
-/** Model of additional bank account data */
-type AdditionalData = {
-    /** Is a Peer-To-Peer debit card */
-    isP2PDebitCard?: boolean;
-
-    /** Owners that can benefit from this bank account */
-    beneficialOwners?: string[];
-
-    /** In which currency is the bank account */
-    currency?: string;
-
-    /** In which bank is the bank account */
-    bankName?: BankName;
-
-    // TODO: Confirm this
-    /** Whether the bank account is local or international */
-    fieldsType?: string;
-
-    /** In which country is the bank account */
-    country?: string;
-};
 
 /** Model of bank account data */
 type AccountData = {
@@ -59,7 +37,7 @@ type AccountData = {
     bankAccountID?: number;
 
     /** All data related to the bank account */
-    additionalData?: AdditionalData;
+    additionalData?: BankAccountAdditionalData;
 
     /** The bank account type */
     type?: string;

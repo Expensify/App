@@ -1,20 +1,12 @@
 import type CONST from '@src/CONST';
 import type {BankName} from './Bank';
+import type {BankAccountAdditionalData} from './BankAccount';
 import type * as OnyxCommon from './OnyxCommon';
-
-/** Mode of additional debit card account data */
-type AdditionalData = {
-    // TODO: Not used in app explicitly
-    isBillingCard?: boolean;
-
-    /** Is Peer-To-Peer debit card */
-    isP2PDebitCard?: boolean;
-};
 
 /** Model of debit card account data */
 type AccountData = {
     /** Additional account data */
-    additionalData?: AdditionalData;
+    additionalData?: BankAccountAdditionalData;
 
     /** Address name */
     addressName?: string;

@@ -2,9 +2,8 @@ import type CONST from '@src/CONST';
 import type AccountData from './AccountData';
 import type * as OnyxCommon from './OnyxCommon';
 
-// TODO: This type is a duplicate of the one present in AccountData.ts
 /** Model of additional bank account data */
-type AdditionalData = {
+type BankAccountAdditionalData = {
     /** Is a Peer-To-Peer Debit Card */
     isP2PDebitCard?: boolean;
 
@@ -62,4 +61,4 @@ type BankAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
 type BankAccountList = Record<string, BankAccount>;
 
 export default BankAccount;
-export type {AccountData, AdditionalData, BankAccountList};
+export type {AccountData, BankAccountAdditionalData, BankAccountList};

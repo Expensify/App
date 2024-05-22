@@ -389,6 +389,31 @@ type ChronosOOOEvent = {
     end: ChronosOOOTimestamp;
 };
 
+/** Model of modified expense */
+type ModifiedExpense = {
+    oldComment?: string;
+    newComment?: string;
+    comment?: string;
+    merchant?: string;
+    oldCreated?: string;
+    created?: string;
+    oldMerchant?: string;
+    oldAmount?: number;
+    amount?: number;
+    oldCurrency?: string;
+    currency?: string;
+    category?: string;
+    oldCategory?: string;
+    tag?: string;
+    oldTag?: string;
+    billable?: string;
+    oldBillable?: string;
+    oldTaxAmount?: number;
+    taxAmount?: number;
+    taxRate?: string;
+    oldTaxRate?: string;
+};
+
 /** Model of `Chronos OOO List` report action */
 type OriginalMessageChronosOOOList = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.CHRONOS_OOO_LIST;
@@ -470,30 +495,7 @@ type OriginalMessagePolicyTask = {
 /** Model of `modified expense` report action */
 type OriginalMessageModifiedExpense = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE;
-    /** TODO: I think this type could be replaced by `ExpenseOriginalMessage` from `ReportUtils.ts` */
-    originalMessage: {
-        oldMerchant?: string;
-        merchant?: string;
-        oldCurrency?: string;
-        currency?: string;
-        oldAmount?: number;
-        amount?: number;
-        oldComment?: string;
-        newComment?: string;
-        oldCreated?: string;
-        created?: string;
-        oldCategory?: string;
-        category?: string;
-        oldTag?: string;
-        tag?: string;
-        oldTaxAmount?: number;
-        taxAmount?: number;
-        oldTaxRate?: string;
-        taxRate?: string;
-        oldBillable?: string;
-        billable?: string;
-        whisperedTo?: number[];
-    };
+    originalMessage: ModifiedExpense;
 };
 
 /** Model of `reimbursement queued` report action */
@@ -607,6 +609,7 @@ export type {
     Closed,
     OriginalMessageActionName,
     ChangeLog,
+    ModifiedExpense,
     OriginalMessageIOU,
     OriginalMessageCreated,
     OriginalMessageRenamed,

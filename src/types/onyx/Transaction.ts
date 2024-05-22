@@ -61,9 +61,8 @@ type Comment = {
     /** Whether the transaction comment is loading */
     isLoading?: boolean;
 
-    /** TODO: I think this type can be changed to `ValueOf<CONST.TRANSACTION.TYPE>` */
     /** Type of the transaction */
-    type?: string;
+    type?: ValueOf<typeof CONST.TRANSACTION.TYPE>;
 
     /** In custom unit transactions this holds the information of the custom unit */
     customUnit?: TransactionCustomUnit;
@@ -89,9 +88,8 @@ type TransactionCustomUnit = {
     /** Custom unit amount */
     quantity?: number;
 
-    /** TODO: I think this value can be changed to `ValueOf<CONST.CUSTOM_UNITS>` */
     /** Name of the custom unit */
-    name?: string;
+    name?: ValueOf<typeof CONST.CUSTOM_UNITS>;
 
     /** Default rate for custom unit */
     defaultP2PRate?: number;
