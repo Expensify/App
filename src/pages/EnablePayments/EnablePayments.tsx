@@ -7,17 +7,16 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import Navigation from '@libs/Navigation/Navigation';
-import FeesAndTerms from '@pages/EnablePayments/FeesAndTerms/FeesAndTerms';
-import PersonalInfo from '@pages/EnablePayments/PersonalInfo/PersonalInfo';
-import VerifyIdentity from '@pages/EnablePayments/VerifyIdentity/VerifyIdentity';
 import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {UserWallet} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import ActivateStep from './ActivateStep';
 import FailedKYC from './FailedKYC';
+import FeesAndTerms from './FeesAndTerms/FeesAndTerms';
+import PersonalInfo from './PersonalInfo/PersonalInfo';
+import VerifyIdentity from './VerifyIdentity/VerifyIdentity';
 
 type EnablePaymentsPageOnyxProps = {
     /** The user's wallet */
@@ -30,21 +29,13 @@ function EnablePaymentsPage({userWallet}: EnablePaymentsPageProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
-    const {isPendingOnfidoResult, hasFailedOnfido} = userWallet ?? {};
-
     useEffect(() => {
         if (isOffline) {
             return;
         }
 
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (isPendingOnfidoResult || hasFailedOnfido) {
-            Navigation.navigate(ROUTES.SETTINGS_WALLET, CONST.NAVIGATION.TYPE.UP);
-            return;
-        }
-
         Wallet.openEnablePaymentsPage();
-    }, [isOffline, isPendingOnfidoResult, hasFailedOnfido]);
+    }, [isOffline]);
 
     if (isEmptyObject(userWallet)) {
         return <FullScreenLoadingIndicator />;
@@ -73,14 +64,11 @@ function EnablePaymentsPage({userWallet}: EnablePaymentsPageProps) {
 
                 switch (currentStep) {
                     case CONST.WALLET.STEP.ADDITIONAL_DETAILS:
-                    case CONST.WALLET.STEP.ADDITIONAL_DETAILS_KBA:
                         return <PersonalInfo />;
                     case CONST.WALLET.STEP.ONFIDO:
                         return <VerifyIdentity />;
                     case CONST.WALLET.STEP.TERMS:
                         return <FeesAndTerms />;
-                    case CONST.WALLET.STEP.ACTIVATE:
-                        return <ActivateStep userWallet={userWallet} />;
                     default:
                         return null;
                 }

@@ -28,6 +28,7 @@ function HaveReadAndAgreeLabel() {
 function AgreeToTheLabel() {
     const {translate} = useLocalize();
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
+
     const walletAgreementUrl = userWallet?.walletProgramID === CONST.WALLET.MTL_WALLET_PROGRAM_ID ? CONST.WALLET_AGREEMENT_URL : CONST.BANCORP_WALLET_AGREEMENT_URL;
 
     return (
@@ -94,11 +95,6 @@ function TermsStep() {
                     }
 
                     setError(false);
-                    BankAccounts.acceptWalletTerms({
-                        hasAcceptedTerms: hasAcceptedDisclosure && hasAcceptedPrivacyPolicyAndWalletAgreement,
-                        reportID: walletTerms?.chatReportID ?? '',
-                    });
-                    Navigation.navigate(ROUTES.SETTINGS_WALLET);
                 }}
                 message={errorMessage}
                 isAlertVisible={error || Boolean(errorMessage)}

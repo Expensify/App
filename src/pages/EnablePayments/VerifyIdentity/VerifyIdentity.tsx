@@ -22,23 +22,16 @@ import * as BankAccounts from '@userActions/BankAccounts';
 import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalBankAccount, WalletOnfido} from '@src/types/onyx';
+import type {WalletOnfido} from '@src/types/onyx';
 
 const DEFAULT_WALLET_ONFIDO_DATA = {
-    loading: false,
+    isLoading: false,
     hasAcceptedPrivacyPolicy: false,
+    sdkToken: '',
+    applicantID: '',
 };
 
 type VerifyIdentityOnyxProps = {
-    /** Reimbursement account from ONYX */
-    personalBankAccount: OnyxEntry<PersonalBankAccount>;
-
-    /** Onfido applicant ID from ONYX */
-    onfidoApplicantID: OnyxEntry<string>;
-
-    /** The token required to initialize the Onfido SDK */
-    onfidoToken: OnyxEntry<string>;
-
     /** The wallet onfido data */
     walletOnfidoData: OnyxEntry<WalletOnfido>;
 };
@@ -47,15 +40,13 @@ type VerifyIdentityProps = VerifyIdentityOnyxProps;
 
 const ONFIDO_ERROR_DISPLAY_DURATION = 10000;
 
-function VerifyIdentity({personalBankAccount, walletOnfidoData = DEFAULT_WALLET_ONFIDO_DATA}: VerifyIdentityProps) {
+function VerifyIdentity({walletOnfidoData = DEFAULT_WALLET_ONFIDO_DATA}: VerifyIdentityProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const openOnfidoFlow = () => {
         BankAccounts.openOnfidoFlow();
     };
-
-    const {isLoading = false, hasAcceptedPrivacyPolicy, sdkToken, applicantID} = walletOnfidoData;
 
     const handleOnfidoSuccess = useCallback(
         (onfidoData: OnfidoData) => {
@@ -67,24 +58,16 @@ function VerifyIdentity({personalBankAccount, walletOnfidoData = DEFAULT_WALLET_
             });
             BankAccounts.updateAddPersonalBankAccountDraft({isOnfidoSetupComplete: true});
         },
-        [personalBankAccount, applicantID],
+        [walletOnfidoData?.applicantID],
     );
 
     const onfidoError = ErrorUtils.getLatestErrorMessage(walletOnfidoData) ?? '';
 
     const handleOnfidoError = () => {
-        // In case of any unexpected error we log it to the server, show a growl, and return the user back to the requestor step so they can try again.
         Growl.error(translate('onfidoStep.genericError'), ONFIDO_ERROR_DISPLAY_DURATION);
-        BankAccounts.clearOnfidoToken();
-        // BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
     };
 
-    const handleOnfidoUserExit = () => {
-        BankAccounts.clearOnfidoToken();
-        // BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
-    };
-
-    const handleBackButtonPress = () => {
+    const goBack = () => {
         Wallet.updateCurrentStep(CONST.WALLET.STEP.ADDITIONAL_DETAILS);
     };
 
@@ -92,7 +75,7 @@ function VerifyIdentity({personalBankAccount, walletOnfidoData = DEFAULT_WALLET_
         <ScreenWrapper testID={VerifyIdentity.displayName}>
             <HeaderWithBackButton
                 title={translate('onfidoStep.verifyIdentity')}
-                onBackButtonPress={handleBackButtonPress}
+                onBackButtonPress={goBack}
             />
             <View style={[styles.ph5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader
@@ -102,10 +85,10 @@ function VerifyIdentity({personalBankAccount, walletOnfidoData = DEFAULT_WALLET_
             </View>
             <FullPageOfflineBlockingView>
                 <ScrollView contentContainerStyle={styles.flex1}>
-                    {hasAcceptedPrivacyPolicy ? (
+                    {walletOnfidoData?.hasAcceptedPrivacyPolicy ? (
                         <Onfido
-                            sdkToken={sdkToken ?? ''}
-                            onUserExit={handleOnfidoUserExit}
+                            sdkToken={walletOnfidoData?.sdkToken ?? ''}
+                            onUserExit={goBack}
                             onError={handleOnfidoError}
                             onSuccess={handleOnfidoSuccess}
                         />
@@ -125,9 +108,8 @@ function VerifyIdentity({personalBankAccount, walletOnfidoData = DEFAULT_WALLET_
                                 <FormAlertWithSubmitButton
                                     isAlertVisible={Boolean(onfidoError)}
                                     onSubmit={openOnfidoFlow}
-                                    onFixTheErrorsLinkPressed={() => {}}
                                     message={onfidoError}
-                                    isLoading={isLoading}
+                                    isLoading={walletOnfidoData?.isLoading}
                                     buttonText={onfidoError ? translate('onfidoStep.tryAgain') : translate('common.continue')}
                                     containerStyles={[styles.mh0, styles.mv0, styles.mb0]}
                                 />
