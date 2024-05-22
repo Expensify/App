@@ -214,6 +214,7 @@ function ReportActionsList({
     const filterOutLastWhisperAction = useCallback((actions: OnyxTypes.ReportAction[]): OnyxTypes.ReportAction[] => {
         if (actions.length > 1 && ReportActionsUtils.isWhisperAction(actions[0])) {
             actions.shift();
+            // repeat the process until the first action is not a whisper action
             return filterOutLastWhisperAction(actions);
         }
 
