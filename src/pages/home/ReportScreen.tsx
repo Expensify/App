@@ -357,7 +357,6 @@ function ReportScreen({
                 parentReportAction={parentReportAction}
                 shouldUseNarrowLayout={shouldUseNarrowLayout}
                 onBackButtonPress={onBackButtonPress}
-                transactionThreadReportID={transactionThreadReportID}
             />
         );
     }

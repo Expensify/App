@@ -66,9 +66,6 @@ type MoneyRequestHeaderProps = MoneyRequestHeaderOnyxProps & {
 
     /** Method to trigger when pressing close button of the header */
     onBackButtonPress: () => void;
-
-    /** The reportID of the transaction thread report associated with this current report, if any */
-    transactionThreadReportID?: string | null;
 };
 
 function MoneyRequestHeader({
@@ -82,7 +79,6 @@ function MoneyRequestHeader({
     policy,
     shouldUseNarrowLayout = false,
     onBackButtonPress,
-    transactionThreadReportID,
 }: MoneyRequestHeaderProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -117,8 +113,8 @@ function MoneyRequestHeader({
     }, [parentReport?.reportID, parentReportAction, setIsDeleteModalVisible]);
 
     const markAsCash = useCallback(() => {
-        TransactionActions.markAsCash(transaction?.transactionID ?? '', transactionThreadReportID ?? '');
-    }, [transaction?.transactionID, transactionThreadReportID]);
+        TransactionActions.markAsCash(transaction?.transactionID ?? '', report.reportID);
+    }, [report.reportID, transaction?.transactionID]);
 
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
 
