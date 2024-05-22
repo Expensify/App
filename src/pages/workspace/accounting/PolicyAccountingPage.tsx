@@ -292,21 +292,6 @@ function PolicyAccountingPage({policy, connectionSyncProgress, isConnectionDataF
         accountingIntegrations,
     ]);
 
-    const headerThreeDotsMenuItems: ThreeDotsMenuProps['menuItems'] = [
-        {
-            icon: Expensicons.Key,
-            shouldShowRightIcon: true,
-            iconRight: Expensicons.NewWindow,
-            text: translate('workspace.accounting.enterCredentials'),
-            onSelected: () => {},
-        },
-        {
-            icon: Expensicons.Trashcan,
-            text: translate('workspace.accounting.disconnect'),
-            onSelected: () => setIsDisconnectModalOpen(true),
-        },
-    ];
-
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
