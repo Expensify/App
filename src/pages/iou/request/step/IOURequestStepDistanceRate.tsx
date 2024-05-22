@@ -55,9 +55,6 @@ function IOURequestStepDistanceRate({
     const isPolicyExpenseChat = ReportUtils.isReportInGroupPolicy(report);
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest);
 
-    const transactionTaxCode = transaction?.taxCode ?? '';
-    const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, transactionTaxCode) ?? '';
-
     const lastSelectedRateID = TransactionUtils.getRateID(transaction) ?? '';
 
     const navigateBack = () => {
@@ -87,6 +84,7 @@ function IOURequestStepDistanceRate({
             const taxClaimablePercentage = policy?.customUnits[customUnitID].rates[customUnitRateID].attributes?.taxClaimablePercentage ?? 0;
             taxRateExternalID = policy?.customUnits[customUnitID].rates[customUnitRateID].attributes?.taxRateExternalID ?? '';
             const taxableAmount = -1 * transaction.amount * taxClaimablePercentage;
+            const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, taxRateExternalID) ?? '';
             taxAmount = CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(taxPercentage, taxableAmount));
             IOU.setMoneyRequestTaxAmount(transactionID, taxAmount, true);
             IOU.setMoneyRequestTaxRate(transactionID, taxRateExternalID);
