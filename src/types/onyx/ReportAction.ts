@@ -176,6 +176,7 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     childVisibleActionCount?: number;
     parentReportID?: string;
     childManagerAccountID?: number;
+    childOwnerAccountID?: number;
 
     /** The status of the child report */
     childStatusNum?: ValueOf<typeof CONST.REPORT.STATUS_NUM>;

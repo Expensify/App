@@ -118,7 +118,7 @@ function ReportPreview({
         [transactions, iouReportID, action],
     );
 
-    const managerID = iouReport?.managerID ?? action.actorAccountID ?? 0;
+    const managerID = iouReport?.managerID ?? action.childManagerAccountID ?? 0;
     const {totalDisplaySpend, reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(iouReport);
 
     const iouSettled = ReportUtils.isSettled(iouReportID) || action?.childStatusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;

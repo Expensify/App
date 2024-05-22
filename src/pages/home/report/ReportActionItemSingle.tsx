@@ -87,8 +87,7 @@ function ReportActionItemSingle({
     const displayAllActors = useMemo(() => action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, [action?.actionName]);
     const isInvoiceReport = ReportUtils.isInvoiceReport(iouReport ?? {});
     const isWorkspaceActor = isInvoiceReport || (ReportUtils.isPolicyExpenseChat(report) && (!actorAccountID || displayAllActors));
-    const participantAccountIDs = ReportUtils.getVisibleChatMemberAccountIDs(report.reportID);
-    const ownerAccountID = iouReport?.ownerAccountID ?? (participantAccountIDs ?? []).find((accountID) => accountID !== actorAccountID);
+    const ownerAccountID = iouReport?.ownerAccountID ?? action?.childOwnerAccountID;
     let avatarSource = UserUtils.getAvatar(avatar ?? '', actorAccountID);
 
     if (isWorkspaceActor) {
