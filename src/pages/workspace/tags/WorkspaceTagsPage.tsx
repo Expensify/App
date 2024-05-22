@@ -52,6 +52,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const {environmentURL} = useEnvironment();
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
+    const isConnectedToQbo = policy?.connections?.quickbooksOnline;
     const [policyTagLists, isMultiLevelTags] = useMemo(() => [PolicyUtils.getTagLists(policyTags), PolicyUtils.isMultiLevelTags(policyTags)], [policyTags]);
     const canSelectMultiple = !isMultiLevelTags;
 
@@ -308,7 +309,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                                 style={[styles.textNormal, styles.link]}
                                 href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
                             >
-                                {`${translate('workspace.accounting.qbo')} ${translate('workspace.accounting.settings')}`}
+                                {`${translate(isConnectedToQbo ? 'workspace.accounting.qbo' : 'workspace.accounting.xero')} ${translate('workspace.accounting.settings')}`}
                             </TextLink>
                         </Text>
                     ) : (
