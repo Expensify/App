@@ -29,10 +29,10 @@ export default function SortableHeaderText({text, sortOrder, isActive, textStyle
         return null;
     }
 
-    const icon = sortOrder === 'asc' ? Expensicons.ArrowUpLong : Expensicons.ArrowDownLong;
+    const icon = sortOrder === CONST.SORT_ORDER.ASC ? Expensicons.ArrowUpLong : Expensicons.ArrowDownLong;
     const iconStyles = isActive ? [] : [styles.visibilityHidden];
 
-    const nextSortOrder = isActive && sortOrder === 'asc' ? 'desc' : 'asc';
+    const nextSortOrder = isActive && sortOrder === CONST.SORT_ORDER.DESC ? CONST.SORT_ORDER.ASC : CONST.SORT_ORDER.DESC;
 
     return (
         <View style={containerStyle}>

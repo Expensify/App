@@ -45,7 +45,7 @@ function BaseCentralPaneNavigator() {
             />
             <Stack.Screen
                 name={SCREENS.SEARCH.CENTRAL_PANE}
-                initialParams={{sortBy: CONST.SEARCH_TABLE_COLUMNS.DATE, sortOrder: 'asc'}}
+                initialParams={{sortBy: CONST.SEARCH_TABLE_COLUMNS.DATE, sortOrder: CONST.SORT_ORDER.DESC}}
                 component={SearchPage}
             />
 

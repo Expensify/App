@@ -1,6 +1,7 @@
 import {useNavigation} from '@react-navigation/native';
 import type {StackNavigationProp} from '@react-navigation/stack';
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -17,57 +18,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchQuery} from '@src/types/onyx/SearchResults';
+import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import SelectionList from './SelectionList';
 import SearchTableHeader from './SelectionList/SearchTableHeader';
-import type {TransactionListItemType} from './SelectionList/types';
 import TableListItemSkeleton from './Skeletons/TableListItemSkeleton';
-
-const columnNamesToPropertyMap = {
-    [CONST.SEARCH_TABLE_COLUMNS.TO]: 'formattedTo' as const,
-    [CONST.SEARCH_TABLE_COLUMNS.FROM]: 'formattedFrom' as const,
-    [CONST.SEARCH_TABLE_COLUMNS.DATE]: 'date' as const,
-    [CONST.SEARCH_TABLE_COLUMNS.TAG]: 'tag' as const,
-    [CONST.SEARCH_TABLE_COLUMNS.MERCHANT]: 'merchant' as const,
-    [CONST.SEARCH_TABLE_COLUMNS.TOTAL]: 'formattedTotal' as const,
-    [CONST.SEARCH_TABLE_COLUMNS.CATEGORY]: 'category' as const,
-    [CONST.SEARCH_TABLE_COLUMNS.TYPE]: 'type' as const,
-    [CONST.SEARCH_TABLE_COLUMNS.ACTION]: 'action' as const,
-    [CONST.SEARCH_TABLE_COLUMNS.DESCRIPTION]: null,
-    [CONST.SEARCH_TABLE_COLUMNS.TAX_AMOUNT]: null,
-};
-
-function getSortedData(data: TransactionListItemType[], sortBy?: SearchColumnType, sortOrder?: SortOrder) {
-    if (!sortBy || !sortOrder) {
-        return data;
-    }
-
-    const sortingProp = columnNamesToPropertyMap[sortBy];
-
-    if (!sortingProp) {
-        return data;
-    }
-
-    return data.sort((a, b) => {
-        const aValue = a[sortingProp];
-        const bValue = b[sortingProp];
-
-        if (!aValue || !bValue) {
-            return 0;
-        }
-
-        // We are guaranteed that both a and b will be string or number at the same time
-        if (typeof aValue === 'string' && typeof bValue === 'string') {
-            return sortOrder === 'asc' ? aValue.toLowerCase().localeCompare(bValue) : bValue.toLowerCase().localeCompare(aValue);
-        }
-
-        const aNum = aValue as number;
-        const bNum = bValue as number;
-
-        return sortOrder === 'asc' ? aNum - bNum : bNum - aNum;
-    });
-}
 
 type SearchProps = {
     query: SearchQuery;
@@ -80,11 +36,19 @@ function Search({query, policyIDs, sortOrder, sortBy}: SearchProps) {
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const navigation = useNavigation<StackNavigationProp<CentralPaneNavigatorParamList>>();
+    const lastSearchResultsRef = useRef<OnyxEntry<SearchResults>>();
 
     useCustomBackHandler();
 
-    const hash = SearchUtils.getQueryHash(query, policyIDs);
-    const [searchResults, searchResultsMeta] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
+    const hash = SearchUtils.getQueryHash(query, policyIDs, sortOrder, sortBy);
+    const [currentSearchResults, searchResultsMeta] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
+
+    // save last non-empty search results to avoid ugly flash of loading screen when hash changes and onyx returns empty data
+    if (currentSearchResults?.data && currentSearchResults !== lastSearchResultsRef.current) {
+        lastSearchResultsRef.current = currentSearchResults;
+    }
+
+    const searchResults = currentSearchResults?.data ? currentSearchResults : lastSearchResultsRef.current;
 
     useEffect(() => {
         if (isOffline) {
@@ -93,13 +57,13 @@ function Search({query, policyIDs, sortOrder, sortBy}: SearchProps) {
 
         SearchActions.search({hash, query, policyIDs, offset: 0, sortBy, sortOrder});
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [hash, isOffline, sortBy, sortOrder]);
+    }, [hash, isOffline]);
 
-    const isLoadingInitialItems = (!isOffline && isLoadingOnyxValue(searchResultsMeta)) || searchResults?.data === undefined;
-    const isLoadingMoreItems = !isLoadingInitialItems && searchResults?.search?.isLoading;
-    const shouldShowEmptyState = !isLoadingInitialItems && isEmptyObject(searchResults?.data);
+    const isLoadingItems = (!isOffline && isLoadingOnyxValue(searchResultsMeta)) || searchResults?.data === undefined;
+    const isLoadingMoreItems = !isLoadingItems && searchResults?.search?.isLoading;
+    const shouldShowEmptyState = !isLoadingItems && isEmptyObject(searchResults?.data);
 
-    if (isLoadingInitialItems) {
+    if (isLoadingItems) {
         return <TableListItemSkeleton shouldAnimate />;
     }
 
@@ -116,7 +80,7 @@ function Search({query, policyIDs, sortOrder, sortBy}: SearchProps) {
     };
 
     const fetchMoreResults = () => {
-        if (!searchResults?.search?.hasMoreResults || isLoadingInitialItems || isLoadingMoreItems) {
+        if (!searchResults?.search?.hasMoreResults || isLoadingItems || isLoadingMoreItems) {
             return;
         }
         const currentOffset = searchResults?.search?.offset ?? 0;
@@ -140,7 +104,7 @@ function Search({query, policyIDs, sortOrder, sortBy}: SearchProps) {
         });
     };
 
-    const sortedData = getSortedData(data, sortBy, sortOrder);
+    const sortedData = SearchUtils.getSortedData(data, sortBy, sortOrder);
 
     return (
         <SelectionList

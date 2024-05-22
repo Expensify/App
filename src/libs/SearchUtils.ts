@@ -8,9 +8,22 @@ import type {SearchAccountDetails, SearchDataTypes, SearchTypeToItemMap} from '@
 import * as TransactionUtils from './TransactionUtils';
 import * as UserUtils from './UserUtils';
 
-type SortOrder = 'asc' | 'desc';
-
+type SortOrder = (typeof CONST.SORT_ORDER)[keyof typeof CONST.SORT_ORDER];
 type SearchColumnType = (typeof CONST.SEARCH_TABLE_COLUMNS)[keyof typeof CONST.SEARCH_TABLE_COLUMNS];
+
+const columnNamesToSortingProperty = {
+    [CONST.SEARCH_TABLE_COLUMNS.TO]: 'formattedTo' as const,
+    [CONST.SEARCH_TABLE_COLUMNS.FROM]: 'formattedFrom' as const,
+    [CONST.SEARCH_TABLE_COLUMNS.DATE]: 'date' as const,
+    [CONST.SEARCH_TABLE_COLUMNS.TAG]: 'tag' as const,
+    [CONST.SEARCH_TABLE_COLUMNS.MERCHANT]: 'merchant' as const,
+    [CONST.SEARCH_TABLE_COLUMNS.TOTAL]: 'formattedTotal' as const,
+    [CONST.SEARCH_TABLE_COLUMNS.CATEGORY]: 'category' as const,
+    [CONST.SEARCH_TABLE_COLUMNS.TYPE]: 'type' as const,
+    [CONST.SEARCH_TABLE_COLUMNS.ACTION]: 'action' as const,
+    [CONST.SEARCH_TABLE_COLUMNS.DESCRIPTION]: null,
+    [CONST.SEARCH_TABLE_COLUMNS.TAX_AMOUNT]: null,
+};
 
 function getSearchType(search: OnyxTypes.SearchResults['search']): SearchDataTypes | undefined {
     switch (search.type) {
@@ -84,10 +97,41 @@ function getSections<K extends keyof SearchTypeToItemMap>(data: OnyxTypes.Search
     return searchTypeToItemMap[type].getSections(data) as ReturnType<SearchTypeToItemMap[K]['getSections']>;
 }
 
-function getQueryHash(query: string, policyID?: string): number {
-    const textToHash = [query, policyID].filter(Boolean).join('_');
+function getQueryHash(query: string, policyID?: string, sortBy?: string, sortOrder?: string): number {
+    const textToHash = [query, policyID, sortOrder, sortBy].filter(Boolean).join('_');
     return UserUtils.hashText(textToHash, 2 ** 32);
 }
 
-export {getListItem, getQueryHash, getSections, getShouldShowColumn, getShouldShowMerchant, getSearchType};
+function getSortedData(data: TransactionListItemType[], sortBy?: SearchColumnType, sortOrder?: SortOrder) {
+    if (!sortBy || !sortOrder) {
+        return data;
+    }
+
+    const sortingProperty = columnNamesToSortingProperty[sortBy];
+
+    if (!sortingProperty) {
+        return data;
+    }
+
+    return data.sort((a, b) => {
+        const aValue = a[sortingProperty];
+        const bValue = b[sortingProperty];
+
+        if (!aValue || !bValue) {
+            return 0;
+        }
+
+        // We are guaranteed that both a and b will be string or number at the same time
+        if (typeof aValue === 'string' && typeof bValue === 'string') {
+            return sortOrder === CONST.SORT_ORDER.ASC ? aValue.toLowerCase().localeCompare(bValue) : bValue.toLowerCase().localeCompare(aValue);
+        }
+
+        const aNum = aValue as number;
+        const bNum = bValue as number;
+
+        return sortOrder === CONST.SORT_ORDER.ASC ? aNum - bNum : bNum - aNum;
+    });
+}
+
+export {getListItem, getQueryHash, getSections, getShouldShowColumn, getShouldShowMerchant, getSearchType, getSortedData};
 export type {SearchColumnType, SortOrder};

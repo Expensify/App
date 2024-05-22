@@ -4778,6 +4778,11 @@ const CONST = {
     REFERRER: {
         NOTIFICATION: 'notification',
     },
+
+    SORT_ORDER: {
+        ASC: 'asc',
+        DESC: 'desc',
+    },
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
