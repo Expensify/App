@@ -91,7 +91,7 @@ The following steps help you determine the advanced settings for your connection
 
 1. Click your profile image or icon in the bottom left menu.
 2. Scroll down and click **Workspaces** in the left menu. 
-3. Select the workspace you want to book the travel under. 
+3. Select the workspace you want to disconnect from Xero. 
 4. Click **Accounting** in the left menu.
 5. Click the three dot menu icon to the right of Xero and select **Disconnect**.
 6. Click **Disconnect** to confirm. 
