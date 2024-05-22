@@ -17,7 +17,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -417,11 +416,7 @@ function IOURequestStepDistance({
         ),
         [isLoadingRoute, navigateToWaypointEditPage, waypoints],
     );
-    const {isSmallScreen} = useWindowDimensions();
-    const isIos = Platform.OS === 'ios';
-    // eslint-disable-next-line rulesdir/no-negated-variables
-    const isNotWeb = Platform.OS !== 'web';
-    const isSmallScreenIOSNoWeb = isIos && isNotWeb && isSmallScreen;
+
     return (
         <StepScreenWrapper
             headerTitle={translate('common.distance')}
@@ -430,7 +425,7 @@ function IOURequestStepDistance({
             shouldShowWrapper={!isCreatingNewRequest}
         >
             <View style={styles.flex1}>
-                <View style={isSmallScreenIOSNoWeb ? styles.flex3 : styles.flex1}>
+                <View style={styles.flex3}>
                     <DraggableList
                         data={waypointsList}
                         keyExtractor={(item) => item}
@@ -447,7 +442,7 @@ function IOURequestStepDistance({
                         }
                     />
                 </View>
-                <View style={isSmallScreenIOSNoWeb ? [{flex: 0.5}] : [styles.w100, styles.pt2]}>
+                <View style={[styles.w100, styles.pt2, Platform.OS !== 'web' ? {flex: 0.5} : {}]}>
                     {/* Show error message if there is route error or there are less than 2 routes and user has tried submitting, */}
                     {((shouldShowAtLeastTwoDifferentWaypointsError && atLeastTwoDifferentWaypointsError) || duplicateWaypointsError || hasRouteError) && (
                         <DotIndicatorMessage
