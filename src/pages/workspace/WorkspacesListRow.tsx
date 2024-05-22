@@ -154,7 +154,7 @@ function WorkspacesListRow({
                 </View>
             )}
             {!isJoinRequestPending && (
-                <View style={[styles.flexRow, styles.ml5, styles.gap1, !isSmallScreenWidth && styles.workspaceThreeDotMenu]}>
+                <View style={[styles.flexRow, styles.ml2, styles.gap1, !isSmallScreenWidth && styles.workspaceThreeDotMenu]}>
                     <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, isNarrow && styles.workspaceListRBR]}>
                         <BrickRoadIndicatorIcon brickRoadIndicator={brickRoadIndicator} />
                     </View>
