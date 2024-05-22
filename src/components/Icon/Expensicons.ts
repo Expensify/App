@@ -42,7 +42,9 @@ import Coins from '@assets/images/coins.svg';
 import Collapse from '@assets/images/collapse.svg';
 import Concierge from '@assets/images/concierge.svg';
 import Connect from '@assets/images/connect.svg';
+import ConnectionComplete from '@assets/images/connection-complete.svg';
 import Copy from '@assets/images/copy.svg';
+import CreditCardHourglass from '@assets/images/credit-card-hourglass.svg';
 import CreditCard from '@assets/images/creditcard.svg';
 import DocumentPlus from '@assets/images/document-plus.svg';
 import DocumentSlash from '@assets/images/document-slash.svg';
@@ -143,6 +145,7 @@ import Podcast from '@assets/images/social-podcast.svg';
 import Twitter from '@assets/images/social-twitter.svg';
 import Youtube from '@assets/images/social-youtube.svg';
 import Stopwatch from '@assets/images/stopwatch.svg';
+import Suitcase from '@assets/images/suitcase.svg';
 import Sync from '@assets/images/sync.svg';
 import Tag from '@assets/images/tag.svg';
 import Task from '@assets/images/task.svg';
@@ -162,6 +165,7 @@ import Wallet from '@assets/images/wallet.svg';
 import Workflows from '@assets/images/workflows.svg';
 import Workspace from '@assets/images/workspace-default-avatar.svg';
 import Wrench from '@assets/images/wrench.svg';
+import Clear from '@assets/images/x-circle.svg';
 import Zoom from '@assets/images/zoom.svg';
 
 export {
@@ -201,8 +205,10 @@ export {
     Concierge,
     ConciergeAvatar,
     Connect,
+    ConnectionComplete,
     Copy,
     CreditCard,
+    CreditCardHourglass,
     DeletedRoomAvatar,
     Document,
     DocumentSlash,
@@ -300,6 +306,7 @@ export {
     Send,
     Shield,
     Stopwatch,
+    Suitcase,
     Sync,
     Task,
     ThumbsUp,
@@ -330,4 +337,5 @@ export {
     ChatBubbleReply,
     Lightbulb,
     DocumentPlus,
+    Clear,
 };

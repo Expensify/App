@@ -204,7 +204,7 @@ function Button(
         isSplitButton = false,
         ...rest
     }: ButtonProps,
-    ref: ForwardedRef<View | HTMLDivElement>,
+    ref: ForwardedRef<View>,
 ) {
     const theme = useTheme();
     const styles = useThemeStyles();
