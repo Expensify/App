@@ -52,6 +52,7 @@ import ReportActionsView from './report/ReportActionsView';
 import ReportFooter from './report/ReportFooter';
 import type {ActionListContextType, ReactionListRef, ScrollPosition} from './ReportScreenContext';
 import {ActionListContext, ReactionListContext} from './ReportScreenContext';
+import useDeepCompare from '@hooks/useDeepCompare';
 
 type ReportScreenOnyxPropsWithoutParentReportAction = {
     /** Get modal status */
@@ -168,6 +169,8 @@ function ReportScreen({
     const isReportOpenInRHP = useIsReportOpenInRHP();
     const {isSmallScreenWidth} = useWindowDimensions();
     const shouldUseNarrowLayout = isSmallScreenWidth || isReportOpenInRHP;
+    const permissions = useDeepCompare(reportProp?.permissions);
+
     /**
      * Create a lightweight Report so as to keep the re-rendering as light as possible by
      * passing in only the required props.
@@ -215,7 +218,7 @@ function ReportScreen({
             isOptimisticReport: reportProp?.isOptimisticReport,
             lastMentionedTime: reportProp?.lastMentionedTime,
             avatarUrl: reportProp?.avatarUrl,
-            permissions: reportProp?.permissions,
+            permissions,
             invoiceReceiver: reportProp?.invoiceReceiver,
         }),
         [
@@ -256,7 +259,7 @@ function ReportScreen({
             reportProp?.isOptimisticReport,
             reportProp?.lastMentionedTime,
             reportProp?.avatarUrl,
-            reportProp?.permissions,
+            permissions,
             reportProp?.invoiceReceiver,
         ],
     );
