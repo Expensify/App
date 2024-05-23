@@ -77,7 +77,7 @@ function QuickbooksOutOfPocketExpenseAccountSelectPage({policy}: WithPolicyConne
                 style={styles.pb10}
             />
         ),
-        [translate],
+        [translate, styles.pb10],
     );
 
     return (
