@@ -1,14 +1,14 @@
-import type { ReactElement } from 'react';
-import React, { useCallback, useEffect, useRef } from 'react';
-import { FlatList } from 'react-native-gesture-handler';
-import Animated, { Easing, FadeOutDown, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import type {ReactElement} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
+import {FlatList} from 'react-native-gesture-handler';
+import Animated, {Easing, FadeOutDown, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
-import type { AutoCompleteSuggestionsProps, RenderSuggestionMenuItemProps } from './types';
+import type {AutoCompleteSuggestionsProps, RenderSuggestionMenuItemProps} from './types';
 
 const measureHeightOfSuggestionRows = (numRows: number, isSuggestionPickerLarge: boolean): number => {
     if (isSuggestionPickerLarge) {
@@ -31,6 +31,7 @@ const measureHeightOfSuggestionRows = (numRows: number, isSuggestionPickerLarge:
  * The desired pattern for all platforms is to do nothing on long-press.
  * On the native platform, tapping on auto-complete suggestions will not blur the main input.
  */
+
 function BaseAutoCompleteSuggestions<TSuggestion>({
     highlightedSuggestionIndex,
     onSelect,
