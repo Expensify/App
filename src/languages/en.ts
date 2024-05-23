@@ -1977,11 +1977,16 @@ export default {
             exportPreferredExporterNote: 'This can be any workspace admin, but must be a Domain Admin if you set different export accounts for individual company cards in Domain Settings.',
             exportPreferredExporterSubNote: 'Once set, the preferred exporter will see reports for export in their account.',
             exportOutOfPocketExpensesDescription: 'Set how out-of-pocket expenses export to QuickBooks Online.',
+            exportCheckDescription: "We'll create a single itemized check for each Expensify report. You can write the check from your bank account of choice (below).",
+            exportJournalEntryDescription: "We'll create a single itemized journal entry for each Expensify report. You can post the offset entry to your account of choice (below).",
             exportVendorBillDescription:
                 "We'll create a single itemized vendor bill for each Expensify report. If the period of the bill is closed, we'll post to the 1st of the next open period. You can add the vendor bill to your A/P account of choice (below).",
-            accountsPayable: 'Accounts payable',
             account: 'Account',
+            accountDescription: 'This is your chosen account to post the journal entry offset for each report.',
+            accountsPayable: 'Accounts payable',
             accountsPayableDescription: 'This is your chosen A/P account, against which vendor bills for each report are created.',
+            bankAccount: 'Bank account',
+            bankAccountDescription: 'This is your chosen bank account to write checks from.',
             optionBelow: 'Choose an option below:',
             companyCardsLocationEnabledDescription:
                 'Note: QuickBooks Online does not support a field for Locations as Tags on Vendor Bills exports. As you import Locations from, this this export option is unavailable.',
