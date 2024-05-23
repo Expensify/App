@@ -139,7 +139,7 @@ function ReportListItem<TItem extends ListItem>({
 
                             <View style={[styles.flexShrink1, isLargeScreenWidth && styles.ph4]}>
                                 <Text style={[styles.reportListItemTitle]}>{reportItem?.reportName}</Text>
-                                <Text style={[styles.textMicroSupporting]}>{`${reportItem.transactions.length} grouped expenses`}</Text>
+                                <Text style={[styles.textMicroSupporting]}>{`${reportItem.transactions.length} ${translate('search.groupedExpenses')}`}</Text>
                             </View>
                         </View>
                         <View style={[styles.flexRow, styles.flex1, styles.justifyContentEnd]}>{totalCell}</View>
