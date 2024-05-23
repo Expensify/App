@@ -65,18 +65,18 @@ function getMileageRates(policy: OnyxEntry<Policy>, includeDisableRate: boolean 
                 unit: distanceUnit.attributes.unit,
                 name: rate.name,
                 customUnitRateID: rate.customUnitRateID,
-            }
-        } else if(rate.enabled) {
+            };
+        } else if (rate.enabled) {
             mileageRates[rateID] = {
                 rate: rate.rate,
                 currency: rate.currency,
                 unit: distanceUnit.attributes.unit,
                 name: rate.name,
                 customUnitRateID: rate.customUnitRateID,
-            }
+            };
         }
     });
-    
+
     return mileageRates;
 }
 
@@ -99,8 +99,8 @@ function getDefaultMileageRate(policy: OnyxEntry<Policy> | EmptyObject): Mileage
     if (!distanceUnit?.rates) {
         return null;
     }
-    const mileageRates = getMileageRates(policy, false)
-    
+    const mileageRates = getMileageRates(policy, false);
+
     const distanceRate = Object.values(mileageRates).find((rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE) ?? Object.values(mileageRates)[0];
 
     return {
@@ -275,12 +275,12 @@ function getCustomUnitRateID(reportID: string) {
     }
 
     const distanceUnit = Object.values(policy?.customUnits).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
-    const lastSelectedDistanceRateID = lastSelectedDistanceRates?.[policy?.id ?? ''] ?? ''
-    const lastSelectedDistanceRate = distanceUnit?.rates[lastSelectedDistanceRateID] ?? {}
+    const lastSelectedDistanceRateID = lastSelectedDistanceRates?.[policy?.id ?? ''] ?? '';
+    const lastSelectedDistanceRate = distanceUnit?.rates[lastSelectedDistanceRateID] ?? {};
 
     if (ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isPolicyExpenseChat(parentReport)) {
         if (lastSelectedDistanceRate.enabled && lastSelectedDistanceRateID) {
-            customUnitRateID = lastSelectedDistanceRateID
+            customUnitRateID = lastSelectedDistanceRateID;
         } else {
             customUnitRateID = getDefaultMileageRate(policy)?.customUnitRateID ?? '';
         }
