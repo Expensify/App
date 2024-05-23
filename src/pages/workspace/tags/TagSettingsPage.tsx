@@ -66,7 +66,7 @@ function TagSettingsPage({route, policyTags, navigation}: TagSettingsPageProps) 
     };
 
     const updateWorkspaceTagEnabled = (value: boolean) => {
-        setWorkspaceTagEnabled(route.params.policyID, {[currentPolicyTag.name]: {name: currentPolicyTag.name, enabled: value}});
+        setWorkspaceTagEnabled(route.params.policyID, {[currentPolicyTag.name]: {name: currentPolicyTag.name, enabled: value}}, policyTag.orderWeight);
     };
 
     const navigateToEditTag = () => {

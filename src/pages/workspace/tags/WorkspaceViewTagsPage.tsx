@@ -174,7 +174,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 value: CONST.POLICY.TAGS_BULK_ACTION_TYPES.DISABLE,
                 onSelected: () => {
                     setSelectedTags({});
-                    Policy.setWorkspaceTagEnabled(policyID, tagsToDisable);
+                    Policy.setWorkspaceTagEnabled(policyID, tagsToDisable, route.params.orderWeight);
                 },
             });
         }
@@ -186,7 +186,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 value: CONST.POLICY.TAGS_BULK_ACTION_TYPES.ENABLE,
                 onSelected: () => {
                     setSelectedTags({});
-                    Policy.setWorkspaceTagEnabled(policyID, tagsToEnable);
+                    Policy.setWorkspaceTagEnabled(policyID, tagsToEnable, route.params.orderWeight);
                 },
             });
         }
