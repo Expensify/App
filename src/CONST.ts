@@ -1806,7 +1806,7 @@ const CONST = {
                 XERO_CHECK_CONNECTION: 'xeroCheckConnection',
                 XERO_SYNC_TITLE: 'xeroSyncTitle',
             },
-            SYNC_STAGE_TIMEOUT: 1_200_000, // 20 minutes (20m * 60s * 1000ms)
+            SYNC_STAGE_TIMEOUT_MINUTES: 20,
         },
         ACCESS_VARIANTS: {
             PAID: 'paid',

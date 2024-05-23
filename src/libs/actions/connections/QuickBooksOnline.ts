@@ -21,7 +21,7 @@ function syncConnection(policyID: string) {
             value: {
                 stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.STARTING_IMPORT,
                 connectionName: CONST.POLICY.CONNECTIONS.NAME.QBO,
-                timestamp: Date.now(),
+                timestamp: new Date().toISOString(),
             },
         },
     ];
