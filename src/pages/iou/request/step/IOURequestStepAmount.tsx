@@ -89,7 +89,7 @@ function IOURequestStepAmount({
             return false;
         }
 
-        return !(ReportUtils.isArchivedRoom(report) || ReportUtils.isPolicyExpenseChat(report));
+        return !(ReportUtils.isArchivedRoom(report) || ReportUtils.isClosedReport(report) || ReportUtils.isPolicyExpenseChat(report));
     }, [report, skipConfirmation]);
 
     useFocusEffect(
