@@ -28,6 +28,7 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as Policy from '@userActions/Policy';
+import * as Tag from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -53,7 +54,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     const currentPolicyTag = policyTags?.[currentTagListName];
 
     const fetchTags = useCallback(() => {
-        Policy.openPolicyTagsPage(policyID);
+        Tag.openPolicyTagsPage(policyID);
     }, [policyID]);
 
     const {isOffline} = useNetwork({onReconnect: fetchTags});

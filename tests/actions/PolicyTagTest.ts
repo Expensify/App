@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
 import * as Policy from '@libs/actions/Policy';
+import * as Tag from '@libs/actions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTags} from '@src/types/onyx';
@@ -34,7 +35,7 @@ describe('actions/Policy', () => {
 
             return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
                 .then(() => {
-                    Policy.setPolicyRequiresTag(fakePolicy.id, true);
+                    Tag.setPolicyRequiresTag(fakePolicy.id, true);
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -81,7 +82,7 @@ describe('actions/Policy', () => {
 
             return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
                 .then(() => {
-                    Policy.setPolicyRequiresTag(fakePolicy.id, false);
+                    Tag.setPolicyRequiresTag(fakePolicy.id, false);
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -129,7 +130,7 @@ describe('actions/Policy', () => {
             return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
                 .then(() => {
                     mockFetch?.fail?.();
-                    Policy.setPolicyRequiresTag(fakePolicy.id, false);
+                    Tag.setPolicyRequiresTag(fakePolicy.id, false);
                     return waitForBatchedUpdates();
                 })
 
