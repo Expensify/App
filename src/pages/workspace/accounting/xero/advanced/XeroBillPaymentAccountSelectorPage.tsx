@@ -1,5 +1,7 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
+import BlockingView from '@components/BlockingViews/BlockingView';
+import * as Illustrations from '@components/Icon/Illustrations';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
@@ -10,6 +12,7 @@ import * as Connections from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -54,13 +57,26 @@ function XeroBillPaymentAccountSelectorPage({policy}: WithPolicyConnectionsProps
         [policyID],
     );
 
+    const listEmptyContent = useMemo(
+        () => (
+            <BlockingView
+                icon={Illustrations.TeleScope}
+                iconWidth={variables.emptyListIconWidth}
+                iconHeight={variables.emptyListIconHeight}
+                title={translate('workspace.xero.noAccountsFound')}
+                subtitle={translate('workspace.xero.noAccountsFoundDescription')}
+            />
+        ),
+        [translate],
+    );
+
     return (
         <SelectionScreen
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={XeroBillPaymentAccountSelectorPage.displayName}
-            sections={[{data: xeroSelectorOptions}]}
+            sections={xeroSelectorOptions.length ? [{data: xeroSelectorOptions}] : []}
             listItem={RadioListItem}
             shouldBeBlocked={!syncReimbursedReports}
             onSelectRow={updateAccount}
@@ -68,6 +84,7 @@ function XeroBillPaymentAccountSelectorPage({policy}: WithPolicyConnectionsProps
             headerContent={listHeaderComponent}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID))}
             title="workspace.xero.advancedConfig.xeroBillPaymentAccount"
+            listEmptyContent={listEmptyContent}
         />
     );
 }

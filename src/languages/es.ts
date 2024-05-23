@@ -2063,6 +2063,9 @@ export default {
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY}Error`]:
                     'El asiento de diario no está disponible cuando los impuestos están habilitados. seleccione una opción de exportación diferente.',
             },
+            // TODO: Translate
+            noAccountsFound: 'No accounts found',
+            noAccountsFoundDescription: 'Add the account in Quickbooks Online and sync the connection again',
         },
         xero: {
             organization: 'Organización Xero',
@@ -2145,6 +2148,9 @@ export default {
             exportPreferredExporterNote:
                 'Puede ser cualquier administrador del espacio de trabajo, pero debe ser un administrador de dominio si configura diferentes cuentas de exportación para tarjetas de empresa individuales en la configuración del dominio.',
             exportPreferredExporterSubNote: 'Una vez configurado, el exportador preferido verá los informes para exportar en su cuenta.',
+            // TODO: Translate
+            noAccountsFound: 'No accounts found',
+            noAccountsFoundDescription: 'Add the account in Xero and sync the connection again',
         },
         type: {
             free: 'Gratis',

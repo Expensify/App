@@ -2031,6 +2031,8 @@ export default {
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK}Error`]: 'Check is not available when locations are enabled. Please select a different export option.',
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY}Error`]: 'Journal entry is not available when taxes enabled. please select a different export option.',
             },
+            noAccountsFound: 'No accounts found',
+            noAccountsFoundDescription: 'Add the account in Quickbooks Online and sync the connection again',
         },
         xero: {
             organization: 'Xero organization',
@@ -2109,6 +2111,8 @@ export default {
             },
             exportPreferredExporterNote: 'This can be any workspace admin, but must be a domain admin if you set different export accounts for individual company cards in domain settings.',
             exportPreferredExporterSubNote: 'Once set, the preferred exporter will see reports for export in their account.',
+            noAccountsFound: 'No accounts found',
+            noAccountsFoundDescription: 'Add the account in Xero and sync the connection again',
         },
         type: {
             free: 'Free',
