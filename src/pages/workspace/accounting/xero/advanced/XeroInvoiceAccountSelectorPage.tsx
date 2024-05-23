@@ -76,7 +76,7 @@ function XeroInvoiceAccountSelectorPage({policy}: WithPolicyConnectionsProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={XeroInvoiceAccountSelectorPage.displayName}
-            sections={[{data: xeroSelectorOptions}]}
+            sections={xeroSelectorOptions.length ? [{data: xeroSelectorOptions}] : []}
             listItem={RadioListItem}
             shouldBeBlocked={!syncReimbursedReports}
             onSelectRow={updateAccount}
