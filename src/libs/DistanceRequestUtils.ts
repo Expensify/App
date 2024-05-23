@@ -1,3 +1,4 @@
+import {isEmpty} from 'lodash';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
@@ -45,7 +46,7 @@ const METERS_TO_MILES = 0.000621371; // There are approximately 0.000621371 mile
  *
  * @returns An array of mileage rates or an empty array if not found.
  */
-function getMileageRates(policy: OnyxEntry<Policy>, includeDisableRate: boolean = true): Record<string, MileageRate> {
+function getMileageRates(policy: OnyxEntry<Policy> | EmptyObject, includeDisableRate: boolean = true): Record<string, MileageRate> {
     const mileageRates: Record<string, MileageRate> = {};
 
     if (!policy || !policy?.customUnits) {
@@ -91,6 +92,10 @@ function getMileageRates(policy: OnyxEntry<Policy>, includeDisableRate: boolean 
  * @returns [unit] - The unit of measurement for the distance.
  */
 function getDefaultMileageRate(policy: OnyxEntry<Policy> | EmptyObject): MileageRate | null {
+    if (isEmpty(policy)) {
+        return null;
+    }
+
     if (!policy?.customUnits) {
         return null;
     }
