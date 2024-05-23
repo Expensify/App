@@ -184,7 +184,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                             onPress={navigateToCreateTagPage}
                             icon={Expensicons.Plus}
                             text={translate('workspace.tags.addTag')}
-                            style={[styles.mr3, isSmallScreenWidth && styles.w50]}
+                            style={[styles.mr3, isSmallScreenWidth && styles.flex1]}
                         />
                     )}
                     {policyTags && (
@@ -193,7 +193,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                             onPress={navigateToTagsSettings}
                             icon={Expensicons.Gear}
                             text={translate('common.settings')}
-                            style={[isSmallScreenWidth && styles.w50]}
+                            style={[isSmallScreenWidth && styles.flex1]}
                         />
                     )}
                 </View>

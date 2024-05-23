@@ -3141,7 +3141,7 @@ function completeOnboarding(
             currentTask,
             taskCreatedAction,
             taskReportAction,
-            taskDescription,
+            taskDescription: currentTask.description,
             completedTaskReportAction,
         };
     });
@@ -3156,7 +3156,7 @@ function completeOnboarding(
         createdTaskReportActionID: taskCreatedAction.reportActionID,
         completedTaskReportActionID: completedTaskReportAction?.reportActionID ?? undefined,
         title: currentTask.reportName ?? '',
-        description: taskDescription,
+        description: taskDescription ?? '',
     }));
 
     const tasksForOptimisticData = tasksData.reduce<OnyxUpdate[]>((acc, {currentTask, taskCreatedAction, taskReportAction, taskDescription, completedTaskReportAction}) => {
