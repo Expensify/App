@@ -3,6 +3,7 @@ import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
+import useCancelSearchOnModalClose from '@hooks/useCancelSearchOnModalClose';
 import useLocalize from '@hooks/useLocalize';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import CONST from '@src/CONST';
@@ -12,6 +13,7 @@ import WorkspaceNewRoomPage from './workspace/WorkspaceNewRoomPage';
 function NewChatSelectorPage() {
     const {translate} = useLocalize();
     const navigation = useNavigation();
+    useCancelSearchOnModalClose();
 
     return (
         <ScreenWrapper

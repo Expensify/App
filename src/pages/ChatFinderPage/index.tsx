@@ -8,12 +8,11 @@ import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/UserListItem';
+import useCancelSearchOnModalClose from '@hooks/useCancelSearchOnModalClose';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import {READ_COMMANDS} from '@libs/API/types';
-import HttpUtils from '@libs/HttpUtils';
 import type {MaybePhraseKey} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {RootStackParamList} from '@libs/Navigation/types';
@@ -63,6 +62,7 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
     const offlineMessage: MaybePhraseKey = isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : '';
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
+    useCancelSearchOnModalClose();
 
     useEffect(() => {
         Timing.start(CONST.TIMING.CHAT_FINDER_RENDER);
@@ -144,8 +144,6 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
         if (!option) {
             return;
         }
-
-        HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
 
         if (option.reportID) {
             setSearchValue('');
