@@ -480,6 +480,7 @@ const READ_COMMANDS = {
     OPEN_POLICY_MORE_FEATURES_PAGE: 'OpenPolicyMoreFeaturesPage',
     OPEN_POLICY_ACCOUNTING_PAGE: 'OpenPolicyAccountingPage',
     SEARCH: 'Search',
+    ALL: 'All',
 } as const;
 
 type ReadCommand = ValueOf<typeof READ_COMMANDS>;

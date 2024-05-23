@@ -7,14 +7,14 @@ import type {RequestType} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 import * as NetworkActions from './actions/Network';
 import * as UpdateRequired from './actions/UpdateRequired';
-import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from './API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from './API/types';
 import * as ApiUtils from './ApiUtils';
 import HttpsError from './Errors/HttpsError';
 
 let shouldFailAllRequests = false;
 let shouldForceOffline = false;
 
-type AbortCommand = 'All' | 'SearchForReports';
+type AbortCommand = typeof READ_COMMANDS.ALL | typeof READ_COMMANDS.SEARCH_FOR_REPORTS;
 
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
@@ -29,8 +29,8 @@ Onyx.connect({
 
 // We use the AbortController API to terminate pending request in `cancelPendingRequests`
 const abortControllerMap = new Map<AbortCommand, AbortController>();
-abortControllerMap.set('All', new AbortController());
-abortControllerMap.set('SearchForReports', new AbortController());
+abortControllerMap.set(READ_COMMANDS.ALL, new AbortController());
+abortControllerMap.set(READ_COMMANDS.SEARCH_FOR_REPORTS, new AbortController());
 
 // Some existing old commands (6+ years) exempted from the auth writes count check
 const exemptedCommandsWithAuthWrites: string[] = ['SetWorkspaceAutoReportingFrequency'];
@@ -168,8 +168,8 @@ function xhr(command: string, data: Record<string, unknown>, type: RequestType =
     return processHTTPRequest(url, type, formData, abortSignalController?.signal);
 }
 
-function cancelPendingRequests(command: AbortCommand = 'All') {
-    const controller = abortControllerMap.get(command) ?? abortControllerMap.get('All');
+function cancelPendingRequests(command: AbortCommand = READ_COMMANDS.ALL) {
+    const controller = abortControllerMap.get(command) ?? abortControllerMap.get(READ_COMMANDS.ALL);
 
     controller?.abort();
 
