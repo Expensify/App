@@ -4496,7 +4496,6 @@ function buildOptimisticHoldReportAction(created = DateUtils.getDBTime()): Optim
  * @param [created] - Action created time
  */
 function buildOptimisticHoldReportActionComment(comment: string, created = DateUtils.getDBTime()): OptimisticHoldReportAction {
-    const parsedComment = getParsedComment(comment);
     return {
         reportActionID: NumberUtils.rand64(),
         actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
@@ -4504,9 +4503,9 @@ function buildOptimisticHoldReportActionComment(comment: string, created = DateU
         actorAccountID: currentUserAccountID,
         message: [
             {
-                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'normal',
                 text: comment,
-                html: parsedComment,
             },
         ],
         person: [
