@@ -330,8 +330,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     );
 
     return (
-        <ScreenWrapper testID={ReportDetailsPage.displayName}>   
-
+        <ScreenWrapper testID={ReportDetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={isEmptyObject(report)}>
                 <HeaderWithBackButton
                     title={translate('common.details')}
@@ -353,8 +352,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                         {isExpenseReport && nameSectionExpenseIOU}
                     </View>
 
-                    {!isExpenseReport && 
-                    nameSectionGroupWorkspace}
+                    {!isExpenseReport && nameSectionGroupWorkspace}
 
                     {shouldShowReportDescription && (
                         <OfflineWithFeedback pendingAction={report.pendingFields?.description}>
