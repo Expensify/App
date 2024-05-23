@@ -5,7 +5,7 @@ import {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useRef, u
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import setUserLocation from '@libs/actions/UserLocation';
+import {setUserLocation} from '@libs/actions/UserLocation';
 import compose from '@libs/compose';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import CONST from '@src/CONST';
