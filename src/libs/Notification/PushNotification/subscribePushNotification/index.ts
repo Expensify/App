@@ -1,8 +1,11 @@
+import Airship from '@ua/react-native-airship';
 import Onyx from 'react-native-onyx';
 import applyOnyxUpdatesReliably from '@libs/actions/applyOnyxUpdatesReliably';
+import * as DeferredOnyxUpdates from '@libs/actions/OnyxUpdateManager/utils/DeferredOnyxUpdates';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import extractDataFromPushNotification from '@libs/Notification/PushNotification/extractDataFromPushNotification';
 import type {ReportActionPushNotificationData} from '@libs/Notification/PushNotification/NotificationType';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
 import {extractPolicyIDFromPath} from '@libs/PolicyUtils';
@@ -13,6 +16,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
+import type {OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import PushNotification from '..';
 
@@ -36,6 +40,20 @@ function getLastUpdateIDAppliedToClient(): Promise<number> {
     });
 }
 
+function wrapAirshipUpdatesDataInOnyxUpdatesFromServer({onyxData, lastUpdateID, previousUpdateID}: {onyxData: OnyxServerUpdate[]; lastUpdateID: number; previousUpdateID: number}) {
+    return {
+        type: CONST.ONYX_UPDATE_TYPES.AIRSHIP,
+        lastUpdateID,
+        previousUpdateID,
+        updates: [
+            {
+                eventType: 'eventType',
+                data: onyxData,
+            },
+        ],
+    } as OnyxUpdatesFromServer;
+}
+
 function applyOnyxData({reportID, reportActionID, onyxData, lastUpdateID, previousUpdateID}: ReportActionPushNotificationData): Promise<void> {
     Log.info(`[PushNotification] Applying onyx data in the ${Visibility.isVisible() ? 'foreground' : 'background'}`, false, {reportID, reportActionID});
 
@@ -50,62 +68,76 @@ function applyOnyxData({reportID, reportActionID, onyxData, lastUpdateID, previo
     }
 
     Log.info('[PushNotification] reliable onyx update received', false, {lastUpdateID, previousUpdateID, onyxDataCount: onyxData?.length ?? 0});
-    const updates: OnyxUpdatesFromServer = {
-        type: CONST.ONYX_UPDATE_TYPES.AIRSHIP,
-        lastUpdateID,
-        previousUpdateID,
-        updates: [
-            {
-                eventType: 'eventType',
-                data: onyxData,
-            },
-        ],
-    };
+
+    const updates = wrapAirshipUpdatesDataInOnyxUpdatesFromServer({onyxData, lastUpdateID, previousUpdateID});
 
     /**
      * When this callback runs in the background on Android (via Headless JS), no other Onyx.connect callbacks will run. This means that
      * lastUpdateIDAppliedToClient will NOT be populated in other libs. To workaround this, we manually read the value here
      * and pass it as a param
      */
-    return getLastUpdateIDAppliedToClient().then((lastUpdateIDAppliedToClient) => applyOnyxUpdatesReliably(updates, true, lastUpdateIDAppliedToClient));
+    return getLastUpdateIDAppliedToClient().then(
+        (lastUpdateIDAppliedToClient) =>
+            new Promise((resolve) => {
+                applyOnyxUpdatesReliably(updates, true, lastUpdateIDAppliedToClient);
+                resolve();
+            }),
+    );
 }
 
 function navigateToReport({reportID, reportActionID}: ReportActionPushNotificationData): Promise<void> {
-    Log.info('[PushNotification] Navigating to report', false, {reportID, reportActionID});
+    Log.info('[PushNotification] Adding push notification updates to deferred updates queue', false, {reportID, reportActionID});
 
-    const policyID = lastVisitedPath && extractPolicyIDFromPath(lastVisitedPath);
-    const report = getReport(reportID.toString());
-    const policyEmployeeAccountIDs = policyID ? getPolicyEmployeeAccountIDs(policyID) : [];
-    const reportBelongsToWorkspace = policyID && !isEmptyObject(report) && doesReportBelongToWorkspace(report, policyEmployeeAccountIDs, policyID);
+    const updatesAppliedPromise = Airship.push.getActiveNotifications().then((notifications) => {
+        const onyxUpdates = notifications.map((notification) => extractDataFromPushNotification(notification));
+        // const onyxData = onyxUpdates.reduce<OnyxServerUpdate[]>((onyxUpdatesAcc, onyxUpdate) => (onyxUpdate.onyxData ? [...onyxUpdatesAcc, ...onyxUpdate.onyxData] : onyxUpdatesAcc), []);
 
-    Navigation.isNavigationReady()
-        .then(Navigation.waitForProtectedRoutes)
-        .then(() => {
-            // The attachment modal remains open when navigating to the report so we need to close it
-            Modal.close(() => {
-                try {
-                    // If a chat is visible other than the one we are trying to navigate to, then we need to navigate back
-                    if (Navigation.getActiveRoute().slice(1, 2) === ROUTES.REPORT && !Navigation.isActiveRoute(`r/${reportID}`)) {
-                        Navigation.goBack();
+        // const lastUpdateID = onyxUpdates.reduce((max, {lastUpdateID: lastUpdateIDIter}) => Math.max(max, lastUpdateIDIter ?? 0), 0);
+        // const previousUpdateID = onyxUpdates.find((update) => update.lastUpdateID === lastUpdateID)?.previousUpdateID ?? 0;
+
+        // const updates = wrapAirshipUpdatesDataInOnyxUpdatesFromServer({onyxData, lastUpdateID, previousUpdateID});
+        // return DeferredOnyxUpdates.enqueueAndProcess(updates);
+
+        return Promise.all(onyxUpdates.map((update) => applyOnyxData(update)));
+    });
+
+    return updatesAppliedPromise.then(() => {
+        Log.info('[PushNotification] Navigating to report', false, {reportID, reportActionID});
+
+        const policyID = lastVisitedPath && extractPolicyIDFromPath(lastVisitedPath);
+        const report = getReport(reportID.toString());
+        const policyEmployeeAccountIDs = policyID ? getPolicyEmployeeAccountIDs(policyID) : [];
+        const reportBelongsToWorkspace = policyID && !isEmptyObject(report) && doesReportBelongToWorkspace(report, policyEmployeeAccountIDs, policyID);
+
+        Navigation.isNavigationReady()
+            .then(Navigation.waitForProtectedRoutes)
+            .then(() => {
+                // The attachment modal remains open when navigating to the report so we need to close it
+                Modal.close(() => {
+                    try {
+                        // If a chat is visible other than the one we are trying to navigate to, then we need to navigate back
+                        if (Navigation.getActiveRoute().slice(1, 2) === ROUTES.REPORT && !Navigation.isActiveRoute(`r/${reportID}`)) {
+                            Navigation.goBack();
+                        }
+
+                        Log.info('[PushNotification] onSelected() - Navigation is ready. Navigating...', false, {reportID, reportActionID});
+                        if (!reportBelongsToWorkspace) {
+                            Navigation.navigateWithSwitchPolicyID({route: ROUTES.HOME});
+                        }
+                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(String(reportID)));
+                    } catch (error) {
+                        let errorMessage = String(error);
+                        if (error instanceof Error) {
+                            errorMessage = error.message;
+                        }
+
+                        Log.alert('[PushNotification] onSelected() - failed', {reportID, reportActionID, error: errorMessage});
                     }
-
-                    Log.info('[PushNotification] onSelected() - Navigation is ready. Navigating...', false, {reportID, reportActionID});
-                    if (!reportBelongsToWorkspace) {
-                        Navigation.navigateWithSwitchPolicyID({route: ROUTES.HOME});
-                    }
-                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(String(reportID)));
-                } catch (error) {
-                    let errorMessage = String(error);
-                    if (error instanceof Error) {
-                        errorMessage = error.message;
-                    }
-
-                    Log.alert('[PushNotification] onSelected() - failed', {reportID, reportActionID, error: errorMessage});
-                }
+                });
             });
-        });
 
-    return Promise.resolve();
+        return Promise.resolve();
+    });
 }
 
 /**

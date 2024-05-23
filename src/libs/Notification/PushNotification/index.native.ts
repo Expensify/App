@@ -4,6 +4,7 @@ import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
 import * as PushNotificationActions from '@userActions/PushNotification';
 import ONYXKEYS from '@src/ONYXKEYS';
+import getValidPushNotificationData from './extractDataFromPushNotification';
 import ForegroundNotifications from './ForegroundNotifications';
 import type {PushNotificationData} from './NotificationType';
 import NotificationType from './NotificationType';
@@ -27,14 +28,7 @@ const notificationEventActionMap: NotificationEventActionMap = {};
  */
 function pushNotificationEventCallback(eventType: EventType, notification: PushPayload) {
     const actionMap = notificationEventActionMap[eventType] ?? {};
-    let payload = notification.extras.payload;
-
-    // On Android, some notification payloads are sent as a JSON string rather than an object
-    if (typeof payload === 'string') {
-        payload = JSON.parse(payload);
-    }
-
-    const data = payload as PushNotificationData;
+    const data = getValidPushNotificationData(notification);
 
     Log.info(`[PushNotification] Callback triggered for ${eventType}`);
 

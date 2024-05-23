@@ -65,6 +65,8 @@ function process() {
     }
 
     missingOnyxUpdatesQueryPromise = OnyxUpdateManagerUtils.validateAndApplyDeferredUpdates();
+
+    return missingOnyxUpdatesQueryPromise;
 }
 
 type EnqueueDeferredOnyxUpdatesOptions = {
@@ -105,7 +107,7 @@ function enqueue(updates: OnyxUpdatesFromServer | DeferredUpdatesDictionary, opt
  */
 function enqueueAndProcess(updates: OnyxUpdatesFromServer | DeferredUpdatesDictionary, options?: EnqueueDeferredOnyxUpdatesOptions) {
     enqueue(updates, options);
-    process();
+    return process();
 }
 
 type ClearDeferredOnyxUpdatesOptions = {
