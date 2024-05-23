@@ -5288,6 +5288,7 @@ export {
     getPrimaryPolicy,
     createDraftWorkspace,
     buildPolicyData,
+    navigateWhenEnableFeature,
 };
 
 export type {NewCustomUnit};
