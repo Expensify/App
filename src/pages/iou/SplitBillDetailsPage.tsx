@@ -113,6 +113,7 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
                             iouCurrencyCode={splitCurrency}
                             iouComment={splitComment}
                             iouCreated={splitCreated}
+                            isSplitBillDetailsPage
                             iouMerchant={splitMerchant}
                             iouCategory={splitCategory}
                             iouIsBillable={splitBillable}
@@ -122,7 +123,6 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
                             receiptPath={transaction?.receipt?.source}
                             receiptFilename={transaction?.filename}
                             isEditingSplitBill={isEditingSplitBill}
-                            isSplitBillDetailsPage
                             hasSmartScanFailed={hasSmartScanFailed}
                             reportID={reportID}
                             reportActionID={reportAction?.reportActionID}
