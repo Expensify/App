@@ -46,7 +46,7 @@ const METERS_TO_MILES = 0.000621371; // There are approximately 0.000621371 mile
  *
  * @returns An array of mileage rates or an empty array if not found.
  */
-function getMileageRates(policy: OnyxEntry<Policy> | EmptyObject, includeDisableRate: boolean = true): Record<string, MileageRate> {
+function getMileageRates(policy: OnyxEntry<Policy>, includeDisableRate = true): Record<string, MileageRate> {
     const mileageRates: Record<string, MileageRate> = {};
 
     if (!policy || !policy?.customUnits) {
