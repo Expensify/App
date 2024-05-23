@@ -161,6 +161,9 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     /** Whether we're editing a split expense */
     isEditingSplitBill?: boolean;
 
+    /** Whether we're shwowing a created split expense */
+    isSplitBillDetailsPage?: boolean;
+
     /** Whether we should show the amount, date, and merchant fields. */
     shouldShowSmartScanFields?: boolean;
 
@@ -224,6 +227,7 @@ function MoneyRequestConfirmationList({
     allPolicies,
     action = CONST.IOU.ACTION.CREATE,
     currencyList,
+    isSplitBillDetailsPage = false,
 }: MoneyRequestConfirmationListProps) {
     const policy = policyReal ?? policyDraft;
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
@@ -1095,8 +1099,8 @@ function MoneyRequestConfirmationList({
                         onPress={() => Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(reportID ?? '', transactionID ?? ''))}
                         accessibilityRole={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('accessibilityHints.viewAttachment')}
-                        disabled={!isEditingSplitBill}
-                        disabledStyle={styles.cursorPointer}
+                        disabled={!isSplitBillDetailsPage}
+                        disabledStyle={styles.cursorDefault}
                     >
                         <PDFThumbnail
                             // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
@@ -1109,10 +1113,10 @@ function MoneyRequestConfirmationList({
                 ) : (
                     <PressableWithoutFocus
                         onPress={() => Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(reportID ?? '', transactionID ?? ''))}
-                        disabled={!isEditingSplitBill || isThumbnail}
+                        disabled={!isSplitBillDetailsPage || isThumbnail}
                         accessibilityRole={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('accessibilityHints.viewAttachment')}
-                        disabledStyle={styles.cursorPointer}
+                        disabledStyle={styles.cursorDefault}
                     >
                         <ReceiptImage
                             isThumbnail={isThumbnail}
@@ -1141,11 +1145,11 @@ function MoneyRequestConfirmationList({
             receiptThumbnail,
             fileExtension,
             isDistanceRequest,
-            isEditingSplitBill,
             reportID,
             transactionID,
             translate,
-            styles.cursorPointer,
+            styles.cursorDefault,
+            isSplitBillDetailsPage,
         ],
     );
 

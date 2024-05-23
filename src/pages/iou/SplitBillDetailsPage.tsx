@@ -122,6 +122,7 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
                             receiptPath={transaction?.receipt?.source}
                             receiptFilename={transaction?.filename}
                             isEditingSplitBill={isEditingSplitBill}
+                            isSplitBillDetailsPage
                             hasSmartScanFailed={hasSmartScanFailed}
                             reportID={reportID}
                             reportActionID={reportAction?.reportActionID}
