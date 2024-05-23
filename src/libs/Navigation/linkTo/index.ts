@@ -90,7 +90,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
             // We need to push a tab if the tab doesn't match the central pane route that we are going to push.
             const topmostBottomTabRoute = getTopmostBottomTabRoute(rootState);
             const policyIDsFromState = extractPolicyIDsFromState(stateFromPath);
-            const matchingBottomTabRoute = getMatchingBottomTabRouteForState(stateFromPath, policyID !== '' ? policyID : policyIDsFromState);
+            const matchingBottomTabRoute = getMatchingBottomTabRouteForState(stateFromPath, policyID ? policyID : policyIDsFromState);
             const isNewPolicyID =
                 (topmostBottomTabRoute?.params as Record<string, string | undefined>)?.policyID !== (matchingBottomTabRoute?.params as Record<string, string | undefined>)?.policyID;
             if (topmostBottomTabRoute && (topmostBottomTabRoute.name !== matchingBottomTabRoute.name || isNewPolicyID)) {
