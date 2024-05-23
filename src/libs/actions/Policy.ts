@@ -54,6 +54,7 @@ import type {
     UpdateWorkspaceGeneralSettingsParams,
     UpdateWorkspaceMembersRoleParams,
 } from '@libs/API/parameters';
+import type SetPolicyTagsEnabled from '@libs/API/parameters/SetPolicyTagsEnabled';
 import type UpdatePolicyAddressParams from '@libs/API/parameters/UpdatePolicyAddressParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
@@ -3466,8 +3467,8 @@ function createPolicyTag(policyID: string, tagName: string) {
     API.write(WRITE_COMMANDS.CREATE_POLICY_TAG, parameters, onyxData);
 }
 
-function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {name: string; enabled: boolean}>) {
-    const policyTag = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.[0] ?? {};
+function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {name: string; enabled: boolean}>, tagListIndex: number) {
+    const policyTag = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.[tagListIndex] ?? {};
 
     const onyxData: OnyxData = {
         optimisticData: [
@@ -3547,9 +3548,10 @@ function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {
         ],
     };
 
-    const parameters = {
+    const parameters: SetPolicyTagsEnabled = {
         policyID,
         tags: JSON.stringify(Object.keys(tagsToUpdate).map((key) => tagsToUpdate[key])),
+        tagListIndex,
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_TAGS_ENABLED, parameters, onyxData);
