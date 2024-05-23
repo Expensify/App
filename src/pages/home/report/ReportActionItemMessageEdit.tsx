@@ -404,7 +404,7 @@ function ReportActionItemMessageEdit(
                 suggestionsRef?.current?.resetSuggestions();
                 return;
             }
-            // Reopen the suggestion after scroll has end
+            // Reopen the suggestion after scroll has ended
             suggestionsRef?.current?.updateShouldShowSuggestionMenuAfterScrolling();
         });
 

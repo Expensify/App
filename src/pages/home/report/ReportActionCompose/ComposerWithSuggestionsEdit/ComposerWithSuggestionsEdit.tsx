@@ -60,10 +60,10 @@ function ComposerWithSuggestionsEdit(
                 multiline
                 ref={ref}
                 id={id}
-                onChangeText={onChangeText} // Debounced saveDraftComment
+                onChangeText={onChangeText}
                 onKeyPress={onKeyPress}
                 value={value}
-                maxLines={maxLines} // This is the same that slack has
+                maxLines={maxLines}
                 style={style}
                 onFocus={onFocus}
                 onBlur={onBlur}
@@ -88,7 +88,6 @@ function ComposerWithSuggestionsEdit(
                 isAutoSuggestionPickerLarge
                 isGroupPolicyReport={isGroupPolicyReport}
                 policyID={policyID}
-                // Input
                 value={value}
                 setValue={setValue}
                 selection={selection}
