@@ -58,6 +58,7 @@ function QuickbooksNonReimbursableDefaultVendorSelectPage({policy}: WithPolicyCo
                 iconHeight={variables.emptyListIconHeight}
                 title={translate('workspace.qbo.noAccountsFound')}
                 subtitle={translate('workspace.qbo.noAccountsFoundDescription')}
+                style={styles.pb10}
             />
         ),
         [translate],
