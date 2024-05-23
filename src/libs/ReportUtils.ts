@@ -487,7 +487,6 @@ let currentUserEmail: string | undefined;
 let currentUserPrivateDomain: string | undefined;
 let currentUserAccountID: number | undefined;
 let isAnonymousUser = false;
-let reportActionParsedHtmlCache = {};
 
 const defaultAvatarBuildingIconTestID = 'SvgDefaultAvatarBuilding Icon';
 
@@ -3067,9 +3066,40 @@ function getInvoicePayerName(report: OnyxEntry<Report>): string {
 }
 
 /**
+ * Parse html of reportAction into text
+ */
+function parseReportActionHtmlToText(reportAction: OnyxEntry<ReportAction>, reportID: string): string {
+    const {html, text} = reportAction?.message?.[0] ?? {};
+
+    if (!html) {
+        return text ?? '';
+    }
+
+    const mentionReportRegex = /<mention-report reportID="(\d+)" *\/>/gi;
+    const matches = html.matchAll(mentionReportRegex);
+
+    const reportIdToName: Record<string, string> = {};
+    for (const match of matches) {
+        if (match[1] !== reportID) {
+            // eslint-disable-next-line @typescript-eslint/no-use-before-define
+            reportIdToName[match[1]] = getReportName(getReport(match[1])) ?? '';
+        }
+    }
+
+    const mentionUserRegex = /<mention-user accountID="(\d+)" *\/>/gi;
+    const accountIdToName: Record<string, string> = {};
+    const accountIds = Array.from(html.matchAll(mentionUserRegex), (m) => Number(m[1]));
+    const logins = PersonalDetailsUtils.getLoginsByAccountIDs(accountIds);
+    accountIds.forEach((id, index) => (accountIdToName[id] = logins[index]));
+
+    const parser = new ExpensiMark();
+    return parser.htmlToText(html, {reportIdToName});
+}
+
+/**
  * Get the report action message for a report action.
  */
-function getReportActionMessage(reportAction: ReportAction | EmptyObject, parentReportID?: string) {
+function getReportActionMessage(reportAction: ReportAction | EmptyObject, reportID: string, parentReportID?: string) {
     if (isEmptyObject(reportAction)) {
         return '';
     }
@@ -3080,36 +3110,8 @@ function getReportActionMessage(reportAction: ReportAction | EmptyObject, parent
         return getReimbursementQueuedActionMessage(reportAction, getReport(parentReportID), false);
     }
 
-    const text = parseReportActionHtmlToText(reportAction);
+    const text = parseReportActionHtmlToText(reportAction, reportID);
     return Str.removeSMSDomain(text);
-}
-
-/**
- * Parse html of reportAction into text
- */
-function parseReportActionHtmlToText(reportAction: OnyxEntry<ReportAction>): string{
-    const {html, text} = reportAction?.message?.[0];
-
-    if (!html) {
-        return text ?? "";
-    }
-
-    const mentionReportRegex = /<mention-report reportID="(\d+)" *\/>/gi;
-    const matches = html.matchAll(mentionReportRegex);
-
-    const reportIdToName = {};
-    for (const match of matches) {
-        reportIdToName[match[1]] = getReportName(getReport(match[1]));
-    }
-
-    const mentionUserRegex = /<mention-user accountID="(\d+)" *\/>/gi;
-    const accountIdToName = {};
-    const accountIds = Array.from(html.matchAll(mentionUserRegex), (m) => m[1]);
-    const logins = PersonalDetailsUtils.getLoginsByAccountIDs(accountIds);
-    accountIds.forEach((id, index) => accountIdToName[id] = logins[index]);
-
-    const parser = new ExpensiMark();
-    return parser.htmlToText(html, {reportIdToName, accountIdToName});
 }
 
 /**
@@ -3155,7 +3157,7 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
         }
 
         const isAttachment = ReportActionsUtils.isReportActionAttachment(!isEmptyObject(parentReportAction) ? parentReportAction : null);
-        const parentReportActionMessage = getReportActionMessage(parentReportAction, report?.parentReportID).replace(/(\r\n|\n|\r)/gm, ' ');
+        const parentReportActionMessage = getReportActionMessage(parentReportAction, report?.reportID ?? '', report?.parentReportID).replace(/(\r\n|\n|\r)/gm, ' ');
         if (isAttachment && parentReportActionMessage) {
             return `[${Localize.translateLocal('common.attachment')}]`;
         }
