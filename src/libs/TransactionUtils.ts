@@ -801,7 +801,7 @@ function compareDuplicateTransactionFields(transactionID: string): {keep: Partia
         reimbursable: ['reimbursable'],
     };
 
-    const getDifferentValues = (items: Array<OnyxEntry<Transaction>>, keys: Array<keyof Transaction>) => items.map((item) => keys.map((key) => item?.[key])).flat();
+    const getDifferentValues = (items: Array<OnyxEntry<Transaction>>, keys: Array<keyof Transaction>) => [...new Set(items.map((item) => keys.map((key) => item?.[key])).flat())];
 
     for (const fieldName in fieldsToCompare) {
         if (Object.prototype.hasOwnProperty.call(fieldsToCompare, fieldName)) {
