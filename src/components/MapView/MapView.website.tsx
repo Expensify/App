@@ -186,7 +186,6 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
             if (!mapRef) {
                 return;
             }
-            const currentZoom = mapRef.getZoom();
             if (directionCoordinates && directionCoordinates.length > 1) {
                 const {northEast, southWest} = utils.getBounds(waypoints?.map((waypoint) => waypoint.coordinate) ?? [], directionCoordinates);
                 const map = mapRef?.getMap();
