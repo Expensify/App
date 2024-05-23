@@ -162,6 +162,35 @@ const modalScreenListeners = {
 const url = getCurrentUrl();
 const openOnAdminRoom = url ? new URL(url).searchParams.get('openOnAdminRoom') : undefined;
 
+type Screens = Partial<Record<keyof AuthScreensParamList, () => React.ComponentType>>;
+
+const centralPaneScreens = {
+    [SCREENS.SETTINGS.WORKSPACES]: () => require('../../../pages/workspace/WorkspacesListPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.PREFERENCES.ROOT]: () => require('../../../pages/settings/Preferences/PreferencesPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.SECURITY]: () => require('../../../pages/settings/Security/SecuritySettingsPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.PROFILE.ROOT]: () => require('../../../pages/settings/Profile/ProfilePage').default as React.ComponentType,
+    [SCREENS.SETTINGS.WALLET.ROOT]: () => require('../../../pages/settings/Wallet/WalletPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.ABOUT]: () => require('../../../pages/settings/AboutPage/AboutPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.TROUBLESHOOT]: () => require('../../../pages/settings/Troubleshoot/TroubleshootPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.SAVE_THE_WORLD]: () => require('../../../pages/TeachersUnite/SaveTheWorldPage').default as React.ComponentType,
+    [SCREENS.SEARCH.CENTRAL_PANE]: () => require('../../../pages/search/SearchPage').default as React.ComponentType,
+    [SCREENS.REPORT]: () => require('./ReportScreenWrapper').default as React.ComponentType,
+} satisfies Screens;
+
+type CentralPaneName = keyof typeof centralPaneScreens;
+
+const CENTRAL_PANE_SCREEN_NAMES = [
+    SCREENS.SETTINGS.WORKSPACES,
+    SCREENS.SETTINGS.PREFERENCES.ROOT,
+    SCREENS.SETTINGS.SECURITY,
+    SCREENS.SETTINGS.PROFILE.ROOT,
+    SCREENS.SETTINGS.WALLET.ROOT,
+    SCREENS.SETTINGS.ABOUT,
+    SCREENS.SETTINGS.TROUBLESHOOT,
+    SCREENS.SETTINGS.SAVE_THE_WORLD,
+    SCREENS.REPORT,
+];
+
 function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDAppliedToClient}: AuthScreensProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -277,19 +306,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         // Rule disabled because this effect is only for component did mount & will component unmount lifecycle event
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
-
-    type Screens = Partial<Record<keyof AuthScreensParamList, () => React.ComponentType>>;
-
-    const settingsScreens = {
-        [SCREENS.SETTINGS.WORKSPACES]: () => require('../../../pages/workspace/WorkspacesListPage').default as React.ComponentType,
-        [SCREENS.SETTINGS.PREFERENCES.ROOT]: () => require('../../../pages/settings/Preferences/PreferencesPage').default as React.ComponentType,
-        [SCREENS.SETTINGS.SECURITY]: () => require('../../../pages/settings/Security/SecuritySettingsPage').default as React.ComponentType,
-        [SCREENS.SETTINGS.PROFILE.ROOT]: () => require('../../../pages/settings/Profile/ProfilePage').default as React.ComponentType,
-        [SCREENS.SETTINGS.WALLET.ROOT]: () => require('../../../pages/settings/Wallet/WalletPage').default as React.ComponentType,
-        [SCREENS.SETTINGS.ABOUT]: () => require('../../../pages/settings/AboutPage/AboutPage').default as React.ComponentType,
-        [SCREENS.SETTINGS.TROUBLESHOOT]: () => require('../../../pages/settings/Troubleshoot/TroubleshootPage').default as React.ComponentType,
-        [SCREENS.SETTINGS.SAVE_THE_WORLD]: () => require('../../../pages/TeachersUnite/SaveTheWorldPage').default as React.ComponentType,
-    } satisfies Screens;
 
     return (
         <OptionsListContextProvider>
@@ -421,24 +437,14 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         options={defaultScreenOptions}
                         component={ConnectionCompletePage}
                     />
-                    {Object.entries(settingsScreens).map(([screenName, componentGetter]) => (
+                    {Object.entries(centralPaneScreens).map(([screenName, componentGetter]) => (
                         <RootStack.Screen
                             key={screenName}
                             name={screenName}
+                            initialParams={{openOnAdminRoom: (screenName === SCREENS.REPORT && openOnAdminRoom === 'true') || undefined}}
                             getComponent={componentGetter}
                         />
                     ))}
-                    <RootStack.Screen
-                        name={SCREENS.REPORT}
-                        // We do it this way to avoid adding the url params to url
-                        initialParams={{openOnAdminRoom: openOnAdminRoom === 'true' || undefined}}
-                        component={ReportScreenWrapper}
-                    />
-                    <RootStack.Screen
-                        name={SCREENS.SEARCH.CENTRAL_PANE}
-                        // We do it this way to avoid adding the url params to url
-                        component={SearchPage}
-                    />
                 </RootStack.Navigator>
             </View>
         </OptionsListContextProvider>

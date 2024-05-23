@@ -21,7 +21,7 @@ function getTopmostReportId(state: NavigationState | NavigationState<RootStackPa
         return;
     }
 
-    const directReportParams = topmostCentralPane.params && 'params' in topmostCentralPane.params && topmostCentralPane?.params?.params;
+    const directReportParams = topmostCentralPane.params
     const directReportIdParam = directReportParams && 'reportID' in directReportParams && directReportParams?.reportID;
 
     if (!topmostCentralPane.state && !directReportIdParam) {

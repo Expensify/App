@@ -11,6 +11,7 @@ import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import getActionsFromPartialDiff from './AppNavigator/getActionsFromPartialDiff';
 import getPartialStateDiff from './AppNavigator/getPartialStateDiff';
+import CENTRAL_PANE_SCREEN_NAMES from './AppNavigator/Navigators/CENTRAL_PANE_SCREEN_NAMES';
 import dismissModal from './dismissModal';
 import getPolicyIDFromState from './getPolicyIDFromState';
 import getStateFromPath from './getStateFromPath';
@@ -128,7 +129,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
     while ((current = root.getParent())) {
         root = current;
     }
-    debugger;
+    // debugger;
     const pathWithoutPolicyID = getPathWithoutPolicyID(`/${path}`) as Route;
     const rootState = navigation.getRootState() as NavigationState<RootStackParamList>;
     const stateFromPath = getStateFromPath(pathWithoutPolicyID) as PartialState<NavigationState<RootStackParamList>>;
@@ -157,26 +158,29 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
         const topRouteName = rootState?.routes?.at(-1)?.name;
         const isTargetNavigatorOnTop = topRouteName === action.payload.name;
 
-        const isTargetScreenDifferentThanCurrent = Boolean(topmostCentralPaneRoute && topmostCentralPaneRoute.name !== action.payload.params?.screen);
+        const isTargetScreenDifferentThanCurrent = Boolean(topmostCentralPaneRoute && topmostCentralPaneRoute.name !== (action.payload.params?.screen ?? action.payload.name));
         const areParamsDifferent =
-            action.payload.params?.screen === SCREENS.REPORT
+            action.payload.name === SCREENS.REPORT
                 ? getTopmostReportId(rootState) !== getTopmostReportId(stateFromPath)
                 : !shallowCompare(
                       omitBy(topmostCentralPaneRoute?.params as Record<string, unknown> | undefined, (value) => value === undefined),
                       omitBy(action.payload.params?.params as Record<string, unknown> | undefined, (value) => value === undefined),
                   );
+        console.log('bools', isTargetScreenDifferentThanCurrent, areParamsDifferent);
         // In case if type is 'FORCED_UP' we replace current screen with the provided. This means the current screen no longer exists in the stack
         if (type === CONST.NAVIGATION.TYPE.FORCED_UP) {
             action.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
 
             // If this action is navigating to the report screen and the top most navigator is different from the one we want to navigate - PUSH the new screen to the top of the stack
-        } else if (action.payload.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR && (isTargetScreenDifferentThanCurrent || areParamsDifferent)) {
+        } else if (CENTRAL_PANE_SCREEN_NAMES.includes(action.payload.name) && (isTargetScreenDifferentThanCurrent || areParamsDifferent)) {
             // We need to push a tab if the tab doesn't match the central pane route that we are going to push.
             const topmostBottomTabRoute = getTopmostBottomTabRoute(rootState);
             const matchingBottomTabRoute = getMatchingBottomTabRouteForState(stateFromPath, policyID);
+
             const isNewPolicyID =
                 (topmostBottomTabRoute?.params as Record<string, string | undefined>)?.policyID !== (matchingBottomTabRoute?.params as Record<string, string | undefined>)?.policyID;
             if (topmostBottomTabRoute && (topmostBottomTabRoute.name !== matchingBottomTabRoute.name || isNewPolicyID)) {
+                console.log('matchingBottomTabRoute', matchingBottomTabRoute);
                 root.dispatch({
                     type: CONST.NAVIGATION.ACTION_TYPE.PUSH,
                     payload: matchingBottomTabRoute,
