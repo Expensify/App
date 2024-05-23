@@ -2347,11 +2347,11 @@ export default {
             syncError: (integration?: ConnectionName): string => {
                 switch (integration) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
-                        return 'No se pudo conectar a QuickBooks Online debido a credenciales incorrectas.';
+                        return 'No se puede conectar a QuickBooks Online.';
                     case CONST.POLICY.CONNECTIONS.NAME.XERO:
-                        return 'No se pudo conectar a Xero debido a credenciales incorrectas.';
+                        return 'No se puede conectar a Xero';
                     default: {
-                        return 'No se pudo conectar a la integración debido a credenciales incorrectas.';
+                        return 'No se ha podido conectar a la integración.';
                     }
                 }
             },
