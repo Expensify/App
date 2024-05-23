@@ -285,6 +285,12 @@ Onyx.connect({
     },
 });
 
+let primaryPolicyID: OnyxEntry<string>;
+Onyx.connect({
+    key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
+    callback: (value) => (primaryPolicyID = value),
+});
+
 /**
  * Find the report preview action from given chat report and iou report
  */
@@ -5850,6 +5856,7 @@ function getPayMoneyRequestParams(
     recipient: Participant,
     paymentMethodType: PaymentMethodType,
     full: boolean,
+    payAsBusiness?: boolean,
 ): PayMoneyRequestData {
     const isInvoiceReport = ReportUtils.isInvoiceReport(iouReport);
 
@@ -5884,19 +5891,27 @@ function getPayMoneyRequestParams(
         optimisticNextStep = NextStepUtils.buildNextStep(iouReport, CONST.REPORT.STATUS_NUM.REIMBURSED, {isPaidWithExpensify: paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA});
     }
 
+    const optimisticChatReport = {
+        ...chatReport,
+        lastReadTime: DateUtils.getDBTime(),
+        lastVisibleActionCreated: optimisticIOUReportAction.created,
+        hasOutstandingChildRequest: false,
+        iouReportID: null,
+        lastMessageText: optimisticIOUReportAction.message?.[0]?.text,
+        lastMessageHtml: optimisticIOUReportAction.message?.[0]?.html,
+    };
+    if (ReportUtils.isIndividualInvoiceRoom(chatReport) && payAsBusiness && primaryPolicyID) {
+        optimisticChatReport.invoiceReceiver = {
+            type: CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS,
+            policyID: primaryPolicyID,
+        };
+    }
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
-            value: {
-                ...chatReport,
-                lastReadTime: DateUtils.getDBTime(),
-                lastVisibleActionCreated: optimisticIOUReportAction.created,
-                hasOutstandingChildRequest: false,
-                iouReportID: null,
-                lastMessageText: optimisticIOUReportAction.message?.[0]?.text,
-                lastMessageHtml: optimisticIOUReportAction.message?.[0]?.html,
-            },
+            value: optimisticChatReport,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -6495,19 +6510,20 @@ function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.R
     Navigation.dismissModalWithReport(chatReport);
 }
 
-function payInvoice(paymentMethodType: PaymentMethodType, chatReport: OnyxTypes.Report, invoiceReport: OnyxTypes.Report) {
+function payInvoice(paymentMethodType: PaymentMethodType, chatReport: OnyxTypes.Report, invoiceReport: OnyxTypes.Report, payAsBusiness = false) {
     const recipient = {accountID: invoiceReport.ownerAccountID};
     const {
         optimisticData,
         successData,
         failureData,
         params: {reportActionID},
-    } = getPayMoneyRequestParams(chatReport, invoiceReport, recipient, paymentMethodType, true);
+    } = getPayMoneyRequestParams(chatReport, invoiceReport, recipient, paymentMethodType, true, payAsBusiness);
 
     const params: PayInvoiceParams = {
         reportID: invoiceReport.reportID,
         reportActionID,
         paymentMethodType,
+        payAsBusiness,
     };
 
     API.write(WRITE_COMMANDS.PAY_INVOICE, params, {optimisticData, successData, failureData});

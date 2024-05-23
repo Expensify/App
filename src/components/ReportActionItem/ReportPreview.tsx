@@ -280,12 +280,12 @@ function ReportPreview({
         };
     }, [formattedMerchant, formattedDescription, moneyRequestComment, translate, numberOfRequests, numberOfScanningReceipts, numberOfPendingRequests]);
 
-    const confirmPayment = (paymentMethodType?: PaymentMethodType) => {
+    const confirmPayment = (paymentMethodType?: PaymentMethodType, payAsBusiness?: boolean) => {
         if (!paymentMethodType || !chatReport || !iouReport) {
             return;
         }
         if (ReportUtils.isInvoiceReport(iouReport)) {
-            IOU.payInvoice(paymentMethodType, chatReport, iouReport);
+            IOU.payInvoice(paymentMethodType, chatReport, iouReport, payAsBusiness);
         } else {
             IOU.payMoneyRequest(paymentMethodType, chatReport, iouReport);
         }

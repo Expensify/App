@@ -1,14 +1,16 @@
 import React, {useEffect, useMemo} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as IOU from '@userActions/IOU';
 import * as PaymentMethods from '@userActions/PaymentMethods';
+import * as PolicyActions from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -143,6 +145,9 @@ function SettlementButton({
 }: SettlementButtonProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+
+    const primaryPolicy = useMemo(() => PolicyActions.getPrimaryPolicy(activePolicyID) ?? null, [activePolicyID]);
 
     useEffect(() => {
         PaymentMethods.openWalletPage();
@@ -216,6 +221,22 @@ function SettlementButton({
                     },
                 ],
             });
+
+            if (PolicyUtils.isPolicyAdmin(primaryPolicy)) {
+                buttonOptions.push({
+                    text: translate('iou.settleBusiness', {formattedAmount}),
+                    icon: Expensicons.Building,
+                    value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                    subMenuItems: [
+                        {
+                            text: translate('iou.payElsewhere', {formattedAmount: ''}),
+                            icon: Expensicons.Cash,
+                            value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                            onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, true),
+                        },
+                    ],
+                });
+            }
         }
 
         if (shouldShowApproveButton) {
