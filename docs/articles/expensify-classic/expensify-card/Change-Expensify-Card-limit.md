@@ -2,7 +2,7 @@
 title: Change Expensify Card limit
 description: Increase or decrease the limit for an Expensify Card or for a group
 ---
-<div id="new-expensify" markdown="1">
+<div id="expensify-classic" markdown="1">
 
 You can set Expensify Card limits for each group in your organization, or you can set the limit per card.
 
@@ -20,6 +20,6 @@ You can set Expensify Card limits for each group in your organization, or you ca
 1. Hover over Settings, then click **Domains**.
 2. Click the name of the domain.
 3. Click the **Groups** tab on the left.
-4. Next Expensify Card Smart Limit field for the card and enter the desired limit. 
+4. Click the Expensify Card Smart Limit field for the card and enter the desired limit. 
 
 </div>
