@@ -4503,7 +4503,7 @@ function buildOptimisticHoldReportActionComment(comment: string, created = DateU
         actorAccountID: currentUserAccountID,
         message: [
             {
-                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
                 style: 'normal',
                 text: comment,
             },
