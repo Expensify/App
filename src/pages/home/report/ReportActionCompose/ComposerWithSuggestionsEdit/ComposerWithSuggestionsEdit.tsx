@@ -63,7 +63,7 @@ function ComposerWithSuggestionsEdit(
                 onChangeText={onChangeText}
                 onKeyPress={onKeyPress}
                 value={value}
-                maxLines={maxLines} // This is the same that slack has
+                maxLines={maxLines}
                 style={style}
                 onFocus={onFocus}
                 onBlur={onBlur}
