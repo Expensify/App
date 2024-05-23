@@ -34,17 +34,17 @@ function WorkspaceProfileSharePage({policy}: WithPolicyProps) {
     const session = useSession();
 
     const policyName = policy?.name ?? '';
-    const id = policy?.id ?? '';
+    const policyID = policy?.id ?? '';
     const adminEmail = session?.email ?? '';
     const urlWithTrailingSlash = Url.addTrailingForwardSlash(environmentURL);
 
-    const url = `${urlWithTrailingSlash}${ROUTES.WORKSPACE_JOIN_USER.getRoute(id, adminEmail)}`;
+    const url = `${urlWithTrailingSlash}${ROUTES.WORKSPACE_JOIN_USER.getRoute(policyID, adminEmail)}`;
 
     const hasAvatar = Boolean(policy?.avatarURL);
     const logo = hasAvatar ? (policy?.avatarURL as ImageSourcePropType) : undefined;
 
     const defaultWorkspaceAvatar = ReportUtils.getDefaultWorkspaceAvatar(policyName) || Expensicons.FallbackAvatar;
-    const defaultWorkspaceAvatarColors = StyleUtils.getDefaultWorkspaceAvatarColor(policyName);
+    const defaultWorkspaceAvatarColors = StyleUtils.getDefaultWorkspaceAvatarColor(policyID);
 
     const logoSVG = !hasAvatar ? defaultWorkspaceAvatar : undefined;
     const logoBackground = !hasAvatar ? defaultWorkspaceAvatarColors.backgroundColor?.toString() : undefined;
@@ -52,7 +52,7 @@ function WorkspaceProfileSharePage({policy}: WithPolicyProps) {
 
     return (
         <AccessOrNotFoundWrapper
-            policyID={id}
+            policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
         >
             <ScreenWrapper
@@ -77,7 +77,6 @@ function WorkspaceProfileSharePage({policy}: WithPolicyProps) {
                                 ref={qrCodeRef}
                                 url={url}
                                 title={policyName}
-                                // logo={(policy?.avatarURL ? policy.avatarURL : expensifyLogo) as ImageSourcePropType}
                                 logo={logo}
                                 logoSVG={logoSVG}
                                 logoBackground={logoBackground}
