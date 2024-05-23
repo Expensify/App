@@ -173,7 +173,7 @@ function IOURequestStepAmount({
         // If a reportID exists in the report object, it's because the user started this flow from using the + button in the composer
         // inside a report. In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
         // to the confirm step.
-        if (report?.reportID && !ReportUtils.isArchivedRoom(report)) {
+        if (report?.reportID && !ReportUtils.isArchivedRoom(report) && !ReportUtils.isClosedReport(report)) {
             const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
             const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? 0;

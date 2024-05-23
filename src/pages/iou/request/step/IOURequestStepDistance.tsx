@@ -109,7 +109,7 @@ function IOURequestStepDistance({
             return false;
         }
 
-        return !ReportUtils.isArchivedRoom(report) && !(ReportUtils.isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
+        return !ReportUtils.isArchivedRoom(report) && !ReportUtils.isClosedReport(report) && !(ReportUtils.isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
     }, [report, skipConfirmation, policy]);
     let buttonText = !isCreatingNewRequest ? translate('common.save') : translate('common.next');
     if (shouldSkipConfirmation) {
