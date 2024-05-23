@@ -25,6 +25,7 @@ type Participant = {
     isSelfDM?: boolean;
     isSender?: boolean;
     iouType?: string;
+    ownerAccountID?: number;
 };
 
 type Split = {
