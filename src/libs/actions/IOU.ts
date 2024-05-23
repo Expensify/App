@@ -3985,7 +3985,7 @@ function createSplitsAndOnyxData(
             category,
             tag,
             taxCode,
-            splitTaxAmount,
+            ReportUtils.isExpenseReport(oneOnOneIOUReport) ? -splitTaxAmount : splitTaxAmount,
             billable,
         );
 
