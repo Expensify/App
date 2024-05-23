@@ -88,7 +88,6 @@ function ComposerWithSuggestionsEdit(
                 isAutoSuggestionPickerLarge
                 isGroupPolicyReport={isGroupPolicyReport}
                 policyID={policyID}
-                // Input
                 value={value}
                 setValue={setValue}
                 selection={selection}
