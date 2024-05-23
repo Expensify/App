@@ -1,31 +1,21 @@
 import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {
-    EnablePolicyTagsParams,
-    OpenPolicyTagsPageParams,
-} from '@libs/API/parameters';
+import type {EnablePolicyTagsParams, OpenPolicyTagsPageParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import {navigateWhenEnableFeature} from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {
-    Policy,
-    PolicyTag,
-    PolicyTagList,
-    PolicyTags,
-    RecentlyUsedTags,
-    Report,
-} from '@src/types/onyx';
+import type {Policy, PolicyTag, PolicyTagList, PolicyTags, RecentlyUsedTags, Report} from '@src/types/onyx';
 import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {Attributes, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
-import {navigateWhenEnableFeature} from "@userActions/Policy";
 
 type NewCustomUnit = {
     customUnitID: string;
