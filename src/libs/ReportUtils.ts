@@ -487,6 +487,7 @@ let currentUserEmail: string | undefined;
 let currentUserPrivateDomain: string | undefined;
 let currentUserAccountID: number | undefined;
 let isAnonymousUser = false;
+let reportActionParsedHtmlCache = {};
 
 const defaultAvatarBuildingIconTestID = 'SvgDefaultAvatarBuilding Icon';
 
@@ -3078,7 +3079,37 @@ function getReportActionMessage(reportAction: ReportAction | EmptyObject, parent
     if (ReportActionsUtils.isReimbursementQueuedAction(reportAction)) {
         return getReimbursementQueuedActionMessage(reportAction, getReport(parentReportID), false);
     }
-    return Str.removeSMSDomain(reportAction?.message?.[0]?.text ?? '');
+
+    const text = parseReportActionHtmlToText(reportAction);
+    return Str.removeSMSDomain(text);
+}
+
+/**
+ * Parse html of reportAction into text
+ */
+function parseReportActionHtmlToText(reportAction: OnyxEntry<ReportAction>): string{
+    const {html, text} = reportAction?.message?.[0];
+
+    if (!html) {
+        return text ?? "";
+    }
+
+    const mentionReportRegex = /<mention-report reportID="(\d+)" *\/>/gi;
+    const matches = html.matchAll(mentionReportRegex);
+
+    const reportIdToName = {};
+    for (const match of matches) {
+        reportIdToName[match[1]] = getReportName(getReport(match[1]));
+    }
+
+    const mentionUserRegex = /<mention-user accountID="(\d+)" *\/>/gi;
+    const accountIdToName = {};
+    const accountIds = Array.from(html.matchAll(mentionUserRegex), (m) => m[1]);
+    const logins = PersonalDetailsUtils.getLoginsByAccountIDs(accountIds);
+    accountIds.forEach((id, index) => accountIdToName[id] = logins[index]);
+
+    const parser = new ExpensiMark();
+    return parser.htmlToText(html, {reportIdToName, accountIdToName});
 }
 
 /**
@@ -6746,6 +6777,7 @@ export {
     navigateToDetailsPage,
     navigateToPrivateNotes,
     parseReportRouteParams,
+    parseReportActionHtmlToText,
     reportFieldsEnabled,
     requiresAttentionFromCurrentUser,
     shouldAutoFocusOnKeyPress,
