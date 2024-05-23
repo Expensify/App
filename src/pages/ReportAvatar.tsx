@@ -10,26 +10,26 @@ import * as UserUtils from '@libs/UserUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {NewGroupChatDraft, Policy, Report} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 
 type ReportAvatarOnyxProps = {
     report: OnyxEntry<Report>;
     isLoadingApp: OnyxEntry<boolean>;
     policies: OnyxCollection<Policy>;
-    groupChatDraft: OnyxEntry<NewGroupChatDraft>;
 };
 
 type ReportAvatarProps = ReportAvatarOnyxProps & StackScreenProps<AuthScreensParamList, typeof SCREENS.REPORT_AVATAR>;
 
-function ReportAvatar({report = {} as Report, policies, isLoadingApp = true, groupChatDraft, route}: ReportAvatarProps) {
+function ReportAvatar({report = {} as Report, policies, isLoadingApp = true, route}: ReportAvatarProps) {
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? '0'}`];
     const title = policy ? ReportUtils.getPolicyName(report, false, policy) : report?.reportName;
     let avatarURL = undefined;
     let fileName = undefined;
+    let groupChatDraft;
 
     const shouldUseGroupChatDraft = route.params.newGroupChat === 'true';
     if(shouldUseGroupChatDraft) {
-        const [groupChatDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
+        [groupChatDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
         avatarURL = groupChatDraft?.avatarUri ?? undefined;
         fileName = groupChatDraft?.originalFileName ?? undefined;
     }
@@ -66,8 +66,5 @@ export default withOnyx<ReportAvatarProps, ReportAvatarOnyxProps>({
     },
     policies: {
         key: ONYXKEYS.COLLECTION.POLICY,
-    },
-    groupChatDraft: {
-        key: ONYXKEYS.NEW_GROUP_CHAT_DRAFT,
     },
 })(ReportAvatar);
