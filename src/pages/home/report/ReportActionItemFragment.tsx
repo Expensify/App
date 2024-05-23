@@ -172,7 +172,10 @@ function ReportActionItemFragment({
                     icon={actorIcon}
                 >
                     {containEmoji ? (
-                        <Text style={[styles.chatItemMessageHeaderSender, isSingleLine ? styles.pre : styles.preWrap]}>
+                        <Text
+                            numberOfLines={isSingleLine ? 1 : undefined}
+                            style={[styles.chatItemMessageHeaderSender, isSingleLine ? styles.pre : styles.preWrap]}
+                        >
                             {processedTextArray.map(({text, isEmoji}) => (isEmoji ? <Text style={styles.emojisWithinText}>{text}</Text> : text))}
                         </Text>
                     ) : (

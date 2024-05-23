@@ -316,10 +316,10 @@ function Composer(
             scrollStyleMemo,
             StyleUtils.getComposerMaxHeightStyle(maxLines, isComposerFullSize),
             isComposerFullSize ? ({height: '100%', maxHeight: 'none' as DimensionValue} as TextStyle) : undefined,
-            textContainsOnlyEmojis ? {paddingBottom: 0} : null,
+            textContainsOnlyEmojis ? styles.emojisOnlyComposer : null,
         ],
 
-        [style, styles.rtlTextRenderForSafari, scrollStyleMemo, StyleUtils, maxLines, isComposerFullSize, textContainsOnlyEmojis],
+        [style, StyleUtils, isComposerFullSize, styles.rtlTextRenderForSafari, styles.emojisOnlyComposer, scrollStyleMemo, maxLines, textContainsOnlyEmojis],
     );
 
     return (

@@ -1656,6 +1656,7 @@ const styles = (theme: ThemeColors) =>
         onlyEmojisText: {
             fontSize: variables.fontSizeOnlyEmojis,
             lineHeight: variables.fontSizeOnlyEmojisHeight,
+            marginTop: variables.emojiOnlyMarginTop,
         },
 
         onlyEmojisTextLineHeight: {
@@ -1664,6 +1665,11 @@ const styles = (theme: ThemeColors) =>
 
         emojisWithinText: {
             fontSize: variables.fontSizeEmojisWithinText,
+        },
+
+        emojisOnlyComposer: {
+            paddingTop: variables.emojiOnlyComposerPaddingTop,
+            paddingBottom: variables.emojiOnlyComposerPaddingBottom,
         },
 
         enhancedLineHeight: {
