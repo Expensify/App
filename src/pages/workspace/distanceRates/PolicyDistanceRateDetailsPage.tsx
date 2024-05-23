@@ -50,7 +50,7 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
     const currency = rate?.currency ?? CONST.CURRENCY.USD;
 
     // Rates can be disabled or deleted as long as in the remaining rates there is always at least one enabled rate and there are no pending delete action
-    const canDisableOrDeleteRate = Object.values(customUnit?.rates).some(
+    const canDisableOrDeleteRate = Object.values(customUnit?.rates ?? {}).some(
         (distanceRate: Rate) => distanceRate?.enabled && rateID !== distanceRate?.customUnitRateID && distanceRate?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
     );
     const errorFields = rate?.errorFields;
