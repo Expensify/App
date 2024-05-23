@@ -51,7 +51,7 @@ function arePropsEqual(prevProps: CellProps, nextProps: CellProps) {
     return prevProps.keyForList === nextProps.keyForList;
 }
 
-const MemoDateCell = memo(
+const DateCell = memo(
     ({ showTooltip, date, isLargeScreenWidth }: DateCellProps): JSX.Element => {
     const styles = useThemeStyles();
 
@@ -65,7 +65,7 @@ const MemoDateCell = memo(
     arePropsEqual,
 );
 
-const MemoMerchantCell = memo(
+const MerchantCell = memo(
     ({ showTooltip, transactionItem, merchant, description }: MerchantCellProps): JSX.Element => {
     const styles = useThemeStyles();
     return (
@@ -78,7 +78,7 @@ const MemoMerchantCell = memo(
     arePropsEqual,
 );
 
-const MemoUserCell = memo(
+const UserCell = memo(
     ({ participant }: UserCellProps): JSX.Element => {
     const styles = useThemeStyles();
 
@@ -108,7 +108,7 @@ const MemoUserCell = memo(
     arePropsEqual,
 );
 
-const MemoTotalCell = memo(
+const TotalCell = memo(
     ({ showTooltip, amount, currency, isLargeScreenWidth }: CurrencyCellProps): JSX.Element => {
     const styles = useThemeStyles();
 
@@ -122,7 +122,7 @@ const MemoTotalCell = memo(
     arePropsEqual,
 );
 
-const MemoTypeCell = memo(
+const TypeCell = memo(
     ({typeIcon, isLargeScreenWidth}: TypeCellProps): JSX.Element => {
         const theme = useTheme();
         return (
@@ -137,7 +137,7 @@ const MemoTypeCell = memo(
     arePropsEqual,
 );
 
-const MemoActionCell = memo(
+const ActionCell = memo(
     ({ item, onSelectRow }: ActionCellProps): JSX.Element => {
     const { translate } = useLocalize();
     const styles = useThemeStyles();
@@ -154,7 +154,7 @@ const MemoActionCell = memo(
     arePropsEqual,
 );
 
-const MemoCategoryCell = memo(
+const CategoryCell = memo(
     ({ isLargeScreenWidth, showTooltip, transactionItem }: TransactionCellProps): JSX.Element => {
     const styles = useThemeStyles();
     return isLargeScreenWidth ? (
@@ -172,7 +172,7 @@ const MemoCategoryCell = memo(
     arePropsEqual,
 );
 
-const MemoTagCell = memo(
+const TagCell = memo(
     ({ isLargeScreenWidth, showTooltip, transactionItem }: TransactionCellProps): JSX.Element => {
     const styles = useThemeStyles();
     return isLargeScreenWidth ? (
@@ -190,7 +190,7 @@ const MemoTagCell = memo(
     arePropsEqual,
 );
 
-const MemoTaxCell = memo(
+const TaxCell = memo(
     ({ showTooltip, amount, currency }: CurrencyCellProps): JSX.Element => {
     const styles = useThemeStyles();
     return (
@@ -263,7 +263,7 @@ function TransactionListItem<TItem extends ListItem>({
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mb2, styles.gap2]}>
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.flex1]}>
                                 <View style={[styles.mw50]}>
-                                    <MemoUserCell
+                                    <UserCell
                                         participant={transactionItem.from}
                                         keyForList={item.keyForList ?? ''}
                                         showTooltip={false}
@@ -277,7 +277,7 @@ function TransactionListItem<TItem extends ListItem>({
                                     fill={theme.icon}
                                 />
                                 <View style={[styles.mw50]}>
-                                    <MemoUserCell
+                                    <UserCell
                                         participant={transactionItem.to}
                                         keyForList={item.keyForList ?? ''}
                                         showTooltip={false}
@@ -286,7 +286,7 @@ function TransactionListItem<TItem extends ListItem>({
                                 </View>
                             </View>
                             <View style={[StyleUtils.getWidthStyle(variables.w80)]}>
-                                <MemoActionCell
+                                <ActionCell
                                     item={transactionItem}
                                     onSelectRow={onSelectRow as unknown as (item: TransactionListItemType) => void}
                                     keyForList={item.keyForList ?? ''}
@@ -297,7 +297,7 @@ function TransactionListItem<TItem extends ListItem>({
                         </View>
                         <View style={[styles.flexRow, styles.justifyContentBetween, styles.gap1]}>
                             <View style={[styles.flex2, styles.gap1]}>
-                                <MemoMerchantCell
+                                <MerchantCell
                                     showTooltip={showTooltip}
                                     transactionItem={transactionItem}
                                     merchant={merchant}
@@ -306,13 +306,13 @@ function TransactionListItem<TItem extends ListItem>({
                                     isLargeScreenWidth={false}
                                 />
                                 <View style={[styles.flexRow, styles.flex1, styles.alignItemsEnd, styles.gap3]}>
-                                    <MemoCategoryCell
+                                    <CategoryCell
                                         keyForList={item.keyForList ?? ''}
                                         isLargeScreenWidth={isLargeScreenWidth}
                                         showTooltip={showTooltip}
                                         transactionItem={transactionItem}
                                     />
-                                    <MemoTagCell
+                                    <TagCell
                                         showTooltip={showTooltip}
                                         transactionItem={transactionItem}
                                         isLargeScreenWidth={isLargeScreenWidth}
@@ -321,7 +321,7 @@ function TransactionListItem<TItem extends ListItem>({
                                 </View>
                             </View>
                             <View style={[styles.alignItemsEnd, styles.flex1, styles.gap1]}>
-                                <MemoTotalCell
+                                <TotalCell
                                     showTooltip={showTooltip}
                                     amount={amount}
                                     currency={currency}
@@ -329,13 +329,13 @@ function TransactionListItem<TItem extends ListItem>({
                                     keyForList={item.keyForList ?? ''}
                                 />
                                 <View style={[styles.flexRow, styles.gap1, styles.justifyContentCenter]}>
-                                    <MemoTypeCell
+                                    <TypeCell
                                         typeIcon={typeIcon}
                                         isLargeScreenWidth={isLargeScreenWidth}
                                         keyForList={item.keyForList ?? ''}
                                         showTooltip={false}
                                     />
-                                    <MemoDateCell
+                                    <DateCell
                                         showTooltip={showTooltip}
                                         date={date}
                                         isLargeScreenWidth={isLargeScreenWidth}
@@ -373,7 +373,7 @@ function TransactionListItem<TItem extends ListItem>({
             {() => (
                 <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
                     <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DATE)]}>
-                        <MemoDateCell
+                        <DateCell
                             showTooltip={showTooltip}
                             date={date}
                             isLargeScreenWidth={isLargeScreenWidth}
@@ -381,7 +381,7 @@ function TransactionListItem<TItem extends ListItem>({
                         />
                     </View>
                     <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.MERCHANT)]}>
-                        <MemoMerchantCell
+                        <MerchantCell
                             showTooltip={showTooltip}
                             transactionItem={transactionItem}
                             merchant={merchant}
@@ -391,7 +391,7 @@ function TransactionListItem<TItem extends ListItem>({
                         />
                     </View>
                     <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.FROM)]}>
-                        <MemoUserCell
+                        <UserCell
                             participant={transactionItem.from}
                             keyForList={item.keyForList ?? ''}
                             showTooltip={false}
@@ -399,7 +399,7 @@ function TransactionListItem<TItem extends ListItem>({
                         />
                     </View>
                     <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.FROM)]}>
-                        <MemoUserCell
+                        <UserCell
                             participant={transactionItem.to}
                             keyForList={item.keyForList ?? ''}
                             showTooltip={false}
@@ -408,7 +408,7 @@ function TransactionListItem<TItem extends ListItem>({
                     </View>
                     {transactionItem.shouldShowCategory && (
                         <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.CATEGORY)]}>
-                            <MemoCategoryCell
+                            <CategoryCell
                                 keyForList={item.keyForList ?? ''}
                                 isLargeScreenWidth={isLargeScreenWidth}
                                 showTooltip={showTooltip}
@@ -418,7 +418,7 @@ function TransactionListItem<TItem extends ListItem>({
                     )}
                     {transactionItem.shouldShowTag && (
                         <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TAG)]}>
-                            <MemoTagCell
+                            <TagCell
                                 keyForList={item.keyForList ?? ''}
                                 isLargeScreenWidth={isLargeScreenWidth}
                                 showTooltip={showTooltip}
@@ -428,7 +428,7 @@ function TransactionListItem<TItem extends ListItem>({
                     )}
                     {transactionItem.shouldShowTax && (
                         <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TAX_AMOUNT)]}>
-                            <MemoTaxCell
+                            <TaxCell
                                 keyForList={item.keyForList ?? ''}
                                 isLargeScreenWidth={isLargeScreenWidth}
                                 showTooltip={showTooltip}
@@ -439,7 +439,7 @@ function TransactionListItem<TItem extends ListItem>({
                     )}
 
                     <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TOTAL)]}>
-                        <MemoTotalCell
+                        <TotalCell
                             showTooltip={showTooltip}
                             amount={amount}
                             currency={currency}
@@ -448,7 +448,7 @@ function TransactionListItem<TItem extends ListItem>({
                         />
                     </View>
                     <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TYPE)]}>
-                        <MemoTypeCell
+                        <TypeCell
                             typeIcon={typeIcon}
                             isLargeScreenWidth={isLargeScreenWidth}
                             keyForList={item.keyForList ?? ''}
@@ -456,7 +456,7 @@ function TransactionListItem<TItem extends ListItem>({
                         />
                     </View>
                     <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.ACTION)]}>
-                        <MemoActionCell
+                        <ActionCell
                             item={transactionItem}
                             onSelectRow={onSelectRow as unknown as (item: TransactionListItemType) => void}
                             keyForList={item.keyForList ?? ''}
