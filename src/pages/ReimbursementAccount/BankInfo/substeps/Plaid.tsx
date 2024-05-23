@@ -88,7 +88,6 @@ function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidDa
                 allowDebit
                 bankAccountID={bankAccountID}
                 selectedPlaidAccountID={selectedPlaidAccountID}
-                isDisplayedInNewVBBA
                 inputID={BANK_INFO_STEP_KEYS.SELECTED_PLAID_ACCOUNT_ID}
                 defaultValue={selectedPlaidAccountID}
             />
