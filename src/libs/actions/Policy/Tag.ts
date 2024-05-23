@@ -8,7 +8,6 @@ import Log from '@libs/Log';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import {navigateWhenEnableFeature} from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -16,6 +15,7 @@ import type {Policy, PolicyTag, PolicyTagList, PolicyTags, RecentlyUsedTags, Rep
 import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {Attributes, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
+import {navigateWhenEnableFeature} from '../Policy';
 
 type NewCustomUnit = {
     customUnitID: string;
