@@ -13,7 +13,7 @@ type AvatarWithIndicatorProps = {
     /** URL for the avatar */
     source?: UserUtils.AvatarSource;
 
-    /** account id if it's user avatar */
+    /** Account id if it's user avatar */
     accountID?: number;
 
     /** To show a tooltip on hover */

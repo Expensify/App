@@ -79,7 +79,6 @@ function generateAccountID(searchValue: string): number {
 
 /**
  * Helper method to return the default avatar associated with the given accountID
- * @returns
  */
 function getDefaultAvatar(accountID = -1, avatarURL?: string): IconAsset | undefined {
     if (accountID === CONST.ACCOUNT_ID.CONCIERGE) {
@@ -92,7 +91,7 @@ function getDefaultAvatar(accountID = -1, avatarURL?: string): IconAsset | undef
     // There are 24 possible default avatars, so we choose which one this user has based
     // on a simple modulo operation of their login number. Note that Avatar count starts at 1.
 
-    // When creating a chat, we generate an avatar using an ID and the backend response will modify the ID to the actual user ID.
+    // When creating a chat the backend response will return the actual user ID.
     // But the avatar link still corresponds to the original ID-generated link. So we extract the SVG image number from the backend's link instead of using the user ID directly
     let accountIDHashBucket: AvatarRange | undefined;
     if (avatarURL) {

@@ -81,7 +81,7 @@ function Avatar({
 
     const isWorkspace = type === CONST.ICON_TYPE_WORKSPACE;
 
-    // if it's user avatar then accountID will be a number
+    // If it's user avatar then accountID will be a number
     const source = isWorkspace ? originalSource : UserUtils.getAvatar(originalSource, avatarID as number);
     const useFallBackAvatar = imageError || !source || source === Expensicons.FallbackAvatar;
     const fallbackAvatar = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatar(name) : fallbackIcon || Expensicons.FallbackAvatar;

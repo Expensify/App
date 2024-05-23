@@ -6496,10 +6496,10 @@ function hasMissingPaymentMethod(userWallet: OnyxEntry<UserWallet>, iouReportID:
 
 /**
  * Used from expense actions to decide if we need to build an optimistic expense report.
- Create a new report if:
- - we don't have an iouReport set in the chatReport
- - we have one, but it's waiting on the payee adding a bank account
- - we have one but we can't add more transactions to it due to: report is approved or settled, or report is processing and policy isn't on Instant submit reporting frequency
+ * Create a new report if:
+ * - we don't have an iouReport set in the chatReport
+ * - we have one, but it's waiting on the payee adding a bank account
+ * - we have one, but we can't add more transactions to it due to: report is approved or settled, or report is processing and policy isn't on Instant submit reporting frequency
  */
 function shouldCreateNewMoneyRequestReport(existingIOUReport: OnyxEntry<Report> | undefined | null, chatReport: OnyxEntry<Report> | null): boolean {
     return !existingIOUReport || hasIOUWaitingOnCurrentUserBankAccount(chatReport) || !canAddOrDeleteTransactions(existingIOUReport);
