@@ -51,7 +51,7 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
     const customUnit = customUnits[Object.keys(customUnits)[0]];
     const rate = customUnit?.rates[rateID];
     const currency = rate?.currency ?? CONST.CURRENCY.USD;
-    
+
     const isTrackTaxEnabled = customUnit.attributes.taxEnabled;
     const defaultTaxRateID = policy?.taxRates?.defaultExternalID ?? '';
     const taxRate = `${policy?.taxRates?.taxes[defaultTaxRateID].name} (${policy?.taxRates?.taxes[defaultTaxRateID].value})`;
@@ -65,7 +65,6 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
         }));
         return result;
     }, [policy, defaultTaxRateID]);
-
 
     // Rates can be disabled or deleted as long as in the remaining rates there is always at least one enabled rate and there are no pending delete action
     const canDisableOrDeleteRate = Object.values(customUnit?.rates).some(

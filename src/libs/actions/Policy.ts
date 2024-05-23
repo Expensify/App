@@ -4501,9 +4501,12 @@ function enableDistanceRequestTax(policyID: string, customUnitName: string, cust
     };
 
     const params = {
-        customUnitName,
-        customUnitID,
-        attributes,
+        policyID,
+        customUnit: JSON.stringify({
+            customUnitName,
+            customUnitID,
+            attributes,
+        }),
     };
     API.write(WRITE_COMMANDS.ENABLE_DISTANCE_REQUEST_TAX, params, onyxData);
 }
