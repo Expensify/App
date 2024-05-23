@@ -14,7 +14,12 @@ import HttpsError from './Errors/HttpsError';
 let shouldFailAllRequests = false;
 let shouldForceOffline = false;
 
-type AbortCommand = typeof READ_COMMANDS.ALL | typeof READ_COMMANDS.SEARCH_FOR_REPORTS;
+const ABORT_COMMANDS = {
+    All: 'All',
+    SearchForReports: READ_COMMANDS.SEARCH_FOR_REPORTS,
+} as const;
+
+type AbortCommand = (typeof ABORT_COMMANDS)[keyof typeof ABORT_COMMANDS];
 
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
@@ -29,8 +34,8 @@ Onyx.connect({
 
 // We use the AbortController API to terminate pending request in `cancelPendingRequests`
 const abortControllerMap = new Map<AbortCommand, AbortController>();
-abortControllerMap.set(READ_COMMANDS.ALL, new AbortController());
-abortControllerMap.set(READ_COMMANDS.SEARCH_FOR_REPORTS, new AbortController());
+abortControllerMap.set(ABORT_COMMANDS.All, new AbortController());
+abortControllerMap.set(ABORT_COMMANDS.SearchForReports, new AbortController());
 
 // Some existing old commands (6+ years) exempted from the auth writes count check
 const exemptedCommandsWithAuthWrites: string[] = ['SetWorkspaceAutoReportingFrequency'];
@@ -164,12 +169,12 @@ function xhr(command: string, data: Record<string, unknown>, type: RequestType =
 
     const url = ApiUtils.getCommandURL({shouldUseSecure, command});
 
-    const abortSignalController = data.canCancel ? abortControllerMap.get(command as AbortCommand) ?? abortControllerMap.get('All') : undefined;
+    const abortSignalController = data.canCancel ? abortControllerMap.get(command as AbortCommand) ?? abortControllerMap.get(ABORT_COMMANDS.All) : undefined;
     return processHTTPRequest(url, type, formData, abortSignalController?.signal);
 }
 
-function cancelPendingRequests(command: AbortCommand = READ_COMMANDS.ALL) {
-    const controller = abortControllerMap.get(command) ?? abortControllerMap.get(READ_COMMANDS.ALL);
+function cancelPendingRequests(command: AbortCommand = ABORT_COMMANDS.All) {
+    const controller = abortControllerMap.get(command) ?? abortControllerMap.get(ABORT_COMMANDS.All);
 
     controller?.abort();
 
