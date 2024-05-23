@@ -112,9 +112,10 @@ function PolicyAccountingPage({policy, connectionSyncProgress, isConnectionDataF
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
     const threeDotsMenuContainerRef = useRef<View>(null);
 
-    const isSyncInProgress = !!connectionSyncProgress?.stageInProgress
-        && connectionSyncProgress.stageInProgress !== CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE
-        && (Date.now() - (connectionSyncProgress.timestamp ?? 0)) < CONST.POLICY.CONNECTIONS.SYNC_STAGE_TIMEOUT;
+    const isSyncInProgress =
+        !!connectionSyncProgress?.stageInProgress &&
+        connectionSyncProgress.stageInProgress !== CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE &&
+        Date.now() - (connectionSyncProgress.timestamp ?? 0) < CONST.POLICY.CONNECTIONS.SYNC_STAGE_TIMEOUT;
 
     const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME).filter((name) => !(name === CONST.POLICY.CONNECTIONS.NAME.XERO && !canUseXeroIntegration));
     const connectedIntegration = accountingIntegrations.find((integration) => !!policy?.connections?.[integration]) ?? connectionSyncProgress?.connectionName;
