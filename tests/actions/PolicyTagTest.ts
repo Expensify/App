@@ -1,6 +1,5 @@
 import Onyx from 'react-native-onyx';
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
-import * as Policy from '@libs/actions/Policy';
 import * as Tag from '@libs/actions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -396,7 +395,7 @@ describe('actions/Policy', () => {
                     Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
                 })
                 .then(() => {
-                    Policy.setWorkspaceTagEnabled(fakePolicy.id, tagsToUpdate);
+                    Tag.setWorkspaceTagEnabled(fakePolicy.id, tagsToUpdate);
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -469,7 +468,7 @@ describe('actions/Policy', () => {
                 .then(() => {
                     mockFetch?.fail?.();
 
-                    Policy.setWorkspaceTagEnabled(fakePolicy.id, tagsToUpdate);
+                    Tag.setWorkspaceTagEnabled(fakePolicy.id, tagsToUpdate);
                     return waitForBatchedUpdates();
                 })
                 .then(mockFetch?.resume)
@@ -626,7 +625,7 @@ describe('actions/Policy', () => {
                     Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
                 })
                 .then(() => {
-                    Policy.deletePolicyTags(fakePolicy.id, tagsToDelete);
+                    Tag.deletePolicyTags(fakePolicy.id, tagsToDelete);
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -686,7 +685,7 @@ describe('actions/Policy', () => {
                 .then(() => {
                     mockFetch?.fail?.();
 
-                    Policy.deletePolicyTags(fakePolicy.id, tagsToDelete);
+                    Tag.deletePolicyTags(fakePolicy.id, tagsToDelete);
                     return waitForBatchedUpdates();
                 })
                 .then(mockFetch?.resume)
