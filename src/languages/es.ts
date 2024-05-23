@@ -2740,7 +2740,7 @@ export default {
                 subtitle: 'Por favor intenta crear algo usando el botón verde.',
             },
         },
-        groupedExpenses: 'gastos agrupados'
+        groupedExpenses: 'gastos agrupados',
     },
     genericErrorPage: {
         title: '¡Oh-oh, algo salió mal!',
