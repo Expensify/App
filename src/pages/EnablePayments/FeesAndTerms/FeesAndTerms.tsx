@@ -30,7 +30,7 @@ function FeesAndTerms() {
             reportID: walletTerms?.chatReportID ?? '',
         });
         BankAccounts.clearPersonalBankAccount();
-        // TODO: clear wallet draft
+        Wallet.resetWalletAdditionalDetailsDraft();
         Navigation.navigate(ROUTES.SETTINGS_WALLET);
     };
     const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo} = useSubStep({bodyContent: termsAndFeesSubsteps, startFrom: 0, onFinished: submit});
