@@ -3521,7 +3521,7 @@ const styles = (theme: ThemeColors) =>
 
         popoverMenuOffset: (windowWidth: number) =>
             ({
-                vertical: 180,
+                ...getPopOverVerticalOffset(180),
                 horizontal: windowWidth - 355,
             } satisfies AnchorPosition),
 
