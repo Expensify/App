@@ -20,7 +20,7 @@ function hasEnoughSpaceForLargeSuggestionMenu(listHeight: number, composerHeight
     return availableHeight > menuHeight;
 }
 
-const measureHeightOfSuggestionsContainer = (numRows: number, isSuggestionsPickerLarge: boolean): number => {
+const measureSuggestionsContainerHeight = (numRows: number, isSuggestionsPickerLarge: boolean): number => {
     // Autocomplete suggestions has inner padding 8px and border-width 1px
     const borderAndPadding = CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING + 2;
     let suggestionsHeight = 0;
@@ -41,4 +41,4 @@ const measureHeightOfSuggestionsContainer = (numRows: number, isSuggestionsPicke
     return suggestionsHeight + borderAndPadding;
 };
 
-export {trimLeadingSpace, hasEnoughSpaceForLargeSuggestionMenu, measureHeightOfSuggestionsContainer};
+export {trimLeadingSpace, hasEnoughSpaceForLargeSuggestionMenu, measureSuggestionsContainerHeight};

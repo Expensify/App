@@ -1,6 +1,6 @@
 import {Portal} from '@gorhom/portal';
 import React, {useEffect, useState} from 'react';
-import {measureHeightOfSuggestionsContainer} from '@libs/SuggestionUtils';
+import {measureSuggestionsContainerHeight} from '@libs/SuggestionUtils';
 import {useSuggestionsContext} from '@pages/home/report/ReportActionCompose/ComposerWithSuggestionsEdit/SuggestionsContext';
 import CONST from '@src/CONST';
 import BaseAutoCompleteSuggestions from './BaseAutoCompleteSuggestions';
@@ -9,7 +9,7 @@ import type {AutoCompleteSuggestionsProps} from './types';
 function AutoCompleteSuggestions<TSuggestion>({measureParentContainer, ...props}: AutoCompleteSuggestionsProps<TSuggestion>) {
     const {activeID} = useSuggestionsContext();
     const [shouldShowBelowContainer, setShouldShowBelowContainer] = React.useState(false);
-    const suggestionsContainerHeight = measureHeightOfSuggestionsContainer(props.suggestions.length, props.isSuggestionPickerLarge);
+    const suggestionsContainerHeight = measureSuggestionsContainerHeight(props.suggestions.length, props.isSuggestionPickerLarge);
     const [shouldShow, setShouldShow] = useState(false);
     const [containerHeight, setContainerHeight] = useState(0);
 

@@ -3,14 +3,14 @@ import ReactDOM from 'react-dom';
 import {View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {measureHeightOfSuggestionsContainer} from '@libs/SuggestionUtils';
+import {measureSuggestionsContainerHeight} from '@libs/SuggestionUtils';
 import BaseAutoCompleteSuggestions from './BaseAutoCompleteSuggestions';
 import type {AutoCompleteSuggestionsProps} from './types';
 
 function AutoCompleteSuggestions<TSuggestion>({measureParentContainer = () => {}, ...props}: AutoCompleteSuggestionsProps<TSuggestion>) {
     const StyleUtils = useStyleUtils();
     const [shouldShowBelowContainer, setShouldShowBelowContainer] = React.useState(false);
-    const suggestionsContainerHeight = measureHeightOfSuggestionsContainer(props.suggestions.length, props.isSuggestionPickerLarge);
+    const suggestionsContainerHeight = measureSuggestionsContainerHeight(props.suggestions.length, props.isSuggestionPickerLarge);
     const {windowHeight, windowWidth} = useWindowDimensions();
     const [{width, left, bottom}, setContainerState] = React.useState({
         width: 0,

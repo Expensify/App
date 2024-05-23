@@ -8,7 +8,7 @@ const shouldPreventScroll = shouldPreventScrollOnAutoCompleteSuggestion();
 /**
  * Gets the correct position for auto complete suggestion container
  */
-export default function getAutoCompleteSuggestionContainerStyle(
+export default function getAutoCompleteSuggestionContainerStyles(
     itemsHeight: number,
     shouldBeDisplayedBelowParentContainer: boolean,
     isEditComposer: boolean,

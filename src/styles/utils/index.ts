@@ -21,7 +21,7 @@ import FontUtils from './FontUtils';
 import createModalStyleUtils from './generators/ModalStyleUtils';
 import createReportActionContextMenuStyleUtils from './generators/ReportActionContextMenuStyleUtils';
 import createTooltipStyleUtils from './generators/TooltipStyleUtils';
-import getAutoCompleteSuggestionContainerStyle from './getAutoCompleteSuggestionContainerStyle';
+import getAutoCompleteSuggestionContainerStyles from './getAutoCompleteSuggestionContainerStyles';
 import getContextMenuItemStyles from './getContextMenuItemStyles';
 import getNavigationModalCardStyle from './getNavigationModalCardStyles';
 import getSignInBgStyles from './getSignInBgStyles';
@@ -1110,7 +1110,7 @@ const staticStyleUtils = {
     combineStyles,
     displayIfTrue,
     getAmountFontSizeAndLineHeight,
-    getAutoCompleteSuggestionContainerStyle,
+    getAutoCompleteSuggestionContainerStyles,
     getAvatarBorderRadius,
     getAvatarBorderStyle,
     getAvatarBorderWidth,

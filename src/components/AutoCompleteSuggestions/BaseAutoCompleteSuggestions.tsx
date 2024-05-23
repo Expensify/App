@@ -76,7 +76,7 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
 
     const innerHeight = CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT * suggestions.length;
     const animatedStyles = useAnimatedStyle(() =>
-        StyleUtils.getAutoCompleteSuggestionContainerStyle(rowHeight.value, shouldBeDisplayedBelowParentContainer, Boolean(activeID), containerHeight ?? 0),
+        StyleUtils.getAutoCompleteSuggestionContainerStyles(rowHeight.value, shouldBeDisplayedBelowParentContainer, Boolean(activeID), containerHeight ?? 0),
     );
     const estimatedListSize = useMemo(
         () => ({
