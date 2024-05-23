@@ -171,7 +171,7 @@ describe('actions/Policy', () => {
                     Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
                 })
                 .then(() => {
-                    Policy.renamePolicyTaglist(
+                    Tag.renamePolicyTaglist(
                         fakePolicy.id,
                         {
                             oldName: oldTagListName,
@@ -238,7 +238,7 @@ describe('actions/Policy', () => {
                 .then(() => {
                     mockFetch?.fail?.();
 
-                    Policy.renamePolicyTaglist(
+                    Tag.renamePolicyTaglist(
                         fakePolicy.id,
                         {
                             oldName: oldTagListName,
@@ -287,7 +287,7 @@ describe('actions/Policy', () => {
                     Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
                 })
                 .then(() => {
-                    Policy.createPolicyTag(fakePolicy.id, newTagName);
+                    Tag.createPolicyTag(fakePolicy.id, newTagName);
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -349,7 +349,7 @@ describe('actions/Policy', () => {
                 .then(() => {
                     mockFetch?.fail?.();
 
-                    Policy.createPolicyTag(fakePolicy.id, newTagName);
+                    Tag.createPolicyTag(fakePolicy.id, newTagName);
                     return waitForBatchedUpdates();
                 })
                 .then(mockFetch?.resume)
@@ -515,7 +515,7 @@ describe('actions/Policy', () => {
                     Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
                 })
                 .then(() => {
-                    Policy.renamePolicyTag(fakePolicy.id, {
+                    Tag.renamePolicyTag(fakePolicy.id, {
                         oldName: oldTagName,
                         newName: newTagName,
                     });
@@ -581,7 +581,7 @@ describe('actions/Policy', () => {
                 .then(() => {
                     mockFetch?.fail?.();
 
-                    Policy.renamePolicyTag(fakePolicy.id, {
+                    Tag.renamePolicyTag(fakePolicy.id, {
                         oldName: oldTagName,
                         newName: newTagName,
                     });
