@@ -5275,7 +5275,7 @@ function getPolicyExpenseChat(accountID: number, policyID: string): OnyxEntry<Re
                 return false;
             }
 
-            return report.policyID === policyID && isPolicyExpenseChat(report) && report.isOwnPolicyExpenseChat;
+            return report.policyID === policyID && isPolicyExpenseChat(report) && report.ownerAccountID === accountID;
         }) ?? null
     );
 }
