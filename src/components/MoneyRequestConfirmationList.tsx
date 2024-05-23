@@ -178,11 +178,15 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
 
 type MoneyRequestConfirmationListItem = Participant | ReportUtils.OptionData;
 
-const getTaxAmount = (transaction: OnyxEntry<OnyxTypes.Transaction>, policy: OnyxEntry<OnyxTypes.Policy>) => {
+/**
+ * Calculate and set tax amount in transaction draft
+ */
+const setTaxAmountInDraft = (transaction: OnyxEntry<OnyxTypes.Transaction>, policy: OnyxEntry<OnyxTypes.Policy>) => {
     const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction) ?? '';
-
     const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, transaction?.taxCode ?? defaultTaxCode) ?? '';
-    return TransactionUtils.calculateTaxAmount(taxPercentage, transaction?.amount ?? 0);
+    const taxAmount = TransactionUtils.calculateTaxAmount(taxPercentage, transaction?.amount ?? 0);
+    const taxAmountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount.toString()));
+    IOU.setMoneyRequestTaxAmount(transaction?.transactionID ?? '', taxAmountInSmallestCurrencyUnits, true);
 };
 
 function MoneyRequestConfirmationList({
@@ -244,16 +248,6 @@ function MoneyRequestConfirmationList({
     const transactionID = transaction?.transactionID ?? '';
     const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '';
 
-    useEffect(() => {
-        if (customUnitRateID || !canUseP2PDistanceRequests) {
-            return;
-        }
-        if (!customUnitRateID) {
-            const rateID = lastSelectedDistanceRates?.[policy?.id ?? ''] ?? defaultMileageRate?.customUnitRateID ?? '';
-            IOU.setCustomUnitRateID(transactionID, rateID);
-        }
-    }, [defaultMileageRate, customUnitRateID, lastSelectedDistanceRates, policy?.id, canUseP2PDistanceRequests, transactionID]);
-
     const policyCurrency = policy?.outputCurrency ?? PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
 
     const mileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction)
@@ -314,6 +308,9 @@ function MoneyRequestConfirmationList({
           );
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transaction?.taxAmount, iouCurrencyCode);
     const taxRateTitle = TransactionUtils.getTaxName(policy, transaction);
+    const prevTaxAmount = usePrevious(transaction?.taxAmount);
+    const prevAmount = usePrevious(transaction?.amount);
+    const prevCurrency = usePrevious(transaction?.currency);
 
     const isFocused = useIsFocused();
     const [formError, debouncedFormError, setFormError] = useDebouncedState('');
@@ -343,6 +340,31 @@ function MoneyRequestConfirmationList({
     const isCategoryRequired = !!policy?.requiresCategory;
 
     useEffect(() => {
+        if (!shouldShowTax) {
+            return;
+        }
+        setTaxAmountInDraft(transaction, policy);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we want to call this function when component is mounted
+    }, []);
+
+    useEffect(() => {
+        if (!shouldShowTax || prevTaxAmount !== transaction?.taxAmount || (prevAmount === transaction?.amount && prevCurrency === transaction?.currency)) {
+            return;
+        }
+        setTaxAmountInDraft(transaction, policy);
+    }, [policy, shouldShowTax, prevTaxAmount, prevAmount, prevCurrency, transaction]);
+
+    useEffect(() => {
+        if (customUnitRateID || !canUseP2PDistanceRequests) {
+            return;
+        }
+        if (!customUnitRateID) {
+            const rateID = lastSelectedDistanceRates?.[policy?.id ?? ''] ?? defaultMileageRate?.customUnitRateID ?? '';
+            IOU.setCustomUnitRateID(transactionID, rateID);
+        }
+    }, [defaultMileageRate, customUnitRateID, lastSelectedDistanceRates, policy?.id, canUseP2PDistanceRequests, transactionID]);
+
+    useEffect(() => {
         if (shouldDisplayFieldError && hasSmartScanFailed) {
             setFormError('iou.receiptScanningFailed');
             return;
@@ -365,13 +387,6 @@ function MoneyRequestConfirmationList({
         const amount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate ?? 0);
         IOU.setMoneyRequestAmount(transactionID, amount, currency ?? '');
     }, [shouldCalculateDistanceAmount, distance, rate, unit, transactionID, currency]);
-
-    // Calculate and set tax amount in transaction draft
-    useEffect(() => {
-        const taxAmount = getTaxAmount(transaction, policy).toString();
-        const taxAmountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount));
-        IOU.setMoneyRequestTaxAmount(transactionID, taxAmountInSmallestCurrencyUnits, true);
-    }, [policy, transaction, transactionID]);
 
     // If completing a split expense fails, set didConfirm to false to allow the user to edit the fields again
     if (isEditingSplitBill && didConfirm) {
