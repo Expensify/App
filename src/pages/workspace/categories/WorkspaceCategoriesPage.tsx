@@ -225,7 +225,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         onPress={navigateToCreateCategoryPage}
                         icon={Expensicons.Plus}
                         text={translate('workspace.categories.addCategory')}
-                        style={[styles.mr3, isSmallScreenWidth && styles.w50]}
+                        style={[styles.mr3, isSmallScreenWidth && styles.flex1]}
                     />
                 )}
                 <Button
@@ -233,7 +233,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     onPress={navigateToCategoriesSettings}
                     icon={Expensicons.Gear}
                     text={translate('common.settings')}
-                    style={[isSmallScreenWidth && styles.w50]}
+                    style={[isSmallScreenWidth && styles.flex1]}
                 />
             </View>
         );
