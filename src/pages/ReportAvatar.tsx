@@ -1,7 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
@@ -21,15 +21,21 @@ type ReportAvatarOnyxProps = {
 
 type ReportAvatarProps = ReportAvatarOnyxProps & StackScreenProps<AuthScreensParamList, typeof SCREENS.REPORT_AVATAR>;
 
-function ReportAvatar({report = {} as Report, policies, isLoadingApp = true, groupChatDraft}: ReportAvatarProps) {
+function ReportAvatar({report = {} as Report, policies, isLoadingApp = true, groupChatDraft, route}: ReportAvatarProps) {
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? '0'}`];
     const title = policy ? ReportUtils.getPolicyName(report, false, policy) : report?.reportName;
-    let avatarURL = policy ? ReportUtils.getWorkspaceAvatar(report) : report?.avatarUrl;
-    let fileName = policy?.originalFileName ?? title;
+    let avatarURL = undefined;
+    let fileName = undefined;
 
-    if (!avatarURL && groupChatDraft?.avatarUri && groupChatDraft?.originalFileName) {
-        avatarURL = groupChatDraft.avatarUri ?? null;
-        fileName = groupChatDraft.originalFileName ?? null;
+    const shouldUseGroupChatDraft = route.params.newGroupChat === 'true';
+    if(shouldUseGroupChatDraft) {
+        const [groupChatDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
+        avatarURL = groupChatDraft?.avatarUri ?? undefined;
+        fileName = groupChatDraft?.originalFileName ?? undefined;
+    }
+    else {
+        avatarURL = policy ? ReportUtils.getWorkspaceAvatar(report) : report?.avatarUrl;
+        fileName = policy?.originalFileName ?? title;
     }
 
     return (

@@ -213,7 +213,7 @@ const ROUTES = {
     },
     REPORT_AVATAR: {
         route: 'r/:reportID/avatar',
-        getRoute: (reportID: string) => `r/${reportID}/avatar` as const,
+        getRoute: (reportID: string, newGroupChat: boolean) => `r/${reportID}/avatar?newGroupChat=${newGroupChat}` as const,
     },
     EDIT_CURRENCY_REQUEST: {
         route: 'r/:threadReportID/edit/currency',

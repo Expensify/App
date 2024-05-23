@@ -127,7 +127,7 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
                     avatarStyle={styles.avatarXLarge}
                     editIcon={Expensicons.Camera}
                     editIconStyle={styles.smallEditIconAccount}
-                    onViewPhotoPress={() => Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(optimisticReportID.current))}
+                    onViewPhotoPress={() => Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(optimisticReportID.current, true))}
                 />
             </View>
             <MenuItemWithTopDescription
