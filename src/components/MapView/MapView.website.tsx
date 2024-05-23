@@ -13,6 +13,7 @@ import {withOnyx} from 'react-native-onyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {GeolocationErrorCallback, GeolocationErrorCode} from '@libs/getCurrentPosition/getCurrentPosition.types';
 import * as UserLocation from '@userActions/UserLocation';
 import CONST from '@src/CONST';
 import useLocalize from '@src/hooks/useLocalize';
@@ -62,14 +63,16 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
         // if there are one or more waypoints present.
         const shouldPanMapToCurrentPosition = useCallback(() => !userInteractedWithMap && (!waypoints || waypoints.length === 0), [userInteractedWithMap, waypoints]);
 
-        const setCurrentPositionToInitialState = useCallback(() => {
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            if (!initialState) {
-                return;
-            }
-            UserLocation.clearUserLocation();
-            setCurrentPosition({longitude: initialState.location[0], latitude: initialState.location[1]});
-        }, [initialState]);
+        const setCurrentPositionToInitialState: GeolocationErrorCallback = useCallback(
+            (error) => {
+                if (error?.code !== GeolocationErrorCode.PERMISSION_DENIED || !initialState) {
+                    return;
+                }
+                UserLocation.clearUserLocation();
+                setCurrentPosition({longitude: initialState.location[0], latitude: initialState.location[1]});
+            },
+            [initialState],
+        );
 
         useFocusEffect(
             useCallback(() => {
