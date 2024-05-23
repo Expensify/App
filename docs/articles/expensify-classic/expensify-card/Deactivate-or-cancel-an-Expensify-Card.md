@@ -2,7 +2,7 @@
 title: Deactivate or cancel an Expensify Card
 description: Close an Expensify Card
 ---
-<div id="new-expensify" markdown="1">
+<div id="expensify-classic" markdown="1">
 
 A cardholder or a Domain Admin can cancel an Expensify Card. You may want to cancel a card:
 - To cancel an old Expensify Card after upgrading to the new Expensify Visa® Commercial Card
