@@ -39,6 +39,48 @@ const METERS_TO_KM = 0.001; // 1 kilometer is 1000 meters
 const METERS_TO_MILES = 0.000621371; // There are approximately 0.000621371 miles in a meter
 
 /**
+ * Retrieves the mileage rates for given policy.
+ *
+ * @param policy - The policy from which to extract the mileage rates.
+ *
+ * @returns An array of mileage rates or an empty array if not found.
+ */
+function getMileageRates(policy: OnyxEntry<Policy>, includeDisableRate: boolean = true): Record<string, MileageRate> {
+    const mileageRates: Record<string, MileageRate> = {};
+
+    if (!policy || !policy?.customUnits) {
+        return mileageRates;
+    }
+
+    const distanceUnit = Object.values(policy.customUnits).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+    if (!distanceUnit?.rates) {
+        return mileageRates;
+    }
+
+    Object.entries(distanceUnit.rates).forEach(([rateID, rate]) => {
+        if (includeDisableRate) {
+            mileageRates[rateID] = {
+                rate: rate.rate,
+                currency: rate.currency,
+                unit: distanceUnit.attributes.unit,
+                name: rate.name,
+                customUnitRateID: rate.customUnitRateID,
+            }
+        } else if(rate.enabled) {
+            mileageRates[rateID] = {
+                rate: rate.rate,
+                currency: rate.currency,
+                unit: distanceUnit.attributes.unit,
+                name: rate.name,
+                customUnitRateID: rate.customUnitRateID,
+            }
+        }
+    });
+    
+    return mileageRates;
+}
+
+/**
  * Retrieves the default mileage rate based on a given policy.
  *
  * @param policy - The policy from which to extract the default mileage rate.
@@ -57,8 +99,9 @@ function getDefaultMileageRate(policy: OnyxEntry<Policy> | EmptyObject): Mileage
     if (!distanceUnit?.rates) {
         return null;
     }
-
-    const distanceRate = Object.values(distanceUnit.rates).find((rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE) ?? Object.values(distanceUnit.rates)[0];
+    const mileageRates = getMileageRates(policy, false)
+    
+    const distanceRate = Object.values(mileageRates).find((rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE) ?? Object.values(mileageRates)[0];
 
     return {
         customUnitRateID: distanceRate.customUnitRateID,
@@ -180,38 +223,6 @@ function getDistanceMerchant(
 }
 
 /**
- * Retrieves the mileage rates for given policy.
- *
- * @param policy - The policy from which to extract the mileage rates.
- *
- * @returns An array of mileage rates or an empty array if not found.
- */
-function getMileageRates(policy: OnyxEntry<Policy>): Record<string, MileageRate> {
-    const mileageRates: Record<string, MileageRate> = {};
-
-    if (!policy || !policy?.customUnits) {
-        return mileageRates;
-    }
-
-    const distanceUnit = Object.values(policy.customUnits).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
-    if (!distanceUnit?.rates) {
-        return mileageRates;
-    }
-
-    Object.entries(distanceUnit.rates).forEach(([rateID, rate]) => {
-        mileageRates[rateID] = {
-            rate: rate.rate,
-            currency: rate.currency,
-            unit: distanceUnit.attributes.unit,
-            name: rate.name,
-            customUnitRateID: rate.customUnitRateID,
-        };
-    });
-
-    return mileageRates;
-}
-
-/**
  * Retrieves the rate and unit for a P2P distance expense for a given currency.
  *
  * @param currency
@@ -259,8 +270,20 @@ function getCustomUnitRateID(reportID: string) {
 
     let customUnitRateID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
 
+    if (!policy?.customUnits) {
+        return null;
+    }
+
+    const distanceUnit = Object.values(policy?.customUnits).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+    const lastSelectedDistanceRateID = lastSelectedDistanceRates?.[policy?.id ?? ''] ?? ''
+    const lastSelectedDistanceRate = distanceUnit?.rates[lastSelectedDistanceRateID] ?? {}
+
     if (ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isPolicyExpenseChat(parentReport)) {
-        customUnitRateID = lastSelectedDistanceRates?.[policy?.id ?? ''] ?? getDefaultMileageRate(policy)?.customUnitRateID ?? '';
+        if (lastSelectedDistanceRate.enabled && lastSelectedDistanceRateID) {
+            customUnitRateID = lastSelectedDistanceRateID
+        } else {
+            customUnitRateID = getDefaultMileageRate(policy)?.customUnitRateID ?? '';
+        }
     }
 
     return customUnitRateID;
