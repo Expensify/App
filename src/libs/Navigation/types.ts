@@ -211,6 +211,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.TAG_SETTINGS]: {
         policyID: string;
+        orderWeight: number;
         tagName: string;
     };
     [SCREENS.WORKSPACE.TAG_LIST_VIEW]: {
@@ -223,6 +224,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.TAG_EDIT]: {
         policyID: string;
+        orderWeight: number;
         tagName: string;
     };
     [SCREENS.WORKSPACE.TAXES_SETTINGS]: {
@@ -791,7 +793,6 @@ type FullScreenNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.TAGS]: {
         policyID: string;
-        tagName: string;
     };
     [SCREENS.WORKSPACE.TAXES]: {
         policyID: string;
