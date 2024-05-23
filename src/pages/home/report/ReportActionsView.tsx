@@ -208,7 +208,7 @@ function ReportActionsView({
      */
     const fetchNewerAction = useCallback(
         (newestReportAction: OnyxTypes.ReportAction) => {
-            if (isLoadingNewerReportActions || isLoadingInitialReportActions || (!!reportActionID && isOffline)) {
+            if (isLoadingNewerReportActions || isLoadingInitialReportActions || (reportActionID && isOffline)) {
                 return;
             }
 
