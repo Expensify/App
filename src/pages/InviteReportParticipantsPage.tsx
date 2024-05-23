@@ -52,7 +52,10 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
     const [userToInvite, setUserToInvite] = useState<ReportUtils.OptionData | null>(null);
 
     // Any existing participants and Expensify emails should not be eligible for invitation
-    const excludedUsers = useMemo(() => [...PersonalDetailsUtils.getLoginsByAccountIDs(ReportUtils.getParticipantAccountIDs(report?.reportID ?? '')), ...CONST.EXPENSIFY_EMAILS], [report]);
+    const excludedUsers = useMemo(
+        () => [...PersonalDetailsUtils.getLoginsByAccountIDs(ReportUtils.getParticipantAccountIDs(report?.reportID ?? '', true)), ...CONST.EXPENSIFY_EMAILS],
+        [report],
+    );
 
     useEffect(() => {
         const inviteOptions = OptionsListUtils.getMemberInviteOptions(options.personalDetails, betas ?? [], searchTerm, excludedUsers, false, options.reports, true);

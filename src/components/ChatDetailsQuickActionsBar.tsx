@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as Report from '@userActions/Report';
 import type {Report as OnyxReportType} from '@src/types/onyx';
 import Button from './Button';
@@ -35,7 +36,7 @@ function ChatDetailsQuickActionsBar({report}: ChatDetailsQuickActionsBarProps) {
                 />
                 <Button
                     onPress={() => {
-                        if (Object.keys(report?.participants ?? {}).length === 1) {
+                        if (ReportUtils.getParticipantAccountIDs(report.reportID, true).length === 1) {
                             setIsLastMemberLeavingGroupModalVisible(true);
                             return;
                         }
