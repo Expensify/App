@@ -30,7 +30,7 @@ export default function SortableHeaderText({text, sortOrder, isActive, textStyle
     }
 
     const icon = sortOrder === CONST.SORT_ORDER.ASC ? Expensicons.ArrowUpLong : Expensicons.ArrowDownLong;
-    const iconStyles = isActive ? [] : [styles.visibilityHidden];
+    const displayIcon = isActive;
 
     const nextSortOrder = isActive && sortOrder === CONST.SORT_ORDER.DESC ? CONST.SORT_ORDER.ASC : CONST.SORT_ORDER.DESC;
 
@@ -50,13 +50,14 @@ export default function SortableHeaderText({text, sortOrder, isActive, textStyle
                     >
                         {text}
                     </Text>
-                    <Icon
-                        src={icon}
-                        fill={theme.icon}
-                        additionalStyles={iconStyles}
-                        height={12}
-                        width={12}
-                    />
+                    {displayIcon && (
+                        <Icon
+                            src={icon}
+                            fill={theme.icon}
+                            height={12}
+                            width={12}
+                        />
+                    )}
                 </View>
             </PressableWithFeedback>
         </View>
