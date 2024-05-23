@@ -5264,6 +5264,22 @@ function getChatByParticipantsAndPolicy(newParticipantList: number[], policyID: 
     );
 }
 
+/**
+ * Attempts to find a report in onyx with the provided list of participants in given policy
+ */
+function getPolicyExpenseChat(accountID: number, policyID: string): OnyxEntry<Report> {
+    return (
+        Object.values(allReports ?? {}).find((report: OnyxEntry<Report>) => {
+            // If the report has been deleted, then skip it
+            if (!report) {
+                return false;
+            }
+
+            return report.policyID === policyID && isPolicyExpenseChat(report);
+        }) ?? null
+    );
+}
+
 function getAllPolicyReports(policyID: string): Array<OnyxEntry<Report>> {
     return Object.values(allReports ?? {}).filter((report) => report?.policyID === policyID);
 }
