@@ -6804,6 +6804,7 @@ export {
     getPendingChatMembers,
     getPersonalDetailsForAccountID,
     getPolicyDescriptionText,
+    getPolicyExpenseChat,
     getPolicyName,
     getPolicyType,
     getReimbursementDeQueuedActionMessage,
