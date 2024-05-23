@@ -21,7 +21,9 @@ const Stack = createStackNavigator<OnboardingModalNavigatorParamList>();
 function OnboardingModalNavigator() {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useOnboardingLayout();
-    const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: (onboarding) => onboarding?.hasCompletedGuidedSetupFlow ?? true});
+    const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
+        selector: (onboarding) => !Array.isArray(onboarding) && (onboarding?.hasCompletedGuidedSetupFlow ?? true),
+    });
 
     useEffect(() => {
         if (!hasCompletedGuidedSetupFlow) {
