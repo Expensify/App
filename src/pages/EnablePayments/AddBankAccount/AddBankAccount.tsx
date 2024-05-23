@@ -12,9 +12,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as PaymentMethods from '@userActions/PaymentMethods';
+import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {PersonalBankAccountForm} from '@src/types/form';
 import type {PersonalBankAccount, PlaidData} from '@src/types/onyx';
 import SetupMethod from './SetupMethod';
@@ -44,7 +44,7 @@ function AddBankAccount({personalBankAccount, plaidData, personalBankAccountDraf
 
         if (selectedPlaidBankAccount) {
             BankAccounts.addPersonalBankAccount(selectedPlaidBankAccount);
-            Navigation.navigate(ROUTES.SETTINGS_ENABLE_PAYMENTS_REFACTOR);
+            Wallet.updateCurrentStep(CONST.WALLET.STEP.ADDITIONAL_DETAILS);
         }
     }, [personalBankAccountDraft?.plaidAccountID, plaidData?.bankAccounts]);
 

@@ -1423,6 +1423,7 @@ const CONST = {
         },
         STEP: {
             // In the order they appear in the Wallet flow
+            ADD_BANK_ACCOUNT: 'AddBankAccountStep',
             ADDITIONAL_DETAILS: 'AdditionalDetailsStep',
             ADDITIONAL_DETAILS_KBA: 'AdditionalDetailsKBAStep',
             ONFIDO: 'OnfidoStep',

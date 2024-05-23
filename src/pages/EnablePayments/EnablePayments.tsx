@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import Navigation from '@libs/Navigation/Navigation';
+import AddBankAccount from '@pages/EnablePayments/AddBankAccount/AddBankAccount';
 import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -60,9 +61,11 @@ function EnablePaymentsPage({userWallet}: EnablePaymentsPageProps) {
                     );
                 }
 
-                const currentStep = userWallet?.currentStep || CONST.WALLET.STEP.ADDITIONAL_DETAILS;
+                const currentStep = userWallet?.currentStep || (userWallet?.bankAccountID ? CONST.WALLET.STEP.ADDITIONAL_DETAILS : CONST.WALLET.STEP.ADD_BANK_ACCOUNT);
 
                 switch (currentStep) {
+                    case CONST.WALLET.STEP.ADD_BANK_ACCOUNT:
+                        return <AddBankAccount />;
                     case CONST.WALLET.STEP.ADDITIONAL_DETAILS:
                         return <PersonalInfo />;
                     case CONST.WALLET.STEP.ONFIDO:

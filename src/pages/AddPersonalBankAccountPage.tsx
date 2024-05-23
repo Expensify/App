@@ -89,6 +89,7 @@ function AddPersonalBankAccountPage({personalBankAccount, plaidData}: AddPersona
                 >
                     <AddPlaidBankAccount
                         onSelect={setSelectedPlaidAccountId}
+                        text={translate('walletPage.chooseAccountBody')}
                         plaidData={plaidData}
                         isDisplayedInWalletFlow
                         onExitPlaid={() => Navigation.goBack()}
