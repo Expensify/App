@@ -323,20 +323,18 @@ function AvatarWithImagePicker({
                             ref={anchorRef}
                         >
                             <OfflineWithFeedback pendingAction={pendingAction}>
-                                <View>
-                                    {source ? (
-                                        <Avatar
-                                            containerStyles={avatarStyle}
-                                            imageStyles={[avatarStyle, styles.alignSelfCenter]}
-                                            source={source}
-                                            fallbackIcon={fallbackIcon}
-                                            size={size}
-                                            type={type}
-                                        />
-                                    ) : (
-                                        <DefaultAvatar />
-                                    )}
-                                </View>
+                                {source ? (
+                                    <Avatar
+                                        containerStyles={avatarStyle}
+                                        imageStyles={[avatarStyle, styles.alignSelfCenter]}
+                                        source={source}
+                                        fallbackIcon={fallbackIcon}
+                                        size={size}
+                                        type={type}
+                                    />
+                                ) : (
+                                    <DefaultAvatar />
+                                )}
                             </OfflineWithFeedback>
                             {!disabled && (
                                 <View style={StyleSheet.flatten([styles.smallEditIcon, styles.smallAvatarEditIcon, editIconStyle])}>
