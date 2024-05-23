@@ -8,6 +8,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import CENTRAL_PANE_TO_RHP_MAPPING from './CENTRAL_PANE_TO_RHP_MAPPING';
 import config from './config';
+import extractPolicyIDsFromState from './extractPolicyIDsFromState';
 import FULL_SCREEN_TO_RHP_MAPPING from './FULL_SCREEN_TO_RHP_MAPPING';
 import getMatchingBottomTabRouteForState from './getMatchingBottomTabRouteForState';
 import getMatchingCentralPaneRouteForState from './getMatchingCentralPaneRouteForState';
@@ -373,11 +374,7 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options) => {
     }
 
     // Only on SCREENS.SEARCH.CENTRAL_PANE policyID is stored differently as "policyIDs" param, so we're handling this case here
-    let policyIDs: string | undefined;
-    const focusedRoute = findFocusedRoute(state);
-    if (focusedRoute && focusedRoute.name === SCREENS.SEARCH.CENTRAL_PANE && focusedRoute.params && 'policyIDs' in focusedRoute.params) {
-        policyIDs = focusedRoute.params.policyIDs as string;
-    }
+    const policyIDs = extractPolicyIDsFromState(state);
 
     return getAdaptedState(state, policyID ?? policyIDs);
 };

@@ -13,7 +13,6 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
 
         // ResultState | undefined is the type this function expect.
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-        // console.log('adapted state', JSON.stringify(adaptedState, null, 2));
         return adaptedState;
     },
     subscribe,

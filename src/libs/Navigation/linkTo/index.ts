@@ -3,6 +3,7 @@ import {findFocusedRoute} from '@react-navigation/native';
 import type {NavigationContainerRef, NavigationState, PartialState} from '@react-navigation/native';
 import {omitBy} from 'lodash';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import extractPolicyIDsFromState from '@libs/Navigation/linkingConfig/extractPolicyIDsFromState';
 import shallowCompare from '@libs/ObjectUtils';
 import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
 import getActionsFromPartialDiff from '@navigation/AppNavigator/getActionsFromPartialDiff';
@@ -88,7 +89,8 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
         } else if (action.payload.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR && (isTargetScreenDifferentThanCurrent || areParamsDifferent)) {
             // We need to push a tab if the tab doesn't match the central pane route that we are going to push.
             const topmostBottomTabRoute = getTopmostBottomTabRoute(rootState);
-            const matchingBottomTabRoute = getMatchingBottomTabRouteForState(stateFromPath, policyID);
+            const policyIDsFromState = extractPolicyIDsFromState(stateFromPath);
+            const matchingBottomTabRoute = getMatchingBottomTabRouteForState(stateFromPath, policyID !== '' ? policyID : policyIDsFromState);
             const isNewPolicyID =
                 (topmostBottomTabRoute?.params as Record<string, string | undefined>)?.policyID !== (matchingBottomTabRoute?.params as Record<string, string | undefined>)?.policyID;
             if (topmostBottomTabRoute && (topmostBottomTabRoute.name !== matchingBottomTabRoute.name || isNewPolicyID)) {
