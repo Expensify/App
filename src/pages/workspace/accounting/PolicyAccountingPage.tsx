@@ -297,21 +297,6 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
         accountingIntegrations,
     ]);
 
-    const headerThreeDotsMenuItems: ThreeDotsMenuProps['menuItems'] = [
-        {
-            icon: Expensicons.Key,
-            shouldShowRightIcon: true,
-            iconRight: Expensicons.NewWindow,
-            text: translate('workspace.accounting.enterCredentials'),
-            onSelected: () => {},
-        },
-        {
-            icon: Expensicons.Trashcan,
-            text: translate('workspace.accounting.disconnect'),
-            onSelected: () => setIsDisconnectModalOpen(true),
-        },
-    ];
-
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -327,9 +312,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                     title={translate('workspace.common.accounting')}
                     shouldShowBackButton={isSmallScreenWidth}
                     icon={Illustrations.Accounting}
-                    shouldShowThreeDotsButton
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
-                    threeDotsMenuItems={headerThreeDotsMenuItems}
                 />
                 <ScrollView contentContainerStyle={styles.pt3}>
                     <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
