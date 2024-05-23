@@ -1,3 +1,4 @@
+import {differenceInMinutes, isValid, parseISO} from 'date-fns';
 import React, {useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -39,7 +40,6 @@ import type {Policy, PolicyConnectionSyncProgress} from '@src/types/onyx';
 import type {PolicyConnectionName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
-import {differenceInMinutes, parseISO, isValid} from "date-fns";
 
 type PolicyAccountingPageOnyxProps = {
     connectionSyncProgress: OnyxEntry<PolicyConnectionSyncProgress>;
@@ -117,7 +117,8 @@ function PolicyAccountingPage({policy, connectionSyncProgress, isConnectionDataF
     const isSyncInProgress =
         !!connectionSyncProgress?.stageInProgress &&
         connectionSyncProgress.stageInProgress !== CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE &&
-        (isValid(lastSyncProgressDate) && differenceInMinutes(new Date(), lastSyncProgressDate) < CONST.POLICY.CONNECTIONS.SYNC_STAGE_TIMEOUT_MINUTES);
+        isValid(lastSyncProgressDate) &&
+        differenceInMinutes(new Date(), lastSyncProgressDate) < CONST.POLICY.CONNECTIONS.SYNC_STAGE_TIMEOUT_MINUTES;
 
     const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME).filter((name) => !(name === CONST.POLICY.CONNECTIONS.NAME.XERO && !canUseXeroIntegration));
     const connectedIntegration = accountingIntegrations.find((integration) => !!policy?.connections?.[integration]) ?? connectionSyncProgress?.connectionName;
