@@ -59,7 +59,7 @@ import * as Environment from '@libs/Environment/Environment';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import * as LoginUtils from '@libs/LoginUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {NetworkStatus} from '@libs/NetworkConnection';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -2530,10 +2530,11 @@ function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
     const isChatThread = ReportUtils.isChatThread(currentReport);
     if (lastAccessedReportID) {
         const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID ?? '');
+        // We are using index 1 here because on index 0, we'll always have the bottomTabNavigator.
+        const isFirstRoute = navigationRef?.current?.getState()?.index === 1;
         // If it is not a chat thread we should call Navigation.goBack to pop the current route first before navigating to last accessed report.
-        if (!isChatThread) {
-            // Fallback to the lastAccessedReportID route, if this is first route in the navigator
-            Navigation.goBack(lastAccessedReportRoute);
+        if (!isChatThread && !isFirstRoute) {
+            Navigation.goBack();
         }
         Navigation.navigate(lastAccessedReportRoute, CONST.NAVIGATION.TYPE.FORCED_UP);
     } else {
@@ -3142,7 +3143,7 @@ function completeOnboarding(
             currentTask,
             taskCreatedAction,
             taskReportAction,
-            taskDescription,
+            taskDescription: currentTask.description,
             completedTaskReportAction,
         };
     });
@@ -3157,7 +3158,7 @@ function completeOnboarding(
         createdTaskReportActionID: taskCreatedAction.reportActionID,
         completedTaskReportActionID: completedTaskReportAction?.reportActionID ?? undefined,
         title: currentTask.reportName ?? '',
-        description: taskDescription,
+        description: taskDescription ?? '',
     }));
 
     const tasksForOptimisticData = tasksData.reduce<OnyxUpdate[]>((acc, {currentTask, taskCreatedAction, taskReportAction, taskDescription, completedTaskReportAction}) => {
