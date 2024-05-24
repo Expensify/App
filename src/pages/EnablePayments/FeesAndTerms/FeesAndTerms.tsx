@@ -37,7 +37,7 @@ function FeesAndTerms() {
 
     const handleBackButtonPress = () => {
         if (screenIndex === 0) {
-            Navigation.navigate(ROUTES.SETTINGS_WALLET);
+            Wallet.updateCurrentStep(CONST.WALLET.STEP.ONFIDO);
             return;
         }
         prevScreen();

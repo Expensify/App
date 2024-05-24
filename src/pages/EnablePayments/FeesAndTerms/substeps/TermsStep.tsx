@@ -6,13 +6,11 @@ import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import Navigation from '@navigation/Navigation';
-import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 
 function HaveReadAndAgreeLabel() {
     const {translate} = useLocalize();
@@ -41,7 +39,7 @@ function AgreeToTheLabel() {
     );
 }
 
-function TermsStep() {
+function TermsStep({onNext}: SubStepProps) {
     const styles = useThemeStyles();
     const [hasAcceptedDisclosure, setHasAcceptedDisclosure] = useState(false);
     const [hasAcceptedPrivacyPolicyAndWalletAgreement, setHasAcceptedPrivacyPolicyAndWalletAgreement] = useState(false);
@@ -58,6 +56,15 @@ function TermsStep() {
 
     const togglePrivacyPolicy = () => {
         setHasAcceptedPrivacyPolicyAndWalletAgreement(!hasAcceptedPrivacyPolicyAndWalletAgreement);
+    };
+
+    const submit = () => {
+        if (!hasAcceptedDisclosure || !hasAcceptedPrivacyPolicyAndWalletAgreement) {
+            setError(true);
+            return;
+        }
+        setError(false);
+        onNext();
     };
 
     /** clear error */
@@ -88,14 +95,7 @@ function TermsStep() {
             </View>
             <FormAlertWithSubmitButton
                 buttonText={translate('termsStep.enablePayments')}
-                onSubmit={() => {
-                    if (!hasAcceptedDisclosure || !hasAcceptedPrivacyPolicyAndWalletAgreement) {
-                        setError(true);
-                        return;
-                    }
-
-                    setError(false);
-                }}
+                onSubmit={submit}
                 message={errorMessage}
                 isAlertVisible={error || Boolean(errorMessage)}
                 isLoading={!!walletTerms?.isLoading}
