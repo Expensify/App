@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import type {FeatureListItem} from '@components/FeatureList';
 import FeatureList from '@components/FeatureList';
 import * as Illustrations from '@components/Icon/Illustrations';
-import LottieAnimations from '@components/LottieAnimations';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -11,7 +10,6 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import colors from '@styles/theme/colors';
 import ROUTES from '@src/ROUTES';
-import getTripIllustrationStyle from './getTripIllustrationStyle';
 
 const tripsFeatures: FeatureListItem[] = [
     {
@@ -24,11 +22,13 @@ const tripsFeatures: FeatureListItem[] = [
     },
 ];
 
+const ILLUSTRATION_WIDTH = 190;
+const ILLUSTRATION_HEIGHT = 172;
+
 function ManageTrips() {
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
-    const illustrationStyle = getTripIllustrationStyle();
 
     return (
         <ScrollView contentContainerStyle={styles.pt3}>
@@ -42,8 +42,8 @@ function ManageTrips() {
                     onCtaPress={() => {
                         Navigation.navigate(ROUTES.TRAVEL_TCS);
                     }}
-                    illustration={LottieAnimations.Plane}
-                    illustrationStyle={illustrationStyle}
+                    illustration={Illustrations.EmptyStateTravel}
+                    illustrationStyle={[styles.mv4, {width: ILLUSTRATION_WIDTH, height: ILLUSTRATION_HEIGHT}]}
                     illustrationBackgroundColor={colors.blue600}
                     titleStyles={styles.textHeadlineH1}
                     contentPaddingOnLargeScreens={styles.p5}

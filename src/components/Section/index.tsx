@@ -3,6 +3,7 @@ import type {ReactNode} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import ImageSVG from '@components/ImageSVG';
 import Lottie from '@components/Lottie';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import type {MenuItemWithLink} from '@components/MenuItemList';
@@ -60,7 +61,7 @@ type SectionProps = ChildrenProps & {
     isCentralPane?: boolean;
 
     /** The illustration to display in the header. Can be a JSON object representing a Lottie animation. */
-    illustration?: DotLottieAnimation;
+    illustration?: DotLottieAnimation | IconAsset;
 
     /** The background color to apply in the upper half of the screen. */
     illustrationBackgroundColor?: string;
@@ -77,6 +78,10 @@ type SectionProps = ChildrenProps & {
     /** The component to display in the title of the section */
     renderSubtitle?: () => ReactNode;
 };
+
+function isIllustrationLottieAnimation(illustration: DotLottieAnimation | IconAsset | undefined): illustration is DotLottieAnimation {
+    return typeof illustration === 'object';
+}
 
 function Section({
     children,
@@ -104,7 +109,11 @@ function Section({
     const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth} = useWindowDimensions();
 
-    const illustrationContainerStyle: StyleProp<ViewStyle> = StyleUtils.getBackgroundColorStyle(illustrationBackgroundColor ?? illustration?.backgroundColor ?? theme.appBG);
+    const isLottie = isIllustrationLottieAnimation(illustration);
+
+    const lottieIllustration = isLottie ? illustration : undefined;
+
+    const illustrationContainerStyle: StyleProp<ViewStyle> = StyleUtils.getBackgroundColorStyle(illustrationBackgroundColor ?? lottieIllustration?.backgroundColor ?? theme.appBG);
 
     return (
         <View style={[styles.pageWrapper, styles.cardSectionContainer, containerStyles, (isCentralPane || !!illustration) && styles.p0]}>
@@ -117,13 +126,20 @@ function Section({
             {!!illustration && (
                 <View style={[styles.w100, styles.dFlex, styles.alignItemsCenter, styles.justifyContentCenter, illustrationContainerStyle]}>
                     <View style={[styles.cardSectionIllustration, illustrationStyle]}>
-                        <Lottie
-                            source={illustration}
-                            style={styles.h100}
-                            webStyle={styles.h100}
-                            autoPlay
-                            loop
-                        />
+                        {isLottie ? (
+                            <Lottie
+                                source={illustration}
+                                style={styles.h100}
+                                webStyle={styles.h100}
+                                autoPlay
+                                loop
+                            />
+                        ) : (
+                            <ImageSVG
+                                src={illustration}
+                                contentFit="contain"
+                            />
+                        )}
                     </View>
                     {overlayContent?.()}
                 </View>
