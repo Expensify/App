@@ -4,12 +4,14 @@ import type {MaybePhraseKey} from '@libs/Localize';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import type CONST from '@src/CONST';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {SearchAccountDetails, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type InviteMemberListItem from './InviteMemberListItem';
 import type RadioListItem from './RadioListItem';
 import type TableListItem from './TableListItem';
+import type TransactionListItem from './TransactionListItem';
 import type UserListItem from './UserListItem';
 
 type TRightHandSideComponent<TItem extends ListItem> = {
@@ -121,8 +123,30 @@ type ListItem = {
     /** What text to show inside the badge (if none present the badge will be omitted) */
     badgeText?: string;
 
+    /** Whether the brick road indicator should be shown */
     brickRoadIndicator?: BrickRoad | '' | null;
 };
+
+type TransactionListItemType = ListItem &
+    SearchTransaction & {
+        /** The personal details of the user requesting money */
+        from: SearchAccountDetails;
+
+        /** The personal details of the user paying the request */
+        to: SearchAccountDetails;
+
+        /** Whether we should show the merchant column */
+        shouldShowMerchant: boolean;
+
+        /** Whether we should show the category column */
+        shouldShowCategory: boolean;
+
+        /** Whether we should show the tag column */
+        shouldShowTag: boolean;
+
+        /** Whether we should show the tax column */
+        shouldShowTax: boolean;
+    };
 
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** The section list item */
@@ -180,7 +204,9 @@ type RadioListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type TableListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
-type ValidListItem = typeof RadioListItem | typeof UserListItem | typeof TableListItem | typeof InviteMemberListItem;
+type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+
+type ValidListItem = typeof RadioListItem | typeof UserListItem | typeof TableListItem | typeof InviteMemberListItem | typeof TransactionListItem;
 
 type Section<TItem extends ListItem> = {
     /** Title of the section */
@@ -250,6 +276,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Input mode for the text input */
     inputMode?: InputModeOptions;
 
+    /** Whether the text input should intercept swipes or not */
+    shouldTextInputInterceptSwipe?: boolean;
+
     /** Item `keyForList` to focus initially */
     initiallyFocusedOptionKey?: string | null;
 
@@ -291,6 +320,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Custom content to display in the header */
     headerContent?: ReactNode;
+
+    /** Custom content to display in the header of list component. */
+    listHeaderContent?: React.JSX.Element | null;
 
     /** Custom content to display in the footer */
     footerContent?: ReactNode;
@@ -336,6 +368,17 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
      * When false, the list will render immediately and scroll to the bottom which works great for small lists.
      */
     shouldHideListOnInitialRender?: boolean;
+
+    /** Called once when the scroll position gets within onEndReachedThreshold of the rendered content. */
+    onEndReached?: () => void;
+
+    /**
+     * How far from the end (in units of visible length of the list) the bottom edge of the
+     * list must be from the end of the content to trigger the `onEndReached` callback.
+     * Thus a value of 0.5 will trigger `onEndReached` when the end of the content is
+     * within half the visible length of the list.
+     */
+    onEndReachedThreshold?: number;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
@@ -364,21 +407,23 @@ type ExtendedSectionListData<TItem extends ListItem, TSection extends SectionWit
 type SectionListDataType<TItem extends ListItem> = ExtendedSectionListData<TItem, SectionWithIndexOffset<TItem>>;
 
 export type {
-    BaseSelectionListProps,
-    CommonListItemProps,
-    Section,
-    SectionWithIndexOffset,
     BaseListItemProps,
-    UserListItemProps,
-    RadioListItemProps,
-    TableListItemProps,
+    BaseSelectionListProps,
+    ButtonOrCheckBoxRoles,
+    CommonListItemProps,
+    FlattenedSectionsReturn,
     InviteMemberListItemProps,
+    ItemLayout,
     ListItem,
     ListItemProps,
-    FlattenedSectionsReturn,
-    ItemLayout,
-    ButtonOrCheckBoxRoles,
+    RadioListItemProps,
+    Section,
     SectionListDataType,
+    SectionWithIndexOffset,
     SelectionListHandle,
+    TableListItemProps,
+    TransactionListItemProps,
+    TransactionListItemType,
+    UserListItemProps,
     ValidListItem,
 };

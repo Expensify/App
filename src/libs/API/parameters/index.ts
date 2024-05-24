@@ -11,7 +11,7 @@ export type {default as BeginGoogleSignInParams} from './BeginGoogleSignInParams
 export type {default as BeginSignInParams} from './BeginSignInParams';
 export type {default as CloseAccountParams} from './CloseAccountParams';
 export type {default as ConnectBankAccountParams} from './ConnectBankAccountParams';
-export type {default as ConnectPolicyToQuickbooksOnlineParams} from './ConnectPolicyToQuickbooksOnlineParams';
+export type {default as ConnectPolicyToAccountingIntegrationParams} from './ConnectPolicyToAccountingIntegrationParams';
 export type {default as SyncPolicyToQuickbooksOnlineParams} from './SyncPolicyToQuickbooksOnlineParams';
 export type {default as DeleteContactMethodParams} from './DeleteContactMethodParams';
 export type {default as DeletePaymentBankAccountParams} from './DeletePaymentBankAccountParams';
@@ -47,6 +47,7 @@ export type {default as RequestReplacementExpensifyCardParams} from './RequestRe
 export type {default as RequestUnlinkValidationLinkParams} from './RequestUnlinkValidationLinkParams';
 export type {default as RequestAccountValidationLinkParams} from './RequestAccountValidationLinkParams';
 export type {default as ResolveActionableMentionWhisperParams} from './ResolveActionableMentionWhisperParams';
+export type {default as ResolveActionableReportMentionWhisperParams} from './ResolveActionableReportMentionWhisperParams';
 export type {default as RevealExpensifyCardDetailsParams} from './RevealExpensifyCardDetailsParams';
 export type {default as SearchForReportsParams} from './SearchForReportsParams';
 export type {default as SearchForRoomsToMentionParams} from './SearchForRoomsToMentionParams';
@@ -64,6 +65,7 @@ export type {default as UpdateFrequentlyUsedEmojisParams} from './UpdateFrequent
 export type {default as UpdateGroupChatNameParams} from './UpdateGroupChatNameParams';
 export type {default as UpdateGroupChatMemberRolesParams} from './UpdateGroupChatMemberRolesParams';
 export type {default as UpdateHomeAddressParams} from './UpdateHomeAddressParams';
+export type {default as UpdatePolicyAddressParams} from './UpdatePolicyAddressParams';
 export type {default as UpdateLegalNameParams} from './UpdateLegalNameParams';
 export type {default as UpdateNewsletterSubscriptionParams} from './UpdateNewsletterSubscriptionParams';
 export type {default as UpdatePersonalInformationForBankAccountParams} from './UpdatePersonalInformationForBankAccountParams';
@@ -207,6 +209,7 @@ export type {default as SetPolicyCustomTaxNameParams} from './SetPolicyCustomTax
 export type {default as SetPolicyForeignCurrencyDefaultParams} from './SetPolicyForeignCurrencyDefaultParams';
 export type {default as SetPolicyCurrencyDefaultParams} from './SetPolicyCurrencyDefaultParams';
 export type {default as UpdatePolicyConnectionConfigParams} from './UpdatePolicyConnectionConfigParams';
+export type {default as UpdateManyPolicyConnectionConfigurationsParams} from './UpdateManyPolicyConnectionConfigurationsParams';
 export type {default as RemovePolicyConnectionParams} from './RemovePolicyConnectionParams';
 export type {default as RenamePolicyTaxParams} from './RenamePolicyTaxParams';
 export type {default as CompleteGuidedSetupParams} from './CompleteGuidedSetupParams';
@@ -217,3 +220,5 @@ export type {default as CategorizeTrackedExpenseParams} from './CategorizeTracke
 export type {default as LeavePolicyParams} from './LeavePolicyParams';
 export type {default as OpenPolicyAccountingPageParams} from './OpenPolicyAccountingPageParams';
 export type {default as SearchParams} from './Search';
+export type {default as SendInvoiceParams} from './SendInvoiceParams';
+export type {default as MarkAsCashParams} from './MarkAsCashParams';

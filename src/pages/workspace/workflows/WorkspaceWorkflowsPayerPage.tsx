@@ -19,8 +19,7 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as UserUtils from '@libs/UserUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
-import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
-import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import * as Policy from '@userActions/Policy';
@@ -166,37 +165,38 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     );
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
-            <PaidPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
-                <FullPageNotFoundView
-                    shouldShow={shouldShowNotFoundPage}
-                    subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
-                    onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
-                    onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
+        <AccessOrNotFoundWrapper
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyID={route.params.policyID}
+        >
+            <FullPageNotFoundView
+                shouldShow={shouldShowNotFoundPage}
+                subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
+                onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
+                onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
+            >
+                <ScreenWrapper
+                    includeSafeAreaPaddingBottom={false}
+                    testID={WorkspaceWorkflowsPayerPage.displayName}
                 >
-                    <ScreenWrapper
-                        includeSafeAreaPaddingBottom={false}
-                        testID={WorkspaceWorkflowsPayerPage.displayName}
-                    >
-                        <HeaderWithBackButton
-                            title={translate('workflowsPayerPage.title')}
-                            subtitle={policyName}
-                            onBackButtonPress={Navigation.goBack}
-                        />
-                        <SelectionList
-                            sections={sections}
-                            textInputLabel={translate('optionsSelector.findMember')}
-                            textInputValue={searchTerm}
-                            onChangeText={setSearchTerm}
-                            headerMessage={headerMessage}
-                            ListItem={UserListItem}
-                            onSelectRow={setPolicyAuthorizedPayer}
-                            showScrollIndicator
-                        />
-                    </ScreenWrapper>
-                </FullPageNotFoundView>
-            </PaidPolicyAccessOrNotFoundWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+                    <HeaderWithBackButton
+                        title={translate('workflowsPayerPage.title')}
+                        subtitle={policyName}
+                        onBackButtonPress={Navigation.goBack}
+                    />
+                    <SelectionList
+                        sections={sections}
+                        textInputLabel={translate('selectionList.findMember')}
+                        textInputValue={searchTerm}
+                        onChangeText={setSearchTerm}
+                        headerMessage={headerMessage}
+                        ListItem={UserListItem}
+                        onSelectRow={setPolicyAuthorizedPayer}
+                        showScrollIndicator
+                    />
+                </ScreenWrapper>
+            </FullPageNotFoundView>
+        </AccessOrNotFoundWrapper>
     );
 }
 

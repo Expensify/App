@@ -39,9 +39,6 @@ type IOURequestStepAmountOnyxProps = {
     /** Whether the confirmation step should be skipped */
     skipConfirmation: OnyxEntry<boolean>;
 
-    /** The draft transaction object being modified in Onyx */
-    draftTransaction: OnyxEntry<OnyxTypes.Transaction>;
-
     /** Personal details of all users */
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 
@@ -67,7 +64,6 @@ function IOURequestStepAmount({
     currentUserPersonalDetails,
     splitDraftTransaction,
     skipConfirmation,
-    draftTransaction,
 }: IOURequestStepAmountProps) {
     const {translate} = useLocalize();
     const textInput = useRef<BaseTextInputRef | null>(null);
@@ -78,8 +74,9 @@ function IOURequestStepAmount({
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isEditingSplitBill = isEditing && isSplitBill;
-    const {amount: transactionAmount} = ReportUtils.getTransactionDetails(isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction) ?? {amount: 0};
-    const {currency: originalCurrency} = ReportUtils.getTransactionDetails(isEditing ? draftTransaction : transaction) ?? {currency: CONST.CURRENCY.USD};
+    const currentTransaction = isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction;
+    const {amount: transactionAmount} = ReportUtils.getTransactionDetails(currentTransaction) ?? {amount: 0};
+    const {currency: originalCurrency} = ReportUtils.getTransactionDetails(currentTransaction) ?? {currency: CONST.CURRENCY.USD};
     const currency = CurrencyUtils.isValidCurrencyCode(selectedCurrency) ? selectedCurrency : originalCurrency;
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace request, as
@@ -182,7 +179,8 @@ function IOURequestStepAmount({
             const backendAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
 
             if (shouldSkipConfirmation) {
-                if (iouType === CONST.IOU.TYPE.SPLIT) {
+                // Only skip confirmation when the split is not configurable, for now Smartscanned splits cannot be configured
+                if (iouType === CONST.IOU.TYPE.SPLIT && transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN) {
                     IOU.splitBill({
                         participants,
                         currentUserLogin: currentUserPersonalDetails.login ?? '',
@@ -190,7 +188,7 @@ function IOURequestStepAmount({
                         amount: backendAmount,
                         comment: '',
                         currency,
-                        merchant: '',
+                        merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                         tag: '',
                         category: '',
                         created: transaction?.created ?? '',
@@ -200,6 +198,7 @@ function IOURequestStepAmount({
                     });
                     return;
                 }
+
                 if (iouType === CONST.IOU.TYPE.PAY || iouType === CONST.IOU.TYPE.SEND) {
                     if (paymentMethod && paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
                         IOU.sendMoneyWithWallet(report, backendAmount, currency, '', currentUserPersonalDetails.accountID, participants[0]);
@@ -240,6 +239,10 @@ function IOURequestStepAmount({
                 }
             }
             IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
+            if (isSplitBill && !report.isOwnPolicyExpenseChat && report.participants) {
+                const participantAccountIDs = Object.keys(report.participants).map((accountID) => Number(accountID));
+                IOU.setSplitShares(transaction, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD, participantAccountIDs);
+            }
             navigateToConfirmationPage();
             return;
         }
@@ -250,26 +253,39 @@ function IOURequestStepAmount({
     };
 
     const saveAmountAndCurrency = ({amount, paymentMethod}: AmountParams) => {
+        const newAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
+
+        // Edits to the amount from the splits page should reset the split shares.
+        if (transaction?.splitShares) {
+            IOU.resetSplitShares(transaction, newAmount, currency);
+        }
+
         if (!isEditing) {
             navigateToNextPage({amount, paymentMethod});
             return;
         }
 
-        const newAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
-
         // If the value hasn't changed, don't request to save changes on the server and just close the modal
-        if (newAmount === TransactionUtils.getAmount(transaction) && currency === TransactionUtils.getCurrency(transaction)) {
+        const transactionCurrency = TransactionUtils.getCurrency(currentTransaction);
+        if (newAmount === TransactionUtils.getAmount(currentTransaction) && currency === transactionCurrency) {
             Navigation.dismissModal();
             return;
         }
 
+        // If currency has changed, then we get the default tax rate based on currency, otherwise we use the current tax rate selected in transaction, if we have it.
+        const transactionTaxCode = ReportUtils.getTransactionDetails(currentTransaction)?.taxCode;
+        const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, currentTransaction, currency) ?? '';
+        const taxCode = (currency !== transactionCurrency ? defaultTaxCode : transactionTaxCode) ?? defaultTaxCode;
+        const taxPercentage = TransactionUtils.getTaxValue(policy, currentTransaction, taxCode) ?? '';
+        const taxAmount = CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(taxPercentage, newAmount));
+
         if (isSplitBill) {
-            IOU.setDraftSplitTransaction(transactionID, {amount: newAmount, currency});
+            IOU.setDraftSplitTransaction(transactionID, {amount: newAmount, currency, taxCode, taxAmount});
             Navigation.goBack(backTo);
             return;
         }
 
-        IOU.updateMoneyRequestAmountAndCurrency({transactionID, transactionThreadReportID: reportID, currency, amount: newAmount});
+        IOU.updateMoneyRequestAmountAndCurrency({transactionID, transactionThreadReportID: reportID, currency, amount: newAmount, taxAmount, policy, taxCode});
         Navigation.dismissModal();
     };
 
@@ -305,12 +321,6 @@ const IOURequestStepAmountWithOnyx = withOnyx<IOURequestStepAmountProps, IOURequ
         key: ({route}) => {
             const transactionID = route.params.transactionID ?? 0;
             return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
-        },
-    },
-    draftTransaction: {
-        key: ({route}) => {
-            const transactionID = route.params.transactionID ?? 0;
-            return `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`;
         },
     },
     skipConfirmation: {
