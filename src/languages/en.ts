@@ -3072,6 +3072,9 @@ export default {
         rter: {
             manual: 'marked this receipt as cash.',
         },
+        duplicatedTransaction: {
+            manual: 'unheld this request',
+        },
     },
     videoPlayer: {
         play: 'Play',

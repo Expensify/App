@@ -12,7 +12,7 @@ import {buildOptimisticDismissedViolationReportAction} from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, RecentWaypoint, ReportActions, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {PersonalDetails, RecentWaypoint, ReportAction, ReportActions, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 
@@ -292,12 +292,12 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
     const currentTransactions = transactionIDs.map((id) => allTransactions?.[id]);
     const optimisticReportAction = buildOptimisticDismissedViolationReportAction({reason: 'manual', violationName: CONST.VIOLATIONS.DUPLICATED_TRANSACTION});
 
-    const optimisticReportActions = [
+    const optimisticReportActions: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
             value: {
-                [optimisticReportAction.reportActionID]: optimisticReportAction,
+                [optimisticReportAction.reportActionID]: optimisticReportAction as ReportAction,
             },
         },
     ];
@@ -336,7 +336,8 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
             ...transaction,
         },
     }));
-    const failureReportActions = [
+
+    const failureReportActions: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,

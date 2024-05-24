@@ -3576,6 +3576,9 @@ export default {
         rter: {
             manual: 'marcó el recibo como pagado en efectivo.',
         },
+        duplicatedTransaction: {
+            manual: 'no ha aceptado esta solicitud',
+        },
     },
     videoPlayer: {
         play: 'Reproducir',
