@@ -50,7 +50,6 @@ type SectionObject = {
     titleTranslationKey: TranslationPaths;
     subtitleTranslationKey: TranslationPaths;
     items: Item[];
-    footer?: React.ReactNode;
 };
 
 function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPageProps) {
@@ -62,31 +61,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const hasAccountingConnection = !!policy?.areConnectionsEnabled && !isEmptyObject(policy?.connections);
     const policyID = policy?.id ?? '';
     const isSyncTaxEnabled = !!policy?.connections?.quickbooksOnline?.config.syncTax || !!policy?.connections?.xero?.config.importTaxRates;
-
-    const renderIntegrationFooter = () => (
-        <View style={[styles.ph2, styles.mt7]}>
-            {hasAccountingConnection ? (
-                <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                    <Icon
-                        src={Expensicons.Lock}
-                        fill={styles.colorMuted.color}
-                    />
-                    <Text style={styles.mh1}>
-                        <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.moreFeatures.organizeSection.footer.text')} `}</Text>
-                        <TextLink
-                            style={[styles.textNormal, styles.link]}
-                            href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
-                        >
-                            {`${translate('workspace.moreFeatures.organizeSection.footer.link')}`}
-                        </TextLink>
-                        <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
-                    </Text>
-                </View>
-            ) : (
-                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
-            )}
-        </View>
-    );
 
     const spendItems: Item[] = [
         {
@@ -173,7 +147,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             titleTranslationKey: 'workspace.moreFeatures.organizeSection.title',
             subtitleTranslationKey: 'workspace.moreFeatures.organizeSection.subtitle',
             items: organizeItems,
-            footer: renderIntegrationFooter(),
         },
     ];
 
@@ -223,8 +196,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     subtitleMuted
                 >
                     {section.items.map(renderItem)}
-
-                    {section.footer}
                 </Section>
             </View>
         ),
