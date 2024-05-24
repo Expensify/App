@@ -66,7 +66,7 @@ function EnablePaymentsPage({userWallet, bankAccountList}: EnablePaymentsPagePro
                     );
                 }
 
-                const currentStep = userWallet?.currentStep || (isEmptyObject(bankAccountList) ? CONST.WALLET.STEP.ADD_BANK_ACCOUNT : CONST.WALLET.STEP.ADDITIONAL_DETAILS);
+                const currentStep = isEmptyObject(bankAccountList) ? CONST.WALLET.STEP.ADD_BANK_ACCOUNT : userWallet?.currentStep ?? CONST.WALLET.STEP.ADDITIONAL_DETAILS;
 
                 switch (currentStep) {
                     case CONST.WALLET.STEP.ADD_BANK_ACCOUNT:
