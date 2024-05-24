@@ -914,6 +914,11 @@ function isCurrentUserInvoiceReceiver(report: OnyxEntry<Report>): boolean {
         return currentUserAccountID === report.invoiceReceiver.accountID;
     }
 
+    if (report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS) {
+        const policy = PolicyUtils.getPolicy(report.invoiceReceiver.policyID);
+        return PolicyUtils.isPolicyAdmin(policy);
+    }
+
     return false;
 }
 
@@ -1855,6 +1860,45 @@ function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = f
     return shouldUseShortForm ? shortName : longName;
 }
 
+function getSecondaryAvatar(chatReport: OnyxEntry<Report>, iouReport: OnyxEntry<Report>, displayAllActors: boolean, isWorkspaceActor: boolean, actorAccountID?: number): Icon {
+    let secondaryAvatar: Icon;
+
+    if (displayAllActors) {
+        if (!isIndividualInvoiceRoom(chatReport)) {
+            const secondaryPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : '-1';
+            const secondaryPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${secondaryPolicyID}`];
+            const avatar = secondaryPolicy?.avatarURL ?? getDefaultWorkspaceAvatar(secondaryPolicy?.name);
+
+            secondaryAvatar = {
+                source: avatar,
+                type: CONST.ICON_TYPE_WORKSPACE,
+                name: secondaryPolicy?.name,
+                id: secondaryPolicyID,
+            };
+        } else {
+            const secondaryAccountId = iouReport?.ownerAccountID === actorAccountID || isInvoiceReport(iouReport) ? iouReport?.managerID : iouReport?.ownerAccountID;
+            const secondaryUserAvatar = allPersonalDetails?.[secondaryAccountId ?? -1]?.avatar ?? '';
+            const secondaryDisplayName = getDisplayNameForParticipant(secondaryAccountId);
+
+            secondaryAvatar = {
+                source: UserUtils.getAvatar(secondaryUserAvatar, secondaryAccountId),
+                type: CONST.ICON_TYPE_AVATAR,
+                name: secondaryDisplayName ?? '',
+                id: secondaryAccountId,
+            };
+        }
+    } else if (!isWorkspaceActor) {
+        const avatarIconIndex = chatReport?.isOwnPolicyExpenseChat || isPolicyExpenseChat(chatReport) ? 0 : 1;
+        const reportIcons = getIcons(chatReport, {});
+
+        secondaryAvatar = reportIcons[avatarIconIndex];
+    } else {
+        secondaryAvatar = {name: '', source: '', type: 'avatar'};
+    }
+
+    return secondaryAvatar;
+}
+
 function getParticipantAccountIDs(reportID: string) {
     const report = getReport(reportID);
     if (!report || !report.participants) {
@@ -2018,7 +2062,12 @@ function getIcons(
             } else {
                 const receiverPolicy = getPolicy(report?.invoiceReceiver?.policyID);
                 if (!isEmptyObject(receiverPolicy)) {
-                    icons.push(getWorkspaceIcon(report, receiverPolicy));
+                    icons.push({
+                        source: receiverPolicy?.avatarURL ?? getDefaultWorkspaceAvatar(receiverPolicy.name),
+                        type: CONST.ICON_TYPE_WORKSPACE,
+                        name: receiverPolicy.name,
+                        id: receiverPolicy.id,
+                    });
                 }
             }
         }
@@ -2093,7 +2142,12 @@ function getIcons(
         const receiverPolicy = getPolicy(invoiceRoomReport?.invoiceReceiver?.policyID);
 
         if (!isEmptyObject(receiverPolicy)) {
-            icons.push(getWorkspaceIcon(invoiceRoomReport, receiverPolicy));
+            icons.push({
+                source: receiverPolicy?.avatarURL ?? getDefaultWorkspaceAvatar(receiverPolicy.name),
+                type: CONST.ICON_TYPE_WORKSPACE,
+                name: receiverPolicy.name,
+                id: receiverPolicy.id,
+            });
         }
 
         return icons;
@@ -2531,7 +2585,16 @@ function getMoneyRequestReportName(report: OnyxEntry<Report>, policy: OnyxEntry<
 
     const moneyRequestTotal = getMoneyRequestSpendBreakdown(report).totalDisplaySpend;
     const formattedAmount = CurrencyUtils.convertToDisplayString(moneyRequestTotal, report?.currency);
-    let payerOrApproverName = isExpenseReport(report) ? getPolicyName(report, false, policy) : getDisplayNameForParticipant(report?.managerID) ?? '';
+    let payerOrApproverName;
+    if (isExpenseReport(report)) {
+        payerOrApproverName = getPolicyName(report, false, policy);
+    } else if (isInvoiceReport(report)) {
+        const chatReport = getReport(report?.chatReportID);
+        payerOrApproverName = getInvoicePayerName(chatReport);
+    } else {
+        payerOrApproverName = getDisplayNameForParticipant(report?.managerID) ?? '';
+    }
+
     const payerPaidAmountMessage = Localize.translateLocal('iou.payerPaidAmount', {
         payer: payerOrApproverName,
         amount: formattedAmount,
@@ -7070,6 +7133,7 @@ export {
     isDraftReport,
     createDraftWorkspaceAndNavigateToConfirmationScreen,
     isIndividualInvoiceRoom,
+    getSecondaryAvatar,
 };
 
 export type {

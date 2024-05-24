@@ -84,7 +84,7 @@ function ReportActionItemSingle({
     const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails[actorAccountID ?? -1] ?? {};
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     let actorHint = (login || (displayName ?? '')).replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
-    const displayAllActors = useMemo(() => action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && iouReport, [action?.actionName, iouReport]);
+    const displayAllActors = useMemo(() => action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && !!iouReport, [action?.actionName, iouReport]);
     const isInvoiceReport = ReportUtils.isInvoiceReport(iouReport ?? {});
     const isWorkspaceActor = isInvoiceReport || (ReportUtils.isPolicyExpenseChat(report) && (!actorAccountID || displayAllActors));
     let avatarSource = avatar;
@@ -107,32 +107,16 @@ function ReportActionItemSingle({
     }
 
     // If this is a report preview, display names and avatars of both people involved
-    let secondaryAvatar: Icon;
+    const secondaryAvatar = ReportUtils.getSecondaryAvatar(report, iouReport ?? null, displayAllActors, isWorkspaceActor, actorAccountID);
     const primaryDisplayName = displayName;
     if (displayAllActors) {
         // The ownerAccountID and actorAccountID can be the same if the user submits an expense back from the IOU's original creator, in that case we need to use managerID to avoid displaying the same user twice
         const secondaryAccountId = iouReport?.ownerAccountID === actorAccountID || isInvoiceReport ? iouReport?.managerID : iouReport?.ownerAccountID;
-        const secondaryUserAvatar = personalDetails?.[secondaryAccountId ?? -1]?.avatar ?? FallbackAvatar;
         const secondaryDisplayName = ReportUtils.getDisplayNameForParticipant(secondaryAccountId);
 
         if (!isInvoiceReport) {
             displayName = `${primaryDisplayName} & ${secondaryDisplayName}`;
         }
-
-        secondaryAvatar = {
-            source: secondaryUserAvatar,
-            type: CONST.ICON_TYPE_AVATAR,
-            name: secondaryDisplayName ?? '',
-            id: secondaryAccountId,
-        };
-    } else if (!isWorkspaceActor) {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const avatarIconIndex = report.isOwnPolicyExpenseChat || ReportUtils.isPolicyExpenseChat(report) ? 0 : 1;
-        const reportIcons = ReportUtils.getIcons(report, {});
-
-        secondaryAvatar = reportIcons[avatarIconIndex];
-    } else {
-        secondaryAvatar = {name: '', source: '', type: 'avatar'};
     }
     const icon = {
         source: avatarSource ?? FallbackAvatar,
