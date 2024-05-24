@@ -25,8 +25,8 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
         [SCREENS.REPORT_AVATAR]: {
             path: ROUTES.REPORT_AVATAR.route,
             parse: {
-                isNewGroupChat: (isNewGroupChat: string) => isNewGroupChat === "true",
-            }, 
+                isNewGroupChat: (isNewGroupChat: string) => isNewGroupChat === 'true',
+            },
         },
         [SCREENS.TRANSACTION_RECEIPT]: ROUTES.TRANSACTION_RECEIPT.route,
         [SCREENS.WORKSPACE_JOIN_USER]: ROUTES.WORKSPACE_JOIN_USER.route,

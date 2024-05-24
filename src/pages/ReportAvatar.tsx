@@ -25,14 +25,13 @@ function ReportAvatar({report = {} as Report, policies, isLoadingApp = true, rou
     const title = policy ? ReportUtils.getPolicyName(report, false, policy) : report?.reportName;
     let avatarURL;
     let fileName;
-    const [groupChatDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);;
+    const [groupChatDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
 
     const shouldUseGroupChatDraft = route.params.isNewGroupChat;
-    if(shouldUseGroupChatDraft) {
+    if (shouldUseGroupChatDraft) {
         avatarURL = groupChatDraft?.avatarUri ?? undefined;
         fileName = groupChatDraft?.originalFileName ?? undefined;
-    }
-    else {
+    } else {
         avatarURL = policy ? ReportUtils.getWorkspaceAvatar(report) : report?.avatarUrl;
         // In the case of default workspace avatar, originalFileName prop takes policyID as value to get the color of the avatar
         fileName = policy ? policy?.originalFileName ?? policy?.id : title;
