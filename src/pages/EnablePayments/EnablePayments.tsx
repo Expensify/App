@@ -35,8 +35,10 @@ function EnablePaymentsPage({userWallet}: EnablePaymentsPageProps) {
             return;
         }
 
-        Wallet.openEnablePaymentsPage();
-    }, [isOffline]);
+        if (isEmptyObject(userWallet)) {
+            Wallet.openEnablePaymentsPage();
+        }
+    }, [isOffline, userWallet]);
 
     if (isEmptyObject(userWallet)) {
         return <FullScreenLoadingIndicator />;
@@ -85,9 +87,5 @@ EnablePaymentsPage.displayName = 'EnablePaymentsPage';
 export default withOnyx<EnablePaymentsPageProps, EnablePaymentsPageOnyxProps>({
     userWallet: {
         key: ONYXKEYS.USER_WALLET,
-
-        // We want to refresh the wallet each time the user attempts to activate the wallet so we won't use the
-        // stored values here.
-        initWithStoredValues: false,
     },
 })(EnablePaymentsPage);
