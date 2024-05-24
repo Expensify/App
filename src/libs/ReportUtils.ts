@@ -5243,28 +5243,6 @@ function getInvoiceChatByParticipants(policyID: string, receiverID: string | num
 }
 
 /**
- * Attempts to find a report in onyx with the provided list of participants in given policy
- */
-function getChatByParticipantsAndPolicy(newParticipantList: number[], policyID: string): OnyxEntry<Report> {
-    newParticipantList.sort();
-    return (
-        Object.values(allReports ?? {}).find((report) => {
-            const participantAccountIDs = Object.keys(report?.participants ?? {});
-
-            // If the report has been deleted, or there are no participants (like an empty #admins room) then skip it
-            if (!report || participantAccountIDs.length === 0) {
-                return false;
-            }
-
-            const sortedParticipantsAccountIDs = participantAccountIDs.map(Number).sort();
-
-            // Only return the room if it has all the participants and is not a policy room
-            return report.policyID === policyID && newParticipantList.every((newParticipant) => sortedParticipantsAccountIDs.includes(newParticipant));
-        }) ?? null
-    );
-}
-
-/**
  * Attempts to find a policy expense report in onyx that is owned by ownerAccountID in a given policy
  */
 function getPolicyExpenseChat(ownerAccountID: number, policyID: string): OnyxEntry<Report> {
@@ -6772,7 +6750,6 @@ export {
     getAvailableReportFields,
     getBankAccountRoute,
     getChatByParticipants,
-    getChatByParticipantsAndPolicy,
     getChatRoomSubtitle,
     getChildReportNotificationPreference,
     getCommentLength,
