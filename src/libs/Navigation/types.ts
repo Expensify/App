@@ -332,11 +332,10 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_TRACKING_CATEGORIES]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.XERO_MAP_COST_CENTERS]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.XERO_MAP_TRACKING_CATEGORY]: {
         policyID: string;
-    };
-    [SCREENS.WORKSPACE.ACCOUNTING.XERO_MAP_REGION]: {
-        policyID: string;
+        categoryId: string;
+        categoryName: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_EXPORT]: {
         policyID: string;
