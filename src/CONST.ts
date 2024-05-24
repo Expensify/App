@@ -74,7 +74,6 @@ type OnboardingPurposeType = ValueOf<typeof onboardingChoices>;
 
 const CONST = {
     RECENT_WAYPOINTS_NUMBER: 20,
-    MERGED_ACCOUNT_PREFIX: 'MERGED_',
     DEFAULT_POLICY_ROOM_CHAT_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL],
 
     // Note: Group and Self-DM excluded as these are not tied to a Workspace
@@ -166,6 +165,9 @@ const CONST = {
     },
 
     PULL_REQUEST_NUMBER,
+
+    // Regex to get link in href prop inside of <a/> component
+    REGEX_LINK_IN_ANCHOR: /<a\s+(?:[^>]*?\s+)?href="([^"]*)"/gi,
 
     MERCHANT_NAME_MAX_LENGTH: 255,
 
@@ -3736,6 +3738,7 @@ const CONST = {
 
     WELCOME_VIDEO_URL: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
 
+    ONBOARDING_INTRODUCTION: 'Let’s get you set up 🔧',
     ONBOARDING_CHOICES: {...onboardingChoices},
 
     ONBOARDING_CONCIERGE: {
