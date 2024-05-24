@@ -2240,6 +2240,15 @@ const styles = (theme: ThemeColors) =>
             width: 200,
         },
 
+        chatItemPDFAttachmentLoading: {
+            backgroundColor: 'transparent',
+            borderColor: theme.border,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadiusNormal,
+            ...flex.alignItemsCenter,
+            ...flex.justifyContentCenter,
+        },
+
         sidebarVisible: {
             borderRightWidth: 1,
         },
@@ -4477,6 +4486,10 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 8,
         },
 
+        selectionListStickyHeader: {
+            backgroundColor: theme.appBG,
+        },
+
         draggableTopBar: {
             height: 30,
             width: '100%',
@@ -4897,6 +4910,7 @@ const styles = (theme: ThemeColors) =>
         workspaceTitleStyle: {
             ...headlineFont,
             fontSize: variables.fontSizeXLarge,
+            flex: 1,
         },
 
         textLineThrough: {
