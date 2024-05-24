@@ -105,6 +105,7 @@ function PopoverMenu({
         if (selectedItem?.subMenuItems) {
             setCurrentMenuItems([...selectedItem.subMenuItems]);
             setEnteredSubMenuIndexes([...enteredSubMenuIndexes, index]);
+            setFocusedIndex(-1);
         } else {
             selectedItemIndex.current = index;
             onItemSelected(selectedItem, index);
@@ -137,6 +138,7 @@ function PopoverMenu({
                 description={previouslySelectedItem.description}
                 onPress={() => {
                     setCurrentMenuItems(previousMenuItems);
+                    setFocusedIndex(-1);
                     enteredSubMenuIndexes.splice(-1);
                 }}
             />
