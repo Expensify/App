@@ -7,13 +7,13 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import Navigation from '@libs/Navigation/Navigation';
-import AddBankAccount from '@pages/EnablePayments/AddBankAccount/AddBankAccount';
 import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {UserWallet} from '@src/types/onyx';
+import type {BankAccountList, UserWallet} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import AddBankAccount from './AddBankAccount/AddBankAccount';
 import FailedKYC from './FailedKYC';
 import FeesAndTerms from './FeesAndTerms/FeesAndTerms';
 import PersonalInfo from './PersonalInfo/PersonalInfo';
@@ -22,11 +22,14 @@ import VerifyIdentity from './VerifyIdentity/VerifyIdentity';
 type EnablePaymentsPageOnyxProps = {
     /** The user's wallet */
     userWallet: OnyxEntry<UserWallet>;
+
+    /** The list of bank accounts */
+    bankAccountList: OnyxEntry<BankAccountList>;
 };
 
 type EnablePaymentsPageProps = EnablePaymentsPageOnyxProps;
 
-function EnablePaymentsPage({userWallet}: EnablePaymentsPageProps) {
+function EnablePaymentsPage({userWallet, bankAccountList}: EnablePaymentsPageProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
@@ -63,7 +66,7 @@ function EnablePaymentsPage({userWallet}: EnablePaymentsPageProps) {
                     );
                 }
 
-                const currentStep = userWallet?.currentStep || (userWallet?.bankAccountID ? CONST.WALLET.STEP.ADDITIONAL_DETAILS : CONST.WALLET.STEP.ADD_BANK_ACCOUNT);
+                const currentStep = userWallet?.currentStep || (isEmptyObject(bankAccountList) ? CONST.WALLET.STEP.ADD_BANK_ACCOUNT : CONST.WALLET.STEP.ADDITIONAL_DETAILS);
 
                 switch (currentStep) {
                     case CONST.WALLET.STEP.ADD_BANK_ACCOUNT:
@@ -87,5 +90,8 @@ EnablePaymentsPage.displayName = 'EnablePaymentsPage';
 export default withOnyx<EnablePaymentsPageProps, EnablePaymentsPageOnyxProps>({
     userWallet: {
         key: ONYXKEYS.USER_WALLET,
+    },
+    bankAccountList: {
+        key: ONYXKEYS.BANK_ACCOUNT_LIST,
     },
 })(EnablePaymentsPage);
