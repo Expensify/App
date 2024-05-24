@@ -36,7 +36,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import CameraPermission from './CameraPermission';
-import NavigationAwareCamera from './NavigationAwareCamera';
+import NavigationAwareCamera from './NavigationAwareCamera/Camera';
 import type {IOURequestStepOnyxProps, IOURequestStepScanProps} from './types';
 
 function IOURequestStepScan({
@@ -480,8 +480,7 @@ function IOURequestStepScan({
                             <NavigationAwareCamera
                                 ref={camera}
                                 device={device}
-                                // @ts-expect-error The HOC are not migrated to TypeScript yet
-                                style={[styles.flex1]}
+                                style={styles.flex1}
                                 zoom={device.neutralZoom}
                                 photo
                                 cameraTabIndex={1}
