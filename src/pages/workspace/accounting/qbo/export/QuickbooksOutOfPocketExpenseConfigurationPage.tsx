@@ -53,7 +53,6 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConne
                             }
                         />
                     </OfflineWithFeedback>
-                    {isLocationEnabled && <Text style={[styles.ph5, styles.mutedNormalTextLabel, styles.pt1]}>{translate('workspace.qbo.outOfPocketLocationEnabledDescription')}</Text>}
                     {!isLocationEnabled && (
                         <OfflineWithFeedback pendingAction={pendingFields?.reimbursableExpensesAccount}>
                             <MenuItemWithTopDescription
