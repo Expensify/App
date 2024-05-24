@@ -6679,6 +6679,7 @@ function putOnHold(transactionID: string, comment: string, reportID: string) {
                 comment: {
                     hold: null,
                 },
+                errors: ErrorUtils.getMicroSecondOnyxError('report.genericAddCommentFailureMessage'),
             },
         },
     ];
@@ -6740,6 +6741,7 @@ function unholdRequest(transactionID: string, reportID: string) {
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
                 pendingAction: null,
+                errors: ErrorUtils.getMicroSecondOnyxError('report.genericAddCommentFailureMessage'),
             },
         },
     ];
