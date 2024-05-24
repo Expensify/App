@@ -119,7 +119,7 @@ function IOURequestStepWaypoint({
                 name: values.name ?? '',
                 lat: values.lat ?? 0,
                 lng: values.lng ?? 0,
-                keyForList: `${(waypointValue ?? 'waypoint') as string}_${Date.now()}`,
+                keyForList: `${(values.name ?? 'waypoint') as string}_${Date.now()}`,
             };
             saveWaypoint(waypoint);
         }
