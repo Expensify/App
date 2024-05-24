@@ -1,0 +1,92 @@
+name: Update Issue Title with Project Status
+
+on:
+  issues:
+    types: [opened, edited]
+  project_card:
+    types: [moved]
+
+jobs:
+  update_issue_title:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out the repository
+      uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14'
+
+    - name: Install dependencies
+      run: npm install @octokit/rest
+
+    - name: Update issue title with project status
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        node -e "
+          const { Octokit } = require('@octokit/rest');
+          const context = require('@actions/github').context;
+          const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
+
+          async function updateIssueTitle() {
+            const issue = context.payload.issue;
+            const projectCard = context.payload.project_card;
+            const targetProjectId = 112;  // Project ID for Expensify project
+
+            let status = '';
+
+            if (projectCard) {
+              const columnId = projectCard.column_id;
+              const column = await octokit.projects.getColumn({ column_id: columnId });
+              const projectId = column.data.project_url.split('/').pop();
+
+              if (parseInt(projectId, 10) !== targetProjectId) {
+                console.log('Project ID does not match target project.');
+                return;
+              }
+
+              status = column.data.name.toUpperCase();
+            } else if (issue) {
+              const issueNumber = issue.number;
+              const repo = context.repo.repo;
+              const owner = context.repo.owner;
+              const projects = await octokit.projects.listForRepo({ owner, repo });
+
+              const project = projects.data.find(p => p.id === targetProjectId);
+              if (!project) {
+                console.log('Issue is not part of the target project.');
+                return;
+              }
+
+              const columns = await octokit.projects.listColumns({ project_id: targetProjectId });
+              for (const column of columns.data) {
+                const cards = await octokit.projects.listCards({ column_id: column.id });
+                for (const card of cards.data) {
+                  if (card.content_url && card.content_url.endsWith(`/issues/${issueNumber}`)) {
+                    status = column.name.toUpperCase();
+                    break;
+                  }
+                }
+                if (status) break;
+              }
+            }
+
+            if (status) {
+              const newTitle = `[${status}] ${issue.title}`;
+              await octokit.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                title: newTitle,
+              });
+            }
+          }
+
+          updateIssueTitle().catch((error) => {
+            console.error(error);
+            process.exit(1);
+          });
+        "
