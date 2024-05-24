@@ -44,7 +44,9 @@ function setClipboardMessage(content: string) {
     if (!Clipboard.canSetHtml()) {
         Clipboard.setString(parseHtmlToMarkdown(content));
     } else {
-        const plainText = parseHtmlToText(content);
+        const anchorRegex = CONST.REGEX_LINK_IN_ANCHOR;
+        const isAnchorTag = anchorRegex.test(content);
+        const plainText = isAnchorTag ? parseHtmlToMarkdown(content) : parseHtmlToText(content);
         Clipboard.setHtml(content, plainText);
     }
 }
