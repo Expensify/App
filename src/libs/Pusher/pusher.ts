@@ -72,6 +72,8 @@ let pusherSocketID = '';
 const socketEventCallbacks: SocketEventCallback[] = [];
 let customAuthorizer: ChannelAuthorizerGenerator;
 
+const eventsBoundToChannels = new Map<Channel, Set<PusherEventName>>();
+
 /**
  * Trigger each of the socket event callbacks with the event information
  */
@@ -153,7 +155,7 @@ function getChannel(channelName: string): Channel | undefined {
  * Binds an event callback to a channel + eventName
  */
 function bindEventToChannel<EventName extends PusherEventName>(channel: Channel | undefined, eventName: EventName, eventCallback: (data: EventData<EventName>) => void = () => {}) {
-    if (!eventName) {
+    if (!eventName || !channel) {
         return;
     }
 
@@ -213,7 +215,11 @@ function bindEventToChannel<EventName extends PusherEventName>(channel: Channel 
         }
     };
 
-    channel?.bind(eventName, callback);
+    channel.bind(eventName, callback);
+    if (!eventsBoundToChannels.has(channel)) {
+        eventsBoundToChannels.set(channel, new Set());
+    }
+    eventsBoundToChannels.get(channel)?.add(eventName);
 }
 
 /**
@@ -288,6 +294,12 @@ function unsubscribe(channelName: string, eventName: PusherEventName = '') {
     if (eventName) {
         Log.info('[Pusher] Unbinding event', false, {eventName, channelName});
         channel.unbind(eventName);
+        eventsBoundToChannels.get(channel)?.delete(eventName);
+        if (eventsBoundToChannels.get(channel)?.size === 0) {
+            Log.info(`[Pusher] After unbinding ${eventName} from channel ${channelName}, no other events were bound to that channel. Unsubscribing...`, false);
+            eventsBoundToChannels.delete(channel);
+            socket?.unsubscribe(channelName);
+        }
     } else {
         if (!channel.subscribed) {
             Log.info('Pusher] Attempted to unsubscribe from channel, but we are not subscribed to begin with', false, {channelName});
