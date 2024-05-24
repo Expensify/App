@@ -351,7 +351,7 @@ function MoneyRequestParticipantsSelector({participants = [], onFinish, onPartic
     return (
         <SelectionList
             onConfirm={handleConfirmSelection}
-            sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
+            sections={areOptionsInitialized ? CONST.EMPTY_ARRAY : CONST.EMPTY_ARRAY}
             ListItem={InviteMemberListItem}
             textInputValue={searchTerm}
             textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
