@@ -6311,10 +6311,20 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject, full
         });
     }
 
+    let optimisticHoldReportID;
+    if (!full) {
+        const holdReportOnyxData = getReportFromHoldRequestsOnyxData(chatReport, expenseReport, expenseReport.ownerAccountID);
+
+        optimisticData.push(...holdReportOnyxData.optimisticData);
+        failureData.push(...holdReportOnyxData.failureData);
+        optimisticHoldReportID = holdReportOnyxData.optimisticHoldReportID;
+    }
+
     const parameters: ApproveMoneyRequestParams = {
         reportID: expenseReport.reportID,
         approvedReportActionID: optimisticApprovedReportAction.reportActionID,
         full,
+        optimisticHoldReportID,
     };
 
     API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
