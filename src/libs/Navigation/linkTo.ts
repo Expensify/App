@@ -3,6 +3,7 @@ import type {NavigationAction, NavigationContainerRef, NavigationState, PartialS
 import {omitBy} from 'lodash';
 import type {Writable} from 'type-fest';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import isCentralPaneScreen from '@libs/NavigationUtils';
 import shallowCompare from '@libs/ObjectUtils';
 import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
@@ -11,7 +12,6 @@ import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import getActionsFromPartialDiff from './AppNavigator/getActionsFromPartialDiff';
 import getPartialStateDiff from './AppNavigator/getPartialStateDiff';
-import CENTRAL_PANE_SCREEN_NAMES from './AppNavigator/Navigators/CENTRAL_PANE_SCREEN_NAMES';
 import dismissModal from './dismissModal';
 import getPolicyIDFromState from './getPolicyIDFromState';
 import getStateFromPath from './getStateFromPath';
@@ -133,7 +133,6 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
     const pathWithoutPolicyID = getPathWithoutPolicyID(`/${path}`) as Route;
     const rootState = navigation.getRootState() as NavigationState<RootStackParamList>;
     const stateFromPath = getStateFromPath(pathWithoutPolicyID) as PartialState<NavigationState<RootStackParamList>>;
-    console.log('stateFromPath', stateFromPath);
     // Creating path with /w/ included if necessary.
     const extractedPolicyID = extractPolicyIDFromPath(`/${path}`);
     const policyIDFromState = getPolicyIDFromState(rootState);
@@ -151,7 +150,6 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
     }
 
     const action: StackNavigationAction = getActionFromState(stateFromPath, linkingConfig.config);
-    console.log('action', action);
     // If action type is different than NAVIGATE we can't change it to the PUSH safely
     if (action?.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE) {
         const topmostCentralPaneRoute = getTopmostCentralPaneRoute(rootState);
@@ -166,13 +164,12 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
                       omitBy(topmostCentralPaneRoute?.params as Record<string, unknown> | undefined, (value) => value === undefined),
                       omitBy(action.payload.params?.params as Record<string, unknown> | undefined, (value) => value === undefined),
                   );
-        console.log('bools', isTargetScreenDifferentThanCurrent, areParamsDifferent);
         // In case if type is 'FORCED_UP' we replace current screen with the provided. This means the current screen no longer exists in the stack
         if (type === CONST.NAVIGATION.TYPE.FORCED_UP) {
             action.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
 
             // If this action is navigating to the report screen and the top most navigator is different from the one we want to navigate - PUSH the new screen to the top of the stack
-        } else if (CENTRAL_PANE_SCREEN_NAMES.includes(action.payload.name) && (isTargetScreenDifferentThanCurrent || areParamsDifferent)) {
+        } else if (isCentralPaneScreen(action.payload.name) && (isTargetScreenDifferentThanCurrent || areParamsDifferent)) {
             // We need to push a tab if the tab doesn't match the central pane route that we are going to push.
             const topmostBottomTabRoute = getTopmostBottomTabRoute(rootState);
             const matchingBottomTabRoute = getMatchingBottomTabRouteForState(stateFromPath, policyID);
@@ -180,7 +177,6 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
             const isNewPolicyID =
                 (topmostBottomTabRoute?.params as Record<string, string | undefined>)?.policyID !== (matchingBottomTabRoute?.params as Record<string, string | undefined>)?.policyID;
             if (topmostBottomTabRoute && (topmostBottomTabRoute.name !== matchingBottomTabRoute.name || isNewPolicyID)) {
-                console.log('matchingBottomTabRoute', matchingBottomTabRoute);
                 root.dispatch({
                     type: CONST.NAVIGATION.ACTION_TYPE.PUSH,
                     payload: matchingBottomTabRoute,
@@ -233,7 +229,6 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 const matchingCentralPaneRoute = getMatchingCentralPaneRouteForState(stateFromPath, rootState)!;
                 if (matchingCentralPaneRoute && 'name' in matchingCentralPaneRoute) {
-                    console.log('matchingCentralPaneRoute', matchingCentralPaneRoute);
                     root.dispatch({
                         type: CONST.NAVIGATION.ACTION_TYPE.PUSH,
                         payload: {

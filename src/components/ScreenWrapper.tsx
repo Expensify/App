@@ -14,7 +14,7 @@ import useTackInputFocus from '@hooks/useTackInputFocus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
-import type {RootStackParamList} from '@libs/Navigation/types';
+import type {AuthScreensParamList, RootStackParamList} from '@libs/Navigation/types';
 import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
 import CustomDevMenu from './CustomDevMenu';
@@ -93,7 +93,7 @@ type ScreenWrapperProps = {
      *
      * This is required because transitionEnd event doesn't trigger in the testing environment.
      */
-    navigation?: StackNavigationProp<RootStackParamList>;
+    navigation?: StackNavigationProp<RootStackParamList> | StackNavigationProp<AuthScreensParamList>;
 
     /** Whether to show offline indicator on wide screens */
     shouldShowOfflineIndicatorInWideScreen?: boolean;

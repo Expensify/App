@@ -1,5 +1,5 @@
 import type {NavigationState, PartialState} from '@react-navigation/native';
-import NAVIGATORS from '@src/NAVIGATORS';
+import isCentralPaneScreen from '@libs/NavigationUtils';
 import SCREENS from '@src/SCREENS';
 import type {RootStackParamList} from './types';
 
@@ -16,12 +16,12 @@ function getTopmostReportActionID(state: NavigationState | NavigationState<RootS
         return;
     }
 
-    const topmostCentralPane = state.routes.filter((route) => route.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR).at(-1);
+    const topmostCentralPane = state.routes.filter((route) => isCentralPaneScreen(route.name)).at(-1);
     if (!topmostCentralPane) {
         return;
     }
 
-    const directReportParams = topmostCentralPane.params && 'params' in topmostCentralPane.params && topmostCentralPane?.params?.params;
+    const directReportParams = topmostCentralPane.params;
     const directReportActionIDParam = directReportParams && 'reportActionID' in directReportParams && directReportParams?.reportActionID;
 
     if (!topmostCentralPane.state && !directReportActionIDParam) {

@@ -4,7 +4,6 @@ import {getPathFromState} from '@react-navigation/native';
 import type {Writable} from 'type-fest';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';

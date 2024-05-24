@@ -19,7 +19,6 @@ import PusherConnectionManager from '@libs/PusherConnectionManager';
 import * as SessionUtils from '@libs/SessionUtils';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import SearchPage from '@pages/Search/SearchPage';
 import DesktopSignInRedirectPage from '@pages/signin/DesktopSignInRedirectPage';
 import SearchInputManager from '@pages/workspace/SearchInputManager';
 import * as App from '@userActions/App';
@@ -39,18 +38,18 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
+import {CENTRAL_PANE_SCREENS} from './CENTRAL_PANE_SCREENS';
+import type {CentralPaneScreen} from './CENTRAL_PANE_SCREENS';
 import createCustomStackNavigator from './createCustomStackNavigator';
 import defaultScreenOptions from './defaultScreenOptions';
 import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
 import BottomTabNavigator from './Navigators/BottomTabNavigator';
-import CentralPaneNavigator from './Navigators/CentralPaneNavigator';
 import FeatureTrainingModalNavigator from './Navigators/FeatureTrainingModalNavigator';
 import FullScreenNavigator from './Navigators/FullScreenNavigator';
 import LeftModalNavigator from './Navigators/LeftModalNavigator';
 import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
 import RightModalNavigator from './Navigators/RightModalNavigator';
 import WelcomeVideoModalNavigator from './Navigators/WelcomeVideoModalNavigator';
-import ReportScreenWrapper from './ReportScreenWrapper';
 
 type AuthScreensProps = {
     /** Session of currently logged in user */
@@ -161,35 +160,6 @@ const modalScreenListeners = {
 
 const url = getCurrentUrl();
 const openOnAdminRoom = url ? new URL(url).searchParams.get('openOnAdminRoom') : undefined;
-
-type Screens = Partial<Record<keyof AuthScreensParamList, () => React.ComponentType>>;
-
-const centralPaneScreens = {
-    [SCREENS.SETTINGS.WORKSPACES]: () => require('../../../pages/workspace/WorkspacesListPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.PREFERENCES.ROOT]: () => require('../../../pages/settings/Preferences/PreferencesPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.SECURITY]: () => require('../../../pages/settings/Security/SecuritySettingsPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.PROFILE.ROOT]: () => require('../../../pages/settings/Profile/ProfilePage').default as React.ComponentType,
-    [SCREENS.SETTINGS.WALLET.ROOT]: () => require('../../../pages/settings/Wallet/WalletPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.ABOUT]: () => require('../../../pages/settings/AboutPage/AboutPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.TROUBLESHOOT]: () => require('../../../pages/settings/Troubleshoot/TroubleshootPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.SAVE_THE_WORLD]: () => require('../../../pages/TeachersUnite/SaveTheWorldPage').default as React.ComponentType,
-    [SCREENS.SEARCH.CENTRAL_PANE]: () => require('../../../pages/search/SearchPage').default as React.ComponentType,
-    [SCREENS.REPORT]: () => require('./ReportScreenWrapper').default as React.ComponentType,
-} satisfies Screens;
-
-type CentralPaneName = keyof typeof centralPaneScreens;
-
-const CENTRAL_PANE_SCREEN_NAMES = [
-    SCREENS.SETTINGS.WORKSPACES,
-    SCREENS.SETTINGS.PREFERENCES.ROOT,
-    SCREENS.SETTINGS.SECURITY,
-    SCREENS.SETTINGS.PROFILE.ROOT,
-    SCREENS.SETTINGS.WALLET.ROOT,
-    SCREENS.SETTINGS.ABOUT,
-    SCREENS.SETTINGS.TROUBLESHOOT,
-    SCREENS.SETTINGS.SAVE_THE_WORLD,
-    SCREENS.REPORT,
-];
 
 function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDAppliedToClient}: AuthScreensProps) {
     const styles = useThemeStyles();
@@ -307,10 +277,23 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    const centralPaneScreenOptions = {
+        headerShown: false,
+        title: 'New Expensify',
+
+        // Prevent unnecessary scrolling
+        cardStyle: styles.cardStyleNavigator,
+    };
+
+    // @TODO: Check whether CENTRAL_PANE_SCREENS should be wrapped by FreezeWrapper on native platforms
+
     return (
         <OptionsListContextProvider>
             <View style={styles.rootNavigatorContainerStyles(isSmallScreenWidth)}>
-                <RootStack.Navigator isSmallScreenWidth={isSmallScreenWidth}>
+                <RootStack.Navigator
+                    screenOptions={screenOptions.centralPaneNavigator}
+                    isSmallScreenWidth={isSmallScreenWidth}
+                >
                     <RootStack.Screen
                         name={NAVIGATORS.BOTTOM_TAB_NAVIGATOR}
                         options={screenOptions.bottomTab}
@@ -437,12 +420,13 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         options={defaultScreenOptions}
                         component={ConnectionCompletePage}
                     />
-                    {Object.entries(centralPaneScreens).map(([screenName, componentGetter]) => (
+                    {Object.entries(CENTRAL_PANE_SCREENS).map(([screenName, componentGetter]) => (
                         <RootStack.Screen
                             key={screenName}
-                            name={screenName}
+                            name={screenName as CentralPaneScreen}
                             initialParams={{openOnAdminRoom: (screenName === SCREENS.REPORT && openOnAdminRoom === 'true') || undefined}}
                             getComponent={componentGetter}
+                            options={centralPaneScreenOptions}
                         />
                     ))}
                 </RootStack.Navigator>

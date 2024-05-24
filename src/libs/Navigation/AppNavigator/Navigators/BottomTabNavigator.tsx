@@ -1,10 +1,10 @@
 import {useNavigationState} from '@react-navigation/native';
 import type {StackNavigationOptions} from '@react-navigation/stack';
 import React from 'react';
+import type {CentralPaneScreen} from '@libs/Navigation/AppNavigator/CENTRAL_PANE_SCREENS';
 import createCustomBottomTabNavigator from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator';
-import getTopmostRoute from '@libs/Navigation/getTopmostRoute';
-import getTopmostRouteName from '@libs/Navigation/getTopmostRouteName';
-import type {AuthScreensParamList, BottomTabNavigatorParamList, CentralPaneName, NavigationPartialRoute, RootStackParamList} from '@libs/Navigation/types';
+import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
+import type {BottomTabNavigatorParamList, NavigationPartialRoute, RootStackParamList} from '@libs/Navigation/types';
 import SidebarScreen from '@pages/home/sidebar/SidebarScreen';
 import SearchPageBottomTab from '@pages/Search/SearchPageBottomTab';
 import SCREENS from '@src/SCREENS';
@@ -20,7 +20,7 @@ const screenOptions: StackNavigationOptions = {
 };
 
 function BottomTabNavigator() {
-    const activeRoute = useNavigationState<RootStackParamList, NavigationPartialRoute<AuthScreensParamList> | undefined>(getTopmostRoute);
+    const activeRoute = useNavigationState<RootStackParamList, NavigationPartialRoute<CentralPaneScreen> | undefined>(getTopmostCentralPaneRoute);
 
     return (
         <ActiveRouteContext.Provider value={activeRoute}>

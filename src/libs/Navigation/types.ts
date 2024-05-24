@@ -905,8 +905,6 @@ type RootStackParamList = PublicScreensParamList & AuthScreensParamList & LeftMo
 
 type BottomTabName = keyof BottomTabNavigatorParamList;
 
-type CentralPaneName = keyof AuthScreensParamList;
-
 type FullScreenName = keyof FullScreenNavigatorParamList;
 
 type SwitchPolicyIDParams = {
@@ -921,7 +919,6 @@ export type {
     BackToParams,
     BottomTabName,
     BottomTabNavigatorParamList,
-    CentralPaneName,
     DetailsNavigatorParamList,
     EditRequestNavigatorParamList,
     EnablePaymentsNavigatorParamList,
