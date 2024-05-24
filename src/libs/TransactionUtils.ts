@@ -369,7 +369,7 @@ function getMerchant(transaction: OnyxEntry<Transaction>): string {
     return transaction?.modifiedMerchant ? transaction.modifiedMerchant : transaction?.merchant ?? '';
 }
 
-function getDistance(transaction: Transaction | null): number {
+function getDistance(transaction: OnyxEntry<Transaction>): number {
     return transaction?.comment?.customUnit?.quantity ?? 0;
 }
 

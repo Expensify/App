@@ -38,7 +38,7 @@ function TransactionDuplicateReview() {
         .sort((a, b) => new Date(a?.created ?? '').getTime() - new Date(b?.created ?? '').getTime());
 
     const keepAll = () => {
-        Transaction.dismissDuplicateTransactionViolation([transactionID, ...duplicateTransactionIDs], currentPersonalDetails);
+        Transaction.dismissDuplicateTransactionViolation([transactionID, ...duplicateTransactionIDs], currentPersonalDetails, route.params.threadReportID);
         Navigation.goBack();
     };
 
