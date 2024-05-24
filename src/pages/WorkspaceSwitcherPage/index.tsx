@@ -54,7 +54,7 @@ function WorkspaceSwitcherPage() {
 
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const brickRoadsForPolicies = useMemo(() => getWorkspacesBrickRoads(reports, policies, reportActions), [reports, policies, reportActions]);
     const unreadStatusesForPolicies = useMemo(() => getWorkspacesUnreadStatuses(reports), [reports]);
@@ -169,39 +169,43 @@ function WorkspaceSwitcherPage() {
             testID={WorkspaceSwitcherPage.displayName}
             includeSafeAreaPaddingBottom={false}
         >
-            <HeaderWithBackButton
-                title={translate('workspace.switcher.headerTitle')}
-                onBackButtonPress={Navigation.goBack}
-            />
-            <View style={[styles.ph5, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mb1]}>
-                <Text
-                    style={styles.label}
-                    color={theme.textSupporting}
-                >
-                    {translate('workspace.switcher.everythingSection')}
-                </Text>
-            </View>
-            <UserListItem
-                item={defaultPolicy}
-                isFocused={activeWorkspaceID === undefined}
-                showTooltip={false}
-                onSelectRow={() => selectPolicy(defaultPolicy)}
-                pressableStyle={styles.flexRow}
-                shouldSyncFocus={false}
-            />
-            <WorkspacesSectionHeader />
-            <SelectionList<WorkspaceListItem>
-                ListItem={UserListItem}
-                sections={sections}
-                onSelectRow={selectPolicy}
-                textInputLabel={usersWorkspaces.length >= CONST.WORKSPACE_SWITCHER.MINIMUM_WORKSPACES_TO_SHOW_SEARCH ? translate('common.search') : undefined}
-                textInputValue={searchTerm}
-                onChangeText={setSearchTerm}
-                headerMessage={headerMessage}
-                listFooterContent={shouldShowCreateWorkspace ? WorkspaceCardCreateAWorkspaceInstance : null}
-                initiallyFocusedOptionKey={activeWorkspaceID ?? CONST.WORKSPACE_SWITCHER.NAME}
-                showLoadingPlaceholder
-            />
+            {({didScreenTransitionEnd}) => (
+                <>
+                    <HeaderWithBackButton
+                        title={translate('workspace.switcher.headerTitle')}
+                        onBackButtonPress={Navigation.goBack}
+                    />
+                    <View style={[styles.ph5, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mb1]}>
+                        <Text
+                            style={styles.label}
+                            color={theme.textSupporting}
+                        >
+                            {translate('workspace.switcher.everythingSection')}
+                        </Text>
+                    </View>
+                    <UserListItem
+                        item={defaultPolicy}
+                        isFocused={activeWorkspaceID === undefined}
+                        showTooltip={false}
+                        onSelectRow={() => selectPolicy(defaultPolicy)}
+                        pressableStyle={styles.flexRow}
+                        shouldSyncFocus={false}
+                    />
+                    <WorkspacesSectionHeader />
+                    <SelectionList<WorkspaceListItem>
+                        ListItem={UserListItem}
+                        sections={sections}
+                        onSelectRow={selectPolicy}
+                        textInputLabel={usersWorkspaces.length >= CONST.WORKSPACE_SWITCHER.MINIMUM_WORKSPACES_TO_SHOW_SEARCH ? translate('common.search') : undefined}
+                        textInputValue={searchTerm}
+                        onChangeText={setSearchTerm}
+                        headerMessage={headerMessage}
+                        listFooterContent={shouldShowCreateWorkspace ? WorkspaceCardCreateAWorkspaceInstance : null}
+                        initiallyFocusedOptionKey={activeWorkspaceID ?? CONST.WORKSPACE_SWITCHER.NAME}
+                        showLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
+                    />{' '}
+                </>
+            )}
         </ScreenWrapper>
     );
 }
