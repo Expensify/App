@@ -6794,6 +6794,7 @@ function getIOURequestPolicyID(transaction: OnyxEntry<OnyxTypes.Transaction>, re
 
 function mergeDuplicates(params: TransactionMergeParams) {
     const originalSelectedTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`];
+
     const optimisticTransactionData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`,
@@ -6815,7 +6816,7 @@ function mergeDuplicates(params: TransactionMergeParams) {
     const failureTransactionData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`,
-        value: originalSelectedTransaction,
+        value: originalSelectedTransaction as OnyxTypes.Transaction,
     };
 
     const optimisticTransactionDuplicatesData: OnyxUpdate[] = params.transactionIDs.map((id) => ({
@@ -6827,7 +6828,7 @@ function mergeDuplicates(params: TransactionMergeParams) {
     const failureTransactionDuplicatesData: OnyxUpdate[] = params.transactionIDs.map((id) => ({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${id}`,
-        value: allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`],
+        value: allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`] as OnyxTypes.Transaction,
     }));
 
     const optimisticTransactionViolations: OnyxUpdate[] = [...params.transactionIDs, params.transactionID].map((id) => {
