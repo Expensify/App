@@ -40,7 +40,7 @@ function getLastUpdateIDAppliedToClient(): Promise<number> {
     });
 }
 
-function wrapAirshipUpdatesDataInOnyxUpdatesFromServer({onyxData, lastUpdateID, previousUpdateID}: {onyxData: OnyxServerUpdate[]; lastUpdateID: number; previousUpdateID: number}) {
+function buildOnyxUpdatesFromServer({onyxData, lastUpdateID, previousUpdateID}: {onyxData: OnyxServerUpdate[]; lastUpdateID: number; previousUpdateID: number}) {
     return {
         type: CONST.ONYX_UPDATE_TYPES.AIRSHIP,
         lastUpdateID,
