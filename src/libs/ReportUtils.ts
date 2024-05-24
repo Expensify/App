@@ -5265,9 +5265,9 @@ function getChatByParticipantsAndPolicy(newParticipantList: number[], policyID: 
 }
 
 /**
- * Attempts to find a report in onyx with the provided list of participants in given policy
+ * Attempts to find a policy expense report in onyx that is owned by ownerAccountID in a given policy
  */
-function getPolicyExpenseChat(accountID: number, policyID: string): OnyxEntry<Report> {
+function getPolicyExpenseChat(ownerAccountID: number, policyID: string): OnyxEntry<Report> {
     return (
         Object.values(allReports ?? {}).find((report: OnyxEntry<Report>) => {
             // If the report has been deleted, then skip it
@@ -5275,7 +5275,7 @@ function getPolicyExpenseChat(accountID: number, policyID: string): OnyxEntry<Re
                 return false;
             }
 
-            return report.policyID === policyID && isPolicyExpenseChat(report) && report.ownerAccountID === accountID;
+            return report.policyID === policyID && isPolicyExpenseChat(report) && report.ownerAccountID === ownerAccountID;
         }) ?? null
     );
 }
