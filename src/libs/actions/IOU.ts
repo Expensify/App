@@ -5852,6 +5852,7 @@ function getPayMoneyRequestParams(
         },
     ];
 
+    let optimisticHoldReportID;
     if (!full) {
         const holdTransactions: OnyxTypes.Transaction[] = Object.values(allTransactions).filter(
             (transaction): transaction is OnyxTypes.Transaction => transaction !== null && transaction.reportID === iouReport.reportID && !!transaction.comment?.hold,
@@ -5889,6 +5890,7 @@ function getPayMoneyRequestParams(
             };
         });
 
+        optimisticHoldReportID = optimisticExpenseReport.reportID;
         optimisticData.push(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -6016,6 +6018,7 @@ function getPayMoneyRequestParams(
             paymentMethodType,
             full,
             amount: Math.abs(total),
+            optimisticHoldReportID,
         },
         optimisticData,
         successData,
