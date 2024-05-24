@@ -2,8 +2,9 @@
 import OnyxCache from 'react-native-onyx/dist/OnyxCache';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportActions, ReportMetadata, Response} from '@src/types/onyx';
+import type {ReportActions, ReportActionsPages, Response} from '@src/types/onyx';
 import type Middleware from './types';
 
 function getReportActions(response: Response, reportID: string) {
@@ -32,28 +33,23 @@ const Pagination: Middleware = (requestResponse, request) => {
                 // Must have at least 1 action to create a page.
                 return Promise.resolve(response);
             }
-            const newPage = {
-                // Use null to indicate this is the first page.
-                firstReportActionID: reportActionID == null ? null : pageSortedReportActions.at(0)?.reportActionID ?? null,
-                // TODO: It would be nice to have a way to know if this is the last page.
-                lastReportActionID: pageSortedReportActions.at(-1)?.reportActionID ?? null,
-            };
+            const newPage = pageSortedReportActions.map((action) => action.reportActionID);
+            if (reportActionID == null) {
+                newPage.unshift(CONST.PAGINATION_START_ID);
+            }
 
             const reportActions = OnyxCache.getValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`) as ReportActions | undefined;
             // TODO: Do we need to do proper merge here or this is ok?
             const allReportActions = {...reportActions, ...pageReportActions};
             const allSortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(allReportActions, true);
 
-            const reportMetadata = OnyxCache.getValue(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`) as ReportMetadata | undefined;
-            const pages = reportMetadata?.pages ?? [];
+            const pages = (OnyxCache.getValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${reportID}`) ?? []) as ReportActionsPages;
             const newPages = ReportActionsUtils.mergeContinuousPages(allSortedReportActions, [...pages, newPage]);
 
             response.onyxData.push({
-                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${reportID}`,
                 onyxMethod: 'merge',
-                value: {
-                    pages: newPages,
-                },
+                value: newPages,
             });
 
             return Promise.resolve(response);

@@ -1,10 +1,9 @@
 import Onyx from 'react-native-onyx';
 import type {KeyValueMapping} from 'react-native-onyx';
-import type {ReportMetadataPage} from '@src/types/onyx/ReportMetadata';
 import CONST from '../../src/CONST';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
-import type {Report, ReportAction} from '../../src/types/onyx';
+import type {Report, ReportAction, ReportActionsPages} from '../../src/types/onyx';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -486,10 +485,11 @@ describe('ReportActionsUtils', () => {
                 createReportAction('1'),
             ];
 
-            const pages: ReportMetadataPage[] = [
-                {firstReportActionID: '17', lastReportActionID: '14'},
-                {firstReportActionID: '12', lastReportActionID: '9'},
-                {firstReportActionID: '7', lastReportActionID: '1'},
+            const pages: ReportActionsPages = [
+                // Given these pages
+                ['17', '16', '15', '14'],
+                ['12', '11', '10', '9'],
+                ['7', '6', '5', '4', '3', '2', '1'],
             ];
 
             const expectedResult = [
@@ -528,10 +528,11 @@ describe('ReportActionsUtils', () => {
                 createReportAction('1'),
             ];
 
-            const pages: ReportMetadataPage[] = [
-                {firstReportActionID: '17', lastReportActionID: '14'},
-                {firstReportActionID: '12', lastReportActionID: '9'},
-                {firstReportActionID: '7', lastReportActionID: '1'},
+            const pages: ReportActionsPages = [
+                // Given these pages
+                ['17', '16', '15', '14'],
+                ['12', '11', '10', '9'],
+                ['7', '6', '5', '4', '3', '2', '1'],
             ];
 
             const expectedResult = [
@@ -567,10 +568,11 @@ describe('ReportActionsUtils', () => {
                 createReportAction('1'),
             ];
 
-            const pages: ReportMetadataPage[] = [
-                {firstReportActionID: '17', lastReportActionID: '14'},
-                {firstReportActionID: '12', lastReportActionID: '9'},
-                {firstReportActionID: '7', lastReportActionID: '1'},
+            const pages: ReportActionsPages = [
+                // Given these pages
+                ['17', '16', '15', '14'],
+                ['12', '11', '10', '9'],
+                ['7', '6', '5', '4', '3', '2', '1'],
             ];
 
             const expectedResult = [
@@ -606,10 +608,11 @@ describe('ReportActionsUtils', () => {
                 createReportAction('1'),
             ];
 
-            const pages: ReportMetadataPage[] = [
-                {firstReportActionID: '17', lastReportActionID: '14'},
-                {firstReportActionID: '12', lastReportActionID: '9'},
-                {firstReportActionID: '7', lastReportActionID: '1'},
+            const pages: ReportActionsPages = [
+                // Given these pages
+                ['17', '16', '15', '14'],
+                ['12', '11', '10', '9'],
+                ['7', '6', '5', '4', '3', '2', '1'],
             ];
 
             // Expect these sortedReportActions
@@ -640,10 +643,11 @@ describe('ReportActionsUtils', () => {
                 createReportAction('1'),
             ];
 
-            const pages: ReportMetadataPage[] = [
-                {firstReportActionID: '17', lastReportActionID: '14'},
-                {firstReportActionID: '12', lastReportActionID: '9'},
-                {firstReportActionID: '7', lastReportActionID: '1'},
+            const pages: ReportActionsPages = [
+                // Given these pages
+                ['17', '16', '15', '14'],
+                ['12', '11', '10', '9'],
+                ['7', '6', '5', '4', '3', '2', '1'],
             ];
 
             const expectedResult: ReportAction[] = [
@@ -666,7 +670,7 @@ describe('ReportActionsUtils', () => {
                 createReportAction('1'),
             ];
 
-            const pages: ReportMetadataPage[] = [];
+            const pages: ReportActionsPages = [];
 
             // Expect these sortedReportActions
             const expectedResult = [...input];
@@ -686,7 +690,7 @@ describe('ReportActionsUtils', () => {
                 createReportAction('1'),
             ];
 
-            const pages: ReportMetadataPage[] = [];
+            const pages: ReportActionsPages = [];
 
             // Expect these sortedReportActions
             const expectedResult: ReportAction[] = [];
@@ -716,10 +720,11 @@ describe('ReportActionsUtils', () => {
                 createReportAction('1'),
             ];
 
-            const pages: ReportMetadataPage[] = [
-                {firstReportActionID: '17', lastReportActionID: '14'},
-                {firstReportActionID: '12', lastReportActionID: '9'},
-                {firstReportActionID: '7', lastReportActionID: '2'},
+            const pages: ReportMetadataPages = [
+                // Given these pages
+                ['17', '14'],
+                ['12', '9'],
+                ['7', '2'],
             ];
 
             const expectedResult = [

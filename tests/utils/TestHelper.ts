@@ -13,9 +13,14 @@ type MockFetch = ReturnType<typeof jest.fn> & {
     fail?: () => void;
     succeed?: () => void;
     resume?: () => Promise<void>;
+    mockAPICommand?: (command: string, response: OnyxResponse['onyxData']) => void;
 };
 
-type QueueItem = (value: Partial<Response> | PromiseLike<Partial<Response>>) => void;
+type QueueItem = {
+    resolve: (value: Partial<Response> | PromiseLike<Partial<Response>>) => void;
+    input: RequestInfo;
+    init?: RequestInit;
+};
 
 type FormData = {
     entries: () => Array<[string, string | Blob]>;
@@ -157,11 +162,12 @@ function signOutTestUser() {
  * - success() - go back to returning a success response
  */
 function getGlobalFetchMock() {
-    const queue: QueueItem[] = [];
+    let queue: QueueItem[] = [];
+    let responses = new Map<string, unknown>();
     let isPaused = false;
     let shouldFail = false;
 
-    const getResponse = (): Partial<Response> =>
+    const getResponse = (input: RequestInfo): Partial<Response> =>
         shouldFail
             ? {
                   ok: true,
@@ -169,27 +175,44 @@ function getGlobalFetchMock() {
               }
             : {
                   ok: true,
-                  json: () => Promise.resolve({jsonCode: 200}),
+                  json: () => {
+                      const commandMatch = typeof input === 'string' ? input.match(/https:\/\/www.expensify.com.dev\/api\/(\w+)\?/) : null;
+                      const command = commandMatch ? commandMatch[1] : null;
+
+                      return Promise.resolve({jsonCode: 200});
+                  },
               };
 
-    const mockFetch: MockFetch = jest.fn().mockImplementation(() => {
+    const mockFetch: MockFetch = jest.fn().mockImplementation((input: RequestInfo) => {
         if (!isPaused) {
-            return Promise.resolve(getResponse());
+            return Promise.resolve(getResponse(input));
         }
         return new Promise((resolve) => {
-            queue.push(resolve);
+            queue.push({resolve, input});
         });
     });
+
+    const baseMockReset = mockFetch.mockReset.bind(mockFetch);
+    mockFetch.mockReset = () => {
+        baseMockReset();
+        queue = [];
+        responses = new Map();
+        isPaused = false;
+        shouldFail = false;
+        return mockFetch;
+    };
 
     mockFetch.pause = () => (isPaused = true);
     mockFetch.resume = () => {
         isPaused = false;
-        queue.forEach((resolve) => resolve(getResponse()));
+        queue.forEach(({resolve, input, init}) => resolve(getResponse(input, init)));
         return waitForBatchedUpdates();
     };
     mockFetch.fail = () => (shouldFail = true);
     mockFetch.succeed = () => (shouldFail = false);
-
+    mockFetch.mockAPICommand = (command: string, response: OnyxResponse['onyxData']) => {
+        responses.set(command, response);
+    };
     return mockFetch as typeof fetch;
 }
 
