@@ -87,7 +87,10 @@ function applyOnyxData({reportID, reportActionID, onyxData, lastUpdateID, previo
 function navigateToReport({reportID, reportActionID}: ReportActionPushNotificationData): Promise<void> {
     Log.info('[PushNotification] Adding push notification updates to deferred updates queue', false, {reportID, reportActionID});
 
-    const updatesAppliedPromise = Airship.push.getActiveNotifications().then((notifications) => {
+    // Onyx data from push notifications might not have been applied when they were received in the background
+    // due to OS limitations. So we'll also attempt to apply them here so they can display immediately. Reliable
+    // updates will prevent any old updates from being duplicated and any gaps in them will be handled
+    Airship.push.getActiveNotifications().then((notifications) => {
         const onyxUpdates = notifications.map((notification) => getPushNotificationData(notification));
         // const onyxData = onyxUpdates.reduce<OnyxServerUpdate[]>((onyxUpdatesAcc, onyxUpdate) => (onyxUpdate.onyxData ? [...onyxUpdatesAcc, ...onyxUpdate.onyxData] : onyxUpdatesAcc), []);
 
@@ -100,43 +103,41 @@ function navigateToReport({reportID, reportActionID}: ReportActionPushNotificati
         return Promise.all(onyxUpdates.map((update) => applyOnyxData(update)));
     });
 
-    return updatesAppliedPromise.then(() => {
-        Log.info('[PushNotification] Navigating to report', false, {reportID, reportActionID});
+    Log.info('[PushNotification] Navigating to report', false, {reportID, reportActionID});
 
-        const policyID = lastVisitedPath && extractPolicyIDFromPath(lastVisitedPath);
-        const report = getReport(reportID.toString());
-        const policyEmployeeAccountIDs = policyID ? getPolicyEmployeeAccountIDs(policyID) : [];
-        const reportBelongsToWorkspace = policyID && !isEmptyObject(report) && doesReportBelongToWorkspace(report, policyEmployeeAccountIDs, policyID);
+    const policyID = lastVisitedPath && extractPolicyIDFromPath(lastVisitedPath);
+    const report = getReport(reportID.toString());
+    const policyEmployeeAccountIDs = policyID ? getPolicyEmployeeAccountIDs(policyID) : [];
+    const reportBelongsToWorkspace = policyID && !isEmptyObject(report) && doesReportBelongToWorkspace(report, policyEmployeeAccountIDs, policyID);
 
-        Navigation.isNavigationReady()
-            .then(Navigation.waitForProtectedRoutes)
-            .then(() => {
-                // The attachment modal remains open when navigating to the report so we need to close it
-                Modal.close(() => {
-                    try {
-                        // If a chat is visible other than the one we are trying to navigate to, then we need to navigate back
-                        if (Navigation.getActiveRoute().slice(1, 2) === ROUTES.REPORT && !Navigation.isActiveRoute(`r/${reportID}`)) {
-                            Navigation.goBack();
-                        }
-
-                        Log.info('[PushNotification] onSelected() - Navigation is ready. Navigating...', false, {reportID, reportActionID});
-                        if (!reportBelongsToWorkspace) {
-                            Navigation.navigateWithSwitchPolicyID({route: ROUTES.HOME});
-                        }
-                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(String(reportID)));
-                    } catch (error) {
-                        let errorMessage = String(error);
-                        if (error instanceof Error) {
-                            errorMessage = error.message;
-                        }
-
-                        Log.alert('[PushNotification] onSelected() - failed', {reportID, reportActionID, error: errorMessage});
+    Navigation.isNavigationReady()
+        .then(Navigation.waitForProtectedRoutes)
+        .then(() => {
+            // The attachment modal remains open when navigating to the report so we need to close it
+            Modal.close(() => {
+                try {
+                    // If a chat is visible other than the one we are trying to navigate to, then we need to navigate back
+                    if (Navigation.getActiveRoute().slice(1, 2) === ROUTES.REPORT && !Navigation.isActiveRoute(`r/${reportID}`)) {
+                        Navigation.goBack();
                     }
-                });
-            });
 
-        return Promise.resolve();
-    });
+                    Log.info('[PushNotification] onSelected() - Navigation is ready. Navigating...', false, {reportID, reportActionID});
+                    if (!reportBelongsToWorkspace) {
+                        Navigation.navigateWithSwitchPolicyID({route: ROUTES.HOME});
+                    }
+                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(String(reportID)));
+                } catch (error) {
+                    let errorMessage = String(error);
+                    if (error instanceof Error) {
+                        errorMessage = error.message;
+                    }
+
+                    Log.alert('[PushNotification] onSelected() - failed', {reportID, reportActionID, error: errorMessage});
+                }
+            });
+        });
+
+    return Promise.resolve();
 }
 
 /**
