@@ -58,7 +58,6 @@ import * as EmojiUtils from '@libs/EmojiUtils';
 import * as Environment from '@libs/Environment/Environment';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
-import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {NetworkStatus} from '@libs/NetworkConnection';
 import LocalNotification from '@libs/Notification/LocalNotification';
@@ -3068,11 +3067,9 @@ function completeOnboarding(
     engagementChoice: OnboardingPurposeType,
     data: ValueOf<typeof CONST.ONBOARDING_MESSAGES>,
     {
-        login,
         firstName,
         lastName,
     }: {
-        login: string;
         firstName: string;
         lastName: string;
     },
@@ -3083,14 +3080,13 @@ function completeOnboarding(
     const targetChatReport = ReportUtils.getChatByParticipants([actorAccountID, currentUserAccountID]);
     const {reportID: targetChatReportID = '', policyID: targetChatPolicyID = ''} = targetChatReport ?? {};
 
-    // Mention message
-    const mentionHandle = LoginUtils.isEmailPublicDomain(login) ? login : login.split('@')[0];
-    const mentionComment = ReportUtils.buildOptimisticAddCommentReportAction(`Hey @${mentionHandle} 👋`, undefined, actorAccountID);
-    const mentionCommentAction: OptimisticAddCommentReportAction = mentionComment.reportAction;
-    const mentionMessage: AddCommentOrAttachementParams = {
+    // Introductory message
+    const introductionComment = ReportUtils.buildOptimisticAddCommentReportAction(CONST.ONBOARDING_INTRODUCTION, undefined, actorAccountID);
+    const introductionCommentAction: OptimisticAddCommentReportAction = introductionComment.reportAction;
+    const introductionMessage: AddCommentOrAttachementParams = {
         reportID: targetChatReportID,
-        reportActionID: mentionCommentAction.reportActionID,
-        reportComment: mentionComment.commentText,
+        reportActionID: introductionCommentAction.reportActionID,
+        reportComment: introductionComment.commentText,
     };
 
     // Text message
@@ -3266,7 +3262,7 @@ function completeOnboarding(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
             value: {
-                [mentionCommentAction.reportActionID]: mentionCommentAction as ReportAction,
+                [introductionCommentAction.reportActionID]: introductionCommentAction as ReportAction,
                 [textCommentAction.reportActionID]: textCommentAction as ReportAction,
             },
         },
@@ -3281,7 +3277,7 @@ function completeOnboarding(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
             value: {
-                [mentionCommentAction.reportActionID]: {pendingAction: null},
+                [introductionCommentAction.reportActionID]: {pendingAction: null},
                 [textCommentAction.reportActionID]: {pendingAction: null},
             },
         },
@@ -3315,7 +3311,7 @@ function completeOnboarding(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
             value: {
-                [mentionCommentAction.reportActionID]: {
+                [introductionCommentAction.reportActionID]: {
                     errors: ErrorUtils.getMicroSecondOnyxError('report.genericAddCommentFailureMessage'),
                 } as ReportAction,
                 [textCommentAction.reportActionID]: {
@@ -3331,7 +3327,7 @@ function completeOnboarding(
     ];
 
     const guidedSetupData: GuidedSetupData = [
-        {type: 'message', ...mentionMessage},
+        {type: 'message', ...introductionMessage},
         {type: 'message', ...textMessage},
     ];
 
