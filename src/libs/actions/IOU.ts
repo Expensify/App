@@ -6816,6 +6816,7 @@ function mergeDuplicates(params: TransactionMergeParams) {
     const failureTransactionData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`,
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
         value: originalSelectedTransaction as OnyxTypes.Transaction,
     };
 
@@ -6828,6 +6829,7 @@ function mergeDuplicates(params: TransactionMergeParams) {
     const failureTransactionDuplicatesData: OnyxUpdate[] = params.transactionIDs.map((id) => ({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${id}`,
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
         value: allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`] as OnyxTypes.Transaction,
     }));
 
