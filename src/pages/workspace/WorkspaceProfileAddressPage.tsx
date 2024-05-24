@@ -28,7 +28,8 @@ function WorkspaceProfileAddressPage({policy, route}: WorkspaceProfileAddressPag
     const {translate} = useLocalize();
     const address = useMemo(() => policy?.address, [policy]);
     const [currentCountry, setCurrentCountry] = useState(address?.country);
-    const [[street1, street2], setStreets] = useState((address?.addressStreet ?? '').split('\n'));
+    const [street1, setStreet] = useState(address?.addressStreet);
+    const [street2, setStreet2] = useState(address?.addressStreet2);
     const [state, setState] = useState(address?.state);
     const [city, setCity] = useState(address?.city);
     const [zipcode, setZipcode] = useState(address?.zipCode);
@@ -41,7 +42,8 @@ function WorkspaceProfileAddressPage({policy, route}: WorkspaceProfileAddressPag
             return;
         }
         updateAddress(policy?.id, {
-            addressStreet: `${values.addressLine1?.trim() ?? ''}\n${values.addressLine2?.trim() ?? ''}`,
+            addressStreet: values.addressLine1?.trim(),
+            addressStreet2: values.addressLine2.trim() ?? '',
             city: values.city.trim(),
             state: values.state.trim(),
             zipCode: values?.zipPostCode?.trim().toUpperCase() ?? '',
@@ -82,7 +84,8 @@ function WorkspaceProfileAddressPage({policy, route}: WorkspaceProfileAddressPag
         if (!address) {
             return;
         }
-        setStreets((address?.addressStreet ?? '').split('\n'));
+        setStreet(address.addressStreet);
+        setStreet2(address.addressStreet2);
         setState(address.state);
         setCurrentCountry(address.country);
         setCity(address.city);

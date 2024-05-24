@@ -34,6 +34,7 @@ type CustomUnit = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
 type CompanyAddress = {
     addressStreet: string;
+    addressStreet2: string;
     city: string;
     state: string;
     zipCode: string;

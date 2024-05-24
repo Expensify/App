@@ -2,11 +2,12 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 type UpdatePolicyAddressParams = {
     policyID: string;
-    'data[addressStreet]': string;
-    'data[city]': string;
-    'data[country]': string;
-    'data[state]': string;
-    'data[zipCode]': string;
+    addressStreet: string;
+    addressStreet2: string;
+    city: string;
+    country: string;
+    state: string;
+    zipCode: string;
 };
 
 export default UpdatePolicyAddressParams;

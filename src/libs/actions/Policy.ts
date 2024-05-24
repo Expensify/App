@@ -1832,15 +1832,17 @@ function updateAddress(policyID: string, newAddress: CompanyAddress) {
     const parameters: UpdatePolicyAddressParams = {
         policyID,
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        'data[addressStreet]': newAddress.addressStreet,
+        addressStreet: newAddress.addressStreet,
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        'data[city]': newAddress.city,
+        addressStreet2: newAddress.addressStreet2,
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        'data[country]': newAddress.country,
+        city: newAddress.city,
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        'data[state]': newAddress.state,
+        country: newAddress.country,
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        'data[zipCode]': newAddress.zipCode,
+        state: newAddress.state,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        zipCode: newAddress.zipCode,
     };
 
     const optimisticData: OnyxUpdate[] = [
