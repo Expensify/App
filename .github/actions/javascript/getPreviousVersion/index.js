@@ -2728,10 +2728,7 @@ if (!semverLevel || !Object.values(versionUpdater.SEMANTIC_VERSION_LEVELS).inclu
     core.setFailed(`'Error: Invalid input for 'SEMVER_LEVEL': ${semverLevel}`);
 }
 const { version: currentVersion } = JSON.parse((0, fs_1.readFileSync)('./package.json', 'utf8'));
-if (!currentVersion) {
-    core.setFailed('Error: Could not read package.json');
-}
-const previousVersion = versionUpdater.getPreviousVersion(currentVersion ?? '', semverLevel);
+const previousVersion = versionUpdater.getPreviousVersion(currentVersion, semverLevel);
 core.setOutput('PREVIOUS_VERSION', previousVersion);
 
 

@@ -67,7 +67,7 @@ type Phrase<TKey extends TranslationPaths> = TranslationFlatObject[TKey] extends
  */
 const translationCache = new Map<ValueOf<typeof CONST.LOCALES>, Map<TranslationPaths, string>>(
     Object.values(CONST.LOCALES).reduce((cache, locale) => {
-        cache.push([locale, new Map<TranslationPaths, string>()]);
+        cache.push([locale, new Map()]);
         return cache;
     }, [] as Array<[ValueOf<typeof CONST.LOCALES>, Map<TranslationPaths, string>]>),
 );

@@ -2,16 +2,17 @@ import {rand, randAggregation, randBoolean, randWord} from '@ngneat/falso';
 import {format} from 'date-fns';
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
-import type {ActionName} from '@src/types/onyx/OriginalMessage';
-import type DeepRecord from '@src/types/utils/DeepRecord';
 
-const flattenActionNamesValues = (actionNames: DeepRecord<string, ActionName>) => {
-    let result: ActionName[] = [];
-    Object.values(actionNames).forEach((value) => {
-        if (typeof value === 'object') {
-            result = result.concat(flattenActionNamesValues(value));
+type ActionType = keyof typeof CONST.REPORT.ACTIONS.TYPE;
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const flattenActionNamesValues = (actionNames: any) => {
+    let result = [] as ActionType[];
+    Object.keys(actionNames).forEach((key) => {
+        if (typeof actionNames[key] === 'object') {
+            result = result.concat(flattenActionNamesValues(actionNames[key]));
         } else {
-            result.push(value);
+            result.push(actionNames[key]);
         }
     });
     return result;

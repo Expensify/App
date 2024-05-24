@@ -581,7 +581,7 @@ const mainWindow = (): Promise<void> => {
                     app.hide();
                 }
 
-                ipcMain.on(ELECTRON_EVENTS.LOCALE_UPDATED, (event, updatedLocale: Locale) => {
+                ipcMain.on(ELECTRON_EVENTS.LOCALE_UPDATED, (event, updatedLocale) => {
                     Menu.setApplicationMenu(Menu.buildFromTemplate(localizeMenuItems(initialMenuTemplate, updatedLocale)));
                     disposeContextMenu();
                     disposeContextMenu = createContextMenu(updatedLocale);
@@ -601,7 +601,7 @@ const mainWindow = (): Promise<void> => {
 
                 // Listen to badge updater event emitted by the render process
                 // and update the app badge count (MacOS only)
-                ipcMain.on(ELECTRON_EVENTS.REQUEST_UPDATE_BADGE_COUNT, (event, totalCount?: number) => {
+                ipcMain.on(ELECTRON_EVENTS.REQUEST_UPDATE_BADGE_COUNT, (event, totalCount) => {
                     if (totalCount === -1) {
                         // The electron docs say you should be able to update this and pass no parameters to set the badge
                         // to a single red dot, but in practice it resulted in an error "TypeError: Insufficient number of

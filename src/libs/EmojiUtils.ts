@@ -10,8 +10,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {FrequentlyUsedEmoji, Locale} from '@src/types/onyx';
 import type {ReportActionReaction, UsersReactions} from '@src/types/onyx/ReportActionReactions';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type EmojiTrie from './EmojiTrie';
-import type {SupportedLanguage} from './EmojiTrie';
 
 type HeaderIndice = {code: string; index: number; icon: IconAsset};
 type EmojiSpacer = {code: string; spacer: boolean};
@@ -314,9 +312,9 @@ function getAddedEmojis(currentEmojis: Emoji[], formerEmojis: Emoji[]): Emoji[] 
  */
 function replaceEmojis(text: string, preferredSkinTone: OnyxEntry<number | string> = CONST.EMOJI_DEFAULT_SKIN_TONE, lang: Locale = CONST.LOCALES.DEFAULT): ReplacedEmoji {
     // emojisTrie is importing the emoji JSON file on the app starting and we want to avoid it
-    const emojisTrie: typeof EmojiTrie = require('./EmojiTrie').default;
+    const emojisTrie = require('./EmojiTrie').default;
 
-    const trie = emojisTrie[lang as SupportedLanguage];
+    const trie = emojisTrie[lang];
     if (!trie) {
         return {text, emojis: []};
     }
@@ -392,9 +390,9 @@ function replaceAndExtractEmojis(text: string, preferredSkinTone: OnyxEntry<numb
  */
 function suggestEmojis(text: string, lang: Locale, limit: number = CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS): Emoji[] | undefined {
     // emojisTrie is importing the emoji JSON file on the app starting and we want to avoid it
-    const emojisTrie: typeof EmojiTrie = require('./EmojiTrie').default;
+    const emojisTrie = require('./EmojiTrie').default;
 
-    const trie = emojisTrie[lang as SupportedLanguage];
+    const trie = emojisTrie[lang];
     if (!trie) {
         return [];
     }

@@ -230,7 +230,7 @@ const createAddListenerMock = () => {
         transitionEndListeners.forEach((transitionEndListener) => transitionEndListener());
     };
 
-    const addListener = jest.fn().mockImplementation((listener, callback: Listener) => {
+    const addListener = jest.fn().mockImplementation((listener, callback) => {
         if (listener === 'transitionEnd') {
             transitionEndListeners.push(callback);
         }
@@ -242,5 +242,5 @@ const createAddListenerMock = () => {
     return {triggerTransitionEnd, addListener};
 };
 
-export type {MockFetch, FormData};
+export type {MockFetch};
 export {assertFormDataMatchesObject, buildPersonalDetails, buildTestReportComment, createAddListenerMock, getGlobalFetchMock, setPersonalDetails, signInWithTestUser, signOutTestUser};

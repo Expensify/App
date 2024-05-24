@@ -1,7 +1,4 @@
-// eslint-disable-next-line import/no-import-module-exports
-import type {SvgProps} from 'react-native-svg';
-
-const Expensicons = jest.requireActual<Record<string, React.FC<SvgProps>>>('../Expensicons');
+const Expensicons = jest.requireActual('../Expensicons');
 
 module.exports = Object.keys(Expensicons).reduce((prev, curr) => {
     // We set the name of the anonymous mock function here so we can dynamically build the list of mocks and access the

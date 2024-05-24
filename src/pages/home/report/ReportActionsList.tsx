@@ -303,12 +303,12 @@ function ReportActionsList({
             setCurrentUnreadMarker(null);
         };
 
-        const unreadActionSubscription = DeviceEventEmitter.addListener(`unreadAction_${report.reportID}`, (newLastReadTime: string) => {
+        const unreadActionSubscription = DeviceEventEmitter.addListener(`unreadAction_${report.reportID}`, (newLastReadTime) => {
             resetUnreadMarker(newLastReadTime);
             setMessageManuallyMarkedUnread(new Date().getTime());
         });
 
-        const readNewestActionSubscription = DeviceEventEmitter.addListener(`readNewestAction_${report.reportID}`, (newLastReadTime: string) => {
+        const readNewestActionSubscription = DeviceEventEmitter.addListener(`readNewestAction_${report.reportID}`, (newLastReadTime) => {
             resetUnreadMarker(newLastReadTime);
             setMessageManuallyMarkedUnread(0);
         });
