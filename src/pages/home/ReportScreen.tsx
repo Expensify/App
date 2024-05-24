@@ -270,8 +270,8 @@ function ReportScreen({
         if (!sortedAllReportActions.length) {
             return [];
         }
-        return ReportActionsUtils.getContinuousReportActionChain(sortedAllReportActions, reportActionIDFromRoute);
-    }, [reportActionIDFromRoute, sortedAllReportActions]);
+        return ReportActionsUtils.getContinuousReportActionChain(sortedAllReportActions, reportMetadata?.pages ?? [], reportActionIDFromRoute);
+    }, [reportActionIDFromRoute, sortedAllReportActions, reportMetadata?.pages]);
 
     // Define here because reportActions are recalculated before mount, allowing data to display faster than useEffect can trigger.
     // If we have cached reportActions, they will be shown immediately.

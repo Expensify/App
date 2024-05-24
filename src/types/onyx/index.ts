@@ -57,7 +57,7 @@ import type ReportAction from './ReportAction';
 import type ReportActionReactions from './ReportActionReactions';
 import type ReportActionsDraft from './ReportActionsDraft';
 import type ReportActionsDrafts from './ReportActionsDrafts';
-import type ReportMetadata from './ReportMetadata';
+import type {ReportMetadata} from './ReportMetadata';
 import type ReportNameValuePairs from './ReportNameValuePairs';
 import type ReportNextStep from './ReportNextStep';
 import type ReportUserIsTyping from './ReportUserIsTyping';

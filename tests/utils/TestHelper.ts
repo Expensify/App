@@ -200,7 +200,7 @@ function setPersonalDetails(login: string, accountID: number) {
     return waitForBatchedUpdates();
 }
 
-function buildTestReportComment(created: string, actorAccountID: number, actionID: string | null = null, previousReportActionID: string | null = null) {
+function buildTestReportComment(created: string, actorAccountID: number, actionID: string | null = null) {
     const reportActionID = actionID ?? NumberUtils.rand64().toString();
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
@@ -209,7 +209,6 @@ function buildTestReportComment(created: string, actorAccountID: number, actionI
         message: [{type: 'COMMENT', html: `Comment ${actionID}`, text: `Comment ${actionID}`}],
         reportActionID,
         actorAccountID,
-        previousReportActionID,
     };
 }
 

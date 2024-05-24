@@ -20,8 +20,9 @@ import type {
     OriginalMessageReimbursementDequeued,
 } from '@src/types/onyx/OriginalMessage';
 import type Report from '@src/types/onyx/Report';
-import type {Message, ReportActionBase, ReportActionMessageJSON, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
+import type {Message, ReportActionBase, ReportActionMessageJSON, ReportActions} from '@src/types/onyx/ReportAction';
+import type {ReportMetadataPage} from '@src/types/onyx/ReportMetadata';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import DateUtils from './DateUtils';
@@ -303,86 +304,101 @@ function getCombinedReportActions(reportActions: ReportAction[], transactionThre
     return getSortedReportActions(filteredReportActions, true);
 }
 
-function hasNextContinuousAction(sortedReportActions: ReportAction[], index: number): boolean {
-    for (let i = index; i < sortedReportActions.length - 1; i++) {
-        // If we hit a gap marker, the action is in the gap and not continuous.
-        if (sortedReportActions[i].previousReportActionID === CONST.PAGINATION_GAP_ID) {
-            return false;
-        }
-        // If we hit an action with a previousReportActionID, the action is not in a gap and is continuous.
-        if (sortedReportActions[i].previousReportActionID !== undefined) {
-            return true;
-        }
-    }
+type ReportMetadataPageWithIndexes = ReportMetadataPage & {
+    firstReportActionIndex: number;
+    lastReportActionIndex: number;
+};
 
-    // If we reach the end the action is in a gap and not continuous.
-    return false;
+function getPagesWithIndexes(sortedReportActions: ReportAction[], pages: ReportMetadataPage[]): ReportMetadataPageWithIndexes[] {
+    return pages.map((page) => ({
+        ...page,
+        // TODO: It should be possible to make this O(n) by starting the search at the previous found index.
+        // TODO: What if reportActionID is not in the list? Could happen if an action is deleted from another device.
+        firstReportActionIndex: page.firstReportActionID == null ? 0 : sortedReportActions.findIndex((reportAction) => reportAction.reportActionID === page.firstReportActionID),
+        lastReportActionIndex:
+            page.lastReportActionID == null ? sortedReportActions.length - 1 : sortedReportActions.findIndex((reportAction) => reportAction.reportActionID === page.lastReportActionID),
+    }));
 }
 
-function hasPreviousContinuousAction(sortedReportActions: ReportAction[], index: number): boolean {
-    for (let i = index; i >= 0; i--) {
-        // If we hit a gap marker, the action is in the gap and not continuous.
-        if (sortedReportActions[i].previousReportActionID === CONST.PAGINATION_GAP_ID) {
-            return false;
+function mergeContinuousPages(sortedReportActions: ReportAction[], pages: ReportMetadataPage[]): ReportMetadataPage[] {
+    const pagesWithIndexes = getPagesWithIndexes(sortedReportActions, pages);
+
+    // Pages need to be sorted by firstReportActionIndex ascending then by lastReportActionIndex descending.
+    const sortedPages = pagesWithIndexes.sort((a, b) => {
+        if (a.firstReportActionIndex !== b.firstReportActionIndex) {
+            return a.firstReportActionIndex - b.firstReportActionIndex;
         }
-        // If we hit an action with a previousReportActionID, the action is not in a gap and is continuous.
-        if (sortedReportActions[i].previousReportActionID !== undefined) {
-            return true;
+        return b.lastReportActionIndex - a.lastReportActionIndex;
+    });
+
+    const result = [sortedPages[0]];
+    for (let i = 1; i < sortedPages.length; i++) {
+        const page = sortedPages[i];
+        const prevPage = sortedPages[i - 1];
+
+        // Current page in inside the previous page, skip.
+        if (page.lastReportActionIndex <= prevPage.lastReportActionIndex) {
+            // eslint-disable-next-line no-continue
+            continue;
         }
+
+        // Current page is continuous with the previous page, merge.
+        // This happens if the ids from the current page and previous page are the same
+        // or if the indexes overlap.
+        if (page.firstReportActionID === prevPage.lastReportActionID || page.firstReportActionIndex < prevPage.lastReportActionIndex) {
+            result[result.length - 1] = {
+                firstReportActionID: prevPage.firstReportActionID,
+                firstReportActionIndex: prevPage.firstReportActionIndex,
+                lastReportActionID: page.lastReportActionID,
+                lastReportActionIndex: page.lastReportActionIndex,
+            };
+            // eslint-disable-next-line no-continue
+            continue;
+        }
+
+        // No overlap, add the current page as is.
+        result.push(page);
     }
 
-    // If we reach the start the action is not in a gap and is continuous.
-    return true;
+    // Remove extraneous props.
+    return result.map((page) => ({firstReportActionID: page.firstReportActionID, lastReportActionID: page.lastReportActionID}));
 }
 
 /**
- * Returns the largest gapless range of reportActions including a the provided reportActionID, where a "gap" is defined as a reportAction's `previousReportActionID` not matching the previous reportAction in the sortedReportActions array.
+ * Returns the page of actions that contains the given reportActionID, or the first page if null.
  * See unit tests for example of inputs and expected outputs.
  * Note: sortedReportActions sorted in descending order
  */
-function getContinuousReportActionChain(sortedReportActions: ReportAction[], id?: string): ReportAction[] {
-    let index;
-
-    if (id) {
-        index = sortedReportActions.findIndex((reportAction) => reportAction.reportActionID === id);
-        // If we are linking to an action with no previousReportActionID in a gap just return it.
-        if (index >= 0 && sortedReportActions[index].previousReportActionID === undefined && !hasPreviousContinuousAction(sortedReportActions, index)) {
-            return [sortedReportActions[index]];
-        }
-    } else {
-        index = sortedReportActions.findIndex((reportAction) => reportAction.previousReportActionID !== undefined);
-    }
-
-    if (index === -1) {
-        // if no non-pending action is found, that means all actions on the report are optimistic
-        // in this case, we'll assume the whole chain of reportActions is continuous and return it in its entirety
+function getContinuousReportActionChain(sortedReportActions: ReportAction[], pages: ReportMetadataPage[], id?: string): ReportAction[] {
+    if (pages.length === 0) {
         return id ? [] : sortedReportActions;
     }
 
-    let startIndex = index;
-    let endIndex = index;
+    const pagesWithIndexes = getPagesWithIndexes(sortedReportActions, pages);
 
-    // Iterate forwards through the array, starting from endIndex. i.e: newer to older
-    // This loop checks the continuity of actions by comparing the current item's previousReportActionID with the next item's reportActionID.
-    while (
-        endIndex < sortedReportActions.length - 1 &&
-        sortedReportActions[endIndex].previousReportActionID !== CONST.PAGINATION_GAP_ID &&
-        (sortedReportActions[endIndex].previousReportActionID !== undefined || hasNextContinuousAction(sortedReportActions, endIndex))
-    ) {
-        endIndex++;
+    let page: ReportMetadataPageWithIndexes;
+
+    if (id) {
+        const index = sortedReportActions.findIndex((reportAction) => reportAction.reportActionID === id);
+
+        // If we are linking to an action that doesn't exist in onyx, return an empty array.
+        if (index === -1) {
+            return [];
+        }
+
+        const linkedPage = pagesWithIndexes.find((pageIndex) => index >= pageIndex.firstReportActionIndex && index <= pageIndex.lastReportActionIndex);
+
+        // If we are linking to an action in a gap just return it.
+        if (!linkedPage) {
+            return [sortedReportActions[index]];
+        }
+
+        page = linkedPage;
+    } else {
+        page = pagesWithIndexes[0];
     }
 
-    // Iterate backwards through the sortedReportActions, starting from startIndex. (older to newer)
-    // This loop ensures continuity in a sequence of actions by comparing the current item's reportActionID with the previous item's previousReportActionID.
-    while (
-        startIndex > 0 &&
-        sortedReportActions[startIndex - 1].previousReportActionID !== CONST.PAGINATION_GAP_ID &&
-        (sortedReportActions[startIndex - 1].previousReportActionID !== undefined || hasPreviousContinuousAction(sortedReportActions, startIndex - 1))
-    ) {
-        startIndex--;
-    }
-
-    return sortedReportActions.slice(startIndex, endIndex + 1);
+    return sortedReportActions.slice(page.firstReportActionIndex, page.lastReportActionIndex + 1);
 }
 
 /**
@@ -1279,6 +1295,7 @@ export {
     isActionableJoinRequestPending,
     isActionableTrackExpense,
     isLinkedTransactionHeld,
+    mergeContinuousPages,
 };
 
 export type {LastVisibleMessage};

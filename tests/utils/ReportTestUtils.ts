@@ -41,7 +41,6 @@ const getFakeReportAction = (index: number, actionName?: ActionName): ReportActi
             },
         ],
         reportActionID: index.toString(),
-        previousReportActionID: (index === 0 ? 0 : index - 1).toString(),
         reportActionTimestamp: 1696243169753,
         sequenceNumber: 0,
         shouldShow: true,
@@ -64,7 +63,6 @@ const getMockedReportActionsMap = (length = 100): ReportActions => {
             originalMessage: {
                 linkedReportID: reportID.toString(),
             },
-            previousReportActionID: index.toString(),
         } as ReportAction;
 
         return {[reportID]: reportAction};
