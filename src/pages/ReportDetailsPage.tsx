@@ -249,7 +249,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 errors={report.errorFields?.avatar ?? null}
                 errorRowStyles={styles.mt6}
                 onErrorClose={() => Report.clearAvatarErrors(report.reportID ?? '')}
-                onViewPhotoPress={() => Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(report.reportID, false))}
+                onViewPhotoPress={() => Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(report.reportID))}
             />
         ) : (
             <RoomHeaderAvatars
