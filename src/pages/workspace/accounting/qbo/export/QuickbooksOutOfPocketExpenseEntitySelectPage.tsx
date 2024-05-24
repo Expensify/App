@@ -22,23 +22,16 @@ function Footer({isTaxEnabled, isLocationsEnabled}: {isTaxEnabled: boolean; isLo
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    if (isTaxEnabled) {
-        return (
-            <>
-                isTaxesEnabled && <Text style={[styles.mutedNormalTextLabel, styles.pt2]}>{translate('workspace.qbo.outOfPocketTaxEnabledDescription')}</Text>
-            </>
-        );
+    if (!isTaxEnabled && !isLocationsEnabled) {
+        return null;
     }
 
-    if (isLocationsEnabled) {
-        return (
-            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mt1]}>
-                <Text style={styles.mutedTextLabel}>{translate('workspace.qbo.locationsAdditionalDescription')}</Text>
-            </View>
-        );
-    }
-
-    return null;
+    return (
+        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mt1]}>
+            {isTaxEnabled && <Text style={[styles.mutedNormalTextLabel, styles.pt2]}>{translate('workspace.qbo.outOfPocketTaxEnabledDescription')}</Text>}
+            {isLocationsEnabled && <Text style={styles.mutedTextLabel}>{translate('workspace.qbo.locationsAdditionalDescription')}</Text>}
+        </View>
+    );
 }
 
 type CardListItem = ListItem & {
