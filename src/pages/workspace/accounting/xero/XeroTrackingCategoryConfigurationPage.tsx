@@ -33,7 +33,7 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
             title: translate(`workspace.xero.trackingCategoriesOptions.${category.value.toLowerCase()}` as TranslationPaths),
         }));
     }, [translate, policy, policyID]);
-    
+
     return (
         <ConnectionLayout
             displayName={XeroTrackingCategoryConfigurationPage.displayName}
