@@ -172,7 +172,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const isLoading = !isOffline && policyTags === undefined;
 
     const getHeaderButtons = () => {
-        const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
+        const isThereAnyAccountingConnection = PolicyUtils.hasAccountingConnections(policy);
 
         if (selectedTagsArray.length === 0) {
             return (
