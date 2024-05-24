@@ -48,8 +48,9 @@ function ReportAvatar({report = {} as Report, policies, isLoadingApp = true, rou
             }}
             isWorkspaceAvatar
             maybeIcon
-            originalFileName={fileName}
-            shouldShowNotFoundPage={!report?.reportID && !groupChatDraft && !isLoadingApp}
+            // In the case of default workspace avatar, originalFileName prop takes policyID as value to get the color of the avatar
+            originalFileName={policy?.originalFileName ?? policy?.id}
+            shouldShowNotFoundPage={!report?.reportID && !isLoadingApp}
             isLoading={(!report?.reportID || !policy?.id) && !!isLoadingApp}
         />
     );
