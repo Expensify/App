@@ -16,10 +16,10 @@ let shouldForceOffline = false;
 
 const ABORT_COMMANDS = {
     All: 'All',
-    SearchForReports: READ_COMMANDS.SEARCH_FOR_REPORTS,
+    [READ_COMMANDS.SEARCH_FOR_REPORTS]: READ_COMMANDS.SEARCH_FOR_REPORTS,
 } as const;
 
-type AbortCommand = (typeof ABORT_COMMANDS)[keyof typeof ABORT_COMMANDS];
+type AbortCommand = keyof typeof ABORT_COMMANDS;
 
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
