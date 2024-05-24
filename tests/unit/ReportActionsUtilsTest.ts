@@ -720,11 +720,11 @@ describe('ReportActionsUtils', () => {
                 createReportAction('1'),
             ];
 
-            const pages: ReportMetadataPages = [
+            const pages: ReportActionsPages = [
                 // Given these pages
-                ['17', '14'],
-                ['12', '9'],
-                ['7', '2'],
+                ['17', '16', '15', '14'],
+                ['12', '11', '10', '9'],
+                ['7', '6', '5', '4', '3', '2'],
             ];
 
             const expectedResult = [
@@ -747,7 +747,10 @@ describe('ReportActionsUtils', () => {
                 createReportAction('14'),
             ];
 
-            const pages: ReportMetadataPage[] = [{firstReportActionID: null, lastReportActionID: '14'}];
+            const pages: ReportActionsPages = [
+                // Given these pages
+                [CONST.PAGINATION_START_ID, '15', '14'],
+            ];
 
             const expectedResult = [
                 // Expect these sortedReportActions
@@ -769,7 +772,10 @@ describe('ReportActionsUtils', () => {
                 createReportAction('14'),
             ];
 
-            const pages: ReportMetadataPage[] = [{firstReportActionID: '17', lastReportActionID: null}];
+            const pages: ReportActionsPages = [
+                // Given these pages
+                ['17', '16', CONST.PAGINATION_END_ID],
+            ];
 
             const expectedResult = [
                 // Expect these sortedReportActions
@@ -786,66 +792,33 @@ describe('ReportActionsUtils', () => {
     describe('mergeContinuousPages', () => {
         it('merges continuous pages', () => {
             const sortedReportActions = [createReportAction('5'), createReportAction('4'), createReportAction('3'), createReportAction('2'), createReportAction('1')];
-            const pages: ReportMetadataPage[] = [
-                {
-                    firstReportActionID: '5',
-                    lastReportActionID: '3',
-                },
-                {
-                    firstReportActionID: '3',
-                    lastReportActionID: '1',
-                },
+            const pages: ReportActionsPages = [
+                ['5', '4', '3'],
+                ['3', '2', '1'],
             ];
-            const expectedResult = [
-                {
-                    firstReportActionID: '5',
-                    lastReportActionID: '1',
-                },
-            ];
+            const expectedResult: ReportActionsPages = [['5', '4', '3', '2', '1']];
             const result = ReportActionsUtils.mergeContinuousPages(sortedReportActions, pages);
             expect(result).toStrictEqual(expectedResult);
         });
 
         it('merges overlapping pages', () => {
             const sortedReportActions = [createReportAction('5'), createReportAction('4'), createReportAction('3'), createReportAction('2'), createReportAction('1')];
-            const pages: ReportMetadataPage[] = [
-                {
-                    firstReportActionID: '4',
-                    lastReportActionID: '2',
-                },
-                {
-                    firstReportActionID: '3',
-                    lastReportActionID: '1',
-                },
+            const pages: ReportActionsPages = [
+                ['4', '3', '2'],
+                ['3', '2', '1'],
             ];
-            const expectedResult = [
-                {
-                    firstReportActionID: '4',
-                    lastReportActionID: '1',
-                },
-            ];
+            const expectedResult: ReportActionsPages = [['4', '3', '2', '1']];
             const result = ReportActionsUtils.mergeContinuousPages(sortedReportActions, pages);
             expect(result).toStrictEqual(expectedResult);
         });
 
         it('merges included pages', () => {
             const sortedReportActions = [createReportAction('5'), createReportAction('4'), createReportAction('3'), createReportAction('2'), createReportAction('1')];
-            const pages: ReportMetadataPage[] = [
-                {
-                    firstReportActionID: '5',
-                    lastReportActionID: '1',
-                },
-                {
-                    firstReportActionID: '5',
-                    lastReportActionID: '2',
-                },
+            const pages: ReportActionsPages = [
+                ['5', '4', '3', '2', '1'],
+                ['5', '4', '3', '2'],
             ];
-            const expectedResult = [
-                {
-                    firstReportActionID: '5',
-                    lastReportActionID: '1',
-                },
-            ];
+            const expectedResult: ReportActionsPages = [['5', '4', '3', '2', '1']];
             const result = ReportActionsUtils.mergeContinuousPages(sortedReportActions, pages);
             expect(result).toStrictEqual(expectedResult);
         });
@@ -858,25 +831,13 @@ describe('ReportActionsUtils', () => {
                 createReportAction('2'),
                 createReportAction('1'),
             ];
-            const pages: ReportMetadataPage[] = [
-                {
-                    firstReportActionID: '5',
-                    lastReportActionID: '4',
-                },
-                {
-                    firstReportActionID: '2',
-                    lastReportActionID: '1',
-                },
+            const pages: ReportActionsPages = [
+                ['5', '4'],
+                ['2', '1'],
             ];
-            const expectedResult = [
-                {
-                    firstReportActionID: '5',
-                    lastReportActionID: '4',
-                },
-                {
-                    firstReportActionID: '2',
-                    lastReportActionID: '1',
-                },
+            const expectedResult: ReportActionsPages = [
+                ['5', '4'],
+                ['2', '1'],
             ];
             const result = ReportActionsUtils.mergeContinuousPages(sortedReportActions, pages);
             expect(result).toStrictEqual(expectedResult);
@@ -894,37 +855,16 @@ describe('ReportActionsUtils', () => {
                 createReportAction('2'),
                 createReportAction('1'),
             ];
-            const pages: ReportMetadataPage[] = [
-                {
-                    firstReportActionID: '3',
-                    lastReportActionID: '1',
-                },
-                {
-                    firstReportActionID: '3',
-                    lastReportActionID: '2',
-                },
-                {
-                    firstReportActionID: '6',
-                    lastReportActionID: '5',
-                },
-                {
-                    firstReportActionID: '17',
-                    lastReportActionID: '8',
-                },
+            const pages: ReportActionsPages = [
+                ['3', '2', '1'],
+                ['3', '2'],
+                ['6', '5'],
+                ['7', '8'],
             ];
-            const expectedResult = [
-                {
-                    firstReportActionID: '17',
-                    lastReportActionID: '8',
-                },
-                {
-                    firstReportActionID: '6',
-                    lastReportActionID: '5',
-                },
-                {
-                    firstReportActionID: '3',
-                    lastReportActionID: '1',
-                },
+            const expectedResult: ReportActionsPages = [
+                ['7', '8'],
+                ['6', '5'],
+                ['3', '2', '1'],
             ];
             const result = ReportActionsUtils.mergeContinuousPages(sortedReportActions, pages);
             expect(result).toStrictEqual(expectedResult);

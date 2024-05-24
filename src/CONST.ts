@@ -4779,6 +4779,7 @@ const CONST = {
     },
 
     PAGINATION_START_ID: '-1',
+    PAGINATION_END_ID: '-2',
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;

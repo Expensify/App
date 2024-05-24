@@ -7,6 +7,7 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReportActionsPages} from '@src/types/onyx';
 import type {
     ActionName,
     ChangeLog,
@@ -22,7 +23,6 @@ import type {
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {Message, ReportActionBase, ReportActionMessageJSON, ReportActions} from '@src/types/onyx/ReportAction';
-import type {ReportMetadataPage} from '@src/types/onyx/ReportMetadata';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import DateUtils from './DateUtils';
@@ -304,23 +304,34 @@ function getCombinedReportActions(reportActions: ReportAction[], transactionThre
     return getSortedReportActions(filteredReportActions, true);
 }
 
-type ReportMetadataPageWithIndexes = ReportMetadataPage & {
+type PageWithIndexes = {
+    ids: string[];
+    firstReportActionID: string;
     firstReportActionIndex: number;
+    lastReportActionID: string;
     lastReportActionIndex: number;
 };
 
-function getPagesWithIndexes(sortedReportActions: ReportAction[], pages: ReportMetadataPage[]): ReportMetadataPageWithIndexes[] {
-    return pages.map((page) => ({
-        ...page,
-        // TODO: It should be possible to make this O(n) by starting the search at the previous found index.
-        // TODO: What if reportActionID is not in the list? Could happen if an action is deleted from another device.
-        firstReportActionIndex: page.firstReportActionID == null ? 0 : sortedReportActions.findIndex((reportAction) => reportAction.reportActionID === page.firstReportActionID),
-        lastReportActionIndex:
-            page.lastReportActionID == null ? sortedReportActions.length - 1 : sortedReportActions.findIndex((reportAction) => reportAction.reportActionID === page.lastReportActionID),
-    }));
+function getPagesWithIndexes(sortedReportActions: ReportAction[], pages: ReportActionsPages): PageWithIndexes[] {
+    return pages.map((page) => {
+        const firstReportActionID = page[0];
+        const lastReportActionID = page[page.length - 1];
+        return {
+            ids: page,
+            firstReportActionID,
+            // TODO: What if reportActionID is not in the list? Could happen if an action is deleted from another device.
+            firstReportActionIndex:
+                firstReportActionID === CONST.PAGINATION_START_ID ? 0 : sortedReportActions.findIndex((reportAction) => reportAction.reportActionID === firstReportActionID),
+            lastReportActionID,
+            lastReportActionIndex:
+                lastReportActionID === CONST.PAGINATION_END_ID
+                    ? sortedReportActions.length - 1
+                    : sortedReportActions.findIndex((reportAction) => reportAction.reportActionID === lastReportActionID),
+        };
+    });
 }
 
-function mergeContinuousPages(sortedReportActions: ReportAction[], pages: ReportMetadataPage[]): ReportMetadataPage[] {
+function mergeContinuousPages(sortedReportActions: ReportAction[], pages: ReportActionsPages): ReportActionsPages {
     const pagesWithIndexes = getPagesWithIndexes(sortedReportActions, pages);
 
     // Pages need to be sorted by firstReportActionIndex ascending then by lastReportActionIndex descending.
@@ -351,6 +362,8 @@ function mergeContinuousPages(sortedReportActions: ReportAction[], pages: Report
                 firstReportActionIndex: prevPage.firstReportActionIndex,
                 lastReportActionID: page.lastReportActionID,
                 lastReportActionIndex: page.lastReportActionIndex,
+                // Only add items from prevPage that are not included in page in case of overlap.
+                ids: prevPage.ids.slice(0, prevPage.ids.indexOf(page.firstReportActionID)).concat(page.ids),
             };
             // eslint-disable-next-line no-continue
             continue;
@@ -360,8 +373,7 @@ function mergeContinuousPages(sortedReportActions: ReportAction[], pages: Report
         result.push(page);
     }
 
-    // Remove extraneous props.
-    return result.map((page) => ({firstReportActionID: page.firstReportActionID, lastReportActionID: page.lastReportActionID}));
+    return result.map((page) => page.ids);
 }
 
 /**
@@ -369,14 +381,14 @@ function mergeContinuousPages(sortedReportActions: ReportAction[], pages: Report
  * See unit tests for example of inputs and expected outputs.
  * Note: sortedReportActions sorted in descending order
  */
-function getContinuousReportActionChain(sortedReportActions: ReportAction[], pages: ReportMetadataPage[], id?: string): ReportAction[] {
+function getContinuousReportActionChain(sortedReportActions: ReportAction[], pages: ReportActionsPages, id?: string): ReportAction[] {
     if (pages.length === 0) {
         return id ? [] : sortedReportActions;
     }
 
     const pagesWithIndexes = getPagesWithIndexes(sortedReportActions, pages);
 
-    let page: ReportMetadataPageWithIndexes;
+    let page: PageWithIndexes;
 
     if (id) {
         const index = sortedReportActions.findIndex((reportAction) => reportAction.reportActionID === id);

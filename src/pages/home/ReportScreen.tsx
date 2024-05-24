@@ -85,6 +85,9 @@ type ReportScreenOnyxPropsWithoutParentReportAction = {
 
     /** The report metadata loading states */
     reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>;
+
+    /** Pagination data */
+    pages: OnyxEntry<OnyxTypes.ReportActionsPages>;
 };
 
 type OnyxHOCProps = {
@@ -144,6 +147,7 @@ function ReportScreen({
         isLoadingNewerReportActions: false,
         hasLoadingNewerReportActionsError: false,
     },
+    pages = [],
     parentReportActions,
     accountManagerReportID,
     markReadyForHydration,
@@ -270,8 +274,8 @@ function ReportScreen({
         if (!sortedAllReportActions.length) {
             return [];
         }
-        return ReportActionsUtils.getContinuousReportActionChain(sortedAllReportActions, reportMetadata?.pages ?? [], reportActionIDFromRoute);
-    }, [reportActionIDFromRoute, sortedAllReportActions, reportMetadata?.pages]);
+        return ReportActionsUtils.getContinuousReportActionChain(sortedAllReportActions, pages ?? [], reportActionIDFromRoute);
+    }, [reportActionIDFromRoute, sortedAllReportActions, pages]);
 
     // Define here because reportActions are recalculated before mount, allowing data to display faster than useEffect can trigger.
     // If we have cached reportActions, they will be shown immediately.
@@ -783,6 +787,10 @@ export default withCurrentReportID(
                     isLoadingNewerReportActions: false,
                     hasLoadingNewerReportActionsError: false,
                 },
+            },
+            pages: {
+                key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${getReportID(route)}`,
+                initialValue: [],
             },
             isComposerFullSize: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${getReportID(route)}`,
