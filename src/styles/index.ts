@@ -2003,6 +2003,11 @@ const styles = (theme: ThemeColors) =>
             ...wordBreak.breakWord,
         },
 
+        renderHTMLThreadTitle: {
+            display: 'flex',
+            flexDirection: 'row',
+        },
+
         renderHTMLTitle: {
             color: theme.text,
             fontSize: variables.fontSizeNormal,

@@ -23,6 +23,7 @@ function getCurrentData(defaultRendererProps: TDefaultRendererProps<TTextOrTPhra
 function InlineCodeBlock<TComponent extends TTextOrTPhrasing>({TDefaultRenderer, defaultRendererProps, textStyle, boxModelStyle}: InlineCodeBlockProps<TComponent>) {
     const styles = useThemeStyles();
     const data = getCurrentData(defaultRendererProps);
+    const numberOfLines = defaultRendererProps.propsFromParent?.numberOfLines;
 
     return (
         <TDefaultRenderer
@@ -32,6 +33,7 @@ function InlineCodeBlock<TComponent extends TTextOrTPhrasing>({TDefaultRenderer,
             <WrappedText
                 textStyles={textStyle}
                 wordStyles={[boxModelStyle, styles.codeWordStyle]}
+                numberOfLines={numberOfLines}
             >
                 {data}
             </WrappedText>

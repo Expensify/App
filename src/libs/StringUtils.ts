@@ -2,6 +2,15 @@ import _ from 'lodash';
 import CONST from '@src/CONST';
 
 /**
+ * Check if the text contains HTML
+ * @param text
+ * @return whether the text contains HTML
+ */
+function containsHtml(text: string): boolean {
+    return /<\/?[a-z][\s\S]*>/i.test(text);
+}
+
+/**
  * Removes diacritical marks and non-alphabetic and non-latin characters from a string.
  * @param str - The input string to be sanitized.
  * @returns The sanitized string
@@ -89,4 +98,4 @@ function getAcronym(string: string): string {
     return acronym;
 }
 
-export default {sanitizeString, isEmptyString, removeInvisibleCharacters, normalizeCRLF, getAcronym};
+export default {containsHtml, sanitizeString, isEmptyString, removeInvisibleCharacters, normalizeCRLF, getAcronym};

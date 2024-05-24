@@ -15,6 +15,9 @@ type WrappedTextProps = ChildrenProps & {
      * Style for each individual word (token) in the text. Note that a token can also include whitespace characters between words.
      */
     wordStyles?: StyleProp<ViewStyle>;
+
+    /** Number of lines before wrapping */
+    numberOfLines?: number;
 };
 
 /**
@@ -40,7 +43,7 @@ function containsEmoji(text: string): boolean {
     return CONST.REGEX.EMOJIS.test(text);
 }
 
-function WrappedText({children, wordStyles, textStyles}: WrappedTextProps) {
+function WrappedText({children, wordStyles, textStyles, numberOfLines}: WrappedTextProps) {
     const styles = useThemeStyles();
 
     if (typeof children !== 'string') {
@@ -62,7 +65,10 @@ function WrappedText({children, wordStyles, textStyles}: WrappedTextProps) {
                     style={styles.codeWordWrapper}
                 >
                     <View style={[wordStyles, colIndex === 0 && styles.codeFirstWordStyle, colIndex === rowText.length - 1 && styles.codeLastWordStyle]}>
-                        <Text style={[textStyles, !containsEmoji(colText) && styles.codePlainTextStyle]}>
+                        <Text
+                            numberOfLines={numberOfLines}
+                            style={[textStyles, !containsEmoji(colText) && styles.codePlainTextStyle]}
+                        >
                             {Array.from(colText).map((char, charIndex) =>
                                 containsOnlyEmojis(char) ? (
                                     <Text
