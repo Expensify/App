@@ -329,6 +329,8 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         </OfflineWithFeedback>
     );
 
+    const shouldShowLeaveButton = !isDefaultRoom && !isExpenseReport;
+
     return (
         <ScreenWrapper testID={ReportDetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={isEmptyObject(report)}>
@@ -390,21 +392,25 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                             />
                         );
                     })}
-                    <MenuItem
-                        key={CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM}
-                        title={translate('common.leave')}
-                        icon={Expensicons.Exit}
-                        isAnonymousAction={false}
-                        shouldShowRightIcon={false}
-                        onPress={() => {
-                            if (Object.keys(report?.participants ?? {}).length === 1) {
-                                setIsLastMemberLeavingGroupModalVisible(true);
-                                return;
-                            }
 
-                            Report.leaveGroupChat(report.reportID);
-                        }}
-                    />
+                    {shouldShowLeaveButton && (
+                        <MenuItem
+                            key={CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM}
+                            title={translate('common.leave')}
+                            icon={Expensicons.Exit}
+                            isAnonymousAction={false}
+                            shouldShowRightIcon={false}
+                            onPress={() => {
+                                if (Object.keys(report?.participants ?? {}).length === 1) {
+                                    setIsLastMemberLeavingGroupModalVisible(true);
+                                    return;
+                                }
+
+                                Report.leaveGroupChat(report.reportID);
+                            }}
+                        />
+                    )}
+
                     <ConfirmModal
                         danger
                         title={translate('groupChat.lastMemberTitle')}
