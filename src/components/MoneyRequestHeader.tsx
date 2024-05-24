@@ -14,6 +14,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import * as IOU from '@userActions/IOU';
+import * as TransactionActions from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -87,14 +88,17 @@ function MoneyRequestHeader({
     const moneyRequestReport = parentReport;
     const isSettled = ReportUtils.isSettled(moneyRequestReport?.reportID);
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
+    const isDraft = ReportUtils.isOpenExpenseReport(moneyRequestReport);
     const isOnHold = TransactionUtils.isOnHold(transaction);
     const isDuplicate = TransactionUtils.isDuplicate(transaction?.transactionID ?? '');
-    const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
+    const {windowWidth} = useWindowDimensions();
 
     // Only the requestor can take delete the expense, admins can only edit it.
     const isActionOwner = typeof parentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && parentReportAction.actorAccountID === session?.accountID;
     const isPolicyAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isApprover = ReportUtils.isMoneyRequestReport(moneyRequestReport) && moneyRequestReport?.managerID !== null && session?.accountID === moneyRequestReport?.managerID;
+    const hasAllPendingRTERViolations = TransactionUtils.allHavePendingRTERViolation([transaction?.transactionID ?? '']);
+    const shouldShowMarkAsCashButton = isDraft && hasAllPendingRTERViolations;
 
     const deleteTransaction = useCallback(() => {
         if (parentReportAction) {
@@ -108,6 +112,10 @@ function MoneyRequestHeader({
 
         setIsDeleteModalVisible(false);
     }, [parentReport?.reportID, parentReportAction, setIsDeleteModalVisible]);
+
+    const markAsCash = useCallback(() => {
+        TransactionActions.markAsCash(transaction?.transactionID ?? '', report.reportID);
+    }, [report.reportID, transaction?.transactionID]);
 
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
 
@@ -145,11 +153,15 @@ function MoneyRequestHeader({
         if (TransactionUtils.isExpensifyCardTransaction(transaction) && TransactionUtils.isPending(transaction)) {
             return {title: getStatusIcon(Expensicons.CreditCardHourglass), description: translate('iou.transactionPendingDescription'), shouldShowBorderBottom: true};
         }
+        if (TransactionUtils.hasPendingRTERViolation(TransactionUtils.getTransactionViolations(transaction?.transactionID ?? '', transactionViolations))) {
+            return {
+                title: getStatusIcon(Expensicons.Hourglass),
+                description: translate('iou.pendingMatchWithCreditCardDescription'),
+                shouldShowBorderBottom: true,
+            };
+        }
         if (isScanning) {
             return {title: getStatusIcon(Expensicons.ReceiptScan), description: translate('iou.receiptScanInProgressDescription'), shouldShowBorderBottom: true};
-        }
-        if (TransactionUtils.hasPendingRTERViolation(TransactionUtils.getTransactionViolations(transaction?.transactionID ?? '', transactionViolations))) {
-            return {title: getStatusIcon(Expensicons.Hourglass), description: translate('iou.pendingMatchWithCreditCardDescription'), shouldShowBorderBottom: true};
         }
     };
 
@@ -234,14 +246,45 @@ function MoneyRequestHeader({
                     shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={onBackButtonPress}
                 >
-                    {isDuplicate && !isSmallScreenWidth && (
+                    {shouldShowMarkAsCashButton && !shouldUseNarrowLayout && (
+                        <Button
+                            success
+                            medium
+                            text={translate('iou.markAsCash')}
+                            style={[styles.p0]}
+                            onPress={markAsCash}
+                        />
+                    )}
+                    {isDuplicate && !shouldUseNarrowLayout && (
                         <Button
                             success
                             medium
                             text={translate('iou.reviewDuplicates')}
+                            style={[styles.p0]}
                         />
                     )}
                 </HeaderWithBackButton>
+                {shouldShowMarkAsCashButton && shouldUseNarrowLayout && (
+                    <View style={[styles.ph5, styles.pb3]}>
+                        <Button
+                            medium
+                            success
+                            text={translate('iou.markAsCash')}
+                            style={[styles.w100, styles.pr0]}
+                            onPress={markAsCash}
+                        />
+                    </View>
+                )}
+                {isDuplicate && shouldUseNarrowLayout && (
+                    <View style={[styles.ph5, styles.pb3]}>
+                        <Button
+                            success
+                            medium
+                            text={translate('iou.reviewDuplicates')}
+                            style={[styles.w100, styles.pr0]}
+                        />
+                    </View>
+                )}
                 {statusBarProps && (
                     <MoneyRequestHeaderStatusBar
                         title={statusBarProps.title}
