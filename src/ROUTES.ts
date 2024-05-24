@@ -223,9 +223,8 @@ const ROUTES = {
         getRoute: (reportID: string, isNewGroupChat?: boolean) => {
             if (isNewGroupChat) {
                 return `r/${reportID}/avatar?isNewGroupChat=${isNewGroupChat}` as const;
-            } else {
-                return `r/${reportID}/avatar` as const;
             }
+            return `r/${reportID}/avatar` as const;
         },
     },
     EDIT_CURRENCY_REQUEST: {
