@@ -33,32 +33,36 @@ type Card = {
 
     /** Additional card data */
     nameValuePairs?: {
-        // TODO: Doesn't seem to be used in app
-        /** Type of spending limits  */
+        /** Type of card spending limits */
         limitType?: ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES>;
 
-        // TODO: Doesn't seem to be used in app
-        cardTitle?: string; // Used only for admin-issued virtual cards
+        /** User-defined nickname for a virtual card */
+        cardTitle?: string;
 
-        // TODO: Doesn't seem to be used in app
+        /** Account ID of user that issued the card */
         issuedBy?: number;
 
-        // TODO: Doesn't seem to be used in app
+        /**
+         * Whether the card has a custom unapproved expense limit.
+         * When not set, the domain unapproved expense limit is used
+         */
         hasCustomUnapprovedExpenseLimit?: boolean;
 
-        // TODO: Doesn't seem to be used in app
+        /**
+         * The maximum unapproved spend allowed on the card.
+         * If it's $100 and you spend $100, you need to get the expenses approved for the card to continue working
+         */
         unapprovedExpenseLimit?: number;
 
-        // TODO: Doesn't seem to be used in app
+        /** Card product under which the card is provisioned */
         feedCountry?: string;
 
         /** Is a virtual card */
         isVirtual?: boolean;
 
-        // TODO: Doesn't seem to be used in app
+        /** Previous card state */
         previousState?: number;
 
-        // TODO: Doesn't seem to be used in app
         /** Card expiration date */
         expirationDate?: string;
     };
