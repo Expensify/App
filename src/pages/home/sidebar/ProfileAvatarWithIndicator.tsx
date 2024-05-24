@@ -16,8 +16,7 @@ type ProfileAvatarWithIndicatorProps = {
 function ProfileAvatarWithIndicator({isSelected = false}: ProfileAvatarWithIndicatorProps) {
     const styles = useThemeStyles();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [isLoadingOnyxValue] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const isLoading = isLoadingOnyxValue ?? true;
+    const [isLoading = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
 
     return (
         <OfflineWithFeedback pendingAction={currentUserPersonalDetails.pendingFields?.avatar}>
@@ -25,7 +24,7 @@ function ProfileAvatarWithIndicator({isSelected = false}: ProfileAvatarWithIndic
                 <AvatarWithIndicator
                     source={UserUtils.getAvatar(currentUserPersonalDetails.avatar, currentUserPersonalDetails.accountID)}
                     fallbackIcon={currentUserPersonalDetails.fallbackIcon}
-                    isLoading={isLoading && !currentUserPersonalDetails.avatar}
+                    isLoading={Boolean(isLoading && !currentUserPersonalDetails.avatar)}
                 />
             </View>
         </OfflineWithFeedback>

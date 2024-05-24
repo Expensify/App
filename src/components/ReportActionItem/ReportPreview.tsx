@@ -142,7 +142,8 @@ function ReportPreview({
     const lastThreeTransactionsWithReceipts = transactionsWithReceipts.slice(-3);
     const lastThreeReceipts = lastThreeTransactionsWithReceipts.map((transaction) => ReceiptUtils.getThumbnailAndImageURIs(transaction));
     const showRTERViolationMessage =
-        numberOfRequests === 1 && TransactionUtils.hasPendingUI(allTransactions[0], TransactionUtils.getTransactionViolations(allTransactions[0].transactionID, transactionViolations));
+        numberOfRequests === 1 &&
+        TransactionUtils.hasPendingUI(allTransactions[0], TransactionUtils.getTransactionViolations(allTransactions[0]?.transactionID ?? '', transactionViolations));
 
     let formattedMerchant = numberOfRequests === 1 ? TransactionUtils.getMerchant(allTransactions[0]) : null;
     const formattedDescription = numberOfRequests === 1 ? TransactionUtils.getDescription(allTransactions[0]) : null;
@@ -187,6 +188,18 @@ function ReportPreview({
         return displayAmount;
     };
 
+    // We're using this function to check if the parsed result of getDisplayAmount equals
+    // to 0 in order to hide the subtitle (merchant / description) when the expense
+    // is removed from OD report and display amount changes to 0 (any currency)
+    function isDisplayAmountZero(displayAmount: string) {
+        if (!displayAmount || displayAmount === '') {
+            return false;
+        }
+        const numericPart = displayAmount.replace(/[^\d.-]/g, '');
+        const amount = parseFloat(numericPart);
+        return !Number.isNaN(amount) && amount === 0;
+    }
+
     const getPreviewMessage = () => {
         if (isScanning) {
             return translate('common.receipt');
@@ -228,7 +241,7 @@ function ReportPreview({
      */
     const shouldShowSingleRequestMerchantOrDescription =
         numberOfRequests === 1 && (!!formattedMerchant || !!formattedDescription) && !(hasOnlyTransactionsWithPendingRoutes && !totalDisplaySpend);
-    const shouldShowSubtitle = !isScanning && (shouldShowSingleRequestMerchantOrDescription || numberOfRequests > 1);
+    const shouldShowSubtitle = !isScanning && (shouldShowSingleRequestMerchantOrDescription || numberOfRequests > 1) && !isDisplayAmountZero(getDisplayAmount());
     const shouldShowScanningSubtitle = numberOfScanningReceipts === 1 && numberOfRequests === 1;
     const shouldShowPendingSubtitle = numberOfPendingRequests === 1 && numberOfRequests === 1;
 
