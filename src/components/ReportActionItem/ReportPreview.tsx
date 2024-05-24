@@ -1,3 +1,4 @@
+import truncate from 'lodash/truncate';
 import React, {useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -22,6 +23,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import StringUtils from '@libs/StringUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
@@ -142,7 +144,8 @@ function ReportPreview({
     const lastThreeTransactionsWithReceipts = transactionsWithReceipts.slice(-3);
     const lastThreeReceipts = lastThreeTransactionsWithReceipts.map((transaction) => ({...ReceiptUtils.getThumbnailAndImageURIs(transaction), transaction}));
     const showRTERViolationMessage =
-        numberOfRequests === 1 && TransactionUtils.hasPendingUI(allTransactions[0], TransactionUtils.getTransactionViolations(allTransactions[0].transactionID, transactionViolations));
+        numberOfRequests === 1 &&
+        TransactionUtils.hasPendingUI(allTransactions[0], TransactionUtils.getTransactionViolations(allTransactions[0]?.transactionID ?? '', transactionViolations));
 
     let formattedMerchant = numberOfRequests === 1 ? TransactionUtils.getMerchant(allTransactions[0]) : null;
     const formattedDescription = numberOfRequests === 1 ? TransactionUtils.getDescription(allTransactions[0]) : null;
@@ -187,6 +190,18 @@ function ReportPreview({
         return displayAmount;
     };
 
+    // We're using this function to check if the parsed result of getDisplayAmount equals
+    // to 0 in order to hide the subtitle (merchant / description) when the expense
+    // is removed from OD report and display amount changes to 0 (any currency)
+    function isDisplayAmountZero(displayAmount: string) {
+        if (!displayAmount || displayAmount === '') {
+            return false;
+        }
+        const numericPart = displayAmount.replace(/[^\d.-]/g, '');
+        const amount = parseFloat(numericPart);
+        return !Number.isNaN(amount) && amount === 0;
+    }
+
     const getPreviewMessage = () => {
         if (isScanning) {
             return translate('common.receipt');
@@ -228,7 +243,7 @@ function ReportPreview({
      */
     const shouldShowSingleRequestMerchantOrDescription =
         numberOfRequests === 1 && (!!formattedMerchant || !!formattedDescription) && !(hasOnlyTransactionsWithPendingRoutes && !totalDisplaySpend);
-    const shouldShowSubtitle = !isScanning && (shouldShowSingleRequestMerchantOrDescription || numberOfRequests > 1);
+    const shouldShowSubtitle = !isScanning && (shouldShowSingleRequestMerchantOrDescription || numberOfRequests > 1) && !isDisplayAmountZero(getDisplayAmount());
     const shouldShowScanningSubtitle = numberOfScanningReceipts === 1 && numberOfRequests === 1;
     const shouldShowPendingSubtitle = numberOfPendingRequests === 1 && numberOfRequests === 1;
 
@@ -249,10 +264,10 @@ function ReportPreview({
 
     const {supportText} = useMemo(() => {
         if (formattedMerchant) {
-            return {supportText: formattedMerchant};
+            return {supportText: truncate(formattedMerchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH})};
         }
         if (formattedDescription ?? moneyRequestComment) {
-            return {supportText: formattedDescription ?? moneyRequestComment};
+            return {supportText: truncate(StringUtils.lineBreaksToSpaces(formattedDescription ?? moneyRequestComment), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH})};
         }
         return {
             supportText: translate('iou.expenseCount', {
