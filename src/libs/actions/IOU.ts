@@ -6811,6 +6811,7 @@ function mergeDuplicates(params: TransactionMergeParams) {
             tag: params.tag,
         },
     };
+
     const failureTransactionData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`,
