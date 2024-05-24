@@ -31,6 +31,7 @@ type PendingChatMember = {
 
     /** Action to be applied to the pending member of report */
     pendingAction: OnyxCommon.PendingAction;
+    errors?: OnyxCommon.Errors;
 };
 
 /** Report participant properties */
