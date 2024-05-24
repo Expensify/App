@@ -56,7 +56,14 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
     const currencySymbol = currencyList?.[outputCurrency]?.symbol ?? '';
     const formattedCurrency = !isEmptyObject(policy) && !isEmptyObject(currencyList) ? `${outputCurrency} - ${currencySymbol}` : '';
 
-    const [street1, street2] = (policy?.address?.addressStreet ?? '').split('\n');
+    let street1;
+    let street2;
+    if (!policy?.address?.addressStreet2) {
+        [street1, street2] = (policy?.address?.addressStreet ?? '').split('\n');
+    } else {
+        street1 = policy?.address?.addressStreet;
+        street2 = policy?.address?.addressStreet2 ?? '';
+    }
     const formattedAddress =
         !isEmptyObject(policy) && !isEmptyObject(policy.address)
             ? `${street1?.trim()}, ${street2 ? `${street2.trim()}, ` : ''}${policy.address.city}, ${policy.address.state} ${policy.address.zipCode ?? ''}`
