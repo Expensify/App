@@ -8,6 +8,7 @@ import * as Request from '@libs/Request';
 import * as PersistedRequests from '@userActions/PersistedRequests';
 import CONST from '@src/CONST';
 import type OnyxRequest from '@src/types/onyx/Request';
+import type {PaginatedRequest} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 import type {ApiRequest, ApiRequestCommandParameters, ReadCommand, SideEffectRequestCommand, WriteCommand} from './types';
 
@@ -177,7 +178,15 @@ function read<TCommand extends ReadCommand>(command: TCommand, apiCommandParamet
     validateReadyToRead(command).then(() => makeRequestWithSideEffects(command, apiCommandParameters, onyxData, CONST.API_REQUEST_TYPE.READ));
 }
 
-function paginate<TCommand extends ReadCommand>(command: TCommand, apiCommandParameters: ApiRequestCommandParameters[TCommand], onyxData: OnyxData = {}): void {
+function paginate<TCommand extends ReadCommand, TResource>(
+    command: TCommand,
+    apiCommandParameters: ApiRequestCommandParameters[TCommand],
+    getItemsFromResponse: (response: Response) => Record<string, TResource>,
+    sortItems: (items: Record<string, TResource>) => TResource[],
+    getItemID: (item: TResource) => string,
+    isInitialRequest = false,
+    onyxData: OnyxData = {},
+): void {
     Log.info('[API] Called API.paginate', false, {command, ...apiCommandParameters});
     validateReadyToRead(command).then(() => {
         const onyxDataWithoutOptimisticData = applyOptimisticOnyxData(onyxData);
@@ -189,11 +198,15 @@ function paginate<TCommand extends ReadCommand>(command: TCommand, apiCommandPar
         };
 
         // Assemble all the request data we'll be storing
-        const request: OnyxRequest = {
+        const request: PaginatedRequest<TResource> = {
             command,
             data,
             ...onyxDataWithoutOptimisticData,
             isPaginated: true,
+            getItemsFromResponse,
+            sortItems,
+            getItemID,
+            isInitialRequest,
         };
 
         // Return a promise containing the response from HTTPS
