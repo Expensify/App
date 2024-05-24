@@ -1096,7 +1096,6 @@ function MoneyRequestConfirmationList({
                         previewSourceURL={resolvedReceiptImage as string}
                         // We don't support scanning password protected PDF receipt
                         enabled={!isAttachmentInvalid}
-                        onPassword={() => setIsAttachmentInvalid(true)}
                     />
                 ) : (
                     <ReceiptImage

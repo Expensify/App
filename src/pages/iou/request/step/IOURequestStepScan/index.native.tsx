@@ -22,6 +22,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
+import isPdfFilePasswordProtected from '@libs/focusComposerWithDelay/isPdfFilePasswordProtected';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -173,6 +174,16 @@ function IOURequestStepScan({
             Alert.alert(translate('attachmentPicker.attachmentTooSmall'), translate('attachmentPicker.sizeNotMet'));
             return false;
         }
+
+        if (fileExtension === 'pdf') {
+            return isPdfFilePasswordProtected(file).then((isProtected: boolean) => {
+                if (isProtected) {
+                    Alert.alert(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.protectedPDFNotSupported'));
+                }
+                return !isProtected;
+            });
+        }
+
         return true;
     };
 
