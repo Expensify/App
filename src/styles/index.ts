@@ -4380,6 +4380,7 @@ const styles = (theme: ThemeColors) =>
             bottom: -4,
             borderColor: theme.highlightBG,
             borderWidth: 2,
+            overflow: 'hidden',
         },
         moneyRequestViewImage: {
             ...spacing.mh5,
