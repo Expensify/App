@@ -14,6 +14,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import * as IOU from '@userActions/IOU';
+import * as TransactionActions from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -145,10 +146,11 @@ function MoneyReportHeader({
     const hasOnlyHeldExpenses = ReportUtils.hasOnlyHeldExpenses(moneyRequestReport.reportID);
     const shouldShowSubmitButton = isDraft && reimbursableSpend !== 0 && !allHavePendingRTERViolation && !hasOnlyHeldExpenses;
     const shouldDisableSubmitButton = shouldShowSubmitButton && !ReportUtils.isAllowedToSubmitDraftExpenseReport(moneyRequestReport);
+    const shouldShowMarkAsCashButton = isDraft && allHavePendingRTERViolation && !hasOnlyHeldExpenses;
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
     const shouldShowNextStep =
         !ReportUtils.isClosedExpenseReportWithNoExpenses(moneyRequestReport) && isFromPaidPolicy && !!nextStep?.message?.length && !allHavePendingRTERViolation && !hasOnlyHeldExpenses;
-    const shouldShowAnyButton = shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextStep;
+    const shouldShowAnyButton = shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextStep || allHavePendingRTERViolation;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
     const formattedAmount = CurrencyUtils.convertToDisplayString(reimbursableSpend, moneyRequestReport.currency);
     const [nonHeldAmount, fullAmount] = ReportUtils.getNonHeldAndFullAmount(moneyRequestReport, policy);
@@ -192,6 +194,16 @@ function MoneyReportHeader({
 
         setIsDeleteRequestModalVisible(false);
     }, [moneyRequestReport?.reportID, requestParentReportAction, setIsDeleteRequestModalVisible]);
+
+    const markAsCash = useCallback(() => {
+        if (!requestParentReportAction) {
+            return;
+        }
+        const iouTransactionID = requestParentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? requestParentReportAction.originalMessage?.IOUTransactionID ?? '' : '';
+        const reportID = transactionThreadReport?.reportID ?? '';
+
+        TransactionActions.markAsCash(iouTransactionID, reportID);
+    }, [requestParentReportAction, transactionThreadReport?.reportID]);
 
     const changeMoneyRequestStatus = () => {
         if (!transactionThreadReport) {
@@ -349,7 +361,29 @@ function MoneyReportHeader({
                         />
                     </View>
                 )}
+                {shouldShowMarkAsCashButton && !shouldUseNarrowLayout && (
+                    <View style={[styles.pv2]}>
+                        <Button
+                            medium
+                            success
+                            text={translate('iou.markAsCash')}
+                            style={[styles.pv2, styles.pr0]}
+                            onPress={markAsCash}
+                        />
+                    </View>
+                )}
             </HeaderWithBackButton>
+            {shouldShowMarkAsCashButton && shouldUseNarrowLayout && (
+                <View style={[styles.ph5, styles.pb3]}>
+                    <Button
+                        medium
+                        success
+                        text={translate('iou.markAsCash')}
+                        style={[styles.w100, styles.pr0]}
+                        onPress={markAsCash}
+                    />
+                </View>
+            )}
             {statusBarProps && (
                 <MoneyRequestHeaderStatusBar
                     title={statusBarProps.title}
