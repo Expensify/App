@@ -2,6 +2,7 @@ import {useNavigation} from '@react-navigation/native';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import {useCallback, useEffect} from 'react';
 import type UseHtmlPaste from './types';
+import CONST from '@src/CONST';
 
 const insertByCommand = (text: string) => {
     document.execCommand('insertText', false, text);
@@ -12,7 +13,7 @@ const insertAtCaret = (target: HTMLElement, text: string) => {
     if (selection?.rangeCount) {
         const range = selection.getRangeAt(0);
         range.deleteContents();
-        text = text.replace(/^[\r\n]+|[\r\n]+$/g, '');  // Remove trailing Carriage Return and Line feed
+        text = text.replace(CONST.REGEX.TRAILING_CRLF, '');  // Remove trailing Carriage Return and Line feed
         const node = document.createTextNode(text);
         range.insertNode(node);
 
