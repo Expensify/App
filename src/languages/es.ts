@@ -1997,11 +1997,14 @@ export default {
             exportInvoicesDescription: 'Las facturas se exportarán a esta cuenta en QuickBooks Online.',
             exportCompanyCardsDescription: 'Establece cómo se exportan las compras con tarjeta de empresa a QuickBooks Online.',
             account: 'Cuenta',
+            accountDescription: 'Esta es la cuenta elegida para contabilizar la compensación de la entrada de diario de cada informe.',
             vendor: 'Proveedor',
             defaultVendor: 'Proveedor predeterminado',
             defaultVendorDescription: 'Establece un proveedor predeterminado que se aplicará a todas las transacciones con tarjeta de crédito al momento de exportarlas.',
             accountsPayable: 'Cuentas por pagar',
             accountsPayableDescription: 'Esta es la cuenta de cuentas por pagar elegida, contra la cual se crean las facturas de proveedores para cada informe.',
+            bankAccount: 'Cuenta bancaria',
+            bankAccountDescription: 'Esta es la cuenta bancaria elegida para emitir cheques.',
             optionBelow: 'Elija una opción a continuación:',
             companyCardsLocationEnabledDescription:
                 'Nota: QuickBooks Online no admite un campo para Ubicaciones como etiquetas en las exportaciones de facturas de proveedores. A medida que importa ubicaciones, esta opción de exportación no está disponible.',
@@ -2009,6 +2012,9 @@ export default {
                 'Puede ser cualquier administrador del espacio de trabajo, pero debe ser un administrador de dominio si configura diferentes cuentas de exportación para tarjetas de empresa individuales en la configuración del dominio.',
             exportPreferredExporterSubNote: 'Una vez configurado, el exportador preferido verá los informes para exportar en tu cuenta.',
             exportOutOfPocketExpensesDescription: 'Establezca cómo se exportan los gastos de bolsillo a QuickBooks Online.',
+            exportCheckDescription: 'Crearemos un único cheque desglosado para cada informe de Expensify. Puedes emitir el cheque desde la cuenta bancaria que elijas (más abajo).',
+            exportJournalEntryDescription:
+                'Crearemos una única entrada de diario desglosada para cada informe de Expensify. Puedes enviar la compensación de la entrada de diario a la cuenta que elijas (más abajo).',
             exportVendorBillDescription:
                 'Crearemos una única factura de proveedor detallada para cada informe de Expensify. Si el período de la factura está cerrado, lo publicaremos en el día 1 del siguiente período abierto. Puede agregar la factura del proveedor a la cuenta A/P de tu elección (a continuación).',
             outOfPocketTaxEnabledDescription:
