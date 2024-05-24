@@ -1,11 +1,10 @@
 import Airship from '@ua/react-native-airship';
 import Onyx from 'react-native-onyx';
 import applyOnyxUpdatesReliably from '@libs/actions/applyOnyxUpdatesReliably';
-import * as DeferredOnyxUpdates from '@libs/actions/OnyxUpdateManager/utils/DeferredOnyxUpdates';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import extractDataFromPushNotification from '@libs/Notification/PushNotification/extractDataFromPushNotification';
+import getPushNotificationData from '@libs/Notification/PushNotification/getPushNotificationData';
 import type {ReportActionPushNotificationData} from '@libs/Notification/PushNotification/NotificationType';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
 import {extractPolicyIDFromPath} from '@libs/PolicyUtils';
@@ -69,7 +68,7 @@ function applyOnyxData({reportID, reportActionID, onyxData, lastUpdateID, previo
 
     Log.info('[PushNotification] reliable onyx update received', false, {lastUpdateID, previousUpdateID, onyxDataCount: onyxData?.length ?? 0});
 
-    const updates = wrapAirshipUpdatesDataInOnyxUpdatesFromServer({onyxData, lastUpdateID, previousUpdateID});
+    const updates = buildOnyxUpdatesFromServer({onyxData, lastUpdateID, previousUpdateID});
 
     /**
      * When this callback runs in the background on Android (via Headless JS), no other Onyx.connect callbacks will run. This means that
@@ -89,7 +88,7 @@ function navigateToReport({reportID, reportActionID}: ReportActionPushNotificati
     Log.info('[PushNotification] Adding push notification updates to deferred updates queue', false, {reportID, reportActionID});
 
     const updatesAppliedPromise = Airship.push.getActiveNotifications().then((notifications) => {
-        const onyxUpdates = notifications.map((notification) => extractDataFromPushNotification(notification));
+        const onyxUpdates = notifications.map((notification) => getPushNotificationData(notification));
         // const onyxData = onyxUpdates.reduce<OnyxServerUpdate[]>((onyxUpdatesAcc, onyxUpdate) => (onyxUpdate.onyxData ? [...onyxUpdatesAcc, ...onyxUpdate.onyxData] : onyxUpdatesAcc), []);
 
         // const lastUpdateID = onyxUpdates.reduce((max, {lastUpdateID: lastUpdateIDIter}) => Math.max(max, lastUpdateIDIter ?? 0), 0);

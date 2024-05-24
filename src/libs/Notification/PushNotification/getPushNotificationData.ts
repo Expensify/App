@@ -1,7 +1,7 @@
 import type {PushPayload} from '@ua/react-native-airship';
 import type {PushNotificationData} from './NotificationType';
 
-function extractDataFromPushNotification(notification: PushPayload): PushNotificationData {
+function getPushNotificationData(notification: PushPayload): PushNotificationData {
     let payload = notification.extras.payload;
 
     // On Android, some notification payloads are sent as a JSON string rather than an object
@@ -12,4 +12,4 @@ function extractDataFromPushNotification(notification: PushPayload): PushNotific
     return payload as PushNotificationData;
 }
 
-export default extractDataFromPushNotification;
+export default getPushNotificationData;
