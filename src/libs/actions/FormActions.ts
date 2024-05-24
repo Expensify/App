@@ -24,7 +24,7 @@ function clearErrorFields(formID: OnyxFormKey) {
 }
 
 function setDraftValues(formID: OnyxFormKey, draftValues: NullishDeep<OnyxValue<OnyxFormDraftKey>>) {
-    Onyx.merge(`${formID}Draft`, draftValues);
+    Onyx.merge(`${formID}Draft`, draftValues ?? null);
 }
 
 function clearDraftValues(formID: OnyxFormKey) {
