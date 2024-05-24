@@ -166,6 +166,9 @@ const CONST = {
 
     PULL_REQUEST_NUMBER,
 
+    // Regex to get link in href prop inside of <a/> component
+    REGEX_LINK_IN_ANCHOR: /<a\s+(?:[^>]*?\s+)?href="([^"]*)"/gi,
+
     MERCHANT_NAME_MAX_LENGTH: 255,
 
     REQUEST_PREVIEW: {
