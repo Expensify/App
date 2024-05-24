@@ -20,7 +20,7 @@ function EmptySelectionListContent({content}: EmptySelectionListContentProps) {
             <BlockingView
                 icon={Illustrations.ToddWithPhones}
                 iconWidth={variables.modalTopIconWidth}
-                iconHeight={variables.modalTopIconHeight}
+                iconHeight={variables.modalTopMediumIconHeight}
                 title={translate(`emptyList.${content}.title`)}
                 shouldShowLink={false}
                 subtitle={translate(`emptyList.${content}.subtitle`)}

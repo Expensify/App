@@ -419,7 +419,7 @@ export default {
     emptyList: {
         [CONST.IOU.TYPE.SUBMIT]: {
             title: 'Get paid back',
-            subtitle: 'Submit your expense to any email or phone number.',
+            subtitle: 'Submit your expense to any email or\nphone number.',
         },
         [CONST.IOU.TYPE.SPLIT]: {
             title: 'Get paid back',
