@@ -67,6 +67,7 @@ function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
                 sections={[{data: optionsList}]}
                 ListItem={RadioListItem}
                 onSelectRow={updateMapping}
+                initiallyFocusedOptionKey={optionsList.find((option) => option.isSelected)?.keyForList}
             />
         </ConnectionLayout>
     );
