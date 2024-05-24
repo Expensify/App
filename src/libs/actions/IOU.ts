@@ -5827,6 +5827,16 @@ function getPayMoneyRequestParams(
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+            value: {
+                [optimisticIOUReportAction.reportActionID]: {
+                    ...(optimisticIOUReportAction as OnyxTypes.ReportAction),
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
             value: {
                 ...iouReport,
@@ -6035,13 +6045,7 @@ function getPayMoneyRequestParams(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
-                value: {
-                    [optimisticIOUReportAction.reportActionID]: {
-                        ...(optimisticIOUReportAction as OnyxTypes.ReportAction),
-                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    },
-                    ...bringReportActionsBack,
-                },
+                value: bringReportActionsBack,
             },
             // remove hold report actions from the new iou report
             {
