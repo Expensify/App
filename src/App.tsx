@@ -52,51 +52,57 @@ LogBox.ignoreLogs([
 
 const fill = {flex: 1};
 
+const USE_STRICT_MODE = true;
+const Wrapper = USE_STRICT_MODE ? React.StrictMode : ({children}: {children: React.ReactElement}) => children;
+
 function App({url}: AppProps) {
     useDefaultDragAndDrop();
     OnyxUpdateManager();
+
     return (
-        <InitialURLContextProvider url={url}>
-            <GestureHandlerRootView style={fill}>
-                <ComposeProviders
-                    components={[
-                        OnyxProvider,
-                        ThemeProvider,
-                        ThemeStylesProvider,
-                        ThemeIllustrationsProvider,
-                        SafeAreaProvider,
-                        PortalProvider,
-                        SafeArea,
-                        LocaleContextProvider,
-                        HTMLEngineProvider,
-                        WindowDimensionsProvider,
-                        KeyboardStateProvider,
-                        PopoverContextProvider,
-                        CurrentReportIDContextProvider,
-                        ScrollOffsetContextProvider,
-                        ReportAttachmentsProvider,
-                        PickerStateProvider,
-                        EnvironmentProvider,
-                        CustomStatusBarAndBackgroundContextProvider,
-                        ActiveElementRoleProvider,
-                        ActiveWorkspaceContextProvider,
-                        ReportIDsContextProvider,
-                        PlaybackContextProvider,
-                        FullScreenContextProvider,
-                        VolumeContextProvider,
-                        VideoPopoverMenuContextProvider,
-                        KeyboardProvider,
-                    ]}
-                >
-                    <CustomStatusBarAndBackground />
-                    <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
-                        <ColorSchemeWrapper>
-                            <Expensify />
-                        </ColorSchemeWrapper>
-                    </ErrorBoundary>
-                </ComposeProviders>
-            </GestureHandlerRootView>
-        </InitialURLContextProvider>
+        <Wrapper>
+            <InitialURLContextProvider url={url}>
+                <GestureHandlerRootView style={fill}>
+                    <ComposeProviders
+                        components={[
+                            OnyxProvider,
+                            ThemeProvider,
+                            ThemeStylesProvider,
+                            ThemeIllustrationsProvider,
+                            SafeAreaProvider,
+                            PortalProvider,
+                            SafeArea,
+                            LocaleContextProvider,
+                            HTMLEngineProvider,
+                            WindowDimensionsProvider,
+                            KeyboardStateProvider,
+                            PopoverContextProvider,
+                            CurrentReportIDContextProvider,
+                            ScrollOffsetContextProvider,
+                            ReportAttachmentsProvider,
+                            PickerStateProvider,
+                            EnvironmentProvider,
+                            CustomStatusBarAndBackgroundContextProvider,
+                            ActiveElementRoleProvider,
+                            ActiveWorkspaceContextProvider,
+                            ReportIDsContextProvider,
+                            PlaybackContextProvider,
+                            FullScreenContextProvider,
+                            VolumeContextProvider,
+                            VideoPopoverMenuContextProvider,
+                            KeyboardProvider,
+                        ]}
+                    >
+                        <CustomStatusBarAndBackground />
+                        <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
+                            <ColorSchemeWrapper>
+                                <Expensify />
+                            </ColorSchemeWrapper>
+                        </ErrorBoundary>
+                    </ComposeProviders>
+                </GestureHandlerRootView>
+            </InitialURLContextProvider>
+        </Wrapper>
     );
 }
 
