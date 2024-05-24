@@ -159,7 +159,7 @@
     "react-native-permissions": "^3.9.3",
     "react-native-picker-select": "git+https://github.com/Expensify/react-native-picker-select.git#da50d2c5c54e268499047f9cc98b8df4196c1ddf",
     "react-native-plaid-link-sdk": "11.5.0",
-    "react-native-qrcode-svg": "git+https://github.com/Kicu/react-native-qrcode-svg#329a13528d6bb0f5f9ece16bec549433c0befb56",
+    "react-native-qrcode-svg": "git+https://github.com/Expensify/react-native-qrcode-svg",
     "react-native-quick-sqlite": "git+https://github.com/margelo/react-native-quick-sqlite#abc91857d4b3efb2020ec43abd2a508563b64316",
     "react-native-reanimated": "^3.7.2",
     "react-native-release-profiler": "^0.1.6",

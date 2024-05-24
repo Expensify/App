@@ -46,11 +46,11 @@ function getLogoForWorkspace(report: OnyxEntry<Report>, policy?: OnyxEntry<Polic
         return expensifyLogo;
     }
 
-    if (!policy.avatar) {
+    if (!policy.avatarURL) {
         return undefined;
     }
 
-    return policy.avatar as ImageSourcePropType;
+    return policy.avatarURL as ImageSourcePropType;
 }
 
 function ShareCodePage({report, policy}: ShareCodePageProps) {
@@ -89,15 +89,15 @@ function ShareCodePage({report, policy}: ShareCodePageProps) {
 
     const logo = isReport ? getLogoForWorkspace(report, policy) : (UserUtils.getAvatarUrl(currentUserPersonalDetails?.avatar, currentUserPersonalDetails?.accountID) as ImageSourcePropType);
 
-    // default logos (avatars) are SVG and because of that require some special logic
+    // Default logos (avatars) are SVG and they require some special logic to display correctly
     let logoSVG: React.FC<SvgProps> | undefined;
     let logoBackground: string | undefined;
     let logoColor: string | undefined;
 
-    if (!logo && policy && !policy.avatar) {
-        logoSVG = ReportUtils.getDefaultWorkspaceAvatar(policy?.name) || Expensicons.FallbackAvatar;
+    if (!logo && policy && !policy.avatarURL) {
+        logoSVG = ReportUtils.getDefaultWorkspaceAvatar(policy.name) || Expensicons.FallbackAvatar;
 
-        const defaultWorkspaceAvatarColors = StyleUtils.getDefaultWorkspaceAvatarColor(policy?.name);
+        const defaultWorkspaceAvatarColors = StyleUtils.getDefaultWorkspaceAvatarColor(policy.id);
         logoBackground = defaultWorkspaceAvatarColors.backgroundColor?.toString();
         logoColor = defaultWorkspaceAvatarColors.fill;
     }
