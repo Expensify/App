@@ -3,7 +3,6 @@ import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import Navigation from '@libs/Navigation/Navigation';
@@ -47,42 +46,32 @@ function EnablePaymentsPage({userWallet, bankAccountList}: EnablePaymentsPagePro
         return <FullScreenLoadingIndicator />;
     }
 
-    return (
-        <ScreenWrapper
-            shouldShowOfflineIndicator={userWallet?.currentStep !== CONST.WALLET.STEP.ONFIDO}
-            includeSafeAreaPaddingBottom={false}
-            testID={EnablePaymentsPage.displayName}
-        >
-            {() => {
-                if (userWallet?.errorCode === CONST.WALLET.ERROR.KYC) {
-                    return (
-                        <>
-                            <HeaderWithBackButton
-                                title={translate('additionalDetailsStep.headerTitle')}
-                                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)}
-                            />
-                            <FailedKYC />
-                        </>
-                    );
-                }
+    if (userWallet?.errorCode === CONST.WALLET.ERROR.KYC) {
+        return (
+            <>
+                <HeaderWithBackButton
+                    title={translate('additionalDetailsStep.headerTitle')}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)}
+                />
+                <FailedKYC />
+            </>
+        );
+    }
 
-                const currentStep = isEmptyObject(bankAccountList) ? CONST.WALLET.STEP.ADD_BANK_ACCOUNT : userWallet?.currentStep ?? CONST.WALLET.STEP.ADDITIONAL_DETAILS;
+    const currentStep = isEmptyObject(bankAccountList) ? CONST.WALLET.STEP.ADD_BANK_ACCOUNT : userWallet?.currentStep || CONST.WALLET.STEP.ADDITIONAL_DETAILS;
 
-                switch (currentStep) {
-                    case CONST.WALLET.STEP.ADD_BANK_ACCOUNT:
-                        return <AddBankAccount />;
-                    case CONST.WALLET.STEP.ADDITIONAL_DETAILS:
-                        return <PersonalInfo />;
-                    case CONST.WALLET.STEP.ONFIDO:
-                        return <VerifyIdentity />;
-                    case CONST.WALLET.STEP.TERMS:
-                        return <FeesAndTerms />;
-                    default:
-                        return null;
-                }
-            }}
-        </ScreenWrapper>
-    );
+    switch (currentStep) {
+        case CONST.WALLET.STEP.ADD_BANK_ACCOUNT:
+            return <AddBankAccount />;
+        case CONST.WALLET.STEP.ADDITIONAL_DETAILS:
+            return <PersonalInfo />;
+        case CONST.WALLET.STEP.ONFIDO:
+            return <VerifyIdentity />;
+        case CONST.WALLET.STEP.TERMS:
+            return <FeesAndTerms />;
+        default:
+            return null;
+    }
 }
 
 EnablePaymentsPage.displayName = 'EnablePaymentsPage';

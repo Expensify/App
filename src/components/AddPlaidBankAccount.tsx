@@ -18,7 +18,6 @@ import FullPageOfflineBlockingView from './BlockingViews/FullPageOfflineBlocking
 import FormHelpMessage from './FormHelpMessage';
 import Icon from './Icon';
 import getBankIcon from './Icon/BankIcons';
-import Picker from './Picker';
 import PlaidLink from './PlaidLink';
 import RadioButtons from './RadioButtons';
 import Text from './Text';

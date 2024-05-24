@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -79,13 +79,12 @@ function AddBankAccount({personalBankAccount, plaidData, personalBankAccountDraf
         prevScreen();
     };
 
-    useEffect(() => BankAccounts.clearPersonalBankAccount, []);
-
     return (
         <ScreenWrapper
             testID={AddBankAccount.displayName}
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
+            shouldShowOfflineIndicator
         >
             <HeaderWithBackButton
                 shouldShowBackButton

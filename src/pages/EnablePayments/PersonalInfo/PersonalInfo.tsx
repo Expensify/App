@@ -10,13 +10,11 @@ import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
-import Navigation from '@navigation/Navigation';
 import getInitialSubstepForPersonalInfo from '@pages/EnablePayments/utils/getInitialSubstepForPersonalInfo';
 import getSubstepValues from '@pages/EnablePayments/utils/getSubstepValues';
 import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {WalletAdditionalDetailsForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
 import type {WalletAdditionalDetailsRefactor} from '@src/types/onyx/WalletAdditionalDetails';
@@ -78,14 +76,12 @@ function PersonalInfoPage({walletAdditionalDetails, walletAdditionalDetailsDraft
     });
 
     const handleBackButtonPress = () => {
-        // TODO: connect to the fist step of the wallet setup https://github.com/Expensify/App/issues/36648
         if (isEditing) {
             goToTheLastStep();
             return;
         }
         if (screenIndex === 0) {
-            Navigation.goBack(ROUTES.SETTINGS_WALLET);
-            Wallet.resetWalletAdditionalDetailsDraft();
+            Wallet.updateCurrentStep(CONST.WALLET.STEP.ADD_BANK_ACCOUNT);
             return;
         }
         prevScreen();
