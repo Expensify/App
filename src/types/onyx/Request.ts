@@ -22,6 +22,7 @@ type RequestData = {
     resolve?: (value: Response) => void;
     reject?: (value?: unknown) => void;
     shouldSkipWebProxy?: boolean;
+    isPaginated?: boolean;
 };
 
 type Request = RequestData & OnyxData;

@@ -62,7 +62,7 @@ function applyOptimisticOnyxData(onyxData: OnyxData): Omit<OnyxData, 'optimistic
  * @param [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
  * @param [onyxData.finallyData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200 or jsonCode !== 200.
  */
-function write<TCommand extends WriteCommand>(command: TCommand, apiCommandParameters: ApiRequestCommandParameters[TCommand], onyxData: OnyxData = {}) {
+function write<TCommand extends WriteCommand>(command: TCommand, apiCommandParameters: ApiRequestCommandParameters[TCommand], onyxData: OnyxData = {}): void {
     Log.info('Called API write', false, {command, ...apiCommandParameters});
 
     const onyxDataWithoutOptimisticData = applyOptimisticOnyxData(onyxData);
@@ -121,7 +121,9 @@ function makeRequestWithSideEffects<TCommand extends SideEffectRequestCommand | 
     onyxData: OnyxData = {},
     apiRequestType: ApiRequest = CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS,
 ): Promise<void | Response> {
-    Log.info('Called API makeRequestWithSideEffects', false, {command, ...apiCommandParameters});
+    if (apiRequestType === CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS) {
+        Log.info('Called API makeRequestWithSideEffects', false, {command, ...apiCommandParameters});
+    }
 
     const onyxDataWithoutOptimisticData = applyOptimisticOnyxData(onyxData);
 
@@ -143,6 +145,21 @@ function makeRequestWithSideEffects<TCommand extends SideEffectRequestCommand | 
 }
 
 /**
+ * Ensure all write requests on the sequential queue have finished responding before running read requests.
+ * Responses from read requests can overwrite the optimistic data inserted by
+ * write requests that use the same Onyx keys and haven't responded yet.
+ */
+function validateReadyToRead<TCommand extends ReadCommand>(command: TCommand) {
+    // Ensure all write requests on the sequential queue have finished responding before running read requests.
+    // Responses from read requests can overwrite the optimistic data inserted by
+    // write requests that use the same Onyx keys and haven't responded yet.
+    if (PersistedRequests.getLength() > 0) {
+        Log.info(`[API] '${command}' is waiting on ${PersistedRequests.getLength()} write commands`);
+    }
+    return SequentialQueue.waitForIdle();
+}
+
+/**
  * Requests made with this method are not be persisted to disk. If there is no network connectivity, the request is ignored and discarded.
  *
  * @param command - Name of API command to call.
@@ -155,14 +172,33 @@ function makeRequestWithSideEffects<TCommand extends SideEffectRequestCommand | 
  * @param [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
  * @param [onyxData.finallyData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200 or jsonCode !== 200.
  */
-function read<TCommand extends ReadCommand>(command: TCommand, apiCommandParameters: ApiRequestCommandParameters[TCommand], onyxData: OnyxData = {}) {
-    // Ensure all write requests on the sequential queue have finished responding before running read requests.
-    // Responses from read requests can overwrite the optimistic data inserted by
-    // write requests that use the same Onyx keys and haven't responded yet.
-    if (PersistedRequests.getLength() > 0) {
-        Log.info(`[API] '${command}' is waiting on ${PersistedRequests.getLength()} write commands`);
-    }
-    SequentialQueue.waitForIdle().then(() => makeRequestWithSideEffects(command, apiCommandParameters, onyxData, CONST.API_REQUEST_TYPE.READ));
+function read<TCommand extends ReadCommand>(command: TCommand, apiCommandParameters: ApiRequestCommandParameters[TCommand], onyxData: OnyxData = {}): void {
+    Log.info('[API] Called API.read', false, {command, ...apiCommandParameters});
+    validateReadyToRead(command).then(() => makeRequestWithSideEffects(command, apiCommandParameters, onyxData, CONST.API_REQUEST_TYPE.READ));
+}
+
+function paginate<TCommand extends ReadCommand>(command: TCommand, apiCommandParameters: ApiRequestCommandParameters[TCommand], onyxData: OnyxData = {}): void {
+    Log.info('[API] Called API.paginate', false, {command, ...apiCommandParameters});
+    validateReadyToRead(command).then(() => {
+        const onyxDataWithoutOptimisticData = applyOptimisticOnyxData(onyxData);
+
+        // Assemble the data we'll send to the API
+        const data = {
+            ...apiCommandParameters,
+            apiRequestType: CONST.API_REQUEST_TYPE.READ,
+        };
+
+        // Assemble all the request data we'll be storing
+        const request: OnyxRequest = {
+            command,
+            data,
+            ...onyxDataWithoutOptimisticData,
+            isPaginated: true,
+        };
+
+        // Return a promise containing the response from HTTPS
+        return Request.processWithMiddleware(request);
+    });
 }
 
 export {write, makeRequestWithSideEffects, read};

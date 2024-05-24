@@ -12,6 +12,10 @@ function getReportActions(response: Response, reportID: string) {
 }
 
 const Pagination: Middleware = (requestResponse, request) => {
+    if (!request.isPaginated) {
+        return requestResponse;
+    }
+
     if (request.command === WRITE_COMMANDS.OPEN_REPORT || request.command === READ_COMMANDS.GET_OLDER_ACTIONS || request.command === READ_COMMANDS.GET_NEWER_ACTIONS) {
         return requestResponse.then((response) => {
             if (!response?.onyxData) {
