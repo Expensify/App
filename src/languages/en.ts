@@ -3106,4 +3106,35 @@ export default {
     systemMessage: {
         mergedWithCashTransaction: 'matched a receipt to this transaction.',
     },
+    subscription: {
+        yourPlan: {
+            title: 'Your plan',
+            collect: {
+                title: 'Collect',
+                priceInfo1: 'From $5/active member with the Expensify Card, $10/active member without the Expensify Card.',
+                priceInfo2: 'From $10/active member with the Expensify Card, $20/active member without the Expensify Card.',
+                benefit1: 'Unlimited SmartScans and distance tracking',
+                benefit2: 'Expensify Cards with Smart Limits',
+                benefit3: 'Bill pay and invoicing',
+                benefit4: 'Expense approvals',
+                benefit5: 'ACH reimbursement',
+                benefit6: 'QuickBooks and Xero integrations',
+            },
+            control: {
+                title: 'Control',
+                priceInfo1: 'From $9/active member with the Expensify Card, $18/active member without the Expensify Card.',
+                priceInfo2: 'From $18/active member with the Expensify Card, $36/active member without the Expensify Card.',
+                benefit1: 'Everything in Collect, plus:',
+                benefit2: 'NetSuite and Sage Intacct integrations',
+                benefit3: 'Certinia and Workday sync',
+                benefit4: 'Multiple expense approvers',
+                benefit5: 'SAML/SSO',
+                benefit6: 'Custom insights and reporting',
+                benefit7: 'Budgeting',
+            },
+            saveWithExpensifyTitle: 'Save with the Expensify Card',
+            saveWithExpensifyDescription: 'Use our savings calculator to see how cash back from the Expensify Card can reduce your Expensify bill.',
+            learnMore: 'Learn more',
+        },
+    },
 } satisfies TranslationBase;
