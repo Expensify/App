@@ -1,8 +1,8 @@
-import type {CentralPaneScreen} from '@libs/Navigation/AppNavigator/CENTRAL_PANE_SCREENS';
+import type {CentralPaneName} from '@libs/Navigation/AppNavigator/CENTRAL_PANE_SCREENS';
 import type {BottomTabName} from '@navigation/types';
 import SCREENS from '@src/SCREENS';
 
-const TAB_TO_CENTRAL_PANE_MAPPING: Record<BottomTabName, CentralPaneScreen[]> = {
+const TAB_TO_CENTRAL_PANE_MAPPING: Record<BottomTabName, CentralPaneName[]> = {
     [SCREENS.HOME]: [SCREENS.REPORT],
     [SCREENS.SEARCH.BOTTOM_TAB]: [SCREENS.SEARCH.CENTRAL_PANE],
     [SCREENS.SETTINGS.ROOT]: [
@@ -17,17 +17,17 @@ const TAB_TO_CENTRAL_PANE_MAPPING: Record<BottomTabName, CentralPaneScreen[]> = 
     ],
 };
 
-const generateCentralPaneToTabMapping = (): Record<CentralPaneScreen, BottomTabName> => {
-    const mapping: Record<CentralPaneScreen, BottomTabName> = {} as Record<CentralPaneScreen, BottomTabName>;
-    for (const [tabName, CentralPaneScreens] of Object.entries(TAB_TO_CENTRAL_PANE_MAPPING)) {
-        for (const CentralPaneScreen of CentralPaneScreens) {
-            mapping[CentralPaneScreen] = tabName as BottomTabName;
+const generateCentralPaneToTabMapping = (): Record<CentralPaneName, BottomTabName> => {
+    const mapping: Record<CentralPaneName, BottomTabName> = {} as Record<CentralPaneName, BottomTabName>;
+    for (const [tabName, CentralPaneNames] of Object.entries(TAB_TO_CENTRAL_PANE_MAPPING)) {
+        for (const CentralPaneName of CentralPaneNames) {
+            mapping[CentralPaneName] = tabName as BottomTabName;
         }
     }
     return mapping;
 };
 
-const CENTRAL_PANE_TO_TAB_MAPPING: Record<CentralPaneScreen, BottomTabName> = generateCentralPaneToTabMapping();
+const CENTRAL_PANE_TO_TAB_MAPPING: Record<CentralPaneName, BottomTabName> = generateCentralPaneToTabMapping();
 
 export {CENTRAL_PANE_TO_TAB_MAPPING};
 export default TAB_TO_CENTRAL_PANE_MAPPING;

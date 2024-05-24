@@ -18,8 +18,8 @@ const CENTRAL_PANE_SCREENS = {
 
 const CENTRAL_PANE_SCREEN_NAMES = Object.keys(CENTRAL_PANE_SCREENS);
 
-type CentralPaneScreen = keyof typeof CENTRAL_PANE_SCREENS;
+type CentralPaneName = keyof typeof CENTRAL_PANE_SCREENS;
 
-export type {CentralPaneScreen};
+export type {CentralPaneName};
 
 export {CENTRAL_PANE_SCREENS, CENTRAL_PANE_SCREEN_NAMES};

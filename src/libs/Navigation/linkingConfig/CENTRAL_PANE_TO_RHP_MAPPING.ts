@@ -1,7 +1,7 @@
-import type {CentralPaneScreen} from '@libs/Navigation/AppNavigator/CENTRAL_PANE_SCREENS';
+import type {CentralPaneName} from '@libs/Navigation/AppNavigator/CENTRAL_PANE_SCREENS';
 import SCREENS from '@src/SCREENS';
 
-const CENTRAL_PANE_TO_RHP_MAPPING: Partial<Record<CentralPaneScreen, string[]>> = {
+const CENTRAL_PANE_TO_RHP_MAPPING: Partial<Record<CentralPaneName, string[]>> = {
     [SCREENS.SETTINGS.PROFILE.ROOT]: [
         SCREENS.SETTINGS.PROFILE.DISPLAY_NAME,
         SCREENS.SETTINGS.PROFILE.CONTACT_METHODS,

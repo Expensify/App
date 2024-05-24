@@ -7,7 +7,7 @@ import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRo
 import linkingConfig from '@libs/Navigation/linkingConfig';
 import getAdaptedStateFromPath from '@libs/Navigation/linkingConfig/getAdaptedStateFromPath';
 import type {NavigationPartialRoute, RootStackParamList, State} from '@libs/Navigation/types';
-import isCentralPaneScreen from '@libs/NavigationUtils';
+import isCentralPaneName from '@libs/NavigationUtils';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import type {ResponsiveStackNavigatorRouterOptions} from './types';
@@ -67,8 +67,8 @@ function compareAndAdaptState(state: StackNavigationState<RootStackParamList>) {
             return;
         }
 
-        const topmostCentralPaneRoute = state.routes.filter((route) => isCentralPaneScreen(route.name)).at(-1);
-        const templateCentralPaneRoute = templateState.routes.find((route) => isCentralPaneScreen(route.name));
+        const topmostCentralPaneRoute = state.routes.filter((route) => isCentralPaneName(route.name)).at(-1);
+        const templateCentralPaneRoute = templateState.routes.find((route) => isCentralPaneName(route.name));
 
         const topmostCentralPaneRouteExtracted = getTopmostCentralPaneRoute(state);
         const templateCentralPaneRouteExtracted = getTopmostCentralPaneRoute(templateState as State<RootStackParamList>);

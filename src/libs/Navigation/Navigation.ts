@@ -2,7 +2,7 @@ import {findFocusedRoute} from '@react-navigation/core';
 import type {EventArg, NavigationContainerEventMap} from '@react-navigation/native';
 import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
 import Log from '@libs/Log';
-import isCentralPaneScreen from '@libs/NavigationUtils';
+import isCentralPaneName from '@libs/NavigationUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {getReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -221,7 +221,7 @@ function goBack(fallbackRoute?: Route, shouldEnforceFallback = false, shouldPopT
         return;
     }
 
-    const isCentralPaneFocused = isCentralPaneScreen(findFocusedRoute(navigationRef.current.getState())?.name);
+    const isCentralPaneFocused = isCentralPaneName(findFocusedRoute(navigationRef.current.getState())?.name);
     const distanceFromPathInRootNavigator = getDistanceFromPathInRootNavigator(fallbackRoute ?? '');
 
     // Allow CentralPane to use UP with fallback route if the path is not found in root navigator.

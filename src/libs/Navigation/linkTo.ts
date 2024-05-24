@@ -3,7 +3,7 @@ import type {NavigationAction, NavigationContainerRef, NavigationState, PartialS
 import {omitBy} from 'lodash';
 import type {Writable} from 'type-fest';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
-import isCentralPaneScreen from '@libs/NavigationUtils';
+import isCentralPaneName from '@libs/NavigationUtils';
 import shallowCompare from '@libs/ObjectUtils';
 import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
@@ -169,7 +169,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
             action.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
 
             // If this action is navigating to the report screen and the top most navigator is different from the one we want to navigate - PUSH the new screen to the top of the stack
-        } else if (isCentralPaneScreen(action.payload.name) && (isTargetScreenDifferentThanCurrent || areParamsDifferent)) {
+        } else if (isCentralPaneName(action.payload.name) && (isTargetScreenDifferentThanCurrent || areParamsDifferent)) {
             // We need to push a tab if the tab doesn't match the central pane route that we are going to push.
             const topmostBottomTabRoute = getTopmostBottomTabRoute(rootState);
             const matchingBottomTabRoute = getMatchingBottomTabRouteForState(stateFromPath, policyID);

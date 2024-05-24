@@ -39,7 +39,7 @@ import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import {CENTRAL_PANE_SCREENS} from './CENTRAL_PANE_SCREENS';
-import type {CentralPaneScreen} from './CENTRAL_PANE_SCREENS';
+import type {CentralPaneName} from './CENTRAL_PANE_SCREENS';
 import createCustomStackNavigator from './createCustomStackNavigator';
 import defaultScreenOptions from './defaultScreenOptions';
 import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
@@ -277,7 +277,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const centralPaneScreenOptions = {
+    const CentralPaneNameOptions = {
         headerShown: false,
         title: 'New Expensify',
 
@@ -423,10 +423,10 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     {Object.entries(CENTRAL_PANE_SCREENS).map(([screenName, componentGetter]) => (
                         <RootStack.Screen
                             key={screenName}
-                            name={screenName as CentralPaneScreen}
+                            name={screenName as CentralPaneName}
                             initialParams={{openOnAdminRoom: (screenName === SCREENS.REPORT && openOnAdminRoom === 'true') || undefined}}
                             getComponent={componentGetter}
-                            options={centralPaneScreenOptions}
+                            options={CentralPaneNameOptions}
                         />
                     ))}
                 </RootStack.Navigator>

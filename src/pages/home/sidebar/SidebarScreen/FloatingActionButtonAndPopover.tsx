@@ -17,7 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import getIconForAction from '@libs/getIconForAction';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import type {CentralPaneScreen} from '@libs/Navigation/AppNavigator/CENTRAL_PANE_SCREENS';
+import type {CentralPaneName} from '@libs/Navigation/AppNavigator/CENTRAL_PANE_SCREENS';
 import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {NavigationPartialRoute, RootStackParamList} from '@libs/Navigation/types';
@@ -42,7 +42,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 const useIsFocused = () => {
     const {isSmallScreenWidth} = useWindowDimensions();
     const isFocused = useIsFocusedOriginal();
-    const topmostCentralPane = useNavigationState<RootStackParamList, NavigationPartialRoute<CentralPaneScreen> | undefined>(getTopmostCentralPaneRoute);
+    const topmostCentralPane = useNavigationState<RootStackParamList, NavigationPartialRoute<CentralPaneName> | undefined>(getTopmostCentralPaneRoute);
     return isFocused || (topmostCentralPane?.name === SCREENS.SEARCH.CENTRAL_PANE && isSmallScreenWidth);
 };
 

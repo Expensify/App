@@ -2,10 +2,10 @@ import type {NavigationState, PartialState, Route} from '@react-navigation/nativ
 import {getStateFromPath} from '@react-navigation/native';
 import {isAnonymousUser} from '@libs/actions/Session';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
-import type {CentralPaneScreen} from '@libs/Navigation/AppNavigator/CENTRAL_PANE_SCREENS';
+import type {CentralPaneName} from '@libs/Navigation/AppNavigator/CENTRAL_PANE_SCREENS';
 import getTopmostNestedRHPRoute from '@libs/Navigation/getTopmostNestedRHPRoute';
 import type {BottomTabName, FullScreenName, NavigationPartialRoute, RootStackParamList} from '@libs/Navigation/types';
-import isCentralPaneScreen from '@libs/NavigationUtils';
+import isCentralPaneName from '@libs/NavigationUtils';
 import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
@@ -92,7 +92,7 @@ function createFullScreenNavigator(route?: NavigationPartialRoute<FullScreenName
 }
 
 // This function will return CentralPaneNavigator route or FullScreenNavigator route.
-function getMatchingRootRouteForRHPRoute(route: NavigationPartialRoute): NavigationPartialRoute<CentralPaneScreen | typeof NAVIGATORS.FULL_SCREEN_NAVIGATOR> | undefined {
+function getMatchingRootRouteForRHPRoute(route: NavigationPartialRoute): NavigationPartialRoute<CentralPaneName | typeof NAVIGATORS.FULL_SCREEN_NAVIGATOR> | undefined {
     // Check for backTo param. One screen with different backTo value may need diferent screens visible under the overlay.
     if (route.params && 'backTo' in route.params && typeof route.params.backTo === 'string') {
         const stateForBackTo = getStateFromPath(route.params.backTo, config);
@@ -102,7 +102,7 @@ function getMatchingRootRouteForRHPRoute(route: NavigationPartialRoute): Navigat
 
             const centralPaneOrFullScreenNavigator = stateForBackTo.routes.find(
                 // eslint-disable-next-line @typescript-eslint/no-shadow
-                (route) => isCentralPaneScreen(route.name) || route.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR,
+                (route) => isCentralPaneName(route.name) || route.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR,
             );
 
             // If there is rhpNavigator in the state generated for backTo url, we want to get root route matching to this rhp screen.
@@ -115,7 +115,7 @@ function getMatchingRootRouteForRHPRoute(route: NavigationPartialRoute): Navigat
 
             // If we know that backTo targets the root route (central pane or full screen) we want to use it.
             if (centralPaneOrFullScreenNavigator && centralPaneOrFullScreenNavigator.state) {
-                return centralPaneOrFullScreenNavigator as NavigationPartialRoute<CentralPaneScreen | typeof NAVIGATORS.FULL_SCREEN_NAVIGATOR>;
+                return centralPaneOrFullScreenNavigator as NavigationPartialRoute<CentralPaneName | typeof NAVIGATORS.FULL_SCREEN_NAVIGATOR>;
             }
         }
     }
@@ -127,7 +127,7 @@ function getMatchingRootRouteForRHPRoute(route: NavigationPartialRoute): Navigat
             if (centralPaneName === SCREENS.SEARCH.CENTRAL_PANE) {
                 delete (params as Record<string, string | undefined>)?.reportID;
             }
-            return {name: centralPaneName as CentralPaneScreen, params};
+            return {name: centralPaneName as CentralPaneName, params};
         }
     }
 
@@ -148,7 +148,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
 
     // We need to check what is defined to know what we need to add.
     const bottomTabNavigator = state.routes.find((route) => route.name === NAVIGATORS.BOTTOM_TAB_NAVIGATOR);
-    const centralPaneNavigator = state.routes.find((route) => isCentralPaneScreen(route.name));
+    const centralPaneNavigator = state.routes.find((route) => isCentralPaneName(route.name));
     const fullScreenNavigator = state.routes.find((route) => route.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR);
     const rhpNavigator = state.routes.find((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
     const lhpNavigator = state.routes.find((route) => route.name === NAVIGATORS.LEFT_MODAL_NAVIGATOR);
