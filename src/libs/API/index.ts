@@ -40,6 +40,14 @@ type OnyxData = {
     finallyData?: OnyxUpdate[];
 };
 
+function applyOptimisticOnyxData(onyxData: OnyxData): Omit<OnyxData, 'optimisticData'> {
+    const {optimisticData, ...onyxDataWithoutOptimisticData} = onyxData;
+    if (optimisticData) {
+        Onyx.update(optimisticData);
+    }
+    return onyxDataWithoutOptimisticData;
+}
+
 /**
  * All calls to API.write() will be persisted to disk as JSON with the params, successData, and failureData (or finallyData, if included in place of the former two values).
  * This is so that if the network is unavailable or the app is closed, we can send the WRITE request later.
@@ -56,12 +64,8 @@ type OnyxData = {
  */
 function write<TCommand extends WriteCommand>(command: TCommand, apiCommandParameters: ApiRequestCommandParameters[TCommand], onyxData: OnyxData = {}) {
     Log.info('Called API write', false, {command, ...apiCommandParameters});
-    const {optimisticData, ...onyxDataWithoutOptimisticData} = onyxData;
 
-    // Optimistically update Onyx
-    if (optimisticData) {
-        Onyx.update(optimisticData);
-    }
+    const onyxDataWithoutOptimisticData = applyOptimisticOnyxData(onyxData);
 
     // Assemble the data we'll send to the API
     const data = {
@@ -118,12 +122,8 @@ function makeRequestWithSideEffects<TCommand extends SideEffectRequestCommand | 
     apiRequestType: ApiRequest = CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS,
 ): Promise<void | Response> {
     Log.info('Called API makeRequestWithSideEffects', false, {command, ...apiCommandParameters});
-    const {optimisticData, ...onyxDataWithoutOptimisticData} = onyxData;
 
-    // Optimistically update Onyx
-    if (optimisticData) {
-        Onyx.update(optimisticData);
-    }
+    const onyxDataWithoutOptimisticData = applyOptimisticOnyxData(onyxData);
 
     // Assemble the data we'll send to the API
     const data = {
