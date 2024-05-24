@@ -80,6 +80,9 @@ function saveWaypoint(transactionID: string, index: string, waypoint: RecentWayp
             waypoints: {
                 [`waypoint${index}`]: waypoint,
             },
+            customUnit: {
+                quantity: null,
+            },
         },
         // We want to reset the amount only for draft transactions (when creating the expense).
         // When modifying an existing transaction, the amount will be updated on the actual IOU update operation.
@@ -341,7 +344,7 @@ function clearError(transactionID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {errors: null, errorFields: {route: null}});
 }
 
-function markAsCash(transactionID: string, transactionThreadReportID: string, existingViolations: TransactionViolation[]) {
+function markAsCash(transactionID: string, transactionThreadReportID: string) {
     const optimisticReportAction = buildOptimisticDismissedViolationReportAction({
         reason: 'manual',
         violationName: CONST.VIOLATIONS.RTER,
@@ -355,7 +358,7 @@ function markAsCash(transactionID: string, transactionThreadReportID: string, ex
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-                value: existingViolations.filter((violation: TransactionViolation) => violation.name !== CONST.VIOLATIONS.RTER),
+                value: allTransactionViolation?.filter((violation: TransactionViolation) => violation.name !== CONST.VIOLATIONS.RTER),
             },
             // Optimistically adding the system message indicating we dismissed the violation
             {
@@ -369,7 +372,7 @@ function markAsCash(transactionID: string, transactionThreadReportID: string, ex
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-                value: existingViolations,
+                value: allTransactionViolation,
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
