@@ -3,6 +3,7 @@ import type {NavigationAction, NavigationContainerRef, NavigationState, PartialS
 import {getPathFromState} from '@react-navigation/native';
 import type {Writable} from 'type-fest';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import isCentralPaneName from '@libs/NavigationUtils';
 import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
@@ -31,25 +32,32 @@ function getActionForBottomTabNavigator(action: StackNavigationAction, state: Na
         return;
     }
 
-    const params = action.payload.params as ActionPayloadParams;
-    let payloadParams = params?.params as Record<string, string | undefined>;
-    let screen = params.screen;
-
-    if (screen === SCREENS.SEARCH.CENTRAL_PANE) {
-        screen = SCREENS.SEARCH.BOTTOM_TAB;
+    let name;
+    let params;
+    if (isCentralPaneName(action.payload.name)) {
+        name = action.payload.name;
+        params = action.payload.params;
+    } else {
+        const actionPayloadParams = action.payload.params as ActionPayloadParams;
+        name = actionPayloadParams.screen;
+        params = actionPayloadParams?.params as Record<string, string | undefined>;
     }
 
-    if (!payloadParams) {
-        payloadParams = {policyID};
+    if (name === SCREENS.SEARCH.CENTRAL_PANE) {
+        name = SCREENS.SEARCH.BOTTOM_TAB;
+    }
+
+    if (!params) {
+        params = {policyID};
     } else {
-        payloadParams.policyID = policyID;
+        params.policyID = policyID;
     }
 
     return {
         type: CONST.NAVIGATION.ACTION_TYPE.PUSH,
         payload: {
-            name: screen,
-            params: payloadParams,
+            name,
+            params,
         },
         target: bottomTabNavigatorRoute.state.key,
     };
