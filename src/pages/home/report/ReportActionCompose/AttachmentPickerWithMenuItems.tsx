@@ -1,6 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo} from 'react';
-import {View} from 'react-native';
+import {Platform, View} from 'react-native';
+import ClipboardPlus from 'react-native-clipboard-plus';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {FileObject} from '@components/AttachmentModal';
@@ -18,6 +19,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
+import FileUtilsIOS from '@libs/fileDownload/FileUtilsIOS';
 import getIconForAction from '@libs/getIconForAction';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as IOU from '@userActions/IOU';
@@ -121,11 +123,26 @@ function AttachmentPickerWithMenuItems({
     const isReportOpenInRHP = useIsReportOpenInRHP();
     const shouldUseNarrowLayout = isReportOpenInRHP || isSmallScreenWidth;
 
+    // eslint-disable-next-line @lwc/lwc/no-async-await, react-hooks/exhaustive-deps
+    const checkClipboardForImage = async () => {
+        if (Platform.OS !== 'ios') {
+            return;
+        }
+        const clipboardContent = await ClipboardPlus.paste();
+        if (clipboardContent) {
+            if (clipboardContent.image) {
+                const imageBase64 = `data:image/png;base64,${clipboardContent.image.toString()}`;
+                const imageFile = await FileUtilsIOS.base64ToFileNative(imageBase64, 'image.png');
+                displayFileInModal(imageFile, imageBase64);
+            }
+        }
+    };
+
     /**
      * Returns the list of IOU Options
      */
     const moneyRequestOptions = useMemo(() => {
-        const options: MoneyRequestOptions = {
+        let options: MoneyRequestOptions = {
             [CONST.IOU.TYPE.SPLIT]: {
                 icon: Expensicons.Transfer,
                 text: translate('iou.splitExpense'),
@@ -152,11 +169,25 @@ function AttachmentPickerWithMenuItems({
                 onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.INVOICE, report?.reportID ?? ''),
             },
         };
+        if (Platform.OS === 'ios') {
+            const newOptions = {
+                [CONST.IOU.TYPE.SUBMIT]: {
+                    icon: Expensicons.Copy,
+                    text: 'Paste image',
+                    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                    onSelected: () => checkClipboardForImage(),
+                },
+            };
+            options = {
+                ...options,
+                ...newOptions,
+            };
+        }
 
         return ReportUtils.temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? []).map((option) => ({
             ...options[option],
         }));
-    }, [translate, report, policy, reportParticipantIDs]);
+    }, [translate, report, policy, reportParticipantIDs, checkClipboardForImage]);
 
     /**
      * Determines if we can show the task option

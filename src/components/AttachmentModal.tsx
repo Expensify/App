@@ -228,6 +228,7 @@ function AttachmentModal({
      */
     const downloadAttachment = useCallback(() => {
         let sourceURL = sourceState;
+        console.log({sourceURL});
         if (isAuthTokenRequiredState && typeof sourceURL === 'string') {
             sourceURL = addEncryptedAuthTokenToURL(sourceURL);
         }
@@ -305,7 +306,7 @@ function AttachmentModal({
     }, []);
 
     const validateAndDisplayFileToUpload = useCallback(
-        (data: FileObject) => {
+        (data: FileObject, imageBase64 = '') => {
             if (!data || !isDirectoryCheck(data)) {
                 return;
             }
@@ -320,8 +321,12 @@ function AttachmentModal({
             if (!isValidFile(fileObject)) {
                 return;
             }
-
-            if (fileObject instanceof File) {
+            if (imageBase64) {
+                setIsModalOpen(true);
+                setSourceState(imageBase64);
+                setFile(fileObject);
+                setModalType('centered_unswipeable');
+            } else if (fileObject instanceof File) {
                 /**
                  * Cleaning file name, done here so that it covers all cases:
                  * upload, drag and drop, copy-paste

@@ -135,6 +135,7 @@
     "react-native": "0.73.4",
     "react-native-android-location-enabler": "^2.0.1",
     "react-native-blob-util": "0.19.4",
+    "react-native-clipboard-plus": "^1.0.6",
     "react-native-collapsible": "^1.6.1",
     "react-native-config": "1.5.0",
     "react-native-dev-menu": "^4.1.1",
