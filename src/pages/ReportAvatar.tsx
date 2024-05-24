@@ -23,19 +23,19 @@ type ReportAvatarProps = ReportAvatarOnyxProps & StackScreenProps<AuthScreensPar
 function ReportAvatar({report = {} as Report, policies, isLoadingApp = true, route}: ReportAvatarProps) {
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? '0'}`];
     const title = policy ? ReportUtils.getPolicyName(report, false, policy) : report?.reportName;
-    let avatarURL = undefined;
-    let fileName = undefined;
-    let groupChatDraft;
+    let avatarURL;
+    let fileName;
+    const [groupChatDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);;
 
-    const shouldUseGroupChatDraft = route.params.newGroupChat === 'true';
+    const shouldUseGroupChatDraft = route.params.isNewGroupChat;
     if(shouldUseGroupChatDraft) {
-        [groupChatDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
         avatarURL = groupChatDraft?.avatarUri ?? undefined;
         fileName = groupChatDraft?.originalFileName ?? undefined;
     }
     else {
         avatarURL = policy ? ReportUtils.getWorkspaceAvatar(report) : report?.avatarUrl;
-        fileName = policy?.originalFileName ?? title;
+        // In the case of default workspace avatar, originalFileName prop takes policyID as value to get the color of the avatar
+        fileName = policy ? policy?.originalFileName ?? policy?.id : title;
     }
 
     return (
@@ -48,9 +48,8 @@ function ReportAvatar({report = {} as Report, policies, isLoadingApp = true, rou
             }}
             isWorkspaceAvatar
             maybeIcon
-            // In the case of default workspace avatar, originalFileName prop takes policyID as value to get the color of the avatar
-            originalFileName={policy?.originalFileName ?? policy?.id}
-            shouldShowNotFoundPage={!report?.reportID && !isLoadingApp}
+            originalFileName={fileName}
+            shouldShowNotFoundPage={!report?.reportID && !groupChatDraft && !isLoadingApp}
             isLoading={(!report?.reportID || !policy?.id) && !!isLoadingApp}
         />
     );
