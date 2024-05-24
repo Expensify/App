@@ -1,14 +1,12 @@
-import type {Comment} from '@src/types/onyx/Transaction';
-
 type TransactionMergeParams = {
     transactionID: string;
-    transactionIDs: string;
+    transactionIDs: string[];
     created: string;
     merchant: string;
     amount: number;
     currency: string;
     category: string;
-    comment: Comment;
+    comment: string;
     billable: boolean;
     reimbursable: boolean;
     tag: string;

@@ -23,12 +23,12 @@ function ReviewBillable() {
         () =>
             compareResult.change.billable?.map((billable) => ({
                 text: billable ? translate('common.yes') : translate('common.no'),
-                value: billable,
+                value: billable ?? false,
             })),
         [compareResult.change.billable, translate],
     );
 
-    const onSelectRow = (data: FieldItemType) => {
+    const onSelectRow = (data: FieldItemType<'billable'>) => {
         if (data.value !== undefined) {
             setReviewDuplicatesKey({billable: data.value as boolean});
         }
@@ -38,7 +38,7 @@ function ReviewBillable() {
     return (
         <ScreenWrapper testID={ReviewBillable.displayName}>
             <HeaderWithBackButton title={translate('iou.reviewDuplicates')} />
-            <ReviewFields
+            <ReviewFields<'billable'>
                 stepNames={stepNames}
                 label={translate('violations.isTransactionBillable')}
                 options={options}

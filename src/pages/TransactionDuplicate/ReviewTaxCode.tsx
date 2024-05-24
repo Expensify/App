@@ -31,7 +31,7 @@ function ReviewTaxRate() {
         () =>
             compareResult.change.taxCode?.map((taxID) =>
                 !taxID
-                    ? {text: translate('violations.none'), value: TransactionUtils.getDefaultTaxCode(policy, transaction)}
+                    ? {text: translate('violations.none'), value: TransactionUtils.getDefaultTaxCode(policy, transaction) ?? ''}
                     : {
                           text: PolicyUtils.getTaxByID(policy, taxID)?.name ?? '',
                           value: taxID,
@@ -48,9 +48,9 @@ function ReviewTaxRate() {
     );
 
     const onSelectRow = useCallback(
-        (data: FieldItemType) => {
+        (data: FieldItemType<'taxCode'>) => {
             if (data.value !== undefined) {
-                setReviewDuplicatesKey({taxCode: data.value as string, taxAmount: getTaxAmount(data.value)});
+                setReviewDuplicatesKey({taxCode: data.value, taxAmount: getTaxAmount(data.value)});
             }
             navigateToNextScreen();
         },
@@ -60,7 +60,7 @@ function ReviewTaxRate() {
     return (
         <ScreenWrapper testID={ReviewDescription.displayName}>
             <HeaderWithBackButton title={translate('iou.reviewDuplicates')} />
-            <ReviewFields
+            <ReviewFields<'taxCode'>
                 stepNames={stepNames}
                 label={translate('violations.taxCodeToKeep')}
                 options={options}

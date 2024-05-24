@@ -23,12 +23,12 @@ function ReviewReimbursable() {
         () =>
             compareResult.change.reimbursable?.map((reimbursable) => ({
                 text: reimbursable ? translate('common.yes') : translate('common.no'),
-                value: reimbursable,
+                value: reimbursable ?? false,
             })),
         [compareResult.change.reimbursable, translate],
     );
 
-    const onSelectRow = (data: FieldItemType) => {
+    const onSelectRow = (data: FieldItemType<'reimbursable'>) => {
         if (data.value !== undefined) {
             setReviewDuplicatesKey({reimbursable: data.value as boolean});
         }
@@ -38,7 +38,7 @@ function ReviewReimbursable() {
     return (
         <ScreenWrapper testID={ReviewReimbursable.displayName}>
             <HeaderWithBackButton title={translate('iou.reviewDuplicates')} />
-            <ReviewFields
+            <ReviewFields<'reimbursable'>
                 stepNames={stepNames}
                 label={translate('violations.isTransactionReimbursable')}
                 options={options}

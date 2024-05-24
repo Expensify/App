@@ -6011,7 +6011,7 @@ function canIOUBePaid(iouReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, chat
             return chatReport?.invoiceReceiver?.accountID === userAccountID;
         }
 
-        return PolicyUtils.getPolicy(chatReport?.invoiceReceiver?.policyID).role === CONST.POLICY.ROLE.ADMIN;
+        return PolicyUtils.getPolicy(chatReport?.invoiceReceiver?.policyID)?.role === CONST.POLICY.ROLE.ADMIN;
     }
 
     const isPayer = ReportUtils.isPayer(
@@ -6182,7 +6182,7 @@ function submitReport(expenseReport: OnyxTypes.Report) {
     const policy = PolicyUtils.getPolicy(expenseReport.policyID);
     const isCurrentUserManager = currentUserPersonalDetails.accountID === expenseReport.managerID;
     const isSubmitAndClosePolicy = PolicyUtils.isSubmitAndClose(policy);
-    const adminAccountID = policy.role === CONST.POLICY.ROLE.ADMIN ? currentUserPersonalDetails.accountID : undefined;
+    const adminAccountID = policy?.role === CONST.POLICY.ROLE.ADMIN ? currentUserPersonalDetails.accountID : undefined;
     const optimisticSubmittedReportAction = ReportUtils.buildOptimisticSubmittedReportAction(expenseReport?.total ?? 0, expenseReport.currency ?? '', expenseReport.reportID, adminAccountID);
     const optimisticNextStep = NextStepUtils.buildNextStep(expenseReport, isSubmitAndClosePolicy ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.SUBMITTED);
 
@@ -6305,7 +6305,7 @@ function cancelPayment(expenseReport: OnyxTypes.Report, chatReport: OnyxTypes.Re
     const optimisticReportAction = ReportUtils.buildOptimisticCancelPaymentReportAction(expenseReport.reportID, -(expenseReport.total ?? 0), expenseReport.currency ?? '');
     const policy = PolicyUtils.getPolicy(chatReport.policyID);
     const isFree = policy && policy.type === CONST.POLICY.TYPE.FREE;
-    const approvalMode = policy.approvalMode ?? CONST.POLICY.APPROVAL_MODE.BASIC;
+    const approvalMode = policy?.approvalMode ?? CONST.POLICY.APPROVAL_MODE.BASIC;
     let stateNum: ValueOf<typeof CONST.REPORT.STATE_NUM> = CONST.REPORT.STATE_NUM.SUBMITTED;
     let statusNum: ValueOf<typeof CONST.REPORT.STATUS_NUM> = CONST.REPORT.STATUS_NUM.SUBMITTED;
     if (!isFree) {
@@ -6806,16 +6806,27 @@ function mergeDuplicates(params: TransactionMergeParams) {
             category: params.category,
             created: params.created,
             currency: params.currency,
-            merchant: params.merchant,
+            modifiedMerchant: params.merchant,
             reimbursable: params.reimbursable,
             tag: params.tag,
         },
+    };
+    const failureTransactionData: OnyxUpdate = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`,
+        value: originalSelectedTransaction,
     };
 
     const optimisticTransactionDuplicatesData: OnyxUpdate[] = params.transactionIDs.map((id) => ({
         onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${id}`,
         value: null,
+    }));
+
+    const failureTransactionDuplicatesData: OnyxUpdate[] = params.transactionIDs.map((id) => ({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${id}`,
+        value: allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`],
     }));
 
     const optimisticTransactionViolations: OnyxUpdate[] = [...params.transactionIDs, params.transactionID].map((id) => {
@@ -6827,8 +6838,18 @@ function mergeDuplicates(params: TransactionMergeParams) {
         };
     });
 
+    const failureTransactionViolations: OnyxUpdate[] = [...params.transactionIDs, params.transactionID].map((id) => {
+        const violations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? [];
+        return {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`,
+            value: violations,
+        };
+    });
+
     const optimisticData: OnyxUpdate[] = [...optimisticTransactionDuplicatesData, ...optimisticTransactionViolations, optimisticTransactionData];
-    const failureData: OnyxUpdate[] = [];
+    const failureData: OnyxUpdate[] = [failureTransactionData, ...failureTransactionDuplicatesData, ...failureTransactionViolations];
+
     API.write(WRITE_COMMANDS.TRANSACTION_MERGE, params, {optimisticData, failureData});
 }
 

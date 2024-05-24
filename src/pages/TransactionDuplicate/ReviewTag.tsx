@@ -24,7 +24,7 @@ function ReviewTag() {
         () =>
             compareResult.change.tag?.map((tag) =>
                 !tag
-                    ? {text: translate('violations.none'), value: undefined}
+                    ? {text: translate('violations.none'), value: ''}
                     : {
                           text: tag,
                           value: tag,
@@ -32,9 +32,9 @@ function ReviewTag() {
             ),
         [compareResult.change.tag, translate],
     );
-    const onSelectRow = (data: FieldItemType) => {
+    const onSelectRow = (data: FieldItemType<'tag'>) => {
         if (data.value !== undefined) {
-            setReviewDuplicatesKey({tag: data.value as string});
+            setReviewDuplicatesKey({tag: data.value});
         }
         navigateToNextScreen();
     };
@@ -42,7 +42,7 @@ function ReviewTag() {
     return (
         <ScreenWrapper testID={ReviewTag.displayName}>
             <HeaderWithBackButton title={translate('iou.reviewDuplicates')} />
-            <ReviewFields
+            <ReviewFields<'tag'>
                 stepNames={stepNames}
                 label={translate('violations.tagToKeep')}
                 options={options}

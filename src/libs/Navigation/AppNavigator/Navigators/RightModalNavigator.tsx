@@ -1,4 +1,3 @@
-import {useNavigation} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import {createStackNavigator} from '@react-navigation/stack';
 import React, {useMemo, useRef} from 'react';

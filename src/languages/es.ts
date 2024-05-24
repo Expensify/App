@@ -3575,6 +3575,8 @@ export default {
         categoryToKeep: 'Elija la categoría que desea conservar',
         isTransactionBillable: 'Elija si la transacción es facturable',
         keepThisOne: 'Mantener éste',
+        confirmDetails: 'Confirme los datos que conserva',
+        confirmDuplicatesInfo: 'Las solicitudes duplicadas que no conserve se guardarán para que el socio las elimine',
     },
     violationDismissal: {
         rter: {

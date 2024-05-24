@@ -9,6 +9,7 @@ import type {Policy, RecentWaypoint, Report, ReviewDuplicates, TaxRate, TaxRates
 import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {IOURequestType} from './actions/IOU';
+import type {TransactionMergeParams} from './API/parameters';
 import {isCorporateCard, isExpensifyCard} from './CardUtils';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
@@ -848,6 +849,35 @@ function getTransactionID(threadReportID: string): string {
     return transactionID;
 }
 
+function buildNewTransactionAfterReviewingDuplicates(reviewDuplicateTransaction: OnyxEntry<ReviewDuplicates>): OnyxEntry<Transaction> {
+    const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${reviewDuplicateTransaction?.transactionID}`] ?? null;
+    const {duplicates, ...restReviewDuplicateTransaction} = reviewDuplicateTransaction ?? {};
+
+    if (!originalTransaction) {
+        return null;
+    }
+
+    return {...originalTransaction, ...restReviewDuplicateTransaction, modifiedMerchant: reviewDuplicateTransaction?.merchant};
+}
+
+function buildTransactionsMergeParams(reviewDuplicates: OnyxEntry<ReviewDuplicates>, originalTransaction: OnyxEntry<Transaction>): TransactionMergeParams {
+    return {
+        transactionID: reviewDuplicates?.transactionID ?? '',
+        transactionIDs: reviewDuplicates?.duplicates ?? [],
+        amount: originalTransaction?.modifiedAmount ?? 0,
+        reportID: originalTransaction?.reportID ?? '',
+        billable: reviewDuplicates?.billable ?? false,
+        reimbursable: reviewDuplicates?.reimbursable ?? false,
+        category: reviewDuplicates?.category ?? '',
+        tag: reviewDuplicates?.tag ?? '',
+        merchant: reviewDuplicates?.merchant ?? '',
+        comment: reviewDuplicates?.description ?? '',
+        receiptID: originalTransaction?.receipt?.receiptID ?? 0,
+        created: originalTransaction?.created ?? '',
+        currency: originalTransaction?.currency ?? '',
+    };
+}
+
 export {
     buildOptimisticTransaction,
     calculateTaxAmount,
@@ -914,6 +944,8 @@ export {
     getTransaction,
     compareDuplicateTransactionFields,
     getTransactionID,
+    buildNewTransactionAfterReviewingDuplicates,
+    buildTransactionsMergeParams,
 };
 
 export type {TransactionChanges};
