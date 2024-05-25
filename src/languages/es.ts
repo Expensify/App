@@ -2693,6 +2693,9 @@ export default {
         memberNotFound: 'Miembro no encontrado. Para invitar a un nuevo miembro a la sala de chat, por favor, utiliza el botón Invitar que está más arriba.',
         notAuthorized: `No tienes acceso a esta página. ¿Estás tratando de unirte a la sala de chat? Comunícate con el propietario de esta sala de chat para que pueda añadirte como miembro. ¿Necesitas algo más? Comunícate con ${CONST.EMAIL.CONCIERGE}`,
         removeMembersPrompt: '¿Estás seguro de que quieres eliminar a los miembros seleccionados de la sala de chat?',
+        error: {
+            genericAdd: 'Hubo un problema al añadir este miembro a la sala de chat.',
+        },
     },
     newTaskPage: {
         assignTask: 'Asignar tarea',
