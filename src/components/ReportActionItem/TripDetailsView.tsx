@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -53,11 +53,16 @@ function ReservationView({reservation}: ReservationViewProps) {
 
     const formattedDate = getFormattedDate();
 
-    const bottomDescription = `${reservation.confirmations?.length > 0 ? `${reservation.confirmations[0].value} • ` : ''}${
-        reservation.type === CONST.RESERVATION_TYPE.FLIGHT
-            ? `${reservation.company?.longName} • ${reservation?.company?.shortName ?? ''} ${reservation.route?.number}`
-            : reservation.start.address ?? reservation.start.location
-    }`;
+    const bottomDescription = useMemo(() => {
+        const code = `${reservation.confirmations && reservation.confirmations?.length > 0 ? `${reservation.confirmations[0].value} • ` : ''}`;
+        if (reservation.type === CONST.RESERVATION_TYPE.FLIGHT) {
+            return `${code}${reservation.company?.longName} • ${reservation?.company?.shortName ?? ''} ${reservation.route?.number}`;
+        }
+        if (reservation.type === CONST.RESERVATION_TYPE.HOTEL) {
+            return `${code}${reservation.start.address}`;
+        }
+        return reservation.start.address ?? reservation.start.location;
+    }, [reservation]);
 
     const titleComponent = (
         <View style={styles.gap1}>
@@ -77,10 +82,10 @@ function ReservationView({reservation}: ReservationViewProps) {
                     numberOfLines={1}
                     style={[styles.textNormalBold, styles.lh20]}
                 >
-                    {reservation.company?.longName}
+                    {reservation.start.longName}
                 </Text>
             )}
-            <Text style={[styles.textSupportingSmallSize, styles.lh14]}>{bottomDescription}</Text>
+            {bottomDescription && <Text style={[styles.textSupportingSmallSize, styles.lh14]}>{bottomDescription}</Text>}
         </View>
     );
 
@@ -115,6 +120,7 @@ function TripDetailsView({tripRoomReportID, shouldShowHorizontalRule}: TripDetai
 
     const tripTransactions = ReportUtils.getTripTransactions(tripRoomReportID);
     const reservations: Reservation[] = TripReservationUtils.getReservationsFromTripTransactions(tripTransactions);
+    console.log(reservations);
 
     return (
         <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true)]}>
