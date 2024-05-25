@@ -245,8 +245,21 @@ function WorkspaceTaxesPage({
 
     const getHeaderText = () => (
         <View style={[styles.ph5, styles.pb5, styles.pt3]}>
+        {isConnectedToAccounting ? (
+            <Text>
+                <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.taxes.importedFromAccountingSoftware')} `}</Text>
+                <TextLink
+                    style={[styles.textNormal, styles.link]}
+                    href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
+                >
+                    {`${translate(isConnectedToQbo ? 'workspace.accounting.qbo' : 'workspace.accounting.xero')} ${translate('workspace.accounting.settings')}`}
+                </TextLink>
+                <Text  style={[styles.textNormal, styles.colorMuted]}>.</Text>
+            </Text>
+        ) : (
             <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.taxes.subtitle')}</Text>
-        </View>
+        )}
+    </View>
     );
 
     return (
@@ -270,21 +283,6 @@ function WorkspaceTaxesPage({
                 </HeaderWithBackButton>
                 {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
 
-                <View style={[styles.ph5, styles.pb5, styles.pt3]}>
-                    {isConnectedToAccounting ? (
-                        <Text>
-                            <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.taxes.importedFromAccountingSoftware')} `}</Text>
-                            <TextLink
-                                style={[styles.textNormal, styles.link]}
-                                href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
-                            >
-                                {`${translate(isConnectedToQbo ? 'workspace.accounting.qbo' : 'workspace.accounting.xero')} ${translate('workspace.accounting.settings')}.`}
-                            </TextLink>
-                        </Text>
-                    ) : (
-                        <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.taxes.subtitle')}</Text>
-                    )}
-                </View>
                 {!isSmallScreenWidth && getHeaderText()}
                 {isLoading && (
                     <ActivityIndicator
