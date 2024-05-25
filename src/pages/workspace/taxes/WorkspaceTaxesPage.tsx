@@ -52,6 +52,7 @@ function WorkspaceTaxesPage({
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
     const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
     const isFocused = useIsFocused();
+    const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
 
     const fetchTaxes = useCallback(() => {
         openPolicyTaxesPage(policyID);
@@ -172,14 +173,16 @@ function WorkspaceTaxesPage({
 
     const dropdownMenuOptions = useMemo(() => {
         const isMultiple = selectedTaxesIDs.length > 1;
-        const options: Array<DropdownOption<WorkspaceTaxRatesBulkActionType>> = [
-            {
+        const options: Array<DropdownOption<WorkspaceTaxRatesBulkActionType>> = [];
+
+        if (!hasAccountingConnections) {
+            options.push({
                 icon: Expensicons.Trashcan,
                 text: isMultiple ? translate('workspace.taxes.actions.deleteMultiple') : translate('workspace.taxes.actions.delete'),
                 value: CONST.POLICY.TAX_RATES_BULK_ACTION_TYPES.DELETE,
                 onSelected: () => setIsDeleteModalVisible(true),
-            },
-        ];
+            });
+        }
 
         // `Disable rates` when at least one enabled rate is selected.
         if (selectedTaxesIDs.some((taxID) => !policy?.taxRates?.taxes[taxID]?.isDisabled)) {
@@ -201,7 +204,7 @@ function WorkspaceTaxesPage({
             });
         }
         return options;
-    }, [policy?.taxRates?.taxes, selectedTaxesIDs, toggleTaxes, translate]);
+    }, [hasAccountingConnections, policy?.taxRates?.taxes, selectedTaxesIDs, toggleTaxes, translate]);
 
     const headerButtons = !selectedTaxesIDs.length ? (
         <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
