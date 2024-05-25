@@ -1,4 +1,5 @@
 import React, {useMemo} from 'react';
+import { isEmpty } from 'lodash';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -79,6 +80,7 @@ function XeroImportPage({policy}: WithPolicyProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+            shouldBeBlocked={isEmpty(policy?.connections?.xero)}
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
