@@ -6517,7 +6517,7 @@ function shouldCreateNewMoneyRequestReport(existingIOUReport: OnyxEntry<Report> 
     return !existingIOUReport || hasIOUWaitingOnCurrentUserBankAccount(chatReport) || !canAddOrDeleteTransactions(existingIOUReport);
 }
 
-function getTripTransactions(tripRoomReportID: string | undefined): Transaction[] | undefined {
+function getTripTransactions(tripRoomReportID: string | undefined): Transaction[] {
     const tripTransactionReportIDs = Object.values(allReports ?? {}).filter((report) => report && report?.parentReportID === tripRoomReportID);
     return Object.values(tripTransactionReportIDs ?? {}).map((report) => report && TransactionUtils.getAllReportTransactions(report?.reportID));
 }
