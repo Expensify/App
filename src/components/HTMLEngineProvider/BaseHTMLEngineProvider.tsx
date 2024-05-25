@@ -79,7 +79,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             }),
             'uploading-attachment': HTMLElementModel.fromCustomModel({
                 tagName: 'uploading-attachment',
-                mixedUAStyles: {...styles.mt3},
+                mixedUAStyles: {...styles.mt4},
                 contentModel: HTMLContentModel.block,
             }),
         }),
