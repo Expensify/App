@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import Onyx from 'react-native-onyx';
 import Icon from '@components/Icon';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -12,7 +11,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import DateUtils from '@libs/DateUtils';
-import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
 import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
@@ -58,7 +56,7 @@ function ReservationView({reservation}: ReservationViewProps) {
     const bottomDescription = `${reservation.confirmations?.length > 0 ? `${reservation.confirmations[0].value} • ` : ''}${
         reservation.type === CONST.RESERVATION_TYPE.FLIGHT
             ? `${reservation.company?.longName} • ${reservation?.company?.shortName ?? ''} ${reservation.route?.number}`
-            : reservation.start.address
+            : reservation.start.address ?? reservation.start.location
     }`;
 
     const titleComponent = (
@@ -115,63 +113,32 @@ function TripDetailsView({tripRoomReportID, shouldShowHorizontalRule}: TripDetai
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    // TODO: once backend is ready uncomment lines below and remove test data
-    Onyx.merge('transactions_3369516381858695612', {
-        receipt: {reservationList: [{end: {date: '2024-05-24T19:00:00'}, reservationID: '1174780760', start: {date: '2024-05-23T19:00:00'}, type: 'car'}]},
-    });
-
-    Onyx.merge('transactions_2415242883159099811', {
-        receipt: {
-            reservationList: [
-                {
-                    company: {longName: 'Gulf Air', phone: '', shortName: 'GF'},
-                    confirmations: [{name: 'Confirmation Number', value: 'QXHLBH'}],
-                    end: {date: '2024-05-23T07:30:00', shortName: 'BAH', timezoneOffset: ''},
-                    route: {airlineCode: 'GF57', number: '57'},
-                    start: {date: '2024-05-23T06:30:00', shortName: 'BOM', timezoneOffset: ''},
-                    type: 'flight',
-                },
-                {
-                    company: {longName: 'Gulf Air', phone: '', shortName: 'GF'},
-                    confirmations: [{name: 'Confirmation Number', value: 'QXHLBH'}],
-                    end: {date: '2024-05-23T20:55:00', shortName: 'BOM', timezoneOffset: ''},
-                    route: {airlineCode: 'GF64', number: '64'},
-                    start: {date: '2024-05-23T14:30:00', shortName: 'BAH', timezoneOffset: ''},
-                    type: 'flight',
-                },
-            ],
-        },
-    });
-
     const tripTransactions = ReportUtils.getTripTransactions(tripRoomReportID);
     const reservations: Reservation[] = TripReservationUtils.getReservationsFromTripTransactions(tripTransactions);
 
     return (
         <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true)]}>
-            <AnimatedEmptyStateBackground />
-            <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth, true)]}>
-                <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv2]}>
-                    <View style={[styles.flex1, styles.justifyContentCenter]}>
-                        <Text
-                            style={[styles.textLabelSupporting]}
-                            numberOfLines={1}
-                        >
-                            {translate('travel.tripSummary')}
-                        </Text>
-                    </View>
+            <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv2]}>
+                <View style={[styles.flex1, styles.justifyContentCenter]}>
+                    <Text
+                        style={[styles.textLabelSupporting]}
+                        numberOfLines={1}
+                    >
+                        {translate('travel.tripSummary')}
+                    </Text>
                 </View>
-                <>
-                    {reservations.map((reservation) => (
-                        <OfflineWithFeedback>
-                            <ReservationView reservation={reservation} />
-                        </OfflineWithFeedback>
-                    ))}
-                    <SpacerView
-                        shouldShow={shouldShowHorizontalRule}
-                        style={[shouldShowHorizontalRule && styles.reportHorizontalRule]}
-                    />
-                </>
             </View>
+            <>
+                {reservations.map((reservation) => (
+                    <OfflineWithFeedback>
+                        <ReservationView reservation={reservation} />
+                    </OfflineWithFeedback>
+                ))}
+                <SpacerView
+                    shouldShow={shouldShowHorizontalRule}
+                    style={[shouldShowHorizontalRule && styles.reportHorizontalRule]}
+                />
+            </>
         </View>
     );
 }
