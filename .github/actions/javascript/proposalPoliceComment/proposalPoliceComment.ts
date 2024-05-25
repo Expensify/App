@@ -3,12 +3,10 @@ import InitOpenAI from 'openai';
 import CONST from '@github/libs/CONST';
 import type {GitHubType} from '@github/libs/GithubUtils';
 
-// @ts-ignore - process is not imported
 const OpenAI = new InitOpenAI({apiKey: process.env.OPENAI_API_KEY});
 
 async function processIssueComment(octokit: InstanceType<typeof GitHubType>) {
     const payload = context.payload;
-    // @ts-ignore - process is not imported
     const OPENAI_ASSISTANT_ID = process.env.OPENAI_ASSISTANT_ID;
 
     // check if the issue is open and the has labels
@@ -26,6 +24,7 @@ async function processIssueComment(octokit: InstanceType<typeof GitHubType>) {
 
     // create thread with first user message and run it
     const createAndRunResponse = await OpenAI.beta.threads.createAndRun({
+        /* eslint-disable @typescript-eslint/naming-convention */
         assistant_id: OPENAI_ASSISTANT_ID ?? '',
         thread: {messages: [{role: 'user', content}]},
     });
@@ -36,9 +35,9 @@ async function processIssueComment(octokit: InstanceType<typeof GitHubType>) {
     const intervalID = setInterval(() => {
         OpenAI.beta.threads.runs
             .retrieve(createAndRunResponse.thread_id, createAndRunResponse.id)
-            .then((run) => {
+            .then((threadRun) => {
                 // return if run is not completed
-                if (run.status !== 'completed') {
+                if (threadRun.status !== 'completed') {
                     return;
                 }
 
@@ -48,8 +47,7 @@ async function processIssueComment(octokit: InstanceType<typeof GitHubType>) {
                     .then((threadMessages) => {
                         // list thread messages content
                         threadMessages.data.forEach((message, index) => {
-                            // @ts-ignore - we do have text value in content[0] but typescript doesn't know that
-                            // this is a 'openai' package type issue
+                            // @ts-expect-error - we do have `text` in content[0] but typescript doesn't know that this is an 'openai' package type issue
                             let assistantResponse = message.content?.[index]?.text?.value;
                             console.log('issue_comment.created - assistantResponse', assistantResponse);
 
@@ -86,9 +84,10 @@ async function processIssueComment(octokit: InstanceType<typeof GitHubType>) {
                             assistantResponse = assistantResponse.replace('"', '');
                             // create a comment with the assistant's response
                             console.log('issue_comment.created - proposal-police posts comment');
-                            return octokit.issues.createComment({
+                            octokit.issues.createComment({
                                 ...context.repo,
-                                issue_number: payload.issue?.number as number,
+                                /* eslint-disable @typescript-eslint/naming-convention */
+                                issue_number: payload.issue?.number ?? -1,
                                 body: assistantResponse,
                             });
                         });
@@ -108,13 +107,12 @@ async function processIssueComment(octokit: InstanceType<typeof GitHubType>) {
 
 // Main function to process the workflow event
 async function run() {
-    // @ts-ignore - process is not imported
+    // @ts-expect-error - process is not imported
     const octokit: InstanceType<typeof GitHubType> = getOctokit(process.env.GITHUB_TOKEN);
     await processIssueComment(octokit);
 }
 
 run().catch((error) => {
     console.error(error);
-    // @ts-ignore - process is not imported
     process.exit(1);
 });

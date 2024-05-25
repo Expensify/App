@@ -3,12 +3,10 @@ import InitOpenAI from 'openai';
 import CONST from '@github/libs/CONST';
 import type {GitHubType} from '@github/libs/GithubUtils';
 
-// @ts-ignore - process is not imported
 const OpenAI = new InitOpenAI({apiKey: process.env.OPENAI_API_KEY});
 
 async function processIssueCommentEdit(octokit: InstanceType<typeof GitHubType>) {
     const payload = context.payload;
-    // @ts-ignore - process is not imported
     const OPENAI_ASSISTANT_ID = process.env.OPENAI_ASSISTANT_ID;
 
     // check if the issue is open and the has labels
@@ -26,6 +24,7 @@ async function processIssueCommentEdit(octokit: InstanceType<typeof GitHubType>)
 
     // create thread with first user message and run it
     const createAndRunResponse = await OpenAI.beta.threads.createAndRun({
+        /* eslint-disable @typescript-eslint/naming-convention */
         assistant_id: OPENAI_ASSISTANT_ID ?? '',
         thread: {messages: [{role: 'user', content}]},
     });
@@ -36,9 +35,9 @@ async function processIssueCommentEdit(octokit: InstanceType<typeof GitHubType>)
     const intervalID = setInterval(() => {
         OpenAI.beta.threads.runs
             .retrieve(createAndRunResponse.thread_id, createAndRunResponse.id)
-            .then((run) => {
+            .then((threadRun) => {
                 // return if run is not completed yet
-                if (run.status !== 'completed') {
+                if (threadRun.status !== 'completed') {
                     console.log('issue_comment.edited - run pending completion');
                     return;
                 }
@@ -49,9 +48,8 @@ async function processIssueCommentEdit(octokit: InstanceType<typeof GitHubType>)
                     .then((threadMessages) => {
                         // list thread messages content
                         threadMessages.data.forEach((message, index) => {
-                            // @ts-ignore - we do have text value in content[0] but typescript doesn't know that
-                            // this is a 'openai' package type issue
-                            let assistantResponse = message.content?.[index]?.text?.value;
+                            // @ts-expect-error - we do have `text` in content[0] but typescript doesn't know that this is a 'openai' package type issue
+                            const assistantResponse = message.content?.[index]?.text?.value;
                             console.log('issue_comment.edited - assistantResponse', assistantResponse);
 
                             if (!assistantResponse) {
@@ -75,15 +73,16 @@ async function processIssueCommentEdit(octokit: InstanceType<typeof GitHubType>)
                                 // bot related action keyword
                                 let extractedNotice = assistantResponse.split('[EDIT_COMMENT] ')?.[1]?.replace('"', '');
                                 // format the github's updated_at like: 2024-01-24 13:15:24 UTC not 2024-01-28 18:18:28.000 UTC
-                                const date = new Date(payload.comment?.updated_at);
-                                const formattedDate = date.toISOString()?.split('.')?.[0]?.replace('T', ' ') + ' UTC';
+                                const date = new Date(payload.comment?.updated_at as string ?? '');
+                                const formattedDate = `${date.toISOString()?.split('.')?.[0]?.replace('T', ' ')} UTC`;
                                 extractedNotice = extractedNotice.replace('{updated_timestamp}', formattedDate);
 
                                 console.log(`issue_comment.edited - proposal-police edits comment: ${payload.comment?.id}`);
-                                return octokit.issues.updateComment({
+                                octokit.issues.updateComment({
                                     ...context.repo,
-                                    comment_id: payload.comment?.id as number,
-                                    body: `${extractedNotice}\n\n` + payload.comment?.body,
+                                    /* eslint-disable @typescript-eslint/naming-convention */
+                                    comment_id: payload.comment?.id ?? -1,
+                                    body: `${extractedNotice}\n\n${payload.comment?.body}`,
                                 });
                             }
 
@@ -104,13 +103,12 @@ async function processIssueCommentEdit(octokit: InstanceType<typeof GitHubType>)
 }
 
 async function run() {
-    // @ts-ignore - process is not imported
+    // @ts-expect-error - process is not imported
     const octokit: InstanceType<typeof GitHubType> = getOctokit(process.env.GITHUB_TOKEN);
     await processIssueCommentEdit(octokit);
 }
 
 run().catch((error) => {
     console.error(error);
-    // @ts-ignore - process is not imported
     process.exit(1);
 });
