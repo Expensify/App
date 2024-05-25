@@ -1127,7 +1127,7 @@ function getAmountWidth(amount: string): number {
     return width;
 }
 
-function getOnlyEmojiLineHeight(text: string = ''): TextStyle {
+function getOnlyEmojiLineHeight(text = ''): TextStyle {
     const isOnlyEmoji = EmojiUtils.containsOnlyEmojis(text);
     return isOnlyEmoji ? {lineHeight: variables.fontSizeOnlyEmojisHeight} : {};
 }
