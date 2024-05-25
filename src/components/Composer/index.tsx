@@ -305,6 +305,8 @@ function Composer(
         return styles.overflowAuto;
     }, [shouldContainScroll, styles.overflowAuto, styles.overflowScroll, styles.overscrollBehaviorContain, styles.overflowHidden, isScrollBarVisible]);
 
+    const isOnlyEmojiLineHeight = useMemo(() => StyleUtils.getOnlyEmojiLineHeight(value), [value]);
+
     const inputStyleMemo = useMemo(
         () => [
             StyleSheet.flatten([style, {outline: 'none'}]),
@@ -313,9 +315,10 @@ function Composer(
             scrollStyleMemo,
             StyleUtils.getComposerMaxHeightStyle(maxLines, isComposerFullSize),
             isComposerFullSize ? ({height: '100%', maxHeight: 'none' as DimensionValue} as TextStyle) : undefined,
+            isOnlyEmojiLineHeight,
         ],
 
-        [style, styles.rtlTextRenderForSafari, scrollStyleMemo, StyleUtils, maxLines, isComposerFullSize],
+        [style, styles.rtlTextRenderForSafari, scrollStyleMemo, StyleUtils, maxLines, isComposerFullSize, isOnlyEmojiLineHeight],
     );
 
     return (

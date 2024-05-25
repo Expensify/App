@@ -5,6 +5,7 @@ import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
 import type ImageSVGProps from '@components/ImageSVG/types';
 import * as Browser from '@libs/Browser';
+import * as EmojiUtils from '@libs/EmojiUtils';
 import * as UserUtils from '@libs/UserUtils';
 // eslint-disable-next-line no-restricted-imports
 import {defaultTheme} from '@styles/theme';
@@ -1126,6 +1127,11 @@ function getAmountWidth(amount: string): number {
     return width;
 }
 
+function getOnlyEmojiLineHeight(text: string = ''): TextStyle {
+    const isOnlyEmoji = EmojiUtils.containsOnlyEmojis(text);
+    return isOnlyEmoji ? {lineHeight: variables.fontSizeOnlyEmojisHeight} : {};
+}
+
 const staticStyleUtils = {
     positioning,
     combineStyles,
@@ -1199,6 +1205,7 @@ const staticStyleUtils = {
     getButtonStyleWithIcon,
     getCharacterWidth,
     getAmountWidth,
+    getOnlyEmojiLineHeight,
 };
 
 const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({

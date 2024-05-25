@@ -64,6 +64,7 @@ function Composer(
         onClear();
     }, [shouldClear, onClear]);
 
+    const isOnlyEmojiLineHeight = useMemo(() => StyleUtils.getOnlyEmojiLineHeight(value), [value]);
     const maxHeightStyle = useMemo(() => StyleUtils.getComposerMaxHeightStyle(maxLines, isComposerFullSize), [StyleUtils, isComposerFullSize, maxLines]);
     const composerStyle = useMemo(() => StyleSheet.flatten(style), [style]);
 
@@ -78,7 +79,7 @@ function Composer(
             rejectResponderTermination={false}
             smartInsertDelete={false}
             textAlignVertical="center"
-            style={[composerStyle, maxHeightStyle]}
+            style={[composerStyle, maxHeightStyle, isOnlyEmojiLineHeight]}
             markdownStyle={markdownStyle}
             autoFocus={autoFocus}
             /* eslint-disable-next-line react/jsx-props-no-spreading */
