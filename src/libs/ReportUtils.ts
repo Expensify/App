@@ -487,6 +487,7 @@ let currentUserEmail: string | undefined;
 let currentUserPrivateDomain: string | undefined;
 let currentUserAccountID: number | undefined;
 let isAnonymousUser = false;
+const reportActionMessageCache: Record<string, string> = {};
 
 const defaultAvatarBuildingIconTestID = 'SvgDefaultAvatarBuilding Icon';
 
@@ -3110,8 +3111,14 @@ function getReportActionMessage(reportAction: ReportAction | EmptyObject, report
         return getReimbursementQueuedActionMessage(reportAction, getReport(parentReportID), false);
     }
 
-    const text = parseReportActionHtmlToText(reportAction, reportID);
-    return Str.removeSMSDomain(text);
+    const key = `${reportAction.reportActionID}_${reportAction.lastModified}`;
+    const cachedMessage = reportActionMessageCache[key];
+    if (cachedMessage !== undefined) {
+        return cachedMessage;
+    }
+    const message = Str.removeSMSDomain(parseReportActionHtmlToText(reportAction, reportID));
+    reportActionMessageCache[key] = message;
+    return message;
 }
 
 /**
