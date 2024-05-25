@@ -6518,8 +6518,10 @@ function shouldCreateNewMoneyRequestReport(existingIOUReport: OnyxEntry<Report> 
 }
 
 function getTripTransactions(tripRoomReportID: string | undefined): Transaction[] {
-    const tripTransactionReportIDs = Object.values(allReports ?? {}).filter((report) => report && report?.parentReportID === tripRoomReportID);
-    return Object.values(tripTransactionReportIDs ?? {}).map((report) => report && TransactionUtils.getAllReportTransactions(report?.reportID));
+    const tripTransactionReportIDs = Object.values(allReports ?? {})
+        .filter((report) => report && report?.parentReportID === tripRoomReportID)
+        .map((report) => report?.reportID);
+    return tripTransactionReportIDs.map((reportID) => TransactionUtils.getAllReportTransactions(reportID)).flat();
 }
 
 /**
