@@ -1,4 +1,5 @@
-import React, {useMemo, useRef, useState} from 'react';
+import {formatDistanceToNow} from 'date-fns';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -110,6 +111,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress, isConnectionDataF
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
     const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
+    const [datetimeToRelative, setDateTimeToRelative] = useState('');
     const threeDotsMenuContainerRef = useRef<View>(null);
 
     const isSyncInProgress = !!connectionSyncProgress?.stageInProgress && connectionSyncProgress.stageInProgress !== CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE;
@@ -117,6 +119,8 @@ function PolicyAccountingPage({policy, connectionSyncProgress, isConnectionDataF
     const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME).filter((name) => !(name === CONST.POLICY.CONNECTIONS.NAME.XERO && !canUseXeroIntegration));
     const connectedIntegration = accountingIntegrations.find((integration) => !!policy?.connections?.[integration]) ?? connectionSyncProgress?.connectionName;
     const policyID = policy?.id ?? '';
+    const successfulDate = policy?.connections?.quickbooksOnline?.lastSync?.successfulDate;
+    const formattedDate = useMemo(() => (successfulDate ? new Date(successfulDate) : new Date()), [successfulDate]);
 
     const policyConnectedToXero = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.XERO;
 
@@ -140,6 +144,10 @@ function PolicyAccountingPage({policy, connectionSyncProgress, isConnectionDataF
         ],
         [translate, policyID, isOffline],
     );
+
+    useEffect(() => {
+        setDateTimeToRelative(formatDistanceToNow(formattedDate, {addSuffix: true}));
+    }, [formattedDate]);
 
     const connectionsMenuItems: MenuItemProps[] = useMemo(() => {
         if (isEmptyObject(policy?.connections) && !isSyncInProgress) {
@@ -169,10 +177,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress, isConnectionDataF
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
                 shouldShowRightComponent: true,
                 title: integrationData?.title,
-
-                description: isSyncInProgress
-                    ? translate('workspace.accounting.connections.syncStageName', connectionSyncProgress.stageInProgress)
-                    : translate('workspace.accounting.lastSync'),
+                description: isSyncInProgress ? translate('workspace.accounting.connections.syncStageName', connectionSyncProgress.stageInProgress) : datetimeToRelative,
                 rightComponent: isSyncInProgress ? (
                     <ActivityIndicator
                         style={[styles.popoverMenuIcon]}
@@ -259,6 +264,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress, isConnectionDataF
         theme.spinner,
         threeDotsMenuPosition,
         translate,
+        datetimeToRelative,
         accountingIntegrations,
     ]);
 
