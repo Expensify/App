@@ -49,6 +49,9 @@ type ConnectionLayoutProps = {
 
     /** Whether to use ScrollView or not */
     shouldUseScrollView?: boolean;
+
+    /** Whether or not to block user from accessing the page */
+    shouldBeBlocked?: boolean;
 };
 
 type ConnectionLayoutContentProps = Pick<ConnectionLayoutProps, 'title' | 'titleStyle' | 'children'>;
@@ -77,6 +80,7 @@ function ConnectionLayout({
     titleStyle,
     shouldIncludeSafeAreaPaddingBottom,
     shouldUseScrollView = true,
+    shouldBeBlocked = false,
 }: ConnectionLayoutProps) {
     const {translate} = useLocalize();
 
@@ -97,6 +101,7 @@ function ConnectionLayout({
             policyID={policyID}
             accessVariants={accessVariants}
             featureName={featureName}
+            shouldBeBlocked={shouldBeBlocked}
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={!!shouldIncludeSafeAreaPaddingBottom}
