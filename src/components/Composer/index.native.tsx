@@ -64,7 +64,7 @@ function Composer(
         onClear();
     }, [shouldClear, onClear]);
 
-    const isOnlyEmojiLineHeight = useMemo(() => StyleUtils.getOnlyEmojiLineHeight(value), [value]);
+    const isOnlyEmojiLineHeight = useMemo(() => StyleUtils.getOnlyEmojiLineHeight(value), [StyleUtils, value]);
     const maxHeightStyle = useMemo(() => StyleUtils.getComposerMaxHeightStyle(maxLines, isComposerFullSize), [StyleUtils, isComposerFullSize, maxLines]);
     const composerStyle = useMemo(() => StyleSheet.flatten(style), [style]);
 

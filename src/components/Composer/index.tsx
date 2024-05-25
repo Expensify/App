@@ -305,7 +305,7 @@ function Composer(
         return styles.overflowAuto;
     }, [shouldContainScroll, styles.overflowAuto, styles.overflowScroll, styles.overscrollBehaviorContain, styles.overflowHidden, isScrollBarVisible]);
 
-    const isOnlyEmojiLineHeight = useMemo(() => StyleUtils.getOnlyEmojiLineHeight(value), [value]);
+    const isOnlyEmojiLineHeight = useMemo(() => StyleUtils.getOnlyEmojiLineHeight(value), [StyleUtils, value]);
 
     const inputStyleMemo = useMemo(
         () => [
