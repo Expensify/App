@@ -149,6 +149,7 @@ type Reservation = {
 type ReservationTimeDetails = {
     date: string;
     address?: string;
+    location?: string;
     longName?: string;
     shortName?: string;
     timezoneOffset?: string;
