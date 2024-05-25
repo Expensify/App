@@ -130,7 +130,6 @@ function TripDetailsView({tripRoomReportID, shouldShowHorizontalRule}: TripDetai
 
     const tripTransactions = ReportUtils.getTripTransactions(tripRoomReportID);
     const reservations: Reservation[] = TripReservationUtils.getReservationsFromTripTransactions(tripTransactions);
-    console.log(reservations);
 
     return (
         <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true)]}>
