@@ -6521,7 +6521,7 @@ function getTripTransactions(tripRoomReportID: string | undefined): Transaction[
     const tripTransactionReportIDs = Object.values(allReports ?? {})
         .filter((report) => report && report?.parentReportID === tripRoomReportID)
         .map((report) => report?.reportID);
-    return tripTransactionReportIDs.map((reportID) => TransactionUtils.getAllReportTransactions(reportID)).flat();
+    return tripTransactionReportIDs.flatMap((reportID) => TransactionUtils.getAllReportTransactions(reportID));
 }
 
 /**
