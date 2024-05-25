@@ -254,8 +254,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         style={[styles.textNormal, styles.link]}
                         href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyId)}`}
                     >
-                        {`${translate('workspace.accounting.qbo')} ${translate('workspace.accounting.settings')}`}
+                        {`${translate(isConnectedToQbo ? 'workspace.accounting.qbo' : 'workspace.accounting.xero')} ${translate('workspace.accounting.settings')}`}
                     </TextLink>
+                    <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
                 </Text>
             ) : (
                 <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
@@ -295,21 +296,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 />
                 {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                 {!isSmallScreenWidth && getHeaderText()}
-                <View style={[styles.ph5, styles.pb5, styles.pt3]}>
-                    {isConnectedToAccounting ? (
-                        <Text>
-                            <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.categories.importedFromAccountingSoftware')} `}</Text>
-                            <TextLink
-                                style={[styles.textNormal, styles.link]}
-                                href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyId)}`}
-                            >
-                                {`${translate(isConnectedToQbo ? 'workspace.accounting.qbo' : 'workspace.accounting.xero')} ${translate('workspace.accounting.settings')}.`}
-                            </TextLink>
-                        </Text>
-                    ) : (
-                        <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
-                    )}
-                </View>
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
