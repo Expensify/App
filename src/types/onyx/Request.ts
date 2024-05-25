@@ -1,5 +1,5 @@
 import type {OnyxUpdate} from 'react-native-onyx';
-import type {OnyxKey} from '@src/ONYXKEYS';
+import type {OnyxCollectionKey, OnyxPagesKey, OnyxValues} from '@src/ONYXKEYS';
 import type Response from './Response';
 
 type OnyxData = {
@@ -25,17 +25,16 @@ type RequestData = {
     shouldSkipWebProxy?: boolean;
 };
 
-type PaginatedRequestData<TResource, TPageKey extends OnyxKey> = {
+type Request = RequestData & OnyxData;
+type PaginatedRequest<TResourceKey extends OnyxCollectionKey, TPageKey extends OnyxPagesKey> = Request & {
     isPaginated: true;
+    resourceKey: TResourceKey;
     pageKey: TPageKey;
-    getItemsFromResponse: (response: Response) => Record<string, TResource>;
-    sortItems: (items: Record<string, TResource>) => TResource[];
-    getItemID: (item: TResource) => string;
+    getItemsFromResponse: (response: Response) => OnyxValues[TResourceKey];
+    sortItems: (items: OnyxValues[TResourceKey]) => Array<OnyxValues[TResourceKey]>;
+    getItemID: (item: OnyxValues[TResourceKey]) => string;
     isInitialRequest: boolean;
 };
-
-type Request = RequestData & OnyxData;
-type PaginatedRequest<TResource> = Request & PaginatedRequestData<TResource>;
 
 export default Request;
 export type {OnyxData, RequestType, PaginatedRequest};

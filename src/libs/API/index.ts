@@ -7,6 +7,7 @@ import * as Pusher from '@libs/Pusher/pusher';
 import * as Request from '@libs/Request';
 import * as PersistedRequests from '@userActions/PersistedRequests';
 import CONST from '@src/CONST';
+import type {OnyxCollectionKey, OnyxPagesKey, OnyxValues} from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
 import type {PaginatedRequest} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
@@ -178,12 +179,14 @@ function read<TCommand extends ReadCommand>(command: TCommand, apiCommandParamet
     validateReadyToRead(command).then(() => makeRequestWithSideEffects(command, apiCommandParameters, onyxData, CONST.API_REQUEST_TYPE.READ));
 }
 
-function paginate<TCommand extends ReadCommand, TResource>(
+function paginate<TCommand extends ReadCommand, TResourceKey extends OnyxCollectionKey, TPageKey extends OnyxPagesKey>(
     command: TCommand,
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
-    getItemsFromResponse: (response: Response) => Record<string, TResource>,
-    sortItems: (items: Record<string, TResource>) => TResource[],
-    getItemID: (item: TResource) => string,
+    resourceKey: TResourceKey,
+    pageKey: TPageKey,
+    getItemsFromResponse: (response: Response) => OnyxValues[TResourceKey],
+    sortItems: (items: OnyxValues[TResourceKey]) => Array<OnyxValues[TResourceKey]>,
+    getItemID: (item: OnyxValues[TResourceKey]) => string,
     isInitialRequest = false,
     onyxData: OnyxData = {},
 ): void {
@@ -198,11 +201,13 @@ function paginate<TCommand extends ReadCommand, TResource>(
         };
 
         // Assemble all the request data we'll be storing
-        const request: PaginatedRequest<TResource> = {
+        const request: PaginatedRequest<TResourceKey, TPageKey> = {
             command,
             data,
             ...onyxDataWithoutOptimisticData,
             isPaginated: true,
+            resourceKey,
+            pageKey,
             getItemsFromResponse,
             sortItems,
             getItemID,
