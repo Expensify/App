@@ -1,53 +1,34 @@
 import React, {useEffect} from 'react';
-import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as SearchActions from '@libs/actions/Search';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import Log from '@libs/Log';
 import * as SearchUtils from '@libs/SearchUtils';
 import Navigation from '@navigation/Navigation';
 import EmptySearchView from '@pages/Search/EmptySearchView';
 import useCustomBackHandler from '@pages/Search/useCustomBackHandler';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import SelectionList from './SelectionList';
+import SearchTableHeader from './SelectionList/SearchTableHeader';
 import TableListItemSkeleton from './Skeletons/TableListItemSkeleton';
-import Text from './Text';
-
-/**
- * Todo This is a temporary function that will pick search results from under `snapshot_` key
- * either api needs to be updated to key by `snapshot_hash` or app code calling search data needs to be refactored
- * remove this function once this is properly fixed
- */
-function getCleanSearchResults(searchResults: unknown) {
-    if (!searchResults) {
-        return {};
-    }
-
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
-    // eslint-disable-next-line no-underscore-dangle,@typescript-eslint/no-unsafe-return
-    return searchResults?.data;
-}
 
 type SearchProps = {
     query: string;
+    policyIDs?: string;
 };
 
-function Search({query}: SearchProps) {
+function Search({query, policyIDs}: SearchProps) {
     const {isOffline} = useNetwork();
-    const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isSmallScreenWidth, isMediumScreenWidth} = useWindowDimensions();
-    // const [selectedCategories, setSelectedCategories] = useState<Record<string, boolean>>({});
     useCustomBackHandler();
 
-    const hash = SearchUtils.getQueryHash(query);
+    const hash = SearchUtils.getQueryHash(query, policyIDs);
     const [searchResults, searchResultsMeta] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
 
     useEffect(() => {
@@ -55,52 +36,21 @@ function Search({query}: SearchProps) {
             return;
         }
 
-        SearchActions.search(query);
-    }, [query, isOffline]);
+        SearchActions.search(hash, query, 0, policyIDs);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [hash, isOffline]);
 
-    const cleanResults = getCleanSearchResults(searchResults);
+    const isLoadingInitialItems = (!isOffline && isLoadingOnyxValue(searchResultsMeta)) || searchResults?.data === undefined;
+    const isLoadingMoreItems = !isLoadingInitialItems && searchResults?.search?.isLoading;
+    const shouldShowEmptyState = !isLoadingInitialItems && isEmptyObject(searchResults?.data);
 
-    useEffect(() => {
-        SearchActions.addPersonalDetailsFromSearch(cleanResults?.personalDetailsList ?? {});
-    }, [cleanResults]);
-
-    const isLoading = (!isOffline && isLoadingOnyxValue(searchResultsMeta)) || cleanResults === undefined;
-    const shouldShowEmptyState = !isLoading && isEmptyObject(cleanResults);
-
-    if (isLoading) {
+    if (isLoadingInitialItems) {
         return <TableListItemSkeleton shouldAnimate />;
     }
 
     if (shouldShowEmptyState) {
         return <EmptySearchView />;
     }
-
-    const displayNarrowVersion = isMediumScreenWidth || isSmallScreenWidth;
-
-    const getListHeader = () => {
-        if (displayNarrowVersion) {
-            return;
-        }
-
-        // const showMerchantColumn = ReportUtils.shouldShowMerchantColumn(data);
-        const showMerchantColumn = displayNarrowVersion && true;
-
-        return (
-            <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3, styles.gap3]}>
-                {/* <Text style={styles.searchInputStyle}>{translate('common.receipt')}</Text> */}
-                <Text style={[styles.searchInputStyle, styles.flex1]}>{translate('common.date')}</Text>
-                {showMerchantColumn && <Text style={[styles.searchInputStyle]}>{translate('common.merchant')}</Text>}
-                <Text style={[styles.searchInputStyle, styles.flex1]}>{translate('common.description')}</Text>
-                <Text style={[styles.searchInputStyle, styles.flex2]}>{translate('common.from')}</Text>
-                <Text style={[styles.searchInputStyle, styles.flex2]}>{translate('common.to')}</Text>
-                <Text style={[styles.searchInputStyle, styles.flex1]}>{translate('common.category')}</Text>
-                <Text style={[styles.searchInputStyle, styles.flex1]}>{translate('common.tag')}</Text>
-                <Text style={[styles.searchInputStyle, styles.flex1, styles.textAlignRight]}>{translate('common.total')}</Text>
-                <Text style={[styles.searchInputStyle, styles.flex1]}>{translate('common.type')}</Text>
-                <Text style={[styles.searchInputStyle, styles.flex1]}>{translate('common.action')}</Text>
-            </View>
-        );
-    };
 
     const openReport = (reportID?: string) => {
         if (!reportID) {
@@ -110,22 +60,46 @@ function Search({query}: SearchProps) {
         Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(query, reportID));
     };
 
-    const ListItem = SearchUtils.getListItem();
-    const data = SearchUtils.getSections(cleanResults ?? {});
+    const fetchMoreResults = () => {
+        if (!searchResults?.search?.hasMoreResults || isLoadingInitialItems || isLoadingMoreItems) {
+            return;
+        }
+        const currentOffset = searchResults?.search?.offset ?? 0;
+        SearchActions.search(hash, query, currentOffset + CONST.SEARCH_RESULTS_PAGE_SIZE);
+    };
+
+    const type = SearchUtils.getSearchType(searchResults?.search);
+
+    if (type === undefined) {
+        Log.alert('[Search] Undefined search type');
+        return null;
+    }
+
+    const ListItem = SearchUtils.getListItem(type);
+    const data = SearchUtils.getSections(searchResults?.data ?? {}, type);
 
     return (
         <SelectionList
-            canSelectMultiple
-            customListHeader={getListHeader()}
+            customListHeader={<SearchTableHeader data={searchResults?.data} />}
             ListItem={ListItem}
             sections={[{data, isDisabled: false}]}
             onSelectRow={(item) => {
                 openReport(item.transactionThreadReportID);
             }}
-            onSelectAll={!displayNarrowVersion ? () => {} : undefined}
-            onCheckboxPress={() => {}}
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
             listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+            containerStyle={[styles.pv0]}
+            showScrollIndicator={false}
+            onEndReachedThreshold={0.75}
+            onEndReached={fetchMoreResults}
+            listFooterContent={
+                isLoadingMoreItems ? (
+                    <TableListItemSkeleton
+                        shouldAnimate
+                        fixedNumItems={5}
+                    />
+                ) : undefined
+            }
         />
     );
 }
