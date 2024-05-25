@@ -61,39 +61,49 @@ function ReservationView({reservation}: ReservationViewProps) {
         if (reservation.type === CONST.RESERVATION_TYPE.HOTEL) {
             return `${code}${reservation.start.address}`;
         }
+        if (reservation.type === CONST.RESERVATION_TYPE.CAR) {
+            return `${reservation.vendor} • ${reservation.start.location}`;
+        }
         return reservation.start.address ?? reservation.start.location;
     }, [reservation]);
 
-    const titleComponent = (
-        <View style={styles.gap1}>
-            {reservation.type === CONST.RESERVATION_TYPE.FLIGHT ? (
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-                    <Text style={[styles.textNormalBold, styles.lh20]}>{formatAirportInfo(reservation.start)}</Text>
-                    <Icon
-                        src={Expensicons.ArrowRightLong}
-                        width={variables.iconSizeSmall}
-                        height={variables.iconSizeSmall}
-                        fill={theme.icon}
-                    />
-                    <Text style={[styles.textNormalBold, styles.lh20]}>{formatAirportInfo(reservation.end)}</Text>
+    const titleComponent = () => {
+        if (reservation.type === CONST.RESERVATION_TYPE.FLIGHT) {
+            return (
+                <View style={styles.gap1}>
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+                        <Text style={[styles.textNormalBold, styles.lh20]}>{formatAirportInfo(reservation.start)}</Text>
+                        <Icon
+                            src={Expensicons.ArrowRightLong}
+                            width={variables.iconSizeSmall}
+                            height={variables.iconSizeSmall}
+                            fill={theme.icon}
+                        />
+                        <Text style={[styles.textNormalBold, styles.lh20]}>{formatAirportInfo(reservation.end)}</Text>
+                    </View>
+                    {bottomDescription && <Text style={[styles.textSupportingSmallSize, styles.lh14]}>{bottomDescription}</Text>}
                 </View>
-            ) : (
+            );
+        }
+
+        return (
+            <View style={styles.gap1}>
                 <Text
                     numberOfLines={1}
                     style={[styles.textNormalBold, styles.lh20]}
                 >
-                    {reservation.start.longName}
+                    {reservation.type === CONST.RESERVATION_TYPE.CAR ? reservation.carInfo?.name : reservation.start.longName}
                 </Text>
-            )}
-            {bottomDescription && <Text style={[styles.textSupportingSmallSize, styles.lh14]}>{bottomDescription}</Text>}
-        </View>
-    );
+                {bottomDescription && <Text style={[styles.textSupportingSmallSize, styles.lh14]}>{bottomDescription}</Text>}
+            </View>
+        );
+    };
 
     return (
         <MenuItemWithTopDescription
             description={formattedDate}
             descriptionTextStyle={[styles.textLabelSupporting, styles.lh16]}
-            titleComponent={titleComponent}
+            titleComponent={titleComponent()}
             titleContainerStyle={[styles.justifyContentStart, styles.gap1]}
             secondaryIcon={reservationIcon}
             isSecondaryIconHoverable

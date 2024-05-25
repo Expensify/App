@@ -144,6 +144,8 @@ type Reservation = {
         class?: string;
         number: string;
     };
+    vendor?: string;
+    carInfo?: CarInfo;
 };
 
 type ReservationTimeDetails = {
@@ -164,6 +166,11 @@ type Company = {
 type ReservationConfirmation = {
     name: string;
     value: string;
+};
+
+type CarInfo = {
+    name?: string;
+    engine?: string;
 };
 
 type ReservationType = ValueOf<typeof CONST.RESERVATION_TYPE>;
