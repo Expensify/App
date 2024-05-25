@@ -312,27 +312,76 @@ type PageWithIndexes = {
     lastReportActionIndex: number;
 };
 
+/**
+ * Finds the id, index in sortedReportActions and index in the page of the first valid report action in the given page.
+ */
+function findFirstReportAction(sortedReportActions: ReportAction[], page: string[]): {id: string; index: number} | null {
+    // eslint-disable-next-line @typescript-eslint/prefer-for-of
+    for (let i = 0; i < page.length; i++) {
+        const id = page[i];
+        if (id === CONST.PAGINATION_START_ID) {
+            return {id, index: 0};
+        }
+        const index = sortedReportActions.findIndex((reportAction) => reportAction.reportActionID === id);
+        if (index !== -1) {
+            return {id, index};
+        }
+    }
+    return null;
+}
+
+/**
+ * Finds the id, index in sortedReportActions and index in the page of the last valid report action in the given page.
+ */
+function findLastReportAction(sortedReportActions: ReportAction[], page: string[]): {id: string; index: number} | null {
+    for (let i = page.length - 1; i >= 0; i--) {
+        const id = page[i];
+        if (id === CONST.PAGINATION_END_ID) {
+            return {id, index: sortedReportActions.length - 1};
+        }
+        const index = sortedReportActions.findIndex((reportAction) => reportAction.reportActionID === id);
+        if (index !== -1) {
+            return {id, index};
+        }
+    }
+    return null;
+}
+
 function getPagesWithIndexes(sortedReportActions: ReportAction[], pages: ReportActionsPages): PageWithIndexes[] {
-    return pages.map((page) => {
-        const firstReportActionID = page[0];
-        const lastReportActionID = page[page.length - 1];
-        return {
-            ids: page,
-            firstReportActionID,
-            // TODO: What if reportActionID is not in the list? Could happen if an action is deleted from another device.
-            firstReportActionIndex:
-                firstReportActionID === CONST.PAGINATION_START_ID ? 0 : sortedReportActions.findIndex((reportAction) => reportAction.reportActionID === firstReportActionID),
-            lastReportActionID,
-            lastReportActionIndex:
-                lastReportActionID === CONST.PAGINATION_END_ID
-                    ? sortedReportActions.length - 1
-                    : sortedReportActions.findIndex((reportAction) => reportAction.reportActionID === lastReportActionID),
-        };
-    });
+    return pages
+        .map((page) => {
+            let firstReportAction = findFirstReportAction(sortedReportActions, page);
+            let lastReportAction = findLastReportAction(sortedReportActions, page);
+
+            // If all actions in the page are not found it will be removed.
+            if (firstReportAction === null || lastReportAction === null) {
+                return null;
+            }
+
+            // In case actions were reordered, we need to swap them.
+            if (firstReportAction.index > lastReportAction.index) {
+                const temp = firstReportAction;
+                firstReportAction = lastReportAction;
+                lastReportAction = temp;
+            }
+
+            return {
+                ids: sortedReportActions.slice(firstReportAction.index, lastReportAction.index + 1).map((reportAction) => reportAction.reportActionID),
+                firstReportActionID: firstReportAction.id,
+                firstReportActionIndex: firstReportAction.index,
+                lastReportActionID: lastReportAction.id,
+                lastReportActionIndex: lastReportAction.index,
+            };
+        })
+        .filter((page) => page !== null) as PageWithIndexes[];
 }
 
 function mergeContinuousPages(sortedReportActions: ReportAction[], pages: ReportActionsPages): ReportActionsPages {
     const pagesWithIndexes = getPagesWithIndexes(sortedReportActions, pages);
+
+    if (pagesWithIndexes.length === 0) {
+        return [];
+    }
 
     // Pages need to be sorted by firstReportActionIndex ascending then by lastReportActionIndex descending.
     const sortedPages = pagesWithIndexes.sort((a, b) => {

@@ -791,40 +791,74 @@ describe('ReportActionsUtils', () => {
 
     describe('mergeContinuousPages', () => {
         it('merges continuous pages', () => {
-            const sortedReportActions = [createReportAction('5'), createReportAction('4'), createReportAction('3'), createReportAction('2'), createReportAction('1')];
+            const sortedReportActions = [
+                // Given these sortedReportActions
+                createReportAction('5'),
+                createReportAction('4'),
+                createReportAction('3'),
+                createReportAction('2'),
+                createReportAction('1'),
+            ];
             const pages: ReportActionsPages = [
+                // Given these pages
                 ['5', '4', '3'],
                 ['3', '2', '1'],
             ];
-            const expectedResult: ReportActionsPages = [['5', '4', '3', '2', '1']];
+            const expectedResult: ReportActionsPages = [
+                // Expect these pages
+                ['5', '4', '3', '2', '1'],
+            ];
             const result = ReportActionsUtils.mergeContinuousPages(sortedReportActions, pages);
             expect(result).toStrictEqual(expectedResult);
         });
 
         it('merges overlapping pages', () => {
-            const sortedReportActions = [createReportAction('5'), createReportAction('4'), createReportAction('3'), createReportAction('2'), createReportAction('1')];
+            const sortedReportActions = [
+                // Given these sortedReportActions
+                createReportAction('5'),
+                createReportAction('4'),
+                createReportAction('3'),
+                createReportAction('2'),
+                createReportAction('1'),
+            ];
             const pages: ReportActionsPages = [
+                // Given these pages
                 ['4', '3', '2'],
                 ['3', '2', '1'],
             ];
-            const expectedResult: ReportActionsPages = [['4', '3', '2', '1']];
+            const expectedResult: ReportActionsPages = [
+                // Expect these pages
+                ['4', '3', '2', '1'],
+            ];
             const result = ReportActionsUtils.mergeContinuousPages(sortedReportActions, pages);
             expect(result).toStrictEqual(expectedResult);
         });
 
         it('merges included pages', () => {
-            const sortedReportActions = [createReportAction('5'), createReportAction('4'), createReportAction('3'), createReportAction('2'), createReportAction('1')];
+            const sortedReportActions = [
+                // Given these sortedReportActions
+                createReportAction('5'),
+                createReportAction('4'),
+                createReportAction('3'),
+                createReportAction('2'),
+                createReportAction('1'),
+            ];
             const pages: ReportActionsPages = [
+                // Given these pages
                 ['5', '4', '3', '2', '1'],
                 ['5', '4', '3', '2'],
             ];
-            const expectedResult: ReportActionsPages = [['5', '4', '3', '2', '1']];
+            const expectedResult: ReportActionsPages = [
+                // Expect these pages
+                ['5', '4', '3', '2', '1'],
+            ];
             const result = ReportActionsUtils.mergeContinuousPages(sortedReportActions, pages);
             expect(result).toStrictEqual(expectedResult);
         });
 
         it('do not merge separate pages', () => {
             const sortedReportActions = [
+                // Given these sortedReportActions
                 createReportAction('5'),
                 createReportAction('4'),
                 // Gap
@@ -832,10 +866,12 @@ describe('ReportActionsUtils', () => {
                 createReportAction('1'),
             ];
             const pages: ReportActionsPages = [
+                // Given these pages
                 ['5', '4'],
                 ['2', '1'],
             ];
             const expectedResult: ReportActionsPages = [
+                // Expect these pages
                 ['5', '4'],
                 ['2', '1'],
             ];
@@ -845,6 +881,7 @@ describe('ReportActionsUtils', () => {
 
         it('sorts pages', () => {
             const sortedReportActions = [
+                // Given these sortedReportActions
                 createReportAction('9'),
                 createReportAction('8'),
                 // Gap
@@ -856,15 +893,118 @@ describe('ReportActionsUtils', () => {
                 createReportAction('1'),
             ];
             const pages: ReportActionsPages = [
+                // Given these pages
                 ['3', '2', '1'],
                 ['3', '2'],
                 ['6', '5'],
-                ['7', '8'],
+                ['9', '8'],
             ];
             const expectedResult: ReportActionsPages = [
-                ['7', '8'],
+                // Expect these pages
+                ['9', '8'],
                 ['6', '5'],
                 ['3', '2', '1'],
+            ];
+            const result = ReportActionsUtils.mergeContinuousPages(sortedReportActions, pages);
+            expect(result).toStrictEqual(expectedResult);
+        });
+
+        it('handles actions that no longer exist', () => {
+            const sortedReportActions = [
+                // Given these sortedReportActions
+                createReportAction('4'),
+                createReportAction('3'),
+            ];
+            const pages: ReportActionsPages = [
+                // Given these pages
+                ['6', '5', '4', '3', '2', '1'],
+            ];
+            const expectedResult: ReportActionsPages = [
+                // Expect these pages
+                ['4', '3'],
+            ];
+            const result = ReportActionsUtils.mergeContinuousPages(sortedReportActions, pages);
+            expect(result).toStrictEqual(expectedResult);
+        });
+
+        it('removes pages that are empty', () => {
+            const sortedReportActions = [
+                // Given these sortedReportActions
+                createReportAction('4'),
+            ];
+            const pages: ReportActionsPages = [
+                // Given these pages
+                ['6', '5'],
+                ['3', '2', '1'],
+            ];
+
+            // Expect these pages
+            const expectedResult: ReportActionsPages = [];
+            const result = ReportActionsUtils.mergeContinuousPages(sortedReportActions, pages);
+            expect(result).toStrictEqual(expectedResult);
+        });
+
+        it('handles pages with a single action', () => {
+            const sortedReportActions = [
+                // Given these sortedReportActions
+                createReportAction('4'),
+                createReportAction('2'),
+            ];
+            const pages: ReportActionsPages = [
+                // Given these pages
+                ['4'],
+                ['2'],
+                ['2'],
+            ];
+            const expectedResult: ReportActionsPages = [
+                // Expect these pages
+                ['4'],
+                ['2'],
+            ];
+            const result = ReportActionsUtils.mergeContinuousPages(sortedReportActions, pages);
+            expect(result).toStrictEqual(expectedResult);
+        });
+
+        it('handles out of order ids', () => {
+            const sortedReportActions = [
+                // Given these sortedReportActions
+                createReportAction('2'),
+                createReportAction('1'),
+                createReportAction('3'),
+                createReportAction('4'),
+            ];
+            const pages: ReportActionsPages = [
+                // Given these pages
+                ['2', '1'],
+                ['1', '3'],
+                ['4'],
+            ];
+            const expectedResult: ReportActionsPages = [
+                // Expect these pages
+                ['2', '1', '3'],
+                ['4'],
+            ];
+            const result = ReportActionsUtils.mergeContinuousPages(sortedReportActions, pages);
+            expect(result).toStrictEqual(expectedResult);
+        });
+
+        it('handles basic reordering', () => {
+            const sortedReportActions = [
+                // Given these sortedReportActions
+                createReportAction('1'),
+                createReportAction('2'),
+                createReportAction('4'),
+                createReportAction('5'),
+            ];
+            const pages: ReportActionsPages = [
+                // Given these pages
+                ['5', '4'],
+                ['2', '1'],
+            ];
+            const expectedResult: ReportActionsPages = [
+                // Expect these pages
+                ['1', '2'],
+                ['4', '5'],
             ];
             const result = ReportActionsUtils.mergeContinuousPages(sortedReportActions, pages);
             expect(result).toStrictEqual(expectedResult);
