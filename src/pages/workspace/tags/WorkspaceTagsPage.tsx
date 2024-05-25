@@ -328,7 +328,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                                 style={[styles.textNormal, styles.link]}
                                 href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
                             >
-                                {`${translate(isConnectedToQbo ? 'workspace.accounting.qbo' : 'workspace.accounting.xero')} ${translate('workspace.accounting.settings')}`}
+                                {`${translate(isConnectedToQbo ? 'workspace.accounting.qbo' : 'workspace.accounting.xero')} ${translate('workspace.accounting.settings')}.`}
                             </TextLink>
                         </Text>
                     ) : (
