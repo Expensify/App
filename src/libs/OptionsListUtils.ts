@@ -77,6 +77,7 @@ type OptionTree = {
     tooltipText: string;
     isDisabled: boolean;
     isSelected: boolean;
+    pendingAction?: OnyxCommon.PendingAction;
 } & Option;
 
 type PayeePersonalDetails = {
@@ -106,6 +107,7 @@ type TaxRatesOption = {
     isDisabled?: boolean;
     keyForList?: string;
     isSelected?: boolean;
+    pendingAction?: OnyxCommon.PendingAction;
 };
 
 type TaxSection = {
@@ -123,6 +125,7 @@ type Category = {
     name: string;
     enabled: boolean;
     isSelected?: boolean;
+    pendingAction?: OnyxCommon.PendingAction;
 };
 
 type Tax = {
@@ -952,6 +955,7 @@ function sortCategories(categories: Record<string, Category>): Category[] {
         lodashSet(hierarchy, path, {
             ...existedValue,
             name: category.name,
+            pendingAction: category.pendingAction,
         });
     });
 
@@ -962,10 +966,11 @@ function sortCategories(categories: Record<string, Category>): Category[] {
      */
     const flatHierarchy = (initialHierarchy: Hierarchy) =>
         Object.values(initialHierarchy).reduce((acc: Category[], category) => {
-            const {name, ...subcategories} = category;
+            const {name, pendingAction, ...subcategories} = category;
             if (name) {
                 const categoryObject: Category = {
                     name,
+                    pendingAction,
                     enabled: categories[name]?.enabled ?? false,
                 };
 
@@ -1015,8 +1020,9 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], i
                 keyForList: option.name,
                 searchText: option.name,
                 tooltipText: option.name,
-                isDisabled: !option.enabled,
+                isDisabled: !option.enabled || option.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 isSelected: !!option.isSelected,
+                pendingAction: option.pendingAction,
             });
 
             return;
@@ -1036,8 +1042,9 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], i
                 keyForList: searchText,
                 searchText,
                 tooltipText: optionName,
-                isDisabled: isChild ? !option.enabled : true,
+                isDisabled: isChild ? !option.enabled || option.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : true,
                 isSelected: isChild ? !!option.isSelected : selectedOptionsName.includes(searchText),
+                pendingAction: option.pendingAction,
             });
         });
     });
@@ -1173,7 +1180,7 @@ function getCategoryListSections(
  *
  * @param tags - an initial tag array
  */
-function getTagsOptions(tags: Array<Pick<PolicyTag, 'name' | 'enabled'>>, selectedOptions?: SelectedTagOption[]): Option[] {
+function getTagsOptions(tags: Array<Pick<PolicyTag, 'name' | 'enabled' | 'pendingAction'>>, selectedOptions?: SelectedTagOption[]): Option[] {
     return tags.map((tag) => {
         // This is to remove unnecessary escaping backslash in tag name sent from backend.
         const cleanedName = PolicyUtils.getCleanedTagName(tag.name);
@@ -1182,8 +1189,9 @@ function getTagsOptions(tags: Array<Pick<PolicyTag, 'name' | 'enabled'>>, select
             keyForList: tag.name,
             searchText: tag.name,
             tooltipText: cleanedName,
-            isDisabled: !tag.enabled,
+            isDisabled: !tag.enabled || tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             isSelected: selectedOptions?.some((selectedTag) => selectedTag.name === tag.name),
+            pendingAction: tag.pendingAction,
         };
     });
 }
@@ -1386,14 +1394,15 @@ function sortTaxRates(taxRates: TaxRates): TaxRate[] {
  * Builds the options for taxRates
  */
 function getTaxRatesOptions(taxRates: Array<Partial<TaxRate>>): TaxRatesOption[] {
-    return taxRates.map(({code, modifiedName, isDisabled, isSelected}) => ({
+    return taxRates.map(({code, modifiedName, isDisabled, isSelected, pendingAction}) => ({
         code,
         text: modifiedName,
         keyForList: modifiedName,
         searchText: modifiedName,
         tooltipText: modifiedName,
-        isDisabled,
+        isDisabled: !!isDisabled || pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         isSelected,
+        pendingAction,
     }));
 }
 
