@@ -1356,7 +1356,7 @@ function buildOnyxDataForTrackExpense(
     failureData.push({
         onyxMethod: Onyx.METHOD.SET,
         key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
-        value: quickAction,
+        value: quickAction ?? null,
     });
 
     if (iouReport) {
@@ -1593,7 +1593,7 @@ function getDeleteTrackExpenseInformation(
         failureData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: transaction,
+            value: transaction ?? null,
         });
     }
 
@@ -1601,7 +1601,7 @@ function getDeleteTrackExpenseInformation(
         failureData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-            value: transactionViolations,
+            value: transactionViolations ?? null,
         });
     }
 
@@ -1666,8 +1666,8 @@ function getSendInvoiceInformation(
     const {amount = 0, currency = '', created = '', merchant = '', category = '', tag = '', taxCode = '', taxAmount = 0, billable, comment, participants} = transaction ?? {};
     const trimmedComment = (comment?.comment ?? '').trim();
     const senderWorkspaceID = participants?.find((participant) => participant?.isSender)?.policyID ?? '';
-    const receiverParticipant = participants?.find((participant) => participant?.accountID);
-    const receiverAccountID = receiverParticipant?.accountID ?? -1;
+    const receiverParticipant = participants?.find((participant) => participant?.accountID) ?? invoiceChatReport?.invoiceReceiver;
+    const receiverAccountID = receiverParticipant && 'accountID' in receiverParticipant && receiverParticipant.accountID ? receiverParticipant.accountID : -1;
     let receiver = ReportUtils.getPersonalDetailsForAccountID(receiverAccountID);
     let optimisticPersonalDetailListAction = {};
 
@@ -1676,7 +1676,7 @@ function getSendInvoiceInformation(
     let chatReport = !isEmptyObject(invoiceChatReport) && invoiceChatReport?.reportID ? invoiceChatReport : null;
 
     if (!chatReport) {
-        chatReport = ReportUtils.getInvoiceChatByParticipants(senderWorkspaceID, receiverAccountID);
+        chatReport = ReportUtils.getInvoiceChatByParticipants(senderWorkspaceID, receiverAccountID) ?? null;
     }
 
     if (!chatReport) {
@@ -1720,11 +1720,12 @@ function getSendInvoiceInformation(
     // STEP 4: Add optimistic personal details for participant
     const shouldCreateOptimisticPersonalDetails = isNewChatReport && !allPersonalDetails[receiverAccountID];
     if (shouldCreateOptimisticPersonalDetails) {
+        const receiverLogin = receiverParticipant && 'login' in receiverParticipant && receiverParticipant.login ? receiverParticipant.login : '';
         receiver = {
             accountID: receiverAccountID,
             avatar: UserUtils.getDefaultAvatarURL(receiverAccountID),
-            displayName: LocalePhoneNumber.formatPhoneNumber(receiverParticipant?.login ?? ''),
-            login: receiverParticipant?.login,
+            displayName: LocalePhoneNumber.formatPhoneNumber(receiverLogin),
+            login: receiverLogin,
             isOptimisticPersonalDetail: true,
         };
 
@@ -1829,7 +1830,7 @@ function getMoneyRequestInformation(
     }
 
     if (!chatReport) {
-        chatReport = ReportUtils.getChatByParticipants([payerAccountID, payeeAccountID]);
+        chatReport = ReportUtils.getChatByParticipants([payerAccountID, payeeAccountID]) ?? null;
     }
 
     // If we still don't have a report, it likely doens't exist and we need to build an optimistic one
@@ -2903,7 +2904,7 @@ type UpdateMoneyRequestTaxRateParams = {
     transactionID: string;
     optimisticReportActionID: string;
     taxCode: string;
-    taxAmount?: number;
+    taxAmount: number;
     policy: OnyxEntry<OnyxTypes.Policy>;
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>;
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
@@ -2913,7 +2914,7 @@ type UpdateMoneyRequestTaxRateParams = {
 function updateMoneyRequestTaxRate({transactionID, optimisticReportActionID, taxCode, taxAmount, policy, policyTagList, policyCategories}: UpdateMoneyRequestTaxRateParams) {
     const transactionChanges = {
         taxCode,
-        ...(taxAmount && {taxAmount}),
+        taxAmount,
     };
     const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, optimisticReportActionID, transactionChanges, policy, policyTagList, policyCategories, true);
     API.write('UpdateMoneyRequestTaxRate', params, onyxData);
@@ -3716,6 +3717,8 @@ function createSplitsAndOnyxData(
     existingSplitChatReportID = '',
     billable = false,
     iouRequestType: IOURequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
+    taxCode = '',
+    taxAmount = 0,
 ): SplitsAndOnyxData {
     const currentUserEmailForIOUSplit = PhoneNumber.addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -3737,8 +3740,8 @@ function createSplitsAndOnyxData(
         undefined,
         category,
         tag,
-        undefined,
-        undefined,
+        taxCode,
+        taxAmount,
         billable,
     );
 
@@ -3893,14 +3896,16 @@ function createSplitsAndOnyxData(
 
     // Loop through participants creating individual chats, iouReports and reportActionIDs as needed
     const currentUserAmount = splitShares?.[currentUserAccountID]?.amount ?? IOUUtils.calculateAmount(participants.length, amount, currency, true);
+    const currentUserTaxAmount = IOUUtils.calculateAmount(participants.length, taxAmount, currency, true);
 
-    const splits: Split[] = [{email: currentUserEmailForIOUSplit, accountID: currentUserAccountID, amount: currentUserAmount}];
+    const splits: Split[] = [{email: currentUserEmailForIOUSplit, accountID: currentUserAccountID, amount: currentUserAmount, taxAmount: currentUserTaxAmount}];
 
     const hasMultipleParticipants = participants.length > 1;
     participants.forEach((participant) => {
         // In a case when a participant is a workspace, even when a current user is not an owner of the workspace
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(participant);
         const splitAmount = splitShares?.[participant.accountID ?? -1]?.amount ?? IOUUtils.calculateAmount(participants.length, amount, currency, false);
+        const splitTaxAmount = IOUUtils.calculateAmount(participants.length, taxAmount, currency, false);
 
         // To exclude someone from a split, the amount can be 0. The scenario for this is when creating a split from a group chat, we have remove the option to deselect users to exclude them.
         // We can input '0' next to someone we want to exclude.
@@ -3970,8 +3975,8 @@ function createSplitsAndOnyxData(
             undefined,
             category,
             tag,
-            undefined,
-            undefined,
+            taxCode,
+            ReportUtils.isExpenseReport(oneOnOneIOUReport) ? -splitTaxAmount : splitTaxAmount,
             billable,
         );
 
@@ -4063,6 +4068,7 @@ function createSplitsAndOnyxData(
             reportPreviewReportActionID: oneOnOneReportPreviewAction.reportActionID,
             transactionThreadReportID: optimisticTransactionThread.reportID,
             createdReportActionIDForThread: optimisticCreatedActionForTransactionThread.reportActionID,
+            taxAmount: splitTaxAmount,
         };
 
         splits.push(individualSplit);
@@ -4116,6 +4122,8 @@ type SplitBillActionsParams = {
     existingSplitChatReportID?: string;
     splitShares?: SplitShares;
     splitPayerAccountIDs?: number[];
+    taxCode?: string;
+    taxAmount?: number;
 };
 
 /**
@@ -4138,6 +4146,8 @@ function splitBill({
     existingSplitChatReportID = '',
     splitShares = {},
     splitPayerAccountIDs = [],
+    taxCode = '',
+    taxAmount = 0,
 }: SplitBillActionsParams) {
     const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData(
@@ -4155,6 +4165,8 @@ function splitBill({
         existingSplitChatReportID,
         billable,
         iouRequestType,
+        taxCode,
+        taxAmount,
     );
 
     const parameters: SplitBillParams = {
@@ -4174,6 +4186,8 @@ function splitBill({
         policyID: splitData.policyID,
         chatType: splitData.chatType,
         splitPayerAccountIDs,
+        taxCode,
+        taxAmount,
     };
 
     API.write(WRITE_COMMANDS.SPLIT_BILL, parameters, onyxData);
@@ -4200,6 +4214,8 @@ function splitBillAndOpenReport({
     iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
     splitShares = {},
     splitPayerAccountIDs = [],
+    taxCode = '',
+    taxAmount = 0,
 }: SplitBillActionsParams) {
     const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData(
@@ -4217,6 +4233,8 @@ function splitBillAndOpenReport({
         '',
         billable,
         iouRequestType,
+        taxCode,
+        taxAmount,
     );
 
     const parameters: SplitBillParams = {
@@ -4236,6 +4254,8 @@ function splitBillAndOpenReport({
         policyID: splitData.policyID,
         chatType: splitData.chatType,
         splitPayerAccountIDs,
+        taxCode,
+        taxAmount,
     };
 
     API.write(WRITE_COMMANDS.SPLIT_BILL_AND_OPEN_REPORT, parameters, onyxData);
@@ -5079,10 +5099,11 @@ type UpdateMoneyRequestAmountAndCurrencyParams = {
     transactionThreadReportID: string;
     currency: string;
     amount: number;
-    taxAmount?: number;
+    taxAmount: number;
     policy?: OnyxEntry<OnyxTypes.Policy>;
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>;
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
+    taxCode: string;
 };
 
 /** Updates the amount and currency fields of an expense */
@@ -5095,11 +5116,13 @@ function updateMoneyRequestAmountAndCurrency({
     policy,
     policyTagList,
     policyCategories,
+    taxCode,
 }: UpdateMoneyRequestAmountAndCurrencyParams) {
     const transactionChanges = {
         amount,
         currency,
-        ...(taxAmount && {taxAmount}),
+        taxCode,
+        taxAmount,
     };
     const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.parentReportID}`] ?? null;
@@ -5316,7 +5339,7 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: transaction,
+            value: transaction ?? null,
         },
     ];
 
@@ -5324,7 +5347,7 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
         failureData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-            value: transactionViolations,
+            value: transactionViolations ?? null,
         });
     }
 
@@ -6421,7 +6444,7 @@ function detachReceipt(transactionID: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
-                ...transaction,
+                ...(transaction ?? null),
                 errors: ErrorUtils.getMicroSecondOnyxError('iou.error.receiptDeleteFailureError'),
             },
         },
@@ -6485,22 +6508,20 @@ function setMoneyRequestParticipantsFromReport(transactionID: string, report: On
 
     if (ReportUtils.isPolicyExpenseChat(chatReport) || shouldAddAsReport) {
         participants = [{accountID: 0, reportID: chatReport?.reportID, isPolicyExpenseChat: ReportUtils.isPolicyExpenseChat(chatReport), selected: true}];
+    } else if (ReportUtils.isInvoiceRoom(chatReport)) {
+        participants = [
+            {reportID: chatReport?.reportID, selected: true},
+            {
+                policyID: chatReport?.policyID,
+                isSender: true,
+                selected: false,
+            },
+        ];
     } else {
         const chatReportOtherParticipants = Object.keys(chatReport?.participants ?? {})
             .map(Number)
             .filter((accountID) => accountID !== currentUserAccountID);
         participants = chatReportOtherParticipants.map((accountID) => ({accountID, selected: true}));
-
-        if (ReportUtils.isInvoiceRoom(chatReport)) {
-            participants = [
-                ...participants,
-                {
-                    policyID: chatReport?.policyID,
-                    isSender: true,
-                    selected: false,
-                },
-            ];
-        }
     }
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants, participantsAutoAssigned: true});

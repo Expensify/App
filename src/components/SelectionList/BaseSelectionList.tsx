@@ -26,6 +26,7 @@ import Log from '@libs/Log';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import arraysEqual from '@src/utils/arraysEqual';
 import type {BaseSelectionListProps, ButtonOrCheckBoxRoles, FlattenedSectionsReturn, ListItem, SectionListDataType, SectionWithIndexOffset, SelectionListHandle} from './types';
 
 function BaseSelectionList<TItem extends ListItem>(
@@ -76,6 +77,9 @@ function BaseSelectionList<TItem extends ListItem>(
         sectionTitleStyles,
         textInputAutoFocus = true,
         shouldTextInputInterceptSwipe = false,
+        listHeaderContent,
+        onEndReached = () => {},
+        onEndReachedThreshold,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -171,7 +175,7 @@ function BaseSelectionList<TItem extends ListItem>(
     }, [canSelectMultiple, sections]);
 
     const [slicedSections, ShowMoreButtonInstance] = useMemo(() => {
-        let remainingOptionsLimit = CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * currentPage;
+        let remainingOptionsLimit = CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage;
         const processedSections = getSectionsWithIndexOffset(
             sections.map((section) => {
                 const data = !isEmpty(section.data) && remainingOptionsLimit > 0 ? section.data.slice(0, remainingOptionsLimit) : [];
@@ -184,11 +188,11 @@ function BaseSelectionList<TItem extends ListItem>(
             }),
         );
 
-        const shouldShowMoreButton = flattenedSections.allOptions.length > CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * currentPage;
+        const shouldShowMoreButton = flattenedSections.allOptions.length > CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage;
         const showMoreButton = shouldShowMoreButton ? (
             <ShowMoreButton
                 containerStyle={[styles.mt2, styles.mb5]}
-                currentCount={CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * currentPage}
+                currentCount={CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage}
                 totalCount={flattenedSections.allOptions.length}
                 onPress={incrementPage}
             />
@@ -226,11 +230,21 @@ function BaseSelectionList<TItem extends ListItem>(
         [flattenedSections.allOptions],
     );
 
+    const [disabledIndexes, setDisabledIndexes] = useState(flattenedSections.disabledOptionsIndexes);
+    useEffect(() => {
+        if (arraysEqual(disabledIndexes, flattenedSections.disabledOptionsIndexes)) {
+            return;
+        }
+
+        setDisabledIndexes(flattenedSections.disabledOptionsIndexes);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [flattenedSections.disabledOptionsIndexes]);
+
     // If `initiallyFocusedOptionKey` is not passed, we fall back to `-1`, to avoid showing the highlight on the first member
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: flattenedSections.allOptions.findIndex((option) => option.keyForList === initiallyFocusedOptionKey),
-        maxIndex: Math.min(flattenedSections.allOptions.length - 1, CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * currentPage - 1),
-        disabledIndexes: flattenedSections.disabledOptionsIndexes,
+        maxIndex: Math.min(flattenedSections.allOptions.length - 1, CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage - 1),
+        disabledIndexes,
         isActive: true,
         onFocusedIndexChange: (index: number) => {
             scrollToIndex(index, true);
@@ -321,7 +335,7 @@ function BaseSelectionList<TItem extends ListItem>(
             return <section.CustomSectionHeader section={section} />;
         }
 
-        if (!section.title || isEmptyObject(section.data)) {
+        if (!section.title || isEmptyObject(section.data) || listHeaderContent) {
             return null;
         }
 
@@ -331,10 +345,43 @@ function BaseSelectionList<TItem extends ListItem>(
             // we need to know the heights of all list items up-front in order to synchronously compute the layout of any given list item.
             // So be aware that if you adjust the content of the section header (for example, change the font size), you may need to adjust this explicit height as well.
             <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter, sectionTitleStyles]}>
-                <Text style={[styles.ph4, styles.textLabelSupporting]}>{section.title}</Text>
+                <Text style={[styles.ph5, styles.textLabelSupporting]}>{section.title}</Text>
             </View>
         );
     };
+
+    const header = () => (
+        <>
+            {!headerMessage && canSelectMultiple && shouldShowSelectAll && (
+                <View style={[styles.userSelectNone, styles.peopleRow, styles.ph5, styles.pb3, listHeaderWrapperStyle, styles.selectionListStickyHeader]}>
+                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                        <Checkbox
+                            accessibilityLabel={translate('workspace.people.selectAll')}
+                            isChecked={flattenedSections.allSelected}
+                            onPress={selectAllRow}
+                            disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
+                        />
+                        {!customListHeader && (
+                            <PressableWithFeedback
+                                style={[styles.userSelectNone, styles.flexRow, styles.alignItemsCenter]}
+                                onPress={selectAllRow}
+                                accessibilityLabel={translate('workspace.people.selectAll')}
+                                role="button"
+                                accessibilityState={{checked: flattenedSections.allSelected}}
+                                disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
+                                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                                onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
+                            >
+                                <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
+                            </PressableWithFeedback>
+                        )}
+                    </View>
+                    {customListHeader}
+                </View>
+            )}
+            {!headerMessage && !canSelectMultiple && customListHeader}
+        </>
+    );
 
     const renderItem = ({item, index, section}: SectionListRenderItemInfo<TItem, SectionWithIndexOffset<TItem>>) => {
         const normalizedIndex = index + (section?.indexOffset ?? 0);
@@ -359,7 +406,12 @@ function BaseSelectionList<TItem extends ListItem>(
                 rightHandSideComponent={rightHandSideComponent}
                 keyForList={item.keyForList ?? ''}
                 isMultilineSupported={isRowMultilineSupported}
-                onFocus={() => setFocusedIndex(normalizedIndex)}
+                onFocus={() => {
+                    if (isDisabled) {
+                        return;
+                    }
+                    setFocusedIndex(normalizedIndex);
+                }}
                 shouldSyncFocus={!isTextInputFocusedRef.current}
             />
         );
@@ -515,9 +567,9 @@ function BaseSelectionList<TItem extends ListItem>(
     return (
         <SafeAreaConsumer>
             {({safeAreaPaddingBottomStyle}) => (
-                <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
+                <View style={[styles.flex1, (!isKeyboardShown || !!footerContent || showConfirmButton) && safeAreaPaddingBottomStyle, containerStyle]}>
                     {shouldShowTextInput && (
-                        <View style={[styles.ph4, styles.pb3]}>
+                        <View style={[styles.ph5, styles.pb3]}>
                             <TextInput
                                 ref={(element) => {
                                     innerTextInputRef.current = element as RNTextInput;
@@ -567,39 +619,17 @@ function BaseSelectionList<TItem extends ListItem>(
                         <OptionsListSkeletonView shouldAnimate />
                     ) : (
                         <>
-                            {!headerMessage && canSelectMultiple && shouldShowSelectAll && (
-                                <View style={[styles.userSelectNone, styles.peopleRow, styles.ph5, styles.pb3, listHeaderWrapperStyle]}>
-                                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                        <Checkbox
-                                            accessibilityLabel={translate('workspace.people.selectAll')}
-                                            isChecked={flattenedSections.allSelected}
-                                            onPress={selectAllRow}
-                                            disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
-                                        />
-                                        {!customListHeader && (
-                                            <PressableWithFeedback
-                                                style={[styles.userSelectNone, styles.flexRow, styles.alignItemsCenter]}
-                                                onPress={selectAllRow}
-                                                accessibilityLabel={translate('workspace.people.selectAll')}
-                                                role="button"
-                                                accessibilityState={{checked: flattenedSections.allSelected}}
-                                                disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
-                                                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                                                onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
-                                            >
-                                                <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
-                                            </PressableWithFeedback>
-                                        )}
-                                    </View>
-                                    {customListHeader}
-                                </View>
-                            )}
-                            {!headerMessage && !canSelectMultiple && customListHeader}
+                            {!listHeaderContent && header()}
                             <SectionList
                                 ref={listRef}
                                 sections={slicedSections}
                                 stickySectionHeadersEnabled={false}
-                                renderSectionHeader={renderSectionHeader}
+                                renderSectionHeader={(arg) => (
+                                    <>
+                                        {renderSectionHeader(arg)}
+                                        {listHeaderContent && header()}
+                                    </>
+                                )}
                                 renderItem={renderItem}
                                 getItemLayout={getItemLayout}
                                 onScroll={onScroll}
@@ -618,6 +648,9 @@ function BaseSelectionList<TItem extends ListItem>(
                                 onLayout={onSectionListLayout}
                                 style={(!maxToRenderPerBatch || (shouldHideListOnInitialRender && isInitialSectionListRender)) && styles.opacity0}
                                 ListFooterComponent={listFooterContent ?? ShowMoreButtonInstance}
+                                ListHeaderComponent={listHeaderContent && listHeaderContent}
+                                onEndReached={onEndReached}
+                                onEndReachedThreshold={onEndReachedThreshold}
                             />
                             {children}
                         </>

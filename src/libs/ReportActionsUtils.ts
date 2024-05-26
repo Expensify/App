@@ -32,6 +32,7 @@ import Log from './Log';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import type {OptimisticIOUReportAction} from './ReportUtils';
+import StringUtils from './StringUtils';
 import * as TransactionUtils from './TransactionUtils';
 
 type LastVisibleMessage = {
@@ -404,8 +405,7 @@ function getMostRecentIOURequestActionID(reportActions: ReportAction[] | null): 
 function extractLinksFromMessageHtml(reportAction: OnyxEntry<ReportAction>): string[] {
     const htmlContent = reportAction?.message?.[0]?.html;
 
-    // Regex to get link in href prop inside of <a/> component
-    const regex = /<a\s+(?:[^>]*?\s+)?href="([^"]*)"/gi;
+    const regex = CONST.REGEX_LINK_IN_ANCHOR;
 
     if (!htmlContent) {
         return [];
@@ -657,7 +657,7 @@ function getLastVisibleMessage(reportID: string, actionsToMerge: OnyxCollection<
 
     let messageText = message?.text ?? '';
     if (messageText) {
-        messageText = String(messageText).replace(CONST.REGEX.LINE_BREAK, ' ').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
+        messageText = StringUtils.lineBreaksToSpaces(String(messageText)).substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
     }
     return {
         lastMessageText: messageText,
@@ -667,7 +667,7 @@ function getLastVisibleMessage(reportID: string, actionsToMerge: OnyxCollection<
 /**
  * A helper method to filter out report actions keyed by sequenceNumbers.
  */
-function filterOutDeprecatedReportActions(reportActions: ReportActions | null): ReportAction[] {
+function filterOutDeprecatedReportActions(reportActions: OnyxEntry<ReportActions>): ReportAction[] {
     return Object.entries(reportActions ?? {})
         .filter(([key, reportAction]) => !isReportActionDeprecated(reportAction, key))
         .map((entry) => entry[1]);
@@ -679,7 +679,7 @@ function filterOutDeprecatedReportActions(reportActions: ReportActions | null): 
  * to ensure they will always be displayed in the same order (in case multiple actions have the same timestamp).
  * This is all handled with getSortedReportActions() which is used by several other methods to keep the code DRY.
  */
-function getSortedReportActionsForDisplay(reportActions: ReportActions | null | ReportAction[], shouldIncludeInvisibleActions = false): ReportAction[] {
+function getSortedReportActionsForDisplay(reportActions: OnyxEntry<ReportActions> | ReportAction[], shouldIncludeInvisibleActions = false): ReportAction[] {
     let filteredReportActions: ReportAction[] = [];
     if (!reportActions) {
         return [];
@@ -703,7 +703,7 @@ function getSortedReportActionsForDisplay(reportActions: ReportActions | null | 
  * Additionally, archived #admins and #announce do not have the closed report action so we will return null if none is found.
  *
  */
-function getLastClosedReportAction(reportActions: ReportActions | null): OnyxEntry<ReportAction> {
+function getLastClosedReportAction(reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> {
     // If closed report action is not present, return early
     if (!Object.values(reportActions ?? {}).some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED)) {
         return null;
@@ -756,7 +756,7 @@ function getLinkedTransactionID(reportActionOrID: string | OnyxEntry<ReportActio
     return reportAction.originalMessage?.IOUTransactionID ?? null;
 }
 
-function getReportAction(reportID: string, reportActionID: string): OnyxEntry<ReportAction> {
+function getReportAction(reportID: string, reportActionID: string): ReportAction | null {
     return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]?.[reportActionID] ?? null;
 }
 
