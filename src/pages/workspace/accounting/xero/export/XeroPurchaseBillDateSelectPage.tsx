@@ -1,5 +1,5 @@
-import React, {useCallback, useMemo} from 'react';
 import {isEmpty} from 'lodash';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import RadioListItem from '@components/SelectionList/RadioListItem';

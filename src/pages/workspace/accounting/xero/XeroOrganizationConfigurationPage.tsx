@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import { isEmpty } from 'lodash';
+import {isEmpty} from 'lodash';
 import React, {useMemo} from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';

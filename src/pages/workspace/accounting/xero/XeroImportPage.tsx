@@ -1,5 +1,5 @@
+import {isEmpty} from 'lodash';
 import React, {useMemo} from 'react';
-import { isEmpty } from 'lodash';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';

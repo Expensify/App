@@ -1,5 +1,5 @@
+import {isEmpty} from 'lodash';
 import React, {useCallback, useMemo} from 'react';
-import { isEmpty } from 'lodash';
 import {View} from 'react-native';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';

@@ -1,5 +1,5 @@
+import {isEmpty} from 'lodash';
 import React, {useMemo} from 'react';
-import { isEmpty } from 'lodash';
 import ConnectionLayout from '@components/ConnectionLayout';
 import type {MenuItemProps} from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';

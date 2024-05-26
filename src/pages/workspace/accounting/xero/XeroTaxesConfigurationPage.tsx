@@ -1,5 +1,5 @@
+import {isEmpty} from 'lodash';
 import React from 'react';
-import { isEmpty } from 'lodash';
 import ConnectionLayout from '@components/ConnectionLayout';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
