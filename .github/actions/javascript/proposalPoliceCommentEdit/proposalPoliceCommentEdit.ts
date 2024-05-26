@@ -73,7 +73,7 @@ async function processIssueCommentEdit(octokit: InstanceType<typeof GitHubType>)
                                 // bot related action keyword
                                 let extractedNotice = assistantResponse.split('[EDIT_COMMENT] ')?.[1]?.replace('"', '');
                                 // format the github's updated_at like: 2024-01-24 13:15:24 UTC not 2024-01-28 18:18:28.000 UTC
-                                const date = new Date(payload.comment?.updated_at as string ?? '');
+                                const date = new Date((payload.comment?.updated_at as string) ?? '');
                                 const formattedDate = `${date.toISOString()?.split('.')?.[0]?.replace('T', ' ')} UTC`;
                                 extractedNotice = extractedNotice.replace('{updated_timestamp}', formattedDate);
 
