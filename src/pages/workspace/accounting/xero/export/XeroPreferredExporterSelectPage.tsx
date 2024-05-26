@@ -1,4 +1,4 @@
-import isEmpty from 'lodash/isEmpty';
+import {isEmpty} from 'lodash';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import RadioListItem from '@components/SelectionList/RadioListItem';
@@ -94,6 +94,7 @@ function XeroPreferredExporterSelectPage({policy}: WithPolicyConnectionsProps) {
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID))}
             title="workspace.xero.preferredExporter"
+            shouldBeBlocked={isEmpty(policy?.connections?.xero)}
         />
     );
 }

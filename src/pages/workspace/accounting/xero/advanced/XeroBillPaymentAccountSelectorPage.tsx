@@ -1,4 +1,5 @@
 import React, {useCallback, useMemo} from 'react';
+import { isEmpty } from 'lodash';
 import {View} from 'react-native';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
@@ -52,7 +53,7 @@ function XeroBillPaymentAccountSelectorPage({policy}: WithPolicyConnectionsProps
             displayName={XeroBillPaymentAccountSelectorPage.displayName}
             sections={[{data: xeroSelectorOptions}]}
             listItem={RadioListItem}
-            shouldBeBlocked={!syncReimbursedReports}
+            shouldBeBlocked={isEmpty(policy?.connections?.xero) || !syncReimbursedReports}
             onSelectRow={updateAccount}
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
             headerContent={listHeaderComponent}

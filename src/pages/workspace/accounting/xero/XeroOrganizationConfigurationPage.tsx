@@ -1,4 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
+import { isEmpty } from 'lodash';
 import React, {useMemo} from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -59,6 +60,7 @@ function XeroOrganizationConfigurationPage({
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             shouldIncludeSafeAreaPaddingBottom
+            shouldBeBlocked={isEmpty(policy?.connections?.xero)}
         >
             <OfflineWithFeedback
                 errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.TENANT_ID)}
