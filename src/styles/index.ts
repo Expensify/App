@@ -1665,6 +1665,7 @@ const styles = (theme: ThemeColors) =>
 
         emojisWithinText: {
             fontSize: variables.fontSizeEmojisWithinText,
+            lineHeight: variables.lineHeightComment,
         },
 
         emojisOnlyComposer: {

@@ -69,7 +69,10 @@ function Composer(
     }, [shouldClear, onClear]);
 
     const maxHeightStyle = useMemo(() => StyleUtils.getComposerMaxHeightStyle(maxLines, isComposerFullSize), [StyleUtils, isComposerFullSize, maxLines]);
-    const composerStyle = useMemo(() => StyleSheet.flatten([style, textContainsOnlyEmojis ? {lineHeight: variables.lineHeightEmojisOnlyComposer} : null]), [style, textContainsOnlyEmojis]);
+    const composerStyle = useMemo(
+        () => StyleSheet.flatten([style, {lineHeight: textContainsOnlyEmojis ? variables.lineHeightEmojisOnlyComposer : variables.lineHeightEmojisWithTextComposer}]),
+        [style, textContainsOnlyEmojis],
+    );
 
     return (
         <RNMarkdownTextInput
