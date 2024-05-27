@@ -13,7 +13,7 @@ const insertAtCaret = (target: HTMLElement, text: string) => {
     if (selection?.rangeCount) {
         const range = selection.getRangeAt(0);
         range.deleteContents();
-        const sanitizedText = text.replace(CONST.REGEX.TRAILING_CRLF, '');  // Remove trailing Carriage Return and Line feed
+        const sanitizedText = text.replace(CONST.REGEX.TRAILING_CRLF, ''); // Remove trailing Carriage Return and Line feed
         const node = document.createTextNode(sanitizedText);
         range.insertNode(node);
 
