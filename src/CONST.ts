@@ -3675,6 +3675,7 @@ const CONST = {
         TAX_OUT_OF_POLICY: 'taxOutOfPolicy',
         TAX_RATE_CHANGED: 'taxRateChanged',
         TAX_REQUIRED: 'taxRequired',
+        HOLD: 'hold',
     },
 
     /** Context menu types */
