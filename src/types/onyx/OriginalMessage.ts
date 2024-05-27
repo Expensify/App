@@ -346,7 +346,9 @@ type OriginalMessageDismissedViolation = {
 type OriginalMessageTripRoomPreview = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.TRIPPREVIEW;
     originalMessage: {
-        // @TODO: Add types here
+        linkedReportID: string;
+        lastModified?: string;
+        whisperedTo?: number[];
     };
 };
 
