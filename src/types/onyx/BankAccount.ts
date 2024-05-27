@@ -16,8 +16,7 @@ type BankAccountAdditionalData = {
     /** In which bank is the bank account */
     bankName?: string;
 
-    // TODO: Confirm this
-    /** Whether the bank account is local or international */
+    /** Whether the bank account details were obtained for local transfer or international wire */
     fieldsType?: string;
 
     /** In which country is the bank account */

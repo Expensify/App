@@ -30,12 +30,6 @@ type TransactionViolationData = {
     /** Name of the tag that triggered this violation */
     tagName?: string;
 
-    // TODO: Doesn't seem to be used in app
-    categoryLimit?: string;
-
-    // TODO: Doesn't seem to be used in app
-    limit?: string;
-
     /** Name of the category that triggered this violation */
     category?: string;
 

@@ -8,8 +8,11 @@ type Task = {
     /** Description of the Task */
     description?: string;
 
-    // TODO: Make sure this field exists in the API
-    /** Share destination of the Task */
+    /** 
+     * Report ID of the report where the task will be shared
+     * 
+     * (Note: This variable doesn't exist in the API. It's only used locally for UI purposes)
+     */
     shareDestination?: string;
 
     /** The task report if it's currently being edited */

@@ -78,28 +78,6 @@ type ExpensifyCardDetails = {
 
     /** Card Verification Value number */
     cvv: string;
-
-    // TODO: Doesn't seem to be used in app
-    /** Card owner address */
-    address: {
-        /** Address line 1 */
-        street: string;
-
-        /** Address line 2 */
-        street2: string;
-
-        /** City */
-        city: string;
-
-        /** State */
-        state: string;
-
-        /** Zip code */
-        zip: string;
-
-        /** Country */
-        country: string;
-    };
 };
 
 /** Record of Expensify cards, indexed by cardID */
