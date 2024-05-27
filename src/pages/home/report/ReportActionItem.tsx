@@ -505,6 +505,8 @@ function ReportActionItem({
                 onPress: () => Report.resolveActionableMentionWhisper(report.reportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING),
             },
         ];
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [action, isActionableWhisper, report.reportID]);
 
     const renderThreadDivider = useMemo(
@@ -1082,13 +1084,13 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
     },
     transaction: {
         key: ({parentReportActionForTransactionThread}) => {
-            const originalMessage = ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(parentReportActionForTransactionThread);
-            const transactionID = originalMessage.IOUTransactionID ? originalMessage.IOUTransactionID : 0;
+            const originalMessage = ReportActionsUtils.getReportActionOriginalMessage<IOUMessage | undefined>(parentReportActionForTransactionThread);
+            const transactionID = originalMessage?.IOUTransactionID ? originalMessage?.IOUTransactionID : 0;
             return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
         },
     },
     linkedTransactionRouteError: {
-        key: ({action}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(action)?.IOUTransactionID ?? 0}`,
+        key: ({action}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${ReportActionsUtils.getReportActionOriginalMessage<IOUMessage | undefined>(action)?.IOUTransactionID ?? 0}`,
         selector: (transaction: OnyxEntry<OnyxTypes.Transaction>) => transaction?.errorFields?.route ?? null,
     },
 })(
