@@ -21,7 +21,7 @@ import type {
     OriginalMessageReimbursementDequeued,
 } from '@src/types/onyx/OriginalMessage';
 import type Report from '@src/types/onyx/Report';
-import type {Message, OriginalMessage, ReportActionBase, ReportActionMessageJSON, ReportActions} from '@src/types/onyx/ReportAction';
+import type {Message, ReportActionBase, ReportActionMessageJSON, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -1006,10 +1006,10 @@ function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>): 
     ];
 }
 
-function getReportActionHtml(reportAction: PartialReportAction) {
+function getReportActionHtml(reportAction: PartialReportAction): string {
     // @ts-expect-error Handle refactor not using message array, will remove when Back End is changed complete https://github.com/Expensify/App/issues/39797
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return reportAction?.message?.html || reportAction?.message?.[0]?.html;
+    return (reportAction?.message?.html as string) || reportAction?.message?.[0]?.html;
 }
 
 function getReportActionText(reportAction: PartialReportAction): string {

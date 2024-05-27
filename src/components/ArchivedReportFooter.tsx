@@ -11,7 +11,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Report, ReportAction} from '@src/types/onyx';
-import {Closed} from '@src/types/onyx/OriginalMessage';
+import type {Closed} from '@src/types/onyx/OriginalMessage';
 import Banner from './Banner';
 
 type ArchivedReportFooterOnyxProps = {

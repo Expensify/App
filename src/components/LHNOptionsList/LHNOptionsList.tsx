@@ -22,7 +22,7 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {IOUMessage} from '@src/types/onyx/OriginalMessage';
+import type {IOUMessage} from '@src/types/onyx/OriginalMessage';
 import OptionRowLHNData from './OptionRowLHNData';
 import type {LHNOptionsListOnyxProps, LHNOptionsListProps, RenderItemProps} from './types';
 
