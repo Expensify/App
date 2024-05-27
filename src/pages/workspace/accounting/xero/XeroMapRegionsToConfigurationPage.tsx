@@ -50,7 +50,7 @@ function XeroMapRegionsToConfigurationPage({policy}: WithPolicyProps) {
             headerTitle="workspace.xero.mapXeroRegionsTo"
             title="workspace.xero.mapXeroRegionsToDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
-            policyID={policyID && category?.id ? policyID : ''}
+            policyID={policyID && category?.id ? policyID : '-1'}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             titleStyle={[styles.pb2, styles.ph5]}
             contentContainerStyle={[styles.flex1]}
