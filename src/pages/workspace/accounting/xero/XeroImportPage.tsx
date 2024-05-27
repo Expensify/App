@@ -1,4 +1,5 @@
 import React, {useMemo} from 'react';
+import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
@@ -10,7 +11,6 @@ import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import ConnectionLayout from '@components/ConnectionLayout';
 
 function XeroImportPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
@@ -83,22 +83,22 @@ function XeroImportPage({policy}: WithPolicyProps) {
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
         >
-                    <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.xero.importDescription')}</Text>
-            
-                    {sections.map((section) => (
-                        <OfflineWithFeedback
-                            key={section.description}
-                            pendingAction={section.pendingAction}
-                        >
-                            <MenuItemWithTopDescription
-                                title={section.title}
-                                description={section.description}
-                                shouldShowRightIcon
-                                onPress={section.action}
-                                brickRoadIndicator={section.hasError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            />
-                        </OfflineWithFeedback>
-                    ))}
+            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.xero.importDescription')}</Text>
+
+            {sections.map((section) => (
+                <OfflineWithFeedback
+                    key={section.description}
+                    pendingAction={section.pendingAction}
+                >
+                    <MenuItemWithTopDescription
+                        title={section.title}
+                        description={section.description}
+                        shouldShowRightIcon
+                        onPress={section.action}
+                        brickRoadIndicator={section.hasError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    />
+                </OfflineWithFeedback>
+            ))}
         </ConnectionLayout>
     );
 }

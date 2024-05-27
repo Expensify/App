@@ -1,5 +1,5 @@
+import {isEmpty} from 'lodash';
 import React from 'react';
-import { isEmpty } from 'lodash';
 import useLocalize from '@hooks/useLocalize';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {PolicyAccessVariant} from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -9,7 +9,6 @@ import type {ConnectionName, PolicyFeatureName} from '@src/types/onyx/Policy';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import ScreenWrapper from './ScreenWrapper';
 import SelectionList from './SelectionList';
-
 import type RadioListItem from './SelectionList/RadioListItem';
 import type TableListItem from './SelectionList/TableListItem';
 import type {ListItem, SectionListDataType} from './SelectionList/types';
@@ -73,7 +72,7 @@ function SelectionScreen({
     accessVariants,
     featureName,
     shouldBeBlocked,
-    connectionName
+    connectionName,
 }: SelectionScreenProps) {
     const {translate} = useLocalize();
 
