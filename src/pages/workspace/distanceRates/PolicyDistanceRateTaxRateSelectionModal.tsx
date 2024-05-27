@@ -5,7 +5,7 @@ import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
-// import useLocalize from '@hooks/useLocalize';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
@@ -31,7 +31,7 @@ type WorkspaceMemberDetailsPageProps = {
 };
 
 function PolicyDistanceRateTaxRateSelectionModal({isVisible, items, onTaxRateChange, onClose}: WorkspaceMemberDetailsPageProps) {
-    // const {translate} = useLocalize();
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     return (
@@ -48,7 +48,7 @@ function PolicyDistanceRateTaxRateSelectionModal({isVisible, items, onTaxRateCha
                 includePaddingTop={false}
             >
                 <HeaderWithBackButton
-                    title="Tax Rate"
+                    title={translate('workspace.taxes.taxRate')}
                     onBackButtonPress={onClose}
                 />
                 <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>

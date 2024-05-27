@@ -28,11 +28,11 @@ function validateRateValue(values: FormOnyxValues<RateValueForm>, currency: stri
 
 function validateTaxClaimableValue(values: FormOnyxValues<TaxReclaimableForm>, rate: Rate): FormInputErrors<TaxReclaimableForm> {
     const errors: FormInputErrors<TaxReclaimableForm> = {};
-    if (rate.rate) {
+    if (!rate.rate) {
         return errors;
     }
-    if (rate.rate && Number(values.taxClaimableValue) > rate.rate / 100) {
-        errors.taxClaimableValue = 'workspace.reimburse.invalidRateError';
+    if (Number(values.taxClaimableValue) > rate.rate / 100) {
+        errors.taxClaimableValue = 'workspace.taxes.error.updateTaxClaimableFailureMessage';
     }
     return errors;
 }

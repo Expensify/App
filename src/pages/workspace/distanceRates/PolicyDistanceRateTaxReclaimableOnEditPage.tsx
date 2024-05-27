@@ -48,6 +48,7 @@ function PolicyDistanceRateTaxReclaimableOnEditPage({policy, route}: PolicyDista
             {
                 ...rate,
                 attributes: {
+                    ...rate.attributes,
                     taxClaimablePercentage: rate.rate ? (Number(values.taxClaimableValue) * 100) / rate.rate : undefined,
                 },
             },

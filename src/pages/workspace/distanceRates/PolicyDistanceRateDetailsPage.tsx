@@ -1,6 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo, useState} from 'react';
-import {View} from 'react-native';
+import {Keyboard, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
@@ -52,20 +52,20 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
     const rate = customUnit?.rates[rateID];
     const currency = rate?.currency ?? CONST.CURRENCY.USD;
     const taxClaimablePercentage = rate.attributes?.taxClaimablePercentage;
+    const taxRateExternalID = rate.attributes?.taxRateExternalID;
 
     const isTrackTaxEnabled = customUnit.attributes.taxEnabled;
-    const defaultTaxRateID = policy?.taxRates?.defaultExternalID ?? '';
-    const taxRate = `${policy?.taxRates?.taxes[defaultTaxRateID].name} (${policy?.taxRates?.taxes[defaultTaxRateID].value})`;
+    const taxRate = taxRateExternalID ? `${policy?.taxRates?.taxes[taxRateExternalID].name} (${policy?.taxRates?.taxes[taxRateExternalID].value})` : '';
     const taxRateItems: ListItemType[] = useMemo(() => {
         const taxes = policy?.taxRates?.taxes;
         const result = Object.entries(taxes ?? {}).map(([key, value]) => ({
-            value: value.value,
+            value: key,
             text: `${value.name} (${value.value})`,
-            isSelected: defaultTaxRateID === key,
+            isSelected: taxRateExternalID === key,
             keyForList: key,
         }));
         return result;
-    }, [policy, defaultTaxRateID]);
+    }, [policy, taxRateExternalID]);
 
     // Rates can be disabled or deleted as long as in the remaining rates there is always at least one enabled rate and there are no pending delete action
     const canDisableOrDeleteRate = Object.values(customUnit?.rates).some(
@@ -96,6 +96,19 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
         Navigation.goBack();
         Policy.deletePolicyDistanceRates(policyID, customUnit, [rateID]);
         setIsDeleteModalVisible(false);
+    };
+
+    const onTaxRateChange = (newTaxRate: ListItemType) => {
+        Policy.updatePolicyDistanceRateValue(policyID, customUnit, [
+            {
+                ...rate,
+                attributes: {
+                    ...rate.attributes,
+                    taxRateExternalID: newTaxRate.value,
+                },
+            },
+        ]);
+        Keyboard.dismiss();
     };
 
     const rateValueToDisplay = CurrencyUtils.convertAmountToDisplayString(rate?.rate, currency);
@@ -180,7 +193,7 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
                             <PolicyDistanceRateTaxRateSelectionModal
                                 isVisible={isTaxRateSelectionModalVisible}
                                 items={taxRateItems}
-                                onTaxRateChange={() => {}}
+                                onTaxRateChange={onTaxRateChange}
                                 onClose={() => setIsTaxRateSelectionModalVisible(false)}
                             />
                         </View>
