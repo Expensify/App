@@ -10,6 +10,7 @@ import type {Emoji} from '@assets/emojis/types';
 import type {FileObject} from '@components/AttachmentModal';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import * as API from '@libs/API';
+import type {PaginationConfig} from '@libs/API';
 import type {
     AddCommentOrAttachementParams,
     AddEmojiReactionParams,
@@ -925,14 +926,28 @@ function openReport(
 
     parameters.clientLastReadTime = currentReportData?.[reportID]?.lastReadTime ?? '';
 
+    const paginationConfig: PaginationConfig<ReportAction, typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES> = {
+        resourceKey: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+        pageKey: ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES,
+        getItemsFromResponse: (response) => response?.onyxData?.find((data) => data.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`)?.value as ReportActions,
+        sortItems: (reportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true),
+        getItemID: (reportAction) => reportAction.reportActionID,
+        isInitialRequest: true,
+    };
+
     if (isFromDeepLink) {
-        // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_REPORT, parameters, {optimisticData, successData, failureData}).finally(() => {
+        API.paginate(
+            CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS,
+            SIDE_EFFECT_REQUEST_COMMANDS.OPEN_REPORT,
+            parameters,
+            {optimisticData, successData, failureData},
+            paginationConfig,
+        ).finally(() => {
             Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
         });
     } else {
         // eslint-disable-next-line rulesdir/no-multiple-api-calls
-        API.write(WRITE_COMMANDS.OPEN_REPORT, parameters, {optimisticData, successData, failureData});
+        API.paginate(CONST.API_REQUEST_TYPE.WRITE, WRITE_COMMANDS.OPEN_REPORT, parameters, {optimisticData, successData, failureData}, paginationConfig);
     }
 }
 

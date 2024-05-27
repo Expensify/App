@@ -231,3 +231,4 @@ function paginate<TRequestType extends ApiRequestType, TCommand extends CommandO
 }
 
 export {write, makeRequestWithSideEffects, read, paginate};
+export type {PaginationConfig};
