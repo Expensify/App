@@ -22,19 +22,23 @@ type ReportAvatarProps = ReportAvatarOnyxProps & StackScreenProps<AuthScreensPar
 
 function ReportAvatar({report = {} as Report, policies, isLoadingApp = true, route}: ReportAvatarProps) {
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? '0'}`];
-    const title = policy ? ReportUtils.getPolicyName(report, false, policy) : report?.reportName;
+    let title;
     let avatarURL;
     let fileName;
-    const [groupChatDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
 
-    const shouldUseGroupChatDraft = route.params.isNewGroupChat;
+    const shouldUseGroupChatDraft = !!route.params.isNewGroupChat;
+
+    const [groupChatDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {initWithStoredValues: shouldUseGroupChatDraft});
+
     if (shouldUseGroupChatDraft) {
         avatarURL = groupChatDraft?.avatarUri ?? undefined;
         fileName = groupChatDraft?.originalFileName ?? undefined;
+        title = groupChatDraft?.reportName ?? '';
     } else {
         avatarURL = policy ? ReportUtils.getWorkspaceAvatar(report) : report?.avatarUrl;
         // In the case of default workspace avatar, originalFileName prop takes policyID as value to get the color of the avatar
         fileName = policy ? policy?.originalFileName ?? policy?.id : title;
+        title = policy ? ReportUtils.getPolicyName(report, false, policy) : report?.reportName;
     }
 
     return (
