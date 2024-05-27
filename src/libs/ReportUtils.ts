@@ -2749,15 +2749,13 @@ function getLinkedTransaction(reportAction: OnyxEntry<ReportAction | OptimisticI
 
 /**
  * Check if any of the transactions in the report has required missing fields
- *
  */
 function hasMissingSmartscanFields(iouReportID: string): boolean {
-    return TransactionUtils.getAllReportTransactions(iouReportID).some((transaction) => TransactionUtils.hasMissingSmartscanFields(transaction));
+    return TransactionUtils.getAllReportTransactions(iouReportID).some(TransactionUtils.hasMissingSmartscanFields);
 }
 
 /**
  * Check if iouReportID has required missing fields
- *
  */
 function shouldShowRBRForMissingSmartscanFields(iouReportID: string): boolean {
     const reportActions = Object.values(ReportActionsUtils.getAllReportActions(iouReportID));
@@ -2769,7 +2767,10 @@ function shouldShowRBRForMissingSmartscanFields(iouReportID: string): boolean {
         if (isEmptyObject(transaction)) {
             return false;
         }
-        return TransactionUtils.hasMissingSmartscanFields(transaction) && currentUserAccountID === action?.actorAccountID;
+        if (currentUserAccountID !== action?.actorAccountID) {
+            return false;
+        }
+        return TransactionUtils.hasMissingSmartscanFields(transaction);
     });
 }
 
