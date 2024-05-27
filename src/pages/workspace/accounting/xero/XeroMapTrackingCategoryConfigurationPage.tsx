@@ -32,9 +32,7 @@ function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
     const {mappings} = policy?.connections?.xero?.config ?? {};
 
     const currentTrackingCategory = trackingCategories?.find((category) => category.id === categoryId);
-    const currentTrackingCategoryValue = currentTrackingCategory
-        ? mappings?.[`${TRACKING_CATEGORIES_KEY}${currentTrackingCategory.id}`] ?? ''
-        : '';
+    const currentTrackingCategoryValue = currentTrackingCategory ? mappings?.[`${TRACKING_CATEGORIES_KEY}${currentTrackingCategory.id}`] ?? '' : '';
 
     const optionsList = useMemo(
         () =>
@@ -44,7 +42,7 @@ function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
                 keyForList: option,
                 isSelected: option === currentTrackingCategoryValue,
             })),
-        [translate, currentTrackingCategory],
+        [translate, currentTrackingCategoryValue],
     );
 
     const updateMapping = useCallback(
@@ -69,8 +67,8 @@ function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
             titleStyle={[styles.pb2, styles.ph5]}
             contentContainerStyle={[styles.flex1]}
             shouldUseScrollView={false}
-            headerTitleAlreadyTranslated={translate('workspace.xero.mapTrackingCategoryTo', {categoryName: categoryName})}
-            titleAlreadyTranslated={translate('workspace.xero.mapTrackingCategoryToDescription', {categoryName: categoryName})}
+            headerTitleAlreadyTranslated={translate('workspace.xero.mapTrackingCategoryTo', {categoryName})}
+            titleAlreadyTranslated={translate('workspace.xero.mapTrackingCategoryToDescription', {categoryName})}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
         >
             <SelectionList
