@@ -639,9 +639,10 @@ function ReportScreen({
     }, [reportActionIDFromRoute, sortedAllReportActions]);
 
     useEffect(() => {
-        if (isInaccessibleWhisper) {
-            Navigation.setParams({reportActionID: ''});
+        if (!isInaccessibleWhisper) {
+            return;
         }
+        Navigation.setParams({reportActionID: ''});
     }, [isInaccessibleWhisper]);
 
     if ((!isInaccessibleWhisper && isLinkedReportActionDeleted) ?? (!shouldShowSkeleton && reportActionIDFromRoute && reportActions?.length === 0 && !isLinkingToMessage)) {
