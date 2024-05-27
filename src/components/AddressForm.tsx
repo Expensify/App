@@ -4,7 +4,6 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import type {MaybePhraseKey} from '@libs/Localize';
-import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
@@ -16,7 +15,7 @@ import CountrySelector from './CountrySelector';
 import FormProvider from './Form/FormProvider';
 import InputWrapper from './Form/InputWrapper';
 import type {FormOnyxValues} from './Form/types';
-import StatePicker from './StatePicker';
+import StateSelector from './StateSelector';
 import TextInput from './TextInput';
 
 type CountryZipRegex = {
@@ -118,9 +117,9 @@ function AddressForm({
 
         ErrorUtils.addErrorMessage(errors, 'firstName', 'bankAccount.error.firstName');
 
-        if (countrySpecificZipRegex && values.zipPostCode) {
-            if (!countrySpecificZipRegex.test(values.zipPostCode.trim().toUpperCase())) {
-                if (ValidationUtils.isRequiredFulfilled(values.zipPostCode.trim())) {
+        if (countrySpecificZipRegex) {
+            if (!countrySpecificZipRegex.test(values.zipPostCode?.trim().toUpperCase())) {
+                if (ValidationUtils.isRequiredFulfilled(values.zipPostCode?.trim())) {
                     errors.zipPostCode = ['privatePersonalDetails.error.incorrectZipFormat', countryZipFormat];
                 } else {
                     errors.zipPostCode = 'common.error.fieldRequired';
@@ -149,8 +148,6 @@ function AddressForm({
                     label={translate('common.addressLine', {lineNumber: 1})}
                     onValueChange={(data: unknown, key: unknown) => {
                         onAddressChanged(data, key);
-                        // This enforces the country selector to use the country from address instead of the country from URL
-                        Navigation.setParams({country: undefined});
                     }}
                     defaultValue={street1}
                     renamedInputKeys={{
@@ -159,7 +156,7 @@ function AddressForm({
                         city: INPUT_IDS.CITY,
                         state: INPUT_IDS.STATE,
                         zipCode: INPUT_IDS.ZIP_POST_CODE,
-                        country: INPUT_IDS.COUNTRY,
+                        country: INPUT_IDS.COUNTRY as Country,
                     }}
                     maxInputLength={CONST.FORM_CHARACTER_LIMIT}
                     shouldSaveDraft={shouldSaveDraft}
@@ -183,6 +180,7 @@ function AddressForm({
                     InputComponent={CountrySelector}
                     inputID={INPUT_IDS.COUNTRY}
                     value={country}
+                    onValueChange={onAddressChanged}
                     shouldSaveDraft={shouldSaveDraft}
                 />
             </View>
@@ -190,7 +188,7 @@ function AddressForm({
             {isUSAForm ? (
                 <View style={styles.mhn5}>
                     <InputWrapper
-                        InputComponent={StatePicker}
+                        InputComponent={StateSelector}
                         inputID={INPUT_IDS.STATE}
                         defaultValue={state}
                         onValueChange={onAddressChanged}

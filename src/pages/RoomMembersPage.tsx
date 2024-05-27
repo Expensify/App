@@ -167,68 +167,83 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
     const getMemberOptions = (): ListItem[] => {
         let result: ListItem[] = [];
 
-        report?.visibleChatMemberAccountIDs?.forEach((accountID) => {
-            const details = personalDetails[accountID];
+        const participants = ReportUtils.getVisibleChatMemberAccountIDs(report.reportID);
 
-            if (!details) {
-                Log.hmmm(`[RoomMembersPage] no personal details found for room member with accountID: ${accountID}`);
-                return;
-            }
+        participants
+            .flatMap((accountID) => {
+                const pendingMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
+                return !pendingMember || pendingMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? accountID : [];
+            })
+            ?.forEach((accountID) => {
+                const details = personalDetails[accountID];
 
-            // If search value is provided, filter out members that don't match the search value
-            if (searchValue.trim()) {
-                let memberDetails = '';
-                if (details.login) {
-                    memberDetails += ` ${details.login.toLowerCase()}`;
-                }
-                if (details.firstName) {
-                    memberDetails += ` ${details.firstName.toLowerCase()}`;
-                }
-                if (details.lastName) {
-                    memberDetails += ` ${details.lastName.toLowerCase()}`;
-                }
-                if (details.displayName) {
-                    memberDetails += ` ${PersonalDetailsUtils.getDisplayNameOrDefault(details).toLowerCase()}`;
-                }
-                if (details.phoneNumber) {
-                    memberDetails += ` ${details.phoneNumber.toLowerCase()}`;
-                }
-
-                if (!OptionsListUtils.isSearchStringMatch(searchValue.trim(), memberDetails)) {
+                if (!details) {
+                    Log.hmmm(`[RoomMembersPage] no personal details found for room member with accountID: ${accountID}`);
                     return;
                 }
-            }
-            const pendingChatMember = report?.pendingChatMembers?.find((member) => member.accountID === accountID.toString());
 
-            result.push({
-                keyForList: String(accountID),
-                accountID,
-                isSelected: selectedMembers.includes(accountID),
-                isDisabled: accountID === session?.accountID,
-                text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
-                alternateText: details?.login ? formatPhoneNumber(details.login) : '',
-                icons: [
-                    {
-                        source: UserUtils.getAvatar(details.avatar, accountID),
-                        name: details.login ?? '',
-                        type: CONST.ICON_TYPE_AVATAR,
-                        id: Number(accountID),
-                    },
-                ],
-                pendingAction: pendingChatMember?.pendingAction,
+                // If search value is provided, filter out members that don't match the search value
+                if (searchValue.trim()) {
+                    let memberDetails = '';
+                    if (details.login) {
+                        memberDetails += ` ${details.login.toLowerCase()}`;
+                    }
+                    if (details.firstName) {
+                        memberDetails += ` ${details.firstName.toLowerCase()}`;
+                    }
+                    if (details.lastName) {
+                        memberDetails += ` ${details.lastName.toLowerCase()}`;
+                    }
+                    if (details.displayName) {
+                        memberDetails += ` ${PersonalDetailsUtils.getDisplayNameOrDefault(details).toLowerCase()}`;
+                    }
+                    if (details.phoneNumber) {
+                        memberDetails += ` ${details.phoneNumber.toLowerCase()}`;
+                    }
+
+                    if (!OptionsListUtils.isSearchStringMatch(searchValue.trim(), memberDetails)) {
+                        return;
+                    }
+                }
+                const pendingChatMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
+
+                result.push({
+                    keyForList: String(accountID),
+                    accountID,
+                    isSelected: selectedMembers.includes(accountID),
+                    isDisabled: accountID === session?.accountID || pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
+                    alternateText: details?.login ? formatPhoneNumber(details.login) : '',
+                    icons: [
+                        {
+                            source: UserUtils.getAvatar(details.avatar, accountID),
+                            name: details.login ?? '',
+                            type: CONST.ICON_TYPE_AVATAR,
+                            id: Number(accountID),
+                        },
+                    ],
+                    pendingAction: pendingChatMember?.pendingAction,
+                    errors: pendingChatMember?.errors,
+                });
             });
-        });
 
         result = result.sort((value1, value2) => localeCompare(value1.text ?? '', value2.text ?? ''));
 
         return result;
     };
 
-    const isPolicyMember = useMemo(() => {
+    const dismissError = useCallback(
+        (item: ListItem) => {
+            Report.clearAddRoomMemberError(report.reportID, String(item.accountID ?? ''));
+        },
+        [report.reportID],
+    );
+
+    const isPolicyEmployee = useMemo(() => {
         if (!report?.policyID || policies === null) {
             return false;
         }
-        return PolicyUtils.isPolicyMember(report.policyID, policies);
+        return PolicyUtils.isPolicyEmployee(report.policyID, policies);
     }, [report?.policyID, policies]);
     const data = getMemberOptions();
     const headerMessage = searchValue.trim() && !data.length ? translate('roomMembersPage.memberNotFound') : '';
@@ -240,7 +255,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
         >
             <FullPageNotFoundView
                 shouldShow={
-                    isEmptyObject(report) || (!ReportUtils.isChatThread(report) && ((ReportUtils.isUserCreatedPolicyRoom(report) && !isPolicyMember) || ReportUtils.isDefaultRoom(report)))
+                    isEmptyObject(report) || (!ReportUtils.isChatThread(report) && ((ReportUtils.isUserCreatedPolicyRoom(report) && !isPolicyEmployee) || ReportUtils.isDefaultRoom(report)))
                 }
                 subtitleKey={isEmptyObject(report) ? undefined : 'roomMembersPage.notAuthorized'}
                 onBackButtonPress={() => {
@@ -285,8 +300,8 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                     <View style={[styles.w100, styles.mt4, styles.flex1]}>
                         <SelectionList
                             canSelectMultiple
-                            sections={[{data, indexOffset: 0, isDisabled: false}]}
-                            textInputLabel={translate('optionsSelector.findMember')}
+                            sections={[{data, isDisabled: false}]}
+                            textInputLabel={translate('selectionList.findMember')}
                             disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                             textInputValue={searchValue}
                             onChangeText={(value) => {
@@ -300,6 +315,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                             showScrollIndicator
                             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                             ListItem={UserListItem}
+                            onDismissError={dismissError}
                         />
                     </View>
                 </View>

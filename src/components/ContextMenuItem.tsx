@@ -1,6 +1,6 @@
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useImperativeHandle} from 'react';
-import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
@@ -8,8 +8,8 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import getButtonState from '@libs/getButtonState';
 import type IconAsset from '@src/types/utils/IconAsset';
 import BaseMiniContextMenuItem from './BaseMiniContextMenuItem';
+import FocusableMenuItem from './FocusableMenuItem';
 import Icon from './Icon';
-import MenuItem from './MenuItem';
 
 type ContextMenuItemProps = {
     /** Icon Component */
@@ -46,6 +46,12 @@ type ContextMenuItemProps = {
     wrapperStyle?: StyleProp<ViewStyle>;
 
     shouldPreventDefaultFocusOnPress?: boolean;
+
+    /** The ref of mini context menu item */
+    buttonRef?: React.RefObject<View>;
+
+    /** Handles what to do when the item is focused */
+    onFocus?: () => void;
 };
 
 type ContextMenuItemHandle = {
@@ -66,6 +72,8 @@ function ContextMenuItem(
         shouldLimitWidth = true,
         wrapperStyle,
         shouldPreventDefaultFocusOnPress = true,
+        buttonRef = {current: null},
+        onFocus = () => {},
     }: ContextMenuItemProps,
     ref: ForwardedRef<ContextMenuItemHandle>,
 ) {
@@ -94,6 +102,7 @@ function ContextMenuItem(
 
     return isMini ? (
         <BaseMiniContextMenuItem
+            ref={buttonRef}
             tooltipText={itemText}
             onPress={triggerPressAndUpdateSuccess}
             isDelayButtonStateComplete={!isThrottledButtonActive}
@@ -108,7 +117,7 @@ function ContextMenuItem(
             )}
         </BaseMiniContextMenuItem>
     ) : (
-        <MenuItem
+        <FocusableMenuItem
             title={itemText}
             icon={itemIcon}
             onPress={triggerPressAndUpdateSuccess}
@@ -120,6 +129,7 @@ function ContextMenuItem(
             isAnonymousAction={isAnonymousAction}
             focused={isFocused}
             interactive={isThrottledButtonActive}
+            onFocus={onFocus}
         />
     );
 }

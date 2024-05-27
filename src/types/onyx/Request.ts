@@ -19,10 +19,9 @@ type RequestData = {
     successData?: OnyxUpdate[];
     failureData?: OnyxUpdate[];
     finallyData?: OnyxUpdate[];
-    idempotencyKey?: string;
-
     resolve?: (value: Response) => void;
     reject?: (value?: unknown) => void;
+    shouldSkipWebProxy?: boolean;
 };
 
 type Request = RequestData & OnyxData;

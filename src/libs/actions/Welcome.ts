@@ -1,65 +1,93 @@
-import type {NavigationState} from '@react-navigation/native';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import Navigation from '@libs/Navigation/Navigation';
-import * as ReportUtils from '@libs/ReportUtils';
-import type {RootStackParamList, State} from '@navigation/types';
-import CONST from '@src/CONST';
+import type {OnboardingPurposeType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
+import type Onboarding from '@src/types/onyx/Onboarding';
 import type OnyxPolicy from '@src/types/onyx/Policy';
-import type Report from '@src/types/onyx/Report';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
-import * as Policy from './Policy';
-import * as Session from './Session';
+
+let onboarding: Onboarding | [] | undefined;
+let hasDismissedModal: boolean | undefined;
+let isLoadingReportData = true;
+
+type HasCompletedOnboardingFlowProps = {
+    onCompleted?: () => void;
+    onNotCompleted?: () => void;
+};
 
 let resolveIsReadyPromise: (value?: Promise<void>) => void | undefined;
-let isReadyPromise = new Promise<void>((resolve) => {
+let isServerDataReadyPromise = new Promise<void>((resolve) => {
     resolveIsReadyPromise = resolve;
 });
 
-let isFirstTimeNewExpensifyUser: boolean | undefined;
-let hasDismissedModal: boolean | undefined;
-let hasSelectedChoice: boolean | undefined;
-let isLoadingReportData = true;
-let currentUserAccountID: number | undefined;
+let resolveOnboardingFlowStatus: (value?: Promise<void>) => void | undefined;
+let isOnboardingFlowStatusKnownPromise = new Promise<void>((resolve) => {
+    resolveOnboardingFlowStatus = resolve;
+});
+
+function onServerDataReady(): Promise<void> {
+    return isServerDataReadyPromise;
+}
+
+function isOnboardingFlowCompleted({onCompleted, onNotCompleted}: HasCompletedOnboardingFlowProps) {
+    isOnboardingFlowStatusKnownPromise.then(() => {
+        if (Array.isArray(onboarding) || onboarding?.hasCompletedGuidedSetupFlow === undefined) {
+            return;
+        }
+
+        if (onboarding?.hasCompletedGuidedSetupFlow) {
+            onCompleted?.();
+        } else {
+            onNotCompleted?.();
+        }
+    });
+}
 
 /**
- * Check that a few requests have completed so that the welcome action can proceed:
- *
- * - Whether we are a first time new expensify user
- * - Whether we have loaded all policies the server knows about
- * - Whether we have loaded all reports the server knows about
+ * Check if onboarding data is ready in order to check if the user has completed onboarding or not
  */
-function checkOnReady() {
-    if (isFirstTimeNewExpensifyUser === undefined || isLoadingReportData || hasSelectedChoice === undefined || hasDismissedModal === undefined) {
+function checkOnboardingDataReady() {
+    if (onboarding === undefined) {
+        return;
+    }
+
+    resolveOnboardingFlowStatus?.();
+}
+
+/**
+ * Check if user dismissed modal and if report data are loaded
+ */
+function checkServerDataReady() {
+    if (isLoadingReportData || hasDismissedModal === undefined) {
         return;
     }
 
     resolveIsReadyPromise?.();
 }
 
+function setOnboardingPurposeSelected(value: OnboardingPurposeType) {
+    Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, value ?? null);
+}
+
+function setOnboardingAdminsChatReportID(adminsChatReportID?: string) {
+    Onyx.set(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID, adminsChatReportID ?? null);
+}
+
+function setOnboardingPolicyID(policyID?: string) {
+    Onyx.set(ONYXKEYS.ONBOARDING_POLICY_ID, policyID ?? null);
+}
+
 Onyx.connect({
-    key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
+    key: ONYXKEYS.NVP_ONBOARDING,
     initWithStoredValues: false,
     callback: (value) => {
-        // If isFirstTimeNewExpensifyUser was true do not update it to false. We update it to false inside the Welcome.show logic
-        // More context here https://github.com/Expensify/App/pull/16962#discussion_r1167351359
+        if (value === null) {
+            return;
+        }
 
-        isFirstTimeNewExpensifyUser = value ?? undefined;
+        onboarding = value;
 
-        checkOnReady();
-    },
-});
-
-Onyx.connect({
-    key: ONYXKEYS.NVP_INTRO_SELECTED,
-    initWithStoredValues: true,
-    callback: (value) => {
-        hasSelectedChoice = !!value;
-
-        checkOnReady();
+        checkOnboardingDataReady();
     },
 });
 
@@ -69,7 +97,7 @@ Onyx.connect({
     callback: (value) => {
         hasDismissedModal = value ?? false;
 
-        checkOnReady();
+        checkServerDataReady();
     },
 });
 
@@ -78,20 +106,7 @@ Onyx.connect({
     initWithStoredValues: false,
     callback: (value) => {
         isLoadingReportData = value ?? false;
-        checkOnReady();
-    },
-});
-
-const allReports: OnyxCollection<Report> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    initWithStoredValues: false,
-    callback: (val, key) => {
-        if (!val || !key) {
-            return;
-        }
-
-        allReports[key] = {...allReports[key], ...val};
+        checkServerDataReady();
     },
 });
 
@@ -112,89 +127,15 @@ Onyx.connect({
     },
 });
 
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (val, key) => {
-        if (!val || !key) {
-            return;
-        }
-
-        currentUserAccountID = val.accountID;
-    },
-});
-
-/**
- * Shows a welcome action on first login
- */
-function show(routes: State<RootStackParamList>['routes'] | undefined, showEngagementModal = () => {}) {
-    isReadyPromise.then(() => {
-        if (!isFirstTimeNewExpensifyUser) {
-            return;
-        }
-
-        // If we are rendering the SidebarScreen at the same time as a workspace route that means we've already created a workspace via workspace/new and should not open the global
-        // create menu right now. We should also stay on the workspace page if that is our destination.
-        const transitionRoute = routes?.find(
-            (route): route is NavigationState<Pick<RootStackParamList, typeof SCREENS.TRANSITION_BETWEEN_APPS>>['routes'][number] => route.name === SCREENS.TRANSITION_BETWEEN_APPS,
-        );
-        const isExitingToWorkspaceRoute = transitionRoute?.params?.exitTo === 'workspace/new';
-
-        // If we already opened the workspace settings or want the admin room to stay open, do not
-        // navigate away to the workspace chat report
-        const shouldNavigateToWorkspaceChat = !isExitingToWorkspaceRoute;
-
-        const workspaceChatReport = Object.values(allReports ?? {}).find((report) => {
-            if (report) {
-                return ReportUtils.isPolicyExpenseChat(report) && report.ownerAccountID === currentUserAccountID && report.statusNum !== CONST.REPORT.STATUS_NUM.CLOSED;
-            }
-            return false;
-        });
-
-        if (workspaceChatReport) {
-            // This key is only updated when we call ReconnectApp, setting it to false now allows the user to navigate normally instead of always redirecting to the workspace chat
-            Onyx.set(ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER, false);
-        }
-
-        if (shouldNavigateToWorkspaceChat && workspaceChatReport) {
-            if (workspaceChatReport.reportID !== null) {
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(workspaceChatReport.reportID));
-            }
-
-            // New user has been redirected to their workspace chat, and we won't show them the engagement modal.
-            // So we update isFirstTimeNewExpensifyUser to prevent the Welcome logic from running again
-            isFirstTimeNewExpensifyUser = false;
-
-            return;
-        }
-
-        // If user is not already an admin of a free policy and we are not navigating them to their workspace or creating a new workspace via workspace/new then
-        // we will show the engagement modal.
-        if (
-            !Session.isAnonymousUser() &&
-            !Policy.isAdminOfFreePolicy(allPolicies ?? undefined) &&
-            !isExitingToWorkspaceRoute &&
-            !hasSelectedChoice &&
-            !hasDismissedModal &&
-            Object.keys(allPolicies ?? {}).length === 1
-        ) {
-            showEngagementModal();
-        }
-
-        // Update isFirstTimeNewExpensifyUser so the Welcome logic doesn't run again
-        isFirstTimeNewExpensifyUser = false;
-    });
-}
-
-function resetReadyCheck() {
-    isReadyPromise = new Promise((resolve) => {
+function resetAllChecks() {
+    isServerDataReadyPromise = new Promise((resolve) => {
         resolveIsReadyPromise = resolve;
     });
-    isFirstTimeNewExpensifyUser = undefined;
+    isOnboardingFlowStatusKnownPromise = new Promise((resolve) => {
+        resolveOnboardingFlowStatus = resolve;
+    });
+    onboarding = undefined;
     isLoadingReportData = true;
 }
 
-function serverDataIsReadyPromise(): Promise<void> {
-    return isReadyPromise;
-}
-
-export {show, serverDataIsReadyPromise, resetReadyCheck};
+export {onServerDataReady, isOnboardingFlowCompleted, setOnboardingPurposeSelected, resetAllChecks, setOnboardingAdminsChatReportID, setOnboardingPolicyID};

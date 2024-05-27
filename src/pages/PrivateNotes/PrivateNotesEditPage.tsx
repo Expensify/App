@@ -5,7 +5,7 @@ import Str from 'expensify-common/lib/str';
 import lodashDebounce from 'lodash/debounce';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -24,18 +24,19 @@ import * as ReportUtils from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import type {WithReportAndPrivateNotesOrNotFoundProps} from '@pages/home/report/withReportAndPrivateNotesOrNotFound';
 import withReportAndPrivateNotesOrNotFound from '@pages/home/report/withReportAndPrivateNotesOrNotFound';
+import variables from '@styles/variables';
 import * as ReportActions from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PrivateNotesForm';
-import type {PersonalDetails, Report} from '@src/types/onyx';
+import type {PersonalDetailsList, Report} from '@src/types/onyx';
 import type {Note} from '@src/types/onyx/Report';
 
 type PrivateNotesEditPageOnyxProps = {
     /** All of the personal details for everyone */
-    personalDetailsList: OnyxCollection<PersonalDetails>;
+    personalDetailsList: OnyxEntry<PersonalDetailsList>;
 };
 
 type PrivateNotesEditPageProps = WithReportAndPrivateNotesOrNotFoundProps &
@@ -151,7 +152,7 @@ function PrivateNotesEditPage({route, personalDetailsList, report}: PrivateNotes
                         maxLength={CONST.MAX_COMMENT_LENGTH}
                         autoCorrect={false}
                         autoGrowHeight
-                        containerStyles={[styles.autoGrowHeightMultilineInput]}
+                        maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                         defaultValue={privateNote}
                         value={privateNote}
                         onChangeText={(text: string) => {
@@ -165,6 +166,7 @@ function PrivateNotesEditPage({route, personalDetailsList, report}: PrivateNotes
                             privateNotesInput.current = el;
                             updateMultilineInputRange(privateNotesInput.current);
                         }}
+                        isMarkdownEnabled
                     />
                 </OfflineWithFeedback>
             </FormProvider>

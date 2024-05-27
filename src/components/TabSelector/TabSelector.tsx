@@ -1,5 +1,4 @@
-import type {MaterialTopTabNavigationHelpers} from '@react-navigation/material-top-tabs/lib/typescript/src/types';
-import type {TabNavigationState} from '@react-navigation/native';
+import type {MaterialTopTabBarProps} from '@react-navigation/material-top-tabs/lib/typescript/src/types';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {Animated} from 'react-native';
 import {View} from 'react-native';
@@ -8,23 +7,13 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {RootStackParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import TabSelectorItem from './TabSelectorItem';
 
-type TabSelectorProps = {
-    /* Navigation state provided by React Navigation */
-    state: TabNavigationState<RootStackParamList>;
-
-    /* Navigation functions provided by React Navigation */
-    navigation: MaterialTopTabNavigationHelpers;
-
+type TabSelectorProps = MaterialTopTabBarProps & {
     /* Callback fired when tab is pressed */
     onTabPress?: (name: string) => void;
-
-    /* AnimatedValue for the position of the screen while swiping */
-    position: Animated.AnimatedInterpolation<number | string>;
 };
 
 type IconAndTitle = {
@@ -37,7 +26,7 @@ function getIconAndTitle(route: string, translate: LocaleContextProps['translate
         case CONST.TAB_REQUEST.MANUAL:
             return {icon: Expensicons.Pencil, title: translate('tabSelector.manual')};
         case CONST.TAB_REQUEST.SCAN:
-            return {icon: Expensicons.Receipt, title: translate('tabSelector.scan')};
+            return {icon: Expensicons.ReceiptScan, title: translate('tabSelector.scan')};
         case CONST.TAB.NEW_CHAT:
             return {icon: Expensicons.User, title: translate('tabSelector.chat')};
         case CONST.TAB.NEW_ROOM:
@@ -79,7 +68,7 @@ function TabSelector({state, navigation, onTabPress = () => {}, position}: TabSe
                 return position.interpolate({
                     inputRange,
                     outputRange: inputRange.map((i) => (affectedTabs.includes(tabIndex) && i === tabIndex ? theme.border : theme.appBG)),
-                });
+                }) as unknown as Animated.AnimatedInterpolation<string>;
             }
             return theme.border;
         },
@@ -143,3 +132,5 @@ function TabSelector({state, navigation, onTabPress = () => {}, position}: TabSe
 TabSelector.displayName = 'TabSelector';
 
 export default TabSelector;
+
+export type {TabSelectorProps};

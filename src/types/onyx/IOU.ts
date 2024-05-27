@@ -7,6 +7,7 @@ type Participant = {
     login?: string;
     displayName?: string;
     isPolicyExpenseChat?: boolean;
+    isInvoiceRoom?: boolean;
     isOwnPolicyExpenseChat?: boolean;
     chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
     reportID?: string;
@@ -21,6 +22,10 @@ type Participant = {
     phoneNumber?: string;
     text?: string;
     isSelected?: boolean;
+    isSelfDM?: boolean;
+    isSender?: boolean;
+    iouType?: string;
+    ownerAccountID?: number;
 };
 
 type Split = {
@@ -37,6 +42,7 @@ type Split = {
     reportPreviewReportActionID?: string;
     transactionThreadReportID?: string;
     createdReportActionIDForThread?: string;
+    taxAmount?: number;
 };
 
 type IOU = {

@@ -162,11 +162,13 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
                         <InputWrapper
                             InputComponent={EmojiPickerButtonDropdown}
                             inputID={INPUT_IDS.EMOJI_CODE}
-                            // @ts-expect-error TODO: Remove ts-expect-error when EmojiPickerButtonDropdown migration is done
                             accessibilityLabel={INPUT_IDS.EMOJI_CODE}
                             role={CONST.ROLE.PRESENTATION}
                             defaultValue={defaultEmoji}
                             style={styles.mb3}
+                            onModalHide={() => {}}
+                            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                            onInputChange={(emoji: string): void => {}}
                         />
                         <InputWrapper
                             InputComponent={TextInput}

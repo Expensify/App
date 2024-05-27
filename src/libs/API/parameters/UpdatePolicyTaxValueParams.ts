@@ -1,7 +1,8 @@
 type UpdatePolicyTaxValueParams = {
     policyID: string;
     taxCode: string;
-    taxAmount: number;
+    // String in the format: "1.1234%"
+    taxRate: string;
 };
 
 export default UpdatePolicyTaxValueParams;

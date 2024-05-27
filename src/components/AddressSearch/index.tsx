@@ -20,9 +20,10 @@ import type {GeolocationErrorCodeType} from '@libs/getCurrentPosition/getCurrent
 import * as GooglePlacesUtils from '@libs/GooglePlacesUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 import CurrentLocationButton from './CurrentLocationButton';
 import isCurrentTargetInsideContainer from './isCurrentTargetInsideContainer';
-import type {AddressSearchProps, RenamedInputKeysProps} from './types';
+import type {AddressSearchProps} from './types';
 
 // The error that's being thrown below will be ignored until we fork the
 // react-native-google-places-autocomplete repo and replace the
@@ -213,7 +214,7 @@ function AddressSearch(
 
         if (inputID) {
             Object.entries(values).forEach(([key, inputValue]) => {
-                const inputKey = renamedInputKeys?.[key as keyof RenamedInputKeysProps] ?? key;
+                const inputKey = renamedInputKeys?.[key as keyof Address] ?? key;
                 if (!inputKey) {
                     return;
                 }
@@ -455,3 +456,5 @@ function AddressSearch(
 AddressSearch.displayName = 'AddressSearchWithRef';
 
 export default forwardRef(AddressSearch);
+
+export type {AddressSearchProps};

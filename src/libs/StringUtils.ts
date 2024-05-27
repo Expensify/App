@@ -72,4 +72,28 @@ function normalizeCRLF(value?: string): string | undefined {
     return value?.replace(/\r\n/g, '\n');
 }
 
-export default {sanitizeString, isEmptyString, removeInvisibleCharacters, normalizeCRLF};
+/**
+ * Generates an acronym for a string.
+ * @param string the string for which to produce the acronym
+ * @returns the acronym
+ */
+function getAcronym(string: string): string {
+    let acronym = '';
+    const wordsInString = string.split(' ');
+    wordsInString.forEach((wordInString) => {
+        const splitByHyphenWords = wordInString.split('-');
+        splitByHyphenWords.forEach((splitByHyphenWord) => {
+            acronym += splitByHyphenWord.substring(0, 1);
+        });
+    });
+    return acronym;
+}
+
+/**
+ * Replace all line breaks with white spaces
+ */
+function lineBreaksToSpaces(text = '') {
+    return text.replace(CONST.REGEX.LINE_BREAK, ' ');
+}
+
+export default {sanitizeString, isEmptyString, removeInvisibleCharacters, normalizeCRLF, getAcronym, lineBreaksToSpaces};

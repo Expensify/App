@@ -63,7 +63,7 @@ export default {
     fontSizeXLarge: 22,
     fontSizeXXLarge: 28,
     fontSizeXXXLarge: 32,
-    fontSizeNormalHeight: getValueUsingPixelRatio(20, 28),
+    fontSizeNormalHeight: getValueUsingPixelRatio(21, 28),
     fontSizeEReceiptLarge: 44,
     fontSizeSignInHeroLarge: 48,
     fontSizeSignInHeroMedium: 38,
@@ -125,6 +125,8 @@ export default {
     avatarChatSpacing: 12,
     chatInputSpacing: 52, // 40 + avatarChatSpacing
     borderTopWidth: 1,
+    emptyLHNIconWidth: 24, // iconSizeSmall + 4*2 horizontal margin
+    emptyLHNIconHeight: 16,
     emptyWorkspaceIconWidth: 84,
     emptyWorkspaceIconHeight: 84,
     modalTopIconWidth: 200,
@@ -169,7 +171,7 @@ export default {
     addBankAccountLeftSpacing: 3,
     eReceiptThumbnailSmallBreakpoint: 110,
     eReceiptThumbnailMediumBreakpoint: 335,
-    eReceiptThumnailCenterReceiptBreakpoint: 200,
+    eReceiptThumbnailCenterReceiptBreakpoint: 200,
     eReceiptIconHeight: 100,
     eReceiptIconWidth: 72,
     eReceiptEmptyIconWidth: 76,
@@ -200,6 +202,8 @@ export default {
     oldDotWireframeIconHeight: 143.28,
     sectionIllustrationHeight: 220,
     photoUploadPopoverWidth: 335,
+    onboardingModalWidth: 500,
+    welcomeVideoDelay: 1000,
 
     // The height of the empty list is 14px (2px for borders and 12px for vertical padding)
     // This is calculated based on the values specified in the 'getGoogleListViewStyle' function of the 'StyleUtils' utility
@@ -207,6 +211,7 @@ export default {
     hoverDimValue: 1,
     pressDimValue: 0.8,
     qrShareHorizontalPadding: 32,
+    menuIconSize: 48,
 
     moneyRequestSkeletonHeight: 107,
 
@@ -224,4 +229,10 @@ export default {
     mushroomTopHatWidth: 138,
     mushroomTopHatHeight: 128,
     bankButtonMargin: 23,
+    textInputAutoGrowMaxHeight: 115,
+
+    w28: 28,
+    w44: 44,
+    w80: 80,
+    w96: 96,
 } as const;

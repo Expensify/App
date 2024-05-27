@@ -1,16 +1,16 @@
-import type {ComponentMeta, ComponentStory} from '@storybook/react';
+import type {Meta, StoryFn} from '@storybook/react';
 import React from 'react';
 import Tooltip from '@components/Tooltip';
 import type {TooltipExtendedProps} from '@components/Tooltip/types';
 
-type TooltipStory = ComponentStory<typeof Tooltip>;
+type TooltipStory = StoryFn<typeof Tooltip>;
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
  *
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
-const story: ComponentMeta<typeof Tooltip> = {
+const story: Meta<typeof Tooltip> = {
     title: 'Components/Tooltip',
     component: Tooltip,
 };

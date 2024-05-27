@@ -101,8 +101,7 @@ function MultipleAvatars({
         }),
         [styles],
     );
-
-    const secondAvatarStyle = secondAvatarStyleProp ?? [StyleUtils.getBackgroundAndBorderStyle(theme.componentBG)];
+    const secondAvatarStyle = secondAvatarStyleProp ?? [StyleUtils.getBackgroundAndBorderStyle(isHovered ? theme.activeComponentBG : theme.componentBG)];
 
     let avatarContainerStyles = StyleUtils.getContainerStyles(size, isInReportAction);
     const {singleAvatarStyle, secondAvatarStyles} = useMemo(() => avatarSizeToStylesMap[size as AvatarSizeToStyles] ?? avatarSizeToStylesMap.default, [size, avatarSizeToStylesMap]);
@@ -157,6 +156,7 @@ function MultipleAvatars({
                         size={size}
                         fill={icons[0].fill}
                         name={icons[0].name}
+                        avatarID={icons[0].id}
                         type={icons[0].type}
                         fallbackIcon={icons[0].fallbackIcon}
                     />
@@ -206,6 +206,7 @@ function MultipleAvatars({
                                 source={icon.source ?? fallbackIcon}
                                 size={size}
                                 name={icon.name}
+                                avatarID={icon.id}
                                 type={icon.type}
                                 fallbackIcon={icon.fallbackIcon}
                             />
@@ -264,6 +265,7 @@ function MultipleAvatars({
                             imageStyles={[singleAvatarStyle]}
                             name={icons[0].name}
                             type={icons[0].type}
+                            avatarID={icons[0].id}
                             fallbackIcon={icons[0].fallbackIcon}
                         />
                     </View>
@@ -283,6 +285,7 @@ function MultipleAvatars({
                                     size={avatarSize}
                                     imageStyles={[singleAvatarStyle]}
                                     name={icons[1].name}
+                                    avatarID={icons[1].id}
                                     type={icons[1].type}
                                     fallbackIcon={icons[1].fallbackIcon}
                                 />

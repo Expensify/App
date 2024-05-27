@@ -134,6 +134,13 @@ if (Metrics.canCapturePerformanceMetrics()) {
                 if (entry.name === 'runJsBundleEnd') {
                     Performance.measureFailSafe('runJsBundle', 'runJsBundleStart', 'runJsBundleEnd');
                 }
+                if (entry.name === 'appCreationEnd') {
+                    Performance.measureFailSafe('appCreation', 'appCreationStart', 'appCreationEnd');
+                    Performance.measureFailSafe('nativeLaunchEnd_To_appCreationStart', 'nativeLaunchEnd', 'appCreationStart');
+                }
+                if (entry.name === 'contentAppeared') {
+                    Performance.measureFailSafe('appCreationEnd_To_contentAppeared', 'appCreationEnd', 'contentAppeared');
+                }
 
                 // We don't need to keep the observer past this point
                 if (entry.name === 'runJsBundleEnd' || entry.name === 'downloadEnd') {
@@ -154,6 +161,7 @@ if (Metrics.canCapturePerformanceMetrics()) {
 
                 // Capture any custom measures or metrics below
                 if (mark.name === `${CONST.TIMING.SIDEBAR_LOADED}_end`) {
+                    Performance.measureFailSafe('contentAppeared_To_screenTTI', 'contentAppeared', mark.name);
                     Performance.measureTTI(mark.name);
                 }
             });
@@ -163,6 +171,10 @@ if (Metrics.canCapturePerformanceMetrics()) {
     Performance.getPerformanceMetrics = (): PerformanceEntry[] =>
         [
             ...rnPerformance.getEntriesByName('nativeLaunch'),
+            ...rnPerformance.getEntriesByName('nativeLaunchEnd_To_appCreationStart'),
+            ...rnPerformance.getEntriesByName('appCreation'),
+            ...rnPerformance.getEntriesByName('appCreationEnd_To_contentAppeared'),
+            ...rnPerformance.getEntriesByName('contentAppeared_To_screenTTI'),
             ...rnPerformance.getEntriesByName('runJsBundle'),
             ...rnPerformance.getEntriesByName('jsBundleDownload'),
             ...rnPerformance.getEntriesByName('TTI'),

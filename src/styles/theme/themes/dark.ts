@@ -17,6 +17,7 @@ const darkTheme = {
     iconHovered: colors.productDark900,
     iconMenuHovered: colors.green400,
     iconSuccessFill: colors.green400,
+    iconDangerFill: colors.red,
     iconReversed: colors.productDark100,
     iconColorfulBackground: `${colors.ivory}cc`,
     textSupporting: colors.productDark800,
@@ -46,6 +47,7 @@ const darkTheme = {
     shadow: colors.black,
     componentBG: colors.productDark100,
     hoverComponentBG: colors.productDark300,
+    messageHighlightBG: colors.messageHighlightDark,
     activeComponentBG: colors.productDark400,
     signInSidebar: colors.green800,
     sidebar: colors.productDark100,
@@ -127,7 +129,7 @@ const darkTheme = {
             backgroundColor: colors.productDark100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
-        [SCREENS.WORKSPACE_SWITCHER.ROOT]: {
+        [SCREENS.LEFT_MODAL.WORKSPACE_SWITCHER]: {
             backgroundColor: colors.productDark100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
@@ -141,14 +143,6 @@ const darkTheme = {
         },
         [SCREENS.RIGHT_MODAL.SIGN_IN]: {
             backgroundColor: colors.productDark200,
-            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
-        },
-        [SCREENS.ONBOARD_ENGAGEMENT.ROOT]: {
-            backgroundColor: colors.pink800,
-            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
-        },
-        [SCREENS.ONBOARD_ENGAGEMENT.EXPENSIFY_CLASSIC]: {
-            backgroundColor: colors.green600,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
     },
