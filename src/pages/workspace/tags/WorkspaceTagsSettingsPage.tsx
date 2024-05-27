@@ -1,15 +1,18 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
+import {ActivityIndicator, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineIndicator from '@components/OfflineIndicator';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Policy from '@libs/actions/Policy';
 import Navigation from '@libs/Navigation/Navigation';
@@ -30,8 +33,11 @@ type WorkspaceTagsSettingsPageProps = WorkspaceTagsSettingsPageOnyxProps & Stack
 
 function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPageProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
+    const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const [policyTagLists, isMultiLevelTags] = useMemo(() => [PolicyUtils.getTagLists(policyTags), PolicyUtils.isMultiLevelTags(policyTags)], [policyTags]);
+    const isLoading = !PolicyUtils.getTagLists(policyTags)?.[0];
 
     const updateWorkspaceRequiresTag = useCallback(
         (value: boolean) => {
@@ -70,7 +76,16 @@ function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPag
                                 </View>
                             </View>
                         </OfflineWithFeedback>
-                        {!isMultiLevelTags && (
+                        {isLoading && !isOffline ? (
+                            <ActivityIndicator
+                                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                                style={[styles.flex1]}
+                                color={theme.spinner}
+                            />
+                        ) : (
+                            <OfflineIndicator />
+                        )}
+                        {!isMultiLevelTags && !isLoading && (
                             <OfflineWithFeedback
                                 errors={policyTags?.[policyTagLists[0].name]?.errors}
                                 pendingAction={policyTags?.[policyTagLists[0].name]?.pendingAction}
