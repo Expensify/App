@@ -18,7 +18,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import type {IOUMessage, PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Button from './Button';
 import ConfirmModal from './ConfirmModal';
@@ -160,7 +160,10 @@ function MoneyReportHeader({
 
     const deleteTransaction = useCallback(() => {
         if (requestParentReportAction) {
-            const iouTransactionID = requestParentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? requestParentReportAction.originalMessage?.IOUTransactionID ?? '' : '';
+            const iouTransactionID =
+                requestParentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU
+                    ? ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(requestParentReportAction)?.IOUTransactionID ?? ''
+                    : '';
             if (ReportActionsUtils.isTrackExpenseAction(requestParentReportAction)) {
                 IOU.deleteTrackExpense(moneyRequestReport?.reportID ?? '', iouTransactionID, requestParentReportAction, true);
                 return;
@@ -175,7 +178,10 @@ function MoneyReportHeader({
         if (!requestParentReportAction) {
             return;
         }
-        const iouTransactionID = requestParentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? requestParentReportAction.originalMessage?.IOUTransactionID ?? '' : '';
+        const iouTransactionID =
+            requestParentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU
+                ? ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(requestParentReportAction)?.IOUTransactionID ?? ''
+                : '';
         const reportID = transactionThreadReport?.reportID ?? '';
 
         TransactionActions.markAsCash(iouTransactionID, reportID);

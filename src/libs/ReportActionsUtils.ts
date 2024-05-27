@@ -1018,8 +1018,8 @@ function getReportActionText(reportAction: PartialReportAction): string {
     return html ? parser.htmlToText(html) : '';
 }
 
-function getReportActionOriginalMessage(reportAction: PartialReportAction) {
-    return (reportAction?.originalMessage ?? reportAction?.message?.[0] ?? reportAction?.message) as OriginalMessage;
+function getReportActionOriginalMessage<T>(reportAction: PartialReportAction) {
+    return (reportAction?.originalMessage ?? reportAction?.message?.[0] ?? reportAction?.message) as T;
 }
 
 function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>): Message {

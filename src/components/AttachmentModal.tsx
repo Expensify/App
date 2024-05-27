@@ -25,6 +25,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import {IOUMessage} from '@src/types/onyx/OriginalMessage';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type ModalType from '@src/types/utils/ModalType';
@@ -604,7 +605,10 @@ export default withOnyx<AttachmentModalProps, AttachmentModalOnyxProps>({
     transaction: {
         key: ({report}) => {
             const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
-            const transactionID = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction?.originalMessage.IOUTransactionID ?? '0' : '0';
+            const transactionID =
+                parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU
+                    ? ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(parentReportAction).IOUTransactionID ?? '0'
+                    : '0';
             return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
         },
     },
