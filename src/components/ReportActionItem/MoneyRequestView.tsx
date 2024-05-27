@@ -319,7 +319,15 @@ function MoneyRequestView({
 
     const shouldShowMapOrReceipt = showMapAsImage || hasReceipt;
     const shouldShowReceiptEmptyState = !hasReceipt && !isInvoice && (canEditReceipt || isAdmin || isApprover);
-    const noticeTypeViolations = transactionViolations?.filter((violation) => violation.type === 'notice').map((v) => ViolationsUtils.getViolationTranslation(v, translate)) ?? [];
+    const receiptNoticeNames: OnyxTypes.ViolationName[] = [
+        CONST.VIOLATIONS.RECEIPT_REQUIRED,
+        CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED,
+        CONST.VIOLATIONS.MODIFIED_DATE,
+        CONST.VIOLATIONS.CASH_EXPENSE_WITH_NO_RECEIPT,
+        CONST.VIOLATIONS.SMARTSCAN_FAILED,
+    ];
+    const receiptNoticeViolations =
+        transactionViolations?.filter((violation) => receiptNoticeNames.includes(violation.name)).map((v) => ViolationsUtils.getViolationTranslation(v, translate)) ?? [];
     const shouldShowNotesViolations = !isReceiptBeingScanned && canUseViolations && ReportUtils.isPaidGroupPolicy(report);
 
     return (
@@ -328,7 +336,7 @@ function MoneyRequestView({
             <View style={shouldShowAnimatedBackground && [StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth, true)]}>
                 {!isInvoice && (
                     <ReceiptAuditHeader
-                        notes={noticeTypeViolations}
+                        notes={receiptNoticeViolations}
                         shouldShowAuditMessage={Boolean(shouldShowNotesViolations && didRceiptScanSucceed)}
                     />
                 )}
@@ -383,7 +391,7 @@ function MoneyRequestView({
                     />
                 )}
                 {!shouldShowReceiptEmptyState && !shouldShowMapOrReceipt && <View style={{marginVertical: 6}} />}
-                {shouldShowNotesViolations && <ReceiptAuditMessages notes={noticeTypeViolations} />}
+                {shouldShowNotesViolations && <ReceiptAuditMessages notes={receiptNoticeViolations} />}
                 {canUseViolations && <ViolationMessages violations={getViolationsForField('receipt')} />}
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('amount')}>
                     <MenuItemWithTopDescription
