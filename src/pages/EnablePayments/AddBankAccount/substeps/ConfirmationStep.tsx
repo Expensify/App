@@ -16,14 +16,11 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalBankAccountForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/PersonalBankAccountForm';
-import type {PersonalBankAccount, UserWallet} from '@src/types/onyx';
+import type {PersonalBankAccount} from '@src/types/onyx';
 
 type ConfirmationOnyxProps = {
     /** The draft values of the bank account being setup */
     personalBankAccountDraft: OnyxEntry<PersonalBankAccountForm>;
-
-    /** The user's wallet */
-    userWallet: OnyxEntry<UserWallet>;
 
     /** The user's bank account */
     personalBankAccount: OnyxEntry<PersonalBankAccount>;
@@ -34,13 +31,13 @@ type ConfirmationStepProps = ConfirmationOnyxProps & SubStepProps;
 const BANK_INFO_STEP_KEYS = INPUT_IDS.BANK_INFO_STEP;
 const BANK_INFO_STEP_INDEXES = CONST.WALLET.SUBSTEP_INDEXES.BANK_ACCOUNT;
 
-function ConfirmationStep({personalBankAccount, personalBankAccountDraft, onNext, onMove, userWallet}: ConfirmationStepProps) {
+function ConfirmationStep({personalBankAccount, personalBankAccountDraft, onNext, onMove}: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
     const isLoading = personalBankAccount?.isLoading ?? false;
-    const error = ErrorUtils.getLatestErrorMessage(userWallet ?? {});
+    const error = ErrorUtils.getLatestErrorMessage(personalBankAccount ?? {});
 
     const handleModifyAccountNumbers = () => {
         onMove(BANK_INFO_STEP_INDEXES.ACCOUNT_NUMBERS);
