@@ -1,20 +1,16 @@
-import {isEmpty} from 'lodash';
 import React, {useMemo} from 'react';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getCurrentXeroOrganizationName} from '@libs/PolicyUtils';
-import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import ConnectionLayout from '@components/ConnectionLayout';
 
 function XeroImportPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
@@ -76,23 +72,19 @@ function XeroImportPage({policy}: WithPolicyProps) {
     );
 
     return (
-        <AccessOrNotFoundWrapper
+        <ConnectionLayout
+            displayName={XeroImportPage.displayName}
+            headerTitle="workspace.accounting.import"
+            headerSubtitle={currentXeroOrganizationName}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            shouldBeBlocked={isEmpty(policy?.connections?.xero)}
+            contentContainerStyle={styles.pb2}
+            titleStyle={styles.ph5}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
         >
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
-                shouldEnableMaxHeight
-                testID={XeroImportPage.displayName}
-            >
-                <HeaderWithBackButton
-                    title={translate('workspace.accounting.import')}
-                    subtitle={currentXeroOrganizationName}
-                />
-                <ScrollView contentContainerStyle={styles.pb2}>
                     <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.xero.importDescription')}</Text>
+            
                     {sections.map((section) => (
                         <OfflineWithFeedback
                             key={section.description}
@@ -107,9 +99,7 @@ function XeroImportPage({policy}: WithPolicyProps) {
                             />
                         </OfflineWithFeedback>
                     ))}
-                </ScrollView>
-            </ScreenWrapper>
-        </AccessOrNotFoundWrapper>
+        </ConnectionLayout>
     );
 }
 
