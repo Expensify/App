@@ -128,7 +128,7 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
     if (!parentReportActions || !parentReportActionID) {
         return null;
     }
-    return parentReportActions[parentReportActionID ?? '0'];
+    return parentReportActions[parentReportActionID ?? '-1'];
 }
 
 function ReportScreen({
@@ -158,7 +158,7 @@ function ReportScreen({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const reportIDFromRoute = getReportID(route);
-    const reportActionIDFromRoute = route?.params?.reportActionID ?? '';
+    const reportActionIDFromRoute = route?.params?.reportActionID ?? '-1';
     const isFocused = useIsFocused();
     const prevIsFocused = usePrevious(isFocused);
     const firstRenderRef = useRef(true);
@@ -179,7 +179,7 @@ function ReportScreen({
     const report = useMemo(
         (): OnyxTypes.Report => ({
             lastReadTime: reportProp?.lastReadTime,
-            reportID: reportProp?.reportID ?? '',
+            reportID: reportProp?.reportID ?? '-1',
             policyID: reportProp?.policyID,
             lastVisibleActionCreated: reportProp?.lastVisibleActionCreated,
             statusNum: reportProp?.statusNum,
@@ -449,7 +449,7 @@ function ReportScreen({
     }, []);
 
     const chatWithAccountManager = useCallback(() => {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(accountManagerReportID ?? ''));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(accountManagerReportID ?? '-1'));
     }, [accountManagerReportID]);
 
     // Clear notifications for the current report when it's opened and re-focused

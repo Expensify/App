@@ -284,7 +284,7 @@ function getPolicy(policyID: string | undefined): Policy | EmptyObject {
  */
 function getPrimaryPolicy(activePolicyID?: OnyxEntry<string>): Policy | undefined {
     const activeAdminWorkspaces = PolicyUtils.getActiveAdminWorkspaces(allPolicies);
-    const primaryPolicy: Policy | null | undefined = allPolicies?.[activePolicyID ?? ''];
+    const primaryPolicy: Policy | null | undefined = allPolicies?.[activePolicyID ?? '-1'];
 
     return primaryPolicy ?? activeAdminWorkspaces[0];
 }
@@ -3168,7 +3168,7 @@ function createWorkspaceFromIOUPayment(iouReport: Report | EmptyObject): string 
     });
 
     // Create the MOVED report action and add it to the DM chat which indicates to the user where the report has been moved
-    const movedReportAction = ReportUtils.buildOptimisticMovedReportAction(oldPersonalPolicyID ?? '', policyID, memberData.workspaceChatReportID, iouReportID, workspaceName);
+    const movedReportAction = ReportUtils.buildOptimisticMovedReportAction(oldPersonalPolicyID ?? '-1', policyID, memberData.workspaceChatReportID, iouReportID, workspaceName);
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
@@ -4571,7 +4571,7 @@ function createPolicyDistanceRate(policyID: string, customUnitID: string, custom
                 customUnits: {
                     [customUnitID]: {
                         rates: {
-                            [customUnitRate.customUnitRateID ?? '']: {
+                            [customUnitRate.customUnitRateID ?? '-1']: {
                                 ...customUnitRate,
                                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                             },
@@ -4590,7 +4590,7 @@ function createPolicyDistanceRate(policyID: string, customUnitID: string, custom
                 customUnits: {
                     [customUnitID]: {
                         rates: {
-                            [customUnitRate.customUnitRateID ?? '']: {
+                            [customUnitRate.customUnitRateID ?? '-1']: {
                                 pendingAction: null,
                             },
                         },
@@ -4608,7 +4608,7 @@ function createPolicyDistanceRate(policyID: string, customUnitID: string, custom
                 customUnits: {
                     [customUnitID]: {
                         rates: {
-                            [customUnitRate.customUnitRateID ?? '']: {
+                            [customUnitRate.customUnitRateID ?? '-1']: {
                                 errors: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage'),
                             },
                         },

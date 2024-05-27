@@ -36,7 +36,7 @@ function SystemChatReportFooterMessage({choice, policies, activePolicyID}: Syste
 
     const adminChatReport = useMemo(() => {
         const adminPolicy = activePolicyID
-            ? PolicyUtils.getPolicy(activePolicyID ?? '')
+            ? PolicyUtils.getPolicy(activePolicyID ?? '-1')
             : Object.values(policies ?? {}).find((policy) => PolicyUtils.shouldShowPolicy(policy, false) && policy?.role === CONST.POLICY.ROLE.ADMIN && policy?.chatReportIDAdmins);
 
         return ReportUtils.getReport(String(adminPolicy?.chatReportIDAdmins));
@@ -48,7 +48,7 @@ function SystemChatReportFooterMessage({choice, policies, activePolicyID}: Syste
                 return (
                     <>
                         {translate('systemChatFooterMessage.newDotManageTeam.phrase1')}
-                        <TextLink onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminChatReport?.reportID ?? ''))}>
+                        <TextLink onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminChatReport?.reportID ?? '-1'))}>
                             {adminChatReport?.reportName ?? CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}
                         </TextLink>
                         {translate('systemChatFooterMessage.newDotManageTeam.phrase2')}

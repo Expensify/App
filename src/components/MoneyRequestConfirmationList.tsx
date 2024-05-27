@@ -241,15 +241,15 @@ function MoneyRequestConfirmationList({
     const isTypeInvoice = iouType === CONST.IOU.TYPE.INVOICE;
     const isScanRequest = useMemo(() => TransactionUtils.isScanRequest(transaction), [transaction]);
 
-    const transactionID = transaction?.transactionID ?? '';
-    const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '';
+    const transactionID = transaction?.transactionID ?? '-1';
+    const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '-1';
 
     useEffect(() => {
         if (customUnitRateID || !canUseP2PDistanceRequests) {
             return;
         }
         if (!customUnitRateID) {
-            const rateID = lastSelectedDistanceRates?.[policy?.id ?? ''] ?? defaultMileageRate?.customUnitRateID ?? '';
+            const rateID = lastSelectedDistanceRates?.[policy?.id ?? '-1'] ?? defaultMileageRate?.customUnitRateID ?? '-1';
             IOU.setCustomUnitRateID(transactionID, rateID);
         }
     }, [defaultMileageRate, customUnitRateID, lastSelectedDistanceRates, policy?.id, canUseP2PDistanceRequests, transactionID]);
@@ -497,7 +497,7 @@ function MoneyRequestConfirmationList({
             isSelected: false,
             rightElement: (
                 <MoneyRequestAmountInput
-                    amount={transaction?.splitShares?.[participantOption.accountID ?? 0]?.amount}
+                    amount={transaction?.splitShares?.[participantOption.accountID ?? -1]?.amount}
                     currency={iouCurrencyCode}
                     prefixCharacter={currencySymbol}
                     disableKeyboard={false}
@@ -509,7 +509,7 @@ function MoneyRequestConfirmationList({
                     inputStyle={[styles.optionRowAmountInput, amountWidth] as TextStyle[]}
                     containerStyle={[styles.textInputContainer]}
                     touchableInputWrapperStyle={[styles.ml3]}
-                    onAmountChange={(value: string) => onSplitShareChange(participantOption.accountID ?? 0, Number(value))}
+                    onAmountChange={(value: string) => onSplitShareChange(participantOption.accountID ?? -1, Number(value))}
                     maxLength={formattedTotalAmount.length}
                 />
             ),
@@ -1144,7 +1144,9 @@ function MoneyRequestConfirmationList({
                         isLabelHoverable={false}
                         interactive={!isReadOnly && canUpdateSenderWorkspace}
                         onPress={() => {
-                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SEND_FROM.getRoute(iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()));
+                            Navigation.navigate(
+                                ROUTES.MONEY_REQUEST_STEP_SEND_FROM.getRoute(iouType, transaction?.transactionID ?? '-1', reportID, Navigation.getActiveRouteWithoutParams()),
+                            );
                         }}
                         style={styles.moneyRequestMenuItem}
                         labelStyle={styles.mt2}

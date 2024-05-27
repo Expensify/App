@@ -81,10 +81,10 @@ function ImageRenderer({tnode}: ImageRendererProps) {
                 <PressableWithoutFocus
                     style={[styles.noOutline]}
                     onPress={() => {
-                        const route = ROUTES.REPORT_ATTACHMENTS.getRoute(report?.reportID ?? '', source);
+                        const route = ROUTES.REPORT_ATTACHMENTS.getRoute(report?.reportID ?? '-1', source);
                         Navigation.navigate(route);
                     }}
-                    onLongPress={(event) => showContextMenuForReport(event, anchor, report?.reportID ?? '', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
+                    onLongPress={(event) => showContextMenuForReport(event, anchor, report?.reportID ?? '-1', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
                     shouldUseHapticsOnLongPress
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                     accessibilityLabel={translate('accessibilityHints.viewAttachment')}

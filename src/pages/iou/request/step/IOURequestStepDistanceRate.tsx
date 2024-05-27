@@ -46,7 +46,7 @@ function IOURequestStepDistanceRate({
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
 
-    const lastSelectedRateID = TransactionUtils.getRateID(transaction) ?? '';
+    const lastSelectedRateID = TransactionUtils.getRateID(transaction) ?? '-1';
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -69,7 +69,7 @@ function IOURequestStepDistanceRate({
     const initiallyFocusedOption = sections.find((item) => item.isSelected)?.keyForList;
 
     function selectDistanceRate(customUnitRateID: string) {
-        IOU.updateDistanceRequestRate(transactionID, customUnitRateID, policy?.id ?? '');
+        IOU.updateDistanceRequestRate(transactionID, customUnitRateID, policy?.id ?? '-1');
         navigateBack();
     }
 
@@ -96,10 +96,10 @@ IOURequestStepDistanceRate.displayName = 'IOURequestStepDistanceRate';
 
 const IOURequestStepDistanceRateWithOnyx = withOnyx<IOURequestStepDistanceRateProps, IOURequestStepDistanceRateOnyxProps>({
     policy: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '-1'}`,
     },
     rates: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? '0'}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? '-1'}`,
         selector: DistanceRequestUtils.getMileageRates,
     },
 })(IOURequestStepDistanceRate);

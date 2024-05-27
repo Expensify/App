@@ -115,7 +115,7 @@ function NewTaskPage({task, reports, personalDetails}: NewTaskPageProps) {
 
         playSound(SOUNDS.DONE);
         TaskActions.createTaskAndNavigate(
-            parentReport?.reportID ?? '',
+            parentReport?.reportID ?? '-1',
             task.title,
             task?.description ?? '',
             task?.assignee ?? '',

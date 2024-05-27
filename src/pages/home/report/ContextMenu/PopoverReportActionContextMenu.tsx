@@ -209,9 +209,9 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         }).then(() => {
             setDisabledActions(disabledOptions);
             typeRef.current = type;
-            reportIDRef.current = reportID ?? '0';
-            reportActionIDRef.current = reportActionID ?? '0';
-            originalReportIDRef.current = originalReportID ?? '0';
+            reportIDRef.current = reportID ?? '-1';
+            reportActionIDRef.current = reportActionID ?? '-1';
+            originalReportIDRef.current = originalReportID ?? '-1';
             selectionRef.current = selection;
             setIsPopoverVisible(true);
             reportActionDraftMessageRef.current = draftMessage;
@@ -266,9 +266,9 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         const reportAction = reportActionRef.current;
         if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
             if (ReportActionsUtils.isTrackExpenseAction(reportAction)) {
-                IOU.deleteTrackExpense(reportIDRef.current, reportAction?.originalMessage?.IOUTransactionID ?? '', reportAction);
+                IOU.deleteTrackExpense(reportIDRef.current, reportAction?.originalMessage?.IOUTransactionID ?? '-1', reportAction);
             } else {
-                IOU.deleteMoneyRequest(reportAction?.originalMessage?.IOUTransactionID ?? '', reportAction);
+                IOU.deleteMoneyRequest(reportAction?.originalMessage?.IOUTransactionID ?? '-1', reportAction);
             }
         } else if (reportAction) {
             Report.deleteReportComment(reportIDRef.current, reportAction);

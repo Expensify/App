@@ -50,7 +50,7 @@ describe('Migrations', () => {
                         2: {reportActionID: '2', created: '', actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED, reportID: '1'},
                     },
                 ],
-                (item) => item[1].reportID ?? '',
+                (item) => item[1].reportID ?? '-1',
             );
 
             return Onyx.multiSet(reportActionsCollectionDataSet)
@@ -92,7 +92,7 @@ describe('Migrations', () => {
                         },
                     },
                 ],
-                (item) => item[1].reportID ?? '',
+                (item) => item[1].reportID ?? '-1',
             );
 
             return Onyx.multiSet(reportActionsCollectionDataSet)
@@ -139,7 +139,7 @@ describe('Migrations', () => {
                         },
                     },
                 ],
-                (item) => item[1].reportID ?? '',
+                (item) => item[1].reportID ?? '-1',
             );
 
             return Onyx.multiSet({
@@ -189,7 +189,7 @@ describe('Migrations', () => {
                         },
                     },
                 ],
-                (item) => item[1].reportID ?? '',
+                (item) => item[1].reportID ?? '-1',
             );
 
             return Onyx.multiSet({

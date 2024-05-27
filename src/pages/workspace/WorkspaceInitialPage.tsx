@@ -110,7 +110,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
         [policy],
     ) as PolicyFeatureStates;
 
-    const policyID = policy?.id ?? '';
+    const policyID = policy?.id ?? '-1';
     const policyName = policy?.name ?? '';
 
     useEffect(() => {
@@ -320,7 +320,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
             source: avatar,
             name: policy?.name ?? '',
             type: CONST.ICON_TYPE_WORKSPACE,
-            id: policy.id ?? '',
+            id: policy.id ?? '-1',
         };
     }, [policy]);
 
@@ -399,7 +399,7 @@ export default withPolicyAndFullscreenLoading(
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
         policyCategories: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params?.policyID ?? '0'}`,
+            key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params?.policyID ?? '-1'}`,
         },
     })(WorkspaceInitialPage),
 );

@@ -60,7 +60,7 @@ function DetailsPage({personalDetails, route, session}: DetailsPageProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const login = route.params?.login ?? '';
-    const sessionAccountID = session?.accountID ?? 0;
+    const sessionAccountID = session?.accountID ?? -1;
 
     let details = Object.values(personalDetails ?? {}).find((personalDetail) => personalDetail?.login === login.toLowerCase());
 

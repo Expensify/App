@@ -26,7 +26,7 @@ function XeroPreferredExporterSelectPage({policy}: WithPolicyConnectionsProps) {
     const policyOwner = policy?.owner ?? '';
     const exporters = getAdminEmployees(policy);
 
-    const policyID = policy?.id ?? '';
+    const policyID = policy?.id ?? '-1';
     const data: CardListItem[] = useMemo(() => {
         if (!isEmpty(policyOwner) && isEmpty(exporters)) {
             return [

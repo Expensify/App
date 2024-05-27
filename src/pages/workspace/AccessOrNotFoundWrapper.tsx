@@ -119,7 +119,7 @@ export type {PolicyAccessVariant};
 
 export default withOnyx<AccessOrNotFoundWrapperProps, AccessOrNotFoundWrapperOnyxProps>({
     policy: {
-        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID ?? ''}`,
+        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID ?? '-1'}`,
     },
     isLoadingReportData: {
         key: ONYXKEYS.IS_LOADING_REPORT_DATA,

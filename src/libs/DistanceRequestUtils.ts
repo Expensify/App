@@ -255,12 +255,12 @@ function convertToDistanceInMeters(distance: number, unit: Unit): number {
 function getCustomUnitRateID(reportID: string) {
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? null;
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`] ?? null;
-    const policy = PolicyUtils.getPolicy(report?.policyID ?? parentReport?.policyID ?? '');
+    const policy = PolicyUtils.getPolicy(report?.policyID ?? parentReport?.policyID ?? '-1');
 
     let customUnitRateID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
 
     if (ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isPolicyExpenseChat(parentReport)) {
-        customUnitRateID = lastSelectedDistanceRates?.[policy?.id ?? ''] ?? getDefaultMileageRate(policy)?.customUnitRateID ?? '';
+        customUnitRateID = lastSelectedDistanceRates?.[policy?.id ?? '-1'] ?? getDefaultMileageRate(policy)?.customUnitRateID ?? '-1';
     }
 
     return customUnitRateID;

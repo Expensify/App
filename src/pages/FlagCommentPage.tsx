@@ -134,7 +134,7 @@ function FlagCommentPage({parentReportAction, route, report, parentReport, repor
         }
 
         if (reportAction && ReportUtils.canFlagReportAction(reportAction, reportID)) {
-            Report.flagComment(reportID ?? '', reportAction, severity);
+            Report.flagComment(reportID ?? '-1', reportAction, severity);
         }
 
         Navigation.dismissModal();
@@ -165,7 +165,7 @@ function FlagCommentPage({parentReportAction, route, report, parentReport, repor
                         shouldNavigateToTopMostReport
                         onBackButtonPress={() => {
                             Navigation.goBack();
-                            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report?.reportID ?? ''));
+                            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report?.reportID ?? '-1'));
                         }}
                     />
                     <ScrollView

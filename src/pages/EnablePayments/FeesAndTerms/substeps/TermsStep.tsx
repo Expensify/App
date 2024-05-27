@@ -96,7 +96,7 @@ function TermsStep() {
                     // TODO: uncomment at the end of the refactor https://github.com/Expensify/App/issues/36648
                     // BankAccounts.acceptWalletTerms({
                     //     hasAcceptedTerms: hasAcceptedDisclosure && hasAcceptedPrivacyPolicyAndWalletAgreement,
-                    //     reportID: walletTerms?.chatReportID ?? '',
+                    //     reportID: walletTerms?.chatReportID ?? '-1',
                     // });
                     Navigation.navigate(ROUTES.SETTINGS_WALLET);
                 }}

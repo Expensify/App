@@ -47,7 +47,7 @@ function WorkspaceRateAndUnitPage(props: WorkspaceRateAndUnitPageProps) {
         if (props.workspaceRateAndUnit?.policyID === props.policy?.id) {
             return;
         }
-        Policy.setPolicyIDForReimburseView(props.policy?.id ?? '');
+        Policy.setPolicyIDForReimburseView(props.policy?.id ?? '-1');
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -58,7 +58,7 @@ function WorkspaceRateAndUnitPage(props: WorkspaceRateAndUnitPageProps) {
         }
 
         BankAccounts.setReimbursementAccountLoading(true);
-        Policy.openWorkspaceReimburseView(props.policy?.id ?? '');
+        Policy.openWorkspaceReimburseView(props.policy?.id ?? '-1');
     }, [props]);
 
     const saveUnitAndRate = (newUnit: Unit, newRate: string) => {
@@ -79,7 +79,7 @@ function WorkspaceRateAndUnitPage(props: WorkspaceRateAndUnitPageProps) {
                 rate: parseFloat(newRate),
             },
         };
-        Policy.updateWorkspaceCustomUnitAndRate(props.policy?.id ?? '', distanceCustomUnit, newCustomUnit, props.policy?.lastModified);
+        Policy.updateWorkspaceCustomUnitAndRate(props.policy?.id ?? '-1', distanceCustomUnit, newCustomUnit, props.policy?.lastModified);
     };
 
     const distanceCustomUnit = Object.values(props.policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
@@ -116,18 +116,18 @@ function WorkspaceRateAndUnitPage(props: WorkspaceRateAndUnitPageProps) {
                                 }}
                                 errorRowStyles={styles.mh5}
                                 pendingAction={distanceCustomUnit?.pendingAction ?? distanceCustomRate?.pendingAction}
-                                onClose={() => Policy.clearCustomUnitErrors(props.policy?.id ?? '', distanceCustomUnit?.customUnitID ?? '', distanceCustomRate?.customUnitRateID ?? '')}
+                                onClose={() => Policy.clearCustomUnitErrors(props.policy?.id ?? '-1', distanceCustomUnit?.customUnitID ?? '', distanceCustomRate?.customUnitRateID ?? '')}
                             >
                                 <MenuItemWithTopDescription
                                     description={translate('workspace.reimburse.trackDistanceRate')}
                                     title={CurrencyUtils.convertAmountToDisplayString(parseFloat(rateValue), props.policy?.outputCurrency ?? CONST.CURRENCY.USD)}
-                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT_RATE.getRoute(props.policy?.id ?? ''))}
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT_RATE.getRoute(props.policy?.id ?? '-1'))}
                                     shouldShowRightIcon
                                 />
                                 <MenuItemWithTopDescription
                                     description={translate('workspace.reimburse.trackDistanceUnit')}
                                     title={unitTitle}
-                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT_UNIT.getRoute(props.policy?.id ?? ''))}
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT_UNIT.getRoute(props.policy?.id ?? '-1'))}
                                     shouldShowRightIcon
                                 />
                             </OfflineWithFeedback>

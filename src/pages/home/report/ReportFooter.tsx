@@ -67,7 +67,7 @@ function ReportFooter({
     lastReportAction,
     pendingAction,
     session,
-    report = {reportID: '0'},
+    report = {reportID: '-1'},
     reportNameValuePairs,
     shouldShowComposeInput = false,
     isEmptyChat = true,

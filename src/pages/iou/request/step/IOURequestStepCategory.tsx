@@ -99,7 +99,7 @@ function IOURequestStepCategory({
             return;
         }
 
-        PolicyActions.openDraftWorkspaceRequest(report?.policyID ?? '');
+        PolicyActions.openDraftWorkspaceRequest(report?.policyID ?? '-1');
     };
 
     useNetwork({onReconnect: fetchData});
@@ -136,7 +136,7 @@ function IOURequestStepCategory({
         IOU.setMoneyRequestCategory(transactionID, updatedCategory);
 
         if (action === CONST.IOU.ACTION.CATEGORIZE) {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, report?.reportID ?? ''));
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, report?.reportID ?? '-1'));
             return;
         }
 
@@ -155,7 +155,7 @@ function IOURequestStepCategory({
             <Text style={[styles.ph5, styles.pv3]}>{translate('iou.categorySelection')}</Text>
             <CategoryPicker
                 selectedCategory={transactionCategory}
-                policyID={report?.policyID ?? policy?.id ?? ''}
+                policyID={report?.policyID ?? policy?.id ?? '-1'}
                 onSubmit={updateCategory}
             />
         </StepScreenWrapper>
@@ -167,7 +167,7 @@ IOURequestStepCategory.displayName = 'IOURequestStepCategory';
 const IOURequestStepCategoryWithOnyx = withOnyx<IOURequestStepCategoryProps, IOURequestStepCategoryOnyxProps>({
     splitDraftTransaction: {
         key: ({route}) => {
-            const transactionID = route?.params.transactionID ?? 0;
+            const transactionID = route?.params.transactionID ?? -1;
             return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
         },
     },

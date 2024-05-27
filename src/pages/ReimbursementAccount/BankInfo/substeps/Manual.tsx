@@ -57,7 +57,7 @@ function Manual({reimbursementAccount, onNext}: ManualProps) {
         return errors;
     }, []);
 
-    const shouldDisableInputs = !!(reimbursementAccount?.achData?.bankAccountID ?? '');
+    const shouldDisableInputs = !!(reimbursementAccount?.achData?.bankAccountID ?? '-1');
 
     return (
         <FormProvider

@@ -65,9 +65,9 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const route = useRoute();
-    const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? ''}`], [policies, report?.policyID]);
+    const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? '-1'}`], [policies, report?.policyID]);
     const isPolicyAdmin = useMemo(() => PolicyUtils.isPolicyAdmin(policy ?? null), [policy]);
-    const isPolicyEmployee = useMemo(() => PolicyUtils.isPolicyEmployee(report?.policyID ?? '', policies), [report?.policyID, policies]);
+    const isPolicyEmployee = useMemo(() => PolicyUtils.isPolicyEmployee(report?.policyID ?? '-1', policies), [report?.policyID, policies]);
     const shouldUseFullTitle = useMemo(() => ReportUtils.shouldUseFullTitleToDisplay(report), [report]);
     const isChatRoom = useMemo(() => ReportUtils.isChatRoom(report), [report]);
     const isUserCreatedPolicyRoom = useMemo(() => ReportUtils.isUserCreatedPolicyRoom(report), [report]);
@@ -87,10 +87,10 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const isThread = useMemo(() => ReportUtils.isThread(report), [report]);
     const participants = useMemo(() => {
         if (isGroupChat) {
-            return ReportUtils.getParticipantAccountIDs(report.reportID ?? '');
+            return ReportUtils.getParticipantAccountIDs(report.reportID ?? '-1');
         }
 
-        return ReportUtils.getVisibleChatMemberAccountIDs(report.reportID ?? '');
+        return ReportUtils.getVisibleChatMemberAccountIDs(report.reportID ?? '-1');
     }, [report, isGroupChat]);
 
     // Get the active chat members by filtering out the pending members with delete action
@@ -110,7 +110,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             return;
         }
 
-        Report.getReportPrivateNote(report?.reportID ?? '');
+        Report.getReportPrivateNote(report?.reportID ?? '-1');
     }, [report?.reportID, isOffline, isPrivateNotesFetchTriggered, isSelfDM]);
 
     const menuItems: ReportDetailsPageMenuItem[] = useMemo(() => {
@@ -126,7 +126,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 translationKey: 'common.shareCode',
                 icon: Expensicons.QrCode,
                 isAnonymousAction: true,
-                action: () => Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.getRoute(report?.reportID ?? '')),
+                action: () => Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.getRoute(report?.reportID ?? '-1')),
             });
         }
 
@@ -153,9 +153,9 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 isAnonymousAction: false,
                 action: () => {
                     if (isUserCreatedPolicyRoom || isChatThread) {
-                        Navigation.navigate(ROUTES.ROOM_MEMBERS.getRoute(report?.reportID ?? ''));
+                        Navigation.navigate(ROUTES.ROOM_MEMBERS.getRoute(report?.reportID ?? '-1'));
                     } else {
-                        Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID ?? ''));
+                        Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID ?? '-1'));
                     }
                 },
             });
@@ -169,7 +169,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 icon: Expensicons.Users,
                 isAnonymousAction: false,
                 action: () => {
-                    Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(report?.reportID ?? ''));
+                    Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(report?.reportID ?? '-1'));
                 },
             });
         }
@@ -180,7 +180,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             icon: Expensicons.Gear,
             isAnonymousAction: false,
             action: () => {
-                Navigation.navigate(ROUTES.REPORT_SETTINGS.getRoute(report?.reportID ?? ''));
+                Navigation.navigate(ROUTES.REPORT_SETTINGS.getRoute(report?.reportID ?? '-1'));
             },
         });
 
@@ -241,15 +241,15 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 shouldDisableViewPhoto
                 onImageRemoved={() => {
                     // Calling this without a file will remove the avatar
-                    Report.updateGroupChatAvatar(report.reportID ?? '');
+                    Report.updateGroupChatAvatar(report.reportID ?? '-1');
                 }}
-                onImageSelected={(file) => Report.updateGroupChatAvatar(report.reportID ?? '', file)}
+                onImageSelected={(file) => Report.updateGroupChatAvatar(report.reportID ?? '-1', file)}
                 editIcon={Expensicons.Camera}
                 editIconStyle={styles.smallEditIconAccount}
                 pendingAction={report.pendingFields?.avatar ?? undefined}
                 errors={report.errorFields?.avatar ?? null}
                 errorRowStyles={styles.mt6}
-                onErrorClose={() => Report.clearAvatarErrors(report.reportID ?? '')}
+                onErrorClose={() => Report.clearAvatarErrors(report.reportID ?? '-1')}
             />
         ) : (
             <RoomHeaderAvatars
@@ -260,7 +260,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
     const reportName =
         ReportUtils.isDeprecatedGroupDM(report) || ReportUtils.isGroupChat(report)
-            ? ReportUtils.getGroupChatName(undefined, false, report.reportID ?? '')
+            ? ReportUtils.getGroupChatName(undefined, false, report.reportID ?? '-1')
             : ReportUtils.getReportName(report);
     return (
         <ScreenWrapper testID={ReportDetailsPage.displayName}>
@@ -301,7 +301,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                                     accessibilityLabel={chatRoomSubtitle ?? ''}
                                     accessible
                                     onPress={() => {
-                                        Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(report?.policyID ?? ''));
+                                        Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(report?.policyID ?? '-1'));
                                     }}
                                 >
                                     {chatRoomSubtitleText}

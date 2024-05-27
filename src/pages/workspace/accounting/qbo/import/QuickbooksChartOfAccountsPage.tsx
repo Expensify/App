@@ -16,7 +16,7 @@ import CONST from '@src/CONST';
 function QuickbooksChartOfAccountsPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '';
+    const policyID = policy?.id ?? '-1';
     const {enableNewCategories, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
 
     return (

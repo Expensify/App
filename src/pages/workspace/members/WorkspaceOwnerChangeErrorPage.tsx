@@ -25,7 +25,7 @@ function WorkspaceOwnerChangeErrorPage({route}: WorkspaceOwnerChangeSuccessPageP
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const accountID = Number(route.params.accountID) ?? 0;
+    const accountID = Number(route.params.accountID) ?? -1;
     const policyID = route.params.policyID;
 
     const closePage = useCallback(() => {

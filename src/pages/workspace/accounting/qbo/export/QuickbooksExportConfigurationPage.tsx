@@ -23,7 +23,7 @@ type MenuItem = MenuItemProps & {pendingAction?: OfflineWithFeedbackProps['pendi
 function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '';
+    const policyID = policy?.id ?? '-1';
     const policyOwner = policy?.owner ?? '';
     const {
         export: exportConfiguration,

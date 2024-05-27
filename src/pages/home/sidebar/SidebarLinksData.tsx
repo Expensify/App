@@ -47,7 +47,7 @@ function SidebarLinksData({insets, isLoadingApp = true, onLinkClick, priorityMod
     const policyMemberAccountIDs = getPolicyEmployeeListByIdWithoutCurrentUser(policies, activeWorkspaceID, accountID);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => Policy.openWorkspace(activeWorkspaceID ?? '', policyMemberAccountIDs), [activeWorkspaceID]);
+    useEffect(() => Policy.openWorkspace(activeWorkspaceID ?? '-1', policyMemberAccountIDs), [activeWorkspaceID]);
 
     const isLoading = isLoadingApp;
     const {orderedReportIDs, currentReportID} = useReportIDs();

@@ -30,7 +30,7 @@ function WorkspaceReimburseSection({policy, reimbursementAccount}: WorkspaceReim
     const [shouldShowLoadingSpinner, setShouldShowLoadingSpinner] = useState(true);
     const achState = reimbursementAccount?.achData?.state ?? '';
     const hasVBA = achState === BankAccount.STATE.OPEN;
-    const policyId = policy?.id ?? '';
+    const policyId = policy?.id ?? '-1';
     const reimburseReceiptsUrl = `reports?policyID=${policyId}&from=all&type=expense&showStates=Archived&isAdvancedFilterMode=true`;
     const isLoading = reimbursementAccount?.isLoading ?? false;
     const prevIsLoading = usePrevious(isLoading);
@@ -99,7 +99,7 @@ function WorkspaceReimburseSection({policy, reimbursementAccount}: WorkspaceReim
                 <Text>{translate('workspace.reimburse.unlockNoVBACopy')}</Text>
             </View>
             <ConnectBankAccountButton
-                policyID={policy?.id ?? ''}
+                policyID={policy?.id ?? '-1'}
                 style={[styles.mt4]}
             />
         </Section>

@@ -85,7 +85,7 @@ function IOURequestStepParticipants({
     const addParticipant = useCallback(
         (val: Participant[]) => {
             IOU.setMoneyRequestParticipants(transactionID, val);
-            const rateID = DistanceRequestUtils.getCustomUnitRateID(val[0]?.reportID ?? '');
+            const rateID = DistanceRequestUtils.getCustomUnitRateID(val[0]?.reportID ?? '-1');
             IOU.setCustomUnitRateID(transactionID, rateID);
 
             numberOfParticipants.current = val.length;
@@ -165,7 +165,7 @@ IOURequestStepParticipants.displayName = 'IOURequestStepParticipants';
 const IOURequestStepParticipantsWithOnyx = withOnyx<IOURequestStepParticipantsProps, IOURequestStepParticipantsOnyxProps>({
     skipConfirmation: {
         key: ({route}) => {
-            const transactionID = route.params.transactionID ?? 0;
+            const transactionID = route.params.transactionID ?? -1;
             return `${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`;
         },
     },

@@ -74,8 +74,8 @@ function IOURequestStepTaxRatePage({
                 return;
             }
             IOU.updateMoneyRequestTaxRate({
-                transactionID: transaction?.transactionID ?? '',
-                optimisticReportActionID: report?.reportID ?? '',
+                transactionID: transaction?.transactionID ?? '-1',
+                optimisticReportActionID: report?.reportID ?? '-1',
                 taxCode: newTaxCode,
                 taxAmount: CurrencyUtils.convertToBackendAmount(taxAmount ?? 0),
                 policy,
@@ -119,13 +119,13 @@ IOURequestStepTaxRatePage.displayName = 'IOURequestStepTaxRatePage';
 
 const IOURequestStepTaxRatePageWithOnyx = withOnyx<IOURequestStepTaxRatePageProps, IOURequestStepTaxRatePageOnyxProps>({
     policy: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '-1'}`,
     },
     policyCategories: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '0'}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '-1'}`,
     },
     policyTags: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '-1'}`,
     },
 })(IOURequestStepTaxRatePage);
 

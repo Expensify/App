@@ -32,7 +32,7 @@ function XeroOrganizationConfigurationPage({
     const tenants = useMemo(() => getXeroTenants(policy ?? undefined), [policy]);
     const currentXeroOrganization = findCurrentXeroOrganization(tenants, policy?.connections?.xero?.config?.tenantID);
 
-    const policyID = policy?.id ?? '';
+    const policyID = policy?.id ?? '-1';
 
     const sections =
         policy?.connections?.xero?.data?.tenants.map((tenant) => ({
