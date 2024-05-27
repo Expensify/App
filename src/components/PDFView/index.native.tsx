@@ -165,9 +165,10 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
         );
     }
 
-    return onPress && !successToLoadPDF ? (
+    return onPress ? (
         <PressableWithoutFeedback
             onPress={onPress}
+            fullDisabled={successToLoadPDF}
             style={[themeStyles.flex1, themeStyles.alignSelfStretch, !failedToLoadPDF && themeStyles.flexRow]}
             accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
