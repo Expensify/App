@@ -60,8 +60,8 @@ function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
             titleStyle={[styles.pb2, styles.ph5]}
             contentContainerStyle={[styles.flex1]}
             shouldUseScrollView={false}
-            headerTitleAlreadyTranslated={translate('workspace.xero.mapTrackingCategoryTo', {categoryName})}
-            titleAlreadyTranslated={translate('workspace.xero.mapTrackingCategoryToDescription', {categoryName})}
+            headerTitleAlreadyTranslated={translate('workspace.xero.mapTrackingCategoryTo', {categoryName: decodeURIComponent(categoryName)})}
+            titleAlreadyTranslated={translate('workspace.xero.mapTrackingCategoryToDescription', {categoryName: decodeURIComponent(categoryName)})}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
         >
             <SelectionList
