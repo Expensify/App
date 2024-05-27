@@ -2,10 +2,10 @@ import {useFocusEffect} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
+import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ConfirmModal from '@components/ConfirmModal';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import useLocalize from '@hooks/useLocalize';
@@ -17,26 +17,24 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import * as Policy from '@userActions/Policy';
-import ROUTES from '@src/ROUTES';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {ConnectionName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type { ConnectionName } from '@src/types/onyx/Policy';
 import type IconAsset from '@src/types/utils/IconAsset';
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import ToggleSettingOptionRow from './workflows/ToggleSettingsOptionRow';
 
-
-
 type ItemType = 'organize' | 'integrate';
 type ConnectionWarningModalState = {
-    isOpen: boolean,
-    itemType?: ItemType,
-}
+    isOpen: boolean;
+    itemType?: ItemType;
+};
 
 type WorkspaceMoreFeaturesPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.MORE_FEATURES>;
 
@@ -68,8 +66,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const connectionName = Object.keys(policy?.connections ?? {})?.[0] as ConnectionName;
 
     const policyID = policy?.id ?? '';
-    
-    const [connectionWarningModalState, setConnectionWarningModalState] = useState<ConnectionWarningModalState>({ isOpen: false});
+
+    const [connectionWarningModalState, setConnectionWarningModalState] = useState<ConnectionWarningModalState>({isOpen: false});
 
     const spendItems: Item[] = [
         {
@@ -106,7 +104,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 if (hasAccountingConnection) {
                     setConnectionWarningModalState({
                         isOpen: true,
-                        itemType: 'organize'
+                        itemType: 'organize',
                     });
                     return;
                 }
@@ -124,7 +122,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 if (hasAccountingConnection) {
                     setConnectionWarningModalState({
                         isOpen: true,
-                        itemType: 'organize'
+                        itemType: 'organize',
                     });
                     return;
                 }
@@ -142,7 +140,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 if (hasAccountingConnection) {
                     setConnectionWarningModalState({
                         isOpen: true,
-                        itemType: 'organize'
+                        itemType: 'organize',
                     });
                     return;
                 }
@@ -162,7 +160,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 if (hasAccountingConnection) {
                     setConnectionWarningModalState({
                         isOpen: true,
-                        itemType: 'integrate'
+                        itemType: 'integrate',
                     });
                     return;
                 }
@@ -269,26 +267,31 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 />
 
                 <ScrollView contentContainerStyle={styles.pb2}>{sections.map(renderSection)}</ScrollView>
-                <ConfirmModal 
+                <ConfirmModal
                     title={translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledTitle', connectionName)}
                     onConfirm={() => {
                         setConnectionWarningModalState({
                             isOpen: false,
-                            itemType: undefined
+                            itemType: undefined,
                         });
-                        Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID))
+                        Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
                     }}
-                    onCancel={() => setConnectionWarningModalState({
-                        isOpen: false,
-                        itemType: undefined
-                    })}
+                    onCancel={() =>
+                        setConnectionWarningModalState({
+                            isOpen: false,
+                            itemType: undefined,
+                        })
+                    }
                     isVisible={connectionWarningModalState.isOpen}
-                    prompt={connectionWarningModalState.itemType  === 'organize' ? translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledText'): translate('workspace.moreFeatures.connectionsWarningModal.disconnectText', connectionName) }
+                    prompt={
+                        connectionWarningModalState.itemType === 'organize'
+                            ? translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledText')
+                            : translate('workspace.moreFeatures.connectionsWarningModal.disconnectText', connectionName)
+                    }
                     confirmText={translate('workspace.moreFeatures.connectionsWarningModal.manageSettings')}
                     cancelText={translate('common.cancel')}
-                    />
+                />
             </ScreenWrapper>
-            
         </AccessOrNotFoundWrapper>
     );
 }

@@ -2153,7 +2153,6 @@ export default {
             organizeSection: {
                 title: 'Organize',
                 subtitle: 'Group and analyze spend, record every tax paid.',
-
             },
             integrateSection: {
                 title: 'Integrate',
@@ -2201,11 +2200,11 @@ export default {
                 },
                 featureEnabledText: 'The integration settings determine if this feature is enabled or not.',
                 disconnectText: (connectionName: ConnectionName): string => {
-                    const connectionText =connectionName === CONST.POLICY.CONNECTIONS.NAME.QBO ? 'Quickbooks Online': 'Xero';
+                    const connectionText = connectionName === CONST.POLICY.CONNECTIONS.NAME.QBO ? 'Quickbooks Online' : 'Xero';
                     return `Disconnect ${connectionText} from the workspace if you want to disable Accounting.`;
                 },
                 manageSettings: 'Manage settings',
-            }
+            },
         },
         reportFields: {
             delete: 'Delete field',

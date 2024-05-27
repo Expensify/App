@@ -38,7 +38,7 @@ type ToggleSettingOptionRowProps = {
     onCloseError?: () => void;
     /** Whether the toggle should be disabled */
     disabled?: boolean;
-    
+
     /** Whether to show the lock icon even if the switch is enabled */
     showLockIcon?: boolean;
 };
