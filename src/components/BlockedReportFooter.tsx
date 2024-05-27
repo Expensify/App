@@ -14,6 +14,7 @@ function BlockedReportFooter() {
             containerStyles={[styles.archivedReportFooter]}
             text={text}
             shouldShowIcon
+            shouldRenderHTML
         />
     );
 }
