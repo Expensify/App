@@ -93,7 +93,7 @@ import type {
     ReportMetadata,
     ReportUserIsTyping,
 } from '@src/types/onyx';
-import type {Decision, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
+import type {Decision, IOUMessage, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import type {NotificationPreference, Participants, Participant as ReportParticipant, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
 import type Report from '@src/types/onyx/Report';
 import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
@@ -2088,7 +2088,7 @@ function deleteReport(reportID: string) {
 
     const transactionIDs = Object.values(reportActionsForReport ?? {})
         .filter((reportAction): reportAction is ReportActionBase & OriginalMessageIOU => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU)
-        .map((reportAction) => reportAction.originalMessage.IOUTransactionID);
+        .map((reportAction) => ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(reportAction).IOUTransactionID);
 
     [...new Set(transactionIDs)].forEach((transactionID) => {
         onyxData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = null;

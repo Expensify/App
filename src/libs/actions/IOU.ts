@@ -52,7 +52,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant, Split} from '@src/types/onyx/IOU';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
-import type {IOUMessage, PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import type {IOUMessage, OriginalMessageReportPreview, PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {ReportPreviewAction} from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -278,7 +278,10 @@ function getReportPreviewAction(chatReportID: string, iouReportID: string): Onyx
     // Find the report preview action from the chat report
     return (
         Object.values(reportActions).find(
-            (reportAction) => reportAction && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && reportAction.originalMessage.linkedReportID === iouReportID,
+            (reportAction) =>
+                reportAction &&
+                reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
+                ReportActionsUtils.getReportActionOriginalMessage<OriginalMessageReportPreview['originalMessage']>(reportAction).linkedReportID === iouReportID,
         ) ?? null
     );
 }
@@ -3347,7 +3350,7 @@ function requestMoney(
         currentCreated,
         merchant,
         receipt,
-        isMovingTransactionFromTrackExpense ? (linkedTrackedExpenseReportAction?.originalMessage as IOUMessage)?.IOUTransactionID : undefined,
+        isMovingTransactionFromTrackExpense ? ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(linkedTrackedExpenseReportAction)?.IOUTransactionID : undefined,
         category,
         tag,
         taxCode,
@@ -3548,7 +3551,7 @@ function trackExpense(
         payeeAccountID,
         moneyRequestReportID,
         linkedTrackedExpenseReportAction,
-        isMovingTransactionFromTrackExpense ? (linkedTrackedExpenseReportAction?.originalMessage as IOUMessage)?.IOUTransactionID : undefined,
+        isMovingTransactionFromTrackExpense ? ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(linkedTrackedExpenseReportAction)?.IOUTransactionID : undefined,
     );
     const activeReportID = isMoneyRequestReport ? report.reportID : chatReport.reportID;
 
@@ -5147,7 +5150,7 @@ function updateMoneyRequestAmountAndCurrency({
 
 function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false) {
     // STEP 1: Get all collections we're updating
-    const iouReportID = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? reportAction.originalMessage.IOUReportID : '';
+    const iouReportID = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(reportAction).IOUReportID : '';
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`] ?? null;
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`];
     const reportPreviewAction = getReportPreviewAction(iouReport?.chatReportID ?? '', iouReport?.reportID ?? '');
