@@ -5,6 +5,7 @@ import {addSeconds, format, subMinutes, subSeconds} from 'date-fns';
 import {utcToZonedTime} from 'date-fns-tz';
 import React from 'react';
 import {AppState, DeviceEventEmitter, Linking} from 'react-native';
+import type {ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type Animated from 'react-native-reanimated';
@@ -77,7 +78,7 @@ const createAddListenerMock = (): ListenerMock => {
         transitionEndListeners.forEach((transitionEndListener) => transitionEndListener());
     };
 
-    const addListener: jest.Mock = jest.fn().mockImplementation((listener, callback) => {
+    const addListener: jest.Mock = jest.fn().mockImplementation((listener, callback: () => void) => {
         if (listener === 'transitionEnd') {
             transitionEndListeners.push(callback);
         }
@@ -157,7 +158,10 @@ function scrollUpToRevealNewMessagesBadge() {
 function isNewMessagesBadgeVisible(): boolean {
     const hintText = Localize.translateLocal('accessibilityHints.scrollToNewestMessages');
     const badge = screen.queryByAccessibilityHint(hintText);
-    return Math.round(badge?.props.style.transform[0].translateY) === -40;
+    const badgeProps = badge?.props as {style: ViewStyle};
+    const transformStyle = badgeProps.style.transform?.[0] as {translateY: number};
+
+    return Math.round(transformStyle.translateY) === -40;
 }
 
 function navigateToSidebar(): Promise<void> {

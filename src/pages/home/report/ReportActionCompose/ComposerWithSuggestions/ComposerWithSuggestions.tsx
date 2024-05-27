@@ -177,6 +177,11 @@ type ComposerWithSuggestionsProps = ComposerWithSuggestionsOnyxProps &
         policyID: string;
     };
 
+type SwitchToCurrentReportProps = {
+    preexistingReportID: string;
+    callback: () => void;
+};
+
 const {RNTextInputReset} = NativeModules;
 
 const isIOSNative = getPlatform() === CONST.PLATFORM.IOS;
@@ -336,7 +341,7 @@ function ComposerWithSuggestions(
 
     const debouncedSaveReportComment = useMemo(
         () =>
-            lodashDebounce((selectedReportID, newComment) => {
+            lodashDebounce((selectedReportID: string, newComment: string | null) => {
                 Report.saveReportDraftComment(selectedReportID, newComment);
                 isCommentPendingSaved.current = false;
             }, 1000),
@@ -344,7 +349,7 @@ function ComposerWithSuggestions(
     );
 
     useEffect(() => {
-        const switchToCurrentReport = DeviceEventEmitter.addListener(`switchToPreExistingReport_${reportID}`, ({preexistingReportID, callback}) => {
+        const switchToCurrentReport = DeviceEventEmitter.addListener(`switchToPreExistingReport_${reportID}`, ({preexistingReportID, callback}: SwitchToCurrentReportProps) => {
             if (!commentRef.current) {
                 callback();
                 return;
@@ -765,7 +770,6 @@ function ComposerWithSuggestions(
                     onLayout={onLayout}
                     onScroll={hideSuggestionMenu}
                     shouldContainScroll={Browser.isMobileSafari()}
-                    isGroupPolicyReport={isGroupPolicyReport}
                 />
             </View>
 

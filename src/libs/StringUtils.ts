@@ -89,4 +89,11 @@ function getAcronym(string: string): string {
     return acronym;
 }
 
-export default {sanitizeString, isEmptyString, removeInvisibleCharacters, normalizeCRLF, getAcronym};
+/**
+ * Replace all line breaks with white spaces
+ */
+function lineBreaksToSpaces(text = '') {
+    return text.replace(CONST.REGEX.LINE_BREAK, ' ');
+}
+
+export default {sanitizeString, isEmptyString, removeInvisibleCharacters, normalizeCRLF, getAcronym, lineBreaksToSpaces};

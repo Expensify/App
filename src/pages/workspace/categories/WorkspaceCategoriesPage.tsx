@@ -243,6 +243,24 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const shouldShowEmptyState = !categoryList.some((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) && !isLoading;
 
+    const getHeaderText = () => (
+        <View style={[styles.ph5, styles.pb5, styles.pt3]}>
+            {Object.keys(policy?.connections ?? {}).length > 0 ? (
+                <Text>
+                    <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.categories.importedFromAccountingSoftware')} `}</Text>
+                    <TextLink
+                        style={[styles.textNormal, styles.link]}
+                        href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyId)}`}
+                    >
+                        {`${translate('workspace.accounting.qbo')} ${translate('workspace.accounting.settings')}`}
+                    </TextLink>
+                </Text>
+            ) : (
+                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
+            )}
+        </View>
+    );
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -274,21 +292,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     danger
                 />
                 {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
-                <View style={[styles.ph5, styles.pb5, styles.pt3]}>
-                    {Object.keys(policy?.connections ?? {}).length > 0 ? (
-                        <Text>
-                            <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.categories.importedFromAccountingSoftware')} `}</Text>
-                            <TextLink
-                                style={[styles.textNormal, styles.link]}
-                                href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyId)}`}
-                            >
-                                {`${translate('workspace.accounting.qbo')} ${translate('workspace.accounting.settings')}`}
-                            </TextLink>
-                        </Text>
-                    ) : (
-                        <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
-                    )}
-                </View>
+                {!isSmallScreenWidth && getHeaderText()}
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -315,6 +319,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         onDismissError={dismissError}
                         customListHeader={getCustomListHeader()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                        listHeaderContent={isSmallScreenWidth ? getHeaderText() : null}
                         showScrollIndicator={false}
                     />
                 )}

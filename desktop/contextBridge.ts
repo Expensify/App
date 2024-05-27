@@ -67,7 +67,7 @@ contextBridge.exposeInMainWorld('electron', {
         }
 
         // Deliberately strip event as it includes `sender`
-        ipcRenderer.on(channel, (event, ...args) => func(...args));
+        ipcRenderer.on(channel, (event, ...args: unknown[]) => func(...args));
     },
 
     /** Remove listeners for a single channel from the main process and sent to the renderer process. */

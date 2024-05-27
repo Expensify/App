@@ -108,7 +108,6 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
                 testID={PolicyDistanceRateDetailsPage.displayName}
                 includeSafeAreaPaddingBottom={false}
                 style={[styles.defaultModalContainer]}
-                shouldShowOfflineIndicatorInWideScreen
             >
                 <HeaderWithBackButton
                     title={`${rateValueToDisplay} / ${translate(`common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`)}`}

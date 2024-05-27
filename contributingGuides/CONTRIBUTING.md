@@ -95,9 +95,10 @@ Additionally, if you want to discuss an idea with the open source community with
 
 #### Propose a solution for the job
 4. You can propose solutions on any issue at any time, but if you propose solutions to jobs before the `Help Wanted` label is applied, you do so at your own risk. Proposals will not be reviewed until the label is added and there is always a chance that we might not add the label or hire an external contributor for the job.
-5. After you reproduce the issue, complete the [proposal template here](./PROPOSAL_TEMPLATE.md) and post it as a comment in the corresponding GitHub issue (linked in the Upwork job).
+5. Contributors should **not** submit proposals on issues when they have assigned issues or PRs that are awaiting an action from them. If so, they will be in violation of Rule #1 (Get Shit Done) in our [Code of Conduct](https://github.com/Expensify/App/blob/main/CODE_OF_CONDUCT.md) and will receive a warning. Multiple warnings can lead to removal from the program. 
+6. After you reproduce the issue, complete the [proposal template here](./PROPOSAL_TEMPLATE.md) and post it as a comment in the corresponding GitHub issue (linked in the Upwork job).
     - Note: Before submitting a proposal on an issue, be sure to read any other existing proposals. ALL NEW PROPOSALS MUST BE DIFFERENT FROM EXISTING PROPOSALS. The *difference* should be important, meaningful or considerable.
-6. Refrain from leaving additional comments until someone from the Contributor-Plus team and / or someone from Expensify provides feedback on your proposal (do not create a pull request yet).
+7. Refrain from leaving additional comments until someone from the Contributor-Plus team and / or someone from Expensify provides feedback on your proposal (do not create a pull request yet).
     - Do not leave more than one proposal.
     - Do not make extensive changes to your current proposal until after it has been reviewed.
     - If you want to make an entirely new proposal or update an existing proposal, please go back and edit your original proposal, then post a new comment to the issue in this format to alert everyone that it has been updated:
@@ -105,8 +106,8 @@ Additionally, if you want to discuss an idea with the open source community with
     ## Proposal
     [Updated](link to proposal)
     ```
-7. If your proposal is accepted by the Expensify engineer assigned to the issue, Expensify will hire you on Upwork and assign the GitHub issue to you.
-8. Once hired, post a comment in the Github issue stating when you expect to have your PR ready for review.
+8. If your proposal is accepted by the Expensify engineer assigned to the issue, Expensify will hire you on Upwork and assign the GitHub issue to you.
+9. Once hired, post a comment in the Github issue stating when you expect to have your PR ready for review.
 
 #### Begin coding your solution in a pull request
 9. When you are ready to start, fork the repository and create a new branch.
