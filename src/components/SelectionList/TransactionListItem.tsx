@@ -54,28 +54,31 @@ function arePropsEqual(prevProps: CellProps, nextProps: CellProps) {
     return prevProps.keyForList === nextProps.keyForList;
 }
 
-const ReceiptCell = memo(({transactionItem, isHovered = false}: ReceiptCellProps) => {
-    const theme = useTheme();
-    const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
+const ReceiptCell = memo(
+    ({transactionItem, isHovered = false}: ReceiptCellProps) => {
+        const theme = useTheme();
+        const styles = useThemeStyles();
+        const StyleUtils = useStyleUtils();
 
-    return (
-        <View style={[StyleUtils.getWidthAndHeightStyle(variables.h36, variables.w40), StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusSmall), styles.overflowHidden]}>
-            <ReceiptImage
-                source={tryResolveUrlFromApiRoot(transactionItem?.receipt?.source ?? '')}
-                isEReceipt={transactionItem.hasEReceipt}
-                transactionID={transactionItem.transactionID}
-                shouldUseThumbnailImage={!transactionItem?.receipt?.source}
-                isAuthTokenRequired
-                fallbackIcon={Expensicons.ReceiptPlus}
-                fallbackIconSize={20}
-                fallbackIconColor={theme.icon}
-                iconSize="x-small"
-                isHovered={isHovered}
-            />
-        </View>
-    );
-}, (prevProps, nextProps) => (arePropsEqual(prevProps, nextProps) && prevProps.isHovered === nextProps.isHovered));
+        return (
+            <View style={[StyleUtils.getWidthAndHeightStyle(variables.h36, variables.w40), StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusSmall), styles.overflowHidden]}>
+                <ReceiptImage
+                    source={tryResolveUrlFromApiRoot(transactionItem?.receipt?.source ?? '')}
+                    isEReceipt={transactionItem.hasEReceipt}
+                    transactionID={transactionItem.transactionID}
+                    shouldUseThumbnailImage={!transactionItem?.receipt?.source}
+                    isAuthTokenRequired
+                    fallbackIcon={Expensicons.ReceiptPlus}
+                    fallbackIconSize={20}
+                    fallbackIconColor={theme.icon}
+                    iconSize="x-small"
+                    isHovered={isHovered}
+                />
+            </View>
+        );
+    },
+    (prevProps, nextProps) => arePropsEqual(prevProps, nextProps) && prevProps.isHovered === nextProps.isHovered,
+);
 
 const DateCell = memo(({showTooltip, date, isLargeScreenWidth}: DateCellProps) => {
     const styles = useThemeStyles();
