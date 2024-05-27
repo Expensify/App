@@ -51,6 +51,7 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
     const customUnit = customUnits[Object.keys(customUnits)[0]];
     const rate = customUnit?.rates[rateID];
     const currency = rate?.currency ?? CONST.CURRENCY.USD;
+    const taxClaimablePercentage = rate.attributes?.taxClaimablePercentage;
 
     const isTrackTaxEnabled = customUnit.attributes.taxEnabled;
     const defaultTaxRateID = policy?.taxRates?.defaultExternalID ?? '';
@@ -98,6 +99,8 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
     };
 
     const rateValueToDisplay = CurrencyUtils.convertAmountToDisplayString(rate?.rate, currency);
+    const taxClaimableValueToDisplay =
+        taxClaimablePercentage && rate.rate ? `${CurrencyUtils.getLocalizedCurrencySymbol(currency)}${((taxClaimablePercentage * rate.rate) / 100).toFixed(1)}` : '';
     const unitToDisplay = translate(`common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`);
 
     const threeDotsMenuItems = [
@@ -170,7 +173,7 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
                             <MenuItemWithTopDescription
                                 disabled={false}
                                 title={taxRate}
-                                description="Tax Rate"
+                                description={translate('workspace.taxes.taxRate')}
                                 shouldShowRightIcon
                                 onPress={() => setIsTaxRateSelectionModalVisible(true)}
                             />
@@ -191,8 +194,8 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
                         >
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon
-                                title={`${rateValueToDisplay}`}
-                                description="Tax reclaimable on"
+                                title={taxClaimableValueToDisplay}
+                                description={translate('workspace.taxes.taxReclaimableOn')}
                                 descriptionTextStyle={styles.textNormal}
                                 onPress={editTaxReclaimableOnValue}
                             />

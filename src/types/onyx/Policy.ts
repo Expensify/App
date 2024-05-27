@@ -15,6 +15,10 @@ type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     enabled?: boolean;
     errors?: OnyxCommon.Errors;
     errorFields?: OnyxCommon.ErrorFields;
+    attributes?: {
+        taxClaimablePercentage?: number;
+        taxRateExternalID?: string;
+    };
 }>;
 
 type Attributes = {

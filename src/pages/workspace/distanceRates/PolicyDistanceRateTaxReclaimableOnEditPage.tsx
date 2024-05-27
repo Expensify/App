@@ -13,26 +13,27 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import {validateRateValue} from '@libs/PolicyDistanceRatesUtils';
+import {validateTaxClaimableValue} from '@libs/PolicyDistanceRatesUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import INPUT_IDS from '@src/types/form/PolicyDistanceRateEditForm';
+import INPUT_IDS from '@src/types/form/PolicyDistanceRateTaxReclaimableOnEditForm';
 import type * as OnyxTypes from '@src/types/onyx';
 
-type PolicyDistanceRateEditPageOnyxProps = {
+type PolicyDistanceRateTaxReclaimableOnEditPageOnyxProps = {
     /** Policy details */
     policy: OnyxEntry<OnyxTypes.Policy>;
 };
 
-type PolicyDistanceRateEditPageProps = PolicyDistanceRateEditPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT>;
+type PolicyDistanceRateTaxReclaimableOnEditPageProps = PolicyDistanceRateTaxReclaimableOnEditPageOnyxProps &
+    StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT>;
 
-function PolicyDistanceRateTaxReclaimableOnEditPage({policy, route}: PolicyDistanceRateEditPageProps) {
+function PolicyDistanceRateTaxReclaimableOnEditPage({policy, route}: PolicyDistanceRateTaxReclaimableOnEditPageProps) {
     const styles = useThemeStyles();
-    const {translate, toLocaleDigit} = useLocalize();
+    const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
 
     const policyID = route.params.policyID;
@@ -41,18 +42,21 @@ function PolicyDistanceRateTaxReclaimableOnEditPage({policy, route}: PolicyDista
     const customUnit = customUnits[Object.keys(customUnits)[0]];
     const rate = customUnit.rates[rateID];
     const currency = rate.currency ?? CONST.CURRENCY.USD;
-    const currentRateValue = (rate.rate ?? 0).toString();
-
-    const submitRate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM>) => {
-        Policy.updatePolicyDistanceRateValue(policyID, customUnit, [{...rate, rate: Number(values.rate) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET}]);
+    const currentTaxReclaimableOnValue = rate.attributes?.taxClaimablePercentage && rate.rate ? (rate.attributes.taxClaimablePercentage * rate.rate) / 100 : '';
+    const submitTaxReclaimableOn = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT_FORM>) => {
+        Policy.updatePolicyDistanceRateValue(policyID, customUnit, [
+            {
+                ...rate,
+                attributes: {
+                    taxClaimablePercentage: rate.rate ? (Number(values.taxClaimableValue) * 100) / rate.rate : undefined,
+                },
+            },
+        ]);
         Keyboard.dismiss();
         Navigation.goBack();
     };
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM>) => validateRateValue(values, currency, toLocaleDigit),
-        [currency, toLocaleDigit],
-    );
+    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT_FORM>) => validateTaxClaimableValue(values, rate), [rate]);
 
     return (
         <AccessOrNotFoundWrapper
@@ -67,14 +71,14 @@ function PolicyDistanceRateTaxReclaimableOnEditPage({policy, route}: PolicyDista
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
-                    title="Tax Reclaimabe On"
+                    title={translate('workspace.taxes.taxReclaimableOn')}
                     shouldShowBackButton
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 <FormProvider
-                    formID={ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM}
+                    formID={ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT_FORM}
                     submitButtonText={translate('common.save')}
-                    onSubmit={submitRate}
+                    onSubmit={submitTaxReclaimableOn}
                     validate={validate}
                     enabledWhenOffline
                     style={[styles.flexGrow1]}
@@ -85,9 +89,9 @@ function PolicyDistanceRateTaxReclaimableOnEditPage({policy, route}: PolicyDista
                 >
                     <InputWrapperWithRef
                         InputComponent={AmountForm}
-                        inputID={INPUT_IDS.RATE}
+                        inputID={INPUT_IDS.TAX_CLAIMABLE_VALUE}
                         extraDecimals={1}
-                        defaultValue={(parseFloat(currentRateValue) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET).toFixed(3)}
+                        defaultValue={currentTaxReclaimableOnValue?.toString() ?? ''}
                         isCurrencyPressable={false}
                         currency={currency}
                         ref={inputCallbackRef}
@@ -100,7 +104,7 @@ function PolicyDistanceRateTaxReclaimableOnEditPage({policy, route}: PolicyDista
 
 PolicyDistanceRateTaxReclaimableOnEditPage.displayName = 'PolicyDistanceRateTaxReclaimableOnEditPage';
 
-export default withOnyx<PolicyDistanceRateEditPageProps, PolicyDistanceRateEditPageOnyxProps>({
+export default withOnyx<PolicyDistanceRateTaxReclaimableOnEditPageProps, PolicyDistanceRateTaxReclaimableOnEditPageOnyxProps>({
     policy: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`,
     },
