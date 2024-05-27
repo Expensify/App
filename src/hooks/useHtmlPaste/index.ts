@@ -18,8 +18,7 @@ const insertAtCaret = (target: HTMLElement, text: string) => {
         // Move caret to the end of the newly inserted text node.
         range.setStart(node, node.length);
         range.setEnd(node, node.length);
-        selection.removeAllRanges();
-        selection.addRange(range);
+        selection.setBaseAndExtent(range.startContainer, range.startOffset, range.endContainer, range.endOffset);
 
         // Dispatch paste event to simulate real browser behavior
         target.dispatchEvent(new Event('paste', {bubbles: true}));
@@ -30,7 +29,7 @@ const insertAtCaret = (target: HTMLElement, text: string) => {
     }
 };
 
-const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, removeListenerOnScreenBlur = false) => {
+const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, removeListenerOnScreenBlur = false, shouldRefocusAfterPaste = true) => {
     const navigation = useNavigation();
 
     /**
@@ -47,7 +46,11 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, removeLi
             }
 
             // Pointer will go out of sight when a large paragraph is pasted on the web. Refocusing the input keeps the cursor in view.
-            textInputRef.current?.blur();
+            // If shouldRefocusAfterPaste = false, we want to call `focus()` only as it won't change the focus state of the input since it is already focused
+            if (shouldRefocusAfterPaste) {
+                textInputRef.current?.blur();
+            }
+
             textInputRef.current?.focus();
             // eslint-disable-next-line no-empty
         } catch (e) {}
