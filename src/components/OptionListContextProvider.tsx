@@ -64,22 +64,11 @@ function OptionsListContextProvider({reports, children}: OptionsListProviderProp
             return;
         }
 
-        const lastUpdatedReport = ReportUtils.getLastUpdatedReport();
-
-        if (!lastUpdatedReport) {
-            return;
-        }
-
-        const newOption = OptionsListUtils.createOptionFromReport(lastUpdatedReport, personalDetails);
-        const replaceIndex = options.reports.findIndex((option) => option.reportID === lastUpdatedReport.reportID);
-
-        if (replaceIndex === -1) {
-            return;
-        }
+        const newReports = OptionsListUtils.createOptionList(personalDetails, reports).reports;
 
         setOptions((prevOptions) => {
             const newOptions = {...prevOptions};
-            newOptions.reports[replaceIndex] = newOption;
+            newOptions.reports = newReports;
             return newOptions;
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -126,16 +115,16 @@ function OptionsListContextProvider({reports, children}: OptionsListProviderProp
             newReportOption: OptionsListUtils.SearchOption<Report>;
         }> = [];
 
-        Object.keys(personalDetails).forEach((accoutID) => {
-            const prevPersonalDetail = prevPersonalDetails?.[accoutID];
-            const personalDetail = personalDetails?.[accoutID];
+        Object.keys(personalDetails).forEach((accountID) => {
+            const prevPersonalDetail = prevPersonalDetails?.[accountID];
+            const personalDetail = personalDetails?.[accountID];
 
             if (isEqualPersonalDetail(prevPersonalDetail, personalDetail)) {
                 return;
             }
 
             Object.values(reports ?? {})
-                .filter((report) => Boolean(report?.participantAccountIDs?.includes(Number(accoutID))) || (ReportUtils.isSelfDM(report) && report?.ownerAccountID === Number(accoutID)))
+                .filter((report) => Boolean(Object.keys(report?.participants ?? {}).includes(accountID)) || (ReportUtils.isSelfDM(report) && report?.ownerAccountID === Number(accountID)))
                 .forEach((report) => {
                     if (!report) {
                         return;
