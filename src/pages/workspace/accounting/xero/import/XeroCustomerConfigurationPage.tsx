@@ -1,4 +1,3 @@
-import {isEmpty} from 'lodash';
 import React from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -28,7 +27,7 @@ function XeroCustomerConfigurationPage({policy}: WithPolicyProps) {
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={[[styles.pb2, styles.ph5]]}
-            shouldBeBlocked={isEmpty(policy?.connections?.xero)}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
         >
             <ToggleSettingOptionRow
                 title={translate('workspace.accounting.import')}

@@ -1,4 +1,3 @@
-import {isEmpty} from 'lodash';
 import React, {useMemo} from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -48,7 +47,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={[styles.pb2, styles.ph5]}
-            shouldBeBlocked={isEmpty(policy?.connections?.xero)}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
         >
             <ToggleSettingOptionRow
                 key={translate('workspace.xero.advancedConfig.autoSync')}

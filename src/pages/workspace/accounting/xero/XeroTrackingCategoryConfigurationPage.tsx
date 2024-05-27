@@ -1,4 +1,3 @@
-import {isEmpty} from 'lodash';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
@@ -59,7 +58,7 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={[styles.pb2, styles.ph5]}
-            shouldBeBlocked={isEmpty(policy?.connections?.xero)}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
         >
             <ToggleSettingOptionRow
                 title={translate('workspace.accounting.import')}

@@ -1,4 +1,3 @@
-import {isEmpty} from 'lodash';
 import React, {useMemo} from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
 import type {MenuItemProps} from '@components/MenuItem';
@@ -100,7 +99,7 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
-            shouldBeBlocked={isEmpty(policy?.connections?.xero)}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
         >
             {menuItems.map((menuItem) => (
                 <OfflineWithFeedback
