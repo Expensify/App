@@ -375,7 +375,6 @@ function ReportActionsView({
             reportActionID,
             indexOfLinkedAction,
             handleReportActionPagination,
-            network.isOffline,
             reportActions.length,
             newestReportAction,
             isFocused,
