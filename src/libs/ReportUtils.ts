@@ -5538,7 +5538,21 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
         return [];
     }
 
-    const otherParticipants = reportParticipants.filter((accountID) => currentUserPersonalDetails?.accountID !== accountID);
+    const otherParticipants = reportParticipants.filter((accountID) => {
+        if (currentUserPersonalDetails?.accountID === accountID) {
+            return false;
+        }
+
+        const details = allPersonalDetails?.[accountID];
+        const currentUserLogin = currentUserPersonalDetails?.login;
+        const policyOwner = policy?.owner;
+        if (PolicyUtils.isExpensifyTeam(details?.login ?? details?.displayName)) {
+            if (policyOwner && currentUserLogin && !PolicyUtils.isExpensifyTeam(policyOwner) && !PolicyUtils.isExpensifyTeam(currentUserLogin)) {
+                return false;
+            }
+        }
+        return true;
+    });
     const hasSingleParticipantInReport = otherParticipants.length === 1;
     let options: IOUType[] = [];
 
