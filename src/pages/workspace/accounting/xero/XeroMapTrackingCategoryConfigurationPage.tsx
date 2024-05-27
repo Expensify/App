@@ -62,6 +62,7 @@ function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
             shouldUseScrollView={false}
             headerTitleAlreadyTranslated={translate('workspace.xero.mapTrackingCategoryTo', {categoryName})}
             titleAlreadyTranslated={translate('workspace.xero.mapTrackingCategoryToDescription', {categoryName})}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
         >
             <SelectionList
                 sections={[{data: optionsList}]}

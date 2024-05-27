@@ -59,6 +59,7 @@ function XeroBankAccountSelectPage({policy}: WithPolicyConnectionsProps) {
             headerContent={listHeaderComponent}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID))}
             title="workspace.xero.xeroBankAccount"
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
         />
     );
 }

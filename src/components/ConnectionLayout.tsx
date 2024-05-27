@@ -1,13 +1,15 @@
+import {isEmpty} from 'lodash';
 import React, {useMemo} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import type {PolicyAccessVariant} from '@pages/workspace/AccessOrNotFoundWrapper';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {TranslationPaths} from '@src/languages/types';
-import type {PolicyFeatureName} from '@src/types/onyx/Policy';
+import type {ConnectionName, PolicyFeatureName} from '@src/types/onyx/Policy';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import ScreenWrapper from './ScreenWrapper';
 import ScrollView from './ScrollView';
@@ -55,6 +57,9 @@ type ConnectionLayoutProps = {
 
     /** Used for dynamic title translation with parameters */
     titleAlreadyTranslated?: string;
+
+    /** Name of the current connection */
+    connectionName: ConnectionName;
 };
 
 type ConnectionLayoutContentProps = Pick<ConnectionLayoutProps, 'title' | 'titleStyle' | 'children' | 'titleAlreadyTranslated'>;
@@ -82,11 +87,15 @@ function ConnectionLayout({
     contentContainerStyle,
     titleStyle,
     shouldIncludeSafeAreaPaddingBottom,
+    connectionName,
     shouldUseScrollView = true,
     headerTitleAlreadyTranslated,
     titleAlreadyTranslated,
 }: ConnectionLayoutProps) {
     const {translate} = useLocalize();
+
+    const policy = PolicyUtils.getPolicy(policyID ?? '');
+    const isConnectionEmpty = isEmpty(policy.connections?.[connectionName]);
 
     const renderSelectionContent = useMemo(
         () => (
@@ -106,6 +115,7 @@ function ConnectionLayout({
             policyID={policyID}
             accessVariants={accessVariants}
             featureName={featureName}
+            shouldBeBlocked={isConnectionEmpty}
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={!!shouldIncludeSafeAreaPaddingBottom}
