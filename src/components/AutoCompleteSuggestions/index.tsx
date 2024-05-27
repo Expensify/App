@@ -87,8 +87,8 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
             const isEnoughSpaceAboveForSmall = windowHeight - bottomValue - contentMinHeight > CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_BOX_MAX_SAFE_DISTANCE;
 
             const newLeftValue = isSmallScreenWidth ? x : leftValueForBigScreen;
-            // If the suggested word is longer than half the width of the suggestion popup, then adjust a new position of popup
-            const isAdjustmentNeeded = Math.abs(prevLeftValue.current - leftValueForBigScreen) > widthValue / 2;
+            // If the suggested word is longer than 150 (approximately half the width of the suggestion popup), then adjust a new position of popup
+            const isAdjustmentNeeded = Math.abs(prevLeftValue.current - leftValueForBigScreen) > 150;
             if (isInitialRender.current || isAdjustmentNeeded) {
                 isSuggestionAboveRef.current = isSuggestionRenderedAbove(isEnoughSpaceAboveForBig, isEnoughSpaceAboveForSmall);
                 leftValue.current = newLeftValue;
