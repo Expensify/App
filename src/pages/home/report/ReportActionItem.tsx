@@ -505,7 +505,7 @@ function ReportActionItem({
                 onPress: () => Report.resolveActionableMentionWhisper(report.reportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING),
             },
         ];
-    }, [action, isActionableWhisper, report.reportID, originalMessage]);
+    }, [action, isActionableWhisper, report.reportID]);
 
     const renderThreadDivider = useMemo(
         () =>
