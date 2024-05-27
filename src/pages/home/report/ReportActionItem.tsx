@@ -65,6 +65,16 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+import type {
+    IOUMessage,
+    OriginalMessageActionableMentionWhisper,
+    OriginalMessageActionableReportMentionWhisper,
+    OriginalMessageActionableTrackedExpenseWhisper,
+    OriginalMessageAddComment,
+    OriginalMessageDismissedViolation,
+    OriginalMessageJoinPolicyChangeLog,
+    OriginalMessageReimbursementQueued,
+} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import {RestrictedReadOnlyContextMenuActions} from './ContextMenu/ContextMenuActions';
@@ -212,6 +222,7 @@ function ReportActionItem({
     const reportScrollManager = useReportScrollManager();
     const isActionableWhisper =
         ReportActionsUtils.isActionableMentionWhisper(action) || ReportActionsUtils.isActionableTrackExpense(action) || ReportActionsUtils.isActionableReportMentionWhisper(action);
+    const originalMessage = ReportActionsUtils.getReportActionOriginalMessage(action);
 
     const highlightedBackgroundColorIfNeeded = useMemo(
         () => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {}),
@@ -219,10 +230,19 @@ function ReportActionItem({
     );
 
     const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(action);
-    const prevActionResolution = usePrevious(isActionableWhisper ? action.originalMessage.resolution : null);
+    const prevActionResolution = usePrevious(
+        isActionableWhisper
+            ? (
+                  originalMessage as
+                      | OriginalMessageActionableMentionWhisper['originalMessage']
+                      | OriginalMessageActionableTrackedExpenseWhisper['originalMessage']
+                      | OriginalMessageActionableReportMentionWhisper['originalMessage']
+              ).resolution
+            : null,
+    );
 
     // IOUDetails only exists when we are sending money
-    const isSendingMoney = isIOUReport(action) && action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && action.originalMessage.IOUDetails;
+    const isSendingMoney = isIOUReport(action) && (originalMessage as IOUMessage).type === CONST.IOU.REPORT_ACTION_TYPE.PAY && (originalMessage as IOUMessage).IOUDetails;
 
     const updateHiddenState = useCallback(
         (isHiddenValue: boolean) => {
@@ -366,10 +386,18 @@ function ReportActionItem({
             return;
         }
 
-        if (prevActionResolution !== (action.originalMessage.resolution ?? null)) {
+        if (
+            prevActionResolution !==
+            ((
+                originalMessage as
+                    | OriginalMessageActionableMentionWhisper['originalMessage']
+                    | OriginalMessageActionableTrackedExpenseWhisper['originalMessage']
+                    | OriginalMessageActionableReportMentionWhisper['originalMessage']
+            ).resolution ?? null)
+        ) {
             reportScrollManager.scrollToIndex(index);
         }
-    }, [index, action, prevActionResolution, reportScrollManager, isActionableWhisper]);
+    }, [index, originalMessage, prevActionResolution, reportScrollManager, isActionableWhisper]);
 
     const toggleReaction = useCallback(
         (emoji: Emoji) => {
@@ -390,12 +418,12 @@ function ReportActionItem({
     );
 
     const actionableItemButtons: ActionableItem[] = useMemo(() => {
-        if (!isActionableWhisper && (!ReportActionsUtils.isActionableJoinRequest(action) || action.originalMessage.choice !== '')) {
+        if (!isActionableWhisper && (!ReportActionsUtils.isActionableJoinRequest(action) || (originalMessage as OriginalMessageJoinPolicyChangeLog['originalMessage']).choice !== '')) {
             return [];
         }
 
         if (ReportActionsUtils.isActionableTrackExpense(action)) {
-            const transactionID = action?.originalMessage?.transactionID;
+            const transactionID = (originalMessage as OriginalMessageActionableTrackedExpenseWhisper['originalMessage'])?.transactionID;
             return [
                 {
                     text: 'actionableMentionTrackExpense.submit',
@@ -477,7 +505,7 @@ function ReportActionItem({
                 onPress: () => Report.resolveActionableMentionWhisper(report.reportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING),
             },
         ];
-    }, [action, isActionableWhisper, report.reportID]);
+    }, [action, isActionableWhisper, report.reportID, originalMessage]);
 
     const renderThreadDivider = useMemo(
         () =>
@@ -504,23 +532,24 @@ function ReportActionItem({
      */
     const renderItemContent = (hovered = false, isWhisper = false, hasErrors = false): React.JSX.Element => {
         let children;
+        const iouOriginalMessage = originalMessage as IOUMessage;
 
         // Show the MoneyRequestPreview for when expense is present
         if (
             isIOUReport(action) &&
-            action.originalMessage &&
+            iouOriginalMessage &&
             // For the pay flow, we only want to show MoneyRequestAction when sending money. When paying, we display a regular system message
-            (action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE ||
-                action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT ||
-                action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK ||
+            (iouOriginalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE ||
+                iouOriginalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT ||
+                iouOriginalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK ||
                 isSendingMoney)
         ) {
             // There is no single iouReport for bill splits, so only 1:1 requests require an iouReportID
-            const iouReportID = action.originalMessage.IOUReportID ? action.originalMessage.IOUReportID.toString() : '0';
+            const iouReportID = iouOriginalMessage.IOUReportID ? iouOriginalMessage.IOUReportID.toString() : '0';
             children = (
                 <MoneyRequestAction
                     // If originalMessage.iouReportID is set, this is a 1:1 IOU expense in a DM chat whose reportID is report.chatReportID
-                    chatReportID={action.originalMessage.IOUReportID ? report.chatReportID ?? '' : report.reportID}
+                    chatReportID={iouOriginalMessage.IOUReportID ? report.chatReportID ?? '' : report.reportID}
                     requestReportID={iouReportID}
                     reportID={report.reportID}
                     action={action}
@@ -554,7 +583,11 @@ function ReportActionItem({
             children = (
                 <ShowContextMenuContext.Provider value={contextValue}>
                     <TaskPreview
-                        taskReportID={action.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT ? action.originalMessage.taskReportID?.toString() ?? '' : ''}
+                        taskReportID={
+                            action.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT
+                                ? (originalMessage as OriginalMessageAddComment['originalMessage']).taskReportID?.toString() ?? ''
+                                : ''
+                        }
                         chatReportID={report.reportID}
                         action={action}
                         isHovered={hovered}
@@ -567,7 +600,7 @@ function ReportActionItem({
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED) {
             const linkedReport = ReportUtils.isChatThread(report) ? ReportUtils.getReport(report.parentReportID) : report;
             const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails[linkedReport?.ownerAccountID ?? -1]);
-            const paymentType = action.originalMessage.paymentType ?? '';
+            const paymentType = (originalMessage as OriginalMessageReimbursementQueued['originalMessage']).paymentType ?? '';
 
             const missingPaymentMethod = ReportUtils.getIndicatedMissingPaymentMethod(userWallet, linkedReport?.reportID ?? '', action);
             children = (
@@ -625,7 +658,9 @@ function ReportActionItem({
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION) {
             children = <ReportActionItemBasicMessage message={translate('systemMessage.mergedWithCashTransaction')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION) {
-            children = <ReportActionItemBasicMessage message={ReportActionsUtils.getDismissedViolationMessageText(action.originalMessage)} />;
+            children = (
+                <ReportActionItemBasicMessage message={ReportActionsUtils.getDismissedViolationMessageText(originalMessage as OriginalMessageDismissedViolation['originalMessage'])} />
+            );
         } else {
             const hasBeenFlagged =
                 ![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === moderationDecision) &&
@@ -900,12 +935,21 @@ function ReportActionItem({
 
     // For the `pay` IOU action on non-pay expense flow, we don't want to render anything if `isWaitingOnBankAccount` is true
     // Otherwise, we will see two system messages informing the payee needs to add a bank account or wallet
-    if (isIOUReport(action) && !!report?.isWaitingOnBankAccount && action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && !isSendingMoney) {
+    if (isIOUReport(action) && !!report?.isWaitingOnBankAccount && (originalMessage as IOUMessage).type === CONST.IOU.REPORT_ACTION_TYPE.PAY && !isSendingMoney) {
         return null;
     }
 
     // If action is actionable whisper and resolved by user, then we don't want to render anything
-    if (isActionableWhisper && (action.originalMessage.resolution ?? null)) {
+    if (
+        isActionableWhisper &&
+        ((
+            originalMessage as
+                | OriginalMessageActionableMentionWhisper['originalMessage']
+                | OriginalMessageActionableTrackedExpenseWhisper['originalMessage']
+                | OriginalMessageActionableReportMentionWhisper['originalMessage']
+        ).resolution ??
+            null)
+    ) {
         return null;
     }
 
@@ -920,7 +964,7 @@ function ReportActionItem({
     const whisperedTo = ReportActionsUtils.getWhisperedTo(action);
     const isMultipleParticipant = whisperedTo.length > 1;
 
-    const iouReportID = isIOUReport(action) && action.originalMessage.IOUReportID ? action.originalMessage.IOUReportID.toString() : '0';
+    const iouReportID = isIOUReport(action) && (originalMessage as IOUMessage).IOUReportID ? ((originalMessage as IOUMessage)?.IOUReportID ?? '').toString() : '0';
     const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(iouReportID);
     const isWhisper = whisperedTo.length > 0 && transactionsWithReceipts.length === 0 && !action.pendingAction;
     const whisperedToPersonalDetails = isWhisper
@@ -1038,14 +1082,13 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
     },
     transaction: {
         key: ({parentReportActionForTransactionThread}) => {
-            const transactionID = (parentReportActionForTransactionThread as OnyxTypes.OriginalMessageIOU)?.originalMessage.IOUTransactionID
-                ? (parentReportActionForTransactionThread as OnyxTypes.OriginalMessageIOU).originalMessage.IOUTransactionID
-                : 0;
+            const originalMessage = ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(parentReportActionForTransactionThread);
+            const transactionID = originalMessage.IOUTransactionID ? originalMessage.IOUTransactionID : 0;
             return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
         },
     },
     linkedTransactionRouteError: {
-        key: ({action}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${(action as OnyxTypes.OriginalMessageIOU)?.originalMessage?.IOUTransactionID ?? 0}`,
+        key: ({action}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(action)?.IOUTransactionID ?? 0}`,
         selector: (transaction: OnyxEntry<OnyxTypes.Transaction>) => transaction?.errorFields?.route ?? null,
     },
 })(
