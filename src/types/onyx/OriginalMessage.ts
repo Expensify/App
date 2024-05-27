@@ -398,4 +398,5 @@ export type {
     PaymentMethodType,
     OriginalMessageActionableTrackedExpenseWhisper,
     OriginalMessageDismissedViolation,
+    OriginalMessageReimbursementQueued,
 };
