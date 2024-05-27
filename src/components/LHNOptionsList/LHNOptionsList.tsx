@@ -116,6 +116,8 @@ function LHNOptionsList({
             const hasDraftComment = DraftCommentUtils.isValidDraftComment(draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`]);
             const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(itemReportActions);
             const lastReportAction = sortedReportActions[0];
+            const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(reportID, itemReportActions);
+            const transactionThreadReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
 
             // Get the transaction for the last report action
             let lastReportActionTransactionID = '';
@@ -129,6 +131,7 @@ function LHNOptionsList({
                 <OptionRowLHNData
                     reportID={reportID}
                     fullReport={itemFullReport}
+                    transactionThreadReport={transactionThreadReport}
                     reportActions={itemReportActions}
                     parentReportAction={itemParentReportAction}
                     policy={itemPolicy}

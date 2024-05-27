@@ -4,7 +4,7 @@ import type {RouteProp} from '@react-navigation/native';
 import type {DebouncedFunc} from 'lodash';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter, InteractionManager} from 'react-native';
-import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
+import type {EmitterSubscription, LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import InvertedFlatList from '@components/InvertedFlatList';
@@ -211,7 +211,8 @@ function ReportActionsList({
     );
     const lastActionIndex = sortedVisibleReportActions[0]?.reportActionID;
     const reportActionSize = useRef(sortedVisibleReportActions.length);
-    const hasNewestReportAction = sortedVisibleReportActions?.[0]?.created === report.lastVisibleActionCreated;
+    const hasNewestReportAction =
+        sortedVisibleReportActions?.[0].created === report.lastVisibleActionCreated || sortedVisibleReportActions?.[0].created === transactionThreadReport?.lastVisibleActionCreated;
     const hasNewestReportActionRef = useRef(hasNewestReportAction);
     hasNewestReportActionRef.current = hasNewestReportAction;
     const previousLastIndex = useRef(lastActionIndex);
@@ -321,12 +322,29 @@ function ReportActionsList({
             setMessageManuallyMarkedUnread(new Date().getTime());
         });
 
+        let unreadActionSubscriptionForTransactionThread: EmitterSubscription | undefined;
+        let readNewestActionSubscriptionForTransactionThread: EmitterSubscription | undefined;
+        if (transactionThreadReport?.reportID) {
+            unreadActionSubscriptionForTransactionThread = DeviceEventEmitter.addListener(`unreadAction_${transactionThreadReport?.reportID}`, (newLastReadTime) => {
+                resetUnreadMarker(newLastReadTime);
+                setMessageManuallyMarkedUnread(new Date().getTime());
+            });
+
+            readNewestActionSubscriptionForTransactionThread = DeviceEventEmitter.addListener(`readNewestAction_${transactionThreadReport?.reportID}`, (newLastReadTime) => {
+                resetUnreadMarker(newLastReadTime);
+                setMessageManuallyMarkedUnread(0);
+            });
+        }
+
+        unreadActionSubscriptionForTransactionThread?.remove();
+        readNewestActionSubscriptionForTransactionThread?.remove();
+
         return () => {
             unreadActionSubscription.remove();
             readNewestActionSubscription.remove();
             deletedReportActionSubscription.remove();
         };
-    }, [report.reportID]);
+    }, [report.reportID, transactionThreadReport?.reportID]);
 
     useEffect(() => {
         if (linkedReportActionID) {
@@ -412,6 +430,9 @@ function ReportActionsList({
         reportScrollManager.scrollToBottom();
         readActionSkipped.current = false;
         Report.readNewestAction(report.reportID);
+        if (transactionThreadReport?.reportID) {
+            Report.readNewestAction(transactionThreadReport?.reportID);
+        }
     };
 
     /**

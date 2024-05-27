@@ -962,6 +962,7 @@ function ReportActionItem({
                             isChronosReport={ReportUtils.chatIncludesChronos(originalReport)}
                             checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                             setIsEmojiPickerActive={setIsEmojiPickerActive}
+                            transactionThreadReportID={transactionThreadReport?.reportID ?? '0'}
                         />
                         <View
                             style={StyleUtils.getReportActionItemStyle(
