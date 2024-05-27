@@ -294,7 +294,7 @@ function ReportActionItem({
 
     // Hide the message if it is being moderated for a higher offense, or is hidden by a moderator
     // Removed messages should not be shown anyway and should not need this flow
-    const latestDecision = ReportActionsUtils.getReportActionMessage(action)?.moderationDecision?.decision ?? '';
+    const latestDecision = action.message?.[0]?.moderationDecision?.decision ?? '';
     useEffect(() => {
         if (action.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) {
             return;
@@ -619,7 +619,7 @@ function ReportActionItem({
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
             children = <ReportActionItemBasicMessage message={translate('iou.heldExpense')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD_COMMENT) {
-            children = <ReportActionItemBasicMessage message={ReportActionsUtils.getReportActionText(action)} />;
+            children = <ReportActionItemBasicMessage message={action.message?.[0]?.text ?? ''} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
             children = <ReportActionItemBasicMessage message={translate('iou.unheldExpense')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION) {
