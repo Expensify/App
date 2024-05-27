@@ -11,7 +11,7 @@ import type {OnyxCollectionKey, OnyxPagesKey, OnyxValues} from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
 import type {PaginatedRequest} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
-import type {ApiCommand, ApiRequest, ApiRequestCommandParameters, CommandForRequestType, ReadCommand, SideEffectRequestCommand, WriteCommand} from './types';
+import type {ApiCommand, ApiRequestCommandParameters, ApiRequestType, CommandOfType, ReadCommand, SideEffectRequestCommand, WriteCommand} from './types';
 
 // Setup API middlewares. Each request made will pass through a series of middleware functions that will get called in sequence (each one passing the result of the previous to the next).
 // Note: The ordering here is intentional as we want to Log, Recheck Connection, Reauthenticate, and Save the Response in Onyx. Errors thrown in one middleware will bubble to the next.
@@ -45,7 +45,7 @@ type OnyxData = {
 /**
  * Prepare the request to be sent. Bind data together with request metadata and apply optimistic Onyx data.
  */
-function prepareRequest<TCommand extends ApiCommand>(command: TCommand, type: ApiRequest, params: ApiRequestCommandParameters[TCommand], onyxData: OnyxData = {}): OnyxRequest {
+function prepareRequest<TCommand extends ApiCommand>(command: TCommand, type: ApiRequestType, params: ApiRequestCommandParameters[TCommand], onyxData: OnyxData = {}): OnyxRequest {
     Log.info('[API] Preparing request', false, {command, type});
 
     const {optimisticData, ...onyxDataWithoutOptimisticData} = onyxData;
@@ -79,7 +79,7 @@ function prepareRequest<TCommand extends ApiCommand>(command: TCommand, type: Ap
 /**
  * Process a prepared request according to its type.
  */
-function processRequest(request: OnyxRequest, type: ApiRequest): Promise<void | Response> {
+function processRequest(request: OnyxRequest, type: ApiRequestType): Promise<void | Response> {
     // Write commands can be saved and retried, so push it to the SequentialQueue
     if (type === CONST.API_REQUEST_TYPE.WRITE) {
         SequentialQueue.push(request);
@@ -195,14 +195,14 @@ type PaginationConfig<TResource, TResourceKey extends OnyxCollectionKey, TPageKe
     isInitialRequest: boolean;
 };
 
-function paginate<TRequestType extends ApiRequest, TCommand extends CommandForRequestType<TRequestType>, TResource, TResourceKey extends OnyxCollectionKey, TPageKey extends OnyxPagesKey>(
+function paginate<TRequestType extends ApiRequestType, TCommand extends CommandOfType<TRequestType>, TResource, TResourceKey extends OnyxCollectionKey, TPageKey extends OnyxPagesKey>(
     type: TRequestType,
     command: TCommand,
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
     onyxData: OnyxData,
     config: PaginationConfig<TResource, TResourceKey, TPageKey>,
 ): TRequestType extends typeof CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS ? Promise<Response | void> : void;
-function paginate<TRequestType extends ApiRequest, TCommand extends CommandForRequestType<TRequestType>, TResource, TResourceKey extends OnyxCollectionKey, TPageKey extends OnyxPagesKey>(
+function paginate<TRequestType extends ApiRequestType, TCommand extends CommandOfType<TRequestType>, TResource, TResourceKey extends OnyxCollectionKey, TPageKey extends OnyxPagesKey>(
     type: TRequestType,
     command: TCommand,
     apiCommandParameters: ApiRequestCommandParameters[TCommand],

@@ -5,7 +5,7 @@ import type * as Parameters from './parameters';
 import type SignInUserParams from './parameters/SignInUserParams';
 import type UpdateBeneficialOwnersForBankAccountParams from './parameters/UpdateBeneficialOwnersForBankAccountParams';
 
-type ApiRequest = ValueOf<typeof CONST.API_REQUEST_TYPE>;
+type ApiRequestType = ValueOf<typeof CONST.API_REQUEST_TYPE>;
 
 const WRITE_COMMANDS = {
     SET_WORKSPACE_AUTO_REPORTING: 'SetWorkspaceAutoReporting',
@@ -555,10 +555,10 @@ type ApiRequestCommandParameters = WriteCommandParameters & ReadCommandParameter
 export {WRITE_COMMANDS, READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS};
 
 type ApiCommand = WriteCommand | ReadCommand | SideEffectRequestCommand;
-type CommandForRequestType<TRequestType> = TRequestType extends typeof CONST.API_REQUEST_TYPE.WRITE
+type CommandOfType<TRequestType> = TRequestType extends typeof CONST.API_REQUEST_TYPE.WRITE
     ? WriteCommand
     : TRequestType extends typeof CONST.API_REQUEST_TYPE.READ
     ? ReadCommand
     : SideEffectRequestCommand;
 
-export type {ApiCommand, ApiRequest, ApiRequestCommandParameters, CommandForRequestType, WriteCommand, ReadCommand, SideEffectRequestCommand};
+export type {ApiCommand, ApiRequestType, ApiRequestCommandParameters, CommandOfType, WriteCommand, ReadCommand, SideEffectRequestCommand};
