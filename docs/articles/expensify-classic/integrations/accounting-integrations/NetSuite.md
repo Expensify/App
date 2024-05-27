@@ -276,9 +276,11 @@ To add a Custom Segment to your workspace, you’ll need to locate three fields 
 
 **To find the Script/Field ID:**
 
-If configuring Custom Segments as Report Fields, use the Field ID on the Transactions tab (under _Custom Segments > Transactions_).
+Note that as of 2019.1, any new custom segments that you create automatically use the unified ID, and the Use as Field ID box is not visible. If you are editing a custom segment definition that was created before 2019.1, the Use as Field ID box is available.
+To use a unified ID for the entire custom segment definition, check the Use as Field ID box. When the box is checked, no field ID fields or columns are shown on the Application & Sourcing subtabs because one ID is used for all fields.
 
-If configuring Custom Segments as Tags, use the Field ID on the Transaction Columns tab (under _Custom Segments > Transaction Columns_). 
+- If configuring Custom Segments as Report Fields, use the Field ID on the Transactions tab (under _Custom Segments > Transactions_), or if no Field ID is shown, use the unified ID (just called "ID" right below the "Label").
+- If configuring Custom Segments as Tags, use the Field ID on the Transaction Columns tab (under _Custom Segments > Transaction Columns_), or if no Field ID is shown, use the unified ID (just called "ID" right below the "Label").
 
 Lastly, head over to Expensify and do the following:
 1. Navigate to **Settings > Workspace > Group > _[Workspace Name]_ > Connections > Configure > Coding tab**
