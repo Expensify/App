@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback} from 'react';
+import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -54,6 +54,9 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const hasAccountingConnection = !!policy?.areConnectionsEnabled && !isEmptyObject(policy?.connections);
     const isSyncTaxEnabled = !!policy?.connections?.quickbooksOnline?.config.syncTax || !!policy?.connections?.xero?.config.importTaxRates;
 
+    const [isOrganizationConnectionModalOpen, setIsOrganizationConnectionModalOpen] = useState<boolean>(false);
+
+
     const spendItems: Item[] = [
         {
             icon: Illustrations.Car,
@@ -86,6 +89,10 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             disabled: hasAccountingConnection,
             pendingAction: policy?.pendingFields?.areCategoriesEnabled,
             action: (isEnabled: boolean) => {
+                if (hasAccountingConnection) {
+                    setIsOrganizationConnectionModalOpen(true);
+                    return;
+                }
                 Policy.enablePolicyCategories(policy?.id ?? '', isEnabled);
             },
         },
@@ -97,6 +104,10 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             disabled: hasAccountingConnection,
             pendingAction: policy?.pendingFields?.areTagsEnabled,
             action: (isEnabled: boolean) => {
+                if (hasAccountingConnection) {
+                    setIsOrganizationConnectionModalOpen(true);
+                    return;
+                }
                 Policy.enablePolicyTags(policy?.id ?? '', isEnabled);
             },
         },
@@ -108,6 +119,10 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             disabled: hasAccountingConnection,
             pendingAction: policy?.pendingFields?.tax,
             action: (isEnabled: boolean) => {
+                if (hasAccountingConnection) {
+                    setIsOrganizationConnectionModalOpen(true);
+                    return;
+                }
                 Policy.enablePolicyTaxes(policy?.id ?? '', isEnabled);
             },
         },
@@ -165,7 +180,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     isActive={item.isActive}
                     pendingAction={item.pendingAction}
                     onToggle={item.action}
-                    disabled={item.disabled}
+                    showLockIcon={item.disabled}
                     errors={item.errors}
                     onCloseError={item.onCloseError}
                 />
