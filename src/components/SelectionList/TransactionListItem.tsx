@@ -75,7 +75,7 @@ const ReceiptCell = memo(({transactionItem, isHovered = false}: ReceiptCellProps
             />
         </View>
     );
-}, arePropsEqual);
+}, (prevProps, nextProps) => (arePropsEqual(prevProps, nextProps) && prevProps.isHovered === nextProps.isHovered));
 
 const DateCell = memo(({showTooltip, date, isLargeScreenWidth}: DateCellProps) => {
     const styles = useThemeStyles();
