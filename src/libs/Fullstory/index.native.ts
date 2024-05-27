@@ -35,7 +35,7 @@ const FS = {
      * If the metadata is null or the email is 'undefined', the user identity is anonymized.
      * If the metadata contains an accountID, the user identity is defined with it.
      */
-    fsIdentify: (metadata: UserMetadata | null) => {
+    fsIdentify: (metadata: OnyxEntry<UserMetadata>) => {
         if (!metadata?.accountID) {
             // anonymize FullStory user identity metadata
             FullStory.anonymize();
