@@ -344,7 +344,7 @@ type OriginalMessageDismissedViolation = {
 };
 
 type OriginalMessageTripRoomPreview = {
-    actionName: typeof CONST.REPORT.ACTIONS.TYPE.ACTION_TRIPPREVIEW;
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.TRIPPREVIEW;
     originalMessage: {
         // @TODO: Add types here
     };
