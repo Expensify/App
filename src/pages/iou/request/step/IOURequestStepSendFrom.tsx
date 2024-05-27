@@ -14,12 +14,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
+import sortWorkspacesBySelected from "@src/utils/sortWorkspacesBySelected";
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
-import sortWorkspacesBySelected from "@src/utils/sortWorkspacesBySelected";
 
 type WorkspaceListItem = ListItem & {
     value: string;
@@ -44,7 +44,7 @@ function IOURequestStepSendFrom({route, transaction, allPolicies}: IOURequestSte
         const activeAdminWorkspaces = PolicyUtils.getActiveAdminWorkspaces(allPolicies);
 
         return activeAdminWorkspaces
-            .sort((policy1, policy2) => sortWorkspacesBySelected({policyID: policy1.id, name: policy1.name}, {policyID: policy2.id, name: policy2.name}, selectedWorkspace.policyID))
+            .sort((policy1, policy2) => sortWorkspacesBySelected({policyID: policy1.id, name: policy1.name}, {policyID: policy2.id, name: policy2.name}, selectedWorkspace?.policyID))
             .map((policy) => ({
                 text: policy.name,
                 value: policy.id,

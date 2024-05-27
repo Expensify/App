@@ -19,8 +19,8 @@ import WorkspaceCardCreateAWorkspace from '@pages/workspace/card/WorkspaceCardCr
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import WorkspacesSectionHeader from './WorkspacesSectionHeader';
 import sortWorkspacesBySelected from "@src/utils/sortWorkspacesBySelected";
+import WorkspacesSectionHeader from './WorkspacesSectionHeader';
 
 type WorkspaceListItem = {
     text: string;
@@ -123,7 +123,7 @@ function WorkspaceSwitcherPage() {
         () =>
             usersWorkspaces
                 .filter((policy) => policy.text?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase() ?? ''))
-                .sort((policy1, policy2) => sortWorkspacesBySelected({policyID: policy1.policyID, name: policy1.text}, {policyID: policy1.policyID, name: policy1.text}, activeWorkspaceID)),
+                .sort((policy1, policy2) => sortWorkspacesBySelected({policyID: policy1.policyID, name: policy1.text}, {policyID: policy2.policyID, name: policy2.text}, activeWorkspaceID)),
         [debouncedSearchTerm, usersWorkspaces, activeWorkspaceID],
     );
 
