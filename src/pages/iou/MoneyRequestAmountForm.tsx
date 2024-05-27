@@ -8,6 +8,7 @@ import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
 import type {MoneyRequestAmountInputRef} from '@components/MoneyRequestAmountInput';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScrollView from '@components/ScrollView';
 import SettlementButton from '@components/SettlementButton';
 import useLocalize from '@hooks/useLocalize';
@@ -65,6 +66,9 @@ type MoneyRequestAmountFormProps = {
     /** The current tab we have navigated to in the expense modal. String that corresponds to the expense type. */
     selectedTab?: SelectedTabRequest;
 };
+
+const isAnimatedTextInputRef = (textInput: React.MutableRefObject<BaseTextInputRef | null>) =>
+    textInput.current && 'isFocused' in textInput.current && (textInput.current as AnimatedTextInputRef).isFocused();
 
 const isAmountInvalid = (amount: string) => !amount.length || parseFloat(amount) < 0.01;
 const isTaxAmountInvalid = (currentAmount: string, taxAmount: number, isTaxAmountForm: boolean) =>
@@ -126,7 +130,8 @@ function MoneyRequestAmountForm(
         if (!textInput.current) {
             return;
         }
-        if (!textInput.current.isFocused()) {
+
+        if (!isAnimatedTextInputRef(textInput)) {
             textInput.current.focus();
         }
     };
@@ -167,7 +172,7 @@ function MoneyRequestAmountForm(
      */
     const updateAmountNumberPad = useCallback(
         (key: string) => {
-            if (shouldUpdateSelection && !textInput.current?.isFocused()) {
+            if (shouldUpdateSelection && !isAnimatedTextInputRef(textInput)) {
                 textInput.current?.focus();
             }
             const currentAmount = moneyRequestAmountInput.current?.getAmount() ?? '';
@@ -194,7 +199,7 @@ function MoneyRequestAmountForm(
      */
     const updateLongPressHandlerState = useCallback((value: boolean) => {
         setShouldUpdateSelection(!value);
-        if (!value && !textInput.current?.isFocused()) {
+        if (!value && !isAnimatedTextInputRef(textInput)) {
             textInput.current?.focus();
         }
     }, []);
