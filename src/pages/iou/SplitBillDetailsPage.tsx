@@ -99,12 +99,13 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
                 <HeaderWithBackButton title={translate('common.details')} />
                 <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                     {isScanning && (
-                        <MoneyRequestHeaderStatusBar
-                            title={translate('iou.receiptStatusTitle')}
-                            description={translate('iou.receiptStatusText')}
-                            shouldShowBorderBottom
-                            shouldStyleFlexGrow={false}
-                        />
+                        <View style={[styles.ph5, styles.pb3, styles.borderBottom]}>
+                            <MoneyRequestHeaderStatusBar
+                                title={translate('iou.receiptStatusTitle')}
+                                description={translate('iou.receiptStatusText')}
+                                shouldStyleFlexGrow={false}
+                            />
+                        </View>
                     )}
                     {!!participants.length && (
                         <MoneyRequestConfirmationList

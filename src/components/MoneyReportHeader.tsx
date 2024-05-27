@@ -123,17 +123,17 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const shouldDisableSubmitButton = shouldShowSubmitButton && !ReportUtils.isAllowedToSubmitDraftExpenseReport(moneyRequestReport);
     const shouldShowMarkAsCashButton = isDraft && allHavePendingRTERViolation && !hasOnlyHeldExpenses;
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
-    const shouldShowNextStep =
-        !ReportUtils.isClosedExpenseReportWithNoExpenses(moneyRequestReport) && isFromPaidPolicy && !!nextStep?.message?.length && !allHavePendingRTERViolation && !hasOnlyHeldExpenses;
+    const shouldShowStatusBar = allHavePendingRTERViolation || hasOnlyHeldExpenses;
+    const shouldShowNextStep = !ReportUtils.isClosedExpenseReportWithNoExpenses(moneyRequestReport) && isFromPaidPolicy && !!nextStep?.message?.length && !shouldShowStatusBar;
     const shouldShowAnyButton = shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextStep || allHavePendingRTERViolation;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
     const formattedAmount = CurrencyUtils.convertToDisplayString(reimbursableSpend, moneyRequestReport.currency);
     const [nonHeldAmount, fullAmount] = ReportUtils.getNonHeldAndFullAmount(moneyRequestReport, policy);
     const displayedAmount = ReportUtils.hasHeldExpenses(moneyRequestReport.reportID) && canAllowSettlement ? nonHeldAmount : formattedAmount;
-    const isMoreContentShown = shouldShowNextStep || (shouldShowAnyButton && shouldUseNarrowLayout);
+    const isMoreContentShown = shouldShowNextStep || shouldShowStatusBar || (shouldShowAnyButton && shouldUseNarrowLayout);
 
     // Shows border if no buttons or banners are showing below the header
-    const shouldShowBorderBottom = !(shouldShowAnyButton && shouldUseNarrowLayout) && !(shouldShowNextStep && !shouldUseNarrowLayout) && !allHavePendingRTERViolation && !hasOnlyHeldExpenses;
+    const shouldShowBorderBottom = !(shouldShowAnyButton && shouldUseNarrowLayout) && !(shouldShowNextStep && !shouldUseNarrowLayout) && !shouldShowStatusBar;
 
     const confirmPayment = (type?: PaymentMethodType | undefined) => {
         if (!type) {
@@ -205,10 +205,10 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const getStatusBarProps: () => MoneyRequestHeaderStatusBarProps | undefined = () => {
         if (hasOnlyHeldExpenses) {
-            return {title: translate('iou.hold'), description: translate('iou.expensesOnHold'), danger: true, shouldShowBorderBottom: true};
+            return {title: translate('iou.hold'), description: translate('iou.expensesOnHold'), danger: true};
         }
         if (allHavePendingRTERViolation) {
-            return {title: getStatusIcon(Expensicons.Hourglass), description: translate('iou.pendingMatchWithCreditCardDescription'), shouldShowBorderBottom: true};
+            return {title: getStatusIcon(Expensicons.Hourglass), description: translate('iou.pendingMatchWithCreditCardDescription')};
         }
     };
 
@@ -348,8 +348,35 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     </View>
                 )}
             </HeaderWithBackButton>
-            {shouldShowMarkAsCashButton && shouldUseNarrowLayout && (
-                <View style={[styles.ph5, styles.pb3]}>
+            <View style={[isMoreContentShown && [styles.dFlex, styles.flexColumn, styles.borderBottom], styles.ph5, styles.pb4, styles.gap4]}>
+                {shouldShowSettlementButton && shouldUseNarrowLayout && (
+                    <SettlementButton
+                        currency={moneyRequestReport.currency}
+                        confirmApproval={confirmApproval}
+                        policyID={moneyRequestReport.policyID}
+                        chatReportID={moneyRequestReport.chatReportID}
+                        iouReport={moneyRequestReport}
+                        onPress={confirmPayment}
+                        enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
+                        addBankAccountRoute={bankAccountRoute}
+                        shouldHidePaymentOptions={!shouldShowPayButton}
+                        shouldShowApproveButton={shouldShowApproveButton}
+                        formattedAmount={!hasOnlyHeldExpenses ? displayedAmount : ''}
+                        shouldDisableApproveButton={shouldDisableApproveButton}
+                        isDisabled={!canAllowSettlement}
+                    />
+                )}
+                {shouldShowSubmitButton && shouldUseNarrowLayout && (
+                    <Button
+                        medium
+                        success={isWaitingForSubmissionFromCurrentUser}
+                        text={translate('common.submit')}
+                        style={[styles.w100, styles.pr0]}
+                        onPress={() => IOU.submitReport(moneyRequestReport)}
+                        isDisabled={shouldDisableSubmitButton}
+                    />
+                )}
+                {shouldShowMarkAsCashButton && shouldUseNarrowLayout && (
                     <Button
                         medium
                         success
@@ -357,53 +384,15 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                         style={[styles.w100, styles.pr0]}
                         onPress={markAsCash}
                     />
-                </View>
-            )}
-            {statusBarProps && (
-                <MoneyRequestHeaderStatusBar
-                    title={statusBarProps.title}
-                    description={statusBarProps.description}
-                    danger={statusBarProps.danger}
-                    shouldShowBorderBottom={statusBarProps.shouldShowBorderBottom}
-                />
-            )}
-            <View style={isMoreContentShown ? [styles.dFlex, styles.flexColumn, styles.borderBottom] : []}>
-                {shouldShowSettlementButton && shouldUseNarrowLayout && (
-                    <View style={[styles.ph5, styles.pb2]}>
-                        <SettlementButton
-                            currency={moneyRequestReport.currency}
-                            confirmApproval={confirmApproval}
-                            policyID={moneyRequestReport.policyID}
-                            chatReportID={moneyRequestReport.chatReportID}
-                            iouReport={moneyRequestReport}
-                            onPress={confirmPayment}
-                            enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
-                            addBankAccountRoute={bankAccountRoute}
-                            shouldHidePaymentOptions={!shouldShowPayButton}
-                            shouldShowApproveButton={shouldShowApproveButton}
-                            formattedAmount={!hasOnlyHeldExpenses ? displayedAmount : ''}
-                            shouldDisableApproveButton={shouldDisableApproveButton}
-                            isDisabled={!canAllowSettlement}
-                        />
-                    </View>
                 )}
-                {shouldShowSubmitButton && shouldUseNarrowLayout && (
-                    <View style={[styles.ph5, styles.pb2]}>
-                        <Button
-                            medium
-                            success={isWaitingForSubmissionFromCurrentUser}
-                            text={translate('common.submit')}
-                            style={[styles.w100, styles.pr0]}
-                            onPress={() => IOU.submitReport(moneyRequestReport)}
-                            isDisabled={shouldDisableSubmitButton}
-                        />
-                    </View>
+                {statusBarProps && (
+                    <MoneyRequestHeaderStatusBar
+                        title={statusBarProps.title}
+                        description={statusBarProps.description}
+                        danger={statusBarProps.danger}
+                    />
                 )}
-                {shouldShowNextStep && (
-                    <View style={[styles.ph5, styles.pb3]}>
-                        <MoneyReportHeaderStatusBar nextStep={nextStep} />
-                    </View>
-                )}
+                {shouldShowNextStep && <MoneyReportHeaderStatusBar nextStep={nextStep} />}
             </View>
             {isHoldMenuVisible && requestType !== undefined && (
                 <ProcessMoneyReportHoldMenu
