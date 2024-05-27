@@ -113,7 +113,7 @@ function ConnectionLayout({
                 testID={displayName}
             >
                 <HeaderWithBackButton
-                    title={headerTitleAlreadyTranslated ?? translate(headerTitle!)}
+                    title={headerTitleAlreadyTranslated ?? headerTitle ? translate(headerTitle as TranslationPaths) : ''}
                     subtitle={headerSubtitle}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
