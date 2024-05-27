@@ -18,14 +18,23 @@ type RouteParams = {
     categoryName?: string;
 };
 
+const TRACKING_CATEGORIES_KEY = 'trackingCategory_';
+
 function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const route = useRoute();
     const params = route.params as RouteParams;
     const styles = useThemeStyles();
     const categoryId = params?.categoryId ?? '';
-    const categoryName = params?.categoryName ?? '';
+    const categoryName = decodeURIComponent(params?.categoryName ?? '');
     const policyID = policy?.id ?? '';
+    const {trackingCategories} = policy?.connections?.xero?.data ?? {};
+    const {mappings} = policy?.connections?.xero?.config ?? {};
+
+    const currentTrackingCategory = trackingCategories?.find((category) => category.id === categoryId);
+    const currentTrackingCategoryValue = currentTrackingCategory
+        ? mappings?.[`${TRACKING_CATEGORIES_KEY}${currentTrackingCategory.id}`] ?? ''
+        : '';
 
     const optionsList = useMemo(
         () =>
@@ -33,9 +42,9 @@ function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
                 value: option,
                 text: translate(`workspace.xero.trackingCategoriesOptions.${option.toLowerCase()}` as TranslationPaths),
                 keyForList: option,
-                isSelected: option.toLowerCase() === categoryName.toLowerCase(),
+                isSelected: option === currentTrackingCategoryValue,
             })),
-        [translate, categoryName],
+        [translate, currentTrackingCategory],
     );
 
     const updateMapping = useCallback(
