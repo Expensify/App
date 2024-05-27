@@ -10,7 +10,7 @@ function Image({source: propsSource, isAuthTokenRequired = false, session, onLoa
     const [aspectRatio, setAspectRatio] = useState<string | number | null>(null);
     const isObjectPositionTop = objectPosition === CONST.IMAGE_OBJECT_POSITION.TOP;
 
-    const {doNotSetAspectRatioInStyle} = useContext(ImageBehaviorContext);
+    const {shouldSetAspectRatioInStyle} = useContext(ImageBehaviorContext);
 
     const updateAspectRatio = useCallback(
         (width: number, height: number) => {
@@ -61,6 +61,9 @@ function Image({source: propsSource, isAuthTokenRequired = false, session, onLoa
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [propsSource, isAuthTokenRequired]);
 
+    /**
+     * If the image fails to load and the object position is top, we should hide the image by setting the opacity to 0.
+     */
     const shouldOpacityBeZero = isObjectPositionTop && !aspectRatio;
 
     return (
@@ -68,7 +71,7 @@ function Image({source: propsSource, isAuthTokenRequired = false, session, onLoa
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...forwardedProps}
             onLoad={handleLoad}
-            style={[style, !doNotSetAspectRatioInStyle && aspectRatio ? {aspectRatio, height: 'auto'} : {}, shouldOpacityBeZero && {opacity: 0}]}
+            style={[style, shouldSetAspectRatioInStyle && aspectRatio ? {aspectRatio, height: 'auto'} : {}, shouldOpacityBeZero && {opacity: 0}]}
             source={source}
         />
     );

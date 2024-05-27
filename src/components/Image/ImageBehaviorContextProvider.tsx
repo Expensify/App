@@ -4,11 +4,11 @@ type ImageBehaviorContextValue = {
     /**
      * Disable the logic to set aspect ratio of the container div based on the image aspect ratio.
      */
-    doNotSetAspectRatioInStyle: boolean;
+    shouldSetAspectRatioInStyle: boolean;
 };
 
 const ImageBehaviorContext = createContext<ImageBehaviorContextValue>({
-    doNotSetAspectRatioInStyle: false,
+    shouldSetAspectRatioInStyle: true,
 });
 
 function ImageBehaviorContextProvider({children, ...value}: {children: React.ReactNode} & ImageBehaviorContextValue) {
