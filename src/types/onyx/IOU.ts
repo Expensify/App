@@ -31,6 +31,7 @@ type Split = {
     email?: string;
     amount?: number;
     accountID?: number;
+    isOptimisticAccount?: boolean;
     chatReportID?: string;
     iouReportID?: string;
     reportActionID?: string;

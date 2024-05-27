@@ -6,6 +6,7 @@ import lodashEscape from 'lodash/escape';
 import lodashFindLastIndex from 'lodash/findLastIndex';
 import lodashIntersection from 'lodash/intersection';
 import lodashIsEqual from 'lodash/isEqual';
+import type {ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -399,6 +400,7 @@ type DisplayNameWithTooltips = Array<Pick<PersonalDetails, 'accountID' | 'pronou
 type CustomIcon = {
     src: IconAsset;
     color?: string;
+    containerStyle?: ViewStyle;
 };
 
 type OptionData = {
@@ -445,6 +447,7 @@ type OptionData = {
     isDisabled?: boolean | null;
     name?: string | null;
     isSelfDM?: boolean;
+    isSplitPayer?: boolean;
     isOneOnOneChat?: boolean;
     reportID?: string;
     enabled?: boolean;
