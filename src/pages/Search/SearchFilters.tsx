@@ -80,8 +80,8 @@ function SearchFilters({query}: SearchFiltersProps) {
                         interactive
                         title={item.title}
                         icon={item.icon}
-                        iconWidth={variables.iconSizeLarge}
-                        iconHeight={variables.iconSizeLarge}
+                        iconWidth={variables.iconSizeNormal}
+                        iconHeight={variables.iconSizeNormal}
                         wrapperStyle={styles.sectionMenuItem}
                         focused={index === activeItemIndex}
                         hoverAndPressStyle={styles.hoveredComponentBG}
