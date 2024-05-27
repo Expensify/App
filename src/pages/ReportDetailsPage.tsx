@@ -2,7 +2,7 @@ import {useRoute} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
@@ -53,7 +53,7 @@ type ReportDetailsPageMenuItem = {
 
 type ReportDetailsPageOnyxProps = {
     /** Personal details of all the users */
-    personalDetails: OnyxCollection<OnyxTypes.PersonalDetails>;
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 
     /** Session info for the currently logged in user. */
     session: OnyxEntry<OnyxTypes.Session>;
