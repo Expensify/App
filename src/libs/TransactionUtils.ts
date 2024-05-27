@@ -605,12 +605,12 @@ function getValidWaypoints(waypoints: WaypointCollection | undefined, reArrangeI
             return acc;
         }
 
-        const validatedWaypoints: WaypointCollection = {...acc, [`waypoint${reArrangeIndexes ? waypointIndex + 1 : index}`]: currentWaypoint};
+        acc[`waypoint${reArrangeIndexes ? waypointIndex + 1 : index}`] = currentWaypoint;
 
         lastWaypointIndex = index;
         waypointIndex += 1;
 
-        return validatedWaypoints;
+        return acc;
     }, {});
 }
 
