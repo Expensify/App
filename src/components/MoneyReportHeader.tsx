@@ -38,7 +38,7 @@ type MoneyReportHeaderOnyxProps = {
     /** The chat report this report is linked to */
     chatReport: OnyxEntry<OnyxTypes.Report>;
 
-    /** All the data for the transaction in one transaction view */
+    /** All the data for the transaction in the one transaction view */
     transaction: OnyxEntry<OnyxTypes.Transaction>;
 
     /** The next step for the report */
