@@ -52,7 +52,7 @@ function arePropsEqual(prevProps: CellProps, nextProps: CellProps) {
 }
 
 const DateCell = memo(
-    ({ showTooltip, date, isLargeScreenWidth }: DateCellProps): JSX.Element => {
+    ({ showTooltip, date, isLargeScreenWidth }: DateCellProps) => {
     const styles = useThemeStyles();
 
     return (
@@ -66,7 +66,7 @@ const DateCell = memo(
 );
 
 const MerchantCell = memo(
-    ({ showTooltip, transactionItem, merchant, description }: MerchantCellProps): JSX.Element => {
+    ({ showTooltip, transactionItem, merchant, description }: MerchantCellProps) => {
     const styles = useThemeStyles();
     return (
         <TextWithTooltip
@@ -79,7 +79,7 @@ const MerchantCell = memo(
 );
 
 const UserCell = memo(
-    ({ participant }: UserCellProps): JSX.Element => {
+    ({ participant }: UserCellProps) => {
     const styles = useThemeStyles();
 
     const displayName = participant?.name ?? participant?.displayName ?? participant?.login;
@@ -109,7 +109,7 @@ const UserCell = memo(
 );
 
 const TotalCell = memo(
-    ({ showTooltip, amount, currency, isLargeScreenWidth }: CurrencyCellProps): JSX.Element => {
+    ({ showTooltip, amount, currency, isLargeScreenWidth }: CurrencyCellProps) => {
     const styles = useThemeStyles();
 
     return (
@@ -123,7 +123,7 @@ const TotalCell = memo(
 );
 
 const TypeCell = memo(
-    ({typeIcon, isLargeScreenWidth}: TypeCellProps): JSX.Element => {
+    ({typeIcon, isLargeScreenWidth}: TypeCellProps) => {
         const theme = useTheme();
         return (
             <Icon
@@ -138,7 +138,7 @@ const TypeCell = memo(
 );
 
 const ActionCell = memo(
-    ({ item, onSelectRow }: ActionCellProps): JSX.Element => {
+    ({ item, onSelectRow }: ActionCellProps) => {
     const { translate } = useLocalize();
     const styles = useThemeStyles();
 
@@ -155,7 +155,7 @@ const ActionCell = memo(
 );
 
 const CategoryCell = memo(
-    ({ isLargeScreenWidth, showTooltip, transactionItem }: TransactionCellProps): JSX.Element => {
+    ({ isLargeScreenWidth, showTooltip, transactionItem }: TransactionCellProps) => {
     const styles = useThemeStyles();
     return isLargeScreenWidth ? (
         <TextWithTooltip
@@ -173,7 +173,7 @@ const CategoryCell = memo(
 );
 
 const TagCell = memo(
-    ({ isLargeScreenWidth, showTooltip, transactionItem }: TransactionCellProps): JSX.Element => {
+    ({ isLargeScreenWidth, showTooltip, transactionItem }: TransactionCellProps) => {
     const styles = useThemeStyles();
     return isLargeScreenWidth ? (
         <TextWithTooltip
@@ -191,7 +191,7 @@ const TagCell = memo(
 );
 
 const TaxCell = memo(
-    ({ showTooltip, amount, currency }: CurrencyCellProps): JSX.Element => {
+    ({ showTooltip, amount, currency }: CurrencyCellProps) => {
     const styles = useThemeStyles();
     return (
         <TextWithTooltip

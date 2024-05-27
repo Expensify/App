@@ -81,8 +81,17 @@ function Search({query, policyIDs}: SearchProps) {
     return (
         <SelectionList
             customListHeader={<SearchTableHeader data={searchResults?.data} />}
-            windowSize={111} // 111 is bigger enough to cache all the items not recycled when scrolling
-            updateCellsBatchingPeriod={200} // 200ms a delay to update the cells
+            // To enhance the smoothness of scrolling and minimize the risk of encountering blank spaces during scrolling,
+            // we have configured a larger windowSize and a longer delay between batch renders.
+            // The windowSize determines the number of items rendered before and after the currently visible items.
+            // A larger windowSize helps pre-render more items, reducing the likelihood of blank spaces appearing.
+            // The updateCellsBatchingPeriod sets the delay (in milliseconds) between rendering batches of cells.
+            // A longer delay allows the UI to handle rendering in smaller increments, which can improve performance and smoothness.
+            // For more information, refer to the React Native documentation:
+            // https://reactnative.dev/docs/0.73/optimizing-flatlist-configuration#windowsize
+            // https://reactnative.dev/docs/0.73/optimizing-flatlist-configuration#updatecellsbatchingperiod
+            windowSize={111}
+            updateCellsBatchingPeriod={200}
             ListItem={ListItem}
             sections={[{data, isDisabled: false}]}
             onSelectRow={(item) => {
