@@ -348,7 +348,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     </View>
                 )}
             </HeaderWithBackButton>
-            <View style={[isMoreContentShown && [styles.dFlex, styles.flexColumn, styles.borderBottom], styles.ph5, styles.pb4, styles.gap4]}>
+            <View style={[isMoreContentShown && [styles.dFlex, styles.flexColumn, styles.borderBottom], styles.ph5, styles.pb3, styles.gap3]}>
                 {shouldShowSettlementButton && shouldUseNarrowLayout && (
                     <SettlementButton
                         currency={moneyRequestReport.currency}
