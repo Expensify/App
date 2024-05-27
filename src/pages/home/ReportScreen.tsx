@@ -29,7 +29,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Timing from '@libs/actions/Timing';
-import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import clearReportNotifications from '@libs/Notification/clearReportNotifications';
 import Performance from '@libs/Performance';
@@ -647,18 +646,6 @@ function ReportScreen({
             />
         );
     }
-
-    Log.client(
-        `[ReportScreen] Debug render state - ${JSON.stringify({
-            reportMetadata,
-            shouldShowReportActionList,
-            isLoading,
-            shouldShowSkeleton,
-            isCurrentReportLoadedFromOnyx,
-            reportID: report.reportID,
-            reportIDFromRoute,
-        })}`,
-    );
 
     return (
         <ActionListContext.Provider value={actionListValue}>
