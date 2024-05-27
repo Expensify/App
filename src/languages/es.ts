@@ -2223,9 +2223,22 @@ export default {
                 subtitle: 'Sincroniza tu plan de cuentas y otras opciones.',
             },
             connectionsWarningModal: {
-                featureEnabledTitle: (connectionName: string) => `You're connected to ${connectionName}`,
+                featureEnabledTitle: (connectionName: ConnectionName): string => {
+                    switch (connectionName) {
+                        case CONST.POLICY.CONNECTIONS.NAME.QBO:
+                            return `You're connected to QuickBooks Online`;
+                        case CONST.POLICY.CONNECTIONS.NAME.XERO:
+                            return `You're connected to Xero`;
+                        default: {
+                            return '';
+                        }
+                    }
+                },
                 featureEnabledText: 'The integration settings determine if this feature is enabled or not.',
-                disconnectText: (connectionName: string) => `Disconnect ${connectionName} from the workspace if you want to disable Accounting.`,
+                disconnectText: (connectionName: ConnectionName): string => {
+                    const connectionText =connectionName === CONST.POLICY.CONNECTIONS.NAME.QBO ? 'Quickbooks Online': 'Xero';
+                    return `Disconnect ${connectionText} from the workspace if you want to disable Accounting.`;
+                },
                 manageSettings: 'Manage settings',
             }
         },

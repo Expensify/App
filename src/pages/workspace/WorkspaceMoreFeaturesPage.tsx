@@ -23,11 +23,13 @@ import type {TranslationPaths} from '@src/languages/types';
 import type SCREENS from '@src/SCREENS';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type { ConnectionName } from '@src/types/onyx/Policy';
 import type IconAsset from '@src/types/utils/IconAsset';
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import ToggleSettingOptionRow from './workflows/ToggleSettingsOptionRow';
+
 
 
 type ItemType = 'organize' | 'integrate';
@@ -63,7 +65,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const {canUseAccountingIntegrations} = usePermissions();
     const hasAccountingConnection = !!policy?.areConnectionsEnabled && !isEmptyObject(policy?.connections);
     const isSyncTaxEnabled = !!policy?.connections?.quickbooksOnline?.config.syncTax || !!policy?.connections?.xero?.config.importTaxRates;
-    const connectionName = !isEmptyObject(policy?.connections) ? Object.keys(policy?.connections)?.[0] : "";
+    const connectionName = Object.keys(policy?.connections ?? {})?.[0] as ConnectionName;
+
     const policyID = policy?.id ?? '';
     
     const [connectionWarningModalState, setConnectionWarningModalState] = useState<ConnectionWarningModalState>({ isOpen: false});
