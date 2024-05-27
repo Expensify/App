@@ -3134,7 +3134,7 @@ export default {
             },
             saveWithExpensifyTitle: 'Save with the Expensify Card',
             saveWithExpensifyDescription: 'Use our savings calculator to see how cash back from the Expensify Card can reduce your Expensify bill.',
-            learnMore: 'Learn more',
+            saveWithExpensifyButton: 'Learn more',
         },
     },
 } satisfies TranslationBase;

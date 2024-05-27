@@ -3638,7 +3638,7 @@ export default {
             },
             saveWithExpensifyTitle: 'Ahorra con la Tarjeta Expensify',
             saveWithExpensifyDescription: 'Utiliza nuestra calculadora de ahorro para ver cómo el reembolso en efectivo de la Tarjeta Expensify puede reducir tu factura de Expensify',
-            learnMore: 'Más información',
+            saveWithExpensifyButton: 'Más información',
         },
     },
 } satisfies EnglishTranslation;

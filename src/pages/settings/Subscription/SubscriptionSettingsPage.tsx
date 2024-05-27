@@ -5,6 +5,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
+import SubscriptionPlan from './SubscriptionPlan';
 
 function SubscriptionSettingsPage() {
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -18,6 +19,7 @@ function SubscriptionSettingsPage() {
                 shouldShowBackButton={isSmallScreenWidth}
                 icon={Illustrations.CreditCardsNew}
             />
+            <SubscriptionPlan />
         </ScreenWrapper>
     );
 }

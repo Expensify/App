@@ -2794,6 +2794,39 @@ const styles = (theme: ThemeColors) =>
             fontWeight: FontUtils.fontWeight.bold,
         },
 
+        subscriptionSettingsSectionTitle: {
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontWeight: FontUtils.fontWeight.bold,
+        },
+
+        subscriptionSettingsBorderWrapper: {
+            borderWidth: 1,
+            borderColor: colors.productDark400,
+            borderRadius: variables.componentBorderRadiusMedium,
+        },
+
+        yourPlanTitle: {
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontWeight: FontUtils.fontWeight.bold,
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.lineHeightXLarge,
+        },
+
+        yourPlanSubtitle: {
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
+            fontWeight: FontUtils.fontWeight.normal,
+            fontSize: variables.fontSizeLabel,
+            lineHeight: variables.lineHeightNormal,
+            color: colors.productDark800,
+        },
+
+        yourPlanBenefit: {
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
+            fontSize: variables.fontSizeSmall,
+            lineHeight: variables.lineHeightSmall,
+            color: colors.productDark800,
+        },
+
         sectionMenuItem: {
             borderRadius: 8,
             paddingHorizontal: 8,
