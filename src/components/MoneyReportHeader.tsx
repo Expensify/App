@@ -184,13 +184,13 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         if (!transactionThreadReport) {
             return;
         }
-        const iouTransactionID = requestParentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? requestParentReportAction.originalMessage?.IOUTransactionID ?? '' : '';
+        const transactionID = requestParentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? requestParentReportAction.originalMessage?.IOUTransactionID ?? '' : '';
 
         if (isOnHold) {
-            IOU.unholdRequest(iouTransactionID, transactionThreadReport.reportID);
+            IOU.unholdRequest(transactionID, transactionThreadReport.reportID);
         } else {
             const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
-            Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy?.type ?? CONST.POLICY.TYPE.PERSONAL, iouTransactionID, transactionThreadReport.reportID, activeRoute));
+            Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy?.type ?? CONST.POLICY.TYPE.PERSONAL, transactionID, transactionThreadReport.reportID, activeRoute));
         }
     };
 
@@ -222,7 +222,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const threeDotsMenuItems = [HeaderUtils.getPinMenuItem(moneyRequestReport)];
     if (canHoldOrUnholdRequest) {
-        const isRequestIOU = chatReport?.type === 'iou';
+        const isRequestIOU = ReportUtils.isIOUReport(chatReport);
         const isHoldCreator = ReportUtils.isHoldCreator(transaction, moneyRequestReport?.reportID) && isRequestIOU;
         const isTrackExpenseReport = ReportUtils.isTrackExpenseReport(moneyRequestReport);
         const canModifyStatus = !isTrackExpenseReport && (isPolicyAdmin || isActionOwner || isApprover);
