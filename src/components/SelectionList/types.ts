@@ -321,6 +321,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Custom content to display in the header */
     headerContent?: ReactNode;
 
+    /** Custom content to display in the header of list component. */
+    listHeaderContent?: React.JSX.Element | null;
+
     /** Custom content to display in the footer */
     footerContent?: ReactNode;
 
@@ -391,6 +394,7 @@ type FlattenedSectionsReturn<TItem extends ListItem> = {
     allOptions: TItem[];
     selectedOptions: TItem[];
     disabledOptionsIndexes: number[];
+    disabledArrowKeyOptionsIndexes: number[];
     itemLayouts: ItemLayout[];
     allSelected: boolean;
 };

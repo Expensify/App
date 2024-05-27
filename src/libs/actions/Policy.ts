@@ -258,7 +258,7 @@ Onyx.connect({
  * Stores in Onyx the policy ID of the last workspace that was accessed by the user
  */
 function updateLastAccessedWorkspace(policyID: OnyxEntry<string>) {
-    Onyx.set(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, policyID);
+    Onyx.set(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, policyID ?? null);
 }
 
 /**
@@ -1306,7 +1306,7 @@ function createPolicyExpenseChats(policyID: string, invitedEmailsToAccountIDs: I
         const cleanAccountID = Number(accountID);
         const login = PhoneNumber.addSMSDomainIfPhoneNumber(email);
 
-        const oldChat = ReportUtils.getChatByParticipantsAndPolicy([sessionAccountID, cleanAccountID], policyID);
+        const oldChat = ReportUtils.getPolicyExpenseChat(cleanAccountID, policyID);
 
         // If the chat already exists, we don't want to create a new one - just make sure it's not archived
         if (oldChat) {

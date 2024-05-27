@@ -642,6 +642,7 @@ export default {
         deleteReceipt: 'Eliminar recibo',
         pendingMatchWithCreditCard: 'Recibo pendiente de adjuntar con la tarjeta de crédito.',
         pendingMatchWithCreditCardDescription: 'Recibo pendiente de adjuntar con tarjeta de crédito. Marca como efectivo para ignorar y solicitar pago.',
+        markAsCash: 'Marcar como efectivo',
         routePending: 'Ruta pendiente...',
         receiptIssuesFound: (count: number) => `${count === 1 ? 'Problema encontrado' : 'Problemas encontrados'}`,
         fieldPending: 'Pendiente...',
@@ -2683,6 +2684,9 @@ export default {
         memberNotFound: 'Miembro no encontrado. Para invitar a un nuevo miembro a la sala de chat, por favor, utiliza el botón Invitar que está más arriba.',
         notAuthorized: `No tienes acceso a esta página. ¿Estás tratando de unirte a la sala de chat? Comunícate con el propietario de esta sala de chat para que pueda añadirte como miembro. ¿Necesitas algo más? Comunícate con ${CONST.EMAIL.CONCIERGE}`,
         removeMembersPrompt: '¿Estás seguro de que quieres eliminar a los miembros seleccionados de la sala de chat?',
+        error: {
+            genericAdd: 'Hubo un problema al añadir este miembro a la sala de chat.',
+        },
     },
     newTaskPage: {
         assignTask: 'Asignar tarea',
@@ -3564,6 +3568,7 @@ export default {
         taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams) => `${taxName ?? 'El impuesto'} ya no es válido`,
         taxRateChanged: 'La tasa de impuesto fue modificada',
         taxRequired: 'Falta la tasa de impuesto',
+        hold: 'Bloqueada',
     },
     violationDismissal: {
         rter: {
