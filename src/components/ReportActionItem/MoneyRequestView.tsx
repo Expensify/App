@@ -327,7 +327,9 @@ function MoneyRequestView({
         CONST.VIOLATIONS.SMARTSCAN_FAILED,
     ];
     const receiptNoticeViolations =
-        transactionViolations?.filter((violation) => receiptNoticeNames.includes(violation.name)).map((v) => ViolationsUtils.getViolationTranslation(v, translate)) ?? [];
+        transactionViolations
+            ?.filter((violation) => violation.type === CONST.VIOLATION_TYPES.NOTICE && receiptNoticeNames.includes(violation.name))
+            .map((v) => ViolationsUtils.getViolationTranslation(v, translate)) ?? [];
     const shouldShowNotesViolations = !isReceiptBeingScanned && canUseViolations && ReportUtils.isPaidGroupPolicy(report);
 
     return (
