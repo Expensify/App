@@ -8,6 +8,7 @@ import DateUtils from './DateUtils';
 import getReportPolicyID from './getReportPolicyID';
 import * as Localize from './Localize';
 import * as PolicyUtils from './PolicyUtils';
+import * as ReportActionsUtils from './ReportActionsUtils';
 import type {ExpenseOriginalMessage} from './ReportUtils';
 import * as TransactionUtils from './TransactionUtils';
 
@@ -109,7 +110,7 @@ function getForReportAction(reportID: string | undefined, reportAction: OnyxEntr
     if (reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
         return '';
     }
-    const reportActionOriginalMessage = reportAction?.originalMessage as ExpenseOriginalMessage | undefined;
+    const reportActionOriginalMessage = ReportActionsUtils.getReportActionOriginalMessage<ExpenseOriginalMessage | undefined>(reportAction);
     const policyID = getReportPolicyID(reportID) ?? '';
 
     const removalFragments: string[] = [];

@@ -3,6 +3,7 @@ import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {IOUMessage} from '@src/types/onyx/OriginalMessage';
 import MoneyRequestPreviewContent from './MoneyRequestPreviewContent';
 import type {MoneyRequestPreviewOnyxProps, MoneyRequestPreviewProps} from './types';
 
@@ -31,7 +32,7 @@ export default withOnyx<MoneyRequestPreviewProps, MoneyRequestPreviewOnyxProps>(
     transaction: {
         key: ({action}) => {
             const isMoneyRequestAction = ReportActionsUtils.isMoneyRequestAction(action);
-            const transactionID = isMoneyRequestAction ? action?.originalMessage?.IOUTransactionID : 0;
+            const transactionID = isMoneyRequestAction ? ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(action)?.IOUTransactionID : 0;
             return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
         },
     },

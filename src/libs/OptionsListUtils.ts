@@ -32,6 +32,7 @@ import type {
 } from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import type {Closed, IOUMessage} from '@src/types/onyx/OriginalMessage';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -522,7 +523,8 @@ function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<
         !report?.parentReportID || !report?.parentReportActionID ? null : allReportActions?.[report.parentReportID ?? '']?.[report.parentReportActionID ?? ''] ?? null;
 
     if (parentReportAction?.actorAccountID === currentUserAccountID && ReportActionUtils.isTransactionThread(parentReportAction)) {
-        const transactionID = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction?.originalMessage?.IOUTransactionID : null;
+        const transactionID =
+            parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? ReportActionUtils.getReportActionOriginalMessage<IOUMessage>(parentReportAction)?.IOUTransactionID : null;
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         if (TransactionUtils.hasMissingSmartscanFields(transaction ?? null) && !ReportUtils.isSettled(transaction?.reportID)) {
             reportActionErrors.smartscan = ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage');
@@ -587,7 +589,8 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
 
     if (ReportUtils.isArchivedRoom(report)) {
         const archiveReason =
-            (lastOriginalReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED && lastOriginalReportAction?.originalMessage?.reason) || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
+            (lastOriginalReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED && ReportActionUtils.getReportActionOriginalMessage<Closed>(lastOriginalReportAction)?.reason) ||
+            CONST.REPORT.ARCHIVE_REASON.DEFAULT;
         switch (archiveReason) {
             case CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED:
             case CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY:
