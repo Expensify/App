@@ -1,3 +1,4 @@
+import truncate from 'lodash/truncate';
 import React, {useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -22,6 +23,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import StringUtils from '@libs/StringUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
@@ -262,10 +264,10 @@ function ReportPreview({
 
     const {supportText} = useMemo(() => {
         if (formattedMerchant) {
-            return {supportText: formattedMerchant};
+            return {supportText: truncate(formattedMerchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH})};
         }
         if (formattedDescription ?? moneyRequestComment) {
-            return {supportText: formattedDescription ?? moneyRequestComment};
+            return {supportText: truncate(StringUtils.lineBreaksToSpaces(formattedDescription ?? moneyRequestComment), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH})};
         }
         return {
             supportText: translate('iou.expenseCount', {
