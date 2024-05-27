@@ -26,13 +26,13 @@ type RequestData = {
 };
 
 type Request = RequestData & OnyxData;
-type PaginatedRequest<TResourceKey extends OnyxCollectionKey, TPageKey extends OnyxPagesKey> = Request & {
+type PaginatedRequest<TResource, TResourceKey extends OnyxCollectionKey, TPageKey extends OnyxPagesKey> = Request & {
     isPaginated: true;
     resourceKey: TResourceKey;
     pageKey: TPageKey;
     getItemsFromResponse: (response: Response) => OnyxValues[TResourceKey];
-    sortItems: (items: OnyxValues[TResourceKey]) => Array<OnyxValues[TResourceKey]>;
-    getItemID: (item: OnyxValues[TResourceKey]) => string;
+    sortItems: (items: OnyxValues[TResourceKey]) => TResource[];
+    getItemID: (item: TResource) => string;
     isInitialRequest: boolean;
 };
 

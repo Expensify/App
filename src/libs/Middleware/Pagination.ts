@@ -6,19 +6,14 @@ import Log from '@libs/Log';
 import PaginationUtils from '@libs/PaginationUtils';
 import CONST from '@src/CONST';
 import type {OnyxCollectionKey, OnyxPagesKey, OnyxValues} from '@src/ONYXKEYS';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {Pages, ReportActions, Request, Response} from '@src/types/onyx';
+import type {Pages, Request} from '@src/types/onyx';
 import type {PaginatedRequest} from '@src/types/onyx/Request';
 import type Middleware from './types';
 
-function isPaginatedRequest<TResourceKey extends OnyxCollectionKey, TPageKey extends OnyxPagesKey>(
-    request: Request | PaginatedRequest<TResourceKey, TPageKey>,
-): request is PaginatedRequest<TResourceKey, TPageKey> {
+function isPaginatedRequest<TResource, TResourceKey extends OnyxCollectionKey, TPageKey extends OnyxPagesKey>(
+    request: Request | PaginatedRequest<TResource, TResourceKey, TPageKey>,
+): request is PaginatedRequest<TResource, TResourceKey, TPageKey> {
     return 'isPaginated' in request && request.isPaginated;
-}
-
-function getReportActions(response: Response, reportID: string) {
-    return response?.onyxData?.find((data) => data.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`)?.value as ReportActions | undefined;
 }
 
 const Pagination: Middleware = (requestResponse, request) => {

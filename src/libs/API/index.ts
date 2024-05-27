@@ -179,14 +179,14 @@ function read<TCommand extends ReadCommand>(command: TCommand, apiCommandParamet
     validateReadyToRead(command).then(() => makeRequestWithSideEffects(command, apiCommandParameters, onyxData, CONST.API_REQUEST_TYPE.READ));
 }
 
-function paginate<TCommand extends ReadCommand, TResourceKey extends OnyxCollectionKey, TPageKey extends OnyxPagesKey>(
+function paginate<TCommand extends ReadCommand, TResource, TResourceKey extends OnyxCollectionKey, TPageKey extends OnyxPagesKey>(
     command: TCommand,
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
     resourceKey: TResourceKey,
     pageKey: TPageKey,
     getItemsFromResponse: (response: Response) => OnyxValues[TResourceKey],
-    sortItems: (items: OnyxValues[TResourceKey]) => Array<OnyxValues[TResourceKey]>,
-    getItemID: (item: OnyxValues[TResourceKey]) => string,
+    sortItems: (items: OnyxValues[TResourceKey]) => TResource[],
+    getItemID: (item: TResource) => string,
     isInitialRequest = false,
     onyxData: OnyxData = {},
 ): void {
@@ -201,7 +201,7 @@ function paginate<TCommand extends ReadCommand, TResourceKey extends OnyxCollect
         };
 
         // Assemble all the request data we'll be storing
-        const request: PaginatedRequest<TResourceKey, TPageKey> = {
+        const request: PaginatedRequest<TResource, TResourceKey, TPageKey> = {
             command,
             data,
             ...onyxDataWithoutOptimisticData,
@@ -219,4 +219,4 @@ function paginate<TCommand extends ReadCommand, TResourceKey extends OnyxCollect
     });
 }
 
-export {write, makeRequestWithSideEffects, read};
+export {write, makeRequestWithSideEffects, read, paginate};

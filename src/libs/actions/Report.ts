@@ -1077,7 +1077,17 @@ function getOlderActions(reportID: string, reportActionID: string) {
         reportActionID,
     };
 
-    API.read(READ_COMMANDS.GET_OLDER_ACTIONS, parameters, {optimisticData, successData, failureData});
+    API.paginate(
+        READ_COMMANDS.GET_OLDER_ACTIONS,
+        parameters,
+        ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+        ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES,
+        (response) => response?.onyxData?.find((data) => data.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`)?.value as ReportActions,
+        (reportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true),
+        (reportAction) => reportAction.reportActionID,
+        false,
+        {optimisticData, successData, failureData},
+    );
 }
 
 /**
@@ -1122,7 +1132,17 @@ function getNewerActions(reportID: string, reportActionID: string) {
         reportActionID,
     };
 
-    API.read(READ_COMMANDS.GET_NEWER_ACTIONS, parameters, {optimisticData, successData, failureData});
+    API.paginate(
+        READ_COMMANDS.GET_NEWER_ACTIONS,
+        parameters,
+        ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+        ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES,
+        (response) => response?.onyxData?.find((data) => data.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`)?.value as ReportActions,
+        (reportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true),
+        (reportAction) => reportAction.reportActionID,
+        false,
+        {optimisticData, successData, failureData},
+    );
 }
 
 /**
