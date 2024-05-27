@@ -12,7 +12,6 @@ import type {
     FullScreenNavigatorParamList,
     ReimbursementAccountNavigatorParamList,
     SettingsNavigatorParamList,
-    WorkspacesCentralPaneNavigatorParamList,
 } from '@navigation/types';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
@@ -20,12 +19,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 
-type NavigatorsParamList = BottomTabNavigatorParamList &
-    CentralPaneNavigatorParamList &
-    SettingsNavigatorParamList &
-    ReimbursementAccountNavigatorParamList &
-    FullScreenNavigatorParamList &
-    WorkspacesCentralPaneNavigatorParamList;
+type NavigatorsParamList = BottomTabNavigatorParamList & CentralPaneNavigatorParamList & SettingsNavigatorParamList & ReimbursementAccountNavigatorParamList & FullScreenNavigatorParamList;
 
 type PolicyRoute = RouteProp<
     NavigatorsParamList,
@@ -47,6 +41,7 @@ type PolicyRoute = RouteProp<
     | typeof SCREENS.WORKSPACE.CARD
     | typeof SCREENS.WORKSPACE.OWNER_CHANGE_CHECK
     | typeof SCREENS.WORKSPACE.TAX_EDIT
+    | typeof SCREENS.WORKSPACE.ADDRESS
 >;
 
 function getPolicyIDFromRoute(route: PolicyRoute): string {

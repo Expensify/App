@@ -1,6 +1,6 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -12,7 +12,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RightElementEnabledStatus from '@components/SelectionList/RightElementEnabledStatus';
+import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRightCaretWithLabel';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
@@ -28,7 +28,7 @@ import {deleteWorkspaceCategories, setWorkspaceCategoryEnabled} from '@libs/acti
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
-import type {WorkspacesCentralPaneNavigatorParamList} from '@libs/Navigation/types';
+import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as Policy from '@userActions/Policy';
@@ -43,7 +43,7 @@ type PolicyOption = ListItem & {
     keyForList: string;
 };
 
-type WorkspaceCategoriesPageProps = StackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES>;
+type WorkspaceCategoriesPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES>;
 
 function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -51,7 +51,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const theme = useTheme();
     const {translate} = useLocalize();
     const [selectedCategories, setSelectedCategories] = useState<Record<string, boolean>>({});
-    const dropdownButtonRef = useRef(null);
     const [deleteCategoriesConfirmModalVisible, setDeleteCategoriesConfirmModalVisible] = useState(false);
     const isFocused = useIsFocused();
     const {environmentURL} = useEnvironment();
@@ -91,10 +90,10 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         isDisabled,
                         pendingAction: value.pendingAction,
                         errors: value.errors ?? undefined,
-                        rightElement: <RightElementEnabledStatus enabled={value.enabled} />,
+                        rightElement: <ListItemRightCaretWithLabel labelText={value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
                     };
                 }),
-        [policyCategories, selectedCategories],
+        [policyCategories, selectedCategories, translate],
     );
 
     const toggleCategory = (category: PolicyOption) => {
@@ -205,7 +204,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
             return (
                 <ButtonWithDropdownMenu
-                    buttonRef={dropdownButtonRef}
                     onPress={() => null}
                     shouldAlwaysShowDropdownMenu
                     pressOnEnter
@@ -227,7 +225,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         onPress={navigateToCreateCategoryPage}
                         icon={Expensicons.Plus}
                         text={translate('workspace.categories.addCategory')}
-                        style={[styles.mr3, isSmallScreenWidth && styles.w50]}
+                        style={[styles.mr3, isSmallScreenWidth && styles.flex1]}
                     />
                 )}
                 <Button
@@ -235,7 +233,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     onPress={navigateToCategoriesSettings}
                     icon={Expensicons.Gear}
                     text={translate('common.settings')}
-                    style={[isSmallScreenWidth && styles.w50]}
+                    style={[isSmallScreenWidth && styles.flex1]}
                 />
             </View>
         );
@@ -244,6 +242,24 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const isLoading = !isOffline && policyCategories === undefined;
 
     const shouldShowEmptyState = !categoryList.some((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) && !isLoading;
+
+    const getHeaderText = () => (
+        <View style={[styles.ph5, styles.pb5, styles.pt3]}>
+            {Object.keys(policy?.connections ?? {}).length > 0 ? (
+                <Text>
+                    <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.categories.importedFromAccountingSoftware')} `}</Text>
+                    <TextLink
+                        style={[styles.textNormal, styles.link]}
+                        href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyId)}`}
+                    >
+                        {`${translate('workspace.accounting.qbo')} ${translate('workspace.accounting.settings')}`}
+                    </TextLink>
+                </Text>
+            ) : (
+                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
+            )}
+        </View>
+    );
 
     return (
         <AccessOrNotFoundWrapper
@@ -276,21 +292,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     danger
                 />
                 {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
-                <View style={[styles.ph5, styles.pb5, styles.pt3]}>
-                    {Object.keys(policy?.connections ?? {}).length > 0 ? (
-                        <Text>
-                            <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.categories.importedFromAccountingSoftware')} `}</Text>
-                            <TextLink
-                                style={[styles.textNormal, styles.link]}
-                                href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyId)}`}
-                            >
-                                {`${translate('workspace.accounting.qbo')} ${translate('workspace.accounting.settings')}`}
-                            </TextLink>
-                        </Text>
-                    ) : (
-                        <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
-                    )}
-                </View>
+                {!isSmallScreenWidth && getHeaderText()}
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -313,11 +315,12 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         onSelectRow={navigateToCategorySettings}
                         shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                         onSelectAll={toggleAllCategories}
-                        showScrollIndicator
                         ListItem={TableListItem}
                         onDismissError={dismissError}
                         customListHeader={getCustomListHeader()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                        listHeaderContent={isSmallScreenWidth ? getHeaderText() : null}
+                        showScrollIndicator={false}
                     />
                 )}
             </ScreenWrapper>

@@ -12,7 +12,7 @@ import type {
     TextInputKeyPressEventData,
     TextInputSelectionChangeEventData,
 } from 'react-native';
-import {findNodeHandle, InteractionManager, NativeModules, View} from 'react-native';
+import {DeviceEventEmitter, findNodeHandle, InteractionManager, NativeModules, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {useAnimatedRef} from 'react-native-reanimated';
@@ -177,6 +177,11 @@ type ComposerWithSuggestionsProps = ComposerWithSuggestionsOnyxProps &
         policyID: string;
     };
 
+type SwitchToCurrentReportProps = {
+    preexistingReportID: string;
+    callback: () => void;
+};
+
 const {RNTextInputReset} = NativeModules;
 
 const isIOSNative = getPlatform() === CONST.PLATFORM.IOS;
@@ -318,7 +323,6 @@ function ComposerWithSuggestions(
      */
     const setTextInputRef = useCallback(
         (el: TextInput) => {
-            // @ts-expect-error need to reassign this ref
             ReportActionComposeFocusManager.composerRef.current = el;
             textInputRef.current = el;
             if (typeof animatedRef === 'function') {
@@ -337,12 +341,26 @@ function ComposerWithSuggestions(
 
     const debouncedSaveReportComment = useMemo(
         () =>
-            lodashDebounce((selectedReportID, newComment) => {
+            lodashDebounce((selectedReportID: string, newComment: string | null) => {
                 Report.saveReportDraftComment(selectedReportID, newComment);
                 isCommentPendingSaved.current = false;
             }, 1000),
         [],
     );
+
+    useEffect(() => {
+        const switchToCurrentReport = DeviceEventEmitter.addListener(`switchToPreExistingReport_${reportID}`, ({preexistingReportID, callback}: SwitchToCurrentReportProps) => {
+            if (!commentRef.current) {
+                callback();
+                return;
+            }
+            Report.saveReportDraftComment(preexistingReportID, commentRef.current, callback);
+        });
+
+        return () => {
+            switchToCurrentReport.remove();
+        };
+    }, [reportID]);
 
     /**
      * Find the newly added characters between the previous text and the new text based on the selection.
@@ -635,7 +653,6 @@ function ComposerWithSuggestions(
         const unsubscribeNavigationFocus = navigation.addListener('focus', () => {
             KeyDownListener.addKeyDownPressListener(focusComposerOnKeyPress);
             // The report isn't unmounted and can be focused again after going back from another report so we should update the composerRef again
-            // @ts-expect-error need to reassign this ref
             ReportActionComposeFocusManager.composerRef.current = textInputRef.current;
             setUpComposeFocusManager();
         });
