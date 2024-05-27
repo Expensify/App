@@ -123,7 +123,6 @@ function ConnectionLayout({
                 testID={displayName}
             >
                 <HeaderWithBackButton
-                    // eslint-disable-next-line
                     title={headerTitleAlreadyTranslated ?? (headerTitle ? translate(headerTitle as TranslationPaths) : '')}
                     subtitle={headerSubtitle}
                     onBackButtonPress={() => Navigation.goBack()}
