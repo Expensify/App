@@ -67,7 +67,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         return reportActions.find((action) => action.reportActionID === transactionThreadReport.parentReportActionID) as OnyxTypes.ReportAction & OnyxTypes.OriginalMessageIOU;
     }, [reportActions, transactionThreadReport?.parentReportActionID]);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${requestParentReportAction?.originalMessage?.IOUTransactionID ?? 0}`);
-    const [shownHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_HOLD_USE_EXPLAINED, {initWithStoredValues: true});
+    const [shownHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_HOLD_USE_EXPLAINED, {initWithStoredValues: false});
 
     const styles = useThemeStyles();
     const theme = useTheme();
