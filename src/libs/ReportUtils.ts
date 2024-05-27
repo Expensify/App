@@ -3153,7 +3153,7 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
             if (isArchivedRoom(report)) {
                 formattedName += ` (${Localize.translateLocal('common.archived')})`;
             }
-            return formattedName;
+            return formattedName.replace(/(\r\n|\n|\r)/gm, ' ');
         }
 
         if (parentReportAction?.message?.[0]?.isDeletedParentAction) {
