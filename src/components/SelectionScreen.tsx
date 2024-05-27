@@ -1,12 +1,15 @@
 import React from 'react';
+import { isEmpty } from 'lodash';
 import useLocalize from '@hooks/useLocalize';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import type {PolicyAccessVariant} from '@pages/workspace/AccessOrNotFoundWrapper';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {TranslationPaths} from '@src/languages/types';
-import type {PolicyFeatureName} from '@src/types/onyx/Policy';
+import type {ConnectionName, PolicyFeatureName} from '@src/types/onyx/Policy';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import ScreenWrapper from './ScreenWrapper';
 import SelectionList from './SelectionList';
+
 import type RadioListItem from './SelectionList/RadioListItem';
 import type TableListItem from './SelectionList/TableListItem';
 import type {ListItem, SectionListDataType} from './SelectionList/types';
@@ -52,6 +55,9 @@ type SelectionScreenProps = {
 
     /** Whether or not to block user from accessing the page */
     shouldBeBlocked?: boolean;
+
+    /** Name of the current connection */
+    connectionName: ConnectionName;
 };
 
 function SelectionScreen({
@@ -67,14 +73,19 @@ function SelectionScreen({
     accessVariants,
     featureName,
     shouldBeBlocked,
+    connectionName
 }: SelectionScreenProps) {
     const {translate} = useLocalize();
+
+    const policy = PolicyUtils.getPolicy(policyID ?? '');
+    const isConnectionEmpty = isEmpty(policy.connections?.[connectionName]);
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
             accessVariants={accessVariants}
             featureName={featureName}
-            shouldBeBlocked={shouldBeBlocked}
+            shouldBeBlocked={isConnectionEmpty || shouldBeBlocked}
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}

@@ -1,4 +1,3 @@
-import {isEmpty} from 'lodash';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import RadioListItem from '@components/SelectionList/RadioListItem';
@@ -60,7 +59,7 @@ function XeroBankAccountSelectPage({policy}: WithPolicyConnectionsProps) {
             headerContent={listHeaderComponent}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID))}
             title="workspace.xero.xeroBankAccount"
-            shouldBeBlocked={isEmpty(policy?.connections?.xero)}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
         />
     );
 }

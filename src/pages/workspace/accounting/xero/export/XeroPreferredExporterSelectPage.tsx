@@ -94,7 +94,7 @@ function XeroPreferredExporterSelectPage({policy}: WithPolicyConnectionsProps) {
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID))}
             title="workspace.xero.preferredExporter"
-            shouldBeBlocked={isEmpty(policy?.connections?.xero)}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
         />
     );
 }

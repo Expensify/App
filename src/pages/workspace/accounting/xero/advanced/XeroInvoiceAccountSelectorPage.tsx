@@ -1,4 +1,3 @@
-import {isEmpty} from 'lodash';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import RadioListItem from '@components/SelectionList/RadioListItem';
@@ -53,7 +52,8 @@ function XeroInvoiceAccountSelectorPage({policy}: WithPolicyConnectionsProps) {
             displayName={XeroInvoiceAccountSelectorPage.displayName}
             sections={[{data: xeroSelectorOptions}]}
             listItem={RadioListItem}
-            shouldBeBlocked={isEmpty(policy?.connections?.xero) || !syncReimbursedReports}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
+            shouldBeBlocked={!syncReimbursedReports}
             onSelectRow={updateAccount}
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
             headerContent={listHeaderComponent}

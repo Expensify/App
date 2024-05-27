@@ -52,7 +52,7 @@ type ConnectionLayoutProps = {
     /** Whether to use ScrollView or not */
     shouldUseScrollView?: boolean;
 
-    /** Name of the current organization */
+    /** Name of the current connection */
     connectionName: ConnectionName;
 };
 
