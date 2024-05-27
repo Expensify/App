@@ -16,7 +16,7 @@ export default function getAutoCompleteSuggestionContainerStyles(
 ): ViewStyle {
     'worklet';
 
-    const borderWidth = 2;
+    const borderWidth = CONST.AUTO_COMPLETE_SUGGESTER.BORDER_WIDTH;
     const height = itemsHeight + 2 * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING + (shouldPreventScroll ? borderWidth : 0);
     const suggestionsPadding = isEditComposer ? CONST.AUTO_COMPLETE_SUGGESTER.EDIT_SUGGESTER_PADDING : CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_PADDING;
 
