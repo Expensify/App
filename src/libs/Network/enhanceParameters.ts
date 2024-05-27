@@ -1,5 +1,6 @@
 import * as Environment from '@libs/Environment/Environment';
 import getPlatform from '@libs/getPlatform';
+import * as Pusher from '@libs/Pusher/pusher';
 import CONFIG from '@src/CONFIG';
 import {version as pkgVersion} from '../../../package.json';
 import * as NetworkStore from './NetworkStore';
@@ -36,6 +37,11 @@ export default function enhanceParameters(command: string, parameters: Record<st
     finalParameters.email = parameters.email ?? NetworkStore.getCurrentUserEmail();
 
     finalParameters.isFromDevEnv = Environment.isDevelopment();
+
+    // We send the pusherSocketID with all write requests so that the api can include it in push events to prevent Pusher from sending the events to the requesting client. The push event
+    // is sent back to the requesting client in the response data instead, which prevents a replay effect in the UI. See https://github.com/Expensify/App/issues/12775.
+    // TODO: Only send with write requests
+    finalParameters.pusherSocketID = Pusher.getPusherSocketID();
 
     finalParameters.appversion = pkgVersion;
 

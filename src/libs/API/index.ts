@@ -1,9 +1,9 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {SetRequired} from 'type-fest';
 import Log from '@libs/Log';
 import * as Middleware from '@libs/Middleware';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
-import * as Pusher from '@libs/Pusher/pusher';
 import * as Request from '@libs/Request';
 import * as PersistedRequests from '@userActions/PersistedRequests';
 import CONST from '@src/CONST';
@@ -11,7 +11,7 @@ import type {OnyxCollectionKey, OnyxPagesKey, OnyxValues} from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
 import type {PaginatedRequest} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
-import type {ApiRequest, ApiRequestCommandParameters, ReadCommand, SideEffectRequestCommand, WriteCommand} from './types';
+import type {ApiCommand, ApiRequest, ApiRequestCommandParameters, CommandForRequestType, ReadCommand, SideEffectRequestCommand, WriteCommand} from './types';
 
 // Setup API middlewares. Each request made will pass through a series of middleware functions that will get called in sequence (each one passing the result of the previous to the next).
 // Note: The ordering here is intentional as we want to Log, Recheck Connection, Reauthenticate, and Save the Response in Onyx. Errors thrown in one middleware will bubble to the next.
@@ -42,12 +42,58 @@ type OnyxData = {
     finallyData?: OnyxUpdate[];
 };
 
-function applyOptimisticOnyxData(onyxData: OnyxData): Omit<OnyxData, 'optimisticData'> {
+/**
+ * Prepare the request to be sent. Bind data together with request metadata and apply optimistic Onyx data.
+ */
+function prepareRequest<TCommand extends ApiCommand>(command: TCommand, type: ApiRequest, params: ApiRequestCommandParameters[TCommand], onyxData: OnyxData = {}): OnyxRequest {
+    Log.info('[API] Preparing request', false, {command, type});
+
     const {optimisticData, ...onyxDataWithoutOptimisticData} = onyxData;
     if (optimisticData) {
+        Log.info('[API] Applying optimistic data', false, {command, type});
         Onyx.update(optimisticData);
     }
-    return onyxDataWithoutOptimisticData;
+
+    // Prepare the data we'll send to the API
+    const data = {
+        ...params,
+        apiRequestType: type,
+    };
+
+    // Assemble all request metadata (used by middlewares, and for persisted requests stored in Onyx)
+    const request: SetRequired<OnyxRequest, 'data'> = {
+        command,
+        data,
+        ...onyxDataWithoutOptimisticData,
+    };
+
+    // This should be removed once we are no longer using deprecatedAPI https://github.com/Expensify/Expensify/issues/215650
+    if (type === CONST.API_REQUEST_TYPE.WRITE) {
+        request.data.shouldRetry = true;
+        request.data.canCancel = true;
+    }
+
+    return request;
+}
+
+/**
+ * Process a prepared request according to its type.
+ */
+function processRequest(request: OnyxRequest, type: ApiRequest): Promise<void | Response> {
+    // Write commands can be saved and retried, so push it to the SequentialQueue
+    if (type === CONST.API_REQUEST_TYPE.WRITE) {
+        SequentialQueue.push(request);
+        return Promise.resolve();
+    }
+
+    // Read requests are processed right away, but don't return the response to the caller
+    if (type === CONST.API_REQUEST_TYPE.READ) {
+        Request.processWithMiddleware(request);
+        return Promise.resolve();
+    }
+
+    // Requests with side effects process right away, and return the response to the caller
+    return Request.processWithMiddleware(request);
 }
 
 /**
@@ -65,35 +111,9 @@ function applyOptimisticOnyxData(onyxData: OnyxData): Omit<OnyxData, 'optimistic
  * @param [onyxData.finallyData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200 or jsonCode !== 200.
  */
 function write<TCommand extends WriteCommand>(command: TCommand, apiCommandParameters: ApiRequestCommandParameters[TCommand], onyxData: OnyxData = {}): void {
-    Log.info('Called API write', false, {command, ...apiCommandParameters});
-
-    const onyxDataWithoutOptimisticData = applyOptimisticOnyxData(onyxData);
-
-    // Assemble the data we'll send to the API
-    const data = {
-        ...apiCommandParameters,
-        apiRequestType: CONST.API_REQUEST_TYPE.WRITE,
-
-        // We send the pusherSocketID with all write requests so that the api can include it in push events to prevent Pusher from sending the events to the requesting client. The push event
-        // is sent back to the requesting client in the response data instead, which prevents a replay effect in the UI. See https://github.com/Expensify/App/issues/12775.
-        pusherSocketID: Pusher.getPusherSocketID(),
-    };
-
-    // Assemble all the request data we'll be storing in the queue
-    const request: OnyxRequest = {
-        command,
-        data: {
-            ...data,
-
-            // This should be removed once we are no longer using deprecatedAPI https://github.com/Expensify/Expensify/issues/215650
-            shouldRetry: true,
-            canCancel: true,
-        },
-        ...onyxDataWithoutOptimisticData,
-    };
-
-    // Write commands can be saved and retried, so push it to the SequentialQueue
-    SequentialQueue.push(request);
+    Log.info('[API] Called API write', false, {command, ...apiCommandParameters});
+    const request = prepareRequest(command, CONST.API_REQUEST_TYPE.WRITE, apiCommandParameters, onyxData);
+    processRequest(request, CONST.API_REQUEST_TYPE.WRITE);
 }
 
 /**
@@ -117,33 +137,16 @@ function write<TCommand extends WriteCommand>(command: TCommand, apiCommandParam
  *                                    response back to the caller or to trigger reconnection callbacks when re-authentication is required.
  * @returns
  */
-function makeRequestWithSideEffects<TCommand extends SideEffectRequestCommand | WriteCommand | ReadCommand>(
+function makeRequestWithSideEffects<TCommand extends SideEffectRequestCommand>(
     command: TCommand,
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
     onyxData: OnyxData = {},
-    apiRequestType: ApiRequest = CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS,
 ): Promise<void | Response> {
-    if (apiRequestType === CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS) {
-        Log.info('Called API makeRequestWithSideEffects', false, {command, ...apiCommandParameters});
-    }
-
-    const onyxDataWithoutOptimisticData = applyOptimisticOnyxData(onyxData);
-
-    // Assemble the data we'll send to the API
-    const data = {
-        ...apiCommandParameters,
-        apiRequestType,
-    };
-
-    // Assemble all the request data we'll be storing
-    const request: OnyxRequest = {
-        command,
-        data,
-        ...onyxDataWithoutOptimisticData,
-    };
+    Log.info('[API] Called API makeRequestWithSideEffects', false, {command, ...apiCommandParameters});
+    const request = prepareRequest(command, CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS, apiCommandParameters, onyxData);
 
     // Return a promise containing the response from HTTPS
-    return Request.processWithMiddleware(request);
+    return processRequest(request, CONST.API_REQUEST_TYPE.WRITE);
 }
 
 /**
@@ -176,47 +179,55 @@ function validateReadyToRead<TCommand extends ReadCommand>(command: TCommand) {
  */
 function read<TCommand extends ReadCommand>(command: TCommand, apiCommandParameters: ApiRequestCommandParameters[TCommand], onyxData: OnyxData = {}): void {
     Log.info('[API] Called API.read', false, {command, ...apiCommandParameters});
-    validateReadyToRead(command).then(() => makeRequestWithSideEffects(command, apiCommandParameters, onyxData, CONST.API_REQUEST_TYPE.READ));
+
+    validateReadyToRead(command).then(() => {
+        const request = prepareRequest(command, CONST.API_REQUEST_TYPE.READ, apiCommandParameters, onyxData);
+        processRequest(request, CONST.API_REQUEST_TYPE.READ);
+    });
 }
 
-function paginate<TCommand extends ReadCommand, TResource, TResourceKey extends OnyxCollectionKey, TPageKey extends OnyxPagesKey>(
+type PaginationConfig<TResource, TResourceKey extends OnyxCollectionKey, TPageKey extends OnyxPagesKey> = {
+    resourceKey: TResourceKey;
+    pageKey: TPageKey;
+    getItemsFromResponse: (response: Response) => OnyxValues[TResourceKey];
+    sortItems: (items: OnyxValues[TResourceKey]) => TResource[];
+    getItemID: (item: TResource) => string;
+    isInitialRequest: boolean;
+};
+
+function paginate<TRequestType extends ApiRequest, TCommand extends CommandForRequestType<TRequestType>, TResource, TResourceKey extends OnyxCollectionKey, TPageKey extends OnyxPagesKey>(
+    type: TRequestType,
     command: TCommand,
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
-    resourceKey: TResourceKey,
-    pageKey: TPageKey,
-    getItemsFromResponse: (response: Response) => OnyxValues[TResourceKey],
-    sortItems: (items: OnyxValues[TResourceKey]) => TResource[],
-    getItemID: (item: TResource) => string,
-    isInitialRequest = false,
-    onyxData: OnyxData = {},
-): void {
+    onyxData: OnyxData,
+    config: PaginationConfig<TResource, TResourceKey, TPageKey>,
+): TRequestType extends typeof CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS ? Promise<Response | void> : void;
+function paginate<TRequestType extends ApiRequest, TCommand extends CommandForRequestType<TRequestType>, TResource, TResourceKey extends OnyxCollectionKey, TPageKey extends OnyxPagesKey>(
+    type: TRequestType,
+    command: TCommand,
+    apiCommandParameters: ApiRequestCommandParameters[TCommand],
+    onyxData: OnyxData,
+    config: PaginationConfig<TResource, TResourceKey, TPageKey>,
+): Promise<Response | void> | void {
     Log.info('[API] Called API.paginate', false, {command, ...apiCommandParameters});
-    validateReadyToRead(command).then(() => {
-        const onyxDataWithoutOptimisticData = applyOptimisticOnyxData(onyxData);
-
-        // Assemble the data we'll send to the API
-        const data = {
-            ...apiCommandParameters,
-            apiRequestType: CONST.API_REQUEST_TYPE.READ,
-        };
-
-        // Assemble all the request data we'll be storing
-        const request: PaginatedRequest<TResource, TResourceKey, TPageKey> = {
-            command,
-            data,
-            ...onyxDataWithoutOptimisticData,
+    const request: PaginatedRequest<TResource, TResourceKey, TPageKey> = {
+        ...prepareRequest(command, type, apiCommandParameters, onyxData),
+        ...config,
+        ...{
             isPaginated: true,
-            resourceKey,
-            pageKey,
-            getItemsFromResponse,
-            sortItems,
-            getItemID,
-            isInitialRequest,
-        };
+        },
+    };
 
-        // Return a promise containing the response from HTTPS
-        return Request.processWithMiddleware(request);
-    });
+    if (type === CONST.API_REQUEST_TYPE.WRITE) {
+        processRequest(request, type);
+        return;
+    }
+
+    if (type === CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS) {
+        return processRequest(request, type);
+    }
+
+    validateReadyToRead(command as ReadCommand).then(() => processRequest(request, type));
 }
 
 export {write, makeRequestWithSideEffects, read, paginate};
