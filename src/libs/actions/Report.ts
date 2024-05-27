@@ -1078,15 +1078,18 @@ function getOlderActions(reportID: string, reportActionID: string) {
     };
 
     API.paginate(
+        CONST.API_REQUEST_TYPE.READ,
         READ_COMMANDS.GET_OLDER_ACTIONS,
         parameters,
-        ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-        ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES,
-        (response) => response?.onyxData?.find((data) => data.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`)?.value as ReportActions,
-        (reportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true),
-        (reportAction) => reportAction.reportActionID,
-        false,
         {optimisticData, successData, failureData},
+        {
+            resourceKey: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+            pageKey: ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES,
+            getItemsFromResponse: (response) => response?.onyxData?.find((data) => data.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`)?.value as ReportActions,
+            sortItems: (reportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true),
+            getItemID: (reportAction) => reportAction.reportActionID,
+            isInitialRequest: false,
+        },
     );
 }
 
@@ -1133,15 +1136,18 @@ function getNewerActions(reportID: string, reportActionID: string) {
     };
 
     API.paginate(
+        CONST.API_REQUEST_TYPE.READ,
         READ_COMMANDS.GET_NEWER_ACTIONS,
         parameters,
-        ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-        ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES,
-        (response) => response?.onyxData?.find((data) => data.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`)?.value as ReportActions,
-        (reportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true),
-        (reportAction) => reportAction.reportActionID,
-        false,
         {optimisticData, successData, failureData},
+        {
+            resourceKey: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+            pageKey: ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES,
+            getItemsFromResponse: (response) => response?.onyxData?.find((data) => data.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`)?.value as ReportActions,
+            sortItems: (reportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true),
+            getItemID: (reportAction) => reportAction.reportActionID,
+            isInitialRequest: false,
+        },
     );
 }
 
