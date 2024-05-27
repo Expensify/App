@@ -230,6 +230,8 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** The admins's ID */
     adminAccountID?: number;
+
+    whisperedToAccountIDs?: number[];
 }>;
 
 type ReportAction = ReportActionBase & OriginalMessage;
