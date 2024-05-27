@@ -51,35 +51,30 @@ function arePropsEqual(prevProps: CellProps, nextProps: CellProps) {
     return prevProps.keyForList === nextProps.keyForList;
 }
 
-const DateCell = memo(
-    ({ showTooltip, date, isLargeScreenWidth }: DateCellProps) => {
+const DateCell = memo(({showTooltip, date, isLargeScreenWidth}: DateCellProps) => {
     const styles = useThemeStyles();
 
     return (
         <TextWithTooltip
             shouldShowTooltip={!!showTooltip}
             text={date}
-            style={[styles.label, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? undefined : [styles.textMicro, styles.textSupporting]]} />
+            style={[styles.label, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? undefined : [styles.textMicro, styles.textSupporting]]}
+        />
     );
-},
-    arePropsEqual,
-);
+}, arePropsEqual);
 
-const MerchantCell = memo(
-    ({ showTooltip, transactionItem, merchant, description }: MerchantCellProps) => {
+const MerchantCell = memo(({showTooltip, transactionItem, merchant, description}: MerchantCellProps) => {
     const styles = useThemeStyles();
     return (
         <TextWithTooltip
             shouldShowTooltip={!!showTooltip}
             text={transactionItem.shouldShowMerchant ? merchant : description}
-            style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter]} />
+            style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter]}
+        />
     );
-},
-    arePropsEqual,
-);
+}, arePropsEqual);
 
-const UserCell = memo(
-    ({ participant }: UserCellProps) => {
+const UserCell = memo(({participant}: UserCellProps) => {
     const styles = useThemeStyles();
 
     const displayName = participant?.name ?? participant?.displayName ?? participant?.login;
@@ -95,7 +90,8 @@ const UserCell = memo(
                 source={avatarURL}
                 name={displayName}
                 type={iconType}
-                avatarID={isWorkspace ? participant?.id : participant?.accountID} />
+                avatarID={isWorkspace ? participant?.id : participant?.accountID}
+            />
             <Text
                 numberOfLines={1}
                 style={[styles.textMicroBold, styles.flexShrink1]}
@@ -104,42 +100,34 @@ const UserCell = memo(
             </Text>
         </View>
     );
-},
-    arePropsEqual,
-);
+}, arePropsEqual);
 
-const TotalCell = memo(
-    ({ showTooltip, amount, currency, isLargeScreenWidth }: CurrencyCellProps) => {
+const TotalCell = memo(({showTooltip, amount, currency, isLargeScreenWidth}: CurrencyCellProps) => {
     const styles = useThemeStyles();
 
     return (
         <TextWithTooltip
             shouldShowTooltip={!!showTooltip}
             text={CurrencyUtils.convertToDisplayString(amount, currency)}
-            style={[styles.optionDisplayName, styles.textNewKansasNormal, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? undefined : styles.textAlignRight]} />
+            style={[styles.optionDisplayName, styles.textNewKansasNormal, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? undefined : styles.textAlignRight]}
+        />
     );
-},
-    arePropsEqual,
-);
+}, arePropsEqual);
 
-const TypeCell = memo(
-    ({typeIcon, isLargeScreenWidth}: TypeCellProps) => {
-        const theme = useTheme();
-        return (
-            <Icon
-                src={typeIcon}
-                fill={theme.icon}
-                height={isLargeScreenWidth ? 20 : 12}
-                width={isLargeScreenWidth ? 20 : 12}
-            />
-        );
-    },
-    arePropsEqual,
-);
+const TypeCell = memo(({typeIcon, isLargeScreenWidth}: TypeCellProps) => {
+    const theme = useTheme();
+    return (
+        <Icon
+            src={typeIcon}
+            fill={theme.icon}
+            height={isLargeScreenWidth ? 20 : 12}
+            width={isLargeScreenWidth ? 20 : 12}
+        />
+    );
+}, arePropsEqual);
 
-const ActionCell = memo(
-    ({ item, onSelectRow }: ActionCellProps) => {
-    const { translate } = useLocalize();
+const ActionCell = memo(({item, onSelectRow}: ActionCellProps) => {
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     return (
@@ -148,60 +136,55 @@ const ActionCell = memo(
             onPress={() => onSelectRow(item)}
             small
             pressOnEnter
-            style={[styles.p0]} />
+            style={[styles.p0]}
+        />
     );
-},
-    arePropsEqual,
-);
+}, arePropsEqual);
 
-const CategoryCell = memo(
-    ({ isLargeScreenWidth, showTooltip, transactionItem }: TransactionCellProps) => {
+const CategoryCell = memo(({isLargeScreenWidth, showTooltip, transactionItem}: TransactionCellProps) => {
     const styles = useThemeStyles();
     return isLargeScreenWidth ? (
         <TextWithTooltip
             shouldShowTooltip={!!showTooltip}
             text={transactionItem?.category}
-            style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter]} />
+            style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter]}
+        />
     ) : (
         <TextWithIconCell
             icon={Expensicons.Folder}
             showTooltip={!!showTooltip}
-            text={transactionItem?.category} />
+            text={transactionItem?.category}
+        />
     );
-},
-    arePropsEqual,
-);
+}, arePropsEqual);
 
-const TagCell = memo(
-    ({ isLargeScreenWidth, showTooltip, transactionItem }: TransactionCellProps) => {
+const TagCell = memo(({isLargeScreenWidth, showTooltip, transactionItem}: TransactionCellProps) => {
     const styles = useThemeStyles();
     return isLargeScreenWidth ? (
         <TextWithTooltip
             shouldShowTooltip={!!showTooltip}
             text={transactionItem?.tag}
-            style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter]} />
+            style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter]}
+        />
     ) : (
         <TextWithIconCell
             icon={Expensicons.Tag}
             showTooltip={!!showTooltip}
-            text={transactionItem?.tag} />
+            text={transactionItem?.tag}
+        />
     );
-},
-    arePropsEqual,
-);
+}, arePropsEqual);
 
-const TaxCell = memo(
-    ({ showTooltip, amount, currency }: CurrencyCellProps) => {
+const TaxCell = memo(({showTooltip, amount, currency}: CurrencyCellProps) => {
     const styles = useThemeStyles();
     return (
         <TextWithTooltip
             shouldShowTooltip={!!showTooltip}
             text={CurrencyUtils.convertToDisplayString(amount, currency)}
-            style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter, styles.textAlignRight]} />
+            style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter, styles.textAlignRight]}
+        />
     );
-},
-    arePropsEqual,
-);
+}, arePropsEqual);
 
 function getMerchant(transactionItem: TransactionListItemType) {
     const merchant = TransactionUtils.getMerchant(transactionItem as OnyxEntry<Transaction>);
