@@ -4505,8 +4505,8 @@ function buildOptimisticHoldReportActionComment(comment: string, created = DateU
         message: [
             {
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                style: 'normal',
                 text: comment,
+                html: comment, // as discussed on https://github.com/Expensify/App/pull/39452 we will not support HTML for now
             },
         ],
         person: [
