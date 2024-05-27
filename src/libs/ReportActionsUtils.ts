@@ -1284,6 +1284,7 @@ export {
     isActionableJoinRequestPending,
     isActionableTrackExpense,
     isLinkedTransactionHeld,
+    isResolvedActionTrackExpense,
 };
 
 export type {LastVisibleMessage};
