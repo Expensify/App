@@ -122,7 +122,7 @@ const ONYXKEYS = {
     NVP_BLOCKED_FROM_CONCIERGE: 'nvp_private_blockedFromConcierge',
 
     /** Whether the user is blocked from chat */
-    NVP_BLOCKED_FROM_CHAT: 'nvp_privateBlockedFromChat',
+    NVP_BLOCKED_FROM_CHAT: 'nvp_private_blockedFromChat',
 
     /** A unique identifier that each user has that's used to send notifications */
     NVP_PRIVATE_PUSH_NOTIFICATION_ID: 'nvp_private_pushNotificationID',
