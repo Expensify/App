@@ -280,7 +280,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                         itemType: undefined
                     })}
                     isVisible={connectionWarningModalState.isOpen}
-                    prompt={translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledText')}
+                    prompt={connectionWarningModalState.itemType  === 'organize' ? translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledText'): translate('workspace.moreFeatures.connectionsWarningModal.disconnectText', connectionName) }
                     confirmText={translate('workspace.moreFeatures.connectionsWarningModal.manageSettings')}
                     cancelText={translate('common.cancel')}
                     />
