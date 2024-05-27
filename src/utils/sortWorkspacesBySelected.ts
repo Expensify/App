@@ -1,7 +1,7 @@
 type WorkspaceDetails = {
-    policyID: string,
-    name: string,
-}
+    policyID: string | undefined;
+    name: string;
+};
 
 /**
  * Sort the workspaces by their name, while keeping the selected one at the beginning.

@@ -19,7 +19,7 @@ import WorkspaceCardCreateAWorkspace from '@pages/workspace/card/WorkspaceCardCr
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import sortWorkspacesBySelected from "@src/utils/sortWorkspacesBySelected";
+import sortWorkspacesBySelected from '@src/utils/sortWorkspacesBySelected';
 import WorkspacesSectionHeader from './WorkspacesSectionHeader';
 
 type WorkspaceListItem = {

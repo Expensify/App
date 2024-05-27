@@ -14,7 +14,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
-import sortWorkspacesBySelected from "@src/utils/sortWorkspacesBySelected";
+import sortWorkspacesBySelected from '@src/utils/sortWorkspacesBySelected';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
