@@ -3,15 +3,14 @@ import React, {useCallback, useMemo} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import OfflineIndicator from '@components/OfflineIndicator';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Policy from '@libs/actions/Policy';
@@ -34,7 +33,6 @@ type WorkspaceTagsSettingsPageProps = WorkspaceTagsSettingsPageOnyxProps & Stack
 function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const [policyTagLists, isMultiLevelTags] = useMemo(() => [PolicyUtils.getTagLists(policyTags), PolicyUtils.isMultiLevelTags(policyTags)], [policyTags]);
     const isLoading = !PolicyUtils.getTagLists(policyTags)?.[0];
@@ -59,47 +57,47 @@ function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPag
                     testID={WorkspaceTagsSettingsPage.displayName}
                 >
                     <HeaderWithBackButton title={translate('common.settings')} />
-                    <View style={styles.flexGrow1}>
-                        <OfflineWithFeedback
-                            errors={policy?.errorFields?.requiresTag}
-                            pendingAction={policy?.pendingFields?.requiresTag}
-                            errorRowStyles={styles.mh5}
-                        >
-                            <View style={[styles.mt2, styles.mh4]}>
-                                <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                    <Text style={[styles.textNormal]}>{translate('workspace.tags.requiresTag')}</Text>
-                                    <Switch
-                                        isOn={policy?.requiresTag ?? false}
-                                        accessibilityLabel={translate('workspace.tags.requiresTag')}
-                                        onToggle={updateWorkspaceRequiresTag}
-                                    />
-                                </View>
-                            </View>
-                        </OfflineWithFeedback>
-                        {isLoading && !isOffline ? (
-                            <ActivityIndicator
-                                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                                style={[styles.flex1]}
-                                color={theme.spinner}
-                            />
-                        ) : (
-                            <OfflineIndicator />
-                        )}
-                        {!isMultiLevelTags && !isLoading && (
+                    <FullPageOfflineBlockingView>
+                        <View style={styles.flexGrow1}>
                             <OfflineWithFeedback
-                                errors={policyTags?.[policyTagLists[0].name]?.errors}
-                                pendingAction={policyTags?.[policyTagLists[0].name]?.pendingAction}
+                                errors={policy?.errorFields?.requiresTag}
+                                pendingAction={policy?.pendingFields?.requiresTag}
                                 errorRowStyles={styles.mh5}
                             >
-                                <MenuItemWithTopDescription
-                                    title={policyTagLists[0].name}
-                                    description={translate(`workspace.tags.customTagName`)}
-                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EDIT_TAGS.getRoute(route.params.policyID, policyTagLists[0].orderWeight))}
-                                    shouldShowRightIcon
-                                />
+                                <View style={[styles.mt2, styles.mh4]}>
+                                    <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                                        <Text style={[styles.textNormal]}>{translate('workspace.tags.requiresTag')}</Text>
+                                        <Switch
+                                            isOn={policy?.requiresTag ?? false}
+                                            accessibilityLabel={translate('workspace.tags.requiresTag')}
+                                            onToggle={updateWorkspaceRequiresTag}
+                                        />
+                                    </View>
+                                </View>
                             </OfflineWithFeedback>
-                        )}
-                    </View>
+                            {isLoading && (
+                                <ActivityIndicator
+                                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                                    style={[styles.flex1]}
+                                    color={theme.spinner}
+                                />
+                            )}
+                            {!isMultiLevelTags && !isLoading && (
+                                <OfflineWithFeedback
+                                    errors={policyTags?.[policyTagLists[0].name]?.errors}
+                                    pendingAction={policyTags?.[policyTagLists[0].name]?.pendingAction}
+                                    errorRowStyles={styles.mh5}
+                                >
+                                    <MenuItemWithTopDescription
+                                        title={policyTagLists[0].name}
+                                        description={translate(`workspace.tags.customTagName`)}
+                                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EDIT_TAGS.getRoute(route.params.policyID, policyTagLists[0].orderWeight))}
+                                        shouldShowRightIcon
+                                    />
+                                </OfflineWithFeedback>
+                            )}
+                        </View>
+                    </FullPageOfflineBlockingView>
                 </ScreenWrapper>
             )}
         </AccessOrNotFoundWrapper>
