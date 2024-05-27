@@ -538,6 +538,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                     screens: {
                         [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS]: {
                             path: ROUTES.SETTINGS_CATEGORY_SETTINGS.route,
+                            parse: {
+                                categoryName: (categoryName: string) => decodeURIComponent(categoryName),
+                            },
                         },
                         [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_SETTINGS]: {
                             path: ROUTES.SETTINGS_CATEGORIES_SETTINGS.route,
@@ -547,6 +550,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_EDIT]: {
                             path: ROUTES.SETTINGS_CATEGORY_EDIT.route,
+                            parse: {
+                                categoryName: (categoryName: string) => decodeURIComponent(categoryName),
+                            },
                         },
                     },
                 },
