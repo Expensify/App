@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -34,27 +34,7 @@ import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
 import ProcessMoneyRequestHoldMenu from './ProcessMoneyRequestHoldMenu';
 import SettlementButton from './SettlementButton';
 
-type MoneyReportHeaderOnyxProps = {
-    /** The chat report this report is linked to */
-    chatReport: OnyxEntry<OnyxTypes.Report>;
-
-    /** All the data for the transaction in the one transaction view */
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
-
-    /** The next step for the report */
-    nextStep: OnyxEntry<OnyxTypes.ReportNextStep>;
-
-    /** Session info for the currently logged in user. */
-    session: OnyxEntry<OnyxTypes.Session>;
-
-    /** The transaction thread report associated with the current report, if any */
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
-
-    /** Whether we should show the Hold Interstitial explaining the feature */
-    shownHoldUseExplanation: OnyxEntry<boolean>;
-};
-
-type MoneyReportHeaderProps = MoneyReportHeaderOnyxProps & {
+type MoneyReportHeaderProps = {
     /** The report currently being looked at */
     report: OnyxTypes.Report;
 
@@ -75,19 +55,20 @@ type MoneyReportHeaderProps = MoneyReportHeaderOnyxProps & {
     onBackButtonPress: () => void;
 };
 
-function MoneyReportHeader({
-    session,
-    policy,
-    chatReport,
-    transaction,
-    nextStep,
-    report: moneyRequestReport,
-    transactionThreadReport,
-    reportActions,
-    shouldUseNarrowLayout = false,
-    shownHoldUseExplanation = false,
-    onBackButtonPress,
-}: MoneyReportHeaderProps) {
+function MoneyReportHeader({policy, report: moneyRequestReport, transactionThreadReportID, reportActions, shouldUseNarrowLayout = false, onBackButtonPress}: MoneyReportHeaderProps) {
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport.chatReportID}`);
+    const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport.reportID}`);
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const requestParentReportAction = useMemo(() => {
+        if (!reportActions || !transactionThreadReport?.parentReportActionID) {
+            return null;
+        }
+        return reportActions.find((action) => action.reportActionID === transactionThreadReport.parentReportActionID) as OnyxTypes.ReportAction & OnyxTypes.OriginalMessageIOU;
+    }, [reportActions, transactionThreadReport?.parentReportActionID]);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${requestParentReportAction?.originalMessage?.IOUTransactionID ?? 0}`);
+    const [shownHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_HOLD_USE_EXPLAINED, {initWithStoredValues: true});
+
     const styles = useThemeStyles();
     const theme = useTheme();
     const [isDeleteRequestModalVisible, setIsDeleteRequestModalVisible] = useState(false);
@@ -98,12 +79,6 @@ function MoneyReportHeader({
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
     const isOnHold = TransactionUtils.isOnHold(transaction);
-    const requestParentReportAction = useMemo(() => {
-        if (!reportActions || !transactionThreadReport?.parentReportActionID) {
-            return null;
-        }
-        return reportActions.find((action) => action.reportActionID === transactionThreadReport.parentReportActionID);
-    }, [reportActions, transactionThreadReport?.parentReportActionID]);
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
     const isDeletedParentAction = ReportActionsUtils.isDeletedAction(requestParentReportAction as OnyxTypes.ReportAction);
     const canHoldOrUnholdRequest = !isEmptyObject(transaction) && !isSettled && !isApproved && !isDeletedParentAction;
@@ -476,32 +451,4 @@ function MoneyReportHeader({
 
 MoneyReportHeader.displayName = 'MoneyReportHeader';
 
-const MoneyReportHeaderWithTransaction = withOnyx<MoneyReportHeaderProps, Pick<MoneyReportHeaderOnyxProps, 'transaction' | 'shownHoldUseExplanation'>>({
-    transaction: {
-        key: ({transactionThreadReport, reportActions}) => {
-            const requestParentReportAction = (
-                transactionThreadReport?.parentReportActionID && reportActions ? reportActions.find((action) => action.reportActionID === transactionThreadReport.parentReportActionID) : {}
-            ) as OnyxTypes.ReportAction & OnyxTypes.OriginalMessageIOU;
-            return `${ONYXKEYS.COLLECTION.TRANSACTION}${requestParentReportAction?.originalMessage?.IOUTransactionID ?? 0}`;
-        },
-    },
-    shownHoldUseExplanation: {
-        key: ONYXKEYS.NVP_HOLD_USE_EXPLAINED,
-        initWithStoredValues: true,
-    },
-})(MoneyReportHeader);
-
-export default withOnyx<Omit<MoneyReportHeaderProps, 'transaction' | 'shownHoldUseExplanation'>, Omit<MoneyReportHeaderOnyxProps, 'transaction' | 'shownHoldUseExplanation'>>({
-    chatReport: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`,
-    },
-    nextStep: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.NEXT_STEP}${report.reportID}`,
-    },
-    transactionThreadReport: {
-        key: ({transactionThreadReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(MoneyReportHeaderWithTransaction);
+export default MoneyReportHeader;
