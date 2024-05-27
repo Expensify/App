@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as PaymentMethods from '@userActions/PaymentMethods';
+import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalBankAccountForm} from '@src/types/form';
@@ -72,6 +73,7 @@ function AddBankAccount({personalBankAccount, plaidData, personalBankAccountDraf
         }
         if (screenIndex === 0) {
             BankAccounts.clearPersonalBankAccount();
+            Wallet.updateCurrentStep(null);
             return;
         }
         prevScreen();
