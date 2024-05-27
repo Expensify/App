@@ -798,7 +798,7 @@ const ROUTES = {
     POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES_MAP: {
         route: 'settings/workspaces/:policyID/accounting/xero/import/tracking-categories/mapping/:categoryId/:categoryName',
         getRoute: (policyID: string, categoryId: string, categoryName: string) =>
-            `settings/workspaces/${policyID}/accounting/xero/import/tracking-categories/mapping/${categoryId}/${categoryName}` as const,
+            `settings/workspaces/${policyID}/accounting/xero/import/tracking-categories/mapping/${categoryId}/${encodeURIComponent(categoryName)}` as const,
     },
     POLICY_ACCOUNTING_XERO_CUSTOMER: {
         route: 'settings/workspaces/:policyID/accounting/xero/import/customers',
