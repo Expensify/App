@@ -1199,6 +1199,13 @@ function isLinkedTransactionHeld(reportActionID: string, reportID: string): bool
     return TransactionUtils.isOnHoldByTransactionID(getLinkedTransactionID(reportActionID, reportID) ?? '');
 }
 
+/**
+ * Check if the current user is the requestor of the action
+ */
+function isRequestor(reportAction: OnyxEntry<ReportAction>): boolean {
+    return currentUserAccountID === reportAction?.actorAccountID;
+}
+
 export {
     extractLinksFromMessageHtml,
     getDismissedViolationMessageText,
@@ -1266,6 +1273,7 @@ export {
     isActionableTrackExpense,
     getAllReportActions,
     isLinkedTransactionHeld,
+    isRequestor,
 };
 
 export type {LastVisibleMessage};
