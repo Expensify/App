@@ -456,7 +456,7 @@ function AttachmentModal({
     }
     const context = useMemo(
         () => ({
-            pagerItems: [],
+            pagerItems: [{source: sourceForAttachmentView, index: 0, isActive: true}],
             activePage: 0,
             pagerRef: undefined,
             isPagerScrolling: nope,
@@ -465,7 +465,7 @@ function AttachmentModal({
             onScaleChanged: () => {},
             onSwipeDown: closeModal,
         }),
-        [closeModal, nope],
+        [closeModal, nope, sourceForAttachmentView],
     );
 
     return (
@@ -607,7 +607,6 @@ export default withOnyx<AttachmentModalProps, AttachmentModalOnyxProps>({
             const transactionID = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction?.originalMessage.IOUTransactionID ?? '0' : '0';
             return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
         },
-        initWithStoredValues: false,
     },
 })(memo(AttachmentModal));
 
