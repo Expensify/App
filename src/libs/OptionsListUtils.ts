@@ -1650,14 +1650,20 @@ function getUserToInviteOption({
 }
 
 /**
- * check whether report has violations
+ * Check whether report has violations
  */
-function checkReportHasViolations(report: Report, betas: OnyxEntry<Beta[]>, transactionViolations: OnyxCollection<TransactionViolation[]>) {
+function shouldShowViolations(report: Report, betas: OnyxEntry<Beta[]>, transactionViolations: OnyxCollection<TransactionViolation[]>) {
+    if (!Permissions.canUseViolations(betas)) {
+        return false;
+    }
     const {parentReportID, parentReportActionID} = report ?? {};
     const canGetParentReport = parentReportID && parentReportActionID && allReportActions;
+    if (!canGetParentReport) {
+        return false;
+    }
     const parentReportActions = allReportActions ? allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`] ?? {} : {};
-    const parentReportAction = canGetParentReport ? parentReportActions[parentReportActionID] ?? null : null;
-    return (Permissions.canUseViolations(betas) && !!parentReportAction && ReportUtils.shouldDisplayTransactionThreadViolations(report, transactionViolations, parentReportAction)) ?? false;
+    const parentReportAction = parentReportActions[parentReportActionID] ?? null;
+    return (!!parentReportAction && ReportUtils.shouldDisplayTransactionThreadViolations(report, transactionViolations, parentReportAction)) ?? false;
 }
 
 /**
@@ -1767,7 +1773,7 @@ function getOptions(
     // Filter out all the reports that shouldn't be displayed
     const filteredReportOptions = options.reports.filter((option) => {
         const report = option.item;
-        const doesReportHaveViolations = checkReportHasViolations(report, betas, transactionViolations);
+        const doesReportHaveViolations = shouldShowViolations(report, betas, transactionViolations);
 
         return ReportUtils.shouldReportBeInOptionList({
             report,
@@ -2449,7 +2455,7 @@ export {
     getTaxRatesSection,
     getFirstKeyForList,
     getUserToInviteOption,
-    checkReportHasViolations,
+    shouldShowViolations,
 };
 
 export type {MemberForList, CategorySection, CategoryTreeSection, Options, OptionList, SearchOption, PayeePersonalDetails, Category, Tax, TaxRatesOption, Option, OptionTree};
