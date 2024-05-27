@@ -55,6 +55,7 @@ function XeroMapRegionsToConfigurationPage({policy}: WithPolicyProps) {
             titleStyle={[styles.pb2, styles.ph5]}
             contentContainerStyle={[styles.flex1]}
             shouldUseScrollView={false}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
         >
             <SelectionList
                 sections={[{data: optionsList}]}
