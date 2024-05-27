@@ -124,7 +124,7 @@ type AvatarWithImagePickerProps = {
     /** Optionally override the default "Edit" icon */
     editIcon?: IconAsset;
 
-    /** Should use style utility for anchor position */
+    /** Determines if a style utility function should be used for calculating the PopoverMenu anchor position. */
     shouldUseStyleUtilityForAnchorPosition?: boolean;
 };
 
