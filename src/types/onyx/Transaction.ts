@@ -39,7 +39,7 @@ type Waypoint = {
     /** Address street line 2 */
     street2?: string;
 
-    /** Key used internally by React */
+    /** A unique key for waypoint is required for correct draggable list rendering */
     keyForList?: string;
 };
 
