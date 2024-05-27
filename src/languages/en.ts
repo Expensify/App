@@ -2153,6 +2153,7 @@ export default {
             organizeSection: {
                 title: 'Organize',
                 subtitle: 'Group and analyze spend, record every tax paid.',
+
             },
             integrateSection: {
                 title: 'Integrate',
@@ -2186,6 +2187,21 @@ export default {
                 title: 'Accounting',
                 subtitle: 'Sync your chart of accounts and more.',
             },
+            connectionsWarningModal: {
+                featureEnabledTitle: (integration?: ConnectionName): string => {
+                    switch (integration) {
+                        case CONST.POLICY.CONNECTIONS.NAME.QBO:
+                            return `You're connected to Quickbooks Online`;
+                        case CONST.POLICY.CONNECTIONS.NAME.XERO:
+                            return `You're connected to Xero`;
+                        default: {
+                            return '';
+                        }
+                    }
+                },
+                featureEnabledText: 'The integration settings determine if this feature is enabled or not.',
+                manageSettings: 'Manage settings',
+            }
         },
         reportFields: {
             delete: 'Delete field',

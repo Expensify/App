@@ -5,6 +5,7 @@ import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ConfirmModal from '@components/ConfirmModal';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import useLocalize from '@hooks/useLocalize';
@@ -13,8 +14,10 @@ import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import * as Policy from '@userActions/Policy';
+import ROUTES from '@src/ROUTES';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type SCREENS from '@src/SCREENS';
@@ -25,6 +28,9 @@ import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import ToggleSettingOptionRow from './workflows/ToggleSettingsOptionRow';
+
+
+
 
 type WorkspaceMoreFeaturesPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.MORE_FEATURES>;
 
@@ -53,7 +59,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const {canUseAccountingIntegrations} = usePermissions();
     const hasAccountingConnection = !!policy?.areConnectionsEnabled && !isEmptyObject(policy?.connections);
     const isSyncTaxEnabled = !!policy?.connections?.quickbooksOnline?.config.syncTax || !!policy?.connections?.xero?.config.importTaxRates;
-
+    const connectionName = !isEmptyObject(policy?.connections) ? Object.keys(policy?.connections)?.[0] : "";
+    const policyID = policy?.id ?? '';
     const [isOrganizationConnectionModalOpen, setIsOrganizationConnectionModalOpen] = useState<boolean>(false);
 
 
@@ -239,7 +246,20 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 />
 
                 <ScrollView contentContainerStyle={styles.pb2}>{sections.map(renderSection)}</ScrollView>
+                <ConfirmModal 
+                    title={translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledTitle', connectionName)}
+                    onConfirm={() => {
+                        setIsOrganizationConnectionModalOpen(false);
+                        Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID))
+                    }}
+                    onCancel={() => setIsOrganizationConnectionModalOpen(false)}
+                    isVisible={isOrganizationConnectionModalOpen}
+                    prompt={translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledText')}
+                    confirmText={translate('workspace.moreFeatures.connectionsWarningModal.manageSettings')}
+                    cancelText={translate('common.cancel')}
+                    />
             </ScreenWrapper>
+            
         </AccessOrNotFoundWrapper>
     );
 }

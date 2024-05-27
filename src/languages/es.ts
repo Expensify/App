@@ -2222,6 +2222,21 @@ export default {
                 title: 'Contabilidad',
                 subtitle: 'Sincroniza tu plan de cuentas y otras opciones.',
             },
+            connectionsWarningModal: {
+                featureEnabledTitle: (integration?: ConnectionName): string => {
+                    switch (integration) {
+                        case CONST.POLICY.CONNECTIONS.NAME.QBO:
+                            return `You're connected to Quickbooks Online`;
+                        case CONST.POLICY.CONNECTIONS.NAME.XERO:
+                            return `You're connected to Xero`;
+                        default: {
+                            return '';
+                        }
+                    }
+                },
+                featureEnabledText: 'The integration settings determine if this feature is enabled or not.',
+                manageSettings: 'Manage settings',
+            }
         },
         reportFields: {
             delete: 'Eliminar campos',
