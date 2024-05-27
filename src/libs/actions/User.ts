@@ -523,7 +523,7 @@ function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
                 }
             }
 
-            const types = flatten.map((data) => data?.originalMessage).filter(Boolean) as OriginalMessage[];
+            const types = flatten.map((data) => ReportActionsUtils.getReportActionOriginalMessage(data)).filter(Boolean) as OriginalMessage[];
 
             for (const message of types) {
                 // Pay someone flow

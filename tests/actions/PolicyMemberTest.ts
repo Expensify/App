@@ -2,6 +2,7 @@ import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as Policy from '@src/libs/actions/Policy';
+import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy as PolicyType, Report, ReportAction} from '@src/types/onyx';
 import type {OriginalMessageJoinPolicyChangeLog} from '@src/types/onyx/OriginalMessage';
@@ -59,7 +60,7 @@ describe('actions/PolicyMember', () => {
                         const reportAction = reportActions?.[fakeReportAction.reportActionID];
 
                         if (!isEmptyObject(reportAction)) {
-                            expect((reportAction.originalMessage as OriginalMessageJoinPolicyChangeLog['originalMessage'])?.choice)?.toBe(
+                            expect(ReportActionsUtils.getReportActionOriginalMessage<OriginalMessageJoinPolicyChangeLog['originalMessage']>(reportAction)?.choice)?.toBe(
                                 CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.ACCEPT,
                             );
                             expect(reportAction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);

@@ -12,7 +12,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, Transaction} from '@src/types/onyx';
-import type {OriginalMessageAddComment} from '@src/types/onyx/OriginalMessage';
+import type {IOUMessage, OriginalMessageAddComment} from '@src/types/onyx/OriginalMessage';
 import TextCommentFragment from './comment/TextCommentFragment';
 import ReportActionItemFragment from './ReportActionItemFragment';
 
@@ -63,7 +63,7 @@ function ReportActionItemMessage({action, transaction, displayAsGroup, reportID,
 
     let iouMessage: string | undefined;
     if (isIOUReport) {
-        const originalMessage = action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? action.originalMessage : null;
+        const originalMessage = action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(action) : null;
         const iouReportID = originalMessage?.IOUReportID;
         if (iouReportID) {
             iouMessage = ReportUtils.getIOUReportActionDisplayMessage(action, transaction);
@@ -89,7 +89,7 @@ function ReportActionItemMessage({action, transaction, displayAsGroup, reportID,
                 isThreadParentMessage={ReportActionsUtils.isThreadParentMessage(action, reportID)}
                 pendingAction={action.pendingAction}
                 actionName={action.actionName}
-                source={(action.originalMessage as OriginalMessageAddComment['originalMessage'])?.source}
+                source={ReportActionsUtils.getReportActionOriginalMessage<OriginalMessageAddComment['originalMessage']>(action)?.source}
                 accountID={action.actorAccountID ?? 0}
                 style={style}
                 displayAsGroup={displayAsGroup}

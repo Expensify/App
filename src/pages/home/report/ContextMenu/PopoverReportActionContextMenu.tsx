@@ -14,6 +14,7 @@ import * as IOU from '@userActions/IOU';
 import * as Report from '@userActions/Report';
 import type {AnchorDimensions} from '@src/styles';
 import type {ReportAction} from '@src/types/onyx';
+import type {IOUMessage} from '@src/types/onyx/OriginalMessage';
 import BaseReportActionContextMenu from './BaseReportActionContextMenu';
 import type {ContextMenuAction} from './ContextMenuActions';
 import type {ContextMenuAnchor, ContextMenuType, ReportActionContextMenu} from './ReportActionContextMenu';
@@ -265,10 +266,11 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         callbackWhenDeleteModalHide.current = () => (onComfirmDeleteModal.current = runAndResetCallback(onComfirmDeleteModal.current));
         const reportAction = reportActionRef.current;
         if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
+            const originalMessage = ReportActionsUtils.getReportActionOriginalMessage<IOUMessage | undefined>(reportAction);
             if (ReportActionsUtils.isTrackExpenseAction(reportAction)) {
-                IOU.deleteTrackExpense(reportIDRef.current, reportAction?.originalMessage?.IOUTransactionID ?? '', reportAction);
+                IOU.deleteTrackExpense(reportIDRef.current, originalMessage?.IOUTransactionID ?? '', reportAction);
             } else {
-                IOU.deleteMoneyRequest(reportAction?.originalMessage?.IOUTransactionID ?? '', reportAction);
+                IOU.deleteMoneyRequest(originalMessage?.IOUTransactionID ?? '', reportAction);
             }
         } else if (reportAction) {
             Report.deleteReportComment(reportIDRef.current, reportAction);
