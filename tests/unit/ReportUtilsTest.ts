@@ -467,7 +467,6 @@ describe('ReportUtils', () => {
             it('it is a chat room with more than one participant', () => {
                 const onlyHaveSplitOption = [
                     CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
-                    CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
                     CONST.REPORT.CHAT_TYPE.DOMAIN_ALL,
                     CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 ].every((chatType) => {
