@@ -33,7 +33,7 @@ type ReportFooterOnyxProps = {
     session: OnyxEntry<OnyxTypes.Session>;
 
     /** Whether user is blocked from chat. */
-    blockedFromChat: OnyxEntry<boolean>;
+    blockedFromChat: OnyxEntry<string>;
 };
 
 type ReportFooterProps = ReportFooterOnyxProps & {
