@@ -649,6 +649,7 @@ export default {
         deleteReceipt: 'Delete receipt',
         pendingMatchWithCreditCard: 'Receipt pending match with credit card.',
         pendingMatchWithCreditCardDescription: 'Receipt pending match with credit card. Mark as cash to ignore and request payment.',
+        markAsCash: 'Mark as cash',
         routePending: 'Route pending...',
         receiptScanning: 'Receipt scanning...',
         receiptScanInProgress: 'Receipt scan in progress.',
@@ -1076,8 +1077,8 @@ export default {
         secureAccessToYourMoney: 'Secure access to your money',
         receiveMoney: 'Receive money in your local currency',
         expensifyWallet: 'Expensify Wallet',
-        sendAndReceiveMoney: 'Send and receive money from your Expensify Wallet.',
-        enableWalletToSendAndReceiveMoney: 'Enable your Expensify Wallet to start sending and receiving money with friends!',
+        sendAndReceiveMoney: 'Send and receive money with friends.',
+        enableWalletToSendAndReceiveMoney: 'Enable your wallet to send and receive money with friends.',
         enableWallet: 'Enable wallet',
         bankAccounts: 'Bank accounts',
         addBankAccountToSendAndReceive: 'Add a bank account to send and receive payments directly in the app.',
@@ -2407,7 +2408,9 @@ export default {
                             return 'Checking QuickBooks Online connection';
                         case 'quickbooksOnlineImportMain':
                             return 'Importing your QuickBooks Online data';
-                        case 'startingImport':
+                        case 'startingImportXero':
+                            return 'Importing your Xero data';
+                        case 'startingImportQBO':
                             return 'Importing your QuickBooks Online data';
                         case 'quickbooksOnlineSyncTitle':
                             return 'Synchronizing QuickBooks Online data';
@@ -2656,6 +2659,9 @@ export default {
         memberNotFound: 'Member not found. To invite a new member to the room, please use the Invite button above.',
         notAuthorized: `You do not have access to this page. Are you trying to join the room? Please reach out to a member of this room so they can add you as a member! Something else? Reach out to ${CONST.EMAIL.CONCIERGE}`,
         removeMembersPrompt: 'Are you sure you want to remove the selected members from the room?',
+        error: {
+            genericAdd: 'There was a problem adding this room member.',
+        },
     },
     newTaskPage: {
         assignTask: 'Assign task',

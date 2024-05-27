@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import {isEmpty} from 'lodash';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -45,7 +45,7 @@ function XeroPurchaseBillStatusSelectorPage({policy}: WithPolicyConnectionsProps
 
     const selectPurchaseBillStatus = useCallback(
         (row: MenuListItem) => {
-            if (_.isEmpty(billStatus)) {
+            if (isEmpty(billStatus)) {
                 return;
             }
             if (row.value !== invoiceStatus) {
@@ -69,6 +69,7 @@ function XeroPurchaseBillStatusSelectorPage({policy}: WithPolicyConnectionsProps
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID))}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
         />
     );
 }

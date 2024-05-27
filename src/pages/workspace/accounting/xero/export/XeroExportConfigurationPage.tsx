@@ -26,7 +26,7 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const {bankAccounts} = policy?.connections?.xero?.data ?? {};
     const selectedBankAccountName = useMemo(() => {
         const selectedAccount = (bankAccounts ?? []).find((bank) => bank.id === exportConfiguration?.nonReimbursableAccount);
-        return selectedAccount?.name ?? '';
+        return selectedAccount?.name ?? bankAccounts?.[0]?.name ?? '';
     }, [bankAccounts, exportConfiguration?.nonReimbursableAccount]);
 
     const currentXeroOrganizationName = useMemo(() => getCurrentXeroOrganizationName(policy ?? undefined), [policy]);
@@ -99,6 +99,7 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
         >
             {menuItems.map((menuItem) => (
                 <OfflineWithFeedback

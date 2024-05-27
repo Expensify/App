@@ -59,6 +59,7 @@ function XeroOrganizationConfigurationPage({
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             shouldIncludeSafeAreaPaddingBottom
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
         >
             <OfflineWithFeedback
                 errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.TENANT_ID)}
