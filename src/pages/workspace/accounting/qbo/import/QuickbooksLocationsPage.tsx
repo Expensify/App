@@ -22,7 +22,8 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
     const policyID = policy?.id ?? '';
     const {syncLocations, pendingFields, reimbursableExpensesExportDestination} = policy?.connections?.quickbooksOnline?.config ?? {};
     const isSwitchOn = Boolean(syncLocations && syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
-    const shouldBeDisabled = !isSwitchOn && reimbursableExpensesExportDestination !== CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY;
+    const shouldBeDisabled = reimbursableExpensesExportDestination !== CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY;
+    const isMisconfigured = isSwitchOn && shouldBeDisabled;
     const isReportFieldsSelected = syncLocations === CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD;
 
     return (
@@ -56,7 +57,7 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
                                             isSwitchOn ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
                                         )
                                     }
-                                    disabled={shouldBeDisabled}
+                                    disabled={shouldBeDisabled && !isMisconfigured}
                                 />
                             </View>
                         </OfflineWithFeedback>
