@@ -1,5 +1,5 @@
-import React from 'react';
 import type {ReactNode} from 'react';
+import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -60,7 +60,7 @@ type SectionProps = ChildrenProps & {
     /** Whether the section is in the central pane of the layout */
     isCentralPane?: boolean;
 
-    /** The illustration to display in the header. Can be a JSON object representing a Lottie animation. */
+    /** The illustration to display in the header. Can be a JSON object representing a Lottie animation or an image. */
     illustration?: DotLottieAnimation | IconAsset;
 
     /** The background color to apply in the upper half of the screen. */
@@ -80,7 +80,11 @@ type SectionProps = ChildrenProps & {
 };
 
 function isIllustrationLottieAnimation(illustration: DotLottieAnimation | IconAsset | undefined): illustration is DotLottieAnimation {
-    return typeof illustration === 'object';
+    if (typeof illustration === 'number' || !illustration) {
+        return false;
+    }
+
+    return 'file' in illustration && 'w' in illustration && 'h' in illustration;
 }
 
 function Section({

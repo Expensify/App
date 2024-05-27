@@ -22,9 +22,6 @@ const tripsFeatures: FeatureListItem[] = [
     },
 ];
 
-const ILLUSTRATION_WIDTH = 190;
-const ILLUSTRATION_HEIGHT = 172;
-
 function ManageTrips() {
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -43,7 +40,7 @@ function ManageTrips() {
                         Navigation.navigate(ROUTES.TRAVEL_TCS);
                     }}
                     illustration={Illustrations.EmptyStateTravel}
-                    illustrationStyle={[styles.mv4, {width: ILLUSTRATION_WIDTH, height: ILLUSTRATION_HEIGHT}]}
+                    illustrationStyle={[styles.mv4, styles.tripIllustrationSize]}
                     illustrationBackgroundColor={colors.blue600}
                     titleStyles={styles.textHeadlineH1}
                     contentPaddingOnLargeScreens={styles.p5}

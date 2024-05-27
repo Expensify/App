@@ -4911,6 +4911,11 @@ const styles = (theme: ThemeColors) =>
         textLineThrough: {
             textDecorationLine: 'line-through',
         },
+
+        tripIllustrationSize: {
+            width: 190,
+            height: 172,
+        },
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;
