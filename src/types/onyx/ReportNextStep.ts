@@ -6,24 +6,44 @@ type Message = {
     /** HTML tag name */
     type?: string;
 
-    // TODO: Doesn't seem to be used in app
+    /** Action for the user to take */
     action?: string;
 };
 
-// TODO: Doesn't seem to be used in app
+/** Model of report next step button data */
 type DataOptions = {
+    /** Whether the user should see the option to pay via Expensify (ACH) */
     canSeeACHOption?: boolean;
+
+    /** Whether workspace reimbursements is set to Indirect reimbursements */
     isManualReimbursementEnabled?: boolean;
+
+    /**
+     * If there is a masked bank account number from the server, the account needs to be unlocked
+     * 
+     * (Note: Copied directly from a comment in Old Dot JS)
+     */
     maskedLockedAccountNumber?: string;
+
+    /** Whether the preferred business bank account of the policy is deleted or no longer accessible to the policy reimburser */
     preferredWithdrawalDeleted?: boolean;
 };
 
-// TODO: Doesn't seem to be used in app
+/** Model of report next step button */
 type Button = {
+    /** Text/label shown on the button */
     text?: string;
+
+    /** Text to show on a tooltip */
     tooltip?: string;
+
+    /** Whether the button should be disabled */
     disabled?: boolean;
+
+    /** Whether the button should be hidden */
     hidden?: boolean;
+
+    /** Data needed to render the button and handle its click events */
     data?: DataOptions;
 };
 
