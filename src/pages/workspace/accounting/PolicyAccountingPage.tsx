@@ -163,6 +163,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
         if (!connectedIntegration) {
             return [];
         }
+        const shouldShowSynchronizationError = hasSynchronizationError(policy, connectedIntegration);
         const integrationData = accountingIntegrationData(connectedIntegration, policyID, translate);
         const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
         return [
@@ -172,8 +173,8 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
                 shouldShowRightComponent: true,
                 title: integrationData?.title,
-                errorText: hasSynchronizationError(policy, connectedIntegration) ? translate('workspace.accounting.syncError', connectedIntegration) : undefined,
-                errorTextStyle: {marginTop: 8},
+                errorText: shouldShowSynchronizationError ? translate('workspace.accounting.syncError', connectedIntegration) : undefined,
+                errorTextStyle: [styles.mt5],
                 shouldShowErrorTextRedDot: true,
                 description: isSyncInProgress
                     ? translate('workspace.accounting.connections.syncStageName', connectionSyncProgress.stageInProgress)
@@ -201,7 +202,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                     </View>
                 ),
             },
-            ...(policyConnectedToXero
+            ...(policyConnectedToXero && !shouldShowSynchronizationError
                 ? [
                       {
                           description: translate('workspace.xero.organization'),
@@ -222,7 +223,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                       },
                   ]
                 : []),
-            ...(isEmptyObject(policy?.connections)
+            ...(isEmptyObject(policy?.connections) || shouldShowSynchronizationError
                 ? []
                 : [
                       {
@@ -258,6 +259,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
         policyID,
         translate,
         styles.sectionMenuItemTopDescription,
+        styles.mt5,
         styles.popoverMenuIcon,
         styles.fontWeightNormal,
         connectionSyncProgress?.stageInProgress,
