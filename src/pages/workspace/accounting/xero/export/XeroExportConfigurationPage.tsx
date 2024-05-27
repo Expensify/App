@@ -99,6 +99,7 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
         >
             {menuItems.map((menuItem) => (
                 <OfflineWithFeedback
