@@ -170,7 +170,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
             {
                 ...iconProps,
                 interactive: false,
-                wrapperStyle: [styles.sectionMenuItemTopDescription],
+                wrapperStyle: [styles.sectionMenuItemTopDescription, shouldShowSynchronizationError && styles.pb0],
                 shouldShowRightComponent: true,
                 title: integrationData?.title,
                 errorText: shouldShowSynchronizationError ? translate('workspace.accounting.syncError', connectedIntegration) : undefined,
