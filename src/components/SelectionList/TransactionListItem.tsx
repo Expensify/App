@@ -26,10 +26,10 @@ import type {
     ActionCellProps,
     CellProps,
     CurrencyCellProps,
-    ReceiptCellProps,
     DateCellProps,
     ListItem,
     MerchantCellProps,
+    ReceiptCellProps,
     TransactionCellProps,
     TransactionListItemProps,
     TransactionListItemType,
@@ -52,7 +52,7 @@ const getTypeIcon = (type?: SearchTransactionType) => {
 
 function arePropsEqual(prevProps: CellProps, nextProps: CellProps) {
     return prevProps.keyForList === nextProps.keyForList;
-};
+}
 
 const ReceiptCell = memo(({transactionItem, isHovered = false}: ReceiptCellProps) => {
     const theme = useTheme();
