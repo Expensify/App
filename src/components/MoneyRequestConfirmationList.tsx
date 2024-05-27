@@ -178,11 +178,15 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
 
 type MoneyRequestConfirmationListItem = Participant | ReportUtils.OptionData;
 
-const getTaxAmount = (transaction: OnyxEntry<OnyxTypes.Transaction>, policy: OnyxEntry<OnyxTypes.Policy>) => {
+/**
+ * Calculate and set tax amount in transaction draft
+ */
+const setTaxAmountInDraft = (transaction: OnyxEntry<OnyxTypes.Transaction>, policy: OnyxEntry<OnyxTypes.Policy>) => {
     const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction) ?? '';
-
     const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, transaction?.taxCode ?? defaultTaxCode) ?? '';
-    return TransactionUtils.calculateTaxAmount(taxPercentage, transaction?.amount ?? 0);
+    const taxAmount = TransactionUtils.calculateTaxAmount(taxPercentage, transaction?.amount ?? 0);
+    const taxAmountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount.toString()));
+    IOU.setMoneyRequestTaxAmount(transaction?.transactionID ?? '', taxAmountInSmallestCurrencyUnits, true);
 };
 
 function MoneyRequestConfirmationList({
@@ -244,16 +248,6 @@ function MoneyRequestConfirmationList({
     const transactionID = transaction?.transactionID ?? '';
     const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '';
 
-    useEffect(() => {
-        if (customUnitRateID || !canUseP2PDistanceRequests) {
-            return;
-        }
-        if (!customUnitRateID) {
-            const rateID = lastSelectedDistanceRates?.[policy?.id ?? ''] ?? defaultMileageRate?.customUnitRateID ?? '';
-            IOU.setCustomUnitRateID(transactionID, rateID);
-        }
-    }, [defaultMileageRate, customUnitRateID, lastSelectedDistanceRates, policy?.id, canUseP2PDistanceRequests, transactionID]);
-
     const policyCurrency = policy?.outputCurrency ?? PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
 
     const mileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction)
@@ -314,9 +308,9 @@ function MoneyRequestConfirmationList({
           );
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transaction?.taxAmount, iouCurrencyCode);
     const taxRateTitle = TransactionUtils.getTaxName(policy, transaction);
-
-    const previousTransactionAmount = usePrevious(transaction?.amount);
-    const previousTransactionCurrency = usePrevious(transaction?.currency);
+    const prevTaxAmount = usePrevious(transaction?.taxAmount);
+    const prevAmount = usePrevious(transaction?.amount);
+    const prevCurrency = usePrevious(transaction?.currency);
 
     const isFocused = useIsFocused();
     const [formError, debouncedFormError, setFormError] = useDebouncedState('');
@@ -346,6 +340,31 @@ function MoneyRequestConfirmationList({
     const isCategoryRequired = !!policy?.requiresCategory;
 
     useEffect(() => {
+        if (!shouldShowTax) {
+            return;
+        }
+        setTaxAmountInDraft(transaction, policy);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we want to call this function when component is mounted
+    }, []);
+
+    useEffect(() => {
+        if (!shouldShowTax || prevTaxAmount !== transaction?.taxAmount || (prevAmount === transaction?.amount && prevCurrency === transaction?.currency)) {
+            return;
+        }
+        setTaxAmountInDraft(transaction, policy);
+    }, [policy, shouldShowTax, prevTaxAmount, prevAmount, prevCurrency, transaction]);
+
+    useEffect(() => {
+        if (customUnitRateID || !canUseP2PDistanceRequests) {
+            return;
+        }
+        if (!customUnitRateID) {
+            const rateID = lastSelectedDistanceRates?.[policy?.id ?? ''] ?? defaultMileageRate?.customUnitRateID ?? '';
+            IOU.setCustomUnitRateID(transactionID, rateID);
+        }
+    }, [defaultMileageRate, customUnitRateID, lastSelectedDistanceRates, policy?.id, canUseP2PDistanceRequests, transactionID]);
+
+    useEffect(() => {
         if (shouldDisplayFieldError && hasSmartScanFailed) {
             setFormError('iou.receiptScanningFailed');
             return;
@@ -368,18 +387,6 @@ function MoneyRequestConfirmationList({
         const amount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate ?? 0);
         IOU.setMoneyRequestAmount(transactionID, amount, currency ?? '');
     }, [shouldCalculateDistanceAmount, distance, rate, unit, transactionID, currency]);
-
-    // Calculate and set tax amount in transaction draft
-    useEffect(() => {
-        const taxAmount = getTaxAmount(transaction, policy).toString();
-        const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount));
-
-        if (transaction?.taxAmount && previousTransactionAmount === transaction?.amount && previousTransactionCurrency === transaction?.currency) {
-            return IOU.setMoneyRequestTaxAmount(transactionID, transaction?.taxAmount ?? 0, true);
-        }
-
-        IOU.setMoneyRequestTaxAmount(transactionID, amountInSmallestCurrencyUnits, true);
-    }, [policy, transaction, transactionID, previousTransactionAmount, previousTransactionCurrency]);
 
     // If completing a split expense fails, set didConfirm to false to allow the user to edit the fields again
     if (isEditingSplitBill && didConfirm) {
@@ -506,10 +513,9 @@ function MoneyRequestConfirmationList({
                     hideCurrencySymbol
                     formatAmountOnBlur
                     prefixContainerStyle={[styles.pv0]}
-                    inputStyle={
-                        [styles.optionRowAmountInput, StyleUtils.getPaddingLeft(StyleUtils.getCharacterPadding(currencySymbol ?? '') + styles.pl1.paddingLeft), amountWidth] as TextStyle[]
-                    }
+                    inputStyle={[styles.optionRowAmountInput, amountWidth] as TextStyle[]}
                     containerStyle={[styles.textInputContainer]}
+                    touchableInputWrapperStyle={[styles.ml3]}
                     onAmountChange={(value: string) => onSplitShareChange(participantOption.accountID ?? 0, Number(value))}
                     maxLength={formattedTotalAmount.length}
                 />
@@ -529,8 +535,8 @@ function MoneyRequestConfirmationList({
         styles.textLabel,
         styles.pv0,
         styles.optionRowAmountInput,
-        styles.pl1.paddingLeft,
         styles.textInputContainer,
+        styles.ml3,
         transaction?.comment?.splits,
         transaction?.splitShares,
         onSplitShareChange,
@@ -599,7 +605,7 @@ function MoneyRequestConfirmationList({
             const formattedSelectedParticipants = selectedParticipants.map((participant) => ({
                 ...participant,
                 isSelected: false,
-                isDisabled: !participant.isPolicyExpenseChat && !participant.isSelfDM && ReportUtils.isOptimisticPersonalDetail(participant.accountID ?? -1),
+                isDisabled: !participant.isInvoiceRoom && !participant.isPolicyExpenseChat && !participant.isSelfDM && ReportUtils.isOptimisticPersonalDetail(participant.accountID ?? -1),
             }));
             options.push({
                 title: translate('common.to'),
@@ -947,6 +953,7 @@ function MoneyRequestConfirmationList({
                     brickRoadIndicator={shouldDisplayMerchantError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     errorText={shouldDisplayMerchantError ? translate('common.error.fieldRequired') : ''}
                     rightLabel={isMerchantRequired && !shouldDisplayMerchantError ? translate('common.required') : ''}
+                    numberOfLinesTitle={2}
                 />
             ),
             shouldShow: shouldShowMerchant,
@@ -1134,6 +1141,7 @@ function MoneyRequestConfirmationList({
                 {isTypeInvoice && (
                     <MenuItem
                         key={translate('workspace.invoices.sendFrom')}
+                        avatarID={senderWorkspace?.id}
                         shouldShowRightIcon={!isReadOnly && canUpdateSenderWorkspace}
                         title={senderWorkspace?.name}
                         icon={senderWorkspace?.avatarURL ? senderWorkspace?.avatarURL : getDefaultWorkspaceAvatar(senderWorkspace?.name)}
@@ -1148,7 +1156,7 @@ function MoneyRequestConfirmationList({
                         style={styles.moneyRequestMenuItem}
                         labelStyle={styles.mt2}
                         titleStyle={styles.flex1}
-                        disabled={didConfirm || !canUpdateSenderWorkspace}
+                        disabled={didConfirm}
                     />
                 )}
                 {isDistanceRequest && (
@@ -1208,6 +1216,7 @@ function MoneyRequestConfirmationList({
             reportID,
             senderWorkspace?.avatarURL,
             senderWorkspace?.name,
+            senderWorkspace?.id,
             shouldShowAllFields,
             styles.confirmationListMapItem,
             styles.flex1,
@@ -1232,6 +1241,7 @@ function MoneyRequestConfirmationList({
             shouldPreventDefaultFocusOnSelectRow
             footerContent={footerContent}
             listFooterContent={listFooterContent}
+            containerStyle={[styles.flexBasisAuto]}
         />
     );
 }

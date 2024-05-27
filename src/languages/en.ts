@@ -412,7 +412,7 @@ export default {
         splitAmounts: 'Split amounts',
         whatsItFor: "What's it for?",
     },
-    optionsSelector: {
+    selectionList: {
         nameEmailOrPhoneNumber: 'Name, email, or phone number',
         findMember: 'Find a member',
     },
@@ -647,6 +647,10 @@ export default {
         canceled: 'Canceled',
         posted: 'Posted',
         deleteReceipt: 'Delete receipt',
+        pendingMatchWithCreditCard: 'Receipt pending match with credit card.',
+        pendingMatchWithCreditCardDescription: 'Receipt pending match with credit card. Mark as cash to ignore and request payment.',
+        markAsCash: 'Mark as cash',
+        routePending: 'Route pending...',
         receiptScanning: 'Receipt scanning...',
         receiptScanInProgress: 'Receipt scan in progress.',
         receiptScanInProgressDescription: 'Receipt scan in progress. Check back later or enter the details now.',
@@ -746,10 +750,10 @@ export default {
         reason: 'Reason',
         holdReasonRequired: 'A reason is required when holding.',
         expenseOnHold: 'This expense was put on hold. Review the comments for next steps.',
-        confirmApprove: 'Confirm what to approve',
-        confirmApprovalAmount: 'Approve the entire report total or only the amount not on hold.',
-        confirmPay: 'Confirm what to pay',
-        confirmPayAmount: 'Pay all out-of-pocket spend or only the amount not on hold.',
+        confirmApprove: 'Confirm approval amount',
+        confirmApprovalAmount: "Approve what's not on hold, or approve the entire report.",
+        confirmPay: 'Confirm payment amount',
+        confirmPayAmount: "Pay what's not on hold, or pay all out-of-pocket spend.",
         payOnly: 'Pay only',
         approveOnly: 'Approve only',
         holdEducationalTitle: 'This expense is on',
@@ -1023,8 +1027,8 @@ export default {
     },
     privateNotes: {
         title: 'Private notes',
-        personalNoteMessage: 'Keep notes about this chat here. You are the only person who can add, edit or view these notes.',
-        sharedNoteMessage: 'Keep notes about this chat here. Expensify employees and other users on the team.expensify.com domain can view these notes.',
+        personalNoteMessage: "Keep notes about this chat here. You're the only person who can add, edit, or view these notes.",
+        sharedNoteMessage: 'Keep notes about this chat here. Expensify employees and other members on the team.expensify.com domain can view these notes.',
         composerLabel: 'Notes',
         myNote: 'My note',
         error: {
@@ -1073,8 +1077,8 @@ export default {
         secureAccessToYourMoney: 'Secure access to your money',
         receiveMoney: 'Receive money in your local currency',
         expensifyWallet: 'Expensify Wallet',
-        sendAndReceiveMoney: 'Send and receive money from your Expensify Wallet.',
-        enableWalletToSendAndReceiveMoney: 'Enable your Expensify Wallet to start sending and receiving money with friends!',
+        sendAndReceiveMoney: 'Send and receive money with friends.',
+        enableWalletToSendAndReceiveMoney: 'Enable your wallet to send and receive money with friends.',
         enableWallet: 'Enable wallet',
         bankAccounts: 'Bank accounts',
         addBankAccountToSendAndReceive: 'Add a bank account to send and receive payments directly in the app.',
@@ -1295,7 +1299,7 @@ export default {
                 label: 'Light',
             },
             system: {
-                label: 'Use Device Settings',
+                label: 'Use device settings',
             },
         },
         chooseThemeBelowOrSync: 'Choose a theme below, or sync with your device settings.',
@@ -1931,6 +1935,8 @@ export default {
             customersDescription: 'Choose whether to import customers/projects and see where customers/projects are displayed.',
             locationsDescription: 'Choose whether to import locations, and see where locations are displayed.',
             taxesDescription: 'Choose whether to import tax rates and tax defaults from your accounting integration.',
+            taxesJournalEntrySwitchNote:
+                'Note: QuickBooks Online does not support a field for tax on Journal Entry exports. Change your export preference to Vendor Bill or Check to import taxes.',
             locationsAdditionalDescription:
                 'Locations are imported as Tags. This limits exporting expense reports as Vendor Bills or Checks to QuickBooks Online. To unlock these export options, either disable Locations import or upgrade to the Control Plan to export Locations encoded as a Report Field.',
             export: 'Export',
@@ -2152,7 +2158,7 @@ export default {
             },
             distanceRates: {
                 title: 'Distance rates',
-                subtitle: 'Add, update and enforce rates.',
+                subtitle: 'Add, update, and enforce rates.',
             },
             workflows: {
                 title: 'Workflows',
@@ -2185,7 +2191,7 @@ export default {
         },
         tags: {
             tagName: 'Tag name',
-            requiresTag: 'Members must tag all spend',
+            requiresTag: 'Members must tag all expenses',
             customTagName: 'Custom tag name',
             enableTag: 'Enable tag',
             enableTags: 'Enable tags',
@@ -2638,6 +2644,9 @@ export default {
         memberNotFound: 'Member not found. To invite a new member to the room, please use the Invite button above.',
         notAuthorized: `You do not have access to this page. Are you trying to join the room? Please reach out to a member of this room so they can add you as a member! Something else? Reach out to ${CONST.EMAIL.CONCIERGE}`,
         removeMembersPrompt: 'Are you sure you want to remove the selected members from the room?',
+        error: {
+            genericAdd: 'There was a problem adding this room member.',
+        },
     },
     newTaskPage: {
         assignTask: 'Assign task',
@@ -2974,7 +2983,7 @@ export default {
             body: `Get paid to talk to your friends! Start a chat with a new Expensify account and get $${CONST.REFERRAL_PROGRAM.REVENUE} when they become a customer.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
-            buttonText1: 'Submit expense, ',
+            buttonText1: 'Submit an expense, ',
             buttonText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
             header: `Submit an expense, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             body: `It pays to get paid! Submit an expense to a new Expensify account and get $${CONST.REFERRAL_PROGRAM.REVENUE} when they become a customer.`,
@@ -3054,6 +3063,7 @@ export default {
         taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams) => `${taxName ?? 'Tax'} no longer valid`,
         taxRateChanged: 'Tax rate was modified',
         taxRequired: 'Missing tax rate',
+        hold: 'Hold',
     },
     violationDismissal: {
         rter: {

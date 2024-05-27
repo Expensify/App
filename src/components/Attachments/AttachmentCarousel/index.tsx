@@ -92,13 +92,14 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                 return;
             }
 
+            const item: Attachment = entry.item;
             if (entry.index !== null) {
                 setPage(entry.index);
-                setActiveSource(entry.item.source);
+                setActiveSource(item.source);
             }
 
             if (onNavigate) {
-                onNavigate(entry.item);
+                onNavigate(item);
             }
         },
         [isFullScreenRef, onNavigate],

@@ -123,6 +123,9 @@ type AvatarWithImagePickerProps = {
 
     /** Optionally override the default "Edit" icon */
     editIcon?: IconAsset;
+
+    /** Determines if a style utility function should be used for calculating the PopoverMenu anchor position. */
+    shouldUseStyleUtilityForAnchorPosition?: boolean;
 };
 
 function AvatarWithImagePicker({
@@ -152,6 +155,7 @@ function AvatarWithImagePicker({
     enablePreview = false,
     shouldDisableViewPhoto = false,
     editIcon = Expensicons.Pencil,
+    shouldUseStyleUtilityForAnchorPosition = false,
 }: AvatarWithImagePickerProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -393,7 +397,7 @@ function AvatarWithImagePicker({
                                             }
                                         }}
                                         menuItems={menuItems}
-                                        anchorPosition={popoverPosition}
+                                        anchorPosition={shouldUseStyleUtilityForAnchorPosition ? styles.popoverMenuOffset(windowWidth) : popoverPosition}
                                         anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
                                         withoutOverlay
                                         anchorRef={anchorRef}
