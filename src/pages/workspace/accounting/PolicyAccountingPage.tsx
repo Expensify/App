@@ -263,7 +263,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
         styles.mt5,
         styles.popoverMenuIcon,
         styles.fontWeightNormal,
-        connectionSyncProgress.stageInProgress,
+        connectionSyncProgress?.stageInProgress,
         theme.spinner,
         overflowMenu,
         threeDotsMenuPosition,
