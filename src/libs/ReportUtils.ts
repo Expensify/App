@@ -3624,8 +3624,8 @@ function buildOptimisticIOUReport(payeeAccountID: number, payerAccountID: number
     const payerEmail = 'login' in personalDetails ? personalDetails.login : '';
 
     const participants: Participants = {
-        [payeeAccountID]: {hidden: false},
-        [payerAccountID]: {hidden: false},
+        [payeeAccountID]: {hidden: true},
+        [payerAccountID]: {hidden: true},
     };
 
     return {
@@ -4338,10 +4338,11 @@ function buildOptimisticChatReport(
     description = '',
     avatarUrl = '',
     optimisticReportID = '',
+    shouldShowParticipants = true,
 ): OptimisticChatReport {
     const participants = participantList.reduce((reportParticipants: Participants, accountID: number) => {
         const participant: ReportParticipant = {
-            hidden: false,
+            hidden: !shouldShowParticipants,
             role: accountID === currentUserAccountID ? CONST.REPORT.ROLE.ADMIN : CONST.REPORT.ROLE.MEMBER,
         };
         // eslint-disable-next-line no-param-reassign
@@ -4890,6 +4891,8 @@ function buildTransactionThread(
         moneyRequestReport?.reportID,
         '',
         '',
+        '',
+        false,
     );
 }
 
