@@ -1235,6 +1235,13 @@ function isArchivedRoom(report: OnyxEntry<Report> | EmptyObject, reportNameValue
 }
 
 /**
+ * Whether the provided report is a closed report
+ */
+function isClosedReport(report: OnyxEntry<Report> | EmptyObject): boolean {
+    return report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
+}
+
+/**
  * Whether the provided report is the admin's room
  */
 function isJoinRequestInAdminRoom(report: OnyxEntry<Report>): boolean {
@@ -2408,7 +2415,7 @@ function reportFieldsEnabled(report: Report) {
  */
 function isReportFieldDisabled(report: OnyxEntry<Report>, reportField: OnyxEntry<PolicyReportField>, policy: OnyxEntry<Policy>): boolean {
     const isReportSettled = isSettled(report?.reportID);
-    const isReportClosed = report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
+    const isReportClosed = isClosedReport(report);
     const isTitleField = isReportFieldOfTypeTitle(reportField);
     const isAdmin = isPolicyAdmin(report?.policyID ?? '', {[`${ONYXKEYS.COLLECTION.POLICY}${policy?.id ?? ''}`]: policy});
     return isTitleField ? !reportField?.deletable : !isAdmin && (isReportSettled || isReportClosed);
@@ -6870,6 +6877,7 @@ export {
     isAllowedToSubmitDraftExpenseReport,
     isAnnounceRoom,
     isArchivedRoom,
+    isClosedReport,
     isCanceledTaskReport,
     isChatReport,
     isChatRoom,
