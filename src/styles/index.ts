@@ -567,7 +567,6 @@ const styles = (theme: ThemeColors) =>
         },
 
         buttonContainer: {
-            padding: 1,
             borderRadius: variables.buttonBorderRadius,
         },
 

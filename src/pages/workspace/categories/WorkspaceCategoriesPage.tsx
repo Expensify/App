@@ -217,7 +217,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         }
 
         return (
-            <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
+            <View style={[styles.w100, styles.flexRow, styles.gap2, isSmallScreenWidth && styles.mb3]}>
                 {!PolicyUtils.hasAccountingConnections(policy) && (
                     <Button
                         medium
@@ -225,7 +225,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         onPress={navigateToCreateCategoryPage}
                         icon={Expensicons.Plus}
                         text={translate('workspace.categories.addCategory')}
-                        style={[styles.mr3, isSmallScreenWidth && styles.flex1]}
+                        style={[isSmallScreenWidth && styles.flex1]}
                     />
                 )}
                 <Button

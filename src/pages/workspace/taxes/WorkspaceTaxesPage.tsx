@@ -204,14 +204,14 @@ function WorkspaceTaxesPage({
     }, [policy?.taxRates?.taxes, selectedTaxesIDs, toggleTaxes, translate]);
 
     const headerButtons = !selectedTaxesIDs.length ? (
-        <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
+        <View style={[styles.w100, styles.flexRow, styles.gap2, isSmallScreenWidth && styles.mb3]}>
             <Button
                 medium
                 success
                 onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAX_CREATE.getRoute(policyID))}
                 icon={Expensicons.Plus}
                 text={translate('workspace.taxes.addRate')}
-                style={[styles.mr3, isSmallScreenWidth && styles.flex1]}
+                style={[isSmallScreenWidth && styles.flex1]}
             />
             <Button
                 medium
