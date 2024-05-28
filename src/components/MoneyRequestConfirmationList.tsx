@@ -506,10 +506,9 @@ function MoneyRequestConfirmationList({
                     hideCurrencySymbol
                     formatAmountOnBlur
                     prefixContainerStyle={[styles.pv0]}
-                    inputStyle={
-                        [styles.optionRowAmountInput, StyleUtils.getPaddingLeft(StyleUtils.getCharacterPadding(currencySymbol ?? '') + styles.pl1.paddingLeft), amountWidth] as TextStyle[]
-                    }
+                    inputStyle={[styles.optionRowAmountInput, amountWidth] as TextStyle[]}
                     containerStyle={[styles.textInputContainer]}
+                    touchableInputWrapperStyle={[styles.ml3]}
                     onAmountChange={(value: string) => onSplitShareChange(participantOption.accountID ?? 0, Number(value))}
                     maxLength={formattedTotalAmount.length}
                 />
@@ -529,8 +528,8 @@ function MoneyRequestConfirmationList({
         styles.textLabel,
         styles.pv0,
         styles.optionRowAmountInput,
-        styles.pl1.paddingLeft,
         styles.textInputContainer,
+        styles.ml3,
         transaction?.comment?.splits,
         transaction?.splitShares,
         onSplitShareChange,
@@ -599,7 +598,7 @@ function MoneyRequestConfirmationList({
             const formattedSelectedParticipants = selectedParticipants.map((participant) => ({
                 ...participant,
                 isSelected: false,
-                isDisabled: !participant.isPolicyExpenseChat && !participant.isSelfDM && ReportUtils.isOptimisticPersonalDetail(participant.accountID ?? -1),
+                isDisabled: !participant.isInvoiceRoom && !participant.isPolicyExpenseChat && !participant.isSelfDM && ReportUtils.isOptimisticPersonalDetail(participant.accountID ?? -1),
             }));
             options.push({
                 title: translate('common.to'),
@@ -947,6 +946,7 @@ function MoneyRequestConfirmationList({
                     brickRoadIndicator={shouldDisplayMerchantError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     errorText={shouldDisplayMerchantError ? translate('common.error.fieldRequired') : ''}
                     rightLabel={isMerchantRequired && !shouldDisplayMerchantError ? translate('common.required') : ''}
+                    numberOfLinesTitle={2}
                 />
             ),
             shouldShow: shouldShowMerchant,
@@ -1134,6 +1134,7 @@ function MoneyRequestConfirmationList({
                 {isTypeInvoice && (
                     <MenuItem
                         key={translate('workspace.invoices.sendFrom')}
+                        avatarID={senderWorkspace?.id}
                         shouldShowRightIcon={!isReadOnly && canUpdateSenderWorkspace}
                         title={senderWorkspace?.name}
                         icon={senderWorkspace?.avatarURL ? senderWorkspace?.avatarURL : getDefaultWorkspaceAvatar(senderWorkspace?.name)}
@@ -1148,7 +1149,7 @@ function MoneyRequestConfirmationList({
                         style={styles.moneyRequestMenuItem}
                         labelStyle={styles.mt2}
                         titleStyle={styles.flex1}
-                        disabled={didConfirm || !canUpdateSenderWorkspace}
+                        disabled={didConfirm}
                     />
                 )}
                 {isDistanceRequest && (
@@ -1208,6 +1209,7 @@ function MoneyRequestConfirmationList({
             reportID,
             senderWorkspace?.avatarURL,
             senderWorkspace?.name,
+            senderWorkspace?.id,
             shouldShowAllFields,
             styles.confirmationListMapItem,
             styles.flex1,
@@ -1232,6 +1234,7 @@ function MoneyRequestConfirmationList({
             shouldPreventDefaultFocusOnSelectRow
             footerContent={footerContent}
             listFooterContent={listFooterContent}
+            containerStyle={[styles.flexBasisAuto]}
         />
     );
 }

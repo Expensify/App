@@ -72,7 +72,6 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import type {PolicySelector} from '@pages/home/sidebar/SidebarScreen/FloatingActionButtonAndPopover';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {
     InvitedEmailsToAccountIDs,
@@ -258,7 +257,7 @@ Onyx.connect({
  * Stores in Onyx the policy ID of the last workspace that was accessed by the user
  */
 function updateLastAccessedWorkspace(policyID: OnyxEntry<string>) {
-    Onyx.set(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, policyID);
+    Onyx.set(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, policyID ?? null);
 }
 
 /**
@@ -1306,7 +1305,7 @@ function createPolicyExpenseChats(policyID: string, invitedEmailsToAccountIDs: I
         const cleanAccountID = Number(accountID);
         const login = PhoneNumber.addSMSDomainIfPhoneNumber(email);
 
-        const oldChat = ReportUtils.getChatByParticipantsAndPolicy([sessionAccountID, cleanAccountID], policyID);
+        const oldChat = ReportUtils.getPolicyExpenseChat(cleanAccountID, policyID);
 
         // If the chat already exists, we don't want to create a new one - just make sure it's not archived
         if (oldChat) {
@@ -1611,10 +1610,11 @@ function clearAvatarErrors(policyID: string) {
  * Optimistically update the general settings. Set the general settings as pending until the response succeeds.
  * If the response fails set a general error message. Clear the error message when updating.
  */
-function updateGeneralSettings(policyID: string, name: string, currency: string) {
+function updateGeneralSettings(policyID: string, name: string, currencyValue?: string) {
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const distanceUnit = Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
     const customUnitID = distanceUnit?.customUnitID;
+    const currency = currencyValue ?? policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
     if (!policy) {
         return;
@@ -3996,16 +3996,10 @@ function openPolicyDistanceRatesPage(policyID?: string) {
     API.read(READ_COMMANDS.OPEN_POLICY_DISTANCE_RATES_PAGE, params);
 }
 
-function navigateWhenEnableFeature(policyID: string, featureRoute: Route) {
-    const isNarrowLayout = getIsNarrowLayout();
-    if (isNarrowLayout) {
-        setTimeout(() => {
-            Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
-        }, 1000);
-        return;
-    }
-
-    Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(featureRoute));
+function navigateWhenEnableFeature(policyID: string) {
+    setTimeout(() => {
+        Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
+    }, CONST.WORKSPACE_ENABLE_FEATURE_REDIRECT_DELAY);
 }
 
 function enablePolicyCategories(policyID: string, enabled: boolean) {
@@ -4051,8 +4045,8 @@ function enablePolicyCategories(policyID: string, enabled: boolean) {
 
     API.write(WRITE_COMMANDS.ENABLE_POLICY_CATEGORIES, parameters, onyxData);
 
-    if (enabled) {
-        navigateWhenEnableFeature(policyID, ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
+    if (enabled && getIsNarrowLayout()) {
+        navigateWhenEnableFeature(policyID);
     }
 }
 
@@ -4143,8 +4137,8 @@ function enablePolicyDistanceRates(policyID: string, enabled: boolean) {
 
     API.write(WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES, parameters, onyxData);
 
-    if (enabled) {
-        navigateWhenEnableFeature(policyID, ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(policyID));
+    if (enabled && getIsNarrowLayout()) {
+        navigateWhenEnableFeature(policyID);
     }
 }
 
@@ -4235,8 +4229,8 @@ function enablePolicyTags(policyID: string, enabled: boolean) {
 
     API.write(WRITE_COMMANDS.ENABLE_POLICY_TAGS, parameters, onyxData);
 
-    if (enabled) {
-        navigateWhenEnableFeature(policyID, ROUTES.WORKSPACE_TAGS.getRoute(policyID));
+    if (enabled && getIsNarrowLayout()) {
+        navigateWhenEnableFeature(policyID);
     }
 }
 
@@ -4348,8 +4342,8 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
     }
     API.write(WRITE_COMMANDS.ENABLE_POLICY_TAXES, parameters, onyxData);
 
-    if (enabled) {
-        navigateWhenEnableFeature(policyID, ROUTES.WORKSPACE_TAXES.getRoute(policyID));
+    if (enabled && getIsNarrowLayout()) {
+        navigateWhenEnableFeature(policyID);
     }
 }
 
@@ -4439,8 +4433,8 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
 
     API.write(WRITE_COMMANDS.ENABLE_POLICY_WORKFLOWS, parameters, onyxData);
 
-    if (enabled) {
-        navigateWhenEnableFeature(policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID));
+    if (enabled && getIsNarrowLayout()) {
+        navigateWhenEnableFeature(policyID);
     }
 }
 
