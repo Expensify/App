@@ -2221,22 +2221,9 @@ export default {
                 subtitle: 'Sincroniza tu plan de cuentas y otras opciones.',
             },
             connectionsWarningModal: {
-                featureEnabledTitle: (connectionName: ConnectionName): string => {
-                    switch (connectionName) {
-                        case CONST.POLICY.CONNECTIONS.NAME.QBO:
-                            return `Estas conectado a QuickBooks Online`;
-                        case CONST.POLICY.CONNECTIONS.NAME.XERO:
-                            return `Estas conectado a Xero`;
-                        default: {
-                            return '';
-                        }
-                    }
-                },
-                featureEnabledText: 'La configuración de integración determina si esta función está habilitada o no.',
-                disconnectText: (connectionName: ConnectionName): string => {
-                    const connectionText = connectionName === CONST.POLICY.CONNECTIONS.NAME.QBO ? 'Quickbooks Online' : 'Xero';
-                    return `Desconecte ${connectionText} del espacio de trabajo si desea desactivar la Contabilidad.`;
-                },
+                featureEnabledTitle: 'No tan rápido ...',
+                featureEnabledText: 'Para habilitar o deshabilitar esta función, cambie la configuración de importación de su contabilidad.',
+                disconnectText: 'Desconecte su conexión de contabilidad del espacio de trabajo si desea desactivar Contabilidad.',
                 manageSettings: 'Gestiona configuración',
             },
         },

@@ -2185,22 +2185,9 @@ export default {
                 subtitle: 'Sync your chart of accounts and more.',
             },
             connectionsWarningModal: {
-                featureEnabledTitle: (connectionName: ConnectionName): string => {
-                    switch (connectionName) {
-                        case CONST.POLICY.CONNECTIONS.NAME.QBO:
-                            return `You're connected to QuickBooks Online`;
-                        case CONST.POLICY.CONNECTIONS.NAME.XERO:
-                            return `You're connected to Xero`;
-                        default: {
-                            return '';
-                        }
-                    }
-                },
-                featureEnabledText: 'The integration settings determine if this feature is enabled or not.',
-                disconnectText: (connectionName: ConnectionName): string => {
-                    const connectionText = connectionName === CONST.POLICY.CONNECTIONS.NAME.QBO ? 'Quickbooks Online' : 'Xero';
-                    return `Disconnect ${connectionText} from the workspace if you want to disable Accounting.`;
-                },
+                featureEnabledTitle: `Not so fast...`,
+                featureEnabledText: 'To enable or disable this feature change your accounting import settings.',
+                disconnectText: 'Disconnect your accounting connection from the workspace if you want to disable Accounting.',
                 manageSettings: 'Manage settings',
             },
         },
