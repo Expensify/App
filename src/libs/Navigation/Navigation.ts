@@ -225,7 +225,7 @@ function goBack(fallbackRoute?: Route, shouldEnforceFallback = false, shouldPopT
 
     // Allow CentralPane to use UP with fallback route if the path is not found in root navigator.
     if (isCentralPaneFocused && fallbackRoute && distanceFromPathInRootNavigator === -1) {
-        navigate(fallbackRoute, CONST.NAVIGATION.TYPE.FORCED_UP);
+        navigate(fallbackRoute, CONST.NAVIGATION.TYPE.UP);
         return;
     }
 
