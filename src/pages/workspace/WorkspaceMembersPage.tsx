@@ -502,7 +502,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                         onPress={() => null}
                         options={getBulkActionsButtonOptions()}
                         isSplitButton={false}
-                        style={[isSmallScreenWidth && styles.flexGrow1]}
+                        style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
                     />
                 ) : (
                     <Button
@@ -512,7 +512,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                         text={translate('workspace.invite.member')}
                         icon={Expensicons.Plus}
                         innerStyles={[isSmallScreenWidth && styles.alignItemsCenter]}
-                        style={[isSmallScreenWidth && styles.flexGrow1]}
+                        style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
                     />
                 )}
             </View>
@@ -560,7 +560,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                             ListItem={TableListItem}
                             disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                             headerMessage={getHeaderMessage()}
-                            headerContent={getHeaderContent()}
+                            headerContent={!isSmallScreenWidth && getHeaderContent()}
                             onSelectRow={openMemberDetails}
                             onCheckboxPress={(item) => toggleUser(item.accountID)}
                             onSelectAll={() => toggleAllUsers(data)}
@@ -570,6 +570,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                             textInputRef={textInputRef}
                             customListHeader={getCustomListHeader()}
                             listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                            listHeaderContent={isSmallScreenWidth ? <View style={[styles.pl5, styles.pr5]}>{getHeaderContent()}</View> : null}
                             showScrollIndicator={false}
                         />
                     </View>
