@@ -7,18 +7,24 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 
 function SubscriptionPlan() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
 
-    const isCollect = true;
+    const subscriptionPlan = useSubscriptionPlan();
 
-    const benefits = isCollect
+    const isCollect = subscriptionPlan === CONST.POLICY.TYPE.TEAM;
+    // TODO: replace this with a real value once OpenSubscriptionPage API command is implemented
+    const isAnnual = true;
+
+    const benefitsList = isCollect
         ? [
               translate('subscription.yourPlan.collect.benefit1'),
               translate('subscription.yourPlan.collect.benefit2'),
@@ -37,6 +43,14 @@ function SubscriptionPlan() {
               translate('subscription.yourPlan.control.benefit7'),
           ];
 
+    let priceInfo;
+
+    if (isCollect) {
+        priceInfo = isAnnual ? translate('subscription.yourPlan.collect.priceAnnual') : translate('subscription.yourPlan.collect.pricePayPerUse');
+    } else {
+        priceInfo = isAnnual ? translate('subscription.yourPlan.control.priceAnnual') : translate('subscription.yourPlan.control.pricePayPerUse');
+    }
+
     const onLinkPress = () => {
         Linking.openURL('https://use.expensify.com/savings-calculator');
     };
@@ -54,10 +68,8 @@ function SubscriptionPlan() {
                     height={variables.iconHeader}
                 />
                 <Text style={[styles.yourPlanTitle, styles.mt2]}>{isCollect ? translate('subscription.yourPlan.collect.title') : translate('subscription.yourPlan.control.title')}</Text>
-                <Text style={[styles.yourPlanSubtitle, styles.mb2]}>
-                    {isCollect ? translate('subscription.yourPlan.collect.priceInfo1') : translate('subscription.yourPlan.control.priceInfo1')}
-                </Text>
-                {benefits.map((benefit) => (
+                <Text style={[styles.yourPlanSubtitle, styles.mb2]}>{priceInfo}</Text>
+                {benefitsList.map((benefit) => (
                     <View
                         style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}
                         key={benefit}
