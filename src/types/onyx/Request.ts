@@ -26,7 +26,7 @@ type RequestData = {
 };
 
 type Request = RequestData & OnyxData;
-type PaginatedRequest<TResource, TResourceKey extends OnyxCollectionKey, TPageKey extends OnyxPagesKey> = Request & {
+type PaginatedRequest<TResource, TResourceKey extends OnyxCollectionKey = OnyxCollectionKey, TPageKey extends OnyxPagesKey = OnyxPagesKey> = Request & {
     isPaginated: true;
     resourceKey: TResourceKey;
     pageKey: TPageKey;

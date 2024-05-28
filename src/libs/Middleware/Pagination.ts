@@ -41,13 +41,12 @@ const Pagination: Middleware = (requestResponse, request) => {
             newPage.unshift(CONST.PAGINATION_START_ID);
         }
 
-        // TODO: Provide key for the resource in the paginatedRequest. Also, we can probably derive the "pages" key from that resource.
+        // TODO: we can probably derive the pageKey from the resourceKey.
         const existingItems = OnyxCache.getValue(resourceKey) as OnyxValues[typeof resourceKey];
         const allItems = fastMerge(existingItems, pageItems, true);
         const sortedAllItems = sortItems(allItems);
 
         const existingPages = OnyxCache.getValue(pageKey) as Pages;
-        // TODO: generalize this function
         const mergedPages = PaginationUtils.mergeContinuousPages(sortedAllItems, [...existingPages, newPage], getItemID);
 
         response.onyxData.push({
