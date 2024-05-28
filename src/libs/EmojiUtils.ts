@@ -210,46 +210,15 @@ function mergeEmojisWithFrequentlyUsedEmojis(emojis: PickerEmojis): EmojiPickerL
 
     const formattedFrequentlyUsedEmojis = frequentlyUsedEmojis.map((frequentlyUsedEmoji: Emoji): Emoji => {
         // Frequently used emojis in the old format will have name/types/code stored with them
-        // In the new format, only the code is stored, so we'll need to retrieve the name/types
-        if (!('name' in (frequentlyUsedEmoji as FrequentlyUsedEmoji))) {
-            return findEmojiByCode(frequentlyUsedEmoji.code);
+        // In the new format, only the name is stored, so we'll need to retrieve the code/types
+        if (!('code' in (frequentlyUsedEmoji as FrequentlyUsedEmoji))) {
+            return findEmojiByName(frequentlyUsedEmoji.name);
         }
         return frequentlyUsedEmoji;
     });
 
     const mergedEmojis = [Emojis.categoryFrequentlyUsed, ...formattedFrequentlyUsedEmojis, ...emojis];
     return addSpacesToEmojiCategories(mergedEmojis);
-}
-
-/**
- * Get the updated frequently used emojis list by usage
- */
-function getFrequentlyUsedEmojis(newEmoji: Emoji | Emoji[]): FrequentlyUsedEmoji[] {
-    let frequentEmojiList = [...frequentlyUsedEmojis];
-
-    const maxFrequentEmojiCount = CONST.EMOJI_FREQUENT_ROW_COUNT * CONST.EMOJI_NUM_PER_ROW - 1;
-
-    const currentTimestamp = getUnixTime(new Date());
-    (Array.isArray(newEmoji) ? [...newEmoji] : [newEmoji]).forEach((emoji) => {
-        let currentEmojiCount = 1;
-        const emojiIndex = frequentEmojiList.findIndex((e) => e.code === emoji.code);
-        if (emojiIndex >= 0) {
-            currentEmojiCount = frequentEmojiList[emojiIndex].count + 1;
-            frequentEmojiList.splice(emojiIndex, 1);
-        }
-
-        const updatedEmoji = {...Emojis.emojiCodeTableWithSkinTones[emoji.code], count: currentEmojiCount, lastUpdatedAt: currentTimestamp};
-
-        // We want to make sure the current emoji is added to the list
-        // Hence, we take one less than the current frequent used emojis
-        frequentEmojiList = frequentEmojiList.slice(0, maxFrequentEmojiCount);
-        frequentEmojiList.push(updatedEmoji);
-
-        // Sort the list by count and lastUpdatedAt in descending order
-        frequentEmojiList.sort((a, b) => b.count - a.count || b.lastUpdatedAt - a.lastUpdatedAt);
-    });
-
-    return frequentEmojiList;
 }
 
 /**
@@ -587,7 +556,6 @@ export {
     getLocalizedEmojiName,
     getHeaderEmojis,
     mergeEmojisWithFrequentlyUsedEmojis,
-    getFrequentlyUsedEmojis,
     containsOnlyEmojis,
     replaceEmojis,
     suggestEmojis,
