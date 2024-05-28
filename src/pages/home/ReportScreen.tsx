@@ -143,7 +143,7 @@ function ReportScreen({
 
     const [modal] = useOnyx(ONYXKEYS.MODAL);
     const [isComposerFullSize] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${getReportID(route)}`, {initialValue: false});
-    const [accountManagerReportID] = useOnyx(ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID, {initialValue: null});
+    const [accountManagerReportID] = useOnyx(ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID, {initialValue: ''});
     const [userLeavingStatus] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${getReportID(route)}`, {initialValue: false});
     const [reportOnyx, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`, {allowStaleData: true});
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
