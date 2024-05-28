@@ -1205,7 +1205,7 @@ function buildOnyxDataForTrackExpense(
                 key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
                 value: {
                     lastVisibleActionCreated: actionableTrackExpenseWhisper.created,
-                    lastMessageText: 'What would you like to do with this expense?',
+                    lastMessageText: CONST.ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE,
                 },
             });
             successData.push({

@@ -4131,8 +4131,8 @@ function buildOptimisticActionableTrackExpenseWhisper(iouAction: OptimisticIOURe
         lastModified: DateUtils.addMillisecondsFromDateTime(currentTime, 1),
         message: [
             {
-                html: 'What would you like to do with this expense?',
-                text: 'What would you like to do with this expense?',
+                html: CONST.ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE,
+                text: CONST.ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE,
                 whisperedTo: [],
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
             },
