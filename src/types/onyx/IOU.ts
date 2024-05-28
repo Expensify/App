@@ -26,7 +26,6 @@ type Participant = {
     isSelfDM?: boolean;
     isSender?: boolean;
     iouType?: string;
-    ownerAccountID?: number;
     item?: Report;
 };
 
@@ -44,7 +43,6 @@ type Split = {
     reportPreviewReportActionID?: string;
     transactionThreadReportID?: string;
     createdReportActionIDForThread?: string;
-    taxAmount?: number;
 };
 
 type IOU = {
