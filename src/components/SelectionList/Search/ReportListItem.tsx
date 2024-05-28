@@ -17,8 +17,6 @@ import ExpenseItemHeaderNarrow from './ExpenseItemHeaderNarrow';
 import TransactionListItem from './TransactionListItem';
 import TransactionListItemRow from './TransactionListItemRow';
 
-const TYPE_COLUMN_WIDTH = 52;
-
 function ReportListItem<TItem extends ListItem>({
     item,
     isFocused,
@@ -126,8 +124,7 @@ function ReportListItem<TItem extends ListItem>({
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, isLargeScreenWidth && styles.mr4]}>
                  */}
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                    {/** marginRight added here to move the action button by the type column distance */}
-                    <View style={[styles.flexRow, styles.flex1, styles.alignItemsCenter, styles.justifyContentBetween, isLargeScreenWidth && {marginRight: TYPE_COLUMN_WIDTH}]}>
+                    <View style={[styles.flexRow, styles.flex1, styles.alignItemsCenter, styles.justifyContentBetween]}>
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex2]}>
                             {/* 
                             @TODO: Uncomment and replace to unhide the checkbox. 
@@ -150,7 +147,10 @@ function ReportListItem<TItem extends ListItem>({
                         </View>
                         <View style={[styles.flexRow, styles.flex1, styles.justifyContentEnd]}>{totalCell}</View>
                     </View>
-                    {isLargeScreenWidth && <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.ACTION)]}>{actionCell}</View>}
+                    {/** styles.reportListItemActionButtonMargin added here to move the action button by the type column distance */}
+                    {isLargeScreenWidth && (
+                        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.ACTION), styles.reportListItemActionButtonMargin]}>{actionCell}</View>
+                    )}
                 </View>
                 <View style={[styles.mt3, styles.reportListItemSeparator]} />
                 {reportItem.transactions.map((transaction) => (

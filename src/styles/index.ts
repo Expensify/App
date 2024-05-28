@@ -4926,7 +4926,11 @@ const styles = (theme: ThemeColors) =>
         reportListItemTitle: {
             color: theme.text,
             fontSize: variables.fontSizeNormal,
-            fontWeight: '700',
+            fontWeight: FontUtils.fontWeight.bold,
+        },
+
+        reportListItemActionButtonMargin: {
+            marginLeft: variables.searchTypeColumnWidth,
         },
     } satisfies Styles);
 
