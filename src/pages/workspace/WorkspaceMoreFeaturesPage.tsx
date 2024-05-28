@@ -250,7 +250,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     );
 
     const getConnectionWarningPrompt = useCallback(() => {
-        switch(connectionWarningModalState.itemType) {
+        switch (connectionWarningModalState.itemType) {
             case 'organize':
                 return translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledText');
             case 'integrate':
@@ -278,7 +278,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 />
 
                 <ScrollView contentContainerStyle={styles.pb2}>{sections.map(renderSection)}</ScrollView>
-                
+
                 <ConfirmModal
                     title={translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledTitle', connectionName)}
                     onConfirm={() => {

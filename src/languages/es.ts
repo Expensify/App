@@ -2235,7 +2235,7 @@ export default {
                 featureEnabledText: 'La configuración de integración determina si esta función está habilitada o no.',
                 disconnectText: (connectionName: ConnectionName): string => {
                     const connectionText = connectionName === CONST.POLICY.CONNECTIONS.NAME.QBO ? 'Quickbooks Online' : 'Xero';
-                    return `Desconecte ${connectionText} del espacio de trabajo si desea desactivar la Contabilidad.`
+                    return `Desconecte ${connectionText} del espacio de trabajo si desea desactivar la Contabilidad.`;
                 },
                 manageSettings: 'Gestiona configuración',
             },
