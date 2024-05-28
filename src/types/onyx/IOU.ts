@@ -1,6 +1,7 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {Icon} from './OnyxCommon';
+import type Report from './Report';
 
 type Participant = {
     accountID?: number;
@@ -26,6 +27,7 @@ type Participant = {
     isSender?: boolean;
     iouType?: string;
     ownerAccountID?: number;
+    item?: Report;
 };
 
 type Split = {
