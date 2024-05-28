@@ -1,5 +1,5 @@
 import React from 'react';
-import {Linking, View} from 'react-native';
+import {Linking, Platform, View} from 'react-native';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -55,6 +55,8 @@ function SubscriptionPlan() {
         Linking.openURL('https://use.expensify.com/savings-calculator');
     };
 
+    const isNativeApp = Platform.OS === 'ios' || Platform.OS === 'android';
+
     return (
         <Section
             title={translate('subscription.yourPlan.title')}
@@ -93,11 +95,13 @@ function SubscriptionPlan() {
                     <Text style={[styles.yourPlanTitle, styles.mt2]}>{translate('subscription.yourPlan.saveWithExpensifyTitle')}</Text>
                     <Text style={[styles.yourPlanSubtitle, styles.mb2]}>{translate('subscription.yourPlan.saveWithExpensifyDescription')}</Text>
                 </View>
-                <Button
-                    text={translate('subscription.yourPlan.saveWithExpensifyButton')}
-                    onPress={onLinkPress}
-                    medium
-                />
+                {isNativeApp ? null : (
+                    <Button
+                        text={translate('subscription.yourPlan.saveWithExpensifyButton')}
+                        onPress={onLinkPress}
+                        medium
+                    />
+                )}
             </View>
         </Section>
     );

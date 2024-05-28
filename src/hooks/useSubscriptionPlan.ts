@@ -20,9 +20,9 @@ function useSubscriptionPlan() {
         return null;
     }
 
-    const isControl = Object.entries(adminPolicies).some(([, policy]) => policy?.type === CONST.POLICY.TYPE.CORPORATE);
+    const hasControlWorkspace = Object.entries(adminPolicies).some(([, policy]) => policy?.type === CONST.POLICY.TYPE.CORPORATE);
 
-    return isControl ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM;
+    return hasControlWorkspace ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM;
 }
 
 export default useSubscriptionPlan;
