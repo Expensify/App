@@ -14,8 +14,8 @@ import OnboardingPersonalDetails from '@pages/OnboardingPersonalDetails';
 import OnboardingPurpose from '@pages/OnboardingPurpose';
 import OnboardingWork from '@pages/OnboardingWork';
 import * as Report from '@userActions/Report';
-import ONYXKEYS from '@src/ONYXKEYS';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import Overlay from './Overlay';
 
@@ -39,10 +39,6 @@ function OnboardingModalNavigator() {
             Report.navigateToConciergeChat();
         });
     }, [hasCompletedGuidedSetupFlow]);
-
-    if (hasCompletedGuidedSetupFlow) {
-        return null;
-    }
 
     const outerViewRef = React.useRef<View>(null);
 
