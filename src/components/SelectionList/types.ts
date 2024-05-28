@@ -397,6 +397,7 @@ type FlattenedSectionsReturn<TItem extends ListItem> = {
     allOptions: TItem[];
     selectedOptions: TItem[];
     disabledOptionsIndexes: number[];
+    disabledArrowKeyOptionsIndexes: number[];
     itemLayouts: ItemLayout[];
     allSelected: boolean;
 };
