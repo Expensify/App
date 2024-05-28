@@ -78,6 +78,7 @@ import * as PhoneNumber from './PhoneNumber';
 import * as PolicyUtils from './PolicyUtils';
 import type {LastVisibleMessage} from './ReportActionsUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
+import StringUtils from './StringUtils';
 import * as TransactionUtils from './TransactionUtils';
 import * as Url from './Url';
 import * as UserUtils from './UserUtils';
@@ -506,7 +507,7 @@ Onyx.connect({
     },
 });
 
-let allPersonalDetails: OnyxCollection<PersonalDetails>;
+let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
 let allPersonalDetailLogins: string[];
 let currentUserPersonalDetails: OnyxEntry<PersonalDetails>;
 Onyx.connect({
@@ -1643,7 +1644,7 @@ function getReportRecipientAccountIDs(report: OnyxEntry<Report>, currentLoginAcc
 /**
  * Whether the time row should be shown for a report.
  */
-function canShowReportRecipientLocalTime(personalDetails: OnyxCollection<PersonalDetails>, report: OnyxEntry<Report>, accountID: number): boolean {
+function canShowReportRecipientLocalTime(personalDetails: OnyxEntry<PersonalDetailsList>, report: OnyxEntry<Report>, accountID: number): boolean {
     const reportRecipientAccountIDs = getReportRecipientAccountIDs(report, accountID);
     const hasMultipleParticipants = reportRecipientAccountIDs.length > 1;
     const reportRecipient = personalDetails?.[reportRecipientAccountIDs[0]];
@@ -1666,7 +1667,7 @@ function formatReportLastMessageText(lastMessageText: string, isModifiedExpenseM
     if (isModifiedExpenseMessage) {
         return String(lastMessageText).trim().replace(CONST.REGEX.LINE_BREAK, '').trim();
     }
-    return String(lastMessageText).trim().replace(CONST.REGEX.LINE_BREAK, ' ').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
+    return StringUtils.lineBreaksToSpaces(String(lastMessageText).trim()).substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
 }
 
 /**
@@ -1727,7 +1728,7 @@ function getDefaultGroupAvatar(reportID?: string): IconAsset {
  * Returns the appropriate icons for the given chat report using the stored personalDetails.
  * The Avatar sources can be URLs or Icon components according to the chat type.
  */
-function getIconsForParticipants(participants: number[], personalDetails: OnyxCollection<PersonalDetails>): Icon[] {
+function getIconsForParticipants(participants: number[], personalDetails: OnyxEntry<PersonalDetailsList>): Icon[] {
     const participantDetails: ParticipantDetails[] = [];
     const participantsList = participants || [];
 
@@ -1912,7 +1913,7 @@ function getParticipants(reportID: string) {
  */
 function getIcons(
     report: OnyxEntry<Report>,
-    personalDetails: OnyxCollection<PersonalDetails>,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
     defaultIcon: UserUtils.AvatarSource | null = null,
     defaultName = '',
     defaultAccountID = -1,
@@ -2700,7 +2701,8 @@ function canEditReportAction(reportAction: OnyxEntry<ReportAction>): boolean {
         reportAction?.actorAccountID === currentUserAccountID &&
             isCommentOrIOU &&
             canEditMoneyRequest(reportAction) && // Returns true for non-IOU actions
-            !ReportActionsUtils.isReportActionAttachment(reportAction) &&
+            !isReportMessageAttachment(reportAction?.message?.[0]) &&
+            (isEmptyObject(reportAction.attachmentInfo) || !reportAction.isOptimisticAction) &&
             !ReportActionsUtils.isDeletedAction(reportAction) &&
             !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
             reportAction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
@@ -4373,7 +4375,7 @@ function buildOptimisticGroupChatReport(participantAccountIDs: number[], reportN
         undefined,
         undefined,
         undefined,
-        CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+        undefined,
         undefined,
         undefined,
         undefined,
@@ -4503,9 +4505,9 @@ function buildOptimisticHoldReportActionComment(comment: string, created = DateU
         actorAccountID: currentUserAccountID,
         message: [
             {
-                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                style: 'normal',
+                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
                 text: comment,
+                html: comment, // as discussed on https://github.com/Expensify/App/pull/39452 we will not support HTML for now
             },
         ],
         person: [
@@ -4808,7 +4810,7 @@ function buildOptimisticTaskReport(
     return {
         reportID: generateReportID(),
         reportName: title,
-        description,
+        description: getParsedComment(description ?? ''),
         ownerAccountID,
         participants,
         managerID: assigneeAccountID,
@@ -5181,7 +5183,7 @@ function shouldReportBeInOptionList({
     }
 
     // Hide chats between two users that haven't been commented on from the LNH
-    if (excludeEmptyChats && isEmptyChat && isChatReport(report) && !isChatRoom(report) && !isPolicyExpenseChat(report) && canHideReport) {
+    if (excludeEmptyChats && isEmptyChat && isChatReport(report) && !isChatRoom(report) && !isPolicyExpenseChat(report) && !isGroupChat(report) && canHideReport) {
         return false;
     }
 
@@ -5243,23 +5245,17 @@ function getInvoiceChatByParticipants(policyID: string, receiverID: string | num
 }
 
 /**
- * Attempts to find a report in onyx with the provided list of participants in given policy
+ * Attempts to find a policy expense report in onyx that is owned by ownerAccountID in a given policy
  */
-function getChatByParticipantsAndPolicy(newParticipantList: number[], policyID: string): OnyxEntry<Report> {
-    newParticipantList.sort();
+function getPolicyExpenseChat(ownerAccountID: number, policyID: string): OnyxEntry<Report> {
     return (
-        Object.values(allReports ?? {}).find((report) => {
-            const participantAccountIDs = Object.keys(report?.participants ?? {});
-
-            // If the report has been deleted, or there are no participants (like an empty #admins room) then skip it
-            if (!report || participantAccountIDs.length === 0) {
+        Object.values(allReports ?? {}).find((report: OnyxEntry<Report>) => {
+            // If the report has been deleted, then skip it
+            if (!report) {
                 return false;
             }
 
-            const sortedParticipantsAccountIDs = participantAccountIDs.map(Number).sort();
-
-            // Only return the room if it has all the participants and is not a policy room
-            return report.policyID === policyID && newParticipantList.every((newParticipant) => sortedParticipantsAccountIDs.includes(newParticipant));
+            return report.policyID === policyID && isPolicyExpenseChat(report) && report.ownerAccountID === ownerAccountID;
         }) ?? null
     );
 }
@@ -5550,7 +5546,7 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
     // DM chats will have the Split Expense option.
     // Your own workspace chats will have the split expense option.
     if (
-        (isChatRoom(report) && otherParticipants.length > 0) ||
+        (isChatRoom(report) && !isAnnounceRoom(report) && otherParticipants.length > 0) ||
         (isDM(report) && otherParticipants.length > 0) ||
         (isGroupChat(report) && otherParticipants.length > 0) ||
         (isPolicyExpenseChat(report) && report?.isOwnPolicyExpenseChat)
@@ -6756,7 +6752,6 @@ export {
     getAvailableReportFields,
     getBankAccountRoute,
     getChatByParticipants,
-    getChatByParticipantsAndPolicy,
     getChatRoomSubtitle,
     getChildReportNotificationPreference,
     getCommentLength,
@@ -6788,6 +6783,7 @@ export {
     getPendingChatMembers,
     getPersonalDetailsForAccountID,
     getPolicyDescriptionText,
+    getPolicyExpenseChat,
     getPolicyName,
     getPolicyType,
     getReimbursementDeQueuedActionMessage,

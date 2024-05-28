@@ -98,7 +98,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 {from: 'web/apple-touch-icon.png'},
                 {from: 'assets/images/expensify-app-icon.svg'},
                 {from: 'web/manifest.json'},
-                {from: 'web/gtm.js'},
+                {from: 'web/thirdPartyScripts.js'},
                 {from: 'assets/css', to: 'css'},
                 {from: 'assets/fonts/web', to: 'fonts'},
                 {from: 'assets/sounds', to: 'sounds'},
