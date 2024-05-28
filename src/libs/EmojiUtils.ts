@@ -212,9 +212,12 @@ function mergeEmojisWithFrequentlyUsedEmojis(emojis: PickerEmojis): EmojiPickerL
 
     const formattedFrequentlyUsedEmojis = frequentlyUsedEmojis.map((frequentlyUsedEmoji: Emoji): Emoji => {
         // Frequently used emojis in the old format will have name/types/code stored with them
-        // In the new format, only the name is stored, so we'll need to retrieve the code/types
+        // The back-end may not always have both, so we'll need to fill them in.
         if (!('code' in (frequentlyUsedEmoji as FrequentlyUsedEmoji))) {
             return findEmojiByName(frequentlyUsedEmoji.name);
+        }
+        if (!('name' in (frequentlyUsedEmoji as FrequentlyUsedEmoji))) {
+            return findEmojiByCode(frequentlyUsedEmoji.code);
         }
         return frequentlyUsedEmoji;
     });
