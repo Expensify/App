@@ -151,7 +151,5 @@ module.exports = (api) => {
         metro.plugins.unshift(['babel-plugin-react-compiler', ReactCompilerConfig]);
     }
 
-    console.log(metro);
-
     return ['metro', 'babel-jest'].includes(runningIn) ? metro : webpack;
 };
