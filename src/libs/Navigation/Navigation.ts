@@ -19,6 +19,7 @@ import originalGetTopmostReportId from './getTopmostReportId';
 import linkingConfig from './linkingConfig';
 import linkTo from './linkTo';
 import navigationRef from './navigationRef';
+import setNavigationActionToMicrotaskQueue from './setNavigationActionToMicrotaskQueue';
 import switchPolicyID from './switchPolicyID';
 import type {NavigationStateRoute, State, StateOrRoute, SwitchPolicyIDParams} from './types';
 
@@ -384,6 +385,7 @@ export default {
     resetToHome,
     isDisplayedInModal,
     closeRHPFlow,
+    setNavigationActionToMicrotaskQueue,
 };
 
 export {navigationRef};

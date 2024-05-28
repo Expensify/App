@@ -540,6 +540,7 @@ export default {
         hereAlternateText: 'Notify everyone in this conversation',
     },
     newMessages: 'New messages',
+    youHaveBeenBanned: 'Note: You have been banned from communicating in this channel',
     reportTypingIndicator: {
         isTyping: 'is typing...',
         areTyping: 'are typing...',
@@ -1363,7 +1364,8 @@ export default {
         whereYouWork: 'Where do you work?',
         purpose: {
             title: 'What do you want to do today?',
-            error: 'Please make a selection before continuing.',
+            errorSelection: 'Please make a selection to continue.',
+            errorContinue: 'Please press continue to get set up.',
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Get paid back by my employer',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: "Manage my team's expenses",
             [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: 'Track and budget expenses',
@@ -2705,6 +2707,7 @@ export default {
                 subtitle: 'Try creating something using the green + button.',
             },
         },
+        groupedExpenses: 'grouped expenses',
     },
     genericErrorPage: {
         title: 'Uh-oh, something went wrong!',

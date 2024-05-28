@@ -15,12 +15,18 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import SelectionList from './SelectionList';
 import SearchTableHeader from './SelectionList/SearchTableHeader';
+import type {ReportListItemType, TransactionListItemType} from './SelectionList/types';
 import TableListItemSkeleton from './Skeletons/TableListItemSkeleton';
 
 type SearchProps = {
     query: string;
     policyIDs?: string;
 };
+
+function isReportListItemType(item: TransactionListItemType | ReportListItemType): item is ReportListItemType {
+    const reportListItem = item as ReportListItemType;
+    return reportListItem.transactions !== undefined;
+}
 
 function Search({query, policyIDs}: SearchProps) {
     const {isOffline} = useNetwork();
@@ -74,10 +80,11 @@ function Search({query, policyIDs}: SearchProps) {
     }
 
     const ListItem = SearchUtils.getListItem(type);
+
     const data = SearchUtils.getSections(searchResults?.data ?? {}, type);
 
     return (
-        <SelectionList
+        <SelectionList<ReportListItemType | TransactionListItemType>
             customListHeader={<SearchTableHeader data={searchResults?.data} />}
             // To enhance the smoothness of scrolling and minimize the risk of encountering blank spaces during scrolling,
             // we have configured a larger windowSize and a longer delay between batch renders.
@@ -93,7 +100,9 @@ function Search({query, policyIDs}: SearchProps) {
             ListItem={ListItem}
             sections={[{data, isDisabled: false}]}
             onSelectRow={(item) => {
-                openReport(item.transactionThreadReportID);
+                const reportID = isReportListItemType(item) ? item.reportID : item.transactionThreadReportID;
+
+                openReport(reportID);
             }}
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
             listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}

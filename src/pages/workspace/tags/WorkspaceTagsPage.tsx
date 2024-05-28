@@ -176,7 +176,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
         if (selectedTagsArray.length === 0) {
             return (
-                <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
+                <View style={[styles.w100, styles.flexRow, styles.gap2, isSmallScreenWidth && styles.mb3]}>
                     {!isThereAnyAccountingConnection && !isMultiLevelTags && (
                         <Button
                             medium
@@ -184,7 +184,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                             onPress={navigateToCreateTagPage}
                             icon={Expensicons.Plus}
                             text={translate('workspace.tags.addTag')}
-                            style={[styles.mr3, isSmallScreenWidth && styles.flex1]}
+                            style={[isSmallScreenWidth && styles.flex1]}
                         />
                     )}
                     {policyTags && (
@@ -202,7 +202,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.TAGS_BULK_ACTION_TYPES>>> = [];
 
-        if (!isThereAnyAccountingConnection && !isMultiLevelTags) {
+        if (!isThereAnyAccountingConnection) {
             options.push({
                 icon: Expensicons.Trashcan,
                 text: translate(selectedTagsArray.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),

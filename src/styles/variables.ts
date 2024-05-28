@@ -235,6 +235,8 @@ export default {
     textInputAutoGrowMaxHeight: 115,
     eReceiptBackgroundImageMinWidth: 217,
 
+    searchTypeColumnWidth: 52,
+
     h36: 36,
     w28: 28,
     w36: 36,

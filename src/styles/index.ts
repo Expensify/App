@@ -567,7 +567,6 @@ const styles = (theme: ThemeColors) =>
         },
 
         buttonContainer: {
-            padding: 1,
             borderRadius: variables.buttonBorderRadius,
         },
 
@@ -4915,6 +4914,21 @@ const styles = (theme: ThemeColors) =>
 
         textLineThrough: {
             textDecorationLine: 'line-through',
+        },
+
+        reportListItemSeparator: {
+            borderBottomWidth: 1,
+            borderBottomColor: theme.activeComponentBG,
+        },
+
+        reportListItemTitle: {
+            color: theme.text,
+            fontSize: variables.fontSizeNormal,
+            fontWeight: FontUtils.fontWeight.bold,
+        },
+
+        reportListItemActionButtonMargin: {
+            marginLeft: variables.searchTypeColumnWidth,
         },
     } satisfies Styles);
 
