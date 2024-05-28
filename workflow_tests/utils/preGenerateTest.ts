@@ -219,8 +219,7 @@ const getMockFileContent = (workflowName: string, jobs: Record<string, YamlMockJ
         let mockStepsContent = `\n// ${jobId.toLowerCase()}`;
         const stepMocks: string[] = [];
         job.steps.forEach((step) => {
-            const stepName = step.name as string;
-            const stepMockName = `${workflowName.toUpperCase()}__${jobId.toUpperCase()}__${stepName
+            const stepMockName = `${workflowName.toUpperCase()}__${jobId.toUpperCase()}__${(step.name as string)
                 .replaceAll(' ', '_')
                 .replaceAll('-', '_')
                 .replaceAll(',', '')
