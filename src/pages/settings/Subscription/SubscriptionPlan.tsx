@@ -63,7 +63,7 @@ function SubscriptionPlan() {
                     width={variables.iconHeader}
                     height={variables.iconHeader}
                 />
-                <Text style={[styles.yourPlanTitle, styles.mt2]}>{isCollect ? translate('subscription.yourPlan.collect.title') : translate('subscription.yourPlan.control.title')}</Text>
+                <Text style={[styles.yourPlanTitle, styles.mt2]}>{translate(`subscription.yourPlan.${isCollect ? 'collect' : 'control'}.title`)}</Text>
                 <Text style={[styles.yourPlanSubtitle, styles.mb2]}>{priceInfo}</Text>
                 {benefitsList.map((benefit) => (
                     <View
