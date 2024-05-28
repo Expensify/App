@@ -12,7 +12,7 @@ description: Remove QuickBooks Online integration with Expensify
 5. Click the three dot menu icon to the right of QuickBooks Online and select **Disconnect**.
 6. Click **Disconnect** to confirm. 
 
-You will no longer see the imported options from QuickBooks Online.{% include end-option.html %}
+You will no longer see the imported options from QuickBooks Online.
 
 </div>
 
