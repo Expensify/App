@@ -94,7 +94,7 @@ function IOURequestStepParticipants({
 
             // When multiple participants are selected, the reportID is generated at the end of the confirmation step.
             // So we are resetting selectedReportID ref to the reportID coming from params.
-            if (val.length !== 1) {
+            if (val.length !== 1 && iouType !== CONST.IOU.TYPE.INVOICE) {
                 selectedReportID.current = reportID;
                 return;
             }
@@ -102,7 +102,7 @@ function IOURequestStepParticipants({
             // When a participant is selected, the reportID needs to be saved because that's the reportID that will be used in the confirmation step.
             selectedReportID.current = val[0]?.reportID ?? reportID;
         },
-        [reportID, transactionID],
+        [iouType, reportID, transactionID],
     );
 
     const goToNextStep = useCallback(() => {
