@@ -80,6 +80,8 @@ function BaseSelectionList<TItem extends ListItem>(
         listHeaderContent,
         onEndReached = () => {},
         onEndReachedThreshold,
+        windowSize = 5,
+        updateCellsBatchingPeriod = 50,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -411,7 +413,8 @@ function BaseSelectionList<TItem extends ListItem>(
                     shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                     // We're already handling the Enter key press in the useKeyboardShortcut hook, so we don't want the list item to submit the form
                     shouldPreventEnterKeySubmit
-                    rightHandSideComponent={rightHandSideComponent}
+                    // Change this because of lint
+                    rightHandSideComponent={rightHandSideComponent && (typeof rightHandSideComponent === 'function' ? rightHandSideComponent({} as TItem) : rightHandSideComponent)}
                     keyForList={item.keyForList ?? ''}
                     isMultilineSupported={isRowMultilineSupported}
                     onFocus={() => {
@@ -652,7 +655,8 @@ function BaseSelectionList<TItem extends ListItem>(
                                 showsVerticalScrollIndicator={showScrollIndicator}
                                 initialNumToRender={12}
                                 maxToRenderPerBatch={maxToRenderPerBatch}
-                                windowSize={5}
+                                windowSize={windowSize}
+                                updateCellsBatchingPeriod={updateCellsBatchingPeriod}
                                 viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
                                 testID="selection-list"
                                 onLayout={onSectionListLayout}

@@ -4,7 +4,7 @@ import type {MaybePhraseKey} from '@libs/Localize';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import type CONST from '@src/CONST';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {SearchAccountDetails, SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {SearchAccountDetails, SearchPersonalDetails, SearchPolicyDetails, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -382,6 +382,18 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
      * within half the visible length of the list.
      */
     onEndReachedThreshold?: number;
+
+    /**
+     * While maxToRenderPerBatch tells the amount of items rendered per batch, setting updateCellsBatchingPeriod tells your VirtualizedList the delay in milliseconds between batch renders (how frequently your component will be rendering the windowed items).
+     * https://reactnative.dev/docs/optimizing-flatlist-configuration#updatecellsbatchingperiod
+     */
+    updateCellsBatchingPeriod?: number;
+
+    /**
+     * The number passed here is a measurement unit where 1 is equivalent to your viewport height. The default value is 21 (10 viewports above, 10 below, and one in between).
+     * https://reactnative.dev/docs/optimizing-flatlist-configuration#windowsize
+     */
+    windowSize?: number;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
@@ -410,6 +422,43 @@ type ExtendedSectionListData<TItem extends ListItem, TSection extends SectionWit
 
 type SectionListDataType<TItem extends ListItem> = ExtendedSectionListData<TItem, SectionWithIndexOffset<TItem>>;
 
+type CellProps = {
+    showTooltip: boolean;
+    keyForList: string;
+    isLargeScreenWidth: boolean;
+};
+
+type TransactionCellProps = {
+    transactionItem: TransactionListItemType;
+} & CellProps;
+
+type DateCellProps = {
+    date: string;
+} & CellProps;
+
+type MerchantCellProps = {
+    merchant: string;
+    description: string;
+} & TransactionCellProps;
+
+type UserCellProps = {
+    participant: Partial<SearchPolicyDetails & SearchPersonalDetails>;
+} & CellProps;
+
+type CurrencyCellProps = {
+    amount: number;
+    currency: string;
+} & CellProps;
+
+type ActionCellProps = {
+    item: TransactionListItemType;
+    onSelectRow: (item: TransactionListItemType) => void;
+} & CellProps;
+
+type TypeCellProps = {
+    typeIcon: IconAsset;
+} & CellProps;
+
 export type {
     BaseListItemProps,
     BaseSelectionListProps,
@@ -430,4 +479,12 @@ export type {
     TransactionListItemType,
     UserListItemProps,
     ValidListItem,
+    DateCellProps,
+    MerchantCellProps,
+    UserCellProps,
+    CurrencyCellProps,
+    TransactionCellProps,
+    ActionCellProps,
+    TypeCellProps,
+    CellProps,
 };
