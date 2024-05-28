@@ -19,7 +19,7 @@ function Size({onNext}: SizeProps) {
     const styles = useThemeStyles();
 
     const defaultValues = {
-        // TODO get default value from ONYX
+        // TODO this is temporary and default value will be replaced in next phase once data in ONYX is ready
         [INPUT_IDS.SUBSCRIPTION_SIZE]: '0',
     };
 

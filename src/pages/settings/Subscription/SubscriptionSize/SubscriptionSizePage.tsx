@@ -1,6 +1,5 @@
 import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
@@ -8,31 +7,23 @@ import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {SubscriptionSizeForm} from '@src/types/form';
 import Confirmation from './substeps/Confirmation';
 import Size from './substeps/Size';
 
-type SubscriptionSizePageOnyxProps = {
-    /** The draft values from subscription size form */
-    subscriptionSizeForm: OnyxEntry<SubscriptionSizeForm>;
-};
-
-type SubscriptionSizePageProps = SubscriptionSizePageOnyxProps;
-
 const bodyContent: Array<React.ComponentType<SubStepProps>> = [Size, Confirmation];
 
-function SubscriptionSizePage({subscriptionSizeForm}: SubscriptionSizePageProps) {
+function SubscriptionSizePage() {
+    const [subscriptionSizeFormDraft] = useOnyx(ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM_DRAFT);
     const {translate} = useLocalize();
-    // TODO update logic to
-    //  const startFrom = account?.canDowngrade ? 0 : 1;
+    // TODO startFrom variable will get it's value based on ONYX data, it will be implemented in next phase (account?.canDowngrade field)
     const CAN_DOWNGRADE = true;
     const startFrom = CAN_DOWNGRADE ? 0 : 1;
 
     const onFinished = () => {
         if (CAN_DOWNGRADE) {
-            // TODO API call will be implemented in next phase
+            // TODO this is temporary solution for the time being, API call will be implemented in next phase
             // eslint-disable-next-line no-console
-            console.log(subscriptionSizeForm);
+            console.log(subscriptionSizeFormDraft);
             return;
         }
 
@@ -72,8 +63,4 @@ function SubscriptionSizePage({subscriptionSizeForm}: SubscriptionSizePageProps)
 
 SubscriptionSizePage.displayName = 'SubscriptionSizePage';
 
-export default withOnyx<SubscriptionSizePageProps, SubscriptionSizePageOnyxProps>({
-    subscriptionSizeForm: {
-        key: ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM_DRAFT,
-    },
-})(SubscriptionSizePage);
+export default SubscriptionSizePage;

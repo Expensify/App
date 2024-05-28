@@ -1,6 +1,7 @@
 import {addMonths, format, startOfMonth} from 'date-fns';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import * as ValidationUtils from '@libs/ValidationUtils';
+import CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/SubscriptionSizeForm';
 
@@ -13,6 +14,6 @@ const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SUBSCRIPTION_SIZE
     return errors;
 };
 
-const getNewSubscriptionRenewalDate = (): string => format(startOfMonth(addMonths(new Date(), 11)), 'MMM d, yyyy');
+const getNewSubscriptionRenewalDate = (): string => format(startOfMonth(addMonths(new Date(), 11)), CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT);
 
 export {validate, getNewSubscriptionRenewalDate};
