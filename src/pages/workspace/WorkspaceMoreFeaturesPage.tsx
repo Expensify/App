@@ -249,6 +249,17 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         }, [fetchFeatures]),
     );
 
+    const getConnectionWarningPrompt = useCallback(() => {
+        switch(connectionWarningModalState.itemType) {
+            case 'organize':
+                return translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledText');
+            case 'integrate':
+                return translate('workspace.moreFeatures.connectionsWarningModal.disconnectText', connectionName);
+            default:
+                return undefined;
+        }
+    }, [connectionWarningModalState.itemType]);
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -267,6 +278,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 />
 
                 <ScrollView contentContainerStyle={styles.pb2}>{sections.map(renderSection)}</ScrollView>
+                
                 <ConfirmModal
                     title={translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledTitle', connectionName)}
                     onConfirm={() => {
@@ -283,11 +295,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                         })
                     }
                     isVisible={connectionWarningModalState.isOpen}
-                    prompt={
-                        connectionWarningModalState.itemType === 'organize'
-                            ? translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledText')
-                            : translate('workspace.moreFeatures.connectionsWarningModal.disconnectText', connectionName)
-                    }
+                    prompt={getConnectionWarningPrompt()}
                     confirmText={translate('workspace.moreFeatures.connectionsWarningModal.manageSettings')}
                     cancelText={translate('common.cancel')}
                 />

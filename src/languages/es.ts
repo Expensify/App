@@ -2226,7 +2226,7 @@ export default {
                         case CONST.POLICY.CONNECTIONS.NAME.QBO:
                             return `Estas conectado a QuickBooks Online`;
                         case CONST.POLICY.CONNECTIONS.NAME.XERO:
-                            return `YEstas conectado a Xero`;
+                            return `Estas conectado a Xero`;
                         default: {
                             return '';
                         }
