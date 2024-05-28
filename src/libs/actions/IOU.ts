@@ -1802,11 +1802,14 @@ function getMoneyRequestInformation(
     const payerEmail = PhoneNumber.addSMSDomainIfPhoneNumber(participant.login ?? '');
     const payerAccountID = Number(participant.accountID);
     const isPolicyExpenseChat = participant.isPolicyExpenseChat;
+    const currentTime = DateUtils.getDBTime();
 
     // STEP 1: Get existing chat report OR build a new optimistic one
     let isNewChatReport = false;
     let chatReport = !isEmptyObject(parentChatReport) && parentChatReport?.reportID ? parentChatReport : null;
-
+    if (chatReport) {
+        chatReport.lastVisibleActionCreated = currentTime;
+    }
     // If this is a policyExpenseChat, the chatReport must exist and we can get it from Onyx.
     // report is null if the flow is initiated from the global create menu. However, participant always stores the reportID if it exists, which is the case for policyExpenseChats
     if (!chatReport && isPolicyExpenseChat) {
@@ -1921,7 +1924,7 @@ function getMoneyRequestInformation(
     if (reportPreviewAction) {
         reportPreviewAction = ReportUtils.updateReportPreview(iouReport, reportPreviewAction as ReportPreviewAction, false, comment, optimisticTransaction);
     } else {
-        reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, comment, optimisticTransaction);
+        reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, comment, optimisticTransaction, '', currentTime);
 
         // Generated ReportPreview action is a parent report action of the iou report.
         // We are setting the iou report's parentReportActionID to display subtitle correctly in IOU page when offline.
@@ -3768,11 +3771,13 @@ function createSplitsAndOnyxData(
         {},
         isOwnPolicyExpenseChat,
     );
-
-    splitChatReport.lastReadTime = DateUtils.getDBTime();
+    const currentTime = DateUtils.getDBTime();
+    splitChatReport.lastReadTime = currentTime;
     splitChatReport.lastMessageText = splitIOUReportAction.message?.[0]?.text;
     splitChatReport.lastMessageHtml = splitIOUReportAction.message?.[0]?.html;
     splitChatReport.lastActorAccountID = currentUserAccountID;
+    splitChatReport.lastVisibleActionCreated = currentTime;
+    splitIOUReportAction.created = currentTime;
 
     let splitChatReportNotificationPreference = splitChatReport.notificationPreference;
     if (splitChatReportNotificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
@@ -4328,10 +4333,12 @@ function startSplitBill({
         receiptObject,
         isOwnPolicyExpenseChat,
     );
-
-    splitChatReport.lastReadTime = DateUtils.getDBTime();
+    const currentTime = DateUtils.getDBTime();
+    splitChatReport.lastReadTime = currentTime;
     splitChatReport.lastMessageText = splitIOUReportAction.message?.[0]?.text;
     splitChatReport.lastMessageHtml = splitIOUReportAction.message?.[0]?.html;
+    splitChatReport.lastVisibleActionCreated = currentTime;
+    splitIOUReportAction.created = currentTime;
 
     // If we have an existing splitChatReport (group chat or workspace) use it's pending fields, otherwise indicate that we are adding a chat
     if (!existingSplitChatReport) {
