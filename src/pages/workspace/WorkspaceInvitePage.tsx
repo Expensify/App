@@ -26,7 +26,7 @@ import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
-import * as Policy from '@userActions/Policy';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -314,7 +314,7 @@ function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, poli
                     canSelectMultiple
                     sections={sections}
                     ListItem={InviteMemberListItem}
-                    textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+                    textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
                     textInputValue={searchTerm}
                     onChangeText={(value) => {
                         SearchInputManager.searchInput = value;

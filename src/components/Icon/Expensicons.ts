@@ -44,6 +44,7 @@ import Concierge from '@assets/images/concierge.svg';
 import Connect from '@assets/images/connect.svg';
 import ConnectionComplete from '@assets/images/connection-complete.svg';
 import Copy from '@assets/images/copy.svg';
+import CreditCardHourglass from '@assets/images/credit-card-hourglass.svg';
 import CreditCard from '@assets/images/creditcard.svg';
 import DocumentPlus from '@assets/images/document-plus.svg';
 import DocumentSlash from '@assets/images/document-slash.svg';
@@ -126,6 +127,7 @@ import Printer from '@assets/images/printer.svg';
 import Profile from '@assets/images/profile.svg';
 import QrCode from '@assets/images/qrcode.svg';
 import QuestionMark from '@assets/images/question-mark-circle.svg';
+import ReceiptPlus from '@assets/images/receipt-plus.svg';
 import ReceiptScan from '@assets/images/receipt-scan.svg';
 import ReceiptSearch from '@assets/images/receipt-search.svg';
 import Receipt from '@assets/images/receipt.svg';
@@ -207,6 +209,7 @@ export {
     ConnectionComplete,
     Copy,
     CreditCard,
+    CreditCardHourglass,
     DeletedRoomAvatar,
     Document,
     DocumentSlash,
@@ -295,6 +298,7 @@ export {
     QrCode,
     QuestionMark,
     Receipt,
+    ReceiptPlus,
     ReceiptScan,
     RemoveMembers,
     ReceiptSearch,

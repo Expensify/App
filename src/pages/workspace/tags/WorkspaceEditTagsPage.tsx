@@ -12,11 +12,11 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Policy from '@libs/actions/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -41,7 +41,7 @@ const validateTagName = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_TAG
 function WorkspaceEditTagsPage({route, policyTags}: WorkspaceEditTagsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const taglistName = useMemo(() => PolicyUtils.getTagLists(policyTags)[0].name, [policyTags]);
+    const taglistName = useMemo(() => PolicyUtils.getTagListName(policyTags, route.params.orderWeight), [policyTags, route.params.orderWeight]);
     const {inputCallbackRef} = useAutoFocusInput();
 
     const updateTaglistName = useCallback(
