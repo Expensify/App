@@ -2,7 +2,7 @@ import React, {createContext} from 'react';
 
 type ImageBehaviorContextValue = {
     /**
-     * Disable the logic to set aspect ratio of the container div based on the image aspect ratio.
+     * Determine whether or not to set the aspect ratio of the container div based on the image's aspect ratio.
      */
     shouldSetAspectRatioInStyle: boolean;
 };
