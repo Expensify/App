@@ -8,13 +8,10 @@ function getSubstepValues<T extends keyof ReimbursementAccountForm>(
     reimbursementAccountDraft: OnyxEntry<ReimbursementAccountForm>,
     reimbursementAccount: OnyxEntry<ReimbursementAccount>,
 ): {[K in T]: ReimbursementAccountForm[K]} {
-    return Object.entries(inputKeys).reduce(
-        (acc, [, value]) => ({
-            ...acc,
-            [value]: reimbursementAccountDraft?.[value] ?? reimbursementAccount?.achData?.[value as keyof ACHData] ?? '',
-        }),
-        {} as {[K in T]: ReimbursementAccountForm[K]},
-    );
+    return Object.entries(inputKeys).reduce((acc, [, value]) => {
+        acc[value] = reimbursementAccountDraft?.[value] ?? reimbursementAccount?.achData?.[value as keyof ACHData] ?? '';
+        return acc;
+    }, {} as {[K in T]: ReimbursementAccountForm[K]});
 }
 
 export default getSubstepValues;
