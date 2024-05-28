@@ -54,7 +54,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                 onboardingPurposeSelected,
                 CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
                 {
-                    login: currentUserPersonalDetails.login ?? '',
                     firstName,
                     lastName,
                 },
@@ -80,7 +79,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                 Navigation.navigate(ROUTES.WELCOME_VIDEO_ROOT);
             }, variables.welcomeVideoDelay);
         },
-        [currentUserPersonalDetails.login, isSmallScreenWidth, onboardingPurposeSelected, onboardingAdminsChatReportID],
+        [isSmallScreenWidth, onboardingPurposeSelected, onboardingAdminsChatReportID],
     );
 
     const validate = (values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {

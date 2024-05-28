@@ -107,6 +107,9 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
                 // This is necessary to cover whole screen. Including translated sidebar.
                 marginLeft: isSmallScreenWidth ? 0 : -variables.sideBarWidth,
             },
+
+            // We need to turn off animation for the full screen to avoid delay when closing screens.
+            animationEnabled: isSmallScreenWidth,
         },
 
         centralPaneNavigator: {
