@@ -105,6 +105,7 @@ type MenuItemBaseProps = {
     /** The fill color to pass into the secondary icon. */
     secondaryIconFill?: string;
 
+    /** Whether the secondary icon should have hover style */
     isSecondaryIconHoverable?: boolean;
 
     /** Icon Width */
