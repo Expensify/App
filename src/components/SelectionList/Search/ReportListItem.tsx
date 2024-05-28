@@ -11,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {getSearchParams} from '@libs/SearchUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import ExpenseItemHeaderNarrow from './ExpenseItemHeaderNarrow';
@@ -43,7 +44,9 @@ function ReportListItem<TItem extends ListItem>({
     };
 
     const openReportInRHP = (transactionItem: TransactionListItemType) => {
-        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(CONST.TAB_SEARCH.ALL, transactionItem.transactionThreadReportID));
+        const searchParams = getSearchParams();
+        const currentQuery = searchParams && `query` in searchParams ? (searchParams?.query as string) : CONST.TAB_SEARCH.ALL;
+        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(currentQuery, transactionItem.transactionThreadReportID));
     };
 
     const totalCell = (

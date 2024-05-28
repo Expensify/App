@@ -6,6 +6,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes, SearchTypeToItemMap} from '@src/types/onyx/SearchResults';
+import getTopmostCentralPaneRoute from './Navigation/getTopmostCentralPaneRoute';
+import navigationRef from './Navigation/navigationRef';
+import type {RootStackParamList, State} from './Navigation/types';
 import * as UserUtils from './UserUtils';
 
 function isSearchDataType(type: string): type is SearchDataTypes {
@@ -123,4 +126,9 @@ function getQueryHash(query: string, policyID?: string): number {
     return UserUtils.hashText(textToHash, 2 ** 32);
 }
 
-export {getListItem, getQueryHash, getSearchType, getSections, getShouldShowColumn, getShouldShowMerchant};
+function getSearchParams() {
+    const topmostCentralPaneRoute = getTopmostCentralPaneRoute(navigationRef.getRootState() as State<RootStackParamList>);
+    return topmostCentralPaneRoute?.params;
+}
+
+export {getListItem, getQueryHash, getSearchType, getSections, getShouldShowColumn, getShouldShowMerchant, getSearchParams};
