@@ -1329,7 +1329,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.BUTTON_STATES.PRESSED:
                 return {backgroundColor: theme.buttonPressedBG};
             case CONST.BUTTON_STATES.ACTIVE:
-                return isMenuItem ? {backgroundColor: theme.border} : {backgroundColor: theme.buttonHoveredBG};
+                return isMenuItem ? {backgroundColor: theme.hoverComponentBG} : {backgroundColor: theme.buttonHoveredBG};
             case CONST.BUTTON_STATES.DISABLED:
             case CONST.BUTTON_STATES.DEFAULT:
             default:
@@ -1568,14 +1568,13 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 columnWidth = getWidthStyle(variables.w44);
                 break;
             case CONST.SEARCH_TABLE_COLUMNS.MERCHANT:
-                columnWidth = styles.flex1;
-                break;
             case CONST.SEARCH_TABLE_COLUMNS.FROM:
-                columnWidth = styles.flex1;
-                break;
             case CONST.SEARCH_TABLE_COLUMNS.TO:
+            case CONST.SEARCH_TABLE_COLUMNS.CATEGORY:
+            case CONST.SEARCH_TABLE_COLUMNS.TAG:
                 columnWidth = styles.flex1;
                 break;
+            case CONST.SEARCH_TABLE_COLUMNS.TAX_AMOUNT:
             case CONST.SEARCH_TABLE_COLUMNS.TOTAL:
                 columnWidth = {...getWidthStyle(variables.w96), ...styles.alignItemsEnd};
                 break;
