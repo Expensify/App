@@ -53,6 +53,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
         if (isEqual(attachments, attachmentsFromReport)) {
             if (attachments.length === 0) {
                 setPage(-1);
+                setDownloadButtonVisibility?.(false);
             }
             return;
         }
