@@ -69,8 +69,9 @@ function getSections<K extends keyof SearchTypeToItemMap>(data: OnyxTypes.Search
     return searchTypeToItemMap[type].getSections(data) as ReturnType<SearchTypeToItemMap[K]['getSections']>;
 }
 
-function getQueryHash(query: string): number {
-    return UserUtils.hashText(query, 2 ** 32);
+function getQueryHash(query: string, policyID?: string): number {
+    const textToHash = [query, policyID].filter(Boolean).join('_');
+    return UserUtils.hashText(textToHash, 2 ** 32);
 }
 
 export {getListItem, getQueryHash, getSections, getShouldShowColumn, getShouldShowMerchant, getSearchType};
