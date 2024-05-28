@@ -127,10 +127,10 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         }
         const activeWorkspaceID = getPolicyIDFromState(state as NavigationState<RootStackParamList>);
         // Performance optimization to avoid context consumers to delay first render
-        setTimeout(() => {
+        requestAnimationFrame(() => {
             currentReportIDValue?.updateCurrentReportID(state);
             setActiveWorkspaceID(activeWorkspaceID);
-        }, 0);
+        });
         parseAndLogRoute(state);
 
         // We want to clean saved scroll offsets for screens that aren't anymore in the state.
