@@ -5,9 +5,9 @@ import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import {scrollTo} from 'react-native-reanimated';
 import EmojiPickerMenuItem from '@components/EmojiPicker/EmojiPickerMenuItem';
-import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import isAnimatedTextInputRef from '@components/TextInput/BaseTextInput/isAnimatedTextInoutRef';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useLocalize from '@hooks/useLocalize';
@@ -27,9 +27,6 @@ import type EmojiPickerMenuProps from './types';
 import useEmojiPickerMenu from './useEmojiPickerMenu';
 
 const throttleTime = Browser.isMobile() ? 200 : 50;
-
-const isAnimatedTextInputRef = (textInput: React.MutableRefObject<BaseTextInputRef | null>) =>
-    textInput.current && 'isFocused' in textInput.current && (textInput.current as AnimatedTextInputRef).isFocused();
 
 function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, ref: ForwardedRef<BaseTextInputRef>) {
     const styles = useThemeStyles();

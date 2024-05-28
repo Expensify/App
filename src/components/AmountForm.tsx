@@ -12,7 +12,7 @@ import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import CONST from '@src/CONST';
 import BigNumberPad from './BigNumberPad';
 import FormHelpMessage from './FormHelpMessage';
-import type {AnimatedTextInputRef} from './RNTextInput';
+import isAnimatedTextInputRef from './TextInput/BaseTextInput/isAnimatedTextInoutRef';
 import type {BaseTextInputProps, BaseTextInputRef} from './TextInput/BaseTextInput/types';
 import TextInputWithCurrencySymbol from './TextInputWithCurrencySymbol';
 import type TextInputWithCurrencySymbolProps from './TextInputWithCurrencySymbol/types';
@@ -51,9 +51,6 @@ const getNewSelection = (oldSelection: {start: number; end: number}, prevLength:
     const cursorPosition = oldSelection.end + (newLength - prevLength);
     return {start: cursorPosition, end: cursorPosition};
 };
-
-const isAnimatedTextInputRef = (textInput: React.MutableRefObject<BaseTextInputRef | null>) =>
-    textInput.current && 'isFocused' in textInput.current && (textInput.current as AnimatedTextInputRef).isFocused();
 
 const AMOUNT_VIEW_ID = 'amountView';
 const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';

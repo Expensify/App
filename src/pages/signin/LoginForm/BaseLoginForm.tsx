@@ -7,11 +7,11 @@ import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import AppleSignIn from '@components/SignInButtons/AppleSignIn';
 import GoogleSignIn from '@components/SignInButtons/GoogleSignIn';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import isAnimatedTextInputRef from '@components/TextInput/BaseTextInput/isAnimatedTextInoutRef';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withToggleVisibilityView from '@components/withToggleVisibilityView';
 import type {WithToggleVisibilityViewProps} from '@components/withToggleVisibilityView';
@@ -53,9 +53,6 @@ type BaseLoginFormOnyxProps = {
 type BaseLoginFormProps = WithToggleVisibilityViewProps & BaseLoginFormOnyxProps & LoginFormProps;
 
 const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
-
-const isAnimatedTextInputRef = (textInput: React.MutableRefObject<BaseTextInputRef | null>) =>
-    textInput.current && 'isFocused' in textInput.current && (textInput.current as AnimatedTextInputRef).isFocused();
 
 function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false, isVisible}: BaseLoginFormProps, ref: ForwardedRef<InputHandle>) {
     const styles = useThemeStyles();
@@ -204,7 +201,7 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
             if (!input.current) {
                 return false;
             }
-            return (isAnimatedTextInputRef(input) ?? input.current.focus()) as boolean;
+            return !!isAnimatedTextInputRef(input);
         },
         clearDataAndFocus(clearLogin = true) {
             if (!input.current) {

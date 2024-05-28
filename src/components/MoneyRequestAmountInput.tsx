@@ -7,7 +7,7 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import getOperatingSystem from '@libs/getOperatingSystem';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import CONST from '@src/CONST';
-import type {AnimatedTextInputRef} from './RNTextInput';
+import isAnimatedTextInputRef from './TextInput/BaseTextInput/isAnimatedTextInoutRef';
 import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
 import TextInputWithCurrencySymbol from './TextInputWithCurrencySymbol';
 
@@ -89,9 +89,6 @@ const getNewSelection = (oldSelection: Selection, prevLength: number, newLength:
     const cursorPosition = oldSelection.end + (newLength - prevLength);
     return {start: cursorPosition, end: cursorPosition};
 };
-
-const isAnimatedTextInputRef = (textInput: React.MutableRefObject<BaseTextInputRef | null>) =>
-    textInput.current && 'isFocused' in textInput.current && (textInput.current as AnimatedTextInputRef).isFocused();
 
 function MoneyRequestAmountInput(
     {

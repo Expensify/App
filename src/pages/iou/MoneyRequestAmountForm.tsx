@@ -8,9 +8,9 @@ import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
 import type {MoneyRequestAmountInputRef} from '@components/MoneyRequestAmountInput';
-import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScrollView from '@components/ScrollView';
 import SettlementButton from '@components/SettlementButton';
+import isAnimatedTextInputRef from '@components/TextInput/BaseTextInput/isAnimatedTextInoutRef';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -66,9 +66,6 @@ type MoneyRequestAmountFormProps = {
     /** The current tab we have navigated to in the expense modal. String that corresponds to the expense type. */
     selectedTab?: SelectedTabRequest;
 };
-
-const isAnimatedTextInputRef = (textInput: React.MutableRefObject<BaseTextInputRef | null>) =>
-    textInput.current && 'isFocused' in textInput.current && (textInput.current as AnimatedTextInputRef).isFocused();
 
 const isAmountInvalid = (amount: string) => !amount.length || parseFloat(amount) < 0.01;
 const isTaxAmountInvalid = (currentAmount: string, taxAmount: number, isTaxAmountForm: boolean) =>
