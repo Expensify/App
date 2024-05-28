@@ -64,7 +64,7 @@ function OptionsListContextProvider({reports, children}: OptionsListProviderProp
             return;
         }
 
-        const newReports = OptionsListUtils.createOptionList({}, reports).reports;
+        const newReports = OptionsListUtils.createOptionList(personalDetails, reports).reports;
 
         setOptions((prevOptions) => {
             const newOptions = {...prevOptions};
