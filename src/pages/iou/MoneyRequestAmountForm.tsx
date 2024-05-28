@@ -10,7 +10,7 @@ import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
 import type {MoneyRequestAmountInputRef} from '@components/MoneyRequestAmountInput';
 import ScrollView from '@components/ScrollView';
 import SettlementButton from '@components/SettlementButton';
-import isAnimatedTextInputRef from '@components/TextInput/BaseTextInput/isAnimatedTextInoutRef';
+import isAnimatedTextInputFocused from '@components/TextInput/BaseTextInput/isAnimatedTextInputFocused';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -128,7 +128,7 @@ function MoneyRequestAmountForm(
             return;
         }
 
-        if (!isAnimatedTextInputRef(textInput)) {
+        if (!isAnimatedTextInputFocused(textInput)) {
             textInput.current.focus();
         }
     };
@@ -169,7 +169,7 @@ function MoneyRequestAmountForm(
      */
     const updateAmountNumberPad = useCallback(
         (key: string) => {
-            if (shouldUpdateSelection && !isAnimatedTextInputRef(textInput)) {
+            if (shouldUpdateSelection && !isAnimatedTextInputFocused(textInput)) {
                 textInput.current?.focus();
             }
             const currentAmount = moneyRequestAmountInput.current?.getAmount() ?? '';
@@ -196,7 +196,7 @@ function MoneyRequestAmountForm(
      */
     const updateLongPressHandlerState = useCallback((value: boolean) => {
         setShouldUpdateSelection(!value);
-        if (!value && !isAnimatedTextInputRef(textInput)) {
+        if (!value && !isAnimatedTextInputFocused(textInput)) {
             textInput.current?.focus();
         }
     }, []);

@@ -3,7 +3,7 @@ import isObject from 'lodash/isObject';
 import lodashTransform from 'lodash/transform';
 import React, {forwardRef, Profiler} from 'react';
 import {Alert, InteractionManager} from 'react-native';
-import type {PerformanceEntry, PerformanceMark, PerformanceMeasure, Performance as RNPerformance} from 'react-native-performance';
+import type {PerformanceEntry, PerformanceMark, PerformanceMeasure, Performance as RNPerformance, PerformanceObserver as RNPerformanceObserver} from 'react-native-performance';
 import type {PerformanceObserverEntryList} from 'react-native-performance/lib/typescript/performance-observer';
 import CONST from '@src/CONST';
 import isE2ETestSession from './E2E/isE2ETestSession';
@@ -46,7 +46,11 @@ type PerformanceModule = {
     subscribeToMeasurements: SubscribeToMeasurements;
 };
 
-type PerformanceObserverCallback = (entries: PerformanceObserverEntryList, observer: PerformanceObserver) => void;
+type ReactNativePerformance = {
+    default: RNPerformance;
+    setResourceLoggingEnabled: (enabled?: boolean) => void;
+    PerformanceObserver: typeof RNPerformanceObserver;
+};
 
 let rnPerformance: RNPerformance;
 
@@ -88,12 +92,9 @@ const Performance: PerformanceModule = {
 };
 
 if (Metrics.canCapturePerformanceMetrics()) {
-    const perfModule = require('react-native-performance');
-    const {default: performance, setResourceLoggingEnabled, PerformanceObserver} = perfModule;
-    const perfObserver: new (callback: PerformanceObserverCallback) => PerformanceObserver = PerformanceObserver;
-
-    (setResourceLoggingEnabled as (enabled?: boolean) => void)(true);
-    rnPerformance = performance;
+    const perfModule: ReactNativePerformance = require('react-native-performance');
+    perfModule.setResourceLoggingEnabled(true);
+    rnPerformance = perfModule.default;
 
     Performance.measureFailSafe = (measureName: string, startOrMeasureOptions: string, endMark?: string) => {
         try {
@@ -128,7 +129,7 @@ if (Metrics.canCapturePerformanceMetrics()) {
      */
     Performance.setupPerformanceObserver = () => {
         // Monitor some native marks that we want to put on the timeline
-        new perfObserver((list: PerformanceObserverEntryList, observer: PerformanceObserver) => {
+        new perfModule.PerformanceObserver((list: PerformanceObserverEntryList, observer: PerformanceObserver) => {
             list.getEntries().forEach((entry: PerformanceEntry) => {
                 if (entry.name === 'nativeLaunchEnd') {
                     Performance.measureFailSafe('nativeLaunch', 'nativeLaunchStart', 'nativeLaunchEnd');
@@ -155,7 +156,7 @@ if (Metrics.canCapturePerformanceMetrics()) {
         }).observe({type: 'react-native-mark', buffered: true});
 
         // Monitor for "_end" marks and capture "_start" to "_end" measures
-        new perfObserver((list: PerformanceObserverEntryList) => {
+        new perfModule.PerformanceObserver((list: PerformanceObserverEntryList) => {
             list.getEntriesByType('mark').forEach((mark: PerformanceEntry) => {
                 if (mark.name.endsWith('_end')) {
                     const end = mark.name;
@@ -200,7 +201,7 @@ if (Metrics.canCapturePerformanceMetrics()) {
     };
 
     Performance.subscribeToMeasurements = (callback: PerformanceEntriesCallback) => {
-        new perfObserver((list: PerformanceObserverEntryList) => {
+        new perfModule.PerformanceObserver((list: PerformanceObserverEntryList) => {
             list.getEntriesByType('measure').forEach(callback);
         }).observe({type: 'measure', buffered: true});
     };

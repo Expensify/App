@@ -7,7 +7,7 @@ import {scrollTo} from 'react-native-reanimated';
 import EmojiPickerMenuItem from '@components/EmojiPicker/EmojiPickerMenuItem';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import isAnimatedTextInputRef from '@components/TextInput/BaseTextInput/isAnimatedTextInoutRef';
+import isAnimatedTextInputFocused from '@components/TextInput/BaseTextInput/isAnimatedTextInputFocused';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useLocalize from '@hooks/useLocalize';
@@ -85,7 +85,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
             }
 
             // If the input is not focused and the new index is out of range, focus the input
-            if (newIndex < 0 && !isAnimatedTextInputRef(searchInputRef) && shouldFocusInputOnScreenFocus) {
+            if (newIndex < 0 && !isAnimatedTextInputFocused(searchInputRef) && shouldFocusInputOnScreenFocus) {
                 searchInputRef.current?.focus();
             }
         },
@@ -164,12 +164,12 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
             // Enable keyboard movement if tab or enter is pressed or if shift is pressed while the input
             // is not focused, so that the navigation and tab cycling can be done using the keyboard without
             // interfering with the input behaviour.
-            if (keyBoardEvent.key === 'Tab' || keyBoardEvent.key === 'Enter' || (keyBoardEvent.key === 'Shift' && searchInputRef.current && !isAnimatedTextInputRef(searchInputRef))) {
+            if (keyBoardEvent.key === 'Tab' || keyBoardEvent.key === 'Enter' || (keyBoardEvent.key === 'Shift' && searchInputRef.current && !isAnimatedTextInputFocused(searchInputRef))) {
                 setIsUsingKeyboardMovement(true);
             }
 
             // We allow typing in the search box if any key is pressed apart from Arrow keys.
-            if (searchInputRef.current && !isAnimatedTextInputRef(searchInputRef) && ReportUtils.shouldAutoFocusOnKeyPress(keyBoardEvent)) {
+            if (searchInputRef.current && !isAnimatedTextInputFocused(searchInputRef) && ReportUtils.shouldAutoFocusOnKeyPress(keyBoardEvent)) {
                 searchInputRef.current.focus();
             }
         },
