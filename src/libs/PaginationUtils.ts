@@ -9,23 +9,73 @@ type PageWithIndex = {
     lastIndex: number;
 };
 
+/**
+ * Finds the id and index in sortedItems of the first item in the given page that's present in sortedItems.
+ */
+function findFirstItem<TResource>(sortedItems: TResource[], page: string[], getID: (item: TResource) => string): {id: string; index: number} | null {
+    for (const id of page) {
+        if (id === CONST.PAGINATION_START_ID) {
+            return {id, index: 0};
+        }
+        const index = sortedItems.findIndex((item) => getID(item) === id);
+        if (index === -1) {
+            return {id, index};
+        }
+    }
+    return null;
+}
+
+/**
+ * Finds the id and index in sortedItems of the last item in the given page that's present in sortedItems.
+ */
+function findLastItem<TResource>(sortedItems: TResource[], page: string[], getID: (item: TResource) => string): {id: string; index: number} | null {
+    for (const id of page.reverse()) {
+        if (id === CONST.PAGINATION_END_ID) {
+            return {id, index: sortedItems.length - 1};
+        }
+        const index = sortedItems.findIndex((item) => getID(item) === id);
+        if (index !== -1) {
+            return {id, index};
+        }
+    }
+    return null;
+}
+
 function getPagesWithIndexes<TResource>(sortedItems: TResource[], pages: Pages, getID: (item: TResource) => string): PageWithIndex[] {
-    return pages.map((page) => {
-        const firstID = page[0];
-        const lastID = page[page.length - 1];
-        return {
-            ids: page,
-            firstID,
-            // TODO: What if the ID is not in the list? Could happen if an action is deleted from another device.
-            firstIndex: firstID === CONST.PAGINATION_START_ID ? 0 : sortedItems.findIndex((item) => getID(item) === firstID),
-            lastID,
-            lastIndex: lastID === CONST.PAGINATION_END_ID ? sortedItems.length - 1 : sortedItems.findIndex((item) => getID(item) === lastID),
-        };
-    });
+    return pages
+        .map((page) => {
+            let firstItem = findFirstItem(sortedItems, page, getID);
+            let lastItem = findLastItem(sortedItems, page, getID);
+
+            // If all actions in the page are not found it will be removed.
+            if (firstItem === null || lastItem === null) {
+                return null;
+            }
+
+            // In case actions were reordered, we need to swap them.
+            if (firstItem.index > lastItem.index) {
+                const temp = firstItem;
+                firstItem = lastItem;
+                lastItem = temp;
+            }
+
+            return {
+                ids: sortedItems.slice(firstItem.index, lastItem.index + 1).map((item) => getID(item)),
+                firstID: firstItem.id,
+                firstIndex: firstItem.index,
+                lastID: lastItem.id,
+                lastIndex: lastItem.index,
+            };
+        })
+        .filter((page): page is PageWithIndex => page !== null);
 }
 
 function mergeContinuousPages<TResource>(sortedItems: TResource[], pages: Pages, getItemID: (item: TResource) => string): Pages {
     const pagesWithIndexes = getPagesWithIndexes(sortedItems, pages, getItemID);
+
+    if (pagesWithIndexes.length === 0) {
+        return [];
+    }
 
     // Pages need to be sorted by firstIndex ascending then by lastIndex descending
     const sortedPages = pagesWithIndexes.sort((a, b) => {
@@ -68,4 +118,42 @@ function mergeContinuousPages<TResource>(sortedItems: TResource[], pages: Pages,
     return result.map((page) => page.ids);
 }
 
-export default {mergeContinuousPages};
+/**
+ * Returns the page of items that contains the item with the given ID, or the first page if null.
+ * See unit tests for example of inputs and expected outputs.
+ *
+ * Note: sortedItems should be sorted in descending order.
+ */
+function getContinuousChain<TResource>(sortedItems: TResource[], pages: Pages, getID: (item: TResource) => string, id?: string): TResource[] {
+    if (pages.length === 0) {
+        return id ? [] : sortedItems;
+    }
+
+    const pagesWithIndexes = getPagesWithIndexes(sortedItems, pages, getID);
+
+    let page: PageWithIndex;
+
+    if (id) {
+        const index = sortedItems.findIndex((item) => getID(item) === id);
+
+        // If we are linking to an action that doesn't exist in Onyx, return an empty array
+        if (index === -1) {
+            return [];
+        }
+
+        const linkedPage = pagesWithIndexes.find((pageIndex) => index >= pageIndex.firstIndex && index <= pageIndex.lastIndex);
+
+        // If we are linked to an action in a gap return it by itself
+        if (!linkedPage) {
+            return [sortedItems[index]];
+        }
+
+        page = linkedPage;
+    } else {
+        page = pagesWithIndexes[0];
+    }
+
+    return sortedItems.slice(page.firstIndex, page.lastIndex + 1);
+}
+
+export default {mergeContinuousPages, getContinuousChain};
