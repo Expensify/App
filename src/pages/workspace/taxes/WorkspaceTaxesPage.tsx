@@ -204,21 +204,21 @@ function WorkspaceTaxesPage({
     }, [policy?.taxRates?.taxes, selectedTaxesIDs, toggleTaxes, translate]);
 
     const headerButtons = !selectedTaxesIDs.length ? (
-        <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
+        <View style={[styles.w100, styles.flexRow, styles.gap2, isSmallScreenWidth && styles.mb3]}>
             <Button
                 medium
                 success
                 onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAX_CREATE.getRoute(policyID))}
                 icon={Expensicons.Plus}
                 text={translate('workspace.taxes.addRate')}
-                style={[styles.mr3, isSmallScreenWidth && styles.w50]}
+                style={[isSmallScreenWidth && styles.flex1]}
             />
             <Button
                 medium
                 onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAXES_SETTINGS.getRoute(policyID))}
                 icon={Expensicons.Gear}
                 text={translate('common.settings')}
-                style={[isSmallScreenWidth && styles.w50]}
+                style={[isSmallScreenWidth && styles.flex1]}
             />
         </View>
     ) : (
@@ -232,6 +232,12 @@ function WorkspaceTaxesPage({
             isSplitButton={false}
             style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
         />
+    );
+
+    const getHeaderText = () => (
+        <View style={[styles.ph5, styles.pb5, styles.pt3]}>
+            <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.taxes.subtitle')}</Text>
+        </View>
     );
 
     return (
@@ -253,12 +259,8 @@ function WorkspaceTaxesPage({
                 >
                     {!isSmallScreenWidth && headerButtons}
                 </HeaderWithBackButton>
-
                 {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
-
-                <View style={[styles.ph5, styles.pb5, styles.pt3]}>
-                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.taxes.subtitle')}</Text>
-                </View>
+                {!isSmallScreenWidth && getHeaderText()}
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -274,6 +276,7 @@ function WorkspaceTaxesPage({
                     onSelectAll={toggleAllTaxes}
                     ListItem={TableListItem}
                     customListHeader={getCustomListHeader()}
+                    listHeaderContent={isSmallScreenWidth ? getHeaderText() : null}
                     shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                     listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                     onDismissError={(item) => (item.keyForList ? clearTaxRateError(policyID, item.keyForList, item.pendingAction) : undefined)}

@@ -15,8 +15,6 @@ import ViolationMessages from '@components/ViolationMessages';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViolations from '@hooks/useViolations';
@@ -97,9 +95,7 @@ function MoneyRequestView({
     const theme = useTheme();
     const styles = useThemeStyles();
     const session = useSession();
-    const StyleUtils = useStyleUtils();
     const {isOffline} = useNetwork();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate, toLocaleDigit} = useLocalize();
     const parentReportAction = parentReportActions?.[report.parentReportActionID ?? ''] ?? null;
     const isTrackExpense = ReportUtils.isTrackExpenseReport(report);
@@ -323,9 +319,9 @@ function MoneyRequestView({
     const shouldShowNotesViolations = !isReceiptBeingScanned && canUseViolations && ReportUtils.isPaidGroupPolicy(report);
 
     return (
-        <View style={[StyleUtils.getReportWelcomeContainerStyle(shouldUseNarrowLayout, true, shouldShowAnimatedBackground)]}>
+        <View style={styles.pRelative}>
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
-            <View style={shouldShowAnimatedBackground && [StyleUtils.getReportWelcomeTopMarginStyle(shouldUseNarrowLayout, true)]}>
+            <>
                 {!isInvoice && (
                     <ReceiptAuditHeader
                         notes={noticeTypeViolations}
@@ -427,8 +423,10 @@ function MoneyRequestView({
                             onPress={() =>
                                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '', report.reportID))
                             }
+                            wrapperStyle={[styles.taskDescriptionMenuItem]}
                             brickRoadIndicator={getErrorForField('merchant') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             errorText={getErrorForField('merchant')}
+                            numberOfLinesTitle={0}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -551,7 +549,7 @@ function MoneyRequestView({
                         />
                     </View>
                 )}
-            </View>
+            </>
         </View>
     );
 }

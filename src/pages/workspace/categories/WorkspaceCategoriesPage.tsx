@@ -217,7 +217,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         }
 
         return (
-            <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
+            <View style={[styles.w100, styles.flexRow, styles.gap2, isSmallScreenWidth && styles.mb3]}>
                 {!PolicyUtils.hasAccountingConnections(policy) && (
                     <Button
                         medium
@@ -225,7 +225,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         onPress={navigateToCreateCategoryPage}
                         icon={Expensicons.Plus}
                         text={translate('workspace.categories.addCategory')}
-                        style={[styles.mr3, isSmallScreenWidth && styles.w50]}
+                        style={[isSmallScreenWidth && styles.flex1]}
                     />
                 )}
                 <Button
@@ -233,7 +233,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     onPress={navigateToCategoriesSettings}
                     icon={Expensicons.Gear}
                     text={translate('common.settings')}
-                    style={[isSmallScreenWidth && styles.w50]}
+                    style={[isSmallScreenWidth && styles.flex1]}
                 />
             </View>
         );
@@ -242,6 +242,24 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const isLoading = !isOffline && policyCategories === undefined;
 
     const shouldShowEmptyState = !categoryList.some((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) && !isLoading;
+
+    const getHeaderText = () => (
+        <View style={[styles.ph5, styles.pb5, styles.pt3]}>
+            {Object.keys(policy?.connections ?? {}).length > 0 ? (
+                <Text>
+                    <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.categories.importedFromAccountingSoftware')} `}</Text>
+                    <TextLink
+                        style={[styles.textNormal, styles.link]}
+                        href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyId)}`}
+                    >
+                        {`${translate('workspace.accounting.qbo')} ${translate('workspace.accounting.settings')}`}
+                    </TextLink>
+                </Text>
+            ) : (
+                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
+            )}
+        </View>
+    );
 
     return (
         <AccessOrNotFoundWrapper
@@ -274,21 +292,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     danger
                 />
                 {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
-                <View style={[styles.ph5, styles.pb5, styles.pt3]}>
-                    {Object.keys(policy?.connections ?? {}).length > 0 ? (
-                        <Text>
-                            <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.categories.importedFromAccountingSoftware')} `}</Text>
-                            <TextLink
-                                style={[styles.textNormal, styles.link]}
-                                href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyId)}`}
-                            >
-                                {`${translate('workspace.accounting.qbo')} ${translate('workspace.accounting.settings')}`}
-                            </TextLink>
-                        </Text>
-                    ) : (
-                        <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
-                    )}
-                </View>
+                {!isSmallScreenWidth && getHeaderText()}
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -315,6 +319,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         onDismissError={dismissError}
                         customListHeader={getCustomListHeader()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                        listHeaderContent={isSmallScreenWidth ? getHeaderText() : null}
                         showScrollIndicator={false}
                     />
                 )}
