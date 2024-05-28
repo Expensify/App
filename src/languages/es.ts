@@ -2221,10 +2221,10 @@ export default {
                 subtitle: 'Sincroniza tu plan de cuentas y otras opciones.',
             },
             connectionsWarningModal: {
-                featureEnabledTitle: 'No tan rápido ...',
-                featureEnabledText: 'Para habilitar o deshabilitar esta función, cambie la configuración de importación de su contabilidad.',
-                disconnectText: 'Desconecte su conexión de contabilidad del espacio de trabajo si desea desactivar Contabilidad.',
-                manageSettings: 'Gestiona configuración',
+                featureEnabledTitle: 'No tan rápido...',
+                featureEnabledText: 'Para activar o desactivar esta función, cambie la configuración de importación contable.',
+                disconnectText: 'Desconecte su conexión contable del espacio de trabajo si desea desactivar la Contabilidad.',
+                manageSettings: 'Gestionar la configuración',
             },
         },
         reportFields: {
