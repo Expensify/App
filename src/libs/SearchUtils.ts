@@ -16,7 +16,7 @@ const columnNamesToSortingProperty = {
     [CONST.SEARCH_TABLE_COLUMNS.FROM]: 'formattedFrom' as const,
     [CONST.SEARCH_TABLE_COLUMNS.DATE]: 'date' as const,
     [CONST.SEARCH_TABLE_COLUMNS.TAG]: 'tag' as const,
-    [CONST.SEARCH_TABLE_COLUMNS.MERCHANT]: 'merchant' as const,
+    [CONST.SEARCH_TABLE_COLUMNS.MERCHANT]: 'formattedMerchant' as const,
     [CONST.SEARCH_TABLE_COLUMNS.TOTAL]: 'formattedTotal' as const,
     [CONST.SEARCH_TABLE_COLUMNS.CATEGORY]: 'category' as const,
     [CONST.SEARCH_TABLE_COLUMNS.TYPE]: 'type' as const,
@@ -61,9 +61,11 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data']): Transac
                 : (data.personalDetailsList?.[transactionItem.managerID] as SearchAccountDetails);
 
             const formattedFrom = from.displayName ?? from.login ?? '';
-            const formattedTo = to.name ?? to.displayName ?? to.login ?? '';
+            const formattedTo = to?.name ?? to?.displayName ?? to?.login ?? '';
             const formattedTotal = TransactionUtils.getAmount(transactionItem, isExpenseReport);
             const date = transactionItem?.modifiedCreated ? transactionItem.modifiedCreated : transactionItem?.created;
+            const merchant = TransactionUtils.getMerchant(transactionItem);
+            const formattedMerchant = merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || merchant === CONST.TRANSACTION.DEFAULT_MERCHANT ? '' : merchant;
 
             return {
                 ...transactionItem,
@@ -73,6 +75,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data']): Transac
                 formattedTo,
                 date,
                 formattedTotal,
+                formattedMerchant,
                 shouldShowMerchant,
                 shouldShowCategory,
                 shouldShowTag,
@@ -117,7 +120,7 @@ function getSortedData(data: TransactionListItemType[], sortBy?: SearchColumnTyp
         const aValue = a[sortingProperty];
         const bValue = b[sortingProperty];
 
-        if (!aValue || !bValue) {
+        if (aValue === undefined || bValue === undefined) {
             return 0;
         }
 

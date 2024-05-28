@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import Avatar from '@components/Avatar';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
@@ -16,7 +15,6 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {Transaction} from '@src/types/onyx';
 import type {SearchAccountDetails, SearchTransactionType} from '@src/types/onyx/SearchResults';
 import BaseListItem from './BaseListItem';
 import TextWithIconCell from './TextWithIconCell';
@@ -54,17 +52,11 @@ function TransactionListItem<TItem extends ListItem>({
     const {isLargeScreenWidth} = useWindowDimensions();
     const StyleUtils = useStyleUtils();
 
-    function getMerchant() {
-        const merchant = TransactionUtils.getMerchant(transactionItem as OnyxEntry<Transaction>);
-        return merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || merchant === CONST.TRANSACTION.DEFAULT_MERCHANT ? '' : merchant;
-    }
-
     const isFromExpenseReport = transactionItem.reportType === CONST.REPORT.TYPE.EXPENSE;
     const date = TransactionUtils.getCreated(transactionItem, CONST.DATE.MONTH_DAY_ABBR_FORMAT);
     const taxAmount = TransactionUtils.getTaxAmount(transactionItem, isFromExpenseReport);
     const currency = TransactionUtils.getCurrency(transactionItem);
     const description = TransactionUtils.getDescription(transactionItem);
-    const merchant = getMerchant();
     const typeIcon = getTypeIcon(transactionItem.type);
 
     const dateCell = (
@@ -78,7 +70,7 @@ function TransactionListItem<TItem extends ListItem>({
     const merchantCell = (
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
-            text={transactionItem.shouldShowMerchant ? merchant : description}
+            text={transactionItem.shouldShowMerchant ? transactionItem.formattedMerchant : description}
             style={[styles.label, styles.pre, styles.justifyContentCenter]}
         />
     );

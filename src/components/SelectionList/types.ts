@@ -144,6 +144,9 @@ type TransactionListItemType = ListItem &
         /** final and formatted "total" value used for displaying and sorting */
         formattedTotal: number;
 
+        /** final and formatted "merchant" value used for displaying and sorting */
+        formattedMerchant: string;
+
         /** final "date" value used for sorting */
         date: string;
 
