@@ -51,6 +51,9 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
         const attachmentsFromReport = extractAttachmentsFromReport(parentReportAction, reportActions ?? undefined);
 
         if (isEqual(attachments, attachmentsFromReport)) {
+            if (attachments.length === 0) {
+                setPage(-1);
+            }
             return;
         }
 
