@@ -228,7 +228,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         isUserCreatedPolicyRoom,
         participants.length,
         report,
-        isPolicyExpenseChat,
         isMoneyRequestReport,
         isInvoiceReport,
         isChatRoom,
