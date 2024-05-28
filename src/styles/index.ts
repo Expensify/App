@@ -3519,6 +3519,12 @@ const styles = (theme: ThemeColors) =>
                 horizontal: windowWidth - 140,
             } satisfies AnchorPosition),
 
+        popoverMenuOffset: (windowWidth: number) =>
+            ({
+                ...getPopOverVerticalOffset(180),
+                horizontal: windowWidth - 355,
+            } satisfies AnchorPosition),
+
         iPhoneXSafeArea: {
             backgroundColor: theme.inverse,
             flex: 1,
@@ -4910,6 +4916,21 @@ const styles = (theme: ThemeColors) =>
 
         textLineThrough: {
             textDecorationLine: 'line-through',
+        },
+
+        reportListItemSeparator: {
+            borderBottomWidth: 1,
+            borderBottomColor: theme.activeComponentBG,
+        },
+
+        reportListItemTitle: {
+            color: theme.text,
+            fontSize: variables.fontSizeNormal,
+            fontWeight: FontUtils.fontWeight.bold,
+        },
+
+        reportListItemActionButtonMargin: {
+            marginLeft: variables.searchTypeColumnWidth,
         },
     } satisfies Styles);
 

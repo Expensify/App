@@ -53,7 +53,6 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
                 <View style={styles.flexGrow1}>
                     <ToggleSettingOptionRow
                         title={translate('workspace.categories.requiresCategory')}
-                        titleStyle={styles.textStrong}
                         subtitle={toggleSubtitle}
                         switchAccessibilityLabel={toggleSubtitle}
                         isActive={policy?.requiresCategory ?? false}
