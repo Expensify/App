@@ -137,8 +137,9 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
 
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.TAGS_BULK_ACTION_TYPES>>> = [];
         const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
+        const isMultiLevelTags = PolicyUtils.isMultiLevelTags(policyTags);
 
-        if (!isThereAnyAccountingConnection) {
+        if (!isThereAnyAccountingConnection && !isMultiLevelTags) {
             options.push({
                 icon: Expensicons.Trashcan,
                 text: translate(selectedTagsArray.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),

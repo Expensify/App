@@ -1,14 +1,14 @@
 import type {NavigationState, PartialState, Route} from '@react-navigation/native';
-import {getStateFromPath} from '@react-navigation/native';
+import {findFocusedRoute, getStateFromPath} from '@react-navigation/native';
 import {isAnonymousUser} from '@libs/actions/Session';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
-import getTopmostNestedRHPRoute from '@libs/Navigation/getTopmostNestedRHPRoute';
 import type {BottomTabName, CentralPaneName, FullScreenName, NavigationPartialRoute, RootStackParamList} from '@libs/Navigation/types';
 import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import CENTRAL_PANE_TO_RHP_MAPPING from './CENTRAL_PANE_TO_RHP_MAPPING';
 import config from './config';
+import extractPolicyIDsFromState from './extractPolicyIDsFromState';
 import FULL_SCREEN_TO_RHP_MAPPING from './FULL_SCREEN_TO_RHP_MAPPING';
 import getMatchingBottomTabRouteForState from './getMatchingBottomTabRouteForState';
 import getMatchingCentralPaneRouteForState from './getMatchingCentralPaneRouteForState';
@@ -114,9 +114,10 @@ function getMatchingRootRouteForRHPRoute(
 
             // If there is rhpNavigator in the state generated for backTo url, we want to get root route matching to this rhp screen.
             if (rhpNavigator && rhpNavigator.state) {
-                const topmostNestedRHPRoute = getTopmostNestedRHPRoute(stateForBackTo);
-                if (topmostNestedRHPRoute) {
-                    return getMatchingRootRouteForRHPRoute(topmostNestedRHPRoute);
+                const isRHPinState = stateForBackTo.routes[0].name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
+
+                if (isRHPinState) {
+                    return getMatchingRootRouteForRHPRoute(findFocusedRoute(stateForBackTo) as NavigationPartialRoute);
                 }
             }
 
@@ -176,12 +177,12 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
         // - found rhp
 
         // This one will be defined because rhpNavigator is defined.
-        const topmostNestedRHPRoute = getTopmostNestedRHPRoute(state);
+        const focusedRHPRoute = findFocusedRoute(state);
         const routes = [];
 
-        if (topmostNestedRHPRoute) {
-            let matchingRootRoute = getMatchingRootRouteForRHPRoute(topmostNestedRHPRoute);
-            const isRHPScreenOpenedFromLHN = topmostNestedRHPRoute?.name && RHP_SCREENS_OPENED_FROM_LHN.includes(topmostNestedRHPRoute?.name as RHPScreenOpenedFromLHN);
+        if (focusedRHPRoute) {
+            let matchingRootRoute = getMatchingRootRouteForRHPRoute(focusedRHPRoute);
+            const isRHPScreenOpenedFromLHN = focusedRHPRoute?.name && RHP_SCREENS_OPENED_FROM_LHN.includes(focusedRHPRoute?.name as RHPScreenOpenedFromLHN);
             // This may happen if this RHP doens't have a route that should be under the overlay defined.
             if (!matchingRootRoute || isRHPScreenOpenedFromLHN) {
                 metainfo.isCentralPaneAndBottomTabMandatory = false;
@@ -372,7 +373,10 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options) => {
         throw new Error('Unable to parse path');
     }
 
-    return getAdaptedState(state, policyID);
+    // Only on SCREENS.SEARCH.CENTRAL_PANE policyID is stored differently as "policyIDs" param, so we're handling this case here
+    const policyIDs = extractPolicyIDsFromState(state);
+
+    return getAdaptedState(state, policyID ?? policyIDs);
 };
 
 export default getAdaptedStateFromPath;

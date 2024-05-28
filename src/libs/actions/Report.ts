@@ -1267,7 +1267,7 @@ function handleReportChanged(report: OnyxEntry<Report>) {
         // Only re-route them if they are still looking at the optimistically created report
         if (Navigation.getActiveRoute().includes(`/r/${report.reportID}`)) {
             callback = () => {
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.preexistingReportID ?? '-1'), CONST.NAVIGATION.TYPE.FORCED_UP);
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.preexistingReportID ?? '-1'), CONST.NAVIGATION.TYPE.UP);
             };
         }
         DeviceEventEmitter.emit(`switchToPreExistingReport_${report.reportID}`, {
@@ -2537,7 +2537,7 @@ function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
             if (!isChatThread) {
                 Navigation.goBack();
             }
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(chat?.reportID), CONST.NAVIGATION.TYPE.FORCED_UP);
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(chat?.reportID), CONST.NAVIGATION.TYPE.UP);
         }
     }
 }
@@ -3579,6 +3579,13 @@ function updateLastVisitTime(reportID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {lastVisitTime: DateUtils.getDBTime()});
 }
 
+function updateLoadingInitialReportAction(reportID: string) {
+    if (!ReportUtils.isValidReportIDFromPath(reportID)) {
+        return;
+    }
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {isLoadingInitialReportActions: false});
+}
+
 function clearNewRoomFormError() {
     Onyx.set(ONYXKEYS.FORMS.NEW_ROOM_FORM, {
         isLoading: false,
@@ -3819,6 +3826,7 @@ export {
     leaveGroupChat,
     removeFromGroupChat,
     updateGroupChatMemberRoles,
+    updateLoadingInitialReportAction,
     clearAddRoomMemberError,
     clearAvatarErrors,
 };
