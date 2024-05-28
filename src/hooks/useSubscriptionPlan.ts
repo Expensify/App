@@ -10,6 +10,7 @@ function useSubscriptionPlan() {
         return null;
     }
 
+    // Filter workspaces in which user is the admin and the type is either corporate (control) or team (collect)
     const adminPolicies = Object.fromEntries(
         Object.entries(policies).filter(
             ([, policy]) => policy?.role === CONST.POLICY.ROLE.ADMIN && (CONST.POLICY.TYPE.CORPORATE === policy?.type || CONST.POLICY.TYPE.TEAM === policy?.type),
@@ -20,8 +21,10 @@ function useSubscriptionPlan() {
         return null;
     }
 
+    // Check if user has corporate (control) workspace
     const hasControlWorkspace = Object.entries(adminPolicies).some(([, policy]) => policy?.type === CONST.POLICY.TYPE.CORPORATE);
 
+    // Corporate (control) workspace is supposed to be the higher priority
     return hasControlWorkspace ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM;
 }
 
