@@ -927,6 +927,7 @@ const CONST = {
         RESIZE_DEBOUNCE_TIME: 100,
     },
     SEARCH_TABLE_COLUMNS: {
+        RECEIPT: 'receipt',
         DATE: 'date',
         MERCHANT: 'merchant',
         FROM: 'from',

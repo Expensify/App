@@ -440,6 +440,11 @@ type TransactionCellProps = {
     transactionItem: TransactionListItemType;
 } & CellProps;
 
+type ReceiptCellProps = {
+    transactionItem: TransactionListItemType;
+    isHovered?: boolean;
+} & CellProps;
+
 type DateCellProps = {
     date: string;
 } & CellProps;
@@ -483,6 +488,7 @@ export type {
     ListItemProps,
     MerchantCellProps,
     RadioListItemProps,
+    ReceiptCellProps,
     ReportListItemProps,
     ReportListItemType,
     Section,

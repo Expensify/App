@@ -401,11 +401,20 @@ function getZoomSizingStyle(
 }
 
 /**
- * Returns auto grow text input style
+ * Returns a style with width set to the specified number
  */
 function getWidthStyle(width: number): ViewStyle & ImageStyle {
     return {
         width,
+    };
+}
+
+/**
+ * Returns a style with border radius set to the specified number
+ */
+function getBorderRadiusStyle(borderRadius: number): ViewStyle & ImageStyle {
+    return {
+        borderRadius,
     };
 }
 
@@ -689,7 +698,7 @@ function getMinimumHeight(minHeight: number): ViewStyle {
 /**
  * Get minimum width as style
  */
-function getMinimumWidth(minWidth: number): ViewStyle {
+function getMinimumWidth(minWidth: number): ViewStyle & ImageStyle {
     return {
         minWidth,
     };
@@ -1184,6 +1193,7 @@ const staticStyleUtils = {
     getButtonStyleWithIcon,
     getCharacterWidth,
     getAmountWidth,
+    getBorderRadiusStyle,
 };
 
 const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
@@ -1549,6 +1559,9 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     getSearchTableColumnStyles: (columnName: string): ViewStyle => {
         let columnWidth;
         switch (columnName) {
+            case CONST.SEARCH_TABLE_COLUMNS.RECEIPT:
+                columnWidth = {...getWidthStyle(variables.w36), ...styles.alignItemsCenter};
+                break;
             case CONST.SEARCH_TABLE_COLUMNS.DATE:
                 columnWidth = getWidthStyle(variables.w44);
                 break;
@@ -1575,6 +1588,10 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
 
         return columnWidth;
     },
+
+    getTextOverflowStyle: (overflow: string): TextStyle => ({
+        textOverflow: overflow,
+    }),
 
     /**
      * Returns container styles for showing the icons in MultipleAvatars/SubscriptAvatar
