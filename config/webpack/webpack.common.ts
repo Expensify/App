@@ -1,3 +1,4 @@
+import type WebpackPlugin from '@vue/preload-webpack-plugin';
 import {CleanWebpackPlugin} from 'clean-webpack-plugin';
 import CopyPlugin from 'copy-webpack-plugin';
 import dotenv from 'dotenv';
@@ -11,7 +12,7 @@ import CustomVersionFilePlugin from './CustomVersionFilePlugin';
 import type Environment from './types';
 
 // require is necessary, there are no types for this package and the declaration file can't be seen by the build process which causes an error.
-const PreloadWebpackPlugin = require('@vue/preload-webpack-plugin');
+const PreloadWebpackPlugin: typeof WebpackPlugin = require('@vue/preload-webpack-plugin');
 
 const includeModules = [
     'react-native-animatable',

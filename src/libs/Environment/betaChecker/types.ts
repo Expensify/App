@@ -1,3 +1,7 @@
 type IsBetaBuild = Promise<boolean>;
 
-export default IsBetaBuild;
+type EnvironmentCheckerProps = {
+    isBeta: () => IsBetaBuild;
+};
+
+export type {IsBetaBuild, EnvironmentCheckerProps};

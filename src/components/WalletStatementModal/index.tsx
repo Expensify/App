@@ -18,7 +18,7 @@ function WalletStatementModal({statementPageURL, session}: WalletStatementProps)
     /**
      * Handles in-app navigation for iframe links
      */
-    const navigate = (event: MessageEvent) => {
+    const navigate = (event: MessageEvent<{url: string; type: string}>) => {
         if (!event.data?.type || (event.data.type !== CONST.WALLET.WEB_MESSAGE_TYPE.STATEMENT && event.data.type !== CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE)) {
             return;
         }
