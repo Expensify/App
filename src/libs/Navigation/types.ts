@@ -64,6 +64,7 @@ type CentralPaneNavigatorParamList = {
     [SCREENS.SETTINGS.WORKSPACES]: undefined;
     [SCREENS.SEARCH.CENTRAL_PANE]: {
         query: string;
+        policyIDs?: string;
     };
     [SCREENS.SETTINGS.SAVE_THE_WORLD]: undefined;
 };
@@ -306,9 +307,6 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_COMPANY_CARD_SELECT]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_PAYABLE_SELECT]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT_PREFERRED_EXPORTER]: {

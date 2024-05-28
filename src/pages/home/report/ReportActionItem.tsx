@@ -54,7 +54,7 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
-import * as Policy from '@userActions/Policy';
+import * as Policy from '@userActions/Policy/Policy';
 import * as Report from '@userActions/Report';
 import * as ReportActions from '@userActions/ReportActions';
 import * as Session from '@userActions/Session';
@@ -64,6 +64,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import {RestrictedReadOnlyContextMenuActions} from './ContextMenu/ContextMenuActions';
@@ -102,6 +103,9 @@ type ReportActionItemOnyxProps = {
 
     /** Transaction associated with this report, if any */
     transaction: OnyxEntry<OnyxTypes.Transaction>;
+
+    /** The transaction (linked with the report action) route error */
+    linkedTransactionRouteError: OnyxEntry<Errors>;
 };
 
 type ReportActionItemProps = {
@@ -183,6 +187,7 @@ function ReportActionItem({
     isFirstVisibleReportAction = false,
     shouldUseThreadDividerLine = false,
     onLayout = undefined,
+    linkedTransactionRouteError,
 }: ReportActionItemProps) {
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -782,20 +787,18 @@ function ReportActionItem({
                     message = 'parentReportAction.deletedExpense';
                 }
                 return (
-                    <View>
+                    <View style={[styles.pRelative]}>
                         <AnimatedEmptyStateBackground />
-                        <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}>
-                            <OfflineWithFeedback pendingAction={parentReportAction?.pendingAction ?? null}>
-                                <ReportActionItemSingle
-                                    action={parentReportAction}
-                                    showHeader
-                                    report={report}
-                                >
-                                    <RenderHTML html={`<comment>${translate(message)}</comment>`} />
-                                </ReportActionItemSingle>
-                                <View style={styles.threadDividerLine} />
-                            </OfflineWithFeedback>
-                        </View>
+                        <OfflineWithFeedback pendingAction={parentReportAction?.pendingAction ?? null}>
+                            <ReportActionItemSingle
+                                action={parentReportAction}
+                                showHeader
+                                report={report}
+                            >
+                                <RenderHTML html={`<comment>${translate(message)}</comment>`} />
+                            </ReportActionItemSingle>
+                            <View style={styles.threadDividerLine} />
+                        </OfflineWithFeedback>
                     </View>
                 );
             }
@@ -814,27 +817,25 @@ function ReportActionItem({
         if (ReportUtils.isTaskReport(report)) {
             if (ReportUtils.isCanceledTaskReport(report, parentReportAction)) {
                 return (
-                    <View>
+                    <View style={[styles.pRelative]}>
                         <AnimatedEmptyStateBackground />
-                        <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}>
-                            <OfflineWithFeedback pendingAction={parentReportAction?.pendingAction}>
-                                <ReportActionItemSingle
-                                    action={parentReportAction}
-                                    showHeader={draftMessage === undefined}
-                                    report={report}
-                                >
-                                    <RenderHTML html={`<comment>${translate('parentReportAction.deletedTask')}</comment>`} />
-                                </ReportActionItemSingle>
-                            </OfflineWithFeedback>
-                            <View style={styles.reportHorizontalRule} />
-                        </View>
+                        <OfflineWithFeedback pendingAction={parentReportAction?.pendingAction}>
+                            <ReportActionItemSingle
+                                action={parentReportAction}
+                                showHeader={draftMessage === undefined}
+                                report={report}
+                            >
+                                <RenderHTML html={`<comment>${translate('parentReportAction.deletedTask')}</comment>`} />
+                            </ReportActionItemSingle>
+                        </OfflineWithFeedback>
+                        <View style={styles.reportHorizontalRule} />
                     </View>
                 );
             }
             return (
-                <View>
+                <View style={[styles.pRelative]}>
                     <AnimatedEmptyStateBackground />
-                    <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}>
+                    <View>
                         <TaskView report={report} />
                         {renderThreadDivider}
                     </View>
@@ -976,7 +977,7 @@ function ReportActionItem({
                                     draftMessage !== undefined ? undefined : action.pendingAction ?? (action.isOptimisticAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : undefined)
                                 }
                                 shouldHideOnDelete={!ReportActionsUtils.isThreadParentMessage(action, report.reportID)}
-                                errors={ErrorUtils.getLatestErrorMessageField(action as ErrorUtils.OnyxDataWithErrors)}
+                                errors={linkedTransactionRouteError ?? ErrorUtils.getLatestErrorMessageField(action as ErrorUtils.OnyxDataWithErrors)}
                                 errorRowStyles={[styles.ml10, styles.mr2]}
                                 needsOffscreenAlphaCompositing={ReportActionsUtils.isMoneyRequestAction(action)}
                                 shouldDisableStrikeThrough
@@ -1044,6 +1045,10 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
             return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
         },
     },
+    linkedTransactionRouteError: {
+        key: ({action}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${(action as OnyxTypes.OriginalMessageIOU)?.originalMessage?.IOUTransactionID ?? 0}`,
+        selector: (transaction: OnyxEntry<OnyxTypes.Transaction>) => transaction?.errorFields?.route ?? null,
+    },
 })(
     memo(ReportActionItem, (prevProps, nextProps) => {
         const prevParentReportAction = prevProps.parentReportAction;
@@ -1078,6 +1083,7 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
             lodashIsEqual(prevProps.transactionThreadReport, nextProps.transactionThreadReport) &&
             lodashIsEqual(prevProps.reportActions, nextProps.reportActions) &&
             lodashIsEqual(prevProps.transaction, nextProps.transaction) &&
+            lodashIsEqual(prevProps.linkedTransactionRouteError, nextProps.linkedTransactionRouteError) &&
             lodashIsEqual(prevParentReportAction, nextParentReportAction)
         );
     }),
