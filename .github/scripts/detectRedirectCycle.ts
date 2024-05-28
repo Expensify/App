@@ -52,7 +52,7 @@ function detectCycle(): boolean {
 
 fs.createReadStream(`${process.cwd()}/docs/redirects.csv`)
     .pipe(parser)
-    .on('data', (row) => {
+    .on('data', (row: [string, string]) => {
         // Create a directed graph of sourceURL -> targetURL
         addEdge(row[0], row[1]);
     })
