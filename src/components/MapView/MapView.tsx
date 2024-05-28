@@ -195,10 +195,8 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
     },
 );
 
-export default memo(
-    withOnyx<ComponentProps, MapViewOnyxProps>({
-        userLocation: {
-            key: ONYXKEYS.USER_LOCATION,
-        },
-    })(MapView),
-);
+export default withOnyx<ComponentProps, MapViewOnyxProps>({
+    userLocation: {
+        key: ONYXKEYS.USER_LOCATION,
+    },
+})(memo(MapView));
