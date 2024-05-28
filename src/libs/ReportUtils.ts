@@ -3127,7 +3127,7 @@ function getReportActionMessage(reportAction: ReportAction | EmptyObject, report
         return getReimbursementQueuedActionMessage(reportAction, getReport(reportID), false);
     }
 
-    return parseReportActionHtmlToText(reportAction, reportID, childReportID);
+    return parseReportActionHtmlToText(reportAction, reportID ?? "", childReportID);
 }
 
 /**
