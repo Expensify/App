@@ -75,7 +75,7 @@ function prepareRequest<TCommand extends ApiCommand>(command: TCommand, type: Ap
     };
 
     // This should be removed once we are no longer using deprecatedAPI https://github.com/Expensify/Expensify/issues/215650
-    if (type === CONST.API_REQUEST_TYPE.WRITE) {
+    if (isWriteRequest) {
         request.data.shouldRetry = true;
         request.data.canCancel = true;
     }
