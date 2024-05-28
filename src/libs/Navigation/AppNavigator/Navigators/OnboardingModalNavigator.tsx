@@ -1,18 +1,21 @@
 import {createStackNavigator} from '@react-navigation/stack';
-import React, {useEffect} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
+import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import OnboardingModalNavigatorScreenOptions from '@libs/Navigation/AppNavigator/OnboardingModalNavigatorScreenOptions';
 import Navigation from '@libs/Navigation/Navigation';
 import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
+import OnboardingRefManager from '@libs/OnboardingRefManager';
 import OnboardingPersonalDetails from '@pages/OnboardingPersonalDetails';
 import OnboardingPurpose from '@pages/OnboardingPurpose';
 import OnboardingWork from '@pages/OnboardingWork';
 import * as Report from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
+import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 import Overlay from './Overlay';
 
@@ -41,11 +44,26 @@ function OnboardingModalNavigator() {
         return null;
     }
 
+    const outerViewRef = React.useRef<View>(null);
+
+    const handleOuterClick = useCallback(() => {
+        OnboardingRefManager.handleOuterClick();
+    }, []);
+
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, handleOuterClick, {shouldBubble: true});
+
     return (
         <NoDropZone>
             <Overlay />
-            <View style={styles.onboardingNavigatorOuterView}>
-                <View style={styles.OnboardingNavigatorInnerView(shouldUseNarrowLayout)}>
+            <View
+                ref={outerViewRef}
+                onClick={handleOuterClick}
+                style={styles.onboardingNavigatorOuterView}
+            >
+                <View
+                    onClick={(e) => e.stopPropagation()}
+                    style={styles.OnboardingNavigatorInnerView(shouldUseNarrowLayout)}
+                >
                     <Stack.Navigator screenOptions={OnboardingModalNavigatorScreenOptions()}>
                         <Stack.Screen
                             name={SCREENS.ONBOARDING.PURPOSE}

@@ -26,7 +26,7 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import type {WorkspacesCentralPaneNavigatorParamList} from '@navigation/types';
+import type {FullScreenNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -35,7 +35,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {TaxRate} from '@src/types/onyx';
 
-type WorkspaceTaxesPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.TAXES>;
+type WorkspaceTaxesPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.TAXES>;
 
 function WorkspaceTaxesPage({
     policy,
@@ -211,14 +211,14 @@ function WorkspaceTaxesPage({
                 onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAX_CREATE.getRoute(policyID))}
                 icon={Expensicons.Plus}
                 text={translate('workspace.taxes.addRate')}
-                style={[styles.mr3, isSmallScreenWidth && styles.w50]}
+                style={[styles.mr3, isSmallScreenWidth && styles.flex1]}
             />
             <Button
                 medium
                 onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAXES_SETTINGS.getRoute(policyID))}
                 icon={Expensicons.Gear}
                 text={translate('common.settings')}
-                style={[isSmallScreenWidth && styles.w50]}
+                style={[isSmallScreenWidth && styles.flex1]}
             />
         </View>
     ) : (
@@ -232,6 +232,12 @@ function WorkspaceTaxesPage({
             isSplitButton={false}
             style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
         />
+    );
+
+    const getHeaderText = () => (
+        <View style={[styles.ph5, styles.pb5, styles.pt3]}>
+            <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.taxes.subtitle')}</Text>
+        </View>
     );
 
     return (
@@ -253,12 +259,8 @@ function WorkspaceTaxesPage({
                 >
                     {!isSmallScreenWidth && headerButtons}
                 </HeaderWithBackButton>
-
                 {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
-
-                <View style={[styles.ph5, styles.pb5, styles.pt3]}>
-                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.taxes.subtitle')}</Text>
-                </View>
+                {!isSmallScreenWidth && getHeaderText()}
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -272,12 +274,13 @@ function WorkspaceTaxesPage({
                     onCheckboxPress={toggleTax}
                     onSelectRow={navigateToEditTaxRate}
                     onSelectAll={toggleAllTaxes}
-                    showScrollIndicator
                     ListItem={TableListItem}
                     customListHeader={getCustomListHeader()}
+                    listHeaderContent={isSmallScreenWidth ? getHeaderText() : null}
                     shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                     listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                     onDismissError={(item) => (item.keyForList ? clearTaxRateError(policyID, item.keyForList, item.pendingAction) : undefined)}
+                    showScrollIndicator={false}
                 />
                 <ConfirmModal
                     title={translate('workspace.taxes.actions.delete')}
