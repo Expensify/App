@@ -119,6 +119,7 @@ function IOURequestStepWaypoint({
                 name: values.name ?? '',
                 lat: values.lat ?? 0,
                 lng: values.lng ?? 0,
+                keyForList: `${(values.name ?? 'waypoint') as string}_${Date.now()}`,
             };
             saveWaypoint(waypoint);
         }
@@ -139,6 +140,7 @@ function IOURequestStepWaypoint({
             lng: values.lng ?? 0,
             address: values.address ?? '',
             name: values.name ?? '',
+            keyForList: `${values.name ?? 'waypoint'}_${Date.now()}`,
         };
 
         Transaction.saveWaypoint(transactionID, pageIndex, waypoint, action === CONST.IOU.ACTION.CREATE);
