@@ -1,6 +1,5 @@
 import React from 'react';
-import {Linking, Platform, View} from 'react-native';
-import Button from '@components/Button';
+import {View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -12,6 +11,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import SaveWithExpensifyButton from './SaveWithExpensifyButton';
 
 function SubscriptionPlan() {
     const {translate} = useLocalize();
@@ -46,16 +46,10 @@ function SubscriptionPlan() {
     let priceInfo;
 
     if (isCollect) {
-        priceInfo = isAnnual ? translate('subscription.yourPlan.collect.priceAnnual') : translate('subscription.yourPlan.collect.pricePayPerUse');
+        priceInfo = translate(`subscription.yourPlan.collect.${isAnnual ? 'priceAnnual' : 'pricePayPerUse'}`);
     } else {
-        priceInfo = isAnnual ? translate('subscription.yourPlan.control.priceAnnual') : translate('subscription.yourPlan.control.pricePayPerUse');
+        priceInfo = translate(`subscription.yourPlan.control.${isAnnual ? 'priceAnnual' : 'pricePayPerUse'}`);
     }
-
-    const onLinkPress = () => {
-        Linking.openURL('https://use.expensify.com/savings-calculator');
-    };
-
-    const isNativeApp = Platform.OS === 'ios' || Platform.OS === 'android';
 
     return (
         <Section
@@ -95,13 +89,7 @@ function SubscriptionPlan() {
                     <Text style={[styles.yourPlanTitle, styles.mt2]}>{translate('subscription.yourPlan.saveWithExpensifyTitle')}</Text>
                     <Text style={[styles.yourPlanSubtitle, styles.mb2]}>{translate('subscription.yourPlan.saveWithExpensifyDescription')}</Text>
                 </View>
-                {isNativeApp ? null : (
-                    <Button
-                        text={translate('subscription.yourPlan.saveWithExpensifyButton')}
-                        onPress={onLinkPress}
-                        medium
-                    />
-                )}
+                <SaveWithExpensifyButton />
             </View>
         </Section>
     );

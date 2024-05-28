@@ -1,3 +1,4 @@
+import {useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -6,16 +7,18 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 function useSubscriptionPlan() {
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
-    if (!policies) {
-        return null;
-    }
-
     // Filter workspaces in which user is the admin and the type is either corporate (control) or team (collect)
-    const adminPolicies = Object.fromEntries(
-        Object.entries(policies).filter(
-            ([, policy]) => policy?.role === CONST.POLICY.ROLE.ADMIN && (CONST.POLICY.TYPE.CORPORATE === policy?.type || CONST.POLICY.TYPE.TEAM === policy?.type),
-        ),
-    );
+    const adminPolicies = useMemo(() => {
+        if (!policies) {
+            return {};
+        }
+
+        return Object.fromEntries(
+            Object.entries(policies).filter(
+                ([, policy]) => policy?.role === CONST.POLICY.ROLE.ADMIN && (CONST.POLICY.TYPE.CORPORATE === policy?.type || CONST.POLICY.TYPE.TEAM === policy?.type),
+            ),
+        );
+    }, [policies]);
 
     if (isEmptyObject(adminPolicies)) {
         return null;
