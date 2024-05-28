@@ -250,6 +250,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 errors={report.errorFields?.avatar ?? null}
                 errorRowStyles={styles.mt6}
                 onErrorClose={() => Report.clearAvatarErrors(report.reportID ?? '')}
+                shouldUseStyleUtilityForAnchorPosition
             />
         ) : (
             <RoomHeaderAvatars

@@ -1363,7 +1363,8 @@ export default {
         whereYouWork: 'Where do you work?',
         purpose: {
             title: 'What do you want to do today?',
-            error: 'Please make a selection before continuing.',
+            errorSelection: 'Please make a selection to continue.',
+            errorContinue: 'Please press continue to get set up.',
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Get paid back by my employer',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: "Manage my team's expenses",
             [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: 'Track and budget expenses',
@@ -2193,7 +2194,7 @@ export default {
         },
         tags: {
             tagName: 'Tag name',
-            requiresTag: 'Members must tag all spend',
+            requiresTag: 'Members must tag all expenses',
             customTagName: 'Custom tag name',
             enableTag: 'Enable tag',
             enableTags: 'Enable tags',
@@ -3065,6 +3066,7 @@ export default {
         taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams) => `${taxName ?? 'Tax'} no longer valid`,
         taxRateChanged: 'Tax rate was modified',
         taxRequired: 'Missing tax rate',
+        hold: 'Hold',
     },
     violationDismissal: {
         rter: {
