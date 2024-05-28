@@ -199,7 +199,7 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
                     Navigation.goBack(backRoute);
                 }}
             />
-            <View style={[styles.flex1, styles.p1]}>
+            <View style={[styles.flex1]}>
                 <SelectionList
                     canSelectMultiple
                     sections={sections}
@@ -215,12 +215,12 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
                     showLoadingPlaceholder={!didScreenTransitionEnd || !OptionsListUtils.isPersonalDetailsReady(personalDetails)}
                 />
             </View>
-            <View style={[styles.flexShrink0, styles.p5]}>
+            <View style={[styles.flexShrink0, styles.p5, styles.pt0]}>
                 <FormAlertWithSubmitButton
                     isDisabled={!selectedOptions.length}
                     buttonText={translate('common.invite')}
                     onSubmit={inviteUsers}
-                    containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5]}
+                    containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
                     enabledWhenOffline
                     disablePressOnEnter
                 />
