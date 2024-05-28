@@ -155,9 +155,6 @@ function makeRequestWithSideEffects<TCommand extends SideEffectRequestCommand>(
  * write requests that use the same Onyx keys and haven't responded yet.
  */
 function validateReadyToRead<TCommand extends ReadCommand>(command: TCommand) {
-    // Ensure all write requests on the sequential queue have finished responding before running read requests.
-    // Responses from read requests can overwrite the optimistic data inserted by
-    // write requests that use the same Onyx keys and haven't responded yet.
     if (PersistedRequests.getLength() > 0) {
         Log.info(`[API] '${command}' is waiting on ${PersistedRequests.getLength()} write commands`);
     }
