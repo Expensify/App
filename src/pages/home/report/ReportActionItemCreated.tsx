@@ -7,7 +7,6 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ReportWelcomeText from '@components/ReportWelcomeText';
 import useLocalize from '@hooks/useLocalize';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -38,7 +37,6 @@ type ReportActionItemCreatedProps = ReportActionItemCreatedOnyxProps & {
 };
 function ReportActionItemCreated(props: ReportActionItemCreatedProps) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
 
     const {translate} = useLocalize();
     const {isSmallScreenWidth, isLargeScreenWidth} = useWindowDimensions();
@@ -62,11 +60,11 @@ function ReportActionItemCreated(props: ReportActionItemCreatedProps) {
             onClose={() => navigateToConciergeChatAndDeleteReport(props.report?.reportID ?? props.reportID)}
             needsOffscreenAlphaCompositing
         >
-            <View style={StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth)}>
+            <View style={[styles.pRelative]}>
                 <AnimatedEmptyStateBackground />
                 <View
                     accessibilityLabel={translate('accessibilityHints.chatWelcomeMessage')}
-                    style={[styles.p5, StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}
+                    style={[styles.p5]}
                 >
                     <PressableWithoutFeedback
                         onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
