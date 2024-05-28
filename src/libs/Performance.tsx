@@ -46,6 +46,8 @@ type PerformanceModule = {
     subscribeToMeasurements: SubscribeToMeasurements;
 };
 
+type PerformanceObserverCallback = (entries: PerformanceObserverEntryList, observer: PerformanceObserver) => void;
+
 let rnPerformance: RNPerformance;
 
 /**
@@ -87,8 +89,11 @@ const Performance: PerformanceModule = {
 
 if (Metrics.canCapturePerformanceMetrics()) {
     const perfModule = require('react-native-performance');
-    perfModule.setResourceLoggingEnabled(true);
-    rnPerformance = perfModule.default;
+    const {default: performance, setResourceLoggingEnabled, PerformanceObserver} = perfModule;
+    const perfObserver: new (callback: PerformanceObserverCallback) => PerformanceObserver = PerformanceObserver;
+
+    (setResourceLoggingEnabled as (enabled?: boolean) => void)(true);
+    rnPerformance = performance;
 
     Performance.measureFailSafe = (measureName: string, startOrMeasureOptions: string, endMark?: string) => {
         try {
@@ -123,7 +128,7 @@ if (Metrics.canCapturePerformanceMetrics()) {
      */
     Performance.setupPerformanceObserver = () => {
         // Monitor some native marks that we want to put on the timeline
-        new perfModule.PerformanceObserver((list: PerformanceObserverEntryList, observer: PerformanceObserver) => {
+        new perfObserver((list: PerformanceObserverEntryList, observer: PerformanceObserver) => {
             list.getEntries().forEach((entry: PerformanceEntry) => {
                 if (entry.name === 'nativeLaunchEnd') {
                     Performance.measureFailSafe('nativeLaunch', 'nativeLaunchStart', 'nativeLaunchEnd');
@@ -150,7 +155,7 @@ if (Metrics.canCapturePerformanceMetrics()) {
         }).observe({type: 'react-native-mark', buffered: true});
 
         // Monitor for "_end" marks and capture "_start" to "_end" measures
-        new perfModule.PerformanceObserver((list: PerformanceObserverEntryList) => {
+        new perfObserver((list: PerformanceObserverEntryList) => {
             list.getEntriesByType('mark').forEach((mark: PerformanceEntry) => {
                 if (mark.name.endsWith('_end')) {
                     const end = mark.name;
@@ -195,7 +200,7 @@ if (Metrics.canCapturePerformanceMetrics()) {
     };
 
     Performance.subscribeToMeasurements = (callback: PerformanceEntriesCallback) => {
-        new perfModule.PerformanceObserver((list: PerformanceObserverEntryList) => {
+        new perfObserver((list: PerformanceObserverEntryList) => {
             list.getEntriesByType('measure').forEach(callback);
         }).observe({type: 'measure', buffered: true});
     };

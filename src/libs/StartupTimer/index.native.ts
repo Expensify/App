@@ -6,7 +6,8 @@ import type StartupTimer from './types';
  */
 const startupTimer: StartupTimer = {
     stop: () => {
-        NativeModules.StartupTimer.stop();
+        const {StartupTimer} = NativeModules;
+        (StartupTimer as StartupTimer).stop();
     },
 };
 
