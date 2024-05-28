@@ -6839,20 +6839,20 @@ function mergeDuplicates(params: TransactionMergeParams) {
         value: originalSelectedTransaction as OnyxTypes.Transaction,
     };
 
-    const optimisticTransactionDuplicatesData: OnyxUpdate[] = params.transactionIDs.map((id) => ({
+    const optimisticTransactionDuplicatesData: OnyxUpdate[] = params.transactionIDList.map((id) => ({
         onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${id}`,
         value: null,
     }));
 
-    const failureTransactionDuplicatesData: OnyxUpdate[] = params.transactionIDs.map((id) => ({
+    const failureTransactionDuplicatesData: OnyxUpdate[] = params.transactionIDList.map((id) => ({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${id}`,
         // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
         value: allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`] as OnyxTypes.Transaction,
     }));
 
-    const optimisticTransactionViolations: OnyxUpdate[] = [...params.transactionIDs, params.transactionID].map((id) => {
+    const optimisticTransactionViolations: OnyxUpdate[] = [...params.transactionIDList, params.transactionID].map((id) => {
         const violations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? [];
         return {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -6861,7 +6861,7 @@ function mergeDuplicates(params: TransactionMergeParams) {
         };
     });
 
-    const failureTransactionViolations: OnyxUpdate[] = [...params.transactionIDs, params.transactionID].map((id) => {
+    const failureTransactionViolations: OnyxUpdate[] = [...params.transactionIDList, params.transactionID].map((id) => {
         const violations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? [];
         return {
             onyxMethod: Onyx.METHOD.MERGE,

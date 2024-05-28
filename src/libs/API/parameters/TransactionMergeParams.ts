@@ -1,6 +1,6 @@
 type TransactionMergeParams = {
     transactionID: string;
-    transactionIDs: string[];
+    transactionIDList: string[];
     created: string;
     merchant: string;
     amount: number;
