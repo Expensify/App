@@ -4,7 +4,7 @@ import type {MaybePhraseKey} from '@libs/Localize';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import type CONST from '@src/CONST';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {SearchAccountDetails, SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {SearchAccountDetails, SearchPersonalDetails, SearchPolicyDetails, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -125,6 +125,9 @@ type ListItem = {
 
     /** Whether the brick road indicator should be shown */
     brickRoadIndicator?: BrickRoad | '' | null;
+
+    /** Whether item pressable wrapper should be focusable */
+    tabIndex?: 0 | -1;
 };
 
 type TransactionListItemType = ListItem &
@@ -321,6 +324,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Custom content to display in the header */
     headerContent?: ReactNode;
 
+    /** Custom content to display in the header of list component. */
+    listHeaderContent?: React.JSX.Element | null;
+
     /** Custom content to display in the footer */
     footerContent?: ReactNode;
 
@@ -365,6 +371,29 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
      * When false, the list will render immediately and scroll to the bottom which works great for small lists.
      */
     shouldHideListOnInitialRender?: boolean;
+
+    /** Called once when the scroll position gets within onEndReachedThreshold of the rendered content. */
+    onEndReached?: () => void;
+
+    /**
+     * How far from the end (in units of visible length of the list) the bottom edge of the
+     * list must be from the end of the content to trigger the `onEndReached` callback.
+     * Thus a value of 0.5 will trigger `onEndReached` when the end of the content is
+     * within half the visible length of the list.
+     */
+    onEndReachedThreshold?: number;
+
+    /**
+     * While maxToRenderPerBatch tells the amount of items rendered per batch, setting updateCellsBatchingPeriod tells your VirtualizedList the delay in milliseconds between batch renders (how frequently your component will be rendering the windowed items).
+     * https://reactnative.dev/docs/optimizing-flatlist-configuration#updatecellsbatchingperiod
+     */
+    updateCellsBatchingPeriod?: number;
+
+    /**
+     * The number passed here is a measurement unit where 1 is equivalent to your viewport height. The default value is 21 (10 viewports above, 10 below, and one in between).
+     * https://reactnative.dev/docs/optimizing-flatlist-configuration#windowsize
+     */
+    windowSize?: number;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
@@ -380,6 +409,7 @@ type FlattenedSectionsReturn<TItem extends ListItem> = {
     allOptions: TItem[];
     selectedOptions: TItem[];
     disabledOptionsIndexes: number[];
+    disabledArrowKeyOptionsIndexes: number[];
     itemLayouts: ItemLayout[];
     allSelected: boolean;
 };
@@ -391,6 +421,43 @@ type ExtendedSectionListData<TItem extends ListItem, TSection extends SectionWit
 };
 
 type SectionListDataType<TItem extends ListItem> = ExtendedSectionListData<TItem, SectionWithIndexOffset<TItem>>;
+
+type CellProps = {
+    showTooltip: boolean;
+    keyForList: string;
+    isLargeScreenWidth: boolean;
+};
+
+type TransactionCellProps = {
+    transactionItem: TransactionListItemType;
+} & CellProps;
+
+type DateCellProps = {
+    date: string;
+} & CellProps;
+
+type MerchantCellProps = {
+    merchant: string;
+    description: string;
+} & TransactionCellProps;
+
+type UserCellProps = {
+    participant: Partial<SearchPolicyDetails & SearchPersonalDetails>;
+} & CellProps;
+
+type CurrencyCellProps = {
+    amount: number;
+    currency: string;
+} & CellProps;
+
+type ActionCellProps = {
+    item: TransactionListItemType;
+    onSelectRow: (item: TransactionListItemType) => void;
+} & CellProps;
+
+type TypeCellProps = {
+    typeIcon: IconAsset;
+} & CellProps;
 
 export type {
     BaseListItemProps,
@@ -412,4 +479,12 @@ export type {
     TransactionListItemType,
     UserListItemProps,
     ValidListItem,
+    DateCellProps,
+    MerchantCellProps,
+    UserCellProps,
+    CurrencyCellProps,
+    TransactionCellProps,
+    ActionCellProps,
+    TypeCellProps,
+    CellProps,
 };

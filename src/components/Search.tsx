@@ -8,7 +8,7 @@ import Log from '@libs/Log';
 import * as SearchUtils from '@libs/SearchUtils';
 import Navigation from '@navigation/Navigation';
 import EmptySearchView from '@pages/Search/EmptySearchView';
-import useCustomBackHandler from '@pages/Search/useCustomBackHandler';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -25,7 +25,6 @@ type SearchProps = {
 function Search({query, policyIDs}: SearchProps) {
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
-    useCustomBackHandler();
 
     const hash = SearchUtils.getQueryHash(query, policyIDs);
     const [searchResults, searchResultsMeta] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
@@ -35,14 +34,15 @@ function Search({query, policyIDs}: SearchProps) {
             return;
         }
 
-        SearchActions.search(hash, query, policyIDs);
+        SearchActions.search(hash, query, 0, policyIDs);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [hash, isOffline]);
 
-    const isLoading = (!isOffline && isLoadingOnyxValue(searchResultsMeta)) || searchResults?.data === undefined;
-    const shouldShowEmptyState = !isLoading && isEmptyObject(searchResults?.data);
+    const isLoadingInitialItems = (!isOffline && isLoadingOnyxValue(searchResultsMeta)) || searchResults?.data === undefined;
+    const isLoadingMoreItems = !isLoadingInitialItems && searchResults?.search?.isLoading;
+    const shouldShowEmptyState = !isLoadingInitialItems && isEmptyObject(searchResults?.data);
 
-    if (isLoading) {
+    if (isLoadingInitialItems) {
         return <TableListItemSkeleton shouldAnimate />;
     }
 
@@ -58,6 +58,14 @@ function Search({query, policyIDs}: SearchProps) {
         Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(query, reportID));
     };
 
+    const fetchMoreResults = () => {
+        if (!searchResults?.search?.hasMoreResults || isLoadingInitialItems || isLoadingMoreItems) {
+            return;
+        }
+        const currentOffset = searchResults?.search?.offset ?? 0;
+        SearchActions.search(hash, query, currentOffset + CONST.SEARCH_RESULTS_PAGE_SIZE);
+    };
+
     const type = SearchUtils.getSearchType(searchResults?.search);
 
     if (type === undefined) {
@@ -71,6 +79,17 @@ function Search({query, policyIDs}: SearchProps) {
     return (
         <SelectionList
             customListHeader={<SearchTableHeader data={searchResults?.data} />}
+            // To enhance the smoothness of scrolling and minimize the risk of encountering blank spaces during scrolling,
+            // we have configured a larger windowSize and a longer delay between batch renders.
+            // The windowSize determines the number of items rendered before and after the currently visible items.
+            // A larger windowSize helps pre-render more items, reducing the likelihood of blank spaces appearing.
+            // The updateCellsBatchingPeriod sets the delay (in milliseconds) between rendering batches of cells.
+            // A longer delay allows the UI to handle rendering in smaller increments, which can improve performance and smoothness.
+            // For more information, refer to the React Native documentation:
+            // https://reactnative.dev/docs/0.73/optimizing-flatlist-configuration#windowsize
+            // https://reactnative.dev/docs/0.73/optimizing-flatlist-configuration#updatecellsbatchingperiod
+            windowSize={111}
+            updateCellsBatchingPeriod={200}
             ListItem={ListItem}
             sections={[{data, isDisabled: false}]}
             onSelectRow={(item) => {
@@ -80,6 +99,16 @@ function Search({query, policyIDs}: SearchProps) {
             listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
             containerStyle={[styles.pv0]}
             showScrollIndicator={false}
+            onEndReachedThreshold={0.75}
+            onEndReached={fetchMoreResults}
+            listFooterContent={
+                isLoadingMoreItems ? (
+                    <TableListItemSkeleton
+                        shouldAnimate
+                        fixedNumItems={5}
+                    />
+                ) : undefined
+            }
         />
     );
 }
