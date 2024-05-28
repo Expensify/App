@@ -327,9 +327,7 @@ function MoneyRequestView({
         CONST.VIOLATIONS.SMARTSCAN_FAILED,
     ];
     const receiptNoticeViolations =
-        transactionViolations
-            ?.filter((violation) => violation.type === CONST.VIOLATION_TYPES.NOTICE && receiptNoticeNames.includes(violation.name))
-            .map((v) => ViolationsUtils.getViolationTranslation(v, translate)) ?? [];
+        transactionViolations?.filter((violation) => receiptNoticeNames.includes(violation.name)).map((v) => ViolationsUtils.getViolationTranslation(v, translate)) ?? [];
     const shouldShowNotesViolations = !isReceiptBeingScanned && canUseViolations && ReportUtils.isPaidGroupPolicy(report);
 
     return (
@@ -394,7 +392,6 @@ function MoneyRequestView({
                 )}
                 {!shouldShowReceiptEmptyState && !shouldShowMapOrReceipt && <View style={{marginVertical: 6}} />}
                 {shouldShowNotesViolations && <ReceiptAuditMessages notes={receiptNoticeViolations} />}
-                {canUseViolations && <ViolationMessages violations={getViolationsForField('receipt')} />}
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('amount')}>
                     <MenuItemWithTopDescription
                         title={amountTitle}
