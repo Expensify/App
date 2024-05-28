@@ -71,7 +71,6 @@ function Composer(
         isReportActionCompose = false,
         isComposerFullSize = false,
         shouldContainScroll = false,
-        isGroupPolicyReport = false,
         ...props
     }: ComposerProps,
     ref: ForwardedRef<TextInput | HTMLInputElement>,
@@ -79,7 +78,7 @@ function Composer(
     const textContainsOnlyEmojis = EmojiUtils.containsOnlyEmojis(value ?? '');
     const theme = useTheme();
     const styles = useThemeStyles();
-    const markdownStyle = useMarkdownStyle(textContainsOnlyEmojis, !isGroupPolicyReport ? ['mentionReport'] : []);
+    const markdownStyle = useMarkdownStyle(textContainsOnlyEmojis);
     const StyleUtils = useStyleUtils();
     const textRef = useRef<HTMLElement & RNText>(null);
     const textInput = useRef<AnimatedMarkdownTextInputRef | null>(null);
@@ -125,7 +124,7 @@ function Composer(
         if (shouldCalculateCaretPosition && isRendered) {
             // we do flushSync to make sure that the valueBeforeCaret is updated before we calculate the caret position to receive a proper position otherwise we will calculate position for the previous state
             flushSync(() => {
-                setValueBeforeCaret(webEvent.target.value.slice(0, webEvent.nativeEvent.selection.start));
+                setValueBeforeCaret((webEvent.target as HTMLInputElement).value.slice(0, webEvent.nativeEvent.selection.start));
                 setCaretContent(getNextChars(value ?? '', webEvent.nativeEvent.selection.start));
             });
             const selectionValue = {

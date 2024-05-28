@@ -29,7 +29,6 @@ function Composer(
         // On Android the selection prop is required on the TextInput but this prop has issues on IOS
         selection,
         value,
-        isGroupPolicyReport = false,
         ...props
     }: ComposerProps,
     ref: ForwardedRef<TextInput>,
@@ -38,7 +37,7 @@ function Composer(
     const {isFocused, shouldResetFocus} = useResetComposerFocus(textInput);
     const textContainsOnlyEmojis = EmojiUtils.containsOnlyEmojis(value ?? '');
     const theme = useTheme();
-    const markdownStyle = useMarkdownStyle(textContainsOnlyEmojis, !isGroupPolicyReport ? ['mentionReport'] : []);
+    const markdownStyle = useMarkdownStyle(textContainsOnlyEmojis);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
