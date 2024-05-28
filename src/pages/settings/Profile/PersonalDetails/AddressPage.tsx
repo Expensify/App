@@ -70,31 +70,31 @@ function AddressPage({privatePersonalDetails, route, isLoadingApp = true}: Addre
     }, [address]);
 
     const handleAddressChange = useCallback((value: unknown, key: unknown) => {
-        const countryValue = value as Country | '';
-        const addressKey = key as keyof Address;
+        const addressPart = value as string;
+        const addressPartKey = key as keyof Address;
 
-        if (addressKey !== 'country' && addressKey !== 'state' && addressKey !== 'city' && addressKey !== 'zipPostCode') {
+        if (addressPartKey !== 'country' && addressPartKey !== 'state' && addressPartKey !== 'city' && addressPartKey !== 'zipPostCode') {
             return;
         }
-        if (addressKey === 'country') {
-            setCurrentCountry(countryValue);
+        if (addressPartKey === 'country') {
+            setCurrentCountry(addressPart as Country | '');
             setState('');
             setCity('');
             setZipcode('');
             return;
         }
-        if (addressKey === 'state') {
-            setState(countryValue);
+        if (addressPartKey === 'state') {
+            setState(addressPart);
             setCity('');
             setZipcode('');
             return;
         }
-        if (addressKey === 'city') {
-            setCity(countryValue);
+        if (addressPartKey === 'city') {
+            setCity(addressPart);
             setZipcode('');
             return;
         }
-        setZipcode(countryValue);
+        setZipcode(addressPart);
     }, []);
 
     useEffect(() => {
