@@ -5,10 +5,10 @@ import Log from '@libs/Log';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import * as App from '@userActions/App';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OnyxUpdatesFromServer} from '@src/types/onyx';
+import type {OnyxUpdatesFromServer, Response} from '@src/types/onyx';
 import {isValidOnyxUpdateFromServer} from '@src/types/onyx/OnyxUpdatesFromServer';
 import * as OnyxUpdateManagerUtils from './utils';
-import * as DeferredOnyxUpdates from './utils/DeferredOnyxUpdates';
+import deferredUpdatesProxy from './utils/deferredUpdates';
 
 // This file is in charge of looking at the updateIDs coming from the server and comparing them to the last updateID that the client has.
 // If the client is behind the server, then we need to
@@ -39,6 +39,8 @@ Onyx.connect({
     },
 });
 
+let queryPromise: Promise<Response | Response[] | void> | undefined;
+
 let resolveQueryPromiseWrapper: () => void;
 const createQueryPromiseWrapper = () =>
     new Promise<void>((resolve) => {
@@ -48,7 +50,8 @@ const createQueryPromiseWrapper = () =>
 let queryPromiseWrapper = createQueryPromiseWrapper();
 
 const resetDeferralLogicVariables = () => {
-    DeferredOnyxUpdates.clear({shouldUnpauseSequentialQueue: false});
+    queryPromise = undefined;
+    deferredUpdatesProxy.deferredUpdates = {};
 };
 
 // This function will reset the query variables, unpause the SequentialQueue and log an info to the user.
@@ -58,7 +61,9 @@ function finalizeUpdatesAndResumeQueue() {
     resolveQueryPromiseWrapper();
     queryPromiseWrapper = createQueryPromiseWrapper();
 
-    DeferredOnyxUpdates.clear();
+    resetDeferralLogicVariables();
+    Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, null);
+    SequentialQueue.unpause();
 }
 
 /**
@@ -106,24 +111,25 @@ function handleOnyxUpdateGap(onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFromSer
     // The flow below is setting the promise to a reconnect app to address flow (1) explained above.
     if (!lastUpdateIDFromClient) {
         // If there is a ReconnectApp query in progress, we should not start another one.
-        if (DeferredOnyxUpdates.getMissingOnyxUpdatesQueryPromise()) {
+        if (queryPromise) {
             return;
         }
 
         Log.info('Client has not gotten reliable updates before so reconnecting the app to start the process');
 
         // Since this is a full reconnectApp, we'll not apply the updates we received - those will come in the reconnect app request.
-        DeferredOnyxUpdates.setMissingOnyxUpdatesQueryPromise(App.finalReconnectAppAfterActivatingReliableUpdates());
+        queryPromise = App.finalReconnectAppAfterActivatingReliableUpdates();
     } else {
         // The flow below is setting the promise to a getMissingOnyxUpdates to address flow (2) explained above.
 
-        const areDeferredUpdatesQueued = !DeferredOnyxUpdates.isEmpty();
+        // Get the number of deferred updates before adding the new one
+        const existingDeferredUpdatesCount = Object.keys(deferredUpdatesProxy.deferredUpdates).length;
 
         // Add the new update to the deferred updates
-        DeferredOnyxUpdates.enqueue(updateParams, {shouldPauseSequentialQueue: false});
+        deferredUpdatesProxy.deferredUpdates[Number(updateParams.lastUpdateID)] = updateParams;
 
         // If there are deferred updates already, we don't need to fetch the missing updates again.
-        if (areDeferredUpdatesQueued) {
+        if (existingDeferredUpdatesCount > 0) {
             return;
         }
 
@@ -136,12 +142,10 @@ function handleOnyxUpdateGap(onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFromSer
 
         // Get the missing Onyx updates from the server and afterwards validate and apply the deferred updates.
         // This will trigger recursive calls to "validateAndApplyDeferredUpdates" if there are gaps in the deferred updates.
-        DeferredOnyxUpdates.setMissingOnyxUpdatesQueryPromise(
-            App.getMissingOnyxUpdates(lastUpdateIDFromClient, previousUpdateIDFromServer).then(() => OnyxUpdateManagerUtils.validateAndApplyDeferredUpdates(clientLastUpdateID)),
-        );
+        queryPromise = App.getMissingOnyxUpdates(lastUpdateIDFromClient, previousUpdateIDFromServer).then(() => OnyxUpdateManagerUtils.validateAndApplyDeferredUpdates(clientLastUpdateID));
     }
 
-    DeferredOnyxUpdates.getMissingOnyxUpdatesQueryPromise()?.finally(finalizeUpdatesAndResumeQueue);
+    queryPromise.finally(finalizeUpdatesAndResumeQueue);
 }
 
 export default () => {
