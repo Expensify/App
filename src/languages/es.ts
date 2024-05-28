@@ -2222,8 +2222,8 @@ export default {
             },
             connectionsWarningModal: {
                 featureEnabledTitle: 'No tan rápido...',
-                featureEnabledText: 'Para activar o desactivar esta función, cambie la configuración de importación contable.',
-                disconnectText: 'Desconecte su conexión contable del espacio de trabajo si desea desactivar la Contabilidad.',
+                featureEnabledText: 'Para activar o desactivar esta función, cambia la configuración de importación contable.',
+                disconnectText: 'Desconecta tu conexión contable del espacio de trabajo si deseas desactivar la contabilidad.',
                 manageSettings: 'Gestionar la configuración',
             },
         },
