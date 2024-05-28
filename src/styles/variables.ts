@@ -231,6 +231,8 @@ export default {
     bankButtonMargin: 23,
     textInputAutoGrowMaxHeight: 115,
 
+    searchTypeColumnWidth: 52,
+
     w28: 28,
     w44: 44,
     w80: 80,

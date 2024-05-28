@@ -2707,6 +2707,7 @@ export default {
                 subtitle: 'Try creating something using the green + button.',
             },
         },
+        groupedExpenses: 'grouped expenses',
     },
     genericErrorPage: {
         title: 'Uh-oh, something went wrong!',

@@ -4782,6 +4782,7 @@ const CONST = {
 
     SEARCH_DATA_TYPES: {
         TRANSACTION: 'transaction',
+        REPORT: 'report',
     },
 
     REFERRER: {
