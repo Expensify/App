@@ -413,7 +413,8 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                     >
                         <AvatarWithImagePicker
                             isUsingDefaultAvatar={UserUtils.isDefaultAvatar(currentUserDetails?.avatar ?? '')}
-                            source={UserUtils.getAvatar(avatarURL, accountID)}
+                            source={avatarURL}
+                            avatarID={accountID}
                             onImageSelected={PersonalDetails.updateAvatar}
                             onImageRemoved={PersonalDetails.deleteAvatar}
                             size={CONST.AVATAR_SIZE.XLARGE}
