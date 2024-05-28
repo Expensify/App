@@ -1365,7 +1365,8 @@ export default {
         whereYouWork: '¿Dónde trabajas?',
         purpose: {
             title: '¿Qué quieres hacer hoy?',
-            error: 'Por favor, haga una selección antes de continuar.',
+            errorSelection: 'Por favor selecciona una opción para continuar.',
+            errorContinue: 'Por favor, haz click en continuar para configurar tu cuenta.',
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Cobrar de mi empresa',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Gestionar los gastos de mi equipo',
             [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: 'Controlar y presupuestar gastos',
@@ -3570,6 +3571,7 @@ export default {
         taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams) => `${taxName ?? 'El impuesto'} ya no es válido`,
         taxRateChanged: 'La tasa de impuesto fue modificada',
         taxRequired: 'Falta la tasa de impuesto',
+        hold: 'Bloqueada',
     },
     violationDismissal: {
         rter: {
