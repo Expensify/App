@@ -177,6 +177,11 @@ type ComposerWithSuggestionsProps = ComposerWithSuggestionsOnyxProps &
         policyID: string;
     };
 
+type SwitchToCurrentReportProps = {
+    preexistingReportID: string;
+    callback: () => void;
+};
+
 const {RNTextInputReset} = NativeModules;
 
 const isIOSNative = getPlatform() === CONST.PLATFORM.IOS;
@@ -309,7 +314,6 @@ function ComposerWithSuggestions(
      */
     const setTextInputRef = useCallback(
         (el: TextInput) => {
-            // @ts-expect-error need to reassign this ref
             ReportActionComposeFocusManager.composerRef.current = el;
             textInputRef.current = el;
             if (typeof animatedRef === 'function') {
@@ -328,7 +332,7 @@ function ComposerWithSuggestions(
 
     const debouncedSaveReportComment = useMemo(
         () =>
-            lodashDebounce((selectedReportID, newComment) => {
+            lodashDebounce((selectedReportID: string, newComment: string | null) => {
                 Report.saveReportDraftComment(selectedReportID, newComment);
                 isCommentPendingSaved.current = false;
             }, 1000),
@@ -336,7 +340,7 @@ function ComposerWithSuggestions(
     );
 
     useEffect(() => {
-        const switchToCurrentReport = DeviceEventEmitter.addListener(`switchToPreExistingReport_${reportID}`, ({preexistingReportID, callback}) => {
+        const switchToCurrentReport = DeviceEventEmitter.addListener(`switchToPreExistingReport_${reportID}`, ({preexistingReportID, callback}: SwitchToCurrentReportProps) => {
             if (!commentRef.current) {
                 callback();
                 return;
@@ -474,6 +478,7 @@ function ComposerWithSuggestions(
         debouncedSaveReportComment.cancel();
         isCommentPendingSaved.current = false;
 
+        setSelection({start: 0, end: 0});
         updateComment('');
         setTextInputShouldClear(true);
         if (isComposerFullSize) {
@@ -638,7 +643,6 @@ function ComposerWithSuggestions(
         const unsubscribeNavigationFocus = navigation.addListener('focus', () => {
             KeyDownListener.addKeyDownPressListener(focusComposerOnKeyPress);
             // The report isn't unmounted and can be focused again after going back from another report so we should update the composerRef again
-            // @ts-expect-error need to reassign this ref
             ReportActionComposeFocusManager.composerRef.current = textInputRef.current;
             setUpComposeFocusManager();
         });
