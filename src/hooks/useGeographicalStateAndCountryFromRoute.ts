@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
+import {CONST as COMMON_CONST} from 'expensify-common';
 import CONST from '@src/CONST';
 
 type State = keyof typeof COMMON_CONST.STATES;
