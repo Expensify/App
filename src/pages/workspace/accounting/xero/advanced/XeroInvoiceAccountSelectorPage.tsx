@@ -65,7 +65,7 @@ function XeroInvoiceAccountSelectorPage({policy}: WithPolicyConnectionsProps) {
                 iconHeight={variables.emptyListIconHeight}
                 title={translate('workspace.xero.noAccountsFound')}
                 subtitle={translate('workspace.xero.noAccountsFoundDescription')}
-                style={styles.pb10}
+                containerStyle={styles.pb10}
             />
         ),
         [translate, styles.pb10],

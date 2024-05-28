@@ -38,7 +38,7 @@ type BaseBlockingViewProps = {
     CustomSubtitle?: React.ReactElement;
 
     /** Additional styles to apply to the container */
-    style?: StyleProp<ViewStyle>;
+    containerStyle?: StyleProp<ViewStyle>;
 };
 
 type BlockingViewIconProps = {
@@ -84,7 +84,7 @@ function BlockingView({
     animationStyles = [],
     animationWebStyle = {},
     CustomSubtitle,
-    style,
+    containerStyle,
 }: BlockingViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -121,7 +121,7 @@ function BlockingView({
     }, [styles, subtitleText, shouldEmbedLinkWithSubtitle, CustomSubtitle]);
 
     return (
-        <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10, style]}>
+        <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10, containerStyle]}>
             {animation && (
                 <Lottie
                     source={animation}
