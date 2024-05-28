@@ -201,14 +201,21 @@ function ReportActionsList({
         () =>
             sortedReportActions.filter(
                 (reportAction) =>
-                    (isOffline || reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || reportAction.errors) &&
+                    (isOffline ||
+                        ReportActionsUtils.isDeletedParentAction(reportAction) ||
+                        reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
+                        reportAction.errors) &&
                     ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID),
             ),
         [sortedReportActions, isOffline],
     );
+
+    // whisper action doesn't affect lastVisibleActionCreated, so we should not take it into account while checking if there is the newest report action
+    const newestVisibleReportAction = useMemo(() => sortedVisibleReportActions.find((item) => !ReportActionsUtils.isWhisperAction(item)) ?? null, [sortedVisibleReportActions]);
+
     const lastActionIndex = sortedVisibleReportActions[0]?.reportActionID;
     const reportActionSize = useRef(sortedVisibleReportActions.length);
-    const hasNewestReportAction = sortedVisibleReportActions?.[0]?.created === report.lastVisibleActionCreated;
+    const hasNewestReportAction = newestVisibleReportAction?.created === report.lastVisibleActionCreated;
     const hasNewestReportActionRef = useRef(hasNewestReportAction);
     hasNewestReportActionRef.current = hasNewestReportAction;
     const previousLastIndex = useRef(lastActionIndex);
@@ -257,10 +264,14 @@ function ReportActionsList({
         if (!userActiveSince.current || report.reportID !== prevReportID) {
             return;
         }
-
         if (ReportUtils.isUnread(report)) {
-            if (Visibility.isVisible() && scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD) {
+            // On desktop, when the notification center is displayed, Visibility.isVisible() will return false.
+            // Currently, there's no programmatic way to dismiss the notification center panel.
+            // To handle this, we use the 'referrer' parameter to check if the current navigation is triggered from a notification.
+            const isFromNotification = route?.params?.referrer === CONST.REFERRER.NOTIFICATION;
+            if ((Visibility.isVisible() || isFromNotification) && scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD) {
                 Report.readNewestAction(report.reportID);
+                Navigation.setParams({referrer: undefined});
             } else {
                 readActionSkipped.current = true;
             }
@@ -296,12 +307,12 @@ function ReportActionsList({
             setCurrentUnreadMarker(null);
         };
 
-        const unreadActionSubscription = DeviceEventEmitter.addListener(`unreadAction_${report.reportID}`, (newLastReadTime) => {
+        const unreadActionSubscription = DeviceEventEmitter.addListener(`unreadAction_${report.reportID}`, (newLastReadTime: string) => {
             resetUnreadMarker(newLastReadTime);
             setMessageManuallyMarkedUnread(new Date().getTime());
         });
 
-        const readNewestActionSubscription = DeviceEventEmitter.addListener(`readNewestAction_${report.reportID}`, (newLastReadTime) => {
+        const readNewestActionSubscription = DeviceEventEmitter.addListener(`readNewestAction_${report.reportID}`, (newLastReadTime: string) => {
             resetUnreadMarker(newLastReadTime);
             setMessageManuallyMarkedUnread(0);
         });
@@ -502,31 +513,6 @@ function ReportActionsList({
     useEffect(() => {
         calculateUnreadMarker();
     }, [calculateUnreadMarker, report.lastReadTime, messageManuallyMarkedUnread]);
-
-    useEffect(() => {
-        const scrollToFirstUnreadMessage = () => {
-            if (!currentUnreadMarker) {
-                return;
-            }
-
-            const unreadMessageIndex = sortedVisibleReportActions.findIndex((action) => action.reportActionID === currentUnreadMarker);
-
-            // Checking that we have a valid unread message index and the user scroll
-            // offset is less than the threshold since we don't want to auto-scroll when
-            // the report is already open and New Messages marker is shown as user might be reading.
-            if (unreadMessageIndex !== -1 && scrollingVerticalOffset.current < VERTICAL_OFFSET_THRESHOLD) {
-                // We're passing viewPosition: 1 to scroll to the top of the
-                // unread message (marker) since we're using an inverted FlatList.
-                reportScrollManager?.scrollToIndex(unreadMessageIndex, false, 1);
-            }
-        };
-
-        // Call the scroll function after a small delay to ensure all items
-        // have been measured and the list is ready to be scrolled.
-        InteractionManager.runAfterInteractions(scrollToFirstUnreadMessage);
-        // We only want to run this effect once, when we're navigating to a report with unread messages.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [sortedVisibleReportActions]);
 
     useEffect(() => {
         if (!userActiveSince.current || report.reportID !== prevReportID) {
