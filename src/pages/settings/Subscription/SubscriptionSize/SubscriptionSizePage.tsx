@@ -42,7 +42,7 @@ function SubscriptionSizePage({subscriptionSizeForm}: SubscriptionSizePageProps)
     const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo} = useSubStep({bodyContent, startFrom, onFinished});
 
     const onBackButtonPress = () => {
-        if (screenIndex === 0 && startFrom === 0) {
+        if (screenIndex !== 0 && startFrom === 0) {
             prevScreen();
             return;
         }
