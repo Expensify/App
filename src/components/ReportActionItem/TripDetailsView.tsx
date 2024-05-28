@@ -41,7 +41,6 @@ function ReservationView({reservation}: ReservationViewProps) {
     const getFormattedDate = () => {
         switch (reservation.type) {
             case CONST.RESERVATION_TYPE.FLIGHT:
-            case CONST.RESERVATION_TYPE.RAIL:
                 return DateUtils.getFormattedTransportDate(new Date(reservation.start.date));
             case CONST.RESERVATION_TYPE.HOTEL:
             case CONST.RESERVATION_TYPE.CAR:

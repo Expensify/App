@@ -1904,8 +1904,6 @@ export default {
         flight: 'Vuelo',
         hotel: 'Hotel',
         car: 'Auto',
-        misc: 'Misceláneo',
-        rail: 'Carril',
         viewTrip: 'Ver viaje',
         trip: 'Viaje',
         tripSummary: 'Resumen del viaje',

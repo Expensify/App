@@ -1880,8 +1880,6 @@ export default {
         flight: 'Flight',
         hotel: 'Hotel',
         car: 'Car',
-        misc: 'Miscellaneous',
-        rail: 'Rail',
         viewTrip: 'View trip',
         trip: 'Trip',
         tripSummary: 'Trip summary',
