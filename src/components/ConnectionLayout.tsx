@@ -19,8 +19,8 @@ type ConnectionLayoutProps = {
     /** Used to set the testID for tests */
     displayName: string;
 
-    /** Header title for the connection */
-    headerTitle: TranslationPaths;
+    /** Header title to be translated for the connection component */
+    headerTitle?: TranslationPaths;
 
     /** The subtitle to show in the header */
     headerSubtitle?: string;
@@ -28,7 +28,7 @@ type ConnectionLayoutProps = {
     /** React nodes that will be shown */
     children?: React.ReactNode;
 
-    /** Title of the connection component */
+    /** Title to be translated for the connection component */
     title?: TranslationPaths;
 
     /** The current policyID */
@@ -52,18 +52,24 @@ type ConnectionLayoutProps = {
     /** Whether to use ScrollView or not */
     shouldUseScrollView?: boolean;
 
+    /** Used for dynamic header title translation with parameters */
+    headerTitleAlreadyTranslated?: string;
+
+    /** Used for dynamic title translation with parameters */
+    titleAlreadyTranslated?: string;
+
     /** Name of the current connection */
     connectionName: ConnectionName;
 };
 
-type ConnectionLayoutContentProps = Pick<ConnectionLayoutProps, 'title' | 'titleStyle' | 'children'>;
+type ConnectionLayoutContentProps = Pick<ConnectionLayoutProps, 'title' | 'titleStyle' | 'children' | 'titleAlreadyTranslated'>;
 
-function ConnectionLayoutContent({title, titleStyle, children}: ConnectionLayoutContentProps) {
+function ConnectionLayoutContent({title, titleStyle, children, titleAlreadyTranslated}: ConnectionLayoutContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     return (
         <>
-            {title && <Text style={[styles.pb5, titleStyle]}>{translate(title)}</Text>}
+            {title && <Text style={[styles.pb5, titleStyle]}>{titleAlreadyTranslated ?? translate(title)}</Text>}
             {children}
         </>
     );
@@ -83,6 +89,8 @@ function ConnectionLayout({
     shouldIncludeSafeAreaPaddingBottom,
     connectionName,
     shouldUseScrollView = true,
+    headerTitleAlreadyTranslated,
+    titleAlreadyTranslated,
 }: ConnectionLayoutProps) {
     const {translate} = useLocalize();
 
@@ -94,11 +102,12 @@ function ConnectionLayout({
             <ConnectionLayoutContent
                 title={title}
                 titleStyle={titleStyle}
+                titleAlreadyTranslated={titleAlreadyTranslated}
             >
                 {children}
             </ConnectionLayoutContent>
         ),
-        [title, titleStyle, children],
+        [title, titleStyle, children, titleAlreadyTranslated],
     );
 
     return (
@@ -114,7 +123,7 @@ function ConnectionLayout({
                 testID={displayName}
             >
                 <HeaderWithBackButton
-                    title={translate(headerTitle)}
+                    title={headerTitleAlreadyTranslated ?? (headerTitle ? translate(headerTitle as TranslationPaths) : '')}
                     subtitle={headerSubtitle}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
