@@ -973,7 +973,7 @@ const CONST = {
         DARK_CONTENT: 'dark-content',
     },
     TRANSACTION: {
-        DEFAULT_MERCHANT: 'Request',
+        DEFAULT_MERCHANT: 'Expense',
         UNKNOWN_MERCHANT: 'Unknown Merchant',
         PARTIAL_TRANSACTION_MERCHANT: '(none)',
         TYPE: {
@@ -1277,6 +1277,8 @@ const CONST = {
         SVFG: 'svfg@expensify.com',
         EXPENSIFY_EMAIL_DOMAIN: '@expensify.com',
     },
+
+    CONCIERGE_DISPLAY_NAME: 'Concierge',
 
     INTEGRATION_ENTITY_MAP_TYPES: {
         DEFAULT: 'DEFAULT',
@@ -3499,7 +3501,6 @@ const CONST = {
 
     NAVIGATION: {
         TYPE: {
-            FORCED_UP: 'FORCED_UP',
             UP: 'UP',
         },
         ACTION_TYPE: {
@@ -4778,7 +4779,6 @@ const CONST = {
     },
 
     SEARCH_RESULTS_PAGE_SIZE: 50,
-    SEARCH_BOTTOM_TAB_URL: '/Search_Bottom_Tab',
 
     SEARCH_DATA_TYPES: {
         TRANSACTION: 'transaction',

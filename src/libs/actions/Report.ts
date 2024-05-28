@@ -1267,7 +1267,7 @@ function handleReportChanged(report: OnyxEntry<Report>) {
         // Only re-route them if they are still looking at the optimistically created report
         if (Navigation.getActiveRoute().includes(`/r/${report.reportID}`)) {
             callback = () => {
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.preexistingReportID ?? ''), CONST.NAVIGATION.TYPE.FORCED_UP);
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.preexistingReportID ?? ''), CONST.NAVIGATION.TYPE.UP);
             };
         }
         DeviceEventEmitter.emit(`switchToPreExistingReport_${report.reportID}`, {
@@ -2537,7 +2537,7 @@ function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
             if (!isChatThread) {
                 Navigation.goBack();
             }
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(chat?.reportID), CONST.NAVIGATION.TYPE.FORCED_UP);
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(chat?.reportID), CONST.NAVIGATION.TYPE.UP);
         }
     }
 }

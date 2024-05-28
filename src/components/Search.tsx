@@ -8,7 +8,6 @@ import Log from '@libs/Log';
 import * as SearchUtils from '@libs/SearchUtils';
 import Navigation from '@navigation/Navigation';
 import EmptySearchView from '@pages/Search/EmptySearchView';
-import useCustomBackHandler from '@pages/Search/useCustomBackHandler';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -26,7 +25,6 @@ type SearchProps = {
 function Search({query, policyIDs}: SearchProps) {
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
-    useCustomBackHandler();
 
     const hash = SearchUtils.getQueryHash(query, policyIDs);
     const [searchResults, searchResultsMeta] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
