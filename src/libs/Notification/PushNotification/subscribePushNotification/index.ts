@@ -15,7 +15,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
-import type {OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import PushNotification from '..';
 
@@ -39,20 +38,6 @@ function getLastUpdateIDAppliedToClient(): Promise<number> {
     });
 }
 
-function buildOnyxUpdatesFromServer({onyxData, lastUpdateID, previousUpdateID}: {onyxData: OnyxServerUpdate[]; lastUpdateID: number; previousUpdateID: number}) {
-    return {
-        type: CONST.ONYX_UPDATE_TYPES.AIRSHIP,
-        lastUpdateID,
-        previousUpdateID,
-        updates: [
-            {
-                eventType: 'eventType',
-                data: onyxData,
-            },
-        ],
-    } as OnyxUpdatesFromServer;
-}
-
 function applyOnyxData({reportID, reportActionID, onyxData, lastUpdateID, previousUpdateID}: ReportActionPushNotificationData): Promise<void> {
     Log.info(`[PushNotification] Applying onyx data in the ${Visibility.isVisible() ? 'foreground' : 'background'}`, false, {reportID, reportActionID});
 
@@ -68,20 +53,23 @@ function applyOnyxData({reportID, reportActionID, onyxData, lastUpdateID, previo
 
     Log.info('[PushNotification] reliable onyx update received', false, {lastUpdateID, previousUpdateID, onyxDataCount: onyxData?.length ?? 0});
 
-    const updates = buildOnyxUpdatesFromServer({onyxData, lastUpdateID, previousUpdateID});
-
+    const updates = {
+        type: CONST.ONYX_UPDATE_TYPES.AIRSHIP,
+        lastUpdateID,
+        previousUpdateID,
+        updates: [
+            {
+                eventType: 'eventType',
+                data: onyxData,
+            },
+        ],
+    } as OnyxUpdatesFromServer;
     /**
      * When this callback runs in the background on Android (via Headless JS), no other Onyx.connect callbacks will run. This means that
      * lastUpdateIDAppliedToClient will NOT be populated in other libs. To workaround this, we manually read the value here
      * and pass it as a param
      */
-    return getLastUpdateIDAppliedToClient().then(
-        (lastUpdateIDAppliedToClient) =>
-            new Promise((resolve) => {
-                applyOnyxUpdatesReliably(updates, true, lastUpdateIDAppliedToClient);
-                resolve();
-            }),
-    );
+    return getLastUpdateIDAppliedToClient().then((lastUpdateIDAppliedToClient) => applyOnyxUpdatesReliably(updates, true, lastUpdateIDAppliedToClient));
 }
 
 function navigateToReport({reportID, reportActionID}: ReportActionPushNotificationData): Promise<void> {
