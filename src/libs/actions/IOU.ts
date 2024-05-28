@@ -1197,7 +1197,7 @@ function buildOnyxDataForTrackExpense(
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
                 value: {
-                    [actionableTrackExpenseWhisper.reportActionID]: actionableTrackExpenseWhisper as OnyxTypes.ReportAction,
+                    [actionableTrackExpenseWhisper.reportActionID]: actionableTrackExpenseWhisper,
                 },
             });
             optimisticData.push({
