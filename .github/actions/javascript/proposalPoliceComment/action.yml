@@ -13,6 +13,3 @@ inputs:
 runs:
   using: 'node20'
   main: './index.js'
-  env:
-    ISSUE: '${{ toJson(github.event.issue) }}'
-    COMMENT: '${{ toJson(github.event.comment) }}'
