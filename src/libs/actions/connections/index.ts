@@ -1,4 +1,4 @@
-import type {OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {
@@ -13,6 +13,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ConnectionName, Connections, PolicyConnectionName} from '@src/types/onyx/Policy';
+import type Policy from '@src/types/onyx/Policy';
 
 function removePolicyConnection(policyID: string, connectionName: PolicyConnectionName) {
     const optimisticData: OnyxUpdate[] = [
@@ -231,4 +232,8 @@ function updateManyPolicyConnectionConfigs<TConnectionName extends ConnectionNam
     API.write(WRITE_COMMANDS.UPDATE_MANY_POLICY_CONNECTION_CONFIGS, parameters, {optimisticData, failureData, successData});
 }
 
-export {removePolicyConnection, updatePolicyConnectionConfig, updateManyPolicyConnectionConfigs, syncConnection};
+function hasSynchronizationError(policy: OnyxEntry<Policy>, connectionName: PolicyConnectionName): boolean {
+    return policy?.connections?.[connectionName]?.lastSync?.isSuccessful === false;
+}
+
+export {removePolicyConnection, updatePolicyConnectionConfig, updateManyPolicyConnectionConfigs, hasSynchronizationError, syncConnection};

@@ -2345,6 +2345,17 @@ export default {
                     }
                 }
             },
+            syncError: (integration?: ConnectionName): string => {
+                switch (integration) {
+                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
+                        return "Couldn't connect to QuickBooks Online.";
+                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
+                        return "Couldn't connect to Xero.";
+                    default: {
+                        return "Couldn't connect to integration.";
+                    }
+                }
+            },
             accounts: 'Chart of accounts',
             taxes: 'Taxes',
             imported: 'Imported',

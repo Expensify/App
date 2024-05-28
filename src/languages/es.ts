@@ -2349,6 +2349,17 @@ export default {
                     }
                 }
             },
+            syncError: (integration?: ConnectionName): string => {
+                switch (integration) {
+                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
+                        return 'No se puede conectar a QuickBooks Online.';
+                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
+                        return 'No se puede conectar a Xero';
+                    default: {
+                        return 'No se ha podido conectar a la integración.';
+                    }
+                }
+            },
             accounts: 'Plan de cuentas',
             taxes: 'Impuestos',
             imported: 'Importado',

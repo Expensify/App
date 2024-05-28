@@ -26,7 +26,7 @@ import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {removePolicyConnection, syncConnection} from '@libs/actions/connections';
+import {hasSynchronizationError, removePolicyConnection, syncConnection} from '@libs/actions/connections';
 import {findCurrentXeroOrganization, getCurrentXeroOrganizationName, getXeroTenants} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -41,7 +41,7 @@ import type {PolicyConnectionName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-type MenuItemData = MenuItemProps & {pendingAction?: OfflineWithFeedbackProps['pendingAction']};
+type MenuItemData = MenuItemProps & {pendingAction?: OfflineWithFeedbackProps['pendingAction']; errors?: OfflineWithFeedbackProps['errors']};
 
 type PolicyAccountingPageOnyxProps = {
     connectionSyncProgress: OnyxEntry<PolicyConnectionSyncProgress>;
@@ -163,16 +163,19 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
         if (!connectedIntegration) {
             return [];
         }
+        const shouldShowSynchronizationError = hasSynchronizationError(policy, connectedIntegration);
         const integrationData = accountingIntegrationData(connectedIntegration, policyID, translate);
         const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
         return [
             {
                 ...iconProps,
                 interactive: false,
-                wrapperStyle: [styles.sectionMenuItemTopDescription],
+                wrapperStyle: [styles.sectionMenuItemTopDescription, shouldShowSynchronizationError && styles.pb0],
                 shouldShowRightComponent: true,
                 title: integrationData?.title,
-
+                errorText: shouldShowSynchronizationError ? translate('workspace.accounting.syncError', connectedIntegration) : undefined,
+                errorTextStyle: [styles.mt5],
+                shouldShowRedDotIndicator: true,
                 description: isSyncInProgress
                     ? translate('workspace.accounting.connections.syncStageName', connectionSyncProgress.stageInProgress)
                     : translate('workspace.accounting.lastSync'),
@@ -199,7 +202,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                     </View>
                 ),
             },
-            ...(policyConnectedToXero
+            ...(policyConnectedToXero && !shouldShowSynchronizationError
                 ? [
                       {
                           description: translate('workspace.xero.organization'),
@@ -220,7 +223,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                       },
                   ]
                 : []),
-            ...(isEmptyObject(policy?.connections)
+            ...(isEmptyObject(policy?.connections) || shouldShowSynchronizationError
                 ? []
                 : [
                       {
@@ -250,21 +253,25 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                   ]),
         ];
     }, [
-        connectedIntegration,
-        connectionSyncProgress?.stageInProgress,
-        currentXeroOrganization,
-        currentXeroOrganizationName,
-        tenants,
+        policy,
         isSyncInProgress,
-        overflowMenu,
-        policy?.connections,
-        policyConnectedToXero,
+        connectedIntegration,
         policyID,
-        styles,
-        theme.spinner,
-        threeDotsMenuPosition,
         translate,
+        styles.sectionMenuItemTopDescription,
+        styles.pb0,
+        styles.mt5,
+        styles.popoverMenuIcon,
+        styles.fontWeightNormal,
+        connectionSyncProgress?.stageInProgress,
+        theme.spinner,
+        overflowMenu,
+        threeDotsMenuPosition,
+        policyConnectedToXero,
+        currentXeroOrganizationName,
+        tenants.length,
         accountingIntegrations,
+        currentXeroOrganization?.id,
     ]);
 
     const otherIntegrationsItems = useMemo(() => {
