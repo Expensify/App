@@ -170,6 +170,7 @@ type GetOptionsConfig = {
     policyReportFieldOptions?: string[];
     recentlyUsedPolicyReportFieldOptions?: string[];
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
+    includeInvoiceRooms?: boolean;
 };
 
 type GetUserToInviteConfig = {
@@ -1691,6 +1692,7 @@ function getOptions(
         includePolicyReportFieldOptions = false,
         policyReportFieldOptions = [],
         recentlyUsedPolicyReportFieldOptions = [],
+        includeInvoiceRooms = false,
     }: GetOptionsConfig,
 ): Options {
     if (includeCategories) {
@@ -1890,8 +1892,16 @@ function getOptions(
             const isCurrentUserOwnedPolicyExpenseChatThatCouldShow =
                 reportOption.isPolicyExpenseChat && reportOption.ownerAccountID === currentUserAccountID && includeOwnedWorkspaceChats && !reportOption.isArchivedRoom;
 
-            // Skip if we aren't including multiple participant reports and this report has multiple participants
-            if (!isCurrentUserOwnedPolicyExpenseChatThatCouldShow && !includeMultipleParticipantReports && !reportOption.login) {
+            const shouldShowInvoiceRoom = includeInvoiceRooms && ReportUtils.isInvoiceRoom(reportOption.item);
+
+            /**
+                Exclude the report option if it doesn't meet any of the following conditions:
+                - It is not an owned policy expense chat that could be shown
+                - Multiple participant reports are not included
+                - It doesn't have a login
+                - It is not an invoice room that should be shown
+            */
+            if (!isCurrentUserOwnedPolicyExpenseChatThatCouldShow && !includeMultipleParticipantReports && !reportOption.login && !shouldShowInvoiceRoom) {
                 continue;
             }
 
@@ -2084,6 +2094,7 @@ function getFilteredOptions(
     recentlyUsedPolicyReportFieldOptions: string[] = [],
     includePersonalDetails = true,
     maxRecentReportsToShow = 5,
+    includeInvoiceRooms = false,
 ) {
     return getOptions(
         {reports, personalDetails},
@@ -2111,6 +2122,7 @@ function getFilteredOptions(
             includePolicyReportFieldOptions,
             policyReportFieldOptions,
             recentlyUsedPolicyReportFieldOptions,
+            includeInvoiceRooms,
         },
     );
 }

@@ -117,6 +117,7 @@ function MoneyRequestParticipantsSelector({participants = [], onFinish, onPartic
             undefined,
             !isCategorizeOrShareAction,
             isCategorizeOrShareAction ? 0 : undefined,
+            iouType === CONST.IOU.TYPE.INVOICE,
         );
 
         const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(

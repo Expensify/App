@@ -281,11 +281,18 @@ function MoneyRequestConfirmationList({
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
 
     const senderWorkspace = useMemo(() => {
+        const invoiceRoomParticipant = selectedParticipantsProp.find((participant) => participant.isInvoiceRoom);
         const senderWorkspaceParticipant = selectedParticipantsProp.find((participant) => participant.isSender);
-        return allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${senderWorkspaceParticipant?.policyID}`];
+        const senderPolicyID = invoiceRoomParticipant?.policyID ?? senderWorkspaceParticipant?.policyID;
+
+        return allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${senderPolicyID}`];
     }, [allPolicies, selectedParticipantsProp]);
 
-    const canUpdateSenderWorkspace = useMemo(() => PolicyUtils.canSendInvoice(allPolicies) && !!transaction?.isFromGlobalCreate, [allPolicies, transaction?.isFromGlobalCreate]);
+    const canUpdateSenderWorkspace = useMemo(() => {
+        const isInvoiceRoomParticipant = selectedParticipantsProp.some((participant) => participant.isInvoiceRoom);
+
+        return PolicyUtils.canSendInvoice(allPolicies) && !!transaction?.isFromGlobalCreate && !isInvoiceRoomParticipant;
+    }, [allPolicies, selectedParticipantsProp, transaction?.isFromGlobalCreate]);
 
     // A flag for showing the tags field
     // TODO: remove the !isTypeInvoice from this condition after BE supports tags for invoices: https://github.com/Expensify/App/issues/41281
