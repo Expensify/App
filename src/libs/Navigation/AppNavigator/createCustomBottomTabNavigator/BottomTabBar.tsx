@@ -7,7 +7,6 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithFeedback} from '@components/Pressable';
 import Tooltip from '@components/Tooltip';
-import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -29,15 +28,15 @@ import SCREENS from '@src/SCREENS';
 
 type PurposeForUsingExpensifyModalOnyxProps = {
     isLoadingApp: OnyxEntry<boolean>;
-    activeWorkspaceID: OnyxEntry<string | undefined>;
 };
 type PurposeForUsingExpensifyModalProps = PurposeForUsingExpensifyModalOnyxProps;
 
-function BottomTabBar({isLoadingApp = false, activeWorkspaceID}: PurposeForUsingExpensifyModalProps) {
+function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const navigation = useNavigation();
+    const activeWorkspaceID = sessionStorage.getItem(CONST.SESSION_STORAGE_KEYS.ACTIVE_WORKSPACE_ID);
 
     useEffect(() => {
         const navigationState = navigation.getState() as State<RootStackParamList> | undefined;
@@ -106,8 +105,5 @@ BottomTabBar.displayName = 'BottomTabBar';
 export default withOnyx<PurposeForUsingExpensifyModalProps, PurposeForUsingExpensifyModalOnyxProps>({
     isLoadingApp: {
         key: ONYXKEYS.IS_LOADING_APP,
-    },
-    activeWorkspaceID: {
-        key: ONYXKEYS.ACTIVE_WORKSPACE_ID,
     },
 })(BottomTabBar);
