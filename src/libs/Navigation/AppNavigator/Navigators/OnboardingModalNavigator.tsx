@@ -48,6 +48,9 @@ function OnboardingModalNavigator() {
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, handleOuterClick, {shouldBubble: true});
 
+    if (!hasCompletedGuidedSetupFlow) {
+        return;
+    }
     return (
         <NoDropZone>
             <Overlay />
