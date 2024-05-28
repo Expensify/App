@@ -464,13 +464,8 @@ describe('ReportUtils', () => {
         });
 
         describe('return only iou split option if', () => {
-            it('it is a chat room with more than one participant', () => {
-                const onlyHaveSplitOption = [
-                    CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
-                    CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
-                    CONST.REPORT.CHAT_TYPE.DOMAIN_ALL,
-                    CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
-                ].every((chatType) => {
+            it('it is a chat room with more than one participant that is not an announce room', () => {
+                const onlyHaveSplitOption = [CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, CONST.REPORT.CHAT_TYPE.DOMAIN_ALL, CONST.REPORT.CHAT_TYPE.POLICY_ROOM].every((chatType) => {
                     const report = {
                         ...LHNTestUtils.getFakeReport(),
                         chatType,

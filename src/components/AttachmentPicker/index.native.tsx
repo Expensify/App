@@ -171,7 +171,7 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
      */
     const showDocumentPicker = useCallback(
         (): Promise<DocumentPickerResponse[] | void> =>
-            RNDocumentPicker.pick(getDocumentPickerOptions(type)).catch((error) => {
+            RNDocumentPicker.pick(getDocumentPickerOptions(type)).catch((error: Error) => {
                 if (RNDocumentPicker.isCancel(error)) {
                     return;
                 }
@@ -247,7 +247,7 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
                 .then((result) => {
                     completeAttachmentSelection.current(result);
                 })
-                .catch((error) => {
+                .catch((error: Error) => {
                     showGeneralAlert(error.message);
                     throw error;
                 });
