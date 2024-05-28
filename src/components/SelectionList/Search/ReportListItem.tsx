@@ -1,7 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
-import Checkbox from '@components/Checkbox';
 import BaseListItem from '@components/SelectionList/BaseListItem';
 import type {ListItem, ReportListItemProps, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import Text from '@components/Text';
@@ -122,10 +121,16 @@ function ReportListItem<TItem extends ListItem>({
                         onButtonPress={handleOnButtonPress}
                     />
                 )}
+                {/* 
+                @TODO: Uncomment and replace to unhide the checkbox.
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, isLargeScreenWidth && styles.mr4]}>
+                 */}
+                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                     {/** marginRight added here to move the action button by the type column distance */}
                     <View style={[styles.flexRow, styles.flex1, styles.alignItemsCenter, styles.justifyContentBetween, isLargeScreenWidth && {marginRight: TYPE_COLUMN_WIDTH}]}>
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex2]}>
+                            {/* 
+                            @TODO: Uncomment and replace to unhide the checkbox. 
                             {canSelectMultiple && (
                                 <Checkbox
                                     onPress={() => {}}
@@ -136,8 +141,9 @@ function ReportListItem<TItem extends ListItem>({
                                     style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled]}
                                 />
                             )}
-
-                            <View style={[styles.flexShrink1, isLargeScreenWidth && styles.ph4]}>
+                            <View style={[styles.flexShrink1, isLargeScreenWidth && styles.ph4]}
+                             */}
+                            <View style={[styles.flexShrink1]}>
                                 <Text style={[styles.reportListItemTitle]}>{reportItem?.reportName}</Text>
                                 <Text style={[styles.textMicroSupporting]}>{`${reportItem.transactions.length} ${translate('search.groupedExpenses')}`}</Text>
                             </View>
@@ -151,8 +157,9 @@ function ReportListItem<TItem extends ListItem>({
                     <TransactionListItemRow
                         item={transaction}
                         showTooltip={showTooltip}
-                        isDisabled={Boolean(isDisabled)}
-                        canSelectMultiple={Boolean(canSelectMultiple)}
+                        // @TODO: Uncomment to unhide the checkbox.
+                        // isDisabled={Boolean(isDisabled)}
+                        // canSelectMultiple={Boolean(canSelectMultiple)}
                         onButtonPress={() => {
                             openReportInRHP(transaction);
                         }}

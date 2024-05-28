@@ -1,8 +1,7 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as SearchActions from '@libs/actions/Search';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
@@ -12,7 +11,6 @@ import EmptySearchView from '@pages/Search/EmptySearchView';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import SelectionList from './SelectionList';
@@ -31,10 +29,11 @@ function isReportListItemType(item: TransactionListItemType | ReportListItemType
 }
 
 function Search({query, policyIDs}: SearchProps) {
-    const [selectedItems, setSelectedItems] = useState<Array<SearchTransaction | SearchReport>>([]);
+    // @TODO: Uncomment to unhide the checkbox.
+    // const [selectedItems, setSelectedItems] = useState<Array<SearchTransaction | SearchReport>>([]);
+    // const {isLargeScreenWidth} = useWindowDimensions();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
-    const {isLargeScreenWidth} = useWindowDimensions();
 
     const hash = SearchUtils.getQueryHash(query, policyIDs);
     const [searchResults, searchResultsMeta] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
@@ -83,46 +82,34 @@ function Search({query, policyIDs}: SearchProps) {
         return null;
     }
 
-    const toggleListItem = (listItem: TransactionListItemType | ReportListItemType) => {
-        // @TODO: Selecting checkboxes will be handled in a separate PR
-        if (isReportListItemType(listItem)) {
-            Log.info(listItem?.reportID?.toString() ?? '');
-            return;
-        }
+    // @TODO: Uncomment to unhide the checkbox.
+    // const toggleListItem = (listItem: TransactionListItemType | ReportListItemType) => {
+    //     if (isReportListItemType(listItem)) {
+    //         Log.info(listItem?.reportID?.toString() ?? '');
+    //         return;
+    //     }
 
-        Log.info(listItem.transactionID);
-    };
+    //     Log.info(listItem.transactionID);
+    // };
+
+    //  const toggleAllItems = () => {
+    //     if (selectedItems.length === data.length) {
+    //         setSelectedItems([]);
+    //     } else {
+    //         setSelectedItems([...data]);
+    //     }
+    // };
 
     const ListItem = SearchUtils.getListItem(type);
 
-    const data = SearchUtils.getSections(
-        {
-            ...searchResults?.data,
-            // @TODO: Remove this comment when report items are returned from the API, uncomment it to test whether ReportListItem is displayed properly.
-            // report_0: {
-            //     reportID: 0,
-            //     reportName: 'Alice’s Apples owes $110.00',
-            //     total: 1000,
-            //     currency: 'USD',
-            //     action: 'pay',
-            // },
-        } ?? {},
-        type,
-    );
-
-    const toggleAllItems = () => {
-        if (selectedItems.length === data.length) {
-            setSelectedItems([]);
-        } else {
-            setSelectedItems([...data]);
-        }
-    };
+    const data = SearchUtils.getSections(searchResults?.data ?? {}, type);
 
     return (
-        <SelectionList
-            canSelectMultiple={isLargeScreenWidth}
-            onSelectAll={toggleAllItems}
-            onCheckboxPress={toggleListItem}
+        <SelectionList<ReportListItemType | TransactionListItemType>
+            // @TODO: Uncomment to unhide the checkbox.
+            // canSelectMultiple={isLargeScreenWidth}
+            // onSelectAll={toggleAllItems}
+            // onCheckboxPress={toggleListItem}
             customListHeader={<SearchTableHeader data={searchResults?.data} />}
             // To enhance the smoothness of scrolling and minimize the risk of encountering blank spaces during scrolling,
             // we have configured a larger windowSize and a longer delay between batch renders.

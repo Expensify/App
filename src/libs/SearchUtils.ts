@@ -18,8 +18,6 @@ function getSearchType(search: OnyxTypes.SearchResults['search']): SearchDataTyp
         return undefined;
     }
 
-    // @TODO: It's a temporary setting for testing purposes. Uncomment to display ReportListItem.
-    // return 'report';
     return search.type;
 }
 
