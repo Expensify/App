@@ -30,8 +30,6 @@ function SearchTableHeader({data}: SearchTableHeaderProps) {
     }
 
     return (
-        // @TODO: Uncomment and replace to unhide the checkbox.
-        // <View style={[styles.flex1]}>
         <View style={[styles.ph5, styles.pb3]}>
             <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.ph4]}>
                 <SearchTableHeaderColumn

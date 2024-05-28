@@ -29,9 +29,6 @@ function isReportListItemType(item: TransactionListItemType | ReportListItemType
 }
 
 function Search({query, policyIDs}: SearchProps) {
-    // @TODO: Uncomment to unhide the checkbox.
-    // const [selectedItems, setSelectedItems] = useState<Array<SearchTransaction | SearchReport>>([]);
-    // const {isLargeScreenWidth} = useWindowDimensions();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
 
@@ -82,34 +79,12 @@ function Search({query, policyIDs}: SearchProps) {
         return null;
     }
 
-    // @TODO: Uncomment to unhide the checkbox.
-    // const toggleListItem = (listItem: TransactionListItemType | ReportListItemType) => {
-    //     if (isReportListItemType(listItem)) {
-    //         Log.info(listItem?.reportID?.toString() ?? '');
-    //         return;
-    //     }
-
-    //     Log.info(listItem.transactionID);
-    // };
-
-    //  const toggleAllItems = () => {
-    //     if (selectedItems.length === data.length) {
-    //         setSelectedItems([]);
-    //     } else {
-    //         setSelectedItems([...data]);
-    //     }
-    // };
-
     const ListItem = SearchUtils.getListItem(type);
 
     const data = SearchUtils.getSections(searchResults?.data ?? {}, type);
 
     return (
         <SelectionList<ReportListItemType | TransactionListItemType>
-            // @TODO: Uncomment to unhide the checkbox.
-            // canSelectMultiple={isLargeScreenWidth}
-            // onSelectAll={toggleAllItems}
-            // onCheckboxPress={toggleListItem}
             customListHeader={<SearchTableHeader data={searchResults?.data} />}
             // To enhance the smoothness of scrolling and minimize the risk of encountering blank spaces during scrolling,
             // we have configured a larger windowSize and a longer delay between batch renders.

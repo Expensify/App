@@ -53,9 +53,6 @@ function TransactionListItem<TItem extends ListItem>({
             {() => (
                 <TransactionListItemRow
                     item={transactionItem}
-                    // @TODO: Uncomment to unhide the checkbox.
-                    // isDisabled={Boolean(isDisabled)}
-                    // canSelectMultiple={Boolean(canSelectMultiple)}
                     showTooltip={showTooltip}
                     onButtonPress={() => {
                         onSelectRow(item);

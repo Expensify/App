@@ -35,9 +35,6 @@ import TextWithIconCell from './TextWithIconCell';
 type TransactionListItemRowProps = {
     item: TransactionListItemType;
     showTooltip: boolean;
-    // @TODO: Uncomment to unhide the checkbox.
-    // isDisabled: boolean;
-    // canSelectMultiple: boolean;
     onButtonPress: () => void;
     showItemHeaderOnNarrowLayout?: boolean;
     containerStyle?: StyleProp<ViewStyle>;
@@ -204,15 +201,7 @@ function getMerchant(item: TransactionListItemType) {
     return merchant;
 }
 
-function TransactionListItemRow({
-    item,
-    showTooltip,
-    // @TODO: Uncomment to unhide the checkbox.
-    //  isDisabled, canSelectMultiple,
-    onButtonPress,
-    showItemHeaderOnNarrowLayout = true,
-    containerStyle,
-}: TransactionListItemRowProps) {
+function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeaderOnNarrowLayout = true, containerStyle}: TransactionListItemRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isLargeScreenWidth} = useWindowDimensions();
@@ -294,18 +283,6 @@ function TransactionListItemRow({
 
     return (
         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, containerStyle]}>
-            {/* @TODO: Uncomment and replace to unhide the checkbox.
-            {canSelectMultiple && (
-                <Checkbox
-                    onPress={() => {}}
-                    isChecked={item.isSelected}
-                    containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(Boolean(item.isSelected), Boolean(item.isDisabled))]}
-                    disabled={isDisabled || item.isDisabledCheckbox}
-                    accessibilityLabel={item.text ?? ''}
-                    style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled]}
-                />
-                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, canSelectMultiple && styles.ph4]}>
-            )} */}
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                 <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DATE)]}>
                     <DateCell

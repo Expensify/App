@@ -122,27 +122,9 @@ function ReportListItem<TItem extends ListItem>({
                         onButtonPress={handleOnButtonPress}
                     />
                 )}
-                {/* 
-                @TODO: Uncomment and replace to unhide the checkbox.
-                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, isLargeScreenWidth && styles.mr4]}>
-                 */}
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                     <View style={[styles.flexRow, styles.flex1, styles.alignItemsCenter, styles.justifyContentBetween]}>
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex2]}>
-                            {/* 
-                            @TODO: Uncomment and replace to unhide the checkbox. 
-                            {canSelectMultiple && (
-                                <Checkbox
-                                    onPress={() => {}}
-                                    isChecked={item.isSelected}
-                                    containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(Boolean(item.isSelected), Boolean(item.isDisabled))]}
-                                    disabled={Boolean(isDisabled) || item.isDisabledCheckbox}
-                                    accessibilityLabel={item.text ?? ''}
-                                    style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled]}
-                                />
-                            )}
-                            <View style={[styles.flexShrink1, isLargeScreenWidth && styles.ph4]}
-                             */}
                             <View style={[styles.flexShrink1]}>
                                 <Text style={[styles.reportListItemTitle]}>{reportItem?.reportName}</Text>
                                 <Text style={[styles.textMicroSupporting]}>{`${reportItem.transactions.length} ${translate('search.groupedExpenses')}`}</Text>
@@ -160,9 +142,6 @@ function ReportListItem<TItem extends ListItem>({
                     <TransactionListItemRow
                         item={transaction}
                         showTooltip={showTooltip}
-                        // @TODO: Uncomment to unhide the checkbox.
-                        // isDisabled={Boolean(isDisabled)}
-                        // canSelectMultiple={Boolean(canSelectMultiple)}
                         onButtonPress={() => {
                             openReportInRHP(transaction);
                         }}
