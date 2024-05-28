@@ -5,7 +5,6 @@ description: Remove QuickBooks Online integration with Expensify
 <div id="new-expensify" markdown="1">
 
 
-{% include option.html value="desktop" %}
 1. Click your profile image or icon in the bottom left menu.
 2. Scroll down and click **Workspaces** in the left menu. 
 3. Select the workspace you want to book the travel under. 
