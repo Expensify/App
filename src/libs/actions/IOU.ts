@@ -43,7 +43,6 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction, TransactionDetails} from '@libs/ReportUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import * as UserUtils from '@libs/UserUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -60,7 +59,8 @@ import type {Comment, Receipt, ReceiptSource, SplitShares, TransactionChanges, W
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CachedPDFPaths from './CachedPDFPaths';
-import * as Policy from './Policy';
+import * as Category from './Policy/Category';
+import * as Policy from './Policy/Policy';
 import * as Report from './Report';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
@@ -1698,7 +1698,7 @@ function getSendInvoiceInformation(
         billable,
     );
 
-    const optimisticPolicyRecentlyUsedCategories = Policy.buildOptimisticPolicyRecentlyUsedCategories(optimisticInvoiceReport.policyID, category);
+    const optimisticPolicyRecentlyUsedCategories = Category.buildOptimisticPolicyRecentlyUsedCategories(optimisticInvoiceReport.policyID, category);
     const optimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(optimisticInvoiceReport.policyID, tag);
 
     // STEP 4: Add optimistic personal details for participant
@@ -1707,7 +1707,6 @@ function getSendInvoiceInformation(
         const receiverLogin = receiverParticipant && 'login' in receiverParticipant && receiverParticipant.login ? receiverParticipant.login : '';
         receiver = {
             accountID: receiverAccountID,
-            avatar: UserUtils.getDefaultAvatarURL(receiverAccountID),
             displayName: LocalePhoneNumber.formatPhoneNumber(receiverLogin),
             login: receiverLogin,
             isOptimisticPersonalDetail: true,
@@ -1877,7 +1876,7 @@ function getMoneyRequestInformation(
         isDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
     );
 
-    const optimisticPolicyRecentlyUsedCategories = Policy.buildOptimisticPolicyRecentlyUsedCategories(iouReport.policyID, category);
+    const optimisticPolicyRecentlyUsedCategories = Category.buildOptimisticPolicyRecentlyUsedCategories(iouReport.policyID, category);
     const optimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(iouReport.policyID, tag);
 
     // If there is an existing transaction (which is the case for distance requests), then the data from the existing transaction
@@ -1934,7 +1933,6 @@ function getMoneyRequestInformation(
         ? {
               [payerAccountID]: {
                   accountID: payerAccountID,
-                  avatar: UserUtils.getDefaultAvatarURL(payerAccountID),
                   // Disabling this line since participant.displayName can be an empty string
                   // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                   displayName: LocalePhoneNumber.formatPhoneNumber(participant.displayName || payerEmail),
@@ -2520,7 +2518,7 @@ function getUpdateMoneyRequestParams(
 
     // Update recently used categories if the category is changed
     if ('category' in transactionChanges) {
-        const optimisticPolicyRecentlyUsedCategories = Policy.buildOptimisticPolicyRecentlyUsedCategories(iouReport?.policyID, transactionChanges.category);
+        const optimisticPolicyRecentlyUsedCategories = Category.buildOptimisticPolicyRecentlyUsedCategories(iouReport?.policyID, transactionChanges.category);
         if (optimisticPolicyRecentlyUsedCategories.length) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.SET,
@@ -4008,7 +4006,6 @@ function createSplitsAndOnyxData(
             ? {
                   [accountID]: {
                       accountID,
-                      avatar: UserUtils.getDefaultAvatarURL(accountID),
                       // Disabling this line since participant.displayName can be an empty string
                       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                       displayName: LocalePhoneNumber.formatPhoneNumber(participant.displayName || email),
@@ -4031,7 +4028,7 @@ function createSplitsAndOnyxData(
         }
 
         // Add category to optimistic policy recently used categories when a participant is a workspace
-        const optimisticPolicyRecentlyUsedCategories = isPolicyExpenseChat ? Policy.buildOptimisticPolicyRecentlyUsedCategories(participant.policyID, category) : [];
+        const optimisticPolicyRecentlyUsedCategories = isPolicyExpenseChat ? Category.buildOptimisticPolicyRecentlyUsedCategories(participant.policyID, category) : [];
 
         // Add tag to optimistic policy recently used tags when a participant is a workspace
         const optimisticPolicyRecentlyUsedTags = isPolicyExpenseChat ? Policy.buildOptimisticPolicyRecentlyUsedTags(participant.policyID, tag) : {};
@@ -4479,7 +4476,6 @@ function startSplitBill({
                 value: {
                     [accountID]: {
                         accountID,
-                        avatar: UserUtils.getDefaultAvatarURL(accountID),
                         // Disabling this line since participant.displayName can be an empty string
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         displayName: LocalePhoneNumber.formatPhoneNumber(participant.displayName || email),
@@ -4506,7 +4502,7 @@ function startSplitBill({
             return;
         }
 
-        const optimisticPolicyRecentlyUsedCategories = Policy.buildOptimisticPolicyRecentlyUsedCategories(participant.policyID, category);
+        const optimisticPolicyRecentlyUsedCategories = Category.buildOptimisticPolicyRecentlyUsedCategories(participant.policyID, category);
         const optimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(participant.policyID, tag);
 
         if (optimisticPolicyRecentlyUsedCategories.length > 0) {
@@ -4932,7 +4928,7 @@ function editRegularMoneyRequest(
 
     // Update recently used categories if the category is changed
     if ('category' in transactionChanges) {
-        const optimisticPolicyRecentlyUsedCategories = Policy.buildOptimisticPolicyRecentlyUsedCategories(iouReport?.policyID, transactionChanges.category);
+        const optimisticPolicyRecentlyUsedCategories = Category.buildOptimisticPolicyRecentlyUsedCategories(iouReport?.policyID, transactionChanges.category);
         if (optimisticPolicyRecentlyUsedCategories.length) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.SET,
@@ -5587,7 +5583,6 @@ function getSendMoneyParams(
         ? {
               [recipientAccountID]: {
                   accountID: recipientAccountID,
-                  avatar: UserUtils.getDefaultAvatarURL(recipient.accountID),
                   // Disabling this line since participant.displayName can be an empty string
                   // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                   displayName: recipient.displayName || recipient.login,

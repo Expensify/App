@@ -71,6 +71,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? ''}`], [policies, report?.policyID]);
     const isPolicyAdmin = useMemo(() => PolicyUtils.isPolicyAdmin(policy ?? null), [policy]);
     const isPolicyEmployee = useMemo(() => PolicyUtils.isPolicyEmployee(report?.policyID ?? '', policies), [report?.policyID, policies]);
+    const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     const shouldUseFullTitle = useMemo(() => ReportUtils.shouldUseFullTitleToDisplay(report), [report]);
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(report), [report]);
     const isChatRoom = useMemo(() => ReportUtils.isChatRoom(report), [report]);
@@ -155,7 +156,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
                 action: () => {
-                    if (isUserCreatedPolicyRoom || isChatThread) {
+                    if (isUserCreatedPolicyRoom || isChatThread || isPolicyExpenseChat) {
                         Navigation.navigate(ROUTES.ROOM_MEMBERS.getRoute(report?.reportID ?? ''));
                     } else {
                         Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID ?? ''));
@@ -224,6 +225,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         isDefaultRoom,
         isChatThread,
         isPolicyEmployee,
+        isPolicyExpenseChat,
         isUserCreatedPolicyRoom,
         participants.length,
         report,
@@ -258,6 +260,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         isGroupChat && !isThread ? (
             <AvatarWithImagePicker
                 source={icons[0].source}
+                avatarID={icons[0].id}
                 isUsingDefaultAvatar={!report.avatarUrl}
                 size={CONST.AVATAR_SIZE.XLARGE}
                 avatarStyle={styles.avatarXLarge}
