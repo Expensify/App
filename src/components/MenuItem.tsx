@@ -160,7 +160,7 @@ type MenuItemBaseProps = {
     hintText?: MaybePhraseKey;
 
     /** Should the error text red dot indicator be shown */
-    shouldShowErrorTextRedDot?: boolean;
+    shouldShowRedDotIndicator?: boolean;
 
     /** A boolean flag that gives the icon a green fill if true */
     success?: boolean;
@@ -315,7 +315,7 @@ function MenuItem(
         helperTextStyle,
         errorText,
         errorTextStyle,
-        shouldShowErrorTextRedDot,
+        shouldShowRedDotIndicator,
         hintText,
         success = false,
         focused = false,
@@ -691,7 +691,7 @@ function MenuItem(
                                 {!!errorText && (
                                     <FormHelpMessage
                                         isError
-                                        shouldShowRedDotIndicator={!!shouldShowErrorTextRedDot}
+                                        shouldShowRedDotIndicator={!!shouldShowRedDotIndicator}
                                         message={errorText}
                                         style={[styles.menuItemError, errorTextStyle]}
                                     />
