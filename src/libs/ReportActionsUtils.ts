@@ -33,6 +33,7 @@ import Log from './Log';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import type {OptimisticIOUReportAction} from './ReportUtils';
+import StringUtils from './StringUtils';
 import * as TransactionUtils from './TransactionUtils';
 
 type LastVisibleMessage = {
@@ -490,8 +491,7 @@ function getMostRecentIOURequestActionID(reportActions: ReportAction[] | null): 
 function extractLinksFromMessageHtml(reportAction: OnyxEntry<ReportAction>): string[] {
     const htmlContent = reportAction?.message?.[0]?.html;
 
-    // Regex to get link in href prop inside of <a/> component
-    const regex = /<a\s+(?:[^>]*?\s+)?href="([^"]*)"/gi;
+    const regex = CONST.REGEX_LINK_IN_ANCHOR;
 
     if (!htmlContent) {
         return [];
@@ -725,7 +725,7 @@ function getLastVisibleMessage(reportID: string, actionsToMerge: OnyxCollection<
 
     let messageText = message?.text ?? '';
     if (messageText) {
-        messageText = String(messageText).replace(CONST.REGEX.LINE_BREAK, ' ').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
+        messageText = StringUtils.lineBreaksToSpaces(String(messageText)).substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
     }
     return {
         lastMessageText: messageText,
