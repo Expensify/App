@@ -6637,14 +6637,12 @@ function adjustRemainingSplitShares(transaction: NonNullable<OnyxTypes.Transacti
         return;
     }
 
-    const splitShares: SplitShares = unmodifiedSharesAccountIDs.reduce((result: SplitShares, accountID: number, index: number): SplitShares => {
+    const splitShares: SplitShares = unmodifiedSharesAccountIDs.reduce((acc: SplitShares, accountID: number, index: number): SplitShares => {
         const splitAmount = IOUUtils.calculateAmount(unmodifiedSharesAccountIDs.length - 1, remainingTotal, transaction.currency, index === 0);
-        return {
-            ...result,
-            [accountID]: {
-                amount: splitAmount,
-            },
+        acc[accountID] = {
+            amount: splitAmount,
         };
+        return acc;
     }, {});
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, {splitShares});
