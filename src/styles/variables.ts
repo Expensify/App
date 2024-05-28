@@ -212,7 +212,7 @@ export default {
     fontSizeEmojisOnlyComposer: 27,
     fontSizeUsernameEmoji: 25,
     lineHeightEmojisOnlyComposer: 32,
-    lineHeightEmojisWithTextComposer: 32,
+    lineHeightEmojisWithTextComposer: 22,
     emojiOnlyMarginTop: 5,
     emojiOnlyComposerPaddingBottom: 0,
     emojiOnlyComposerPaddingTop: 7,
