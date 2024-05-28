@@ -63,6 +63,9 @@ type Account = {
 
     /** Object containing all account information necessary to connect with Spontana */
     travelSettings?: TravelSettings;
+
+    /** Whether the can downgrade a subscription */
+    canDowngrade?: boolean;
 };
 
 export default Account;
