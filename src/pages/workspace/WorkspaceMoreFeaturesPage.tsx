@@ -258,7 +258,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             default:
                 return undefined;
         }
-    }, [connectionWarningModalState.itemType]);
+    }, [connectionWarningModalState.itemType, connectionName, translate]);
 
     return (
         <AccessOrNotFoundWrapper
