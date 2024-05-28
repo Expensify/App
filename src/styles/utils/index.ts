@@ -770,37 +770,40 @@ function getHorizontalStackedOverlayAvatarStyle(oneAvatarSize: AvatarSize, oneAv
 /**
  * Gets the correct size for the empty state background image based on screen dimensions
  */
-function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean, isMoneyOrTaskReport = false): ImageStyle {
-    const emptyStateBackground = isMoneyOrTaskReport ? CONST.EMPTY_STATE_BACKGROUND.MONEY_OR_TASK_REPORT : CONST.EMPTY_STATE_BACKGROUND;
-
+function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean): ImageStyle {
     if (isSmallScreenWidth) {
         return {
-            height: emptyStateBackground.SMALL_SCREEN.IMAGE_HEIGHT,
-            width: '100%',
             position: 'absolute',
+            bottom: 0,
+            height: CONST.EMPTY_STATE_BACKGROUND.SMALL_SCREEN.IMAGE_HEIGHT,
+            width: '100%',
         };
     }
 
     return {
-        height: emptyStateBackground.WIDE_SCREEN.IMAGE_HEIGHT,
-        width: '100%',
         position: 'absolute',
+        bottom: 0,
+        height: CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.IMAGE_HEIGHT,
+        width: '100%',
     };
 }
 
 /**
- * Gets the correct top margin size for the chat welcome message based on screen dimensions
+ * Gets the style for the container of the empty state background image that overlap the created report action
  */
-function getReportWelcomeTopMarginStyle(isSmallScreenWidth: boolean, isMoneyOrTaskReport = false): ViewStyle {
-    const emptyStateBackground = isMoneyOrTaskReport ? CONST.EMPTY_STATE_BACKGROUND.MONEY_OR_TASK_REPORT : CONST.EMPTY_STATE_BACKGROUND;
+function getReportWelcomeBackgroundContainerStyle(isSmallScreenWidth: boolean): ViewStyle {
     if (isSmallScreenWidth) {
         return {
-            marginTop: emptyStateBackground.SMALL_SCREEN.VIEW_HEIGHT,
+            position: 'absolute',
+            top: CONST.EMPTY_STATE_BACKGROUND.OVERLAP,
+            width: '100%',
         };
     }
 
     return {
-        marginTop: emptyStateBackground.WIDE_SCREEN.VIEW_HEIGHT,
+        position: 'absolute',
+        top: CONST.EMPTY_STATE_BACKGROUND.OVERLAP,
+        width: '100%',
     };
 }
 
@@ -820,23 +823,6 @@ function getLineHeightStyle(lineHeight: number): TextStyle {
     return {
         lineHeight,
     };
-}
-
-/**
- * Gets the correct size for the empty state container based on screen dimensions
- */
-function getReportWelcomeContainerStyle(isSmallScreenWidth: boolean, isMoneyOrTaskReport = false, shouldShowAnimatedBackground = true): ViewStyle {
-    const emptyStateBackground = isMoneyOrTaskReport ? CONST.EMPTY_STATE_BACKGROUND.MONEY_OR_TASK_REPORT : CONST.EMPTY_STATE_BACKGROUND;
-    const baseStyles: ViewStyle = {
-        display: 'flex',
-        justifyContent: 'space-between',
-    };
-
-    if (shouldShowAnimatedBackground) {
-        baseStyles.minHeight = isSmallScreenWidth ? emptyStateBackground.SMALL_SCREEN.CONTAINER_MINHEIGHT : emptyStateBackground.WIDE_SCREEN.CONTAINER_MINHEIGHT;
-    }
-
-    return baseStyles;
 }
 
 type GetBaseAutoCompleteSuggestionContainerStyleParams = {
@@ -1153,8 +1139,7 @@ const staticStyleUtils = {
     getHorizontalStackedAvatarStyle,
     getHorizontalStackedOverlayAvatarStyle,
     getReportWelcomeBackgroundImageStyle,
-    getReportWelcomeTopMarginStyle,
-    getReportWelcomeContainerStyle,
+    getReportWelcomeBackgroundContainerStyle,
     getBaseAutoCompleteSuggestionContainerStyle,
     getBorderColorStyle,
     getCheckboxPressableStyle,
