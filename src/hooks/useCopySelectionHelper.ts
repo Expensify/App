@@ -1,4 +1,4 @@
-import {ExpensiMark} from 'expensify-common'
+import {ExpensiMark} from 'expensify-common';
 import {useEffect} from 'react';
 import Clipboard from '@libs/Clipboard';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
