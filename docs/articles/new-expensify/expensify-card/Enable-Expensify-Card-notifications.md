@@ -37,8 +37,6 @@ There are two steps to enable Expensify Card notifications. You’ll first enabl
 
 # Step 2: Enable notifications on your device
 
-
-{% include option.html value="mobile" %}
 **iPhone**
 
 1. Go to your device settings.
@@ -55,9 +53,5 @@ There are two steps to enable Expensify Card notifications. You’ll first enabl
 5. Customize your alerts. Depending on your phone model, you may have extra options to customize the types of notifications you receive.
 
 You will now receive real-time spend notifications to your mobile device.
-
-{% include end-option.html %}
-
-{% include end-selector.html %}
 
 </div>
