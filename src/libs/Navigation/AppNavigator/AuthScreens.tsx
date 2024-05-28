@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
+import withPrepareCentralPaneScreen from '@components/withPrepareCentralPaneScreen';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -38,8 +39,8 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
-import {CENTRAL_PANE_SCREENS} from './CENTRAL_PANE_SCREENS';
 import type {CentralPaneName} from './CENTRAL_PANE_SCREENS';
+import {CENTRAL_PANE_SCREENS} from './CENTRAL_PANE_SCREENS';
 import createCustomStackNavigator from './createCustomStackNavigator';
 import defaultScreenOptions from './defaultScreenOptions';
 import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
@@ -285,8 +286,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         cardStyle: styles.cardStyleNavigator,
     };
 
-    // @TODO: Check whether CENTRAL_PANE_SCREENS should be wrapped by FreezeWrapper on native platforms
-
     return (
         <OptionsListContextProvider>
             <View style={styles.rootNavigatorContainerStyles(isSmallScreenWidth)}>
@@ -425,7 +424,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                             key={screenName}
                             name={screenName as CentralPaneName}
                             initialParams={{openOnAdminRoom: (screenName === SCREENS.REPORT && openOnAdminRoom === 'true') || undefined}}
-                            getComponent={componentGetter}
+                            getComponent={() => withPrepareCentralPaneScreen(componentGetter())}
                             options={CentralPaneNameOptions}
                         />
                     ))}
