@@ -43,14 +43,6 @@ function SubscriptionPlan() {
               translate('subscription.yourPlan.control.benefit7'),
           ];
 
-    let priceInfo;
-
-    if (isCollect) {
-        priceInfo = translate(`subscription.yourPlan.collect.${isAnnual ? 'priceAnnual' : 'pricePayPerUse'}`);
-    } else {
-        priceInfo = translate(`subscription.yourPlan.control.${isAnnual ? 'priceAnnual' : 'pricePayPerUse'}`);
-    }
-
     return (
         <Section
             title={translate('subscription.yourPlan.title')}
@@ -64,7 +56,10 @@ function SubscriptionPlan() {
                     height={variables.iconHeader}
                 />
                 <Text style={[styles.yourPlanTitle, styles.mt2]}>{translate(`subscription.yourPlan.${isCollect ? 'collect' : 'control'}.title`)}</Text>
-                <Text style={[styles.yourPlanSubtitle, styles.mb2]}>{priceInfo}</Text>
+                <Text style={[styles.yourPlanSubtitle, styles.mb2]}>
+                    {translate(`subscription.yourPlan.${isCollect ? 'collect' : 'control'}.${isAnnual ? 'priceAnnual' : 'pricePayPerUse'}`)}
+                </Text>
+                ;
                 {benefitsList.map((benefit) => (
                     <View
                         style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}
