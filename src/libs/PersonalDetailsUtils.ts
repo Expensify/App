@@ -52,6 +52,10 @@ function getDisplayNameOrDefault(passedPersonalDetails?: Partial<PersonalDetails
         displayName = `${displayName} (${Localize.translateLocal('common.you').toLowerCase()})`;
     }
 
+    if (passedPersonalDetails?.accountID === CONST.ACCOUNT_ID.CONCIERGE) {
+        displayName = CONST.CONCIERGE_DISPLAY_NAME;
+    }
+
     if (displayName) {
         return displayName;
     }
@@ -153,7 +157,6 @@ function getPersonalDetailsOnyxDataForOptimisticUsers(newLogins: string[], newAc
         personalDetailsNew[accountID] = {
             login,
             accountID,
-            avatar: UserUtils.getDefaultAvatarURL(accountID),
             displayName: LocalePhoneNumber.formatPhoneNumber(login),
         };
 
