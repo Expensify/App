@@ -125,6 +125,9 @@ type ListItem = {
 
     /** Whether the brick road indicator should be shown */
     brickRoadIndicator?: BrickRoad | '' | null;
+
+    /** Whether item pressable wrapper should be focusable */
+    tabIndex?: 0 | -1;
 };
 
 type TransactionListItemType = ListItem &

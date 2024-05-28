@@ -49,6 +49,9 @@ type AvatarWithImagePickerProps = {
     /** Avatar source to display */
     source?: AvatarSource;
 
+    /** Account id of user for which avatar is displayed  */
+    avatarID?: number | string;
+
     /** Additional style props */
     style?: StyleProp<ViewStyle>;
 
@@ -139,6 +142,7 @@ function AvatarWithImagePicker({
     errorRowStyles,
     onErrorClose = () => {},
     source = '',
+    avatarID,
     fallbackIcon = Expensicons.FallbackAvatar,
     size = CONST.AVATAR_SIZE.DEFAULT,
     type = CONST.ICON_TYPE_AVATAR,
@@ -333,6 +337,7 @@ function AvatarWithImagePicker({
                                         containerStyles={avatarStyle}
                                         imageStyles={[avatarStyle, styles.alignSelfCenter]}
                                         source={source}
+                                        avatarID={avatarID}
                                         fallbackIcon={fallbackIcon}
                                         size={size}
                                         type={type}
