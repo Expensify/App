@@ -16,8 +16,8 @@ const insertAtCaret = (target: HTMLElement, text: string) => {
         range.insertNode(node);
 
         // Move caret to the end of the newly inserted text node.
-        range.setStart(node, node.length);
-        range.setEnd(node, node.length);
+        range.setStart(node, node.length - 1);
+        range.setEnd(node, node.length - 1);
         selection.removeAllRanges();
         selection.addRange(range);
 
