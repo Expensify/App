@@ -289,6 +289,7 @@ function MoneyRequestAmountInput(
             touchableInputWrapperStyle={props.touchableInputWrapperStyle}
             maxLength={maxLength}
             hideFocusedState={hideFocusedState}
+            onMouseDown={(event) => event.stopPropagation()}
         />
     );
 }
