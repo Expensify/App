@@ -113,7 +113,7 @@ function ThumbnailImage({
             <View style={[style, styles.overflowHidden, isHovered ? styles.activeComponentBG : styles.hoveredComponentBG]}>
                 <View style={[...sizeStyles, styles.alignItemsCenter, styles.justifyContentCenter]}>
                     <Icon
-                        src={isOffline && previewSourceURL ? Expensicons.OfflineCloud : fallbackIcon}
+                        src={isOffline ? Expensicons.OfflineCloud : fallbackIcon}
                         height={fallbackIconSize}
                         width={fallbackIconSize}
                         fill={fallbackIconColor ?? theme.border}
