@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {memo} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
@@ -51,4 +51,4 @@ function ExpenseItemHeaderNarrow({participantFrom, participantTo, buttonText, on
     );
 }
 
-export default ExpenseItemHeaderNarrow;
+export default memo(ExpenseItemHeaderNarrow);

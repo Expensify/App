@@ -9,7 +9,6 @@ import Log from '@libs/Log';
 import * as SearchUtils from '@libs/SearchUtils';
 import Navigation from '@navigation/Navigation';
 import EmptySearchView from '@pages/Search/EmptySearchView';
-import useCustomBackHandler from '@pages/Search/useCustomBackHandler';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -36,7 +35,6 @@ function Search({query, policyIDs}: SearchProps) {
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useWindowDimensions();
-    useCustomBackHandler();
 
     const hash = SearchUtils.getQueryHash(query, policyIDs);
     const [searchResults, searchResultsMeta] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
@@ -126,6 +124,17 @@ function Search({query, policyIDs}: SearchProps) {
             onSelectAll={toggleAllItems}
             onCheckboxPress={toggleListItem}
             customListHeader={<SearchTableHeader data={searchResults?.data} />}
+            // To enhance the smoothness of scrolling and minimize the risk of encountering blank spaces during scrolling,
+            // we have configured a larger windowSize and a longer delay between batch renders.
+            // The windowSize determines the number of items rendered before and after the currently visible items.
+            // A larger windowSize helps pre-render more items, reducing the likelihood of blank spaces appearing.
+            // The updateCellsBatchingPeriod sets the delay (in milliseconds) between rendering batches of cells.
+            // A longer delay allows the UI to handle rendering in smaller increments, which can improve performance and smoothness.
+            // For more information, refer to the React Native documentation:
+            // https://reactnative.dev/docs/0.73/optimizing-flatlist-configuration#windowsize
+            // https://reactnative.dev/docs/0.73/optimizing-flatlist-configuration#updatecellsbatchingperiod
+            windowSize={111}
+            updateCellsBatchingPeriod={200}
             ListItem={ListItem}
             sections={[{data, isDisabled: false}]}
             onSelectRow={(item) => {

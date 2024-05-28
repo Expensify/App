@@ -1,12 +1,24 @@
-import React from 'react';
+import React, {memo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import Avatar from '@components/Avatar';
 import Button from '@components/Button';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import type {TransactionListItemType} from '@components/SelectionList/types';
+import type {
+    ActionCellProps,
+    CellProps,
+    CurrencyCellProps,
+    DateCellProps,
+    MerchantCellProps,
+    TransactionCellProps,
+    TransactionListItemType,
+    TypeCellProps,
+    UserCellProps,
+} from '@components/SelectionList/types';
+import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -20,7 +32,6 @@ import type {Transaction} from '@src/types/onyx';
 import type {SearchTransactionType} from '@src/types/onyx/SearchResults';
 import ExpenseItemHeaderNarrow from './ExpenseItemHeaderNarrow';
 import TextWithIconCell from './TextWithIconCell';
-import UserInfoCell from './UserInfoCell';
 
 type TransactionListItemRowProps = {
     item: TransactionListItemType;
@@ -44,6 +55,144 @@ const getTypeIcon = (type?: SearchTransactionType) => {
             return Expensicons.Cash;
     }
 };
+function arePropsEqual(prevProps: CellProps, nextProps: CellProps) {
+    return prevProps.keyForList === nextProps.keyForList;
+}
+
+const DateCell = memo(({showTooltip, date, isLargeScreenWidth}: DateCellProps) => {
+    const styles = useThemeStyles();
+
+    return (
+        <TextWithTooltip
+            shouldShowTooltip={!!showTooltip}
+            text={date}
+            style={[styles.label, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? undefined : [styles.textMicro, styles.textSupporting]]}
+        />
+    );
+}, arePropsEqual);
+
+const MerchantCell = memo(({showTooltip, transactionItem, merchant, description}: MerchantCellProps) => {
+    const styles = useThemeStyles();
+    return (
+        <TextWithTooltip
+            shouldShowTooltip={!!showTooltip}
+            text={transactionItem.shouldShowMerchant ? merchant : description}
+            style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter]}
+        />
+    );
+}, arePropsEqual);
+
+const UserCell = memo(({participant}: UserCellProps) => {
+    const styles = useThemeStyles();
+
+    const displayName = participant?.name ?? participant?.displayName ?? participant?.login;
+    const avatarURL = participant?.avatarURL ?? participant?.avatar;
+    const isWorkspace = participant?.avatarURL !== undefined;
+    const iconType = isWorkspace ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR;
+
+    return (
+        <View style={[styles.flexRow, styles.gap1, styles.alignItemsCenter]}>
+            <Avatar
+                imageStyles={[styles.alignSelfCenter]}
+                size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                source={avatarURL}
+                name={displayName}
+                type={iconType}
+                avatarID={isWorkspace ? participant?.id : participant?.accountID}
+            />
+            <Text
+                numberOfLines={1}
+                style={[styles.textMicroBold, styles.flexShrink1]}
+            >
+                {displayName}
+            </Text>
+        </View>
+    );
+}, arePropsEqual);
+
+const TotalCell = memo(({showTooltip, amount, currency, isLargeScreenWidth}: CurrencyCellProps) => {
+    const styles = useThemeStyles();
+
+    return (
+        <TextWithTooltip
+            shouldShowTooltip={!!showTooltip}
+            text={CurrencyUtils.convertToDisplayString(amount, currency)}
+            style={[styles.optionDisplayName, styles.textNewKansasNormal, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? undefined : styles.textAlignRight]}
+        />
+    );
+}, arePropsEqual);
+
+const TypeCell = memo(({typeIcon, isLargeScreenWidth}: TypeCellProps) => {
+    const theme = useTheme();
+    return (
+        <Icon
+            src={typeIcon}
+            fill={theme.icon}
+            height={isLargeScreenWidth ? 20 : 12}
+            width={isLargeScreenWidth ? 20 : 12}
+        />
+    );
+}, arePropsEqual);
+
+const ActionCell = memo(({item, onSelectRow}: ActionCellProps) => {
+    const {translate} = useLocalize();
+    const styles = useThemeStyles();
+
+    return (
+        <Button
+            text={translate('common.view')}
+            onPress={() => onSelectRow(item)}
+            small
+            pressOnEnter
+            style={[styles.p0]}
+        />
+    );
+}, arePropsEqual);
+
+const CategoryCell = memo(({isLargeScreenWidth, showTooltip, transactionItem}: TransactionCellProps) => {
+    const styles = useThemeStyles();
+    return isLargeScreenWidth ? (
+        <TextWithTooltip
+            shouldShowTooltip={!!showTooltip}
+            text={transactionItem?.category}
+            style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter]}
+        />
+    ) : (
+        <TextWithIconCell
+            icon={Expensicons.Folder}
+            showTooltip={!!showTooltip}
+            text={transactionItem?.category}
+        />
+    );
+}, arePropsEqual);
+
+const TagCell = memo(({isLargeScreenWidth, showTooltip, transactionItem}: TransactionCellProps) => {
+    const styles = useThemeStyles();
+    return isLargeScreenWidth ? (
+        <TextWithTooltip
+            shouldShowTooltip={!!showTooltip}
+            text={transactionItem?.tag}
+            style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter]}
+        />
+    ) : (
+        <TextWithIconCell
+            icon={Expensicons.Tag}
+            showTooltip={!!showTooltip}
+            text={transactionItem?.tag}
+        />
+    );
+}, arePropsEqual);
+
+const TaxCell = memo(({showTooltip, amount, currency}: CurrencyCellProps) => {
+    const styles = useThemeStyles();
+    return (
+        <TextWithTooltip
+            shouldShowTooltip={!!showTooltip}
+            text={CurrencyUtils.convertToDisplayString(amount, currency)}
+            style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter, styles.textAlignRight]}
+        />
+    );
+}, arePropsEqual);
 
 function getMerchant(item: TransactionListItemType) {
     const merchant = TransactionUtils.getMerchant(item as OnyxEntry<Transaction>);
@@ -58,7 +207,6 @@ function getMerchant(item: TransactionListItemType) {
 function TransactionListItemRow({item, showTooltip, isDisabled, canSelectMultiple, onButtonPress, showItemHeaderOnNarrowLayout = true, containerStyle}: TransactionListItemRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const theme = useTheme();
     const {isLargeScreenWidth} = useWindowDimensions();
     const StyleUtils = useStyleUtils();
 
@@ -70,85 +218,6 @@ function TransactionListItemRow({item, showTooltip, isDisabled, canSelectMultipl
     const description = TransactionUtils.getDescription(item as OnyxEntry<Transaction>);
     const merchant = getMerchant(item);
     const typeIcon = getTypeIcon(item.type);
-
-    const dateCell = (
-        <TextWithTooltip
-            shouldShowTooltip={showTooltip}
-            text={date}
-            style={[styles.label, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? undefined : [styles.textMicro, styles.textSupporting]]}
-        />
-    );
-
-    const merchantCell = (
-        <TextWithTooltip
-            shouldShowTooltip={showTooltip}
-            text={item.shouldShowMerchant ? merchant : description}
-            style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter]}
-        />
-    );
-
-    const categoryCell = isLargeScreenWidth ? (
-        <TextWithTooltip
-            shouldShowTooltip={showTooltip}
-            text={item?.category}
-            style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter]}
-        />
-    ) : (
-        <TextWithIconCell
-            icon={Expensicons.Folder}
-            showTooltip={showTooltip}
-            text={item?.category}
-        />
-    );
-
-    const tagCell = isLargeScreenWidth ? (
-        <TextWithTooltip
-            shouldShowTooltip={showTooltip}
-            text={item?.tag}
-            style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter]}
-        />
-    ) : (
-        <TextWithIconCell
-            icon={Expensicons.Tag}
-            showTooltip={showTooltip}
-            text={item?.tag}
-        />
-    );
-
-    const taxCell = (
-        <TextWithTooltip
-            shouldShowTooltip={showTooltip}
-            text={CurrencyUtils.convertToDisplayString(taxAmount, currency)}
-            style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter, styles.textAlignRight]}
-        />
-    );
-
-    const totalCell = (
-        <TextWithTooltip
-            shouldShowTooltip={showTooltip}
-            text={CurrencyUtils.convertToDisplayString(amount, currency)}
-            style={[styles.optionDisplayName, styles.textNewKansasNormal, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? undefined : styles.textAlignRight]}
-        />
-    );
-
-    const typeCell = (
-        <Icon
-            src={typeIcon}
-            fill={theme.icon}
-            height={isLargeScreenWidth ? 20 : 12}
-            width={isLargeScreenWidth ? 20 : 12}
-        />
-    );
-
-    const actionCell = (
-        <Button
-            text={translate('common.view')}
-            onPress={onButtonPress}
-            small
-            pressOnEnter
-            style={[styles.p0]}
-        />
-    );
 
     if (!isLargeScreenWidth) {
         return (
@@ -164,17 +233,50 @@ function TransactionListItemRow({item, showTooltip, isDisabled, canSelectMultipl
 
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.gap1]}>
                     <View style={[styles.flex2, styles.gap1]}>
-                        {merchantCell}
+                        <MerchantCell
+                            showTooltip={showTooltip}
+                            transactionItem={item}
+                            merchant={merchant}
+                            description={description}
+                            keyForList={item.keyForList ?? ''}
+                            isLargeScreenWidth={false}
+                        />
                         <View style={[styles.flexRow, styles.flex1, styles.alignItemsEnd, styles.gap3]}>
-                            {categoryCell}
-                            {tagCell}
+                            <CategoryCell
+                                keyForList={item.keyForList ?? ''}
+                                isLargeScreenWidth={isLargeScreenWidth}
+                                showTooltip={showTooltip}
+                                transactionItem={item}
+                            />
+                            <TagCell
+                                showTooltip={showTooltip}
+                                transactionItem={item}
+                                isLargeScreenWidth={isLargeScreenWidth}
+                                keyForList={item.keyForList ?? ''}
+                            />
                         </View>
                     </View>
                     <View style={[styles.alignItemsEnd, styles.flex1, styles.gap1]}>
-                        {totalCell}
+                        <TotalCell
+                            showTooltip={showTooltip}
+                            amount={amount}
+                            currency={currency}
+                            isLargeScreenWidth={isLargeScreenWidth}
+                            keyForList={item.keyForList ?? ''}
+                        />
                         <View style={[styles.flexRow, styles.gap1, styles.justifyContentCenter]}>
-                            {typeCell}
-                            {dateCell}
+                            <TypeCell
+                                typeIcon={typeIcon}
+                                isLargeScreenWidth={isLargeScreenWidth}
+                                keyForList={item.keyForList ?? ''}
+                                showTooltip={false}
+                            />
+                            <DateCell
+                                showTooltip={showTooltip}
+                                date={date}
+                                isLargeScreenWidth={isLargeScreenWidth}
+                                keyForList={item.keyForList ?? ''}
+                            />
                         </View>
                     </View>
                 </View>
@@ -195,20 +297,98 @@ function TransactionListItemRow({item, showTooltip, isDisabled, canSelectMultipl
                 />
             )}
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.ph4, styles.gap3]}>
-                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DATE)]}>{dateCell}</View>
-                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.MERCHANT)]}>{merchantCell}</View>
+                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DATE)]}>
+                    <DateCell
+                        showTooltip={showTooltip}
+                        date={date}
+                        isLargeScreenWidth={isLargeScreenWidth}
+                        keyForList={item.keyForList ?? ''}
+                    />
+                </View>
+                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.MERCHANT)]}>
+                    <MerchantCell
+                        showTooltip={showTooltip}
+                        transactionItem={item}
+                        merchant={merchant}
+                        description={description}
+                        keyForList={item.keyForList ?? ''}
+                        isLargeScreenWidth={false}
+                    />
+                </View>
                 <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.FROM)]}>
-                    <UserInfoCell participant={item.from} />
+                    <UserCell
+                        participant={item.from}
+                        keyForList={item.keyForList ?? ''}
+                        showTooltip={false}
+                        isLargeScreenWidth={false}
+                    />
                 </View>
-                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TO)]}>
-                    <UserInfoCell participant={item.to} />
+                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.FROM)]}>
+                    <UserCell
+                        participant={item.to}
+                        keyForList={item.keyForList ?? ''}
+                        showTooltip={false}
+                        isLargeScreenWidth={false}
+                    />
                 </View>
-                {item.shouldShowCategory && <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.CATEGORY)]}>{categoryCell}</View>}
-                {item.shouldShowTag && <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TAG)]}>{tagCell}</View>}
-                {item.shouldShowTax && <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TAX_AMOUNT)]}>{taxCell}</View>}
-                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TOTAL)]}>{totalCell}</View>
-                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TYPE)]}>{typeCell}</View>
-                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.ACTION)]}>{actionCell}</View>
+                {item.shouldShowCategory && (
+                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.CATEGORY)]}>
+                        <CategoryCell
+                            keyForList={item.keyForList ?? ''}
+                            isLargeScreenWidth={isLargeScreenWidth}
+                            showTooltip={showTooltip}
+                            transactionItem={item}
+                        />
+                    </View>
+                )}
+                {item.shouldShowTag && (
+                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TAG)]}>
+                        <TagCell
+                            keyForList={item.keyForList ?? ''}
+                            isLargeScreenWidth={isLargeScreenWidth}
+                            showTooltip={showTooltip}
+                            transactionItem={item}
+                        />
+                    </View>
+                )}
+                {item.shouldShowTax && (
+                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TAX_AMOUNT)]}>
+                        <TaxCell
+                            keyForList={item.keyForList ?? ''}
+                            isLargeScreenWidth={isLargeScreenWidth}
+                            showTooltip={showTooltip}
+                            amount={taxAmount}
+                            currency={currency}
+                        />
+                    </View>
+                )}
+
+                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TOTAL)]}>
+                    <TotalCell
+                        showTooltip={showTooltip}
+                        amount={amount}
+                        currency={currency}
+                        isLargeScreenWidth={isLargeScreenWidth}
+                        keyForList={item.keyForList ?? ''}
+                    />
+                </View>
+                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TYPE)]}>
+                    <TypeCell
+                        typeIcon={typeIcon}
+                        isLargeScreenWidth={isLargeScreenWidth}
+                        keyForList={item.keyForList ?? ''}
+                        showTooltip={false}
+                    />
+                </View>
+                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.ACTION)]}>
+                    <ActionCell
+                        item={item}
+                        onSelectRow={onButtonPress}
+                        keyForList={item.keyForList ?? ''}
+                        showTooltip={false}
+                        isLargeScreenWidth={false}
+                    />
+                </View>
             </View>
         </View>
     );

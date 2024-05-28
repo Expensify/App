@@ -9,6 +9,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import type {MaybePhraseKey} from '@libs/Localize';
 import mapChildrenFlat from '@libs/mapChildrenFlat';
 import shouldRenderOffscreen from '@libs/shouldRenderOffscreen';
+import type {AllStyles} from '@styles/utils/types';
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
@@ -111,12 +112,13 @@ function OfflineWithFeedback({
                     return child;
                 }
 
+                const childProps: {children: React.ReactNode | undefined; style: AllStyles} = child.props;
                 const props: StrikethroughProps = {
-                    style: StyleUtils.combineStyles(child.props.style, styles.offlineFeedback.deleted, styles.userSelectNone),
+                    style: StyleUtils.combineStyles(childProps.style, styles.offlineFeedback.deleted, styles.userSelectNone),
                 };
 
-                if (child.props.children) {
-                    props.children = applyStrikeThrough(child.props.children);
+                if (childProps.children) {
+                    props.children = applyStrikeThrough(childProps.children);
                 }
 
                 return React.cloneElement(child, props);
