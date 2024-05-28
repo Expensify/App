@@ -4740,8 +4740,6 @@ const CONST = {
         CAR: 'car',
         HOTEL: 'hotel',
         FLIGHT: 'flight',
-        RAIL: 'rail',
-        MISC: 'misc',
     },
 
     DOT_SEPARATOR: '•',
