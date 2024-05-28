@@ -63,8 +63,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const {canUseAccountingIntegrations} = usePermissions();
     const hasAccountingConnection = !!policy?.areConnectionsEnabled && !isEmptyObject(policy?.connections);
     const isSyncTaxEnabled = !!policy?.connections?.quickbooksOnline?.config.syncTax || !!policy?.connections?.xero?.config.importTaxRates;
-    const connectionName = Object.keys(policy?.connections ?? {})?.[0] as ConnectionName;
-
     const policyID = policy?.id ?? '';
 
     const [connectionWarningModalState, setConnectionWarningModalState] = useState<ConnectionWarningModalState>({isOpen: false});
@@ -254,11 +252,11 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             case 'organize':
                 return translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledText');
             case 'integrate':
-                return translate('workspace.moreFeatures.connectionsWarningModal.disconnectText', connectionName);
+                return translate('workspace.moreFeatures.connectionsWarningModal.disconnectText');
             default:
                 return undefined;
         }
-    }, [connectionWarningModalState.itemType, connectionName, translate]);
+    }, [connectionWarningModalState.itemType, translate]);
 
     return (
         <AccessOrNotFoundWrapper
@@ -280,7 +278,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 <ScrollView contentContainerStyle={styles.pb2}>{sections.map(renderSection)}</ScrollView>
 
                 <ConfirmModal
-                    title={translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledTitle', connectionName)}
+                    title={translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledTitle')}
                     onConfirm={() => {
                         setConnectionWarningModalState({
                             isOpen: false,
