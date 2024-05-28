@@ -5,7 +5,7 @@ import Log from '@libs/Log';
 import * as PushNotificationActions from '@userActions/PushNotification';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ForegroundNotifications from './ForegroundNotifications';
-import getValidPushNotificationData from './getPushNotificationData';
+import getPushNotificationData from './getPushNotificationData';
 import type {PushNotificationData} from './NotificationType';
 import NotificationType from './NotificationType';
 import type {ClearNotifications, Deregister, Init, OnReceived, OnSelected, Register} from './types';
@@ -28,7 +28,7 @@ const notificationEventActionMap: NotificationEventActionMap = {};
  */
 function pushNotificationEventCallback(eventType: EventType, notification: PushPayload) {
     const actionMap = notificationEventActionMap[eventType] ?? {};
-    const data = getValidPushNotificationData(notification);
+    const data = getPushNotificationData(notification);
 
     Log.info(`[PushNotification] Callback triggered for ${eventType}`);
 
