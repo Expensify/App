@@ -8,9 +8,9 @@ import * as Pusher from '@libs/Pusher/pusher';
 import * as Request from '@libs/Request';
 import * as PersistedRequests from '@userActions/PersistedRequests';
 import CONST from '@src/CONST';
-import type {OnyxCollectionKey, OnyxPagesKey, OnyxValues} from '@src/ONYXKEYS';
+import type {OnyxCollectionKey, OnyxPagesKey} from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
-import type {PaginatedRequest} from '@src/types/onyx/Request';
+import type {PaginatedRequest, PaginationConfig} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 import type {ApiCommand, ApiRequestCommandParameters, ApiRequestType, CommandOfType, ReadCommand, SideEffectRequestCommand, WriteCommand} from './types';
 
@@ -190,15 +190,6 @@ function read<TCommand extends ReadCommand>(command: TCommand, apiCommandParamet
     });
 }
 
-type PaginationConfig<TResource, TResourceKey extends OnyxCollectionKey, TPageKey extends OnyxPagesKey> = {
-    resourceKey: TResourceKey;
-    pageKey: TPageKey;
-    getItemsFromResponse: (response: Response) => OnyxValues[TResourceKey];
-    sortItems: (items: OnyxValues[TResourceKey]) => TResource[];
-    getItemID: (item: TResource) => string;
-    isInitialRequest: boolean;
-};
-
 function paginate<TRequestType extends ApiRequestType, TCommand extends CommandOfType<TRequestType>, TResource, TResourceKey extends OnyxCollectionKey, TPageKey extends OnyxPagesKey>(
     type: TRequestType,
     command: TCommand,
@@ -235,4 +226,3 @@ function paginate<TRequestType extends ApiRequestType, TCommand extends CommandO
 }
 
 export {write, makeRequestWithSideEffects, read, paginate};
-export type {PaginationConfig};

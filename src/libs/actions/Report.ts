@@ -10,7 +10,6 @@ import type {Emoji} from '@assets/emojis/types';
 import type {FileObject} from '@components/AttachmentModal';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import * as API from '@libs/API';
-import type {PaginationConfig} from '@libs/API';
 import type {
     AddCommentOrAttachementParams,
     AddEmojiReactionParams,
@@ -97,6 +96,7 @@ import type {Decision, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage
 import type {NotificationPreference, Participants, Participant as ReportParticipant, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
 import type Report from '@src/types/onyx/Report';
 import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
+import type {PaginationConfig} from '@src/types/onyx/Request';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CachedPDFPaths from './CachedPDFPaths';
