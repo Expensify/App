@@ -191,6 +191,9 @@ const ONYXKEYS = {
     /** User's Expensify Wallet */
     USER_WALLET: 'userWallet',
 
+    /** User's metadata that will be used to segmentation */
+    USER_METADATA: 'userMetadata',
+
     /** Object containing Onfido SDK Token + applicantID */
     WALLET_ONFIDO: 'walletOnfido',
 
@@ -614,6 +617,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.USER_LOCATION]: OnyxTypes.UserLocation;
     [ONYXKEYS.LOGIN_LIST]: OnyxTypes.LoginList;
     [ONYXKEYS.SESSION]: OnyxTypes.Session;
+    [ONYXKEYS.USER_METADATA]: OnyxTypes.UserMetadata;
     [ONYXKEYS.STASHED_SESSION]: OnyxTypes.Session;
     [ONYXKEYS.BETAS]: OnyxTypes.Beta[];
     [ONYXKEYS.NVP_PRIORITY_MODE]: ValueOf<typeof CONST.PRIORITY_MODE>;

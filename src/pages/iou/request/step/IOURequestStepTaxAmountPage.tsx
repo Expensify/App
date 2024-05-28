@@ -35,7 +35,7 @@ type IOURequestStepTaxAmountPageProps = IOURequestStepTaxAmountPageOnyxProps &
     };
 
 function getTaxAmount(transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>, currency: string | undefined, isEditing: boolean): number | undefined {
-    if (!transaction?.amount) {
+    if (!transaction?.amount && !transaction?.modifiedAmount) {
         return;
     }
     const transactionTaxAmount = TransactionUtils.getAmount(transaction);
