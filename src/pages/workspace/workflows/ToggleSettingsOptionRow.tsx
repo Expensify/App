@@ -38,6 +38,9 @@ type ToggleSettingOptionRowProps = {
     onCloseError?: () => void;
     /** Whether the toggle should be disabled */
     disabled?: boolean;
+
+    /** Whether to show the lock icon even if the switch is enabled */
+    showLockIcon?: boolean;
 };
 const ICON_SIZE = 48;
 
@@ -56,6 +59,7 @@ function ToggleSettingOptionRow({
     errors,
     onCloseError,
     disabled = false,
+    showLockIcon = false,
 }: ToggleSettingOptionRowProps) {
     const styles = useThemeStyles();
 
@@ -93,6 +97,7 @@ function ToggleSettingOptionRow({
                         onToggle={onToggle}
                         isOn={isActive}
                         disabled={disabled}
+                        showLockIcon={showLockIcon}
                     />
                 </View>
                 {shouldPlaceSubtitleBelowSwitch && subtitle && subTitleView}

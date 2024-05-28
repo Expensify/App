@@ -2220,6 +2220,12 @@ export default {
                 title: 'Contabilidad',
                 subtitle: 'Sincroniza tu plan de cuentas y otras opciones.',
             },
+            connectionsWarningModal: {
+                featureEnabledTitle: 'No tan rápido...',
+                featureEnabledText: 'Para activar o desactivar esta función, cambia la configuración de importación contable.',
+                disconnectText: 'Desconecta tu conexión contable del espacio de trabajo si deseas desactivar la Contabilidad.',
+                manageSettings: 'Gestionar la configuración',
+            },
         },
         reportFields: {
             delete: 'Eliminar campos',
