@@ -496,9 +496,10 @@ function ReportActionsList({
     const markerLastReadTimeRef = useRef<string | undefined>();
 
     useEffect(() => {
-        if (!currentUnreadMarker) {
-            markerLastReadTimeRef.current = undefined;
+        if (currentUnreadMarker) {
+            return;
         }
+        markerLastReadTimeRef.current = undefined;
     }, [currentUnreadMarker]);
 
     const calculateUnreadMarker = useCallback(() => {
