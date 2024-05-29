@@ -186,12 +186,12 @@ const allReportActions: OnyxCollection<ReportActions> = {};
 
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    callback: (action, key) => {
-        if (!key || !action) {
+    callback: (actions, key) => {
+        if (!key || !actions) {
             return;
         }
         const reportID = CollectionUtils.extractCollectionItemID(key);
-        allReportActions[reportID] = action;
+        allReportActions[reportID] = actions;
     },
 });
 
@@ -1279,6 +1279,14 @@ function broadcastUserIsLeavingRoom(reportID: string) {
 /** When a report changes in Onyx, this fetches the report from the API if the report doesn't have a name */
 function handleReportChanged(report: OnyxEntry<Report>) {
     if (!report) {
+        return;
+    }
+
+    if (report?.reportID && report.preexistingReportID && ReportUtils.isMoneyRequestReport(report)) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, {
+            [report.parentReportActionID]: null,
+        });
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, null);
         return;
     }
 
