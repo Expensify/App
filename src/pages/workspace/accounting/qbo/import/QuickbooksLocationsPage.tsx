@@ -20,9 +20,12 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
-    const {syncLocations, pendingFields, reimbursableExpensesExportDestination} = policy?.connections?.quickbooksOnline?.config ?? {};
+    const {syncLocations, pendingFields, reimbursableExpensesExportDestination, nonReimbursableExpensesExportDestination} = policy?.connections?.quickbooksOnline?.config ?? {};
     const isSwitchOn = Boolean(syncLocations && syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
-    const shouldBeDisabled = !isSwitchOn && reimbursableExpensesExportDestination !== CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY;
+    const canImportLocation =
+        reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY &&
+        nonReimbursableExpensesExportDestination !== CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL;
+    const shouldBeDisabled = !canImportLocation && !isSwitchOn;
     const isReportFieldsSelected = syncLocations === CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD;
 
     return (
