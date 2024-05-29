@@ -1,6 +1,8 @@
 import Airship from '@ua/react-native-airship';
 import Onyx from 'react-native-onyx';
 import applyOnyxUpdatesReliably from '@libs/actions/applyOnyxUpdatesReliably';
+import type {DeferredUpdatesDictionary} from '@libs/actions/OnyxUpdateManager/types';
+import * as DeferredOnyxUpdates from '@libs/actions/OnyxUpdateManager/utils/DeferredOnyxUpdates';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -15,6 +17,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
+import type {OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import PushNotification from '..';
 
@@ -28,6 +31,20 @@ Onyx.connect({
         lastVisitedPath = value;
     },
 });
+
+function buildOnyxUpdatesFromServer({onyxData, lastUpdateID, previousUpdateID}: {onyxData: OnyxServerUpdate[]; lastUpdateID: number; previousUpdateID: number}) {
+    return {
+        type: CONST.ONYX_UPDATE_TYPES.AIRSHIP,
+        lastUpdateID,
+        previousUpdateID,
+        updates: [
+            {
+                eventType: 'eventType',
+                data: onyxData,
+            },
+        ],
+    } as OnyxUpdatesFromServer;
+}
 
 function getLastUpdateIDAppliedToClient(): Promise<number> {
     return new Promise((resolve) => {
@@ -53,17 +70,8 @@ function applyOnyxData({reportID, reportActionID, onyxData, lastUpdateID, previo
 
     Log.info('[PushNotification] reliable onyx update received', false, {lastUpdateID, previousUpdateID, onyxDataCount: onyxData?.length ?? 0});
 
-    const updates = {
-        type: CONST.ONYX_UPDATE_TYPES.AIRSHIP,
-        lastUpdateID,
-        previousUpdateID,
-        updates: [
-            {
-                eventType: 'eventType',
-                data: onyxData,
-            },
-        ],
-    } as OnyxUpdatesFromServer;
+    const updates = buildOnyxUpdatesFromServer({onyxData, lastUpdateID, previousUpdateID});
+
     /**
      * When this callback runs in the background on Android (via Headless JS), no other Onyx.connect callbacks will run. This means that
      * lastUpdateIDAppliedToClient will NOT be populated in other libs. To workaround this, we manually read the value here
@@ -79,16 +87,20 @@ function navigateToReport({reportID, reportActionID}: ReportActionPushNotificati
     // due to OS limitations. So we'll also attempt to apply them here so they can display immediately. Reliable
     // updates will prevent any old updates from being duplicated and any gaps in them will be handled
     Airship.push.getActiveNotifications().then((notifications) => {
-        const onyxUpdates = notifications.map((notification) => getPushNotificationData(notification));
-        // const onyxData = onyxUpdates.reduce<OnyxServerUpdate[]>((onyxUpdatesAcc, onyxUpdate) => (onyxUpdate.onyxData ? [...onyxUpdatesAcc, ...onyxUpdate.onyxData] : onyxUpdatesAcc), []);
+        const onyxUpdates = notifications.reduce<DeferredUpdatesDictionary>((updates, notification) => {
+            const pushNotificationData = getPushNotificationData(notification);
+            const lastUpdateID = pushNotificationData.lastUpdateID;
+            const previousUpdateID = pushNotificationData.previousUpdateID;
 
-        // const lastUpdateID = onyxUpdates.reduce((max, {lastUpdateID: lastUpdateIDIter}) => Math.max(max, lastUpdateIDIter ?? 0), 0);
-        // const previousUpdateID = onyxUpdates.find((update) => update.lastUpdateID === lastUpdateID)?.previousUpdateID ?? 0;
+            if (pushNotificationData.onyxData == null || lastUpdateID == null || previousUpdateID == null) {
+                return updates;
+            }
 
-        // const updates = wrapAirshipUpdatesDataInOnyxUpdatesFromServer({onyxData, lastUpdateID, previousUpdateID});
-        // return DeferredOnyxUpdates.enqueueAndProcess(updates);
+            const newUpdates = buildOnyxUpdatesFromServer({onyxData: pushNotificationData.onyxData, lastUpdateID, previousUpdateID});
+            return {updates, [lastUpdateID]: newUpdates};
+        }, {});
 
-        return Promise.all(onyxUpdates.map((update) => applyOnyxData(update)));
+        return DeferredOnyxUpdates.enqueueAndProcess(onyxUpdates);
     });
 
     Log.info('[PushNotification] Navigating to report', false, {reportID, reportActionID});
