@@ -946,6 +946,7 @@ function MoneyRequestConfirmationList({
                     brickRoadIndicator={shouldDisplayMerchantError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     errorText={shouldDisplayMerchantError ? translate('common.error.fieldRequired') : ''}
                     rightLabel={isMerchantRequired && !shouldDisplayMerchantError ? translate('common.required') : ''}
+                    numberOfLinesTitle={2}
                 />
             ),
             shouldShow: shouldShowMerchant,
@@ -1229,6 +1230,7 @@ function MoneyRequestConfirmationList({
             sections={sections}
             ListItem={UserListItem}
             onSelectRow={navigateToReportOrUserDetail}
+            shouldDebounceRowSelect
             canSelectMultiple={false}
             shouldPreventDefaultFocusOnSelectRow
             footerContent={footerContent}
