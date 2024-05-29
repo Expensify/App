@@ -1,4 +1,3 @@
-import {isEmpty} from 'lodash';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
@@ -9,6 +8,7 @@ import type {LastSelectedDistanceRates, Report} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CurrencyUtils from './CurrencyUtils';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportUtils from './ReportUtils';
@@ -43,6 +43,7 @@ const METERS_TO_MILES = 0.000621371; // There are approximately 0.000621371 mile
  * Retrieves the mileage rates for given policy.
  *
  * @param policy - The policy from which to extract the mileage rates.
+ * @param includeDisableRate - Should include disable rate
  *
  * @returns An array of mileage rates or an empty array if not found.
  */
@@ -92,11 +93,7 @@ function getMileageRates(policy: OnyxEntry<Policy>, includeDisableRate = true): 
  * @returns [unit] - The unit of measurement for the distance.
  */
 function getDefaultMileageRate(policy: OnyxEntry<Policy> | EmptyObject): MileageRate | null {
-    if (isEmpty(policy)) {
-        return null;
-    }
-
-    if (!policy?.customUnits) {
+    if (isEmptyObject(policy) || !policy?.customUnits) {
         return null;
     }
 
@@ -273,12 +270,11 @@ function getCustomUnitRateID(reportID: string) {
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`] ?? null;
     const policy = PolicyUtils.getPolicy(report?.policyID ?? parentReport?.policyID ?? '');
 
-    let customUnitRateID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
-
-    if (!policy?.customUnits) {
+    if (isEmptyObject(policy) || !policy?.customUnits) {
         return null;
     }
 
+    let customUnitRateID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
     const distanceUnit = Object.values(policy?.customUnits).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
     const lastSelectedDistanceRateID = lastSelectedDistanceRates?.[policy?.id ?? ''] ?? '';
     const lastSelectedDistanceRate = distanceUnit?.rates[lastSelectedDistanceRateID] ?? {};
