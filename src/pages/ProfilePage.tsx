@@ -92,7 +92,8 @@ function ProfilePage({route}: ProfilePageProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const accountID = Number(route.params?.accountID ?? 0);
     const isCurrentUser = session?.accountID === accountID;
-    const details: PersonalDetails | EmptyObject = personalDetails?.[accountID] ?? (ValidationUtils.isValidAccountRoute(accountID) ? {} : {accountID: 0});
+    const isValidAccountId = ValidationUtils.isValidAccountRoute(accountID);
+    const details: PersonalDetails | EmptyObject = personalDetails?.[accountID] ?? (isValidAccountId ? {} : {accountID: 0});
 
     const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(details, undefined, undefined, isCurrentUser);
     const fallbackIcon = details?.fallbackIcon ?? '';
@@ -116,6 +117,7 @@ function ProfilePage({route}: ProfilePageProps) {
 
     const hasAvatar = Boolean(details.avatar);
     const isLoading = Boolean(personalDetailsMetadata?.[accountID]?.isLoading) || isEmptyObject(details);
+    const shouldShowBlockingView = !isValidAccountId && !isLoading;
 
     const statusEmojiCode = details?.status?.emojiCode ?? '';
     const statusText = details?.status?.text ?? '';
@@ -139,7 +141,7 @@ function ProfilePage({route}: ProfilePageProps) {
 
     return (
         <ScreenWrapper testID={ProfilePage.displayName}>
-            <FullPageNotFoundView shouldShow={CONST.RESTRICTED_ACCOUNT_IDS.includes(accountID)}>
+            <FullPageNotFoundView shouldShow={shouldShowBlockingView || CONST.RESTRICTED_ACCOUNT_IDS.includes(accountID)}>
                 <HeaderWithBackButton
                     title={translate('common.profile')}
                     onBackButtonPress={() => Navigation.goBack(navigateBackTo)}
