@@ -45,7 +45,6 @@ function useOptions({isGroupChat}: NewChatPageProps) {
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [newGroupDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
     const personalData = useCurrentUserPersonalDetails();
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const {didScreenTransitionEnd} = useScreenWrapperTranstionStatus();
     const {options: listOptions, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
@@ -73,37 +72,50 @@ function useOptions({isGroupChat}: NewChatPageProps) {
             undefined,
             true,
         );
-        const maxParticipantsReached = selectedOptions.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
 
         const headerMessage = OptionsListUtils.getHeaderMessage(
             filteredOptions.personalDetails.length + filteredOptions.recentReports.length !== 0,
             Boolean(filteredOptions.userToInvite),
             debouncedSearchTerm.trim(),
-            maxParticipantsReached,
             selectedOptions.some((participant) => participant?.searchText?.toLowerCase?.().includes(debouncedSearchTerm.trim().toLowerCase())),
         );
-        return {...filteredOptions, headerMessage, maxParticipantsReached};
+        return {...filteredOptions, headerMessage};
     }, [betas, debouncedSearchTerm, isGroupChat, listOptions.personalDetails, listOptions.reports, selectedOptions]);
 
     useEffect(() => {
-        if (!debouncedSearchTerm.length || options.maxParticipantsReached) {
+        if (!debouncedSearchTerm.length) {
             return;
         }
 
         Report.searchInServer(debouncedSearchTerm);
-    }, [debouncedSearchTerm, options.maxParticipantsReached]);
+    }, [debouncedSearchTerm]);
 
     useEffect(() => {
         if (!newGroupDraft?.participants) {
             return;
         }
-        const selectedParticipants = newGroupDraft.participants.filter((participant) => participant.accountID !== personalData.accountID);
-        const newSelectedOptions = selectedParticipants.map((participant): OptionData => {
-            const baseOption = OptionsListUtils.getParticipantsOption({accountID: participant.accountID, login: participant.login, reportID: ''}, personalDetails);
-            return {...baseOption, reportID: baseOption.reportID ?? '', isSelected: true};
+        const newSelectedOptions: OptionData[] = [];
+        newGroupDraft.participants.forEach((participant) => {
+            if (participant.accountID === personalData.accountID) {
+                return;
+            }
+            let participantOption: OptionData | undefined | null = listOptions.personalDetails.find((option) => option.accountID === participant.accountID);
+            if (!participantOption) {
+                participantOption = OptionsListUtils.getUserToInviteOption({
+                    searchValue: participant.login,
+                    betas,
+                });
+            }
+            if (!participantOption) {
+                return;
+            }
+            newSelectedOptions.push({
+                ...participantOption,
+                isSelected: true,
+            });
         });
         setSelectedOptions(newSelectedOptions);
-    }, [newGroupDraft, personalData, personalDetails]);
+    }, [newGroupDraft?.participants, listOptions.personalDetails, betas, personalData.accountID]);
 
     return {...options, searchTerm, debouncedSearchTerm, setSearchTerm, areOptionsInitialized: areOptionsInitialized && didScreenTransitionEnd, selectedOptions, setSelectedOptions};
 }
@@ -117,35 +129,20 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
     const {insets} = useStyledSafeAreaInsets();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
 
-    const {
-        headerMessage,
-        maxParticipantsReached,
-        searchTerm,
-        debouncedSearchTerm,
-        setSearchTerm,
-        selectedOptions,
-        setSelectedOptions,
-        recentReports,
-        personalDetails,
-        userToInvite,
-        areOptionsInitialized,
-    } = useOptions({
-        isGroupChat,
-    });
+    const {headerMessage, searchTerm, debouncedSearchTerm, setSearchTerm, selectedOptions, setSelectedOptions, recentReports, personalDetails, userToInvite, areOptionsInitialized} =
+        useOptions({
+            isGroupChat,
+        });
 
     const [sections, firstKeyForList] = useMemo(() => {
         const sectionsList: OptionsListUtils.CategorySection[] = [];
         let firstKey = '';
 
-        const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(debouncedSearchTerm, selectedOptions, recentReports, personalDetails, maxParticipantsReached);
+        const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(debouncedSearchTerm, selectedOptions, recentReports, personalDetails);
         sectionsList.push(formatResults.section);
 
         if (!firstKey) {
             firstKey = OptionsListUtils.getFirstKeyForList(formatResults.section.data);
-        }
-
-        if (maxParticipantsReached) {
-            return [sectionsList, firstKey];
         }
 
         sectionsList.push({
@@ -178,7 +175,7 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
         }
 
         return [sectionsList, firstKey];
-    }, [debouncedSearchTerm, selectedOptions, recentReports, personalDetails, maxParticipantsReached, translate, userToInvite]);
+    }, [debouncedSearchTerm, selectedOptions, recentReports, personalDetails, translate, userToInvite]);
 
     /**
      * Creates a new 1:1 chat with the option and the current user,
@@ -309,9 +306,10 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
                     textInputValue={searchTerm}
                     textInputHint={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
                     onChangeText={setSearchTerm}
-                    textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+                    textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
                     headerMessage={headerMessage}
                     onSelectRow={createChat}
+                    shouldDebounceRowSelect
                     onConfirm={(e, option) => (selectedOptions.length > 0 ? createGroup() : createChat(option))}
                     rightHandSideComponent={itemRightSideComponent}
                     footerContent={footerContent}
@@ -319,6 +317,7 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
                     shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                     isLoadingNewOptions={!!isSearchingForReports}
                     initiallyFocusedOptionKey={firstKeyForList}
+                    shouldTextInputInterceptSwipe
                 />
                 {isSmallScreenWidth && <OfflineIndicator />}
             </KeyboardAvoidingView>

@@ -68,6 +68,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? ''}`], [policies, report?.policyID]);
     const isPolicyAdmin = useMemo(() => PolicyUtils.isPolicyAdmin(policy ?? null), [policy]);
     const isPolicyEmployee = useMemo(() => PolicyUtils.isPolicyEmployee(report?.policyID ?? '', policies), [report?.policyID, policies]);
+    const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     const shouldUseFullTitle = useMemo(() => ReportUtils.shouldUseFullTitleToDisplay(report), [report]);
     const isChatRoom = useMemo(() => ReportUtils.isChatRoom(report), [report]);
     const isUserCreatedPolicyRoom = useMemo(() => ReportUtils.isUserCreatedPolicyRoom(report), [report]);
@@ -75,6 +76,8 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const isChatThread = useMemo(() => ReportUtils.isChatThread(report), [report]);
     const isArchivedRoom = useMemo(() => ReportUtils.isArchivedRoom(report), [report]);
     const isMoneyRequestReport = useMemo(() => ReportUtils.isMoneyRequestReport(report), [report]);
+    const isMoneyRequest = useMemo(() => ReportUtils.isMoneyRequest(report), [report]);
+    const isInvoiceReport = useMemo(() => ReportUtils.isInvoiceReport(report), [report]);
     const canEditReportDescription = useMemo(() => ReportUtils.canEditReportDescription(report, policy), [report, policy]);
     const shouldShowReportDescription = isChatRoom && (canEditReportDescription || report.description !== '');
 
@@ -150,17 +153,14 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 subtitle: activeChatMembers.length,
                 isAnonymousAction: false,
                 action: () => {
-                    if (isUserCreatedPolicyRoom || isChatThread) {
+                    if (isUserCreatedPolicyRoom || isChatThread || isPolicyExpenseChat) {
                         Navigation.navigate(ROUTES.ROOM_MEMBERS.getRoute(report?.reportID ?? ''));
                     } else {
                         Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID ?? ''));
                     }
                 },
             });
-        } else if (
-            (isUserCreatedPolicyRoom && (!participants.length || !isPolicyEmployee)) ||
-            ((isDefaultRoom || ReportUtils.isPolicyExpenseChat(report)) && isChatThread && !isPolicyEmployee)
-        ) {
+        } else if ((isUserCreatedPolicyRoom && (!participants.length || !isPolicyEmployee)) || ((isDefaultRoom || isPolicyExpenseChat) && isChatThread && !isPolicyEmployee)) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.INVITE,
                 translationKey: 'common.invite',
@@ -183,7 +183,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         });
 
         // Prevent displaying private notes option for threads and task reports
-        if (!isChatThread && !isMoneyRequestReport && !ReportUtils.isTaskReport(report)) {
+        if (!isChatThread && !isMoneyRequestReport && !isInvoiceReport && !ReportUtils.isTaskReport(report)) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.PRIVATE_NOTES,
                 translationKey: 'privateNotes.title',
@@ -196,19 +196,21 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
         return items;
     }, [
-        isArchivedRoom,
-        participants.length,
-        isChatThread,
-        isMoneyRequestReport,
-        report,
-        isGroupDMChat,
-        isPolicyEmployee,
-        isUserCreatedPolicyRoom,
-        session,
         isSelfDM,
-        isDefaultRoom,
-        activeChatMembers.length,
+        isGroupDMChat,
+        isArchivedRoom,
         isGroupChat,
+        isDefaultRoom,
+        isChatThread,
+        isPolicyEmployee,
+        isPolicyExpenseChat,
+        isUserCreatedPolicyRoom,
+        participants.length,
+        report,
+        isMoneyRequestReport,
+        isInvoiceReport,
+        activeChatMembers.length,
+        session,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
@@ -232,6 +234,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         isGroupChat && !isThread ? (
             <AvatarWithImagePicker
                 source={icons[0].source}
+                avatarID={icons[0].id}
                 isUsingDefaultAvatar={!report.avatarUrl}
                 size={CONST.AVATAR_SIZE.XLARGE}
                 avatarStyle={styles.avatarXLarge}
@@ -243,6 +246,11 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 onImageSelected={(file) => Report.updateGroupChatAvatar(report.reportID ?? '', file)}
                 editIcon={Expensicons.Camera}
                 editIconStyle={styles.smallEditIconAccount}
+                pendingAction={report.pendingFields?.avatar ?? undefined}
+                errors={report.errorFields?.avatar ?? null}
+                errorRowStyles={styles.mt6}
+                onErrorClose={() => Report.clearAvatarErrors(report.reportID ?? '')}
+                shouldUseStyleUtilityForAnchorPosition
             />
         ) : (
             <RoomHeaderAvatars
@@ -266,7 +274,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 <ScrollView style={[styles.flex1]}>
                     <View style={styles.reportDetailsTitleContainer}>
                         <View style={styles.mb3}>
-                            {isMoneyRequestReport ? (
+                            {isMoneyRequestReport || isInvoiceReport ? (
                                 <MultipleAvatars
                                     icons={icons}
                                     size={CONST.AVATAR_SIZE.LARGE}
@@ -302,7 +310,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                             ) : (
                                 chatRoomSubtitleText
                             )}
-                            {!isEmptyObject(parentNavigationSubtitleData) && isMoneyRequestReport && (
+                            {!isEmptyObject(parentNavigationSubtitleData) && (isMoneyRequestReport || isInvoiceReport || isMoneyRequest) && (
                                 <ParentNavigationSubtitle
                                     parentNavigationSubtitleData={parentNavigationSubtitleData}
                                     parentReportID={report?.parentReportID}

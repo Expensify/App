@@ -45,7 +45,9 @@ function setClipboardMessage(content: string) {
     if (!Clipboard.canSetHtml()) {
         Clipboard.setString(parser.htmlToMarkdown(content));
     } else {
-        const plainText = parser.htmlToText(content);
+        const anchorRegex = CONST.REGEX_LINK_IN_ANCHOR;
+        const isAnchorTag = anchorRegex.test(content);
+        const plainText = isAnchorTag ? parser.htmlToMarkdown(content) : parser.htmlToText(content);
         Clipboard.setHtml(content, plainText);
     }
 }
@@ -79,7 +81,6 @@ type ContextMenuActionPayload = {
     event?: GestureResponderEvent | MouseEvent | KeyboardEvent;
     setIsEmojiPickerActive?: (state: boolean) => void;
     anchorRef?: MutableRefObject<View | null>;
-    transactionThreadReportID?: string;
 };
 
 type OnPress = (closePopover: boolean, payload: ContextMenuActionPayload, selection?: string, reportID?: string, draftMessage?: string) => void;
@@ -214,11 +215,8 @@ const ContextMenuActions: ContextMenuAction[] = [
         successIcon: Expensicons.Checkmark,
         shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport, reportID, isPinnedChat, isUnreadChat) =>
             type === CONST.CONTEXT_MENU_TYPES.REPORT && isUnreadChat,
-        onPress: (closePopover, {reportID, transactionThreadReportID}) => {
+        onPress: (closePopover, {reportID}) => {
             Report.readNewestAction(reportID);
-            if (transactionThreadReportID && transactionThreadReportID !== '0') {
-                Report.readNewestAction(transactionThreadReportID);
-            }
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }
@@ -370,7 +368,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(Localize.translateLocal('iou.unheldExpense'));
                 } else if (content) {
                     setClipboardMessage(
-                        content.replace(/(<mention-user>)(.*?)(<\/mention-user>)/gi, (match, openTag, innerContent, closeTag): string => {
+                        content.replace(/(<mention-user>)(.*?)(<\/mention-user>)/gi, (match, openTag: string, innerContent: string, closeTag: string): string => {
                             const modifiedContent = Str.removeSMSDomain(innerContent) || '';
                             return openTag + modifiedContent + closeTag || '';
                         }),
@@ -400,9 +398,10 @@ const ContextMenuActions: ContextMenuAction[] = [
             return type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && !isAttachmentTarget && !ReportActionsUtils.isMessageDeleted(reportAction);
         },
         onPress: (closePopover, {reportAction, reportID}) => {
+            const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
             Environment.getEnvironmentURL().then((environmentURL) => {
                 const reportActionID = reportAction?.reportActionID;
-                Clipboard.setString(`${environmentURL}/r/${reportID}/${reportActionID}`);
+                Clipboard.setString(`${environmentURL}/r/${originalReportID}/${reportActionID}`);
             });
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },
@@ -517,5 +516,18 @@ const ContextMenuActions: ContextMenuAction[] = [
     },
 ];
 
+const restrictedReadOnlyActions: TranslationPaths[] = [
+    'common.download',
+    'reportActionContextMenu.replyInThread',
+    'reportActionContextMenu.editAction',
+    'reportActionContextMenu.joinThread',
+    'reportActionContextMenu.deleteAction',
+];
+
+const RestrictedReadOnlyContextMenuActions: ContextMenuAction[] = ContextMenuActions.filter(
+    (action) => 'textTranslateKey' in action && restrictedReadOnlyActions.includes(action.textTranslateKey),
+);
+
+export {RestrictedReadOnlyContextMenuActions};
 export default ContextMenuActions;
 export type {ContextMenuActionPayload, ContextMenuAction};

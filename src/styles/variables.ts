@@ -73,6 +73,7 @@ export default {
     lineHeightHero: 45,
     iconSizeXXXSmall: 4,
     iconSizeXXSmall: 8,
+    iconSizeXSmall: 10,
     iconSizeExtraSmall: 12,
     iconSizeSmall: 16,
     iconSizeMedium: 18,
@@ -178,6 +179,8 @@ export default {
     eReceiptMCCHeightWidth: 40,
     eReceiptIconHeightSmall: 65,
     eReceiptIconWidthSmall: 46,
+    eReceiptIconHeightXSmall: 24,
+    eReceiptIconWidthXSmall: 20,
     eReceiptMCCHeightWidthSmall: 26,
     eReceiptIconHeightMedium: 82,
     eReceiptIconWidthMedium: 59,
@@ -211,7 +214,7 @@ export default {
     hoverDimValue: 1,
     pressDimValue: 0.8,
     qrShareHorizontalPadding: 32,
-    purposeMenuIconSize: 48,
+    menuIconSize: 48,
 
     moneyRequestSkeletonHeight: 107,
 
@@ -230,4 +233,15 @@ export default {
     mushroomTopHatHeight: 128,
     bankButtonMargin: 23,
     textInputAutoGrowMaxHeight: 115,
+    eReceiptBackgroundImageMinWidth: 217,
+
+    searchTypeColumnWidth: 52,
+
+    h36: 36,
+    w28: 28,
+    w36: 36,
+    w40: 40,
+    w44: 44,
+    w80: 80,
+    w96: 96,
 } as const;

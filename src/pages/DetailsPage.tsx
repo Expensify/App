@@ -115,9 +115,9 @@ function DetailsPage({personalDetails, route, session}: DetailsPageProps) {
                                                     containerStyles={[styles.avatarLarge, styles.mb3]}
                                                     imageStyles={[styles.avatarLarge]}
                                                     source={details?.avatar}
+                                                    avatarID={details?.accountID}
                                                     size={CONST.AVATAR_SIZE.LARGE}
                                                     fallbackIcon={details?.fallbackIcon}
-                                                    accountID={details?.accountID}
                                                 />
                                             </OfflineWithFeedback>
                                         </PressableWithoutFocus>

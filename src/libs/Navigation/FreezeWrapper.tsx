@@ -2,6 +2,7 @@ import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import React, {useEffect, useRef, useState} from 'react';
 import {Freeze} from 'react-freeze';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import shouldSetScreenBlurred from './shouldSetScreenBlurred';
 
 type FreezeWrapperProps = ChildrenProps & {
     /** Prop to disable freeze */
@@ -24,14 +25,8 @@ function FreezeWrapper({keepVisible = false, children}: FreezeWrapperProps) {
 
     useEffect(() => {
         const unsubscribe = navigation.addListener('state', () => {
-            // if the screen is more than 1 screen away from the current screen, freeze it,
-            // we don't want to freeze the screen if it's the previous screen because the freeze placeholder
-            // would be visible at the beginning of the back animation then
-            if ((navigation.getState()?.index ?? 0) - (screenIndexRef.current ?? 0) > 1) {
-                setIsScreenBlurred(true);
-            } else {
-                setIsScreenBlurred(false);
-            }
+            const navigationIndex = (navigation.getState()?.index ?? 0) - (screenIndexRef.current ?? 0);
+            setIsScreenBlurred(shouldSetScreenBlurred(navigationIndex));
         });
         return () => unsubscribe();
     }, [isFocused, isScreenBlurred, navigation]);

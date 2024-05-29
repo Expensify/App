@@ -1,7 +1,6 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -20,12 +19,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
-
-type TaskShareDestinationSelectorModalOnyxProps = {
-    isSearchingForReports: OnyxEntry<boolean>;
-};
-
-type TaskShareDestinationSelectorModalProps = TaskShareDestinationSelectorModalOnyxProps;
 
 const selectReportHandler = (option: unknown) => {
     const optionItem = option as ReportUtils.OptionData;
@@ -47,12 +40,13 @@ const reportFilter = (reportOptions: Array<OptionsListUtils.SearchOption<Report>
         return filtered;
     }, []);
 
-function TaskShareDestinationSelectorModal({isSearchingForReports}: TaskShareDestinationSelectorModalProps) {
+function TaskShareDestinationSelectorModal() {
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const styles = useThemeStyles();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const {options: optionList, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
@@ -111,12 +105,13 @@ function TaskShareDestinationSelectorModal({isSearchingForReports}: TaskShareDes
                         ListItem={UserListItem}
                         sections={areOptionsInitialized ? options.sections : []}
                         onSelectRow={selectReportHandler}
+                        shouldDebounceRowSelect
                         onChangeText={setSearchValue}
                         textInputValue={searchValue}
                         headerMessage={options.headerMessage}
-                        textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+                        textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
                         showLoadingPlaceholder={areOptionsInitialized && debouncedSearchValue.trim() === '' ? options.sections.length === 0 : !didScreenTransitionEnd}
-                        isLoadingNewOptions={isSearchingForReports ?? undefined}
+                        isLoadingNewOptions={!!isSearchingForReports}
                         textInputHint={textInputHint}
                     />
                 </View>
@@ -127,9 +122,4 @@ function TaskShareDestinationSelectorModal({isSearchingForReports}: TaskShareDes
 
 TaskShareDestinationSelectorModal.displayName = 'TaskShareDestinationSelectorModal';
 
-export default withOnyx<TaskShareDestinationSelectorModalProps, TaskShareDestinationSelectorModalOnyxProps>({
-    isSearchingForReports: {
-        key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
-        initWithStoredValues: false,
-    },
-})(TaskShareDestinationSelectorModal);
+export default TaskShareDestinationSelectorModal;

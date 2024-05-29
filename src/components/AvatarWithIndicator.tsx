@@ -13,7 +13,7 @@ type AvatarWithIndicatorProps = {
     /** URL for the avatar */
     source?: UserUtils.AvatarSource;
 
-    /** account id if it's user avatar */
+    /** Account id if it's user avatar */
     accountID?: number;
 
     /** To show a tooltip on hover */
@@ -40,6 +40,7 @@ function AvatarWithIndicator({source, accountID, tooltipText = '', fallbackIcon 
                             size={CONST.AVATAR_SIZE.SMALL}
                             source={UserUtils.getSmallSizeAvatar(source, accountID)}
                             fallbackIcon={fallbackIcon}
+                            avatarID={accountID}
                         />
                         <Indicator />
                     </>

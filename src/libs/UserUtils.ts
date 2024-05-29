@@ -79,30 +79,33 @@ function generateAccountID(searchValue: string): number {
 
 /**
  * Helper method to return the default avatar associated with the given accountID
- * @param [accountID]
- * @returns
  */
 function getDefaultAvatar(accountID = -1, avatarURL?: string): IconAsset | undefined {
-    if (Number(accountID) === CONST.ACCOUNT_ID.CONCIERGE) {
+    if (accountID === CONST.ACCOUNT_ID.CONCIERGE) {
         return ConciergeAvatar;
     }
-    if (Number(accountID) === CONST.ACCOUNT_ID.NOTIFICATIONS) {
+    if (accountID === CONST.ACCOUNT_ID.NOTIFICATIONS) {
         return NotificationsAvatar;
     }
 
     // There are 24 possible default avatars, so we choose which one this user has based
     // on a simple modulo operation of their login number. Note that Avatar count starts at 1.
 
-    // When creating a chat, we generate an avatar using an ID and the backend response will modify the ID to the actual user ID.
+    // When creating a chat the backend response will return the actual user ID.
     // But the avatar link still corresponds to the original ID-generated link. So we extract the SVG image number from the backend's link instead of using the user ID directly
-    let accountIDHashBucket: AvatarRange;
+    let accountIDHashBucket: AvatarRange | undefined;
     if (avatarURL) {
         const match = avatarURL.match(/(default-avatar_|avatar_)(\d+)(?=\.)/);
         const lastDigit = match && parseInt(match[2], 10);
         accountIDHashBucket = lastDigit as AvatarRange;
-    } else {
+    } else if (accountID > 0) {
         accountIDHashBucket = ((accountID % CONST.DEFAULT_AVATAR_COUNT) + 1) as AvatarRange;
     }
+
+    if (!accountIDHashBucket) {
+        return;
+    }
+
     return defaultAvatars[`Avatar${accountIDHashBucket}`];
 }
 
@@ -122,7 +125,7 @@ function getDefaultAvatarURL(accountID: string | number = ''): string {
 }
 
 /**
- * Given a user's avatar path, returns true if URL points to a default avatar, false otherwise
+ * * Given a user's avatar path, returns true if URL points to a default avatar, false otherwise
  * @param avatarSource - the avatar source from user's personalDetails
  */
 function isDefaultAvatar(avatarSource?: AvatarSource): avatarSource is string | undefined {
