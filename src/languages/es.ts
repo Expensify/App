@@ -148,6 +148,8 @@ export default {
         preferences: 'Preferencias',
         view: 'Ver',
         not: 'No',
+        privacyPolicy: 'la Política de Privacidad de Expensify',
+        addCardTermsOfService: 'Términos de Servicio',
         signIn: 'Conectarse',
         signInWithGoogle: 'Iniciar sesión con Google',
         signInWithApple: 'Iniciar sesión con Apple',
@@ -1911,6 +1913,14 @@ export default {
             helpDoc: 'documento de ayuda',
             agree: 'Acepto los ',
             error: 'Debes aceptar los Términos y condiciones para que el viaje continúe',
+        },
+    },
+    subscription: {
+        paymentCard: {
+            addPaymentCard: 'Añade tarjeta de pago',
+            enterPaymentCardDetails: 'Introduce los datos de tu tarjeta de pago.',
+            security: 'Expensify es PCI-DSS obediente, utiliza cifrado a nivel bancario, y emplea infraestructura redundante para proteger tus datos.',
+            learnMoreAboutSecurity: 'Conozca más sobre nuestra seguridad.',
         },
     },
     workspace: {

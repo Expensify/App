@@ -86,6 +86,7 @@ export default {
     iconBottomBar: 24,
     sidebarAvatarSize: 28,
     iconHeader: 48,
+    iconSection: 68,
     emojiSize: 20,
     emojiLineHeight: 28,
     iouAmountTextSize: 40,
