@@ -352,6 +352,8 @@ function IOURequestStepConfirmation({
                         category: transaction.category,
                         tag: transaction.tag,
                         currency: transaction.currency,
+                        taxCode: transactionTaxCode,
+                        taxAmount: transactionTaxAmount,
                     });
                 }
                 return;

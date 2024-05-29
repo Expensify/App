@@ -2,6 +2,7 @@ import React, {useMemo, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
+import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import * as IOUUtils from '@libs/IOUUtils';
@@ -11,8 +12,7 @@ import CONST from '@src/CONST';
 import type {IOUAction} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Transaction} from '@src/types/onyx';
-import type {ValueOf} from "type-fest";
-import {isEmptyObject} from "@src/types/utils/EmptyObject";
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import SelectionList from './SelectionList';
 import RadioListItem from './SelectionList/RadioListItem';
 
