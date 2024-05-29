@@ -22,7 +22,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
-import * as Policy from '@userActions/Policy';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList, PolicyEmployee} from '@src/types/onyx';
@@ -182,6 +182,7 @@ function WorkspaceWorkflowsApproverPage({policy, personalDetails, isLoadingRepor
                         headerMessage={headerMessage}
                         ListItem={UserListItem}
                         onSelectRow={setPolicyApprover}
+                        shouldDebounceRowSelect
                         showScrollIndicator
                     />
                 </FullPageNotFoundView>
