@@ -11,7 +11,7 @@ import type {
     ReimbursementAccountNavigatorParamList,
     SettingsNavigatorParamList,
 } from '@navigation/types';
-import * as Policy from '@userActions/Policy';
+import * as Policy from '@userActions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
