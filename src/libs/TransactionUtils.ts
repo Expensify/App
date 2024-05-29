@@ -677,7 +677,7 @@ function getEnabledTaxRateCount(options: TaxRates) {
 }
 
 function hasReservationList(transaction: Transaction | undefined | null): boolean {
-    return !!transaction?.reservationList && transaction?.reservationList?.length > 0;
+    return !!transaction?.receipt?.reservationList && transaction?.receipt?.reservationList?.length > 0;
 }
 /**
  * Check if the customUnitRateID has a value default for P2P distance requests

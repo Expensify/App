@@ -226,7 +226,7 @@ function ReportActionItem({
 
     // IOUDetails only exists when we are sending money
     const isSendingMoney = isIOUReport(action) && action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && action.originalMessage.IOUDetails;
-
+ 
     const updateHiddenState = useCallback(
         (isHiddenValue: boolean) => {
             setIsHidden(isHiddenValue);
@@ -535,12 +535,10 @@ function ReportActionItem({
                     isWhisper={isWhisper}
                 />
             );
-        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.ACTION_TRIPPREVIEW && canUseSpotnanaTravel) {
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.TRIPPREVIEW && canUseSpotnanaTravel) {
             children = (
                 <TripRoomPreview
                     // @TODO: create a new method to obtain iouReportID
-                    iouReportID={ReportActionsUtils.getIOUReportIDFromReportActionPreview(action)}
-                    chatReportID={report.reportID}
                     action={action}
                     isHovered={hovered}
                     contextMenuAnchor={popoverAnchorRef.current}

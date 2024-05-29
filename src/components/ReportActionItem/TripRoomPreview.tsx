@@ -29,34 +29,14 @@ import type {Report, ReportAction} from '@src/types/onyx';
 import type {Reservation} from '@src/types/onyx/Transaction';
 import type {BasicTripInfo} from '@src/types/onyx/TripDetails';
 
-// @TODO: Dummy data used for testing purposes only. Remove when real data is available for testing.
-const basicTripInfo: BasicTripInfo = {
-    tripId: '6926658168',
-    tripName: 'JFK SFO Trip',
-    tripDescription: 'JFK SFO Business Trip',
-    applicationId: '97ab27fa-30e2-43e3-92a3-160e80f4c0d5',
-    startDate: {
-        iso8601: '2017-05-1',
-    },
-    endDate: {
-        iso8601: '2017-05-28',
-    },
-};
-
 type TripRoomPreviewOnyxProps = {
     /** Active IOU Report for current report */
-    iouReport: OnyxEntry<Report>;
+    childReport: OnyxEntry<Report>;
 };
 
 type TripRoomPreviewProps = TripRoomPreviewOnyxProps & {
     /** All the data of the action */
     action: ReportAction;
-
-    /** The associated chatReport */
-    chatReportID: string;
-
-    /** The active IOUReport, used for Onyx subscription */
-    iouReportID: string;
 
     /** Extra styles to pass to View wrapper */
     containerStyles?: StyleProp<ViewStyle>;
@@ -128,32 +108,22 @@ function ReservationRow({reservation}: ReservationRowProps) {
         />
     );
 }
-function TripRoomPreview({
-    iouReport,
-    action,
-    chatReportID,
-    iouReportID,
-    containerStyles,
-    contextMenuAnchor,
-    isHovered = false,
-    isWhisper = false,
-    checkIfContextMenuActive = () => {},
-}: TripRoomPreviewProps) {
+function TripRoomPreview({action, childReport, containerStyles, contextMenuAnchor, isHovered = false, isWhisper = false, checkIfContextMenuActive = () => {}}: TripRoomPreviewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const tripTransactions = ReportUtils.getTripTransactions(iouReportID);
+    const tripTransactions = ReportUtils.getTripTransactions(childReport?.iouReportID);
 
     const renderItem = ({item}: {item: Reservation}) => <ReservationRow reservation={item} />;
 
     const reservations: Reservation[] = TripReservationUtils.getReservationsFromTripTransactions(tripTransactions);
 
-    const dateInfo = DateUtils.getFormattedDateRange(new Date(basicTripInfo.startDate.iso8601), new Date(basicTripInfo.endDate.iso8601));
+    const dateInfo = DateUtils.getFormattedDateRange(new Date(childReport?.tripData?.startDate), new Date(childReport?.tripData?.endDate));
 
     const displayAmount = useMemo(() => {
         // If iouReport is not available, get amount from the action message (Ex: "Domain20821's Workspace owes $33.00" or "paid ₫60" or "paid -₫60 elsewhere")
         let displayAmountValue = '';
-        const actionMessage = action.message?.[0]?.text ?? '';
+        const actionMessage = childReport?.lastMessageText ?? '';
         const splits = actionMessage.split(' ');
 
         splits.forEach((split) => {
@@ -165,11 +135,11 @@ function TripRoomPreview({
         });
 
         return displayAmountValue;
-    }, [action]);
+    }, [childReport?.lastMessageText]);
 
     return (
         <OfflineWithFeedback
-            pendingAction={iouReport?.pendingFields?.preview}
+            pendingAction={action?.pendingAction}
             shouldDisableOpacity={!!(action.pendingAction ?? action.isOptimisticAction)}
             needsOffscreenAlphaCompositing
         >
@@ -202,7 +172,7 @@ function TripRoomPreview({
                                 </View>
                                 <View style={styles.flexRow}>
                                     <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                        <Text style={[styles.textSupportingNormalSize, styles.lh20]}>{basicTripInfo.tripName}</Text>
+                                        <Text style={[styles.textSupportingNormalSize, styles.lh20]}>{childReport?.reportName}</Text>
                                     </View>
                                 </View>
                             </View>
@@ -216,7 +186,7 @@ function TripRoomPreview({
                             medium
                             success
                             text={translate('travel.viewTrip')}
-                            onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID))}
+                            onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(action?.childReportID))}
                         />
                     </View>
                 </PressableWithoutFeedback>
@@ -228,7 +198,7 @@ function TripRoomPreview({
 TripRoomPreview.displayName = 'TripRoomPreview';
 
 export default withOnyx<TripRoomPreviewProps, TripRoomPreviewOnyxProps>({
-    iouReport: {
-        key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
+    childReport: {
+        key: ({action}) => `${ONYXKEYS.COLLECTION.REPORT}${action.childReportID}`,
     },
 })(TripRoomPreview);

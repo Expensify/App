@@ -36,9 +36,6 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {PendingMessageProps} from './MoneyRequestPreview/types';
 import ReportActionItemImages from './ReportActionItemImages';
 
-// @TODO: Used for testing purposes only. Uncomment to test. Remove when real data is available for testing.
-// import TripRoomPreview from './TripRoomPreview';
-
 type ReportPreviewOnyxProps = {
     /** The policy tied to the expense report */
     policy: OnyxEntry<Policy>;
@@ -109,19 +106,6 @@ function ReportPreview({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {canUseViolations} = usePermissions();
-
-    // @TODO: Used for testing purposes only. Uncomment to test. Remove when real data is available for testing.
-    // return (
-    //     <TripRoomPreview
-    //         action={action}
-    //         iouReportID={iouReportID}
-    //         chatReportID={chatReportID}
-    //         isHovered={isHovered}
-    //         isWhisper={isWhisper}
-    //         checkIfContextMenuActive={checkIfContextMenuActive}
-    //         containerStyles={containerStyles}
-    //     />
-    // );
 
     const {hasMissingSmartscanFields, areAllRequestsBeingSmartScanned, hasOnlyTransactionsWithPendingRoutes, hasNonReimbursableTransactions} = useMemo(
         () => ({

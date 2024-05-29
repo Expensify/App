@@ -567,7 +567,9 @@ function MenuItem(
                                                     />
                                                 </View>
                                             )}
-                                            <View style={[styles.justifyContentCenter, styles.flex1, StyleUtils.getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu)]}>
+                                            <View
+                                                style={[styles.justifyContentCenter, styles.flex1, StyleUtils.getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu), titleContainerStyle]}
+                                            >
                                                 {!!description && shouldShowDescriptionOnTop && (
                                                     <Text
                                                         style={descriptionTextStyles}
@@ -576,6 +578,7 @@ function MenuItem(
                                                         {description}
                                                     </Text>
                                                 )}
+                                                {titleComponent}
                                                 <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                                     {!!title && (shouldRenderAsHTML || (shouldParseTitle && !!html.length)) && (
                                                         <View style={styles.renderHTMLTitle}>

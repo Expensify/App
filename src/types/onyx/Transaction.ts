@@ -82,6 +82,7 @@ type Receipt = {
     filename?: string;
     state?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
     type?: string;
+    reservationList?: Reservation[];
 };
 
 type Route = {
@@ -291,12 +292,6 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Indicates transaction loading */
         isLoading?: boolean;
-
-        // @TODO: Check whether this type is correct once the backend for it's ready
-        /** Travel reserviation list */
-        reservationList?: Reservation[];
-
-        originalSpotnanaPayload?: SpotnanaPayload;
 
         /** Holds individual shares of a split keyed by accountID, only used locally */
         splitShares?: SplitShares;

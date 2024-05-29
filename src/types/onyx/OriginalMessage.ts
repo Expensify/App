@@ -27,7 +27,7 @@ type OriginalMessageActionName =
     | 'ACTIONABLEMENTIONWHISPER'
     | 'ACTIONABLEREPORTMENTIONWHISPER'
     | 'ACTIONABLETRACKEXPENSEWHISPER'
-    | 'ACTION_TRIPPREVIEW'
+    | 'TRIPPREVIEW'
     | ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>;
 type OriginalMessageApproved = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.APPROVED;
@@ -331,7 +331,7 @@ type OriginalMessageMoved = {
 };
 
 type OriginalMessageTripRoomPreview = {
-    actionName: typeof CONST.REPORT.ACTIONS.TYPE.ACTION_TRIPPREVIEW;
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.TRIPPREVIEW;
     originalMessage: {
         // @TODO: Add types here
     };
