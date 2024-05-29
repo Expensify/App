@@ -14,7 +14,7 @@ import * as CardUtils from '@libs/CardUtils';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
 import * as PaymentMethods from '@userActions/PaymentMethods';
-import * as PolicyActions from '@userActions/Policy';
+import * as PolicyActions from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 
