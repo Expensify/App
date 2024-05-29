@@ -14,13 +14,13 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {NewChatNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import * as ReportActions from '@userActions/Report';
+import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/NewChatNameForm';
-import type {Report} from '@src/types/onyx';
+import type {Report as ReportOnyxType} from '@src/types/onyx';
 import type NewGroupChatDraft from '@src/types/onyx/NewGroupChatDraft';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
@@ -30,7 +30,7 @@ type GroupChatNameEditPageOnyxProps = {
 
 type GroupChatNameEditPageProps = GroupChatNameEditPageOnyxProps &
     Partial<StackScreenProps<NewChatNavigatorParamList, typeof SCREENS.NEW_CHAT.NEW_CHAT_EDIT_NAME>> & {
-        report?: Report;
+        report?: ReportOnyxType;
     };
 
 function GroupChatNameEditPage({groupChatDraft, report}: GroupChatNameEditPageProps) {
@@ -70,13 +70,13 @@ function GroupChatNameEditPage({groupChatDraft, report}: GroupChatNameEditPagePr
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM>) => {
             if (isUpdatingExistingReport) {
                 if (values[INPUT_IDS.NEW_CHAT_NAME] !== currentChatName) {
-                    ReportActions.updateGroupChatName(reportID, values[INPUT_IDS.NEW_CHAT_NAME] ?? '');
+                    Report.updateGroupChatName(reportID, values[INPUT_IDS.NEW_CHAT_NAME] ?? '');
                 }
                 Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
                 return;
             }
             if (values[INPUT_IDS.NEW_CHAT_NAME] !== currentChatName) {
-                ReportActions.setGroupDraft({reportName: values[INPUT_IDS.NEW_CHAT_NAME]});
+                Report.setGroupDraft({reportName: values[INPUT_IDS.NEW_CHAT_NAME]});
             }
             Navigation.goBack(ROUTES.NEW_CHAT_CONFIRM);
         },
