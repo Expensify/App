@@ -11,7 +11,7 @@ import {getCurrentXeroOrganizationName} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import * as Policy from '@userActions/Policy';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -52,6 +52,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 key={translate('workspace.xero.advancedConfig.autoSync')}
                 title={translate('workspace.xero.advancedConfig.autoSync')}
                 subtitle={translate('workspace.xero.advancedConfig.autoSyncDescription')}
+                switchAccessibilityLabel={translate('workspace.xero.advancedConfig.autoSyncDescription')}
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={styles.mv3}
                 isActive={Boolean(autoSync?.enabled)}
@@ -68,6 +69,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 key={translate('workspace.xero.advancedConfig.reimbursedReports')}
                 title={translate('workspace.xero.advancedConfig.reimbursedReports')}
                 subtitle={translate('workspace.xero.advancedConfig.reimbursedReportsDescription')}
+                switchAccessibilityLabel={translate('workspace.xero.advancedConfig.reimbursedReportsDescription')}
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={styles.mv3}
                 isActive={Boolean(sync?.syncReimbursedReports)}
