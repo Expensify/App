@@ -47,12 +47,12 @@ import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import useDeepCompareRef from '@hooks/useDeepCompareRef';
 import HeaderView from './HeaderView';
 import ReportActionsView from './report/ReportActionsView';
 import ReportFooter from './report/ReportFooter';
 import type {ActionListContextType, ReactionListRef, ScrollPosition} from './ReportScreenContext';
 import {ActionListContext, ReactionListContext} from './ReportScreenContext';
-import useDeepCompareRef from '@hooks/useDeepCompareRef';
 
 type ReportScreenOnyxProps = {
     /** Tells us if the sidebar has rendered */
