@@ -1,5 +1,5 @@
 import lodashUnion from 'lodash/union';
-import type {NullishDeep, OnyxCollection, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {EnablePolicyCategoriesParams, OpenPolicyCategoriesPageParams, SetPolicyDistanceRatesDefaultCategoryParams} from '@libs/API/parameters';
@@ -63,41 +63,34 @@ Onyx.connect({
     callback: (val) => (allPolicyCategories = val),
 });
 
+type PolicyCategoriesOnyxValueMap = NonNullable<OnyxEntry<NullishDeep<PolicyCategories>>>;
+
 function buildOptimisticPolicyCategories(policyID: string, categories: readonly string[]) {
-    const optimisticCategoryMap = categories.reduce(
-        (acc, category) => ({
-            ...acc,
-            [category]: {
-                name: category,
-                enabled: true,
-                errors: null,
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            },
-        }),
-        {},
-    );
+    const optimisticCategoryMap = categories.reduce<PolicyCategoriesOnyxValueMap>((acc, category) => {
+        acc[category] = {
+            name: category,
+            enabled: true,
+            errors: null,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        };
+        return acc;
+    }, {});
 
-    const successCategoryMap = categories.reduce(
-        (acc, category) => ({
-            ...acc,
-            [category]: {
-                errors: null,
-                pendingAction: null,
-            },
-        }),
-        {},
-    );
+    const successCategoryMap = categories.reduce<PolicyCategoriesOnyxValueMap>((acc, category) => {
+        acc[category] = {
+            errors: null,
+            pendingAction: null,
+        };
+        return acc;
+    }, {});
 
-    const failureCategoryMap = categories.reduce(
-        (acc, category) => ({
-            ...acc,
-            [category]: {
-                errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.createFailureMessage'),
-                pendingAction: null,
-            },
-        }),
-        {},
-    );
+    const failureCategoryMap = categories.reduce<PolicyCategoriesOnyxValueMap>((acc, category) => {
+        acc[category] = {
+            errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.createFailureMessage'),
+            pendingAction: null,
+        };
+        return acc;
+    }, {});
 
     const onyxData: OnyxData = {
         optimisticData: [
