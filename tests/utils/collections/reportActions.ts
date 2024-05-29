@@ -26,7 +26,12 @@ const getRandomDate = (): string => {
     return formattedDate;
 };
 
-const deprecatedReportActions: ActionName[] = [CONST.REPORT.ACTIONS.TYPE.DELETED_ACCOUNT, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REQUESTED, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP_REQUESTED, CONST.REPORT.ACTIONS.TYPE.DONATION];
+const deprecatedReportActions: ActionName[] = [
+    CONST.REPORT.ACTIONS.TYPE.DELETED_ACCOUNT,
+    CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REQUESTED,
+    CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP_REQUESTED,
+    CONST.REPORT.ACTIONS.TYPE.DONATION,
+];
 
 export default function createRandomReportAction(index: number): ReportAction {
     return {
