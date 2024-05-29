@@ -303,7 +303,7 @@
     "yaml": "^2.2.1"
   },
   "overrides": {
-    "react-native": "0.73.4",
+    "react-native": "0.73.5",
     "expo": "$expo",
     "react-native-svg": "$react-native-svg"
   },
