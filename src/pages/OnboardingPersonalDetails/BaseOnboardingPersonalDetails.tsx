@@ -136,7 +136,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                     onSubmit={completeEngagement}
                     submitButtonText={translate('common.continue')}
                     enabledWhenOffline
-                    submitFlexEnabled
+                    submitButtonStyles={[styles.flex1]}
                     shouldValidateOnBlur={false}
                     shouldValidateOnChange={shouldValidateOnChange}
                     shouldTrimValues={false}

@@ -84,7 +84,6 @@ function PolicyDistanceRateEditPage({policy, route}: PolicyDistanceRateEditPageP
                     enabledWhenOffline
                     style={[styles.flexGrow1]}
                     shouldHideFixErrorsAlert
-                    submitFlexEnabled={false}
                     submitButtonStyles={[styles.mh5, styles.mt0]}
                     disablePressOnEnter={false}
                 >

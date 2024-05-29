@@ -195,7 +195,6 @@ function IOURequestStepWaypoint({
                     enabledWhenOffline
                     validate={validate}
                     onSubmit={submit}
-                    submitFlexEnabled={false}
                     shouldContainerGrow={false}
                     shouldValidateOnChange={false}
                     shouldValidateOnBlur={false}

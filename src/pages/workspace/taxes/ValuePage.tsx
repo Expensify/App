@@ -78,7 +78,6 @@ function ValuePage({
                     enabledWhenOffline
                     disablePressOnEnter={false}
                     shouldHideFixErrorsAlert
-                    submitFlexEnabled={false}
                     submitButtonStyles={[styles.mh5, styles.mt0]}
                 >
                     <InputWrapper

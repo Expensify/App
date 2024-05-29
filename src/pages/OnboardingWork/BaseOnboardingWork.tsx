@@ -90,7 +90,7 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
                     onSubmit={completeEngagement}
                     submitButtonText={translate('common.continue')}
                     enabledWhenOffline
-                    submitFlexEnabled
+                    submitButtonStyles={[styles.flex1]}
                     shouldValidateOnBlur
                     shouldValidateOnChange
                     shouldTrimValues={false}

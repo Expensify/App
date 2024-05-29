@@ -29,9 +29,6 @@ type FormWrapperProps = ChildrenProps &
         /** Submit button styles */
         submitButtonStyles?: StyleProp<ViewStyle>;
 
-        /** Whether to apply flex to the submit button */
-        submitFlexEnabled?: boolean;
-
         /** Whether the form container should grow or adapt to the viewable available space */
         shouldContainerGrow?: boolean;
 
@@ -56,7 +53,6 @@ function FormWrapper({
     isSubmitButtonVisible = true,
     style,
     submitButtonStyles,
-    submitFlexEnabled = true,
     enabledWhenOffline,
     isSubmitActionDangerous = false,
     formID,
@@ -118,7 +114,7 @@ function FormWrapper({
                         onSubmit={onSubmit}
                         footerContent={footerContent}
                         onFixTheErrorsLinkPressed={onFixTheErrorsLinkPressed}
-                        containerStyles={[styles.mh0, styles.mt5, submitFlexEnabled ? styles.flex1 : {}, submitButtonStyles]}
+                        containerStyles={[styles.mh0, styles.mt5, submitButtonStyles]}
                         enabledWhenOffline={enabledWhenOffline}
                         isSubmitActionDangerous={isSubmitActionDangerous}
                         disablePressOnEnter={disablePressOnEnter}
@@ -145,7 +141,6 @@ function FormWrapper({
             onSubmit,
             footerContent,
             onFixTheErrorsLinkPressed,
-            submitFlexEnabled,
             submitButtonStyles,
             enabledWhenOffline,
             isSubmitActionDangerous,
