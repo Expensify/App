@@ -10,7 +10,7 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {FileObject} from '@components/AttachmentModal';
-import * as Expensicons from '@components/Icon/Expensicons';
+import {FallbackAvatar} from '@components/Icon/Expensicons';
 import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
@@ -57,7 +57,7 @@ import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import * as IOU from './actions/IOU';
-import * as PolicyActions from './actions/Policy';
+import * as PolicyActions from './actions/Policy/Policy';
 import * as store from './actions/ReimbursementAccount/store';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
@@ -78,9 +78,10 @@ import * as PhoneNumber from './PhoneNumber';
 import * as PolicyUtils from './PolicyUtils';
 import type {LastVisibleMessage} from './ReportActionsUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
+import StringUtils from './StringUtils';
 import * as TransactionUtils from './TransactionUtils';
 import * as Url from './Url';
-import * as UserUtils from './UserUtils';
+import type * as UserUtils from './UserUtils';
 
 type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18;
 
@@ -586,8 +587,8 @@ function getLastUpdatedReport(): OnyxEntry<Report> {
     return lastUpdatedReport;
 }
 
-function getCurrentUserAvatarOrDefault(): UserUtils.AvatarSource {
-    return currentUserPersonalDetails?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID);
+function getCurrentUserAvatar(): UserUtils.AvatarSource | undefined {
+    return currentUserPersonalDetails?.avatar;
 }
 
 function getCurrentUserDisplayNameOrEmail(): string | undefined {
@@ -1666,7 +1667,7 @@ function formatReportLastMessageText(lastMessageText: string, isModifiedExpenseM
     if (isModifiedExpenseMessage) {
         return String(lastMessageText).trim().replace(CONST.REGEX.LINE_BREAK, '').trim();
     }
-    return String(lastMessageText).trim().replace(CONST.REGEX.LINE_BREAK, ' ').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
+    return StringUtils.lineBreaksToSpaces(String(lastMessageText).trim()).substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
 }
 
 /**
@@ -1732,7 +1733,7 @@ function getIconsForParticipants(participants: number[], personalDetails: OnyxEn
     const participantsList = participants || [];
 
     for (const accountID of participantsList) {
-        const avatarSource = UserUtils.getAvatar(personalDetails?.[accountID]?.avatar ?? '', accountID);
+        const avatarSource = personalDetails?.[accountID]?.avatar ?? FallbackAvatar;
         const displayNameLogin = personalDetails?.[accountID]?.displayName ? personalDetails?.[accountID]?.displayName : personalDetails?.[accountID]?.login;
         participantDetails.push([accountID, displayNameLogin ?? '', avatarSource, personalDetails?.[accountID]?.fallbackIcon ?? '']);
     }
@@ -1793,12 +1794,12 @@ function getPersonalDetailsForAccountID(accountID: number): Partial<PersonalDeta
     if (!accountID) {
         return {};
     }
-    return (
-        allPersonalDetails?.[accountID] ?? {
-            avatar: UserUtils.getDefaultAvatar(accountID),
-            isOptimisticPersonalDetail: true,
-        }
-    );
+
+    const defaultDetails = {
+        isOptimisticPersonalDetail: true,
+    };
+
+    return allPersonalDetails?.[accountID] ?? defaultDetails;
 }
 
 /**
@@ -1920,7 +1921,7 @@ function getIcons(
 ): Icon[] {
     if (isEmptyObject(report)) {
         const fallbackIcon: Icon = {
-            source: defaultIcon ?? Expensicons.FallbackAvatar,
+            source: defaultIcon ?? FallbackAvatar,
             type: CONST.ICON_TYPE_AVATAR,
             name: defaultName,
             id: defaultAccountID,
@@ -1931,7 +1932,7 @@ function getIcons(
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
         const workspaceIcon = getWorkspaceIcon(report, policy);
         const memberIcon = {
-            source: UserUtils.getAvatar(personalDetails?.[parentReportAction.actorAccountID ?? -1]?.avatar ?? '', parentReportAction.actorAccountID ?? -1),
+            source: personalDetails?.[parentReportAction.actorAccountID ?? -1]?.avatar ?? FallbackAvatar,
             id: parentReportAction.actorAccountID,
             type: CONST.ICON_TYPE_AVATAR,
             name: personalDetails?.[parentReportAction.actorAccountID ?? -1]?.displayName ?? '',
@@ -1947,7 +1948,7 @@ function getIcons(
         const actorDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(allPersonalDetails?.[actorAccountID ?? -1], '', false);
         const actorIcon = {
             id: actorAccountID,
-            source: UserUtils.getAvatar(personalDetails?.[actorAccountID ?? -1]?.avatar ?? '', actorAccountID ?? -1),
+            source: personalDetails?.[actorAccountID ?? -1]?.avatar ?? FallbackAvatar,
             name: actorDisplayName,
             type: CONST.ICON_TYPE_AVATAR,
             fallbackIcon: personalDetails?.[parentReportAction.actorAccountID ?? -1]?.fallbackIcon,
@@ -1962,7 +1963,7 @@ function getIcons(
     if (isTaskReport(report)) {
         const ownerIcon = {
             id: report?.ownerAccountID,
-            source: UserUtils.getAvatar(personalDetails?.[report?.ownerAccountID ?? -1]?.avatar ?? '', report?.ownerAccountID ?? -1),
+            source: personalDetails?.[report?.ownerAccountID ?? -1]?.avatar ?? FallbackAvatar,
             type: CONST.ICON_TYPE_AVATAR,
             name: personalDetails?.[report?.ownerAccountID ?? -1]?.displayName ?? '',
             fallbackIcon: personalDetails?.[report?.ownerAccountID ?? -1]?.fallbackIcon,
@@ -2006,7 +2007,7 @@ function getIcons(
     if (isPolicyExpenseChat(report) || isExpenseReport(report)) {
         const workspaceIcon = getWorkspaceIcon(report, policy);
         const memberIcon = {
-            source: UserUtils.getAvatar(personalDetails?.[report?.ownerAccountID ?? -1]?.avatar ?? '', report?.ownerAccountID ?? -1),
+            source: personalDetails?.[report?.ownerAccountID ?? -1]?.avatar ?? FallbackAvatar,
             id: report?.ownerAccountID,
             type: CONST.ICON_TYPE_AVATAR,
             name: personalDetails?.[report?.ownerAccountID ?? -1]?.displayName ?? '',
@@ -2016,7 +2017,7 @@ function getIcons(
     }
     if (isIOUReport(report)) {
         const managerIcon = {
-            source: UserUtils.getAvatar(personalDetails?.[report?.managerID ?? -1]?.avatar ?? '', report?.managerID ?? -1),
+            source: personalDetails?.[report?.managerID ?? -1]?.avatar ?? FallbackAvatar,
             id: report?.managerID,
             type: CONST.ICON_TYPE_AVATAR,
             name: personalDetails?.[report?.managerID ?? -1]?.displayName ?? '',
@@ -2024,7 +2025,7 @@ function getIcons(
         };
         const ownerIcon = {
             id: report?.ownerAccountID,
-            source: UserUtils.getAvatar(personalDetails?.[report?.ownerAccountID ?? -1]?.avatar ?? '', report?.ownerAccountID ?? -1),
+            source: personalDetails?.[report?.ownerAccountID ?? -1]?.avatar ?? FallbackAvatar,
             type: CONST.ICON_TYPE_AVATAR,
             name: personalDetails?.[report?.ownerAccountID ?? -1]?.displayName ?? '',
             fallbackIcon: personalDetails?.[report?.ownerAccountID ?? -1]?.fallbackIcon,
@@ -2097,7 +2098,7 @@ function getDisplayNamesWithTooltips(
             const accountID = Number(user?.accountID);
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const displayName = getDisplayNameForParticipant(accountID, shouldUseShortForm, shouldFallbackToHidden, shouldAddCurrentUserPostfix) || user?.login || '';
-            const avatar = UserUtils.getDefaultAvatar(accountID);
+            const avatar = user && 'avatar' in user ? user.avatar : undefined;
 
             let pronouns = user?.pronouns ?? undefined;
             if (pronouns?.startsWith(CONST.PRONOUNS.PREFIX)) {
@@ -2708,7 +2709,8 @@ function canEditReportAction(reportAction: OnyxEntry<ReportAction>): boolean {
         reportAction?.actorAccountID === currentUserAccountID &&
             isCommentOrIOU &&
             canEditMoneyRequest(reportAction) && // Returns true for non-IOU actions
-            !ReportActionsUtils.isReportActionAttachment(reportAction) &&
+            !isReportMessageAttachment(reportAction?.message?.[0]) &&
+            (isEmptyObject(reportAction.attachmentInfo) || !reportAction.isOptimisticAction) &&
             !ReportActionsUtils.isDeletedAction(reportAction) &&
             !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
             reportAction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
@@ -3430,6 +3432,32 @@ function goBackToDetailsPage(report: OnyxEntry<Report>) {
 }
 
 /**
+ * Go back to the previous page from the edit private page of a given report
+ */
+function goBackFromPrivateNotes(report: OnyxEntry<Report>, session: OnyxEntry<Session>) {
+    if (isEmpty(report) || isEmpty(session) || !session.accountID) {
+        return;
+    }
+    const currentUserPrivateNote = report.privateNotes?.[session.accountID]?.note ?? '';
+    if (isEmpty(currentUserPrivateNote)) {
+        const participantAccountIDs = Object.keys(report?.participants ?? {})
+            .map(Number)
+            .filter((accountID) => accountID !== currentUserAccountID || !isOneOnOneChat(report));
+
+        if (isOneOnOneChat(report)) {
+            Navigation.goBack(ROUTES.PROFILE.getRoute(participantAccountIDs[0]));
+            return;
+        }
+
+        if (report?.reportID) {
+            Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID));
+            return;
+        }
+    }
+    Navigation.goBack(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID));
+}
+
+/**
  * Generate a random reportID up to 53 bits aka 9,007,199,254,740,991 (Number.MAX_SAFE_INTEGER).
  * There were approximately 98,000,000 reports with sequential IDs generated before we started using this approach, those make up roughly one billionth of the space for these numbers,
  * so we live with the 1 in a billion chance of a collision with an older ID until we can switch to 64-bit IDs.
@@ -3555,7 +3583,7 @@ function buildOptimisticAddCommentReportAction(
                 },
             ],
             automatic: false,
-            avatar: allPersonalDetails?.[accountID ?? -1]?.avatar ?? UserUtils.getDefaultAvatarURL(accountID),
+            avatar: allPersonalDetails?.[accountID ?? -1]?.avatar,
             created: DateUtils.getDBTimeWithSkew(Date.now() + createdOffset),
             message: [
                 {
@@ -3678,8 +3706,8 @@ function buildOptimisticIOUReport(payeeAccountID: number, payerAccountID: number
     const payerEmail = 'login' in personalDetails ? personalDetails.login : '';
 
     const participants: Participants = {
-        [payeeAccountID]: {hidden: false},
-        [payerAccountID]: {hidden: false},
+        [payeeAccountID]: {hidden: true},
+        [payerAccountID]: {hidden: true},
     };
 
     return {
@@ -4030,7 +4058,7 @@ function buildOptimisticIOUReportAction(
         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
         actorAccountID: currentUserAccountID,
         automatic: false,
-        avatar: getCurrentUserAvatarOrDefault(),
+        avatar: getCurrentUserAvatar(),
         isAttachment: false,
         originalMessage,
         message: getIOUReportActionMessage(iouReportID, type, amount, comment, currency, paymentType, isSettlingUp),
@@ -4062,7 +4090,7 @@ function buildOptimisticApprovedReportAction(amount: number, currency: string, e
         actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
         actorAccountID: currentUserAccountID,
         automatic: false,
-        avatar: getCurrentUserAvatarOrDefault(),
+        avatar: getCurrentUserAvatar(),
         isAttachment: false,
         originalMessage,
         message: getIOUReportActionMessage(expenseReportID, CONST.REPORT.ACTIONS.TYPE.APPROVED, Math.abs(amount), '', currency),
@@ -4104,7 +4132,7 @@ function buildOptimisticMovedReportAction(fromPolicyID: string, toPolicyID: stri
         actionName: CONST.REPORT.ACTIONS.TYPE.MOVED,
         actorAccountID: currentUserAccountID,
         automatic: false,
-        avatar: getCurrentUserAvatarOrDefault(),
+        avatar: getCurrentUserAvatar(),
         isAttachment: false,
         originalMessage,
         message: movedActionMessage,
@@ -4138,7 +4166,7 @@ function buildOptimisticSubmittedReportAction(amount: number, currency: string, 
         actorAccountID: currentUserAccountID,
         adminAccountID,
         automatic: false,
-        avatar: getCurrentUserAvatarOrDefault(),
+        avatar: getCurrentUserAvatar(),
         isAttachment: false,
         originalMessage,
         message: getIOUReportActionMessage(expenseReportID, CONST.REPORT.ACTIONS.TYPE.SUBMITTED, Math.abs(amount), '', currency),
@@ -4212,7 +4240,7 @@ function buildOptimisticModifiedExpenseReportAction(
         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
         actorAccountID: currentUserAccountID,
         automatic: false,
-        avatar: getCurrentUserAvatarOrDefault(),
+        avatar: getCurrentUserAvatar(),
         created: DateUtils.getDBTime(),
         isAttachment: false,
         message: [
@@ -4248,7 +4276,7 @@ function buildOptimisticMovedTrackedExpenseModifiedReportAction(transactionThrea
         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
         actorAccountID: currentUserAccountID,
         automatic: false,
-        avatar: getCurrentUserAvatarOrDefault(),
+        avatar: getCurrentUserAvatar(),
         created: DateUtils.getDBTime(),
         isAttachment: false,
         message: [
@@ -4348,7 +4376,7 @@ function buildOptimisticTaskReportAction(
         actionName,
         actorAccountID,
         automatic: false,
-        avatar: getCurrentUserAvatarOrDefault(),
+        avatar: getCurrentUserAvatar(),
         isAttachment: false,
         originalMessage,
         message: [
@@ -4392,10 +4420,11 @@ function buildOptimisticChatReport(
     description = '',
     avatarUrl = '',
     optimisticReportID = '',
+    shouldShowParticipants = true,
 ): OptimisticChatReport {
     const participants = participantList.reduce((reportParticipants: Participants, accountID: number) => {
         const participant: ReportParticipant = {
-            hidden: false,
+            hidden: !shouldShowParticipants,
             role: accountID === currentUserAccountID ? CONST.REPORT.ROLE.ADMIN : CONST.REPORT.ROLE.MEMBER,
         };
         // eslint-disable-next-line no-param-reassign
@@ -4494,7 +4523,7 @@ function buildOptimisticCreatedReportAction(emailCreatingAction: string, created
             },
         ],
         automatic: false,
-        avatar: getCurrentUserAvatarOrDefault(),
+        avatar: getCurrentUserAvatar(),
         created,
         shouldShow: true,
     };
@@ -4536,7 +4565,7 @@ function buildOptimisticRenamedRoomReportAction(newName: string, oldName: string
             lastModified: now,
         },
         automatic: false,
-        avatar: getCurrentUserAvatarOrDefault(),
+        avatar: getCurrentUserAvatar(),
         created: now,
         shouldShow: true,
     };
@@ -4567,7 +4596,7 @@ function buildOptimisticHoldReportAction(created = DateUtils.getDBTime()): Optim
             },
         ],
         automatic: false,
-        avatar: getCurrentUserAvatarOrDefault(),
+        avatar: getCurrentUserAvatar(),
         created,
         shouldShow: true,
     };
@@ -4585,9 +4614,9 @@ function buildOptimisticHoldReportActionComment(comment: string, created = DateU
         actorAccountID: currentUserAccountID,
         message: [
             {
-                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                style: 'normal',
+                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
                 text: comment,
+                html: comment, // as discussed on https://github.com/Expensify/App/pull/39452 we will not support HTML for now
             },
         ],
         person: [
@@ -4598,7 +4627,7 @@ function buildOptimisticHoldReportActionComment(comment: string, created = DateU
             },
         ],
         automatic: false,
-        avatar: getCurrentUserAvatarOrDefault(),
+        avatar: getCurrentUserAvatar(),
         created,
         shouldShow: true,
     };
@@ -4629,7 +4658,7 @@ function buildOptimisticUnHoldReportAction(created = DateUtils.getDBTime()): Opt
             },
         ],
         automatic: false,
-        avatar: getCurrentUserAvatarOrDefault(),
+        avatar: getCurrentUserAvatar(),
         created,
         shouldShow: true,
     };
@@ -4674,7 +4703,7 @@ function buildOptimisticEditedTaskFieldReportAction({title, description}: Task):
             },
         ],
         automatic: false,
-        avatar: getCurrentUserAvatarOrDefault(),
+        avatar: getCurrentUserAvatar(),
         created: DateUtils.getDBTime(),
         shouldShow: false,
     };
@@ -4701,7 +4730,7 @@ function buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID: numbe
             },
         ],
         automatic: false,
-        avatar: getCurrentUserAvatarOrDefault(),
+        avatar: getCurrentUserAvatar(),
         created: DateUtils.getDBTime(),
         shouldShow: false,
     };
@@ -4717,7 +4746,7 @@ function buildOptimisticClosedReportAction(emailClosingReport: string, policyNam
         actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
         actorAccountID: currentUserAccountID,
         automatic: false,
-        avatar: getCurrentUserAvatarOrDefault(),
+        avatar: getCurrentUserAvatar(),
         created: DateUtils.getDBTime(),
         message: [
             {
@@ -4756,7 +4785,7 @@ function buildOptimisticDismissedViolationReportAction(originalMessage: Original
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION,
         actorAccountID: currentUserAccountID,
-        avatar: getCurrentUserAvatarOrDefault(),
+        avatar: getCurrentUserAvatar(),
         created: DateUtils.getDBTime(),
         message: [
             {
@@ -4944,6 +4973,8 @@ function buildTransactionThread(
         moneyRequestReport?.reportID,
         '',
         '',
+        '',
+        false,
     );
 }
 
@@ -5325,23 +5356,17 @@ function getInvoiceChatByParticipants(policyID: string, receiverID: string | num
 }
 
 /**
- * Attempts to find a report in onyx with the provided list of participants in given policy
+ * Attempts to find a policy expense report in onyx that is owned by ownerAccountID in a given policy
  */
-function getChatByParticipantsAndPolicy(newParticipantList: number[], policyID: string): OnyxEntry<Report> {
-    newParticipantList.sort();
+function getPolicyExpenseChat(ownerAccountID: number, policyID: string): OnyxEntry<Report> {
     return (
-        Object.values(allReports ?? {}).find((report) => {
-            const participantAccountIDs = Object.keys(report?.participants ?? {});
-
-            // If the report has been deleted, or there are no participants (like an empty #admins room) then skip it
-            if (!report || participantAccountIDs.length === 0) {
+        Object.values(allReports ?? {}).find((report: OnyxEntry<Report>) => {
+            // If the report has been deleted, then skip it
+            if (!report) {
                 return false;
             }
 
-            const sortedParticipantsAccountIDs = participantAccountIDs.map(Number).sort();
-
-            // Only return the room if it has all the participants and is not a policy room
-            return report.policyID === policyID && newParticipantList.every((newParticipant) => sortedParticipantsAccountIDs.includes(newParticipant));
+            return report.policyID === policyID && isPolicyExpenseChat(report) && report.ownerAccountID === ownerAccountID;
         }) ?? null
     );
 }
@@ -5632,7 +5657,7 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
     // DM chats will have the Split Expense option.
     // Your own workspace chats will have the split expense option.
     if (
-        (isChatRoom(report) && otherParticipants.length > 0) ||
+        (isChatRoom(report) && !isAnnounceRoom(report) && otherParticipants.length > 0) ||
         (isDM(report) && otherParticipants.length > 0) ||
         (isGroupChat(report) && otherParticipants.length > 0) ||
         (isPolicyExpenseChat(report) && report?.isOwnPolicyExpenseChat)
@@ -6570,10 +6595,10 @@ function hasMissingPaymentMethod(userWallet: OnyxEntry<UserWallet>, iouReportID:
 
 /**
  * Used from expense actions to decide if we need to build an optimistic expense report.
-   Create a new report if:
-   - we don't have an iouReport set in the chatReport
-   - we have one, but it's waiting on the payee adding a bank account
-   - we have one but we can't add more transactions to it due to: report is approved or settled, or report is processing and policy isn't on Instant submit reporting frequency
+ * Create a new report if:
+ * - we don't have an iouReport set in the chatReport
+ * - we have one, but it's waiting on the payee adding a bank account
+ * - we have one, but we can't add more transactions to it due to: report is approved or settled, or report is processing and policy isn't on Instant submit reporting frequency
  */
 function shouldCreateNewMoneyRequestReport(existingIOUReport: OnyxEntry<Report> | undefined | null, chatReport: OnyxEntry<Report> | null): boolean {
     return !existingIOUReport || hasIOUWaitingOnCurrentUserBankAccount(chatReport) || !canAddOrDeleteTransactions(existingIOUReport);
@@ -6831,7 +6856,6 @@ export {
     getAvailableReportFields,
     getBankAccountRoute,
     getChatByParticipants,
-    getChatByParticipantsAndPolicy,
     getChatRoomSubtitle,
     getChildReportNotificationPreference,
     getCommentLength,
@@ -6864,6 +6888,7 @@ export {
     getPendingChatMembers,
     getPersonalDetailsForAccountID,
     getPolicyDescriptionText,
+    getPolicyExpenseChat,
     getPolicyName,
     getPolicyType,
     getReimbursementDeQueuedActionMessage,
@@ -6895,6 +6920,7 @@ export {
     getWorkspaceChats,
     getWorkspaceIcon,
     goBackToDetailsPage,
+    goBackFromPrivateNotes,
     getInvoicePayerName,
     getInvoicesChatName,
     getPayeeName,

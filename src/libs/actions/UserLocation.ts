@@ -9,4 +9,8 @@ function setUserLocation({longitude, latitude}: UserLocation) {
     Onyx.set(ONYXKEYS.USER_LOCATION, {longitude, latitude});
 }
 
-export default setUserLocation;
+function clearUserLocation() {
+    Onyx.set(ONYXKEYS.USER_LOCATION, null);
+}
+
+export {setUserLocation, clearUserLocation};
