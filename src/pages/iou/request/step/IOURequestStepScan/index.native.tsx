@@ -22,7 +22,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
-import isPdfFilePasswordProtected from '@libs/focusComposerWithDelay/isPdfFilePasswordProtected';
+import isPdfFilePasswordProtected from '@libs/isPdfFilePasswordProtected';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
