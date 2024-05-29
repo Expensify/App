@@ -6,6 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Subscription from '@userActions/Subscription';
+import SubscriptionDetails from './SubscriptionDetails';
 import SubscriptionPlan from './SubscriptionPlan';
 
 function SubscriptionSettingsPage() {
@@ -25,6 +26,7 @@ function SubscriptionSettingsPage() {
                 icon={Illustrations.CreditCardsNew}
             />
             <SubscriptionPlan />
+            <SubscriptionDetails />
         </ScreenWrapper>
     );
 }
