@@ -616,6 +616,7 @@ export default Performance.withRenderTrace({id: '<ReportActionsView> rendering'}
         },
         transactionThreadReport: {
             key: ({transactionThreadReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
+            initialValue: {} as OnyxTypes.Report,
         },
     })(MemoizedReportActionsView),
 );
