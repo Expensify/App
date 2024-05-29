@@ -4054,33 +4054,6 @@ function openPolicyMoreFeaturesPage(policyID: string) {
     API.read(READ_COMMANDS.OPEN_POLICY_MORE_FEATURES_PAGE, params);
 }
 
-/**
- * Takes removes pendingFields and errorFields from a customUnit
- */
-function removePendingFieldsFromCustomUnit(customUnit: CustomUnit): CustomUnit {
-    const cleanedCustomUnit = {...customUnit};
-
-    delete cleanedCustomUnit.pendingFields;
-    delete cleanedCustomUnit.errorFields;
-
-    return cleanedCustomUnit;
-}
-
-/**
- * Takes array of customUnitRates and removes pendingFields and errorFields from each rate - we don't want to send those via API
- */
-function prepareCustomUnitRatesArray(customUnitRates: Rate[]): Rate[] {
-    const customUnitRateArray: Rate[] = [];
-    customUnitRates.forEach((rate) => {
-        const cleanedRate = {...rate};
-        delete cleanedRate.pendingFields;
-        delete cleanedRate.errorFields;
-        customUnitRateArray.push(cleanedRate);
-    });
-
-    return customUnitRateArray;
-}
-
 function setPolicyCustomTaxName(policyID: string, customTaxName: string) {
     const policy = getPolicy(policyID);
     const originalCustomTaxName = policy?.taxRates?.name;
@@ -4321,8 +4294,6 @@ export {
     createDraftWorkspace,
     buildPolicyData,
     navigateWhenEnableFeature,
-    removePendingFieldsFromCustomUnit,
-    prepareCustomUnitRatesArray,
 };
 
 export type {NewCustomUnit};

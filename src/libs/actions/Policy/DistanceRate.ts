@@ -23,7 +23,7 @@ import type {
 import type {ErrorFields} from '@src/types/onyx/OnyxCommon';
 import type {Attributes, CustomUnit, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
-import {navigateWhenEnableFeature, removePendingFieldsFromCustomUnit} from './Policy';
+import {navigateWhenEnableFeature} from './Policy';
 
 type NewCustomUnit = {
     customUnitID: string;
@@ -64,6 +64,18 @@ Onyx.connect({
         allPolicies[key] = val;
     },
 });
+
+/**
+ * Takes removes pendingFields and errorFields from a customUnit
+ */
+function removePendingFieldsFromCustomUnit(customUnit: CustomUnit): CustomUnit {
+    const cleanedCustomUnit = {...customUnit};
+
+    delete cleanedCustomUnit.pendingFields;
+    delete cleanedCustomUnit.errorFields;
+
+    return cleanedCustomUnit;
+}
 
 /**
  * Takes array of customUnitRates and removes pendingFields and errorFields from each rate - we don't want to send those via API
