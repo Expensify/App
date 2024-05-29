@@ -3319,6 +3319,12 @@ const styles = (theme: ThemeColors) =>
             marginTop: 6,
         },
 
+        workspaceListRBR: {
+            flexDirection: 'column',
+            justifyContent: 'flex-start',
+            marginTop: 10,
+        },
+
         peopleRow: {
             width: '100%',
             flexDirection: 'row',
@@ -3475,7 +3481,6 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeNormal,
             lineHeight: variables.fontSizeNormalHeight,
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
-            flex: 1,
         },
 
         searchPressable: {

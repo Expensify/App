@@ -146,7 +146,7 @@ function HeaderView({
         }
 
         // Task is not closed
-        if (ReportUtils.canWriteInReport(report) && report.stateNum !== CONST.REPORT.STATE_NUM.APPROVED && report.statusNum !== CONST.REPORT.STATUS_NUM.CLOSED && canModifyTask) {
+        if (ReportUtils.canWriteInReport(report) && report.stateNum !== CONST.REPORT.STATE_NUM.APPROVED && !ReportUtils.isClosedReport(report) && canModifyTask) {
             threeDotMenuItems.push({
                 icon: Expensicons.Trashcan,
                 text: translate('common.delete'),
@@ -155,9 +155,7 @@ function HeaderView({
         }
     }
 
-    const join = Session.checkIfActionIsAllowed(() =>
-        Report.updateNotificationPreference(reportID, report.notificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, false, report.parentReportID, report.parentReportActionID),
-    );
+    const join = Session.checkIfActionIsAllowed(() => Report.joinRoom(report));
 
     const canJoin = ReportUtils.canJoinChat(report, parentReportAction, policy);
     if (canJoin) {
