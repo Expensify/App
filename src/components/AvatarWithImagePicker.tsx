@@ -306,7 +306,6 @@ function AvatarWithImagePicker({
         <View style={StyleSheet.flatten([styles.alignItemsCenter, style])}>
             <View style={styles.w100}>
                 <OfflineWithFeedback
-                    pendingAction={pendingAction}
                     errors={errors}
                     errorRowStyles={errorRowStyles}
                     style={type === CONST.ICON_TYPE_AVATAR && styles.alignItemsCenter}
@@ -331,7 +330,7 @@ function AvatarWithImagePicker({
                             style={[styles.pRelative, avatarStyle]}
                             ref={anchorRef}
                         >
-                            <View>
+                            <OfflineWithFeedback pendingAction={pendingAction}>
                                 {source ? (
                                     <Avatar
                                         containerStyles={avatarStyle}
@@ -345,7 +344,7 @@ function AvatarWithImagePicker({
                                 ) : (
                                     <DefaultAvatar />
                                 )}
-                            </View>
+                            </OfflineWithFeedback>
                             {!disabled && (
                                 <View style={StyleSheet.flatten([styles.smallEditIcon, styles.smallAvatarEditIcon, editIconStyle])}>
                                     <Icon
