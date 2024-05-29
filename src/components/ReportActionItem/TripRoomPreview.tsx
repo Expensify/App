@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {FlatList, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -14,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
@@ -131,12 +132,16 @@ function TripRoomPreview({
     const reservations: Reservation[] = TripReservationUtils.getReservationsFromTripTransactions(tripTransactions);
 
     const dateInfo = chatReport?.tripData ? DateUtils.getFormattedDateRange(new Date(chatReport.tripData.startDate), new Date(chatReport.tripData.endDate)) : '';
+    const {totalDisplaySpend} = ReportUtils.getMoneyRequestSpendBreakdown(chatReport);
 
-    const displayAmount = useMemo(() => {
-        // @TODO: It should be read from chatReport?.message, replace it once it's available.
-        // If report is not available, get amount from the action last message text (Ex: "Domain20821's Workspace owes $33.00" or "paid ₫60" or "paid -₫60 elsewhere")
-        let displayAmountValue = '';
-        const actionMessage = chatReport?.lastMessageText ?? '';
+    const getDisplayAmount = (): string => {
+        if (totalDisplaySpend) {
+            return CurrencyUtils.convertToDisplayString(totalDisplaySpend, chatReport?.currency);
+        }
+
+        // If chatReport is not available, get amount from the action message (Ex: "Domain20821's Workspace owes $33.00" or "paid ₫60" or "paid -₫60 elsewhere")
+        let displayAmount = '';
+        const actionMessage = action.message?.[0]?.text ?? '';
         const splits = actionMessage.split(' ');
 
         splits.forEach((split) => {
@@ -144,11 +149,11 @@ function TripRoomPreview({
                 return;
             }
 
-            displayAmountValue = split;
+            displayAmount = split;
         });
 
-        return displayAmountValue;
-    }, [chatReport?.lastMessageText]);
+        return displayAmount;
+    };
 
     return (
         <OfflineWithFeedback
@@ -180,7 +185,7 @@ function TripRoomPreview({
                             <View style={styles.reportPreviewAmountSubtitleContainer}>
                                 <View style={styles.flexRow}>
                                     <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                        <Text style={styles.textHeadlineH2}>{displayAmount}</Text>
+                                        <Text style={styles.textHeadlineH2}>{getDisplayAmount()}</Text>
                                     </View>
                                 </View>
                                 <View style={styles.flexRow}>
