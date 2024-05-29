@@ -1,3 +1,4 @@
+import {Audio} from 'expo-av';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {NativeEventSubscription} from 'react-native';
 import {AppState, Linking} from 'react-native';
@@ -204,6 +205,11 @@ function Expensify({
             appStateChangeListener.current.remove();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
+    }, []);
+
+    // This is being done since we want to play sound even when iOS device is on silent mode, to align with other platforms.
+    useEffect(() => {
+        Audio.setAudioModeAsync({playsInSilentModeIOS: true});
     }, []);
 
     // Display a blank page until the onyx migration completes
