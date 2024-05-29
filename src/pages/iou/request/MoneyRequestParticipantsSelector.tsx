@@ -192,7 +192,7 @@ function MoneyRequestParticipantsSelector({participants = [], onFinish, onPartic
             ];
 
             if (iouType === CONST.IOU.TYPE.INVOICE) {
-                const policyID = ReportUtils.isInvoiceRoom(option.item) ? option.policyID : Policy.getPrimaryPolicy(activePolicyID)?.id;
+                const policyID = option.item && ReportUtils.isInvoiceRoom(option.item) ? option.policyID : Policy.getPrimaryPolicy(activePolicyID)?.id;
                 newParticipants.push({
                     policyID,
                     isSender: true,
