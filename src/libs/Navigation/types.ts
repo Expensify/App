@@ -71,6 +71,7 @@ type CentralPaneNavigatorParamList = {
         sortOrder?: SortOrder;
     };
     [SCREENS.SETTINGS.SAVE_THE_WORLD]: undefined;
+    [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: undefined;
 };
 
 type BackToParams = {
@@ -103,6 +104,7 @@ type SettingsNavigatorParamList = {
         backTo: Routes;
     };
     [SCREENS.SETTINGS.PREFERENCES.ROOT]: undefined;
+    [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.LANGUAGE]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.THEME]: undefined;
