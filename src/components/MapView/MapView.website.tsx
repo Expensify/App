@@ -52,7 +52,8 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
         const StyleUtils = useStyleUtils();
 
         const [mapRef, setMapRef] = useState<MapRef | null>(null);
-        const [currentPosition, setCurrentPosition] = useState(cachedUserLocation);
+        const initialLocation = {longitude: initialState.location[0], latitude: initialState.location[1]};
+        const [currentPosition, setCurrentPosition] = useState(cachedUserLocation ?? initialLocation);
         const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
         const [shouldResetBoundaries, setShouldResetBoundaries] = useState<boolean>(false);
         const setRef = useCallback((newRef: MapRef | null) => setMapRef(newRef), []);
@@ -66,13 +67,13 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
 
         const setCurrentPositionToInitialState: GeolocationErrorCallback = useCallback(
             (error) => {
-                if (error?.code !== GeolocationErrorCode.PERMISSION_DENIED || !initialState) {
+                if (error?.code !== GeolocationErrorCode.PERMISSION_DENIED || !initialLocation) {
                     return;
                 }
                 UserLocation.clearUserLocation();
-                setCurrentPosition({longitude: initialState.location[0], latitude: initialState.location[1]});
+                setCurrentPosition(initialLocation);
             },
-            [initialState],
+            [initialLocation],
         );
 
         useFocusEffect(
