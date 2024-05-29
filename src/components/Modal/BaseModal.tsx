@@ -139,6 +139,7 @@ function BaseModal(
     };
 
     const handleDismissModal = () => {
+        hideModal();
         ComposerFocusManager.setReadyToFocus(modalId);
     };
 
@@ -215,9 +216,7 @@ function BaseModal(
                 onBackButtonPress={Modal.closeTop}
                 onModalShow={handleShowModal}
                 propagateSwipe={propagateSwipe}
-                onModalHide={hideModal}
                 onModalWillShow={saveFocusState}
-                onDismiss={handleDismissModal}
                 onSwipeComplete={() => onClose?.()}
                 swipeDirection={swipeDirection}
                 isVisible={isVisible}

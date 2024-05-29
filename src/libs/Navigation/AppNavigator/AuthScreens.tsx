@@ -152,8 +152,10 @@ const modalScreenListeners = {
     beforeRemove: () => {
         // Clear search input (WorkspaceInvitePage) when modal is closed
         SearchInputManager.searchInput = '';
-        Modal.setModalVisibility(false);
-        Modal.willAlertModalBecomeVisible(false);
+        if (Modal.areAllModalsHidden()) {
+            Modal.setModalVisibility(false);
+            Modal.willAlertModalBecomeVisible(false);
+        }
     },
 };
 
