@@ -409,7 +409,6 @@ export default {
     },
     moneyRequestConfirmationList: {
         paidBy: 'Paid by',
-        splitAmounts: 'Split amounts',
         whatsItFor: "What's it for?",
     },
     selectionList: {
@@ -540,6 +539,7 @@ export default {
         hereAlternateText: 'Notify everyone in this conversation',
     },
     newMessages: 'New messages',
+    youHaveBeenBanned: 'Note: You have been banned from communicating in this channel',
     reportTypingIndicator: {
         isTyping: 'is typing...',
         areTyping: 'are typing...',
@@ -694,7 +694,7 @@ export default {
         managerApprovedAmount: ({manager, amount}: ManagerApprovedAmountParams) => `${manager} approved ${amount}`,
         payerSettled: ({amount}: PayerSettledParams) => `paid ${amount}`,
         approvedAmount: ({amount}: ApprovedAmountParams) => `approved ${amount}`,
-        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up, payment is held until ${submitterDisplayName} adds a bank account`,
+        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up. Payment is on hold until ${submitterDisplayName} adds a bank account.`,
         adminCanceledRequest: ({manager, amount}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''}cancelled the ${amount} payment.`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `canceled the ${amount} payment, because ${submitterDisplayName} did not enable their Expensify Wallet within 30 days`,
@@ -739,7 +739,7 @@ export default {
             splitExpenseMultipleParticipantsErrorMessage: 'An expense cannot be split between a workspace and other members. Please update your selection.',
             invalidMerchant: 'Please enter a correct merchant.',
         },
-        waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `Started settling up, payment is held until ${submitterDisplayName} enables their Wallet`,
+        waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up. Payment is on hold until ${submitterDisplayName} enables their wallet.`,
         enableWallet: 'Enable Wallet',
         hold: 'Hold',
         holdExpense: 'Hold expense',
@@ -1084,7 +1084,7 @@ export default {
         addBankAccountToSendAndReceive: 'Add a bank account to send and receive payments directly in the app.',
         addBankAccount: 'Add bank account',
         assignedCards: 'Assigned cards',
-        assignedCardsDescription: 'These are cards assigned by a Workspace admin to manage company spend.',
+        assignedCardsDescription: 'These are cards assigned by a workspace admin to manage company spend.',
         expensifyCard: 'Expensify Card',
         walletActivationPending: "We're reviewing your information, please check back in a few minutes!",
         walletActivationFailed: 'Unfortunately your wallet cannot be enabled at this time. Please chat with Concierge for further assistance.',
@@ -1363,7 +1363,8 @@ export default {
         whereYouWork: 'Where do you work?',
         purpose: {
             title: 'What do you want to do today?',
-            error: 'Please make a selection before continuing.',
+            errorSelection: 'Please make a selection to continue.',
+            errorContinue: 'Please press continue to get set up.',
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Get paid back by my employer',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: "Manage my team's expenses",
             [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: 'Track and budget expenses',
@@ -1922,6 +1923,7 @@ export default {
             distanceRates: 'Distance rates',
             welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
                 `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
+            subscription: 'Subscription',
         },
         qbo: {
             importDescription: 'Choose which coding configurations are imported from QuickBooks Online to Expensify.',
@@ -2191,7 +2193,7 @@ export default {
         },
         tags: {
             tagName: 'Tag name',
-            requiresTag: 'Members must tag all spend',
+            requiresTag: 'Members must tag all expenses',
             customTagName: 'Custom tag name',
             enableTag: 'Enable tag',
             enableTags: 'Enable tags',
@@ -2705,6 +2707,7 @@ export default {
                 subtitle: 'Try creating something using the green + button.',
             },
         },
+        groupedExpenses: 'grouped expenses',
     },
     genericErrorPage: {
         title: 'Uh-oh, something went wrong!',
@@ -3063,6 +3066,7 @@ export default {
         taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams) => `${taxName ?? 'Tax'} no longer valid`,
         taxRateChanged: 'Tax rate was modified',
         taxRequired: 'Missing tax rate',
+        hold: 'Hold',
     },
     violationDismissal: {
         rter: {
