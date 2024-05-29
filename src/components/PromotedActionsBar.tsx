@@ -20,10 +20,6 @@ type ReportPromotedAction = (report: OnyxReport) => PromotedAction;
 
 type PromotedActionsType = {
     pin: ReportPromotedAction;
-    // message: (accountID: number) => PromotedAction;
-    // join: ReportPromotedAction;
-    // share: ReportPromotedAction;
-    // hold: () => PromotedAction;
 };
 
 const PromotedActions = {
@@ -31,31 +27,6 @@ const PromotedActions = {
         key: 'pin',
         ...HeaderUtils.getPinMenuItem(report),
     }),
-    // TODO: Uncomment the following lines when the corresponding features are implemented
-    // message: (accountID) => ({
-    //     key: 'message',
-    //     icon: Expensicons.CommentBubbles,
-    //     text: Localize.translateLocal('common.message'),
-    //     onSelected: () => ReportActions.navigateToAndOpenReportWithAccountIDs([accountID]),
-    // }),
-    // join: (report) => ({
-    //     key: 'join',
-    //     icon: Expensicons.CommentBubbles,
-    //     text: Localize.translateLocal('common.join'),
-    //     onSelected: () => Session.checkIfActionIsAllowed(() => Report.joinRoom(report)),
-    // }),
-    // share: (report) => ({
-    //     key: 'share',
-    //     icon: Expensicons.QrCode,
-    //     text: Localize.translateLocal('common.share'),
-    //     onSelected: () => Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.getRoute(report?.reportID ?? '')),
-    // }),
-    // hold: () => ({
-    //     key: 'hold',
-    //     icon: Expensicons.Stopwatch,
-    //     text: Localize.translateLocal('iou.hold'),
-    //     onSelected: () => {},
-    // }),
 } satisfies PromotedActionsType;
 
 type PromotedActionsBarProps = {
