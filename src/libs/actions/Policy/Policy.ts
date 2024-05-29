@@ -4783,6 +4783,7 @@ export {
     buildPolicyData,
     navigateWhenEnableFeature,
     removePendingFieldsFromCustomUnit,
+    prepareCustomUnitRatesArray,
 };
 
 export type {NewCustomUnit};
