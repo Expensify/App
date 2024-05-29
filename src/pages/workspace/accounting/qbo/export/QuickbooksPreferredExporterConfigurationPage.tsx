@@ -5,9 +5,11 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import {getAdminEmployees} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -20,37 +22,44 @@ type CardListItem = ListItem & {
     value: string;
 };
 
-function QuickBooksExportPreferredExporterPage({policy}: WithPolicyConnectionsProps) {
+function QuickbooksPreferredExporterConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {exporter} = policy?.connections?.quickbooksOnline?.config ?? {};
+    const {export: exportConfiguration} = policy?.connections?.quickbooksOnline?.config ?? {};
     const exporters = getAdminEmployees(policy);
+    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
 
     const policyID = policy?.id ?? '';
     const data: CardListItem[] = useMemo(
         () =>
-            exporters?.reduce<CardListItem[]>((vendors, vendor) => {
-                if (vendor.email) {
-                    vendors.push({
-                        value: vendor.email,
-                        text: vendor.email,
-                        keyForList: vendor.email,
-                        isSelected: exporter === vendor.email,
-                    });
+            exporters?.reduce<CardListItem[]>((options, exporter) => {
+                if (!exporter.email) {
+                    return options;
                 }
-                return vendors;
+
+                // Don't show guides if the current user is not a guide themselves or an Expensify employee
+                if (PolicyUtils.isExpensifyTeam(exporter.email) && !PolicyUtils.isExpensifyTeam(policy?.owner) && !PolicyUtils.isExpensifyTeam(currentUserLogin)) {
+                    return options;
+                }
+                options.push({
+                    value: exporter.email,
+                    text: exporter.email,
+                    keyForList: exporter.email,
+                    isSelected: exportConfiguration?.exporter === exporter.email,
+                });
+                return options;
             }, []),
-        [exporter, exporters],
+        [exportConfiguration, exporters, currentUserLogin, policy?.owner],
     );
 
     const selectExporter = useCallback(
         (row: CardListItem) => {
-            if (row.value !== exporter) {
-                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.PREFERRED_EXPORTER, row.value);
+            if (row.value !== exportConfiguration?.exporter) {
+                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.EXPORT, {exporter: row.value});
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER.getRoute(policyID));
         },
-        [policyID, exporter],
+        [policyID, exportConfiguration],
     );
 
     return (
@@ -59,7 +68,7 @@ function QuickBooksExportPreferredExporterPage({policy}: WithPolicyConnectionsPr
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
         >
-            <ScreenWrapper testID={QuickBooksExportPreferredExporterPage.displayName}>
+            <ScreenWrapper testID={QuickbooksPreferredExporterConfigurationPage.displayName}>
                 <HeaderWithBackButton title={translate('workspace.qbo.preferredExporter')} />
                 <SelectionList
                     headerContent={
@@ -71,6 +80,7 @@ function QuickBooksExportPreferredExporterPage({policy}: WithPolicyConnectionsPr
                     sections={[{data}]}
                     ListItem={RadioListItem}
                     onSelectRow={selectExporter}
+                    shouldDebounceRowSelect
                     initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
                 />
             </ScreenWrapper>
@@ -78,6 +88,6 @@ function QuickBooksExportPreferredExporterPage({policy}: WithPolicyConnectionsPr
     );
 }
 
-QuickBooksExportPreferredExporterPage.displayName = 'QuickBooksExportPreferredExporterPage';
+QuickbooksPreferredExporterConfigurationPage.displayName = 'QuickbooksPreferredExporterConfigurationPage';
 
-export default withPolicyConnections(QuickBooksExportPreferredExporterPage);
+export default withPolicyConnections(QuickbooksPreferredExporterConfigurationPage);

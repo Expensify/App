@@ -17,6 +17,7 @@ import NetworkConnection from '@libs/NetworkConnection';
 import * as Pusher from '@libs/Pusher/pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 import * as SessionUtils from '@libs/SessionUtils';
+import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import DesktopSignInRedirectPage from '@pages/signin/DesktopSignInRedirectPage';
 import SearchInputManager from '@pages/workspace/SearchInputManager';
@@ -372,6 +373,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         name={NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR}
                         options={onboardingModalScreenOptions}
                         component={FeatureTrainingModalNavigator}
+                        listeners={modalScreenListeners}
                     />
                     <RootStack.Screen
                         name={NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR}
@@ -400,6 +402,11 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         }}
                         getComponent={loadReceiptView}
                         listeners={modalScreenListeners}
+                    />
+                    <RootStack.Screen
+                        name={SCREENS.CONNECTION_COMPLETE}
+                        options={defaultScreenOptions}
+                        component={ConnectionCompletePage}
                     />
                 </RootStack.Navigator>
             </View>

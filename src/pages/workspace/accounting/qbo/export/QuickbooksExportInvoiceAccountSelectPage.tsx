@@ -14,37 +14,38 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type {Account} from '@src/types/onyx/Policy';
 
 type CardListItem = ListItem & {
-    value: string;
+    value: Account;
 };
 
 function QuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {accountsReceivable} = policy?.connections?.quickbooksOnline?.data ?? {};
-    const {exportInvoice} = policy?.connections?.quickbooksOnline?.config ?? {};
+    const {receivableAccount} = policy?.connections?.quickbooksOnline?.config ?? {};
 
     const policyID = policy?.id ?? '';
     const data: CardListItem[] = useMemo(
         () =>
             accountsReceivable?.map((account) => ({
-                value: account.name,
+                value: account,
                 text: account.name,
                 keyForList: account.name,
-                isSelected: account.name === exportInvoice,
+                isSelected: account.id === receivableAccount?.id,
             })) ?? [],
-        [exportInvoice, accountsReceivable],
+        [receivableAccount, accountsReceivable],
     );
 
     const selectExportInvoice = useCallback(
         (row: CardListItem) => {
-            if (row.value !== exportInvoice) {
-                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.EXPORT_INVOICE, row.value);
+            if (row.value.id !== receivableAccount?.id) {
+                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.RECEIVABLE_ACCOUNT, row.value);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECT.getRoute(policyID));
         },
-        [exportInvoice, policyID],
+        [receivableAccount, policyID],
     );
 
     return (
@@ -60,6 +61,7 @@ function QuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyConnection
                     sections={[{data}]}
                     ListItem={RadioListItem}
                     onSelectRow={selectExportInvoice}
+                    shouldDebounceRowSelect
                     initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
                 />
             </ScreenWrapper>

@@ -12,19 +12,22 @@ import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import type {WorkspacesCentralPaneNavigatorParamList} from '@libs/Navigation/types';
-import * as Policy from '@userActions/Policy';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
+import * as Category from '@userActions/Policy/Category';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type SCREENS from '@src/SCREENS';
-import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import ToggleSettingOptionRow from './workflows/ToggleSettingsOptionRow';
 
-type WorkspaceMoreFeaturesPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.MORE_FEATURES>;
+type WorkspaceMoreFeaturesPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.MORE_FEATURES>;
 
 type Item = {
     icon: IconAsset;
@@ -34,6 +37,8 @@ type Item = {
     disabled?: boolean;
     action: (isEnabled: boolean) => void;
     pendingAction: PendingAction | undefined;
+    errors?: Errors;
+    onCloseError?: () => void;
 };
 
 type SectionObject = {
@@ -47,8 +52,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const {canUseAccountingIntegrations} = usePermissions();
-    const hasAccountingConnection = !!policy?.areConnectionsEnabled && !!policy?.connections;
-    const isSyncTaxEnabled = !!policy?.connections?.quickbooksOnline?.config?.syncTax;
+    const hasAccountingConnection = !!policy?.areConnectionsEnabled && !isEmptyObject(policy?.connections);
+    const isSyncTaxEnabled = !!policy?.connections?.quickbooksOnline?.config.syncTax || !!policy?.connections?.xero?.config.importTaxRates;
 
     const spendItems: Item[] = [
         {
@@ -82,7 +87,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             disabled: hasAccountingConnection,
             pendingAction: policy?.pendingFields?.areCategoriesEnabled,
             action: (isEnabled: boolean) => {
-                Policy.enablePolicyCategories(policy?.id ?? '', isEnabled);
+                Category.enablePolicyCategories(policy?.id ?? '', isEnabled);
             },
         },
         {
@@ -119,6 +124,9 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             action: (isEnabled: boolean) => {
                 Policy.enablePolicyConnections(policy?.id ?? '', isEnabled);
             },
+            disabled: hasAccountingConnection,
+            errors: ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED),
+            onCloseError: () => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED),
         },
     ];
 
@@ -153,10 +161,13 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     icon={item.icon}
                     title={translate(item.titleTranslationKey)}
                     subtitle={translate(item.subtitleTranslationKey)}
+                    switchAccessibilityLabel={translate(item.subtitleTranslationKey)}
                     isActive={item.isActive}
                     pendingAction={item.pendingAction}
                     onToggle={item.action}
                     disabled={item.disabled}
+                    errors={item.errors}
+                    onCloseError={item.onCloseError}
                 />
             </View>
         ),

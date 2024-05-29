@@ -5,6 +5,7 @@ import {addSeconds, format, subMinutes, subSeconds} from 'date-fns';
 import {utcToZonedTime} from 'date-fns-tz';
 import React from 'react';
 import {AppState, DeviceEventEmitter, Linking} from 'react-native';
+import type {ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type Animated from 'react-native-reanimated';
@@ -77,7 +78,7 @@ const createAddListenerMock = (): ListenerMock => {
         transitionEndListeners.forEach((transitionEndListener) => transitionEndListener());
     };
 
-    const addListener: jest.Mock = jest.fn().mockImplementation((listener, callback) => {
+    const addListener: jest.Mock = jest.fn().mockImplementation((listener, callback: () => void) => {
         if (listener === 'transitionEnd') {
             transitionEndListeners.push(callback);
         }
@@ -119,7 +120,6 @@ beforeAll(() => {
     // fetch() never gets called so it does not need mocking) or we might have fetch throw an error to test error handling
     // behavior. But here we just want to treat all API requests as a generic "success" and in the cases where we need to
     // simulate data arriving we will just set it into Onyx directly with Onyx.merge() or Onyx.set() etc.
-    // @ts-expect-error -- TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated
     global.fetch = TestHelper.getGlobalFetchMock();
 
     Linking.setInitialURL('https://new.expensify.com/');
@@ -158,7 +158,10 @@ function scrollUpToRevealNewMessagesBadge() {
 function isNewMessagesBadgeVisible(): boolean {
     const hintText = Localize.translateLocal('accessibilityHints.scrollToNewestMessages');
     const badge = screen.queryByAccessibilityHint(hintText);
-    return Math.round(badge?.props.style.transform[0].translateY) === -40;
+    const badgeProps = badge?.props as {style: ViewStyle};
+    const transformStyle = badgeProps.style.transform?.[0] as {translateY: number};
+
+    return Math.round(transformStyle.translateY) === -40;
 }
 
 function navigateToSidebar(): Promise<void> {
@@ -228,7 +231,7 @@ function signInAndGetAppWithUnreadChat(): Promise<void> {
                 lastReadTime: reportAction3CreatedDate,
                 lastVisibleActionCreated: reportAction9CreatedDate,
                 lastMessageText: 'Test',
-                participantAccountIDs: [USER_B_ACCOUNT_ID],
+                participants: {[USER_B_ACCOUNT_ID]: {hidden: false}},
                 lastActorAccountID: USER_B_ACCOUNT_ID,
                 type: CONST.REPORT.TYPE.CHAT,
             });
@@ -389,7 +392,7 @@ describe('Unread Indicators', () => {
                             lastVisibleActionCreated: DateUtils.getDBTime(utcToZonedTime(NEW_REPORT_FIST_MESSAGE_CREATED_DATE, 'UTC').valueOf()),
                             lastMessageText: 'Comment 1',
                             lastActorAccountID: USER_C_ACCOUNT_ID,
-                            participantAccountIDs: [USER_C_ACCOUNT_ID],
+                            participants: {[USER_C_ACCOUNT_ID]: {hidden: false}},
                             type: CONST.REPORT.TYPE.CHAT,
                         },
                     },
@@ -439,11 +442,11 @@ describe('Unread Indicators', () => {
                 expect(displayNameTexts).toHaveLength(2);
                 const firstReportOption = displayNameTexts[0];
                 expect(firstReportOption?.props?.style?.fontWeight).toBe(FontUtils.fontWeight.bold);
-                expect(firstReportOption?.props?.children?.[0]).toBe('C User');
+                expect(screen.getByText('C User')).toBeOnTheScreen();
 
                 const secondReportOption = displayNameTexts[1];
                 expect(secondReportOption?.props?.style?.fontWeight).toBe(FontUtils.fontWeight.bold);
-                expect(secondReportOption?.props?.children?.[0]).toBe('B User');
+                expect(screen.getByText('B User')).toBeOnTheScreen();
 
                 // Tap the new report option and navigate back to the sidebar again via the back button
                 return navigateToSidebarOption(0);
@@ -456,9 +459,9 @@ describe('Unread Indicators', () => {
                 const displayNameTexts = screen.queryAllByLabelText(hintText);
                 expect(displayNameTexts).toHaveLength(2);
                 expect(displayNameTexts[0]?.props?.style?.fontWeight).toBe(undefined);
-                expect(displayNameTexts[0]?.props?.children?.[0]).toBe('C User');
+                expect(screen.getAllByText('C User')[0]).toBeOnTheScreen();
                 expect(displayNameTexts[1]?.props?.style?.fontWeight).toBe(FontUtils.fontWeight.bold);
-                expect(displayNameTexts[1]?.props?.children?.[0]).toBe('B User');
+                expect(screen.getByText('B User')).toBeOnTheScreen();
             }));
 
     xit('Manually marking a chat message as unread shows the new line indicator and updates the LHN', () =>
@@ -490,7 +493,7 @@ describe('Unread Indicators', () => {
                 const displayNameTexts = screen.queryAllByLabelText(hintText);
                 expect(displayNameTexts).toHaveLength(1);
                 expect(displayNameTexts[0]?.props?.style?.fontWeight).toBe(FontUtils.fontWeight.bold);
-                expect(displayNameTexts[0]?.props?.children?.[0]).toBe('B User');
+                expect(screen.getByText('B User')).toBeOnTheScreen();
 
                 // Navigate to the report again and back to the sidebar
                 return navigateToSidebarOption(0);
@@ -502,7 +505,7 @@ describe('Unread Indicators', () => {
                 const displayNameTexts = screen.queryAllByLabelText(hintText);
                 expect(displayNameTexts).toHaveLength(1);
                 expect(displayNameTexts[0]?.props?.style?.fontWeight).toBe(undefined);
-                expect(displayNameTexts[0]?.props?.children?.[0]).toBe('B User');
+                expect(screen.getByText('B User')).toBeOnTheScreen();
 
                 // Navigate to the report again and verify the new line indicator is missing
                 return navigateToSidebarOption(0);
@@ -615,7 +618,7 @@ describe('Unread Indicators', () => {
                     const hintText = Localize.translateLocal('accessibilityHints.lastChatMessagePreview');
                     const alternateText = screen.queryAllByLabelText(hintText);
                     expect(alternateText).toHaveLength(1);
-                    expect(alternateText[0].props.children).toBe('Current User Comment 1');
+                    expect(screen.getByText('Current User Comment 1')).toBeOnTheScreen();
 
                     if (lastReportAction) {
                         Report.deleteReportComment(REPORT_ID, lastReportAction);
@@ -626,7 +629,7 @@ describe('Unread Indicators', () => {
                     const hintText = Localize.translateLocal('accessibilityHints.lastChatMessagePreview');
                     const alternateText = screen.queryAllByLabelText(hintText);
                     expect(alternateText).toHaveLength(1);
-                    expect(alternateText[0].props.children).toBe('Comment 9');
+                    expect(screen.getAllByText('Comment 9')[0]).toBeOnTheScreen();
                 })
         );
     });

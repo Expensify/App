@@ -6,14 +6,14 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
-import useActiveWorkspace from '@hooks/useActiveWorkspace';
+import useActiveWorkspaceFromNavigationState from '@hooks/useActiveWorkspaceFromNavigationState';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import type {PolicySelector} from '@hooks/useReportIDs';
 import {policySelector, useReportIDs} from '@hooks/useReportIDs';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getPolicyEmployeeListByIdWithoutCurrentUser} from '@libs/PolicyUtils';
-import * as Policy from '@userActions/Policy';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SidebarLinks from './SidebarLinks';
@@ -41,7 +41,7 @@ function SidebarLinksData({insets, isLoadingApp = true, onLinkClick, priorityMod
     const {accountID} = useCurrentUserPersonalDetails();
     const isFocused = useIsFocused();
     const styles = useThemeStyles();
-    const {activeWorkspaceID} = useActiveWorkspace();
+    const activeWorkspaceID = useActiveWorkspaceFromNavigationState();
     const {translate} = useLocalize();
 
     const policyMemberAccountIDs = getPolicyEmployeeListByIdWithoutCurrentUser(policies, activeWorkspaceID, accountID);

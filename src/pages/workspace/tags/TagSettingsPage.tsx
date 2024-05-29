@@ -1,7 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -14,14 +14,14 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {setWorkspaceTagEnabled} from '@libs/actions/Policy';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Policy from '@userActions/Policy';
+import {setWorkspaceTagEnabled} from '@userActions/Policy/Policy';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -35,16 +35,25 @@ type TagSettingsPageOnyxProps = {
 
 type TagSettingsPageProps = TagSettingsPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_SETTINGS>;
 
-function TagSettingsPage({route, policyTags}: TagSettingsPageProps) {
+function TagSettingsPage({route, policyTags, navigation}: TagSettingsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyTag = useMemo(() => PolicyUtils.getTagList(policyTags, 0), [policyTags]);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`);
 
     const {windowWidth} = useWindowDimensions();
 
     const [isDeleteTagModalOpen, setIsDeleteTagModalOpen] = React.useState(false);
 
-    const currentPolicyTag = policyTag.tags[decodeURIComponent(route.params.tagName)];
+    const currentPolicyTag =
+        policyTag.tags[decodeURIComponent(route.params.tagName)] ?? Object.values(policyTag.tags ?? {}).find((tag) => tag.previousTagName === decodeURIComponent(route.params.tagName));
+
+    useEffect(() => {
+        if (currentPolicyTag?.name === route.params.tagName || !currentPolicyTag) {
+            return;
+        }
+        navigation.setParams({tagName: currentPolicyTag?.name});
+    }, [route.params.tagName, currentPolicyTag, navigation]);
 
     if (!currentPolicyTag) {
         return <NotFoundPage />;
@@ -64,6 +73,17 @@ function TagSettingsPage({route, policyTags}: TagSettingsPageProps) {
         Navigation.navigate(ROUTES.WORKSPACE_TAG_EDIT.getRoute(route.params.policyID, currentPolicyTag.name));
     };
 
+    const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
+    const isMultiLevelTags = PolicyUtils.isMultiLevelTags(policyTags);
+    const threeDotsMenuItems = [];
+    if (!isThereAnyAccountingConnection && !isMultiLevelTags) {
+        threeDotsMenuItems.push({
+            icon: Trashcan,
+            text: translate('workspace.tags.deleteTag'),
+            onSelected: () => setIsDeleteTagModalOpen(true),
+        });
+    }
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -77,16 +97,10 @@ function TagSettingsPage({route, policyTags}: TagSettingsPageProps) {
             >
                 <HeaderWithBackButton
                     title={PolicyUtils.getCleanedTagName(route.params.tagName)}
-                    shouldShowThreeDotsButton
+                    shouldShowThreeDotsButton={threeDotsMenuItems.length > 0}
                     shouldSetModalVisibility={false}
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
-                    threeDotsMenuItems={[
-                        {
-                            icon: Trashcan,
-                            text: translate('workspace.tags.deleteTag'),
-                            onSelected: () => setIsDeleteTagModalOpen(true),
-                        },
-                    ]}
+                    threeDotsMenuItems={threeDotsMenuItems}
                 />
                 <ConfirmModal
                     title={translate('workspace.tags.deleteTag')}

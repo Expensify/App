@@ -1,5 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useMemo} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -24,7 +25,7 @@ import type NewGroupChatDraft from '@src/types/onyx/NewGroupChatDraft';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type GroupChatNameEditPageOnyxProps = {
-    groupChatDraft: NewGroupChatDraft | null;
+    groupChatDraft: OnyxEntry<NewGroupChatDraft>;
 };
 
 type GroupChatNameEditPageProps = StackScreenProps<NewChatNavigatorParamList, typeof SCREENS.NEW_CHAT.NEW_CHAT_EDIT_NAME> & GroupChatNameEditPageOnyxProps;
@@ -107,6 +108,7 @@ function GroupChatNameEditPage({groupChatDraft, route}: GroupChatNameEditPagePro
                     inputID={INPUT_IDS.NEW_CHAT_NAME}
                     role={CONST.ROLE.PRESENTATION}
                     ref={inputCallbackRef}
+                    shouldShowClearButton
                 />
             </FormProvider>
         </ScreenWrapper>

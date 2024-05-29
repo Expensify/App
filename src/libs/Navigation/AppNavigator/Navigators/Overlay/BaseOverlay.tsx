@@ -23,7 +23,10 @@ function BaseOverlay({shouldUseNativeStyles, onPress, isModalOnTheLeft = false}:
     const {translate} = useLocalize();
 
     return (
-        <Animated.View style={shouldUseNativeStyles ? styles.nativeOverlayStyles(current) : styles.overlayStyles(current, isModalOnTheLeft)}>
+        <Animated.View
+            id="BaseOverlay"
+            style={shouldUseNativeStyles ? styles.nativeOverlayStyles(current) : styles.overlayStyles(current, isModalOnTheLeft)}
+        >
             <View style={[styles.flex1, styles.flexColumn]}>
                 {/* In the latest Electron version buttons can't be both clickable and draggable.
              That's why we added this workaround. Because of two Pressable components on the desktop app
@@ -34,7 +37,7 @@ function BaseOverlay({shouldUseNativeStyles, onPress, isModalOnTheLeft = false}:
                     onPress={onPress}
                     accessibilityLabel={translate('common.close')}
                     role={CONST.ROLE.BUTTON}
-                    nativeID={CONST.OVERLAY.TOP_BUTTON_NATIVE_ID}
+                    id={CONST.OVERLAY.TOP_BUTTON_NATIVE_ID}
                     tabIndex={-1}
                 />
                 <PressableWithoutFeedback
@@ -43,7 +46,7 @@ function BaseOverlay({shouldUseNativeStyles, onPress, isModalOnTheLeft = false}:
                     accessibilityLabel={translate('common.close')}
                     role={CONST.ROLE.BUTTON}
                     noDragArea
-                    nativeID={CONST.OVERLAY.BOTTOM_BUTTON_NATIVE_ID}
+                    id={CONST.OVERLAY.BOTTOM_BUTTON_NATIVE_ID}
                     tabIndex={-1}
                 />
             </View>
