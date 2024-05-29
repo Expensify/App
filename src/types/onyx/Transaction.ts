@@ -272,6 +272,7 @@ export type {
     Comment,
     Receipt,
     Waypoint,
+    Routes,
     ReceiptError,
     ReceiptErrors,
     TransactionPendingFieldsKey,

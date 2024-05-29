@@ -40,6 +40,7 @@ import Close from '@assets/images/close.svg';
 import ClosedSign from '@assets/images/closed-sign.svg';
 import Coins from '@assets/images/coins.svg';
 import Collapse from '@assets/images/collapse.svg';
+import CommentBubbles from '@assets/images/comment-bubbles.svg';
 import Concierge from '@assets/images/concierge.svg';
 import Connect from '@assets/images/connect.svg';
 import ConnectionComplete from '@assets/images/connection-complete.svg';
@@ -203,6 +204,7 @@ export {
     Close,
     ClosedSign,
     Collapse,
+    CommentBubbles,
     Concierge,
     ConciergeAvatar,
     Connect,

@@ -3319,6 +3319,12 @@ const styles = (theme: ThemeColors) =>
             marginTop: 6,
         },
 
+        workspaceListRBR: {
+            flexDirection: 'column',
+            justifyContent: 'flex-start',
+            marginTop: 10,
+        },
+
         peopleRow: {
             width: '100%',
             flexDirection: 'row',

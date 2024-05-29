@@ -251,6 +251,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Callback to fire when a row is pressed */
     onSelectRow: (item: TItem) => void;
 
+    /** Whether to debounce `onRowSelect` */
+    shouldDebounceRowSelect?: boolean;
+
     /** Optional callback function triggered upon pressing a checkbox. If undefined and the list displays checkboxes, checkbox interactions are managed by onSelectRow, allowing for pressing anywhere on the list. */
     onCheckboxPress?: (item: TItem) => void;
 
