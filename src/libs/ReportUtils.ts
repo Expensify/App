@@ -3485,7 +3485,7 @@ function buildOptimisticAddCommentReportAction(
         htmlForNewComment = commentText;
         textForNewComment = parser.htmlToText(htmlForNewComment);
     } else {
-        htmlForNewComment = `${commentText}\n<uploading-attachment>${CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML}</uploading-attachment>`;
+        htmlForNewComment = `${commentText}<uploading-attachment>${CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML}</uploading-attachment>`;
         textForNewComment = `${parser.htmlToText(commentText)}\n${CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML}`;
     }
 
