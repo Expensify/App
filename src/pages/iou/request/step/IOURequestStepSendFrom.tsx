@@ -86,6 +86,7 @@ function IOURequestStepSendFrom({route, transaction, allPolicies}: IOURequestSte
             <SelectionList
                 sections={[{data: workspaceOptions, title: translate('common.workspaces')}]}
                 onSelectRow={selectWorkspace}
+                shouldDebounceRowSelect
                 ListItem={UserListItem}
                 initiallyFocusedOptionKey={selectedWorkspace?.policyID}
             />
