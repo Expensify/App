@@ -1134,7 +1134,6 @@ const staticStyleUtils = {
     getAvatarSize,
     getAvatarWidthStyle,
     getBackgroundAndBorderStyle,
-    getBorderRadiusStyle,
     getBackgroundColorStyle,
     getBackgroundColorWithOpacityStyle,
     getPaddingLeft,
