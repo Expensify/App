@@ -86,6 +86,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const isDraft = ReportUtils.isOpenExpenseReport(moneyRequestReport);
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
 
+    const hasScanningReceipt = ReportUtils.getTransactionsWithReceipts(moneyRequestReport?.reportID).some((transaction) => TransactionUtils.isReceiptBeingScanned(transaction));
     const transactionIDs = TransactionUtils.getAllReportTransactions(moneyRequestReport?.reportID).map((transaction) => transaction.transactionID);
     const allHavePendingRTERViolation = TransactionUtils.allHavePendingRTERViolation(transactionIDs);
 
@@ -109,13 +110,14 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const shouldDisableSubmitButton = shouldShowSubmitButton && !ReportUtils.isAllowedToSubmitDraftExpenseReport(moneyRequestReport);
     const shouldShowMarkAsCashButton = isDraft && allHavePendingRTERViolation;
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
-    const shouldShowNextStep = !ReportUtils.isClosedExpenseReportWithNoExpenses(moneyRequestReport) && isFromPaidPolicy && !!nextStep?.message?.length && !allHavePendingRTERViolation;
+    const shouldShowNextStep =
+        !ReportUtils.isClosedExpenseReportWithNoExpenses(moneyRequestReport) && isFromPaidPolicy && !!nextStep?.message?.length && !allHavePendingRTERViolation && !hasScanningReceipt;
     const shouldShowAnyButton = shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextStep || allHavePendingRTERViolation;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
     const formattedAmount = CurrencyUtils.convertToDisplayString(reimbursableSpend, moneyRequestReport.currency);
     const [nonHeldAmount, fullAmount] = ReportUtils.getNonHeldAndFullAmount(moneyRequestReport, policy);
     const displayedAmount = ReportUtils.hasHeldExpenses(moneyRequestReport.reportID) && canAllowSettlement ? nonHeldAmount : formattedAmount;
-    const isMoreContentShown = shouldShowNextStep || (shouldShowAnyButton && shouldUseNarrowLayout);
+    const isMoreContentShown = shouldShowNextStep || hasScanningReceipt || (shouldShowAnyButton && shouldUseNarrowLayout);
 
     const confirmPayment = (type?: PaymentMethodType | undefined) => {
         if (!type) {
@@ -205,7 +207,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 shouldShowBackButton={shouldUseNarrowLayout}
                 onBackButtonPress={onBackButtonPress}
                 // Shows border if no buttons or next steps are showing below the header
-                shouldShowBorderBottom={!(shouldShowAnyButton && shouldUseNarrowLayout) && !(shouldShowNextStep && !shouldUseNarrowLayout) && !allHavePendingRTERViolation}
+                shouldShowBorderBottom={!isMoreContentShown && !allHavePendingRTERViolation}
                 shouldShowThreeDotsButton
                 threeDotsMenuItems={threeDotsMenuItems}
                 threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
@@ -317,6 +319,20 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     <View style={[styles.ph5, styles.pb3]}>
                         <MoneyReportHeaderStatusBar nextStep={nextStep} />
                     </View>
+                )}
+                {hasScanningReceipt && (
+                    <MoneyRequestHeaderStatusBar
+                        title={
+                            <Icon
+                                src={Expensicons.ReceiptScan}
+                                height={variables.iconSizeSmall}
+                                width={variables.iconSizeSmall}
+                                fill={theme.icon}
+                            />
+                        }
+                        description={translate('iou.receiptScanInProgressDescription')}
+                        shouldShowBorderBottom={false}
+                    />
                 )}
             </View>
             {isHoldMenuVisible && requestType !== undefined && (

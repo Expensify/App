@@ -9,11 +9,13 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import setUserLocation from '@libs/actions/UserLocation';
+import * as UserLocation from '@libs/actions/UserLocation';
 import compose from '@libs/compose';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
+import type {GeolocationErrorCallback} from '@libs/getCurrentPosition/getCurrentPosition.types';
+import {GeolocationErrorCode} from '@libs/getCurrentPosition/getCurrentPosition.types';
 import CONST from '@src/CONST';
 import useLocalize from '@src/hooks/useLocalize';
 import useNetwork from '@src/hooks/useNetwork';
@@ -44,13 +46,16 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
         // if there are one or more waypoints present.
         const shouldPanMapToCurrentPosition = useCallback(() => !userInteractedWithMap && (!waypoints || waypoints.length === 0), [userInteractedWithMap, waypoints]);
 
-        const setCurrentPositionToInitialState = useCallback(() => {
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            if (cachedUserLocation || !initialState) {
-                return;
-            }
-            setCurrentPosition({longitude: initialState.location[0], latitude: initialState.location[1]});
-        }, [initialState, cachedUserLocation]);
+        const setCurrentPositionToInitialState: GeolocationErrorCallback = useCallback(
+            (error) => {
+                if (error?.code !== GeolocationErrorCode.PERMISSION_DENIED || !initialState) {
+                    return;
+                }
+                UserLocation.clearUserLocation();
+                setCurrentPosition({longitude: initialState.location[0], latitude: initialState.location[1]});
+            },
+            [initialState],
+        );
 
         useFocusEffect(
             useCallback(() => {
@@ -72,7 +77,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                 getCurrentPosition((params) => {
                     const currentCoords = {longitude: params.coords.longitude, latitude: params.coords.latitude};
                     setCurrentPosition(currentCoords);
-                    setUserLocation(currentCoords);
+                    UserLocation.setUserLocation(currentCoords);
                 }, setCurrentPositionToInitialState);
             }, [isOffline, shouldPanMapToCurrentPosition, setCurrentPositionToInitialState]),
         );
