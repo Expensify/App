@@ -1,20 +1,21 @@
 import {PDFDocument} from 'pdf-lib';
 import RNFetchBlob from 'react-native-blob-util';
-import {FileObject} from '@components/AttachmentModal';
+import type {FileObject} from '@components/AttachmentModal';
 
-const isPdfFilePasswordProtected = async (file: FileObject) => {
-    try {
+const isPdfFilePasswordProtected = (file: FileObject) =>
+    new Promise((resolve) => {
         if (!file.uri) {
-            return false;
+            resolve(false);
+            return;
         }
+
         const filePath = file.uri.replace('file://', '');
-        const pdfBytes = await RNFetchBlob.fs.readFile(filePath, 'base64');
-        const pdfDoc = await PDFDocument.load(pdfBytes, {ignoreEncryption: true});
-        const isEncrypted = pdfDoc.isEncrypted;
-        return isEncrypted;
-    } catch (error) {
-        return false;
-    }
-};
+
+        RNFetchBlob.fs
+            .readFile(filePath, 'base64')
+            .then((pdfBytes: string | Uint8Array | ArrayBuffer) => PDFDocument.load(pdfBytes, {ignoreEncryption: true}))
+            .then((pdfDoc) => resolve(pdfDoc.isEncrypted))
+            .catch(() => resolve(false));
+    });
 
 export default isPdfFilePasswordProtected;

@@ -44,7 +44,6 @@ import type {SplitShares} from '@src/types/onyx/Transaction';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {DropdownOption} from './ButtonWithDropdownMenu/types';
 import ConfirmedRoute from './ConfirmedRoute';
-import ConfirmModal from './ConfirmModal';
 import FormHelpMessage from './FormHelpMessage';
 import MenuItem from './MenuItem';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
@@ -323,13 +322,6 @@ function MoneyRequestConfirmationList({
 
     const [didConfirm, setDidConfirm] = useState(false);
     const [didConfirmSplit, setDidConfirmSplit] = useState(false);
-
-    const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
-
-    const navigateBack = useCallback(
-        () => Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID)),
-        [iouType, reportID, transactionID],
-    );
 
     const shouldDisplayFieldError: boolean = useMemo(() => {
         if (!isEditingSplitBill) {
@@ -1095,7 +1087,6 @@ function MoneyRequestConfirmationList({
                         // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                         previewSourceURL={resolvedReceiptImage as string}
                         // We don't support scanning password protected PDF receipt
-                        enabled={!isAttachmentInvalid}
                     />
                 ) : (
                     <ReceiptImage
@@ -1113,18 +1104,7 @@ function MoneyRequestConfirmationList({
                 )}
             </View>
         ),
-        [
-            isLocalFile,
-            receiptFilename,
-            resolvedThumbnail,
-            styles.moneyRequestImage,
-            isAttachmentInvalid,
-            isThumbnail,
-            resolvedReceiptImage,
-            receiptThumbnail,
-            fileExtension,
-            isDistanceRequest,
-        ],
+        [isLocalFile, receiptFilename, resolvedThumbnail, styles.moneyRequestImage, isThumbnail, resolvedReceiptImage, receiptThumbnail, fileExtension, isDistanceRequest],
     );
 
     const listFooterContent = useMemo(
@@ -1180,26 +1160,15 @@ function MoneyRequestConfirmationList({
                     />
                 )}
                 <View style={[styles.mb5]}>{shouldShowAllFields && supplementaryFields}</View>
-                <ConfirmModal
-                    title={translate('attachmentPicker.wrongFileType')}
-                    onConfirm={navigateBack}
-                    onCancel={navigateBack}
-                    isVisible={isAttachmentInvalid}
-                    prompt={translate('attachmentPicker.protectedPDFNotSupported')}
-                    confirmText={translate('common.close')}
-                    shouldShowCancelButton={false}
-                />
             </>
         ),
         [
             canUpdateSenderWorkspace,
             didConfirm,
             iouType,
-            isAttachmentInvalid,
             isDistanceRequest,
             isReadOnly,
             isTypeInvoice,
-            navigateBack,
             policy,
             primaryFields,
             receiptImage,

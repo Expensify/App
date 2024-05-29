@@ -156,8 +156,8 @@ function IOURequestStepScan({
         }, []),
     );
 
-    const validateReceipt = (file: FileObject): Promise<boolean> => {
-        return new Promise((resolve) => {
+    const validateReceipt = (file: FileObject): Promise<boolean> =>
+        new Promise((resolve) => {
             const {fileExtension} = FileUtils.splitExtensionFromFileName(file?.name ?? '');
             if (
                 !CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(
@@ -179,18 +179,18 @@ function IOURequestStepScan({
             }
 
             if (fileExtension === 'pdf') {
-                return isPdfFilePasswordProtected(file).then((isProtected: boolean) => {
+                isPdfFilePasswordProtected(file).then((isProtected: boolean) => {
                     if (isProtected) {
                         Alert.alert(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.protectedPDFNotSupported'));
                         resolve(false);
+                    } else {
+                        resolve(true);
                     }
-                    resolve(true);
                 });
+            } else {
+                resolve(true);
             }
-
-            resolve(true);
         });
-    };
 
     const navigateBack = () => {
         Navigation.goBack();
