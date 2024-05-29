@@ -43,7 +43,7 @@ function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyConnectionsProps
     const listHeaderComponent = useMemo(
         () => (
             <View style={[styles.pb2, styles.ph5]}>
-                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.qbo.advancedConfig.invoiceAccountSelectDescription')}</Text>
+                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.qbo.advancedConfig.invoiceAccountSelectorDescription')}</Text>
             </View>
         ),
         [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal],
@@ -51,7 +51,7 @@ function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyConnectionsProps
 
     const initiallyFocusedOptionKey = useMemo(() => qboOnlineSelectorOptions?.find((mode) => mode.isSelected)?.keyForList, [qboOnlineSelectorOptions]);
 
-    const updateMode = useCallback(
+    const updateAccount = useCallback(
         ({value}: SelectorType) => {
             Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.COLLECTION_ACCOUNT_ID, value);
             Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED.getRoute(policyID));
@@ -75,7 +75,8 @@ function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyConnectionsProps
                     sections={[{data: qboOnlineSelectorOptions}]}
                     ListItem={RadioListItem}
                     headerContent={listHeaderComponent}
-                    onSelectRow={updateMode}
+                    onSelectRow={updateAccount}
+                    shouldDebounceRowSelect
                     initiallyFocusedOptionKey={initiallyFocusedOptionKey}
                 />
             </ScreenWrapper>

@@ -27,7 +27,6 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -87,6 +86,8 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
                 roleBadge = <Badge text={translate('common.admin')} />;
             }
 
+            const pendingAction = pendingChatMember?.pendingAction ?? report.participants?.[accountID]?.pendingAction;
+
             result.push({
                 keyForList: `${accountID}`,
                 accountID,
@@ -96,10 +97,10 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: formatPhoneNumber(details?.login ?? ''),
                 rightElement: roleBadge,
-                pendingAction: pendingChatMember?.pendingAction,
+                pendingAction,
                 icons: [
                     {
-                        source: UserUtils.getAvatar(details?.avatar, accountID),
+                        source: details?.avatar ?? Expensicons.FallbackAvatar,
                         name: formatPhoneNumber(details?.login ?? ''),
                         type: CONST.ICON_TYPE_AVATAR,
                         id: accountID,
@@ -234,7 +235,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
             options.push({
                 text: translate('workspace.people.makeMember'),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
-                icon: Expensicons.MakeAdmin,
+                icon: Expensicons.User,
                 onSelected: () => changeUserRole(CONST.REPORT.ROLE.MEMBER),
             });
         }
@@ -349,6 +350,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
                         ListItem={TableListItem}
                         headerContent={headerContent}
                         onSelectRow={openMemberDetails}
+                        shouldDebounceRowSelect={!(isGroupChat && isCurrentUserAdmin)}
                         onCheckboxPress={(item) => toggleUser(item.accountID)}
                         onSelectAll={() => toggleAllUsers(participants)}
                         showScrollIndicator

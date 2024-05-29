@@ -22,15 +22,14 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import variables from '@styles/variables';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import * as Report from '@userActions/Report';
+import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/DisplayNameForm';
 import type {BaseOnboardingPersonalDetailsOnyxProps, BaseOnboardingPersonalDetailsProps} from './types';
 
-const OPEN_WORK_PAGE_PURPOSES = [CONST.ONBOARDING_CHOICES.MANAGE_TEAM];
-
-function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNativeStyles, onboardingPurposeSelected}: BaseOnboardingPersonalDetailsProps) {
+function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNativeStyles, onboardingPurposeSelected, onboardingAdminsChatReportID}: BaseOnboardingPersonalDetailsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -51,17 +50,18 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                 return;
             }
 
-            if (OPEN_WORK_PAGE_PURPOSES.includes(onboardingPurposeSelected)) {
-                Navigation.navigate(ROUTES.ONBOARDING_WORK);
+            Report.completeOnboarding(
+                onboardingPurposeSelected,
+                CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
+                {
+                    firstName,
+                    lastName,
+                },
+                onboardingAdminsChatReportID ?? undefined,
+            );
 
-                return;
-            }
-
-            Report.completeOnboarding(onboardingPurposeSelected, CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected], {
-                login: currentUserPersonalDetails.login ?? '',
-                firstName,
-                lastName,
-            });
+            Welcome.setOnboardingAdminsChatReportID();
+            Welcome.setOnboardingPolicyID();
 
             Navigation.dismissModal();
 
@@ -79,7 +79,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                 Navigation.navigate(ROUTES.WELCOME_VIDEO_ROOT);
             }, variables.welcomeVideoDelay);
         },
-        [currentUserPersonalDetails.login, isSmallScreenWidth, onboardingPurposeSelected],
+        [isSmallScreenWidth, onboardingPurposeSelected, onboardingAdminsChatReportID],
     );
 
     const validate = (values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {
@@ -121,7 +121,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
         <View style={[styles.h100, styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}>
             <HeaderWithBackButton
                 shouldShowBackButton
-                progressBarPercentage={OPEN_WORK_PAGE_PURPOSES.includes(onboardingPurposeSelected ?? '') ? 50 : 75}
+                progressBarPercentage={75}
                 onBackButtonPress={Navigation.goBack}
             />
             <KeyboardAvoidingView
@@ -185,6 +185,9 @@ export default withCurrentUserPersonalDetails(
     withOnyx<BaseOnboardingPersonalDetailsProps, BaseOnboardingPersonalDetailsOnyxProps>({
         onboardingPurposeSelected: {
             key: ONYXKEYS.ONBOARDING_PURPOSE_SELECTED,
+        },
+        onboardingAdminsChatReportID: {
+            key: ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID,
         },
     })(BaseOnboardingPersonalDetails),
 );

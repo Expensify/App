@@ -182,7 +182,8 @@ function IOURequestStepAmount({
             const backendAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
 
             if (shouldSkipConfirmation) {
-                if (iouType === CONST.IOU.TYPE.SPLIT) {
+                // Only skip confirmation when the split is not configurable, for now Smartscanned splits cannot be configured
+                if (iouType === CONST.IOU.TYPE.SPLIT && transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN) {
                     IOU.splitBill({
                         participants,
                         currentUserLogin: currentUserPersonalDetails.login ?? '',
@@ -190,7 +191,7 @@ function IOURequestStepAmount({
                         amount: backendAmount,
                         comment: '',
                         currency,
-                        merchant: '',
+                        merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                         tag: '',
                         category: '',
                         created: transaction?.created ?? '',
@@ -200,6 +201,7 @@ function IOURequestStepAmount({
                     });
                     return;
                 }
+
                 if (iouType === CONST.IOU.TYPE.PAY || iouType === CONST.IOU.TYPE.SEND) {
                     if (paymentMethod && paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
                         IOU.sendMoneyWithWallet(report, backendAmount, currency, '', currentUserPersonalDetails.accountID, participants[0]);
@@ -240,6 +242,10 @@ function IOURequestStepAmount({
                 }
             }
             IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
+            if (isSplitBill && !report.isOwnPolicyExpenseChat && report.participants) {
+                const participantAccountIDs = Object.keys(report.participants).map((accountID) => Number(accountID));
+                IOU.setSplitShares(transaction, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD, participantAccountIDs);
+            }
             navigateToConfirmationPage();
             return;
         }
@@ -250,15 +256,21 @@ function IOURequestStepAmount({
     };
 
     const saveAmountAndCurrency = ({amount, paymentMethod}: AmountParams) => {
+        const newAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
+
+        // Edits to the amount from the splits page should reset the split shares.
+        if (transaction?.splitShares) {
+            IOU.resetSplitShares(transaction, newAmount, currency);
+        }
+
         if (!isEditing) {
             navigateToNextPage({amount, paymentMethod});
             return;
         }
 
-        const newAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
-
         // If the value hasn't changed, don't request to save changes on the server and just close the modal
-        if (newAmount === TransactionUtils.getAmount(transaction) && currency === TransactionUtils.getCurrency(transaction)) {
+        const transactionCurrency = TransactionUtils.getCurrency(transaction);
+        if (newAmount === TransactionUtils.getAmount(transaction) && currency === transactionCurrency) {
             Navigation.dismissModal();
             return;
         }
@@ -269,7 +281,14 @@ function IOURequestStepAmount({
             return;
         }
 
-        IOU.updateMoneyRequestAmountAndCurrency({transactionID, transactionThreadReportID: reportID, currency, amount: newAmount});
+        // If currency has changed, then we get the default tax rate based on currency, otherwise we use the current tax rate selected in transaction, if we have it.
+        const transactionTaxCode = transaction?.taxCode ?? '';
+        const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction, currency) ?? '';
+        const taxCode = (currency !== transactionCurrency ? defaultTaxCode : transactionTaxCode) ?? defaultTaxCode;
+        const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, taxCode) ?? '';
+        const taxAmount = CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(taxPercentage, newAmount));
+
+        IOU.updateMoneyRequestAmountAndCurrency({transactionID, transactionThreadReportID: reportID, currency, amount: newAmount, taxAmount, policy, taxCode});
         Navigation.dismissModal();
     };
 

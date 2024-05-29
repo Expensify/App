@@ -14,10 +14,20 @@ function getUrlWithBackToParam<TUrl extends string>(url: TUrl, backTo?: string):
     return `${url}${backToParam}` as const;
 }
 
-const ROUTES = {
+const PUBLIC_SCREENS_ROUTES = {
     // If the user opens this route, we'll redirect them to the path saved in the last visited path or to the home page if the last visited path is empty.
     ROOT: '',
+    TRANSITION_BETWEEN_APPS: 'transition',
+    CONNECTION_COMPLETE: 'connection-complete',
+    VALIDATE_LOGIN: 'v/:accountID/:validateCode',
+    UNLINK_LOGIN: 'u/:accountID/:validateCode',
+    APPLE_SIGN_IN: 'sign-in-with-apple',
+    GOOGLE_SIGN_IN: 'sign-in-with-google',
+    SAML_SIGN_IN: 'sign-in-with-saml',
+} as const;
 
+const ROUTES = {
+    ...PUBLIC_SCREENS_ROUTES,
     // This route renders the list of reports.
     HOME: 'home',
 
@@ -53,18 +63,11 @@ const ROUTES = {
         getRoute: (accountID: string | number) => `a/${accountID}/avatar` as const,
     },
 
-    TRANSITION_BETWEEN_APPS: 'transition',
-    VALIDATE_LOGIN: 'v/:accountID/:validateCode',
-    CONNECTION_COMPLETE: 'connection-complete',
     GET_ASSISTANCE: {
         route: 'get-assistance/:taskID',
         getRoute: (taskID: string, backTo: string) => getUrlWithBackToParam(`get-assistance/${taskID}`, backTo),
     },
-    UNLINK_LOGIN: 'u/:accountID/:validateCode',
-    APPLE_SIGN_IN: 'sign-in-with-apple',
-    GOOGLE_SIGN_IN: 'sign-in-with-google',
     DESKTOP_SIGN_IN_REDIRECT: 'desktop-signin-redirect',
-    SAML_SIGN_IN: 'sign-in-with-saml',
 
     // This is a special validation URL that will take the user to /workspace/new after validation. This is used
     // when linking users from e.com in order to share a session in this app.
@@ -88,6 +91,7 @@ const ROUTES = {
     SETTINGS_TIMEZONE_SELECT: 'settings/profile/timezone/select',
     SETTINGS_PRONOUNS: 'settings/profile/pronouns',
     SETTINGS_PREFERENCES: 'settings/preferences',
+    SETTINGS_SUBSCRIPTION: 'settings/subscription',
     SETTINGS_PRIORITY_MODE: 'settings/preferences/priority-mode',
     SETTINGS_LANGUAGE: 'settings/preferences/language',
     SETTINGS_THEME: 'settings/preferences/theme',
@@ -125,7 +129,10 @@ const ROUTES = {
     SETTINGS_ADD_BANK_ACCOUNT: 'settings/wallet/add-bank-account',
     SETTINGS_ADD_BANK_ACCOUNT_REFACTOR: 'settings/wallet/add-bank-account-refactor',
     SETTINGS_ENABLE_PAYMENTS: 'settings/wallet/enable-payments',
+    // TODO: Added temporarily for testing purposes, remove after refactor - https://github.com/Expensify/App/issues/36648
     SETTINGS_ENABLE_PAYMENTS_REFACTOR: 'settings/wallet/enable-payments-refactor',
+    // TODO: Added temporarily for testing purposes, remove after refactor - https://github.com/Expensify/App/issues/36648
+    SETTINGS_ENABLE_PAYMENTS_TEMPORARY_TERMS: 'settings/wallet/enable-payments-temporary-terms',
     SETTINGS_WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS: {
         route: 'settings/wallet/card/:domain/digital-details/update-address',
         getRoute: (domain: string) => `settings/wallet/card/${domain}/digital-details/update-address` as const,
@@ -209,7 +216,11 @@ const ROUTES = {
     REPORT: 'r',
     REPORT_WITH_ID: {
         route: 'r/:reportID?/:reportActionID?',
-        getRoute: (reportID: string, reportActionID?: string) => (reportActionID ? (`r/${reportID}/${reportActionID}` as const) : (`r/${reportID}` as const)),
+        getRoute: (reportID: string, reportActionID?: string, referrer?: string) => {
+            const baseRoute = reportActionID ? (`r/${reportID}/${reportActionID}` as const) : (`r/${reportID}` as const);
+            const referrerParam = referrer ? `?referrer=${encodeURIComponent(referrer)}` : '';
+            return `${baseRoute}${referrerParam}` as const;
+        },
     },
     REPORT_AVATAR: {
         route: 'r/:reportID/avatar',
@@ -352,9 +363,9 @@ const ROUTES = {
             getUrlWithBackToParam(`${action as string}/${iouType as string}/currency/${transactionID}/${reportID}/${pageIndex}?currency=${currency}`, backTo),
     },
     MONEY_REQUEST_STEP_DATE: {
-        route: ':action/:iouType/date/:transactionID/:reportID',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`${action as string}/${iouType as string}/date/${transactionID}/${reportID}`, backTo),
+        route: ':action/:iouType/date/:transactionID/:reportID/:reportActionID?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '', reportActionID?: string) =>
+            getUrlWithBackToParam(`${action as string}/${iouType as string}/date/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo),
     },
     MONEY_REQUEST_STEP_DESCRIPTION: {
         route: ':action/:iouType/description/:transactionID/:reportID/:reportActionID?',
@@ -507,10 +518,6 @@ const ROUTES = {
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/invoice-account-select',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/invoice-account-select` as const,
-    },
-    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_PAYABLE_SELECT: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/company-card-expense-account/account-payable-select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/company-card-expense-account/account-payable-select` as const,
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/preferred-exporter',
@@ -665,8 +672,8 @@ const ROUTES = {
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/tags/settings` as const,
     },
     WORKSPACE_EDIT_TAGS: {
-        route: 'settings/workspaces/:policyID/tags/edit',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/tags/edit` as const,
+        route: 'settings/workspaces/:policyID/tags/:orderWeight/edit',
+        getRoute: (policyID: string, orderWeight: number) => `settings/workspaces/${policyID}/tags/${orderWeight}/edit` as const,
     },
     WORKSPACE_TAG_EDIT: {
         route: 'settings/workspace/:policyID/tag/:tagName/edit',
@@ -675,6 +682,10 @@ const ROUTES = {
     WORKSPACE_TAG_SETTINGS: {
         route: 'settings/workspaces/:policyID/tag/:tagName',
         getRoute: (policyID: string, tagName: string) => `settings/workspaces/${policyID}/tag/${encodeURIComponent(tagName)}` as const,
+    },
+    WORKSPACE_TAG_LIST_VIEW: {
+        route: 'settings/workspaces/:policyID/tag-list/:orderWeight',
+        getRoute: (policyID: string, orderWeight: number) => `settings/workspaces/${policyID}/tag-list/${orderWeight}` as const,
     },
     WORKSPACE_TAXES: {
         route: 'settings/workspaces/:policyID/taxes',
@@ -776,9 +787,25 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/xero/import',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/import` as const,
     },
+    POLICY_ACCOUNTING_XERO_CHART_OF_ACCOUNTS: {
+        route: 'settings/workspaces/:policyID/accounting/xero/import/accounts',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/import/accounts` as const,
+    },
     POLICY_ACCOUNTING_XERO_ORGANIZATION: {
         route: 'settings/workspaces/:policyID/accounting/xero/organization/:currentOrganizationID',
         getRoute: (policyID: string, currentOrganizationID: string) => `settings/workspaces/${policyID}/accounting/xero/organization/${currentOrganizationID}` as const,
+    },
+    POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES: {
+        route: 'settings/workspaces/:policyID/accounting/xero/import/tracking-categories',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/import/tracking-categories` as const,
+    },
+    POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES_MAP_COST_CENTERS: {
+        route: 'settings/workspaces/:policyID/accounting/xero/import/tracking-categories/cost-centers',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/import/tracking-categories/cost-centers` as const,
+    },
+    POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES_MAP_REGION: {
+        route: 'settings/workspaces/:policyID/accounting/xero/import/tracking-categories/region',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/import/tracking-categories/region` as const,
     },
     POLICY_ACCOUNTING_XERO_CUSTOMER: {
         route: '/settings/workspaces/:policyID/accounting/xero/import/customers',
@@ -788,9 +815,33 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/xero/import/taxes',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/import/taxes` as const,
     },
+    POLICY_ACCOUNTING_XERO_EXPORT: {
+        route: 'settings/workspaces/:policyID/accounting/xero/export',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/export` as const,
+    },
+    POLICY_ACCOUNTING_XERO_PREFERRED_EXPORTER_SELECT: {
+        route: '/settings/workspaces/:policyID/connections/xero/export/preferred-exporter/select',
+        getRoute: (policyID: string) => `/settings/workspaces/${policyID}/connections/xero/export/preferred-exporter/select` as const,
+    },
+    POLICY_ACCOUNTING_XERO_EXPORT_PURCHASE_BILL_DATE_SELECT: {
+        route: 'settings/workspaces/:policyID/accounting/xero/export/purchase-bill-date-select',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/export/purchase-bill-date-select` as const,
+    },
+    POLICY_ACCOUNTING_XERO_EXPORT_BANK_ACCOUNT_SELECT: {
+        route: 'settings/workspaces/:policyID/accounting/xero/export/bank-account-select',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/export/bank-account-select` as const,
+    },
     POLICY_ACCOUNTING_XERO_ADVANCED: {
         route: 'settings/workspaces/:policyID/accounting/xero/advanced',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/advanced` as const,
+    },
+    POLICY_ACCOUNTING_XERO_INVOICE_SELECTOR: {
+        route: 'settings/workspaces/:policyID/accounting/xero/advanced/invoice-account-selector',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/advanced/invoice-account-selector` as const,
+    },
+    POLICY_ACCOUNTING_XERO_BILL_PAYMENT_ACCOUNT_SELECTOR: {
+        route: 'settings/workspaces/:policyID/accounting/xero/advanced/bill-payment-account-selector',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/advanced/bill-payment-account-selector` as const,
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_IMPORT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import',
@@ -828,7 +879,7 @@ const HYBRID_APP_ROUTES = {
     MONEY_REQUEST_SUBMIT_CREATE: '/submit/new/scan',
 } as const;
 
-export {HYBRID_APP_ROUTES, getUrlWithBackToParam};
+export {HYBRID_APP_ROUTES, getUrlWithBackToParam, PUBLIC_SCREENS_ROUTES};
 export default ROUTES;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

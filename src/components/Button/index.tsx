@@ -204,7 +204,7 @@ function Button(
         isSplitButton = false,
         ...rest
     }: ButtonProps,
-    ref: ForwardedRef<View | HTMLDivElement>,
+    ref: ForwardedRef<View>,
 ) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -300,10 +300,6 @@ function Button(
                     if (event?.type === 'click') {
                         const currentTarget = event?.currentTarget as HTMLElement;
                         currentTarget?.blur();
-                    }
-
-                    if (event?.type === 'keyup') {
-                        return;
                     }
 
                     if (shouldEnableHapticFeedback) {

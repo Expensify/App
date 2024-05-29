@@ -6,7 +6,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TaxPicker from '@components/TaxPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setWorkspaceCurrencyDefault} from '@libs/actions/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import type * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -14,6 +13,7 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
+import {setWorkspaceCurrencyDefault} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -30,10 +30,11 @@ function WorkspaceTaxesSettingsWorkspaceCurrency({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const selectedTaxRate = policy?.taxRates && TransactionUtils.getDefaultTaxName(policy?.taxRates);
+    const defaultExternalID = policy?.taxRates?.defaultExternalID ?? '';
+    const selectedTaxRate = policy?.taxRates && TransactionUtils.getWorkspaceTaxesSettingsName(policy, defaultExternalID);
 
     const submit = (taxes: OptionsListUtils.TaxRatesOption) => {
-        setWorkspaceCurrencyDefault(policyID, taxes.data.code ?? '');
+        setWorkspaceCurrencyDefault(policyID, taxes.code ?? '');
         Navigation.goBack(ROUTES.WORKSPACE_TAXES_SETTINGS.getRoute(policyID));
     };
 

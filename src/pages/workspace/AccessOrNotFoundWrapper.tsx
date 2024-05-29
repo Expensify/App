@@ -8,7 +8,7 @@ import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import * as Policy from '@userActions/Policy';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -46,6 +46,9 @@ type AccessOrNotFoundWrapperProps = AccessOrNotFoundWrapperOnyxProps & {
 
     /** Props for customizing fallback pages */
     fullPageNotFoundViewProps?: FullPageNotFoundViewProps;
+
+    /** Whether or not to block user from accessing the page */
+    shouldBeBlocked?: boolean;
 } & Pick<FullPageNotFoundViewProps, 'subtitleKey' | 'onLinkPress'>;
 
 type PageNotFoundFallbackProps = Pick<AccessOrNotFoundWrapperProps, 'policyID' | 'fullPageNotFoundViewProps'> & {shouldShowFullScreenFallback: boolean};
@@ -68,7 +71,7 @@ function PageNotFoundFallback({policyID, shouldShowFullScreenFallback, fullPageN
     );
 }
 
-function AccessOrNotFoundWrapper({accessVariants = [], fullPageNotFoundViewProps, ...props}: AccessOrNotFoundWrapperProps) {
+function AccessOrNotFoundWrapper({accessVariants = [], fullPageNotFoundViewProps, shouldBeBlocked, ...props}: AccessOrNotFoundWrapperProps) {
     const {policy, policyID, featureName, isLoadingReportData} = props;
 
     const isPolicyIDInRoute = !!policyID?.length;
@@ -92,7 +95,8 @@ function AccessOrNotFoundWrapper({accessVariants = [], fullPageNotFoundViewProps
         return acc && accessFunction(policy);
     }, true);
 
-    const shouldShowNotFoundPage = isEmptyObject(policy) || (Object.keys(policy).length === 1 && !isEmptyObject(policy.errors)) || !policy?.id || !isPageAccessible || !isFeatureEnabled;
+    const shouldShowNotFoundPage =
+        isEmptyObject(policy) || (Object.keys(policy).length === 1 && !isEmptyObject(policy.errors)) || !policy?.id || !isPageAccessible || !isFeatureEnabled || shouldBeBlocked;
 
     if (shouldShowFullScreenLoadingIndicator) {
         return <FullscreenLoadingIndicator />;

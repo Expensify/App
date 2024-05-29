@@ -5,6 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import AnonymousReportFooter from '@components/AnonymousReportFooter';
 import ArchivedReportFooter from '@components/ArchivedReportFooter';
+import BlockedReportFooter from '@components/BlockedReportFooter';
 import OfflineIndicator from '@components/OfflineIndicator';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import SwipeableView from '@components/SwipeableView';
@@ -12,6 +13,7 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as UserUtils from '@libs/UserUtils';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
 import * as Task from '@userActions/Task';
@@ -29,11 +31,16 @@ type ReportFooterOnyxProps = {
 
     /** Session info for the currently logged in user. */
     session: OnyxEntry<OnyxTypes.Session>;
+
+    /** Whether user is blocked from chat. */
+    blockedFromChat: OnyxEntry<string>;
 };
 
 type ReportFooterProps = ReportFooterOnyxProps & {
     /** Report object for the current report */
     report?: OnyxTypes.Report;
+
+    reportNameValuePairs?: OnyxEntry<OnyxTypes.ReportNameValuePairs>;
 
     /** The last report action */
     lastReportAction?: OnyxEntry<OnyxTypes.ReportAction>;
@@ -65,11 +72,13 @@ function ReportFooter({
     pendingAction,
     session,
     report = {reportID: '0'},
+    reportNameValuePairs,
     shouldShowComposeInput = false,
     isEmptyChat = true,
     isReportReadyForDisplay = true,
     listHeight = 0,
     isComposerFullSize = false,
+    blockedFromChat,
     onComposerBlur,
     onComposerFocus,
 }: ReportFooterProps) {
@@ -77,11 +86,11 @@ function ReportFooter({
     const {isOffline} = useNetwork();
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
     const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
-    const isArchivedRoom = ReportUtils.isArchivedRoom(report);
+    const isArchivedRoom = ReportUtils.isArchivedRoom(report, reportNameValuePairs);
     const isAnonymousUser = session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
 
     const isSmallSizeLayout = windowWidth - (isSmallScreenWidth ? 0 : variables.sideBarWidth) < variables.anonymousReportFooterBreakpoint;
-    const hideComposer = !ReportUtils.canUserPerformWriteAction(report);
+    const hideComposer = !ReportUtils.canUserPerformWriteAction(report, reportNameValuePairs) || blockedFromChat;
     const canWriteInReport = ReportUtils.canWriteInReport(report);
     const isSystemChat = ReportUtils.isSystemChat(report);
 
@@ -110,10 +119,17 @@ function ReportFooter({
             const mentionWithDomain = ReportUtils.addDomainToShortMention(mention ?? '') ?? mention;
 
             let assignee: OnyxTypes.PersonalDetails | EmptyObject = {};
+            let assigneeChatReport;
             if (mentionWithDomain) {
                 assignee = Object.values(allPersonalDetails).find((value) => value?.login === mentionWithDomain) ?? {};
+                if (!Object.keys(assignee).length) {
+                    const assigneeAccountID = UserUtils.generateAccountID(mentionWithDomain);
+                    const optimisticDataForNewAssignee = Task.setNewOptimisticAssignee(mentionWithDomain, assigneeAccountID);
+                    assignee = optimisticDataForNewAssignee.assignee;
+                    assigneeChatReport = optimisticDataForNewAssignee.assigneeReport;
+                }
             }
-            Task.createTaskAndNavigate(report.reportID, title, '', assignee?.login ?? '', assignee.accountID, undefined, report.policyID);
+            Task.createTaskAndNavigate(report.reportID, title, '', assignee?.login ?? '', assignee.accountID, assigneeChatReport, report.policyID);
             return true;
         },
         [allPersonalDetails, report.policyID, report.reportID],
@@ -142,6 +158,7 @@ function ReportFooter({
                         />
                     )}
                     {isArchivedRoom && <ArchivedReportFooter report={report} />}
+                    {!isArchivedRoom && blockedFromChat && <BlockedReportFooter />}
                     {!isAnonymousUser && !canWriteInReport && isSystemChat && <SystemChatReportFooterMessage />}
                     {!isSmallScreenWidth && <View style={styles.offlineIndicatorRow}>{hideComposer && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}</View>}
                 </View>
@@ -150,7 +167,6 @@ function ReportFooter({
                 <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
                     <SwipeableView onSwipeDown={Keyboard.dismiss}>
                         <ReportActionCompose
-                            // @ts-expect-error TODO: Remove this once ReportActionCompose (https://github.com/Expensify/App/issues/31984) is migrated to TypeScript.
                             onSubmit={onSubmitComment}
                             onComposerFocus={onComposerFocus}
                             onComposerBlur={onComposerBlur}
@@ -179,6 +195,9 @@ export default withOnyx<ReportFooterProps, ReportFooterOnyxProps>({
     },
     session: {
         key: ONYXKEYS.SESSION,
+    },
+    blockedFromChat: {
+        key: ONYXKEYS.NVP_BLOCKED_FROM_CHAT,
     },
 })(
     memo(

@@ -3478,7 +3478,10 @@ if (!semanticVersionLevel || !Object.keys(versionUpdater.SEMANTIC_VERSION_LEVELS
     console.log(`Invalid input for 'SEMVER_LEVEL': ${semanticVersionLevel}`, `Defaulting to: ${semanticVersionLevel}`);
 }
 const { version: previousVersion } = JSON.parse(fs_1.default.readFileSync('./package.json').toString());
-const newVersion = versionUpdater.incrementVersion(previousVersion, semanticVersionLevel);
+if (!previousVersion) {
+    core.setFailed('Error: Could not read package.json');
+}
+const newVersion = versionUpdater.incrementVersion(previousVersion ?? '', semanticVersionLevel);
 console.log(`Previous version: ${previousVersion}`, `New version: ${newVersion}`);
 updateNativeVersions(newVersion);
 console.log(`Setting npm version to ${newVersion}`);

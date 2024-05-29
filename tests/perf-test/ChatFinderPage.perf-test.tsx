@@ -1,5 +1,5 @@
 import type * as NativeNavigation from '@react-navigation/native';
-import type {StackScreenProps} from '@react-navigation/stack';
+import type {StackNavigationProp, StackScreenProps} from '@react-navigation/stack';
 import {fireEvent, screen} from '@testing-library/react-native';
 import React, {useMemo} from 'react';
 import type {ComponentType} from 'react';
@@ -42,7 +42,12 @@ jest.mock('@src/libs/API', () => ({
     read: jest.fn(),
 }));
 
-jest.mock('@src/libs/Navigation/Navigation');
+jest.mock('@src/libs/Navigation/Navigation', () => ({
+    dismissModalWithReport: jest.fn(),
+    getTopmostReportId: jest.fn(),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
+    isDisplayedInModal: jest.fn(() => false),
+}));
 
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual('@react-navigation/native');
@@ -55,7 +60,13 @@ jest.mock('@react-navigation/native', () => {
             navigate: jest.fn(),
             addListener: () => jest.fn(),
         }),
-        createNavigationContainerRef: jest.fn(),
+        createNavigationContainerRef: () => ({
+            addListener: () => jest.fn(),
+            removeListener: () => jest.fn(),
+            isReady: () => jest.fn(),
+            getCurrentRoute: () => jest.fn(),
+            getState: () => jest.fn(),
+        }),
     } as typeof NativeNavigation;
 });
 
@@ -112,7 +123,6 @@ beforeAll(() =>
 
 // Initialize the network key for OfflineWithFeedback
 beforeEach(() => {
-    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
     global.fetch = TestHelper.getGlobalFetchMock();
     wrapOnyxWithWaitForBatchedUpdates(Onyx);
     Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
@@ -123,10 +133,10 @@ afterEach(() => {
     Onyx.clear();
 });
 
-type ChatFinderPageProps = StackScreenProps<RootStackParamList, typeof SCREENS.CHAT_FINDER_ROOT> & {
-    betas: OnyxEntry<Beta[]>;
-    reports: OnyxCollection<Report>;
-    isSearchingForReports: OnyxEntry<boolean>;
+type ChatFinderPageProps = StackScreenProps<RootStackParamList, typeof SCREENS.LEFT_MODAL.CHAT_FINDER> & {
+    betas?: OnyxEntry<Beta[]>;
+    reports?: OnyxCollection<Report>;
+    isSearchingForReports?: OnyxEntry<boolean>;
 };
 
 function ChatFinderPageWrapper(args: ChatFinderPageProps) {
@@ -164,21 +174,26 @@ test('[ChatFinderPage] should render list with cached options', async () => {
         await screen.findByTestId('ChatFinderPage');
     };
 
-    const navigation = {addListener};
+    const navigation = {addListener} as unknown as StackNavigationProp<RootStackParamList, 'ChatFinder', undefined>;
 
-    return (
-        waitForBatchedUpdates()
-            .then(() =>
-                Onyx.multiSet({
-                    ...mockedReports,
-                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
-                    [ONYXKEYS.BETAS]: mockedBetas,
-                    [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
-                }),
-            )
-            // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-            .then(() => measurePerformance(<ChatFinderPageWithCachedOptions navigation={navigation} />, {scenario}))
-    );
+    return waitForBatchedUpdates()
+        .then(() =>
+            Onyx.multiSet({
+                ...mockedReports,
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+                [ONYXKEYS.BETAS]: mockedBetas,
+                [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
+            }),
+        )
+        .then(() =>
+            measurePerformance(
+                <ChatFinderPageWithCachedOptions
+                    route={{key: 'ChatFinder_Root', name: 'ChatFinder'}}
+                    navigation={navigation}
+                />,
+                {scenario},
+            ),
+        );
 });
 
 test('[ChatFinderPage] should interact when text input changes', async () => {
@@ -193,19 +208,24 @@ test('[ChatFinderPage] should interact when text input changes', async () => {
         fireEvent.changeText(input, 'Email Five');
     };
 
-    const navigation = {addListener};
+    const navigation = {addListener} as unknown as StackNavigationProp<RootStackParamList, 'ChatFinder', undefined>;
 
-    return (
-        waitForBatchedUpdates()
-            .then(() =>
-                Onyx.multiSet({
-                    ...mockedReports,
-                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
-                    [ONYXKEYS.BETAS]: mockedBetas,
-                    [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
-                }),
-            )
-            // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-            .then(() => measurePerformance(<ChatFinderPageWrapper navigation={navigation} />, {scenario}))
-    );
+    return waitForBatchedUpdates()
+        .then(() =>
+            Onyx.multiSet({
+                ...mockedReports,
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+                [ONYXKEYS.BETAS]: mockedBetas,
+                [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
+            }),
+        )
+        .then(() =>
+            measurePerformance(
+                <ChatFinderPageWrapper
+                    route={{key: 'ChatFinder_Root', name: 'ChatFinder'}}
+                    navigation={navigation}
+                />,
+                {scenario},
+            ),
+        );
 });

@@ -38,6 +38,9 @@ type Waypoint = {
 
     /** Address street line 2 */
     street2?: string;
+
+    /** A unique key for waypoint is required for correct draggable list rendering */
+    keyForList?: string;
 };
 
 type WaypointCollection = Record<string, RecentWaypoint | Waypoint>;
@@ -106,6 +109,13 @@ type TaxRate = {
     isDisabled?: boolean;
     data?: TaxRateData;
 };
+
+type SplitShare = {
+    amount: number;
+    isModified?: boolean;
+};
+
+type SplitShares = Record<number, SplitShare | null>;
 
 type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
@@ -225,6 +235,12 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Indicates transaction loading */
         isLoading?: boolean;
 
+        /** Holds individual shares of a split keyed by accountID, only used locally */
+        splitShares?: SplitShares;
+
+        /** Holds the accountIDs of accounts who paid the split, for now only supports a single payer */
+        splitPayerAccountIDs?: number[];
+
         /** The actionable report action ID associated with the transaction */
         actionableWhisperReportActionID?: string;
 
@@ -233,9 +249,6 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The linked report id for the tracked expense */
         linkedTrackedExpenseReportID?: string;
-
-        /** The payers of split bill transaction */
-        splitPayerAccountIDs?: number[];
     },
     keyof Comment
 >;
@@ -259,6 +272,7 @@ export type {
     Comment,
     Receipt,
     Waypoint,
+    Routes,
     ReceiptError,
     ReceiptErrors,
     TransactionPendingFieldsKey,
@@ -266,4 +280,6 @@ export type {
     TaxRate,
     ReceiptSource,
     TransactionCollectionDataSet,
+    SplitShare,
+    SplitShares,
 };

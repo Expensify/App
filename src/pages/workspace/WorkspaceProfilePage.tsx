@@ -13,7 +13,6 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
-import Text from '@components/Text';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
@@ -26,7 +25,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import * as UserUtils from '@libs/UserUtils';
-import * as Policy from '@userActions/Policy';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -81,6 +80,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
         );
     const readOnly = !PolicyUtils.isPolicyAdmin(policy);
     const imageStyle: StyleProp<ImageStyle> = isSmallScreenWidth ? [styles.mhv12, styles.mhn5, styles.mbn5] : [styles.mhv8, styles.mhn8, styles.mbn5];
+    const shouldShowAddress = !readOnly || formattedAddress;
 
     const DefaultAvatar = useCallback(
         () => (
@@ -92,7 +92,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                 fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
                 size={CONST.AVATAR_SIZE.XLARGE}
                 name={policyName}
-                accountID={policy?.id ?? ''}
+                avatarID={policy?.id}
                 type={CONST.ICON_TYPE_WORKSPACE}
             />
         ),
@@ -215,13 +215,11 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                                     onPress={onPressCurrency}
                                     shouldGreyOutWhenDisabled={false}
                                     shouldUseDefaultCursorWhenDisabled
+                                    hintText={hasVBA ? translate('workspace.editor.currencyInputDisabledText') : translate('workspace.editor.currencyInputHelpText')}
                                 />
-                                <Text style={[styles.textLabel, styles.colorMuted, styles.mt1, styles.mh5, styles.sectionMenuItemTopDescription]}>
-                                    {hasVBA ? translate('workspace.editor.currencyInputDisabledText') : translate('workspace.editor.currencyInputHelpText')}
-                                </Text>
                             </View>
                         </OfflineWithFeedback>
-                        {canUseSpotnanaTravel && (
+                        {canUseSpotnanaTravel && shouldShowAddress && (
                             <OfflineWithFeedback pendingAction={policy?.pendingFields?.generalSettings}>
                                 <View>
                                     <MenuItemWithTopDescription
