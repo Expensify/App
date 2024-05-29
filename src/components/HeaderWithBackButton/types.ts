@@ -20,6 +20,7 @@ type ThreeDotsMenuItem = {
     /** A callback triggered when the item is selected */
     onSelected: () => void;
 
+    /** Whether the item is hidden */
     isHidden?: boolean;
 };
 
