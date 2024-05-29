@@ -128,6 +128,7 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
                     editIcon={Expensicons.Camera}
                     editIconStyle={styles.smallEditIconAccount}
                     onViewPhotoPress={() => Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(optimisticReportID.current, true))}
+                    shouldUseStyleUtilityForAnchorPosition
                 />
             </View>
             <MenuItemWithTopDescription
