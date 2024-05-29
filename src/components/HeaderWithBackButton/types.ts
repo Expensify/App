@@ -19,6 +19,8 @@ type ThreeDotsMenuItem = {
 
     /** A callback triggered when the item is selected */
     onSelected: () => void;
+
+    isHidden?: boolean;
 };
 
 type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
