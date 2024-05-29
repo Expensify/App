@@ -105,6 +105,7 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
                         ListItem={UserListItem}
                         sections={didScreenTransitionEnd ? sections : CONST.EMPTY_ARRAY}
                         onSelectRow={attachLogToReport}
+                        shouldDebounceRowSelect
                         onChangeText={setSearchValue}
                         textInputValue={searchValue}
                         headerMessage={searchOptions.headerMessage}

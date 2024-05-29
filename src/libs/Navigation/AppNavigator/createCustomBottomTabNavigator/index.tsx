@@ -49,6 +49,8 @@ function CustomBottomTabNavigator({initialRouteName, children, screenOptions, ..
         <ScreenWrapper
             testID={CustomBottomTabNavigator.displayName}
             shouldShowOfflineIndicator={false}
+            shouldEnableKeyboardAvoidingView={false}
+            shouldEnablePickerAvoiding={false}
         >
             <View style={styles.flex1}>
                 <NavigationContent>
