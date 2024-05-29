@@ -313,34 +313,35 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                         </View>
                         <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
                             {!shouldShowRoomName && (
-                                <View style={[styles.alignSelfCenter, styles.w100, styles.mt1]}>
-                                    <DisplayNames
-                                        fullTitle={reportName ?? ''}
-                                        displayNamesWithTooltips={displayNamesWithTooltips}
-                                        tooltipEnabled
-                                        numberOfLines={isChatRoom && !isChatThread ? 0 : 1}
-                                        textStyles={[styles.textHeadline, styles.textAlignCenter, isChatRoom && !isChatThread ? undefined : styles.pre]}
-                                        shouldUseFullTitle={shouldUseFullTitle}
-                                    />
-                                </View>
+                                <>
+                                    <View style={[styles.alignSelfCenter, styles.w100, styles.mt1]}>
+                                        <DisplayNames
+                                            fullTitle={reportName ?? ''}
+                                            displayNamesWithTooltips={displayNamesWithTooltips}
+                                            tooltipEnabled
+                                            numberOfLines={isChatRoom && !isChatThread ? 0 : 1}
+                                            textStyles={[styles.textHeadline, styles.textAlignCenter, isChatRoom && !isChatThread ? undefined : styles.pre]}
+                                            shouldUseFullTitle={shouldUseFullTitle}
+                                        />
+                                    </View>
+                                    {isPolicyAdmin ? (
+                                        <PressableWithoutFeedback
+                                            style={[styles.w100]}
+                                            disabled={policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
+                                            role={CONST.ROLE.BUTTON}
+                                            accessibilityLabel={chatRoomSubtitle ?? ''}
+                                            accessible
+                                            onPress={() => {
+                                                Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(report?.policyID ?? ''));
+                                            }}
+                                        >
+                                            {chatRoomSubtitleText}
+                                        </PressableWithoutFeedback>
+                                    ) : (
+                                        chatRoomSubtitleText
+                                    )}
+                                </>
                             )}
-                            {!shouldShowRoomName &&
-                                (isPolicyAdmin ? (
-                                    <PressableWithoutFeedback
-                                        style={[styles.w100]}
-                                        disabled={policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
-                                        role={CONST.ROLE.BUTTON}
-                                        accessibilityLabel={chatRoomSubtitle ?? ''}
-                                        accessible
-                                        onPress={() => {
-                                            Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(report?.policyID ?? ''));
-                                        }}
-                                    >
-                                        {chatRoomSubtitleText}
-                                    </PressableWithoutFeedback>
-                                ) : (
-                                    chatRoomSubtitleText
-                                ))}
                             {!isEmptyObject(parentNavigationSubtitleData) && (isMoneyRequestReport || isInvoiceReport || isMoneyRequest) && (
                                 <ParentNavigationSubtitle
                                     parentNavigationSubtitleData={parentNavigationSubtitleData}
