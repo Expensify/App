@@ -319,15 +319,15 @@ function MoneyRequestView({
 
     const shouldShowMapOrReceipt = showMapAsImage || hasReceipt;
     const shouldShowReceiptEmptyState = !hasReceipt && !isInvoice && (canEditReceipt || isAdmin || isApprover);
-    const receiptNoticeNames: OnyxTypes.ViolationName[] = [
+    const receiptViolationNames: OnyxTypes.ViolationName[] = [
         CONST.VIOLATIONS.RECEIPT_REQUIRED,
         CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED,
         CONST.VIOLATIONS.MODIFIED_DATE,
         CONST.VIOLATIONS.CASH_EXPENSE_WITH_NO_RECEIPT,
         CONST.VIOLATIONS.SMARTSCAN_FAILED,
     ];
-    const receiptNoticeViolations =
-        transactionViolations?.filter((violation) => receiptNoticeNames.includes(violation.name)).map((v) => ViolationsUtils.getViolationTranslation(v, translate)) ?? [];
+    const receiptViolations =
+        transactionViolations?.filter((violation) => receiptViolationNames.includes(violation.name)).map((violation) => ViolationsUtils.getViolationTranslation(violation, translate)) ?? [];
     const shouldShowNotesViolations = !isReceiptBeingScanned && canUseViolations && ReportUtils.isPaidGroupPolicy(report);
 
     return (
@@ -336,7 +336,7 @@ function MoneyRequestView({
             <View style={shouldShowAnimatedBackground && [StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth, true)]}>
                 {!isInvoice && (
                     <ReceiptAuditHeader
-                        notes={receiptNoticeViolations}
+                        notes={receiptViolations}
                         shouldShowAuditMessage={Boolean(shouldShowNotesViolations && didRceiptScanSucceed)}
                     />
                 )}
@@ -391,7 +391,7 @@ function MoneyRequestView({
                     />
                 )}
                 {!shouldShowReceiptEmptyState && !shouldShowMapOrReceipt && <View style={{marginVertical: 6}} />}
-                {shouldShowNotesViolations && <ReceiptAuditMessages notes={receiptNoticeViolations} />}
+                {shouldShowNotesViolations && <ReceiptAuditMessages notes={receiptViolations} />}
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('amount')}>
                     <MenuItemWithTopDescription
                         title={amountTitle}
