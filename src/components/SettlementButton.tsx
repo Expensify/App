@@ -143,10 +143,6 @@ function SettlementButton({
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
-    useEffect(() => {
-        PaymentMethods.openWalletPage();
-    }, []);
-
     const session = useSession();
     const chatReport = ReportUtils.getReport(chatReportID);
     const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicyExpenseChat(chatReport);
