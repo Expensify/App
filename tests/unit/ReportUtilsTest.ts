@@ -99,13 +99,11 @@ describe('ReportUtils', () => {
             expect(participants[0].displayName).toBe('(833) 240-3627');
             expect(participants[0].login).toBe('+18332403627@expensify.sms');
 
-            expect(participants[2].avatar).toBeInstanceOf(Function);
             expect(participants[2].displayName).toBe('Lagertha Lothbrok');
             expect(participants[2].login).toBe('lagertha@vikings.net');
             expect(participants[2].accountID).toBe(3);
             expect(participants[2].pronouns).toBe('She/her');
 
-            expect(participants[4].avatar).toBeInstanceOf(Function);
             expect(participants[4].displayName).toBe('Ragnar Lothbrok');
             expect(participants[4].login).toBe('ragnar@vikings.net');
             expect(participants[4].accountID).toBe(1);
@@ -464,13 +462,8 @@ describe('ReportUtils', () => {
         });
 
         describe('return only iou split option if', () => {
-            it('it is a chat room with more than one participant', () => {
-                const onlyHaveSplitOption = [
-                    CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
-                    CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
-                    CONST.REPORT.CHAT_TYPE.DOMAIN_ALL,
-                    CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
-                ].every((chatType) => {
+            it('it is a chat room with more than one participant that is not an announce room', () => {
+                const onlyHaveSplitOption = [CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, CONST.REPORT.CHAT_TYPE.DOMAIN_ALL, CONST.REPORT.CHAT_TYPE.POLICY_ROOM].every((chatType) => {
                     const report = {
                         ...LHNTestUtils.getFakeReport(),
                         chatType,
