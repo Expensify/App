@@ -363,6 +363,10 @@ const styles = (theme: ThemeColors) =>
             verticalAlign: 'top',
         },
 
+        textBold: {
+            fontWeight: FontUtils.fontWeight.bold,
+        },
+
         label: {
             fontSize: variables.fontSizeLabel,
             lineHeight: variables.lineHeightLarge,
@@ -2791,6 +2795,16 @@ const styles = (theme: ThemeColors) =>
             color: theme.textSupporting,
         },
 
+        sectionListMutedInfo: {
+            color: theme.textSupporting,
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.lineHeightNormal,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
+            width: '100%',
+            alignItems: 'center',
+            padding: 20,
+        },
+
         accountSettingsSectionTitle: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             fontWeight: FontUtils.fontWeight.bold,
@@ -2811,6 +2825,18 @@ const styles = (theme: ThemeColors) =>
             ...spacing.ph8,
             ...spacing.mhn8,
             width: 'auto',
+        },
+
+        subscriptionCardIcon: {
+            padding: 10,
+            backgroundColor: theme.border,
+            borderRadius: 10,
+        },
+
+        subscriptionEmptyCardIcon: {
+            padding: 10,
+            backgroundColor: theme.border,
+            borderRadius: 10,
         },
 
         selectCircle: {
