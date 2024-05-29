@@ -231,7 +231,14 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     ) : null;
 
     const renderAvatar =
-        isGroupChat && !isThread ? (
+        isMoneyRequestReport || isInvoiceReport ? (
+            <View style={styles.mb3}>
+                <MultipleAvatars
+                    icons={icons}
+                    size={CONST.AVATAR_SIZE.LARGE}
+                />
+            </View>
+        ) : isGroupChat && !isThread ? (
             <AvatarWithImagePicker
                 source={icons[0].source}
                 avatarID={icons[0].id}
@@ -251,12 +258,15 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 errorRowStyles={styles.mt6}
                 onErrorClose={() => Report.clearAvatarErrors(report.reportID ?? '')}
                 shouldUseStyleUtilityForAnchorPosition
+                style={[styles.w100, styles.mb3]}
             />
         ) : (
-            <RoomHeaderAvatars
-                icons={icons}
-                reportID={report?.reportID}
-            />
+            <View style={styles.mb3}>
+                <RoomHeaderAvatars
+                    icons={icons}
+                    reportID={report?.reportID}
+                />
+            </View>
         );
 
     const reportName =
@@ -273,16 +283,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 />
                 <ScrollView style={[styles.flex1]}>
                     <View style={styles.reportDetailsTitleContainer}>
-                        <View style={styles.mb3}>
-                            {isMoneyRequestReport || isInvoiceReport ? (
-                                <MultipleAvatars
-                                    icons={icons}
-                                    size={CONST.AVATAR_SIZE.LARGE}
-                                />
-                            ) : (
-                                renderAvatar
-                            )}
-                        </View>
+                        {renderAvatar}
                         <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
                             <View style={[styles.alignSelfCenter, styles.w100, styles.mt1]}>
                                 <DisplayNames
