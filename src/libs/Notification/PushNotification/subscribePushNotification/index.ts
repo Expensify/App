@@ -97,7 +97,10 @@ function navigateToReport({reportID, reportActionID}: ReportActionPushNotificati
             }
 
             const newUpdates = buildOnyxUpdatesFromServer({onyxData: pushNotificationData.onyxData, lastUpdateID, previousUpdateID});
-            return {updates, [lastUpdateID]: newUpdates};
+
+            // eslint-disable-next-line no-param-reassign
+            updates[lastUpdateID] = newUpdates;
+            return updates;
         }, {});
 
         return DeferredOnyxUpdates.enqueueAndProcess(onyxUpdates);
