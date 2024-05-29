@@ -269,12 +269,12 @@ function getCustomUnitRateID(reportID: string) {
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? null;
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`] ?? null;
     const policy = PolicyUtils.getPolicy(report?.policyID ?? parentReport?.policyID ?? '');
+    let customUnitRateID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
 
     if (isEmptyObject(policy) || !policy?.customUnits) {
-        return null;
+        return customUnitRateID;
     }
 
-    let customUnitRateID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
     const distanceUnit = Object.values(policy?.customUnits).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
     const lastSelectedDistanceRateID = lastSelectedDistanceRates?.[policy?.id ?? ''] ?? '';
     const lastSelectedDistanceRate = distanceUnit?.rates[lastSelectedDistanceRateID] ?? {};
