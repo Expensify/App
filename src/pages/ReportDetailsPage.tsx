@@ -85,16 +85,16 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const shouldDisableRename = useMemo(() => ReportUtils.shouldDisableRename(report, linkedWorkspace), [report, linkedWorkspace]);
     const isDeprecatedGroupDM = useMemo(() => ReportUtils.isDeprecatedGroupDM(report), [report]);
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(report), [report]);
+    const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(report);
 
     // List the report types that can have their names modified
     const canModifyRoomName = !ReportUtils.isChatThread(report) && !isDeprecatedGroupDM && !isPolicyExpenseChat;
 
     // Set shouldShowRoomName based on the new condition
-    const shouldShowRoomName = canModifyRoomName && !isTaskReport && !isMoneyRequestReport && !isInvoiceRoom;
+    const shouldShowRoomName = canModifyRoomName && !isTaskReport && !isMoneyRequestReport && !isInvoiceRoom && !(isMoneyRequestReport || isInvoiceReport || isMoneyRequest);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
     const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(report), [report, policy]);
-    const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(report);
     const isGroupChat = useMemo(() => ReportUtils.isGroupChat(report), [report]);
     const isThread = useMemo(() => ReportUtils.isThread(report), [report]);
     const participants = useMemo(() => {
