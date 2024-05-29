@@ -24,7 +24,7 @@ type PrivateSubscription = {
     type: ValueOf<typeof CONST.SUBSCRIPTION.TYPE>;
 
     /** Subscription size */
-    userCount?: 8;
+    userCount?: number;
 };
 
 export default PrivateSubscription;
