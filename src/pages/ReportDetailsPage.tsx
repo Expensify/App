@@ -2,7 +2,7 @@ import {useRoute} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
@@ -53,7 +53,7 @@ type ReportDetailsPageMenuItem = {
 
 type ReportDetailsPageOnyxProps = {
     /** Personal details of all the users */
-    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    personalDetails: OnyxCollection<OnyxTypes.PersonalDetails>;
 
     /** Session info for the currently logged in user. */
     session: OnyxEntry<OnyxTypes.Session>;
@@ -68,6 +68,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? ''}`], [policies, report?.policyID]);
     const isPolicyAdmin = useMemo(() => PolicyUtils.isPolicyAdmin(policy ?? null), [policy]);
     const isPolicyEmployee = useMemo(() => PolicyUtils.isPolicyEmployee(report?.policyID ?? '', policies), [report?.policyID, policies]);
+    const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     const shouldUseFullTitle = useMemo(() => ReportUtils.shouldUseFullTitleToDisplay(report), [report]);
     const isChatRoom = useMemo(() => ReportUtils.isChatRoom(report), [report]);
     const isUserCreatedPolicyRoom = useMemo(() => ReportUtils.isUserCreatedPolicyRoom(report), [report]);
@@ -152,17 +153,14 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 subtitle: activeChatMembers.length,
                 isAnonymousAction: false,
                 action: () => {
-                    if (isUserCreatedPolicyRoom || isChatThread) {
+                    if (isUserCreatedPolicyRoom || isChatThread || isPolicyExpenseChat) {
                         Navigation.navigate(ROUTES.ROOM_MEMBERS.getRoute(report?.reportID ?? ''));
                     } else {
                         Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID ?? ''));
                     }
                 },
             });
-        } else if (
-            (isUserCreatedPolicyRoom && (!participants.length || !isPolicyEmployee)) ||
-            ((isDefaultRoom || ReportUtils.isPolicyExpenseChat(report)) && isChatThread && !isPolicyEmployee)
-        ) {
+        } else if ((isUserCreatedPolicyRoom && (!participants.length || !isPolicyEmployee)) || ((isDefaultRoom || isPolicyExpenseChat) && isChatThread && !isPolicyEmployee)) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.INVITE,
                 translationKey: 'common.invite',
@@ -205,6 +203,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         isDefaultRoom,
         isChatThread,
         isPolicyEmployee,
+        isPolicyExpenseChat,
         isUserCreatedPolicyRoom,
         participants.length,
         report,
@@ -235,6 +234,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         isGroupChat && !isThread ? (
             <AvatarWithImagePicker
                 source={icons[0].source}
+                avatarID={icons[0].id}
                 isUsingDefaultAvatar={!report.avatarUrl}
                 size={CONST.AVATAR_SIZE.XLARGE}
                 avatarStyle={styles.avatarXLarge}
@@ -250,6 +250,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 errors={report.errorFields?.avatar ?? null}
                 errorRowStyles={styles.mt6}
                 onErrorClose={() => Report.clearAvatarErrors(report.reportID ?? '')}
+                shouldUseStyleUtilityForAnchorPosition
             />
         ) : (
             <RoomHeaderAvatars

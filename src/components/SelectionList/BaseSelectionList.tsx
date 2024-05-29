@@ -1,4 +1,5 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import lodashDebounce from 'lodash/debounce';
 import isEmpty from 'lodash/isEmpty';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
@@ -35,6 +36,7 @@ function BaseSelectionList<TItem extends ListItem>(
         ListItem,
         canSelectMultiple = false,
         onSelectRow,
+        shouldDebounceRowSelect = false,
         onCheckboxPress,
         onSelectAll,
         onDismissError,
@@ -80,6 +82,8 @@ function BaseSelectionList<TItem extends ListItem>(
         listHeaderContent,
         onEndReached = () => {},
         onEndReachedThreshold,
+        windowSize = 5,
+        updateCellsBatchingPeriod = 50,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -259,6 +263,9 @@ function BaseSelectionList<TItem extends ListItem>(
         isFocused,
     });
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const debouncedOnSelectRow = useCallback(lodashDebounce(onSelectRow, 1000, {leading: true}), [onSelectRow]);
+
     /**
      * Logic to run when a row is selected, either with click/press or keyboard hotkeys.
      *
@@ -280,7 +287,11 @@ function BaseSelectionList<TItem extends ListItem>(
             }
         }
 
-        onSelectRow(item);
+        if (shouldDebounceRowSelect) {
+            debouncedOnSelectRow(item);
+        } else {
+            onSelectRow(item);
+        }
 
         if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow && innerTextInputRef.current) {
             innerTextInputRef.current.focus();
@@ -304,6 +315,11 @@ function BaseSelectionList<TItem extends ListItem>(
 
         selectRow(focusedOption);
     };
+
+    // This debounce happens on the trailing edge because on repeated enter presses, rapid component state update cancels the existing debounce and the redundant
+    // enter presses runs the debounced function again.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const debouncedSelectFocusedOption = useCallback(lodashDebounce(selectFocusedOption, 100), [selectFocusedOption]);
 
     /**
      * This function is used to compute the layout of any given item in our list.
@@ -410,7 +426,8 @@ function BaseSelectionList<TItem extends ListItem>(
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 // We're already handling the Enter key press in the useKeyboardShortcut hook, so we don't want the list item to submit the form
                 shouldPreventEnterKeySubmit
-                rightHandSideComponent={rightHandSideComponent}
+                // Change this because of lint
+                rightHandSideComponent={rightHandSideComponent && (typeof rightHandSideComponent === 'function' ? rightHandSideComponent({} as TItem) : rightHandSideComponent)}
                 keyForList={item.keyForList ?? ''}
                 isMultilineSupported={isRowMultilineSupported}
                 onFocus={() => {
@@ -456,6 +473,26 @@ function BaseSelectionList<TItem extends ListItem>(
         },
         [scrollToIndex, setFocusedIndex],
     );
+
+    useEffect(() => {
+        if (!(shouldDebounceRowSelect && debouncedOnSelectRow.cancel)) {
+            return;
+        }
+
+        return () => {
+            debouncedOnSelectRow.cancel();
+        };
+    }, [debouncedOnSelectRow, shouldDebounceRowSelect]);
+
+    useEffect(() => {
+        if (!(shouldDebounceRowSelect && debouncedSelectFocusedOption.cancel)) {
+            return;
+        }
+
+        return () => {
+            debouncedSelectFocusedOption.cancel();
+        };
+    }, [debouncedSelectFocusedOption, shouldDebounceRowSelect]);
 
     /** Focuses the text input when the component comes into focus and after any navigation animations finish. */
     useFocusEffect(
@@ -546,7 +583,7 @@ function BaseSelectionList<TItem extends ListItem>(
     useImperativeHandle(ref, () => ({scrollAndHighlightItem}), [scrollAndHighlightItem]);
 
     /** Selects row when pressing Enter */
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, shouldDebounceRowSelect ? debouncedSelectFocusedOption : selectFocusedOption, {
         captureOnInputs: true,
         shouldBubble: !flattenedSections.allOptions[focusedIndex],
         shouldStopPropagation,
@@ -606,7 +643,7 @@ function BaseSelectionList<TItem extends ListItem>(
                                 selectTextOnFocus
                                 spellCheck={false}
                                 iconLeft={textInputIconLeft}
-                                onSubmitEditing={selectFocusedOption}
+                                onSubmitEditing={shouldDebounceRowSelect ? debouncedSelectFocusedOption : selectFocusedOption}
                                 blurOnSubmit={!!flattenedSections.allOptions.length}
                                 isLoading={isLoadingNewOptions}
                                 testID="selection-list-text-input"
@@ -649,7 +686,8 @@ function BaseSelectionList<TItem extends ListItem>(
                                 showsVerticalScrollIndicator={showScrollIndicator}
                                 initialNumToRender={12}
                                 maxToRenderPerBatch={maxToRenderPerBatch}
-                                windowSize={5}
+                                windowSize={windowSize}
+                                updateCellsBatchingPeriod={updateCellsBatchingPeriod}
                                 viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
                                 testID="selection-list"
                                 onLayout={onSectionListLayout}
