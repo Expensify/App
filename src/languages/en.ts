@@ -1936,7 +1936,7 @@ export default {
             taxesDescription: 'Choose whether to import tax rates and tax defaults from your accounting integration.',
             locationsAdditionalDescription: `QuickBooks Online does not support adding a location to vendor bills or checks. Update your export preference to journal entry if you'd like to import locations as tags.`,
             outOfPocketLocationEnabledDescription:
-                'Note: QuickBooks Online does not support a field for locations as tags on vendor bills or check exports. As you import locations from, this this export option is unavailable.',
+                'Note: QuickBooks Online does not support a field for locations on vendor bill exports. As you have locations enabled on your workspace, this export option is unavailable.',
             taxesJournalEntrySwitchNote:
                 'Note: QuickBooks Online does not support a field for tax on Journal Entry exports. Change your export preference to Vendor Bill or Check to import taxes.',
             export: 'Export',
