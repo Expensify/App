@@ -2115,7 +2115,7 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
 }
 
 function buildOptimisticPolicyCategories(policyID: string, categories: readonly string[]) {
-    const optimisticCategoryMap = categories.reduce((acc, category) => {
+    const optimisticCategoryMap = categories.reduce<Record<string, Partial<PolicyCategory>>>((acc, category) => {
         acc[category] = {
             name: category,
             enabled: true,
@@ -2125,7 +2125,7 @@ function buildOptimisticPolicyCategories(policyID: string, categories: readonly 
         return acc;
     }, {});
 
-    const successCategoryMap = categories.reduce((acc, category) => {
+    const successCategoryMap = categories.reduce<Record<string, Partial<PolicyCategory>>>((acc, category) => {
         acc[category] = {
             errors: null,
             pendingAction: null,
@@ -2133,7 +2133,7 @@ function buildOptimisticPolicyCategories(policyID: string, categories: readonly 
         return acc;
     }, {});
 
-    const failureCategoryMap = categories.reduce((acc, category) => {
+    const failureCategoryMap = categories.reduce<Record<string, Partial<PolicyCategory>>>((acc, category) => {
         acc[category] = {
             errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.createFailureMessage'),
             pendingAction: null,
@@ -2510,7 +2510,7 @@ function createDraftWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policy
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`,
-            value: CONST.POLICY.DEFAULT_CATEGORIES.reduce((acc, category) => {
+            value: CONST.POLICY.DEFAULT_CATEGORIES.reduce<Record<string, PolicyCategory>>((acc, category) => {
                 acc[category] = {
                     name: category,
                     enabled: true,
