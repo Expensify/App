@@ -1,8 +1,8 @@
 import {PDFDocument} from 'pdf-lib';
 import type {FileObject} from '@components/AttachmentModal';
 
-const isPdfFilePasswordProtected = (file: FileObject): Promise<boolean> => {
-    return new Promise((resolve, reject) => {
+const isPdfFilePasswordProtected = (file: FileObject): Promise<boolean> =>
+    new Promise((resolve) => {
         const reader = new FileReader();
 
         reader.onload = (event) => {
@@ -21,12 +21,11 @@ const isPdfFilePasswordProtected = (file: FileObject): Promise<boolean> => {
                 });
         };
 
-        reader.onerror = (error) => {
+        reader.onerror = () => {
             resolve(false);
         };
 
         reader.readAsArrayBuffer(file as File);
     });
-};
 
 export default isPdfFilePasswordProtected;
