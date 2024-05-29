@@ -2,7 +2,7 @@ import {PDFDocument} from 'pdf-lib';
 import RNFetchBlob from 'react-native-blob-util';
 import type {FileObject} from '@components/AttachmentModal';
 
-const isPdfFilePasswordProtected = (file: FileObject) =>
+const isPdfFilePasswordProtected = (file: FileObject): Promise<boolean> =>
     new Promise((resolve) => {
         if (!file.uri) {
             resolve(false);
