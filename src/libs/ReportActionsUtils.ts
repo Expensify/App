@@ -506,11 +506,11 @@ function isReportActionDeprecated(reportAction: OnyxEntry<ReportAction>, key: st
         return true;
     }
 
-    const deprecatedOldDotReportActions = ['DELETEDACCOUNT', 'REIMBURSEMENTREQUESTED', 'REIMBURSEMENTSETUPREQUESTED', 'DONATION'];
-    if (deprecatedOldDotReportActions.includes(String(reportAction.actionName))) {
-        Log.info('Front end filtered out reportAction for being an older, deprecated report action', false, reportAction);
-        return true;
-    }
+    // const deprecatedOldDotReportActions = ['DELETEDACCOUNT', 'REIMBURSEMENTREQUESTED', 'REIMBURSEMENTSETUPREQUESTED', 'DONATION'];
+    // if (deprecatedOldDotReportActions.includes(String(reportAction.actionName))) {
+    //     Log.info('Front end filtered out reportAction for being an older, deprecated report action', false, reportAction);
+    //     return true;
+    // }
 
     return false;
 }
