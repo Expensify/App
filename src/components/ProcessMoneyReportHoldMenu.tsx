@@ -1,9 +1,10 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import {isLinkedTransactionHeld} from '@libs/ReportActionsUtils';
 import * as IOU from '@userActions/IOU';
+import {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -64,12 +65,23 @@ function ProcessMoneyReportHoldMenu({
         onClose();
     };
 
+    const promptText = useMemo(() => {
+        let promptTranslation: TranslationPaths;
+        if (nonHeldAmount) {
+            promptTranslation = isApprove ? 'iou.confirmApprovalAmount' : 'iou.confirmPayAmount';
+        } else {
+            promptTranslation = isApprove ? 'iou.confirmApprovalAllHoldAmount' : 'iou.confirmPayAmount';
+        }
+
+        return translate(promptTranslation);
+    }, [nonHeldAmount]);
+
     return (
         <DecisionModal
             title={translate(isApprove ? 'iou.confirmApprove' : 'iou.confirmPay')}
             onClose={onClose}
             isVisible={isVisible}
-            prompt={translate(isApprove ? 'iou.confirmApprovalAmount' : 'iou.confirmPayAmount')}
+            prompt={promptText}
             firstOptionText={nonHeldAmount ? `${translate(isApprove ? 'iou.approveOnly' : 'iou.payOnly')} ${nonHeldAmount}` : undefined}
             secondOptionText={`${translate(isApprove ? 'iou.approve' : 'iou.pay')} ${fullAmount}`}
             onFirstOptionSubmit={() => onSubmit(false)}

@@ -753,6 +753,7 @@ export default {
         expenseOnHold: 'This expense was put on hold. Review the comments for next steps.',
         confirmApprove: 'Confirm approval amount',
         confirmApprovalAmount: "Approve what's not on hold, or approve the entire report.",
+        confirmApprovalAllHoldAmount: 'All expenses on this report are on hold. Do you want to unhold them and approve?',
         confirmPay: 'Confirm payment amount',
         confirmPayAmount: "Pay what's not on hold, or pay all out-of-pocket spend.",
         payOnly: 'Pay only',
