@@ -1369,7 +1369,7 @@ function buildOnyxDataForTrackExpense(
     failureData.push({
         onyxMethod: Onyx.METHOD.SET,
         key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
-        value: quickAction ?? null,
+        value: quickAction,
     });
 
     if (iouReport) {
@@ -1606,7 +1606,7 @@ function getDeleteTrackExpenseInformation(
         failureData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: transaction ?? null,
+            value: transaction,
         });
     }
 
@@ -1614,7 +1614,7 @@ function getDeleteTrackExpenseInformation(
         failureData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-            value: transactionViolations ?? null,
+            value: transactionViolations,
         });
     }
 
@@ -1689,7 +1689,7 @@ function getSendInvoiceInformation(
     let chatReport = !isEmptyObject(invoiceChatReport) && invoiceChatReport?.reportID ? invoiceChatReport : null;
 
     if (!chatReport) {
-        chatReport = ReportUtils.getInvoiceChatByParticipants(senderWorkspaceID, receiverAccountID) ?? null;
+        chatReport = ReportUtils.getInvoiceChatByParticipants(senderWorkspaceID, receiverAccountID);
     }
 
     if (!chatReport) {
@@ -1842,7 +1842,7 @@ function getMoneyRequestInformation(
     }
 
     if (!chatReport) {
-        chatReport = ReportUtils.getChatByParticipants([payerAccountID, payeeAccountID]) ?? null;
+        chatReport = ReportUtils.getChatByParticipants([payerAccountID, payeeAccountID]);
     }
 
     // If we still don't have a report, it likely doens't exist and we need to build an optimistic one
@@ -5354,7 +5354,7 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: transaction ?? null,
+            value: transaction,
         },
     ];
 
@@ -5362,7 +5362,7 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
         failureData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-            value: transactionViolations ?? null,
+            value: transactionViolations,
         });
     }
 
@@ -6460,7 +6460,7 @@ function detachReceipt(transactionID: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
-                ...(transaction ?? null),
+                ...transaction,
                 errors: ErrorUtils.getMicroSecondOnyxError('iou.error.receiptDeleteFailureError'),
             },
         },
