@@ -119,10 +119,17 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
         if (!imageUri) {
             return;
         }
-        ImageSize.getSize(imageUri).then(({width, height}) => {
-            // We need to have image sizes in shared values to properly calculate position/size/animation
-            originalImageHeight.value = height;
-            originalImageWidth.value = width;
+        // We need to have image sizes in shared values to properly calculate position/size/animation
+        ImageSize.getSize(imageUri).then(({width, height, rotation: orginalRotation}) => {
+            // On Android devices ImageSize library returns also rotation parameter.
+            if (orginalRotation === 90 || orginalRotation === 270) {
+                originalImageHeight.value = width;
+                originalImageWidth.value = height;
+            } else {
+                originalImageHeight.value = height;
+                originalImageWidth.value = width;
+            }
+
             setIsImageInitialized(true);
 
             // Because the reanimated library has some internal optimizations,
