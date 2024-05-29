@@ -479,6 +479,7 @@ function MoneyRequestView({
                                     getErrorForField('tag', {
                                         tagListIndex: index,
                                         tagListName: name,
+                                        tagListValue: TransactionUtils.getTagForDisplay(transaction, index),
                                         policyHasDependentTags: PolicyUtils.hasDependentTags(policy, policyTagList),
                                     })
                                         ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
@@ -487,6 +488,7 @@ function MoneyRequestView({
                                 errorText={getErrorForField('tag', {
                                     tagListIndex: index,
                                     tagListName: name,
+                                    tagListValue: TransactionUtils.getTagForDisplay(transaction, index),
                                     policyHasDependentTags: PolicyUtils.hasDependentTags(policy, policyTagList),
                                 })}
                             />

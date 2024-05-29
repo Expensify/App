@@ -29,6 +29,7 @@ type TransactionViolation = {
         taxName?: string;
         tagListIndex?: number;
         tagListName?: string;
+        tagListValue?: string;
         errorIndexes?: number[];
         pendingPattern?: boolean;
     };
