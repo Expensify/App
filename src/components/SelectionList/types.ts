@@ -4,14 +4,15 @@ import type {MaybePhraseKey} from '@libs/Localize';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import type CONST from '@src/CONST';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {SearchAccountDetails, SearchPersonalDetails, SearchPolicyDetails, SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {SearchAccountDetails, SearchPersonalDetails, SearchPolicyDetails, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type InviteMemberListItem from './InviteMemberListItem';
 import type RadioListItem from './RadioListItem';
+import type ReportListItem from './Search/ReportListItem';
+import type TransactionListItem from './Search/TransactionListItem';
 import type TableListItem from './TableListItem';
-import type TransactionListItem from './TransactionListItem';
 import type UserListItem from './UserListItem';
 
 type TRightHandSideComponent<TItem extends ListItem> = {
@@ -128,6 +129,9 @@ type ListItem = {
 
     /** Element to render below the ListItem */
     footerContent?: ReactNode;
+
+    /** Whether item pressable wrapper should be focusable */
+    tabIndex?: 0 | -1;
 };
 
 type TransactionListItemType = ListItem &
@@ -149,6 +153,11 @@ type TransactionListItemType = ListItem &
 
         /** Whether we should show the tax column */
         shouldShowTax: boolean;
+    };
+
+type ReportListItemType = ListItem &
+    SearchReport & {
+        transactions: TransactionListItemType[];
     };
 
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
@@ -209,7 +218,9 @@ type TableListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
-type ValidListItem = typeof RadioListItem | typeof UserListItem | typeof TableListItem | typeof InviteMemberListItem | typeof TransactionListItem;
+type ReportListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+
+type ValidListItem = typeof RadioListItem | typeof UserListItem | typeof TableListItem | typeof InviteMemberListItem | typeof TransactionListItem | typeof ReportListItem;
 
 type Section<TItem extends ListItem> = {
     /** Title of the section */
@@ -242,6 +253,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Callback to fire when a row is pressed */
     onSelectRow: (item: TItem) => void;
+
+    /** Whether to debounce `onRowSelect` */
+    shouldDebounceRowSelect?: boolean;
 
     /** Optional callback function triggered upon pressing a checkbox. If undefined and the list displays checkboxes, checkbox interactions are managed by onSelectRow, allowing for pressing anywhere on the list. */
     onCheckboxPress?: (item: TItem) => void;
@@ -432,6 +446,11 @@ type TransactionCellProps = {
     transactionItem: TransactionListItemType;
 } & CellProps;
 
+type ReceiptCellProps = {
+    transactionItem: TransactionListItemType;
+    isHovered?: boolean;
+} & CellProps;
+
 type DateCellProps = {
     date: string;
 } & CellProps;
@@ -460,31 +479,34 @@ type TypeCellProps = {
 } & CellProps;
 
 export type {
+    ActionCellProps,
     BaseListItemProps,
     BaseSelectionListProps,
     ButtonOrCheckBoxRoles,
+    CellProps,
     CommonListItemProps,
+    CurrencyCellProps,
+    DateCellProps,
     FlattenedSectionsReturn,
     InviteMemberListItemProps,
     ItemLayout,
     ListItem,
     ListItemProps,
+    MerchantCellProps,
     RadioListItemProps,
+    ReceiptCellProps,
+    ReportListItemProps,
+    ReportListItemType,
     Section,
     SectionListDataType,
     SectionWithIndexOffset,
     SelectionListHandle,
     TableListItemProps,
+    TransactionCellProps,
     TransactionListItemProps,
     TransactionListItemType,
+    TypeCellProps,
+    UserCellProps,
     UserListItemProps,
     ValidListItem,
-    DateCellProps,
-    MerchantCellProps,
-    UserCellProps,
-    CurrencyCellProps,
-    TransactionCellProps,
-    ActionCellProps,
-    TypeCellProps,
-    CellProps,
 };
