@@ -32,23 +32,23 @@ function Confirmation({onNext}: ConfirmationProps) {
         <View style={[styles.flexGrow1]}>
             {CAN_DOWNGRADE ? (
                 <>
-                    <Text style={[styles.ph5, styles.pb3]}>{translate('subscriptionSize.confirmDetails')}</Text>
+                    <Text style={[styles.ph5, styles.pb3]}>{translate('subscription.subscriptionSize.confirmDetails')}</Text>
                     <MenuItemWithTopDescription
                         interactive={false}
-                        description={translate('subscriptionSize.subscriptionSize')}
-                        title={translate('subscriptionSize.activeMembers', {size: subscriptionSizeFormDraft ? subscriptionSizeFormDraft[INPUT_IDS.SUBSCRIPTION_SIZE] : 0})}
+                        description={translate('subscription.subscriptionSize.subscriptionSize')}
+                        title={translate('subscription.subscriptionSize.activeMembers', {size: subscriptionSizeFormDraft ? subscriptionSizeFormDraft[INPUT_IDS.SUBSCRIPTION_SIZE] : 0})}
                     />
                     <MenuItemWithTopDescription
                         interactive={false}
-                        description={translate('subscriptionSize.subscriptionRenews')}
+                        description={translate('subscription.subscriptionSize.subscriptionRenews')}
                         title={subscriptionRenewalDate}
                     />
                 </>
             ) : (
                 <>
-                    <Text style={[styles.ph5, styles.pb5, styles.textNormalThemeText]}>{translate('subscriptionSize.youCantDowngrade')}</Text>
+                    <Text style={[styles.ph5, styles.pb5, styles.textNormalThemeText]}>{translate('subscription.subscriptionSize.youCantDowngrade')}</Text>
                     <Text style={[styles.ph5, styles.textLabel]}>
-                        {translate('subscriptionSize.youAlreadyCommitted', {
+                        {translate('subscription.subscriptionSize.youAlreadyCommitted', {
                             size: subscriptionSizeFormDraft ? subscriptionSizeFormDraft[INPUT_IDS.SUBSCRIPTION_SIZE] : 0,
                             date: SUBSCRIPTION_UNTIL,
                         })}

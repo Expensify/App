@@ -32,18 +32,18 @@ function Size({onNext}: SizeProps) {
             style={[styles.mh5, styles.flexGrow1]}
         >
             <View>
-                <Text style={[styles.textNormalThemeText, styles.mb5]}>{translate('subscriptionSize.yourSize')}</Text>
+                <Text style={[styles.textNormalThemeText, styles.mb5]}>{translate('subscription.subscriptionSize.yourSize')}</Text>
                 <InputWrapper
                     InputComponent={TextInput}
                     inputID={INPUT_IDS.SUBSCRIPTION_SIZE}
-                    label={translate('subscriptionSize.subscriptionSize')}
-                    aria-label={translate('subscriptionSize.subscriptionSize')}
+                    label={translate('subscription.subscriptionSize.subscriptionSize')}
+                    aria-label={translate('subscription.subscriptionSize.subscriptionSize')}
                     role={CONST.ROLE.PRESENTATION}
                     defaultValue={defaultValues[INPUT_IDS.SUBSCRIPTION_SIZE]}
                     shouldSaveDraft
                 />
-                <Text style={[styles.textLabel, styles.mt5]}>{translate('subscriptionSize.eachMonth')}</Text>
-                <Text style={[styles.textLabel, styles.mt5]}>{translate('subscriptionSize.note')}</Text>
+                <Text style={[styles.textLabel, styles.mt5]}>{translate('subscription.subscriptionSize.eachMonth')}</Text>
+                <Text style={[styles.textLabel, styles.mt5]}>{translate('subscription.subscriptionSize.note')}</Text>
             </View>
         </FormProvider>
     );

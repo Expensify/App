@@ -49,7 +49,7 @@ function SubscriptionSizePage() {
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                title={translate('subscriptionSize.title')}
+                title={translate('subscription.subscriptionSize.title')}
                 onBackButtonPress={onBackButtonPress}
             />
             <SubStep
