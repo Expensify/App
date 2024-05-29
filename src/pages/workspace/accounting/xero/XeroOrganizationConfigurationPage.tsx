@@ -71,6 +71,7 @@ function XeroOrganizationConfigurationPage({
                     containerStyle={styles.pb0}
                     ListItem={RadioListItem}
                     onSelectRow={saveSelection}
+                    shouldDebounceRowSelect
                     sections={[{data: sections}]}
                     initiallyFocusedOptionKey={currentXeroOrganization?.id}
                 />

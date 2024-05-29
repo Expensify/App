@@ -31,7 +31,7 @@ Onyx.connect({
  */
 function getActivePolicies(policies: OnyxCollection<Policy>): Policy[] {
     return Object.values(policies ?? {}).filter<Policy>(
-        (policy): policy is Policy => !!policy && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !!policy.name && !!policy.id,
+        (policy): policy is Policy => policy !== null && policy && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !!policy.name && !!policy.id,
     );
 }
 
@@ -243,6 +243,13 @@ function getCleanedTagName(tag: string) {
 }
 
 /**
+ * Escape colon from tag name
+ */
+function escapeTagName(tag: string) {
+    return tag?.replaceAll(CONST.COLON, '\\:');
+}
+
+/**
  * Gets a count of enabled tags of a policy
  */
 function getCountOfEnabledTagsOfList(policyTags: PolicyTags) {
@@ -264,8 +271,13 @@ function isPaidGroupPolicy(policy: OnyxEntry<Policy> | EmptyObject): boolean {
     return policy?.type === CONST.POLICY.TYPE.TEAM || policy?.type === CONST.POLICY.TYPE.CORPORATE;
 }
 
-function isTaxTrackingEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Policy>): boolean {
-    return (isPolicyExpenseChat && (policy?.tax?.trackingEnabled ?? policy?.isTaxTrackingEnabled)) ?? false;
+function isTaxTrackingEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Policy>, isDistanceRequest: boolean): boolean {
+    const distanceUnit = Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+    const customUnitID = distanceUnit?.customUnitID ?? 0;
+    const isPolicyTaxTrackingEnabled = isPolicyExpenseChat && policy?.tax?.trackingEnabled;
+    const isTaxEnabledForDistance = isPolicyTaxTrackingEnabled && policy?.customUnits?.[customUnitID]?.attributes?.taxEnabled;
+
+    return !!(isDistanceRequest ? isTaxEnabledForDistance : isPolicyTaxTrackingEnabled);
 }
 
 /**
@@ -424,6 +436,7 @@ function getXeroBankAccountsWithDefaultSelect(policy: Policy | undefined, select
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
+    escapeTagName,
     getActivePolicies,
     getAdminEmployees,
     getCleanedTagName,

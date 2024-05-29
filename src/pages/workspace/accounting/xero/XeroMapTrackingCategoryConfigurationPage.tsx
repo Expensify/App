@@ -76,6 +76,7 @@ function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
                 ListItem={RadioListItem}
                 onSelectRow={updateMapping}
                 initiallyFocusedOptionKey={optionsList.find((option) => option.isSelected)?.keyForList}
+                shouldDebounceRowSelect
             />
         </ConnectionLayout>
     );

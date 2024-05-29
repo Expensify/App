@@ -16,7 +16,8 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
-import * as Policy from '@userActions/Policy';
+import * as Category from '@userActions/Policy/Category';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
@@ -105,7 +106,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     });
                     return;
                 }
-                Policy.enablePolicyCategories(policy?.id ?? '', isEnabled);
+                Category.enablePolicyCategories(policy?.id ?? '', isEnabled);
             },
         },
         {
@@ -199,7 +200,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 <ToggleSettingOptionRow
                     icon={item.icon}
                     title={translate(item.titleTranslationKey)}
-                    titleStyle={styles.textStrong}
                     subtitle={translate(item.subtitleTranslationKey)}
                     switchAccessibilityLabel={translate(item.subtitleTranslationKey)}
                     isActive={item.isActive}
