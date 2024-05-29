@@ -275,7 +275,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             ? ReportUtils.getGroupChatName(undefined, false, report.reportID ?? '')
             : ReportUtils.getReportName(report);
 
-    const roomFurtherDetails =
+    const additionalRoomDetails =
         (isPolicyExpenseChat && !!report?.isOwnPolicyExpenseChat) || ReportUtils.isExpenseReport(report) || isPolicyExpenseChat || isInvoiceRoom
             ? chatRoomSubtitle
             : `${translate('threads.in')} ${chatRoomSubtitle}`;
@@ -360,7 +360,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                                 titleStyle={styles.newKansasLarge}
                                 shouldCheckActionAllowedOnPress={false}
                                 description={!shouldDisableRename ? roomDescription : ''}
-                                furtherDetails={chatRoomSubtitle && !isGroupChat ? roomFurtherDetails : ''}
+                                furtherDetails={chatRoomSubtitle && !isGroupChat ? additionalRoomDetails : ''}
                                 onPress={() =>
                                     isGroupChat
                                         ? Navigation.navigate(ROUTES.REPORT_SETTINGS_GROUP_NAME.getRoute(report.reportID))
