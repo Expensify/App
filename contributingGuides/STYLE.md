@@ -23,6 +23,7 @@
     - [Type imports/exports](#type-importsexports)
     - [Refs](#refs)
     - [Other Expensify Resources on TypeScript](#other-expensify-resources-on-typescript)
+    - [Adding default value for inexisting ids](#adding-default-value-for-inexisting-ids)
 - [Naming Conventions](#naming-conventions)
     - [Type names](#type-names)
     - [Prop callbacks](#prop-callbacks)
@@ -470,6 +471,24 @@ if (ref.current && 'getBoundingClientRect' in ref.current) {
 ### Other Expensify Resources on TypeScript
 
 - [Expensify TypeScript React Native CheatSheet](./TS_CHEATSHEET.md)
+
+### Adding default value for inexisting ids
+
+ - Use `-1` when there is a posibility that id properity could be null or undefined
+
+``` ts
+    // BAD
+    const foo = report?.reportID ?? '';
+    const bar = report?.reportID ?? '0';
+
+    report ? report.reportID : '0';
+    report ? report.reportID : '';
+
+    // GOOD
+    const foo = report?.reportID ?? '-1';
+
+    report ? report.reportID : '-1';
+```
 
 ## Naming Conventions
 
