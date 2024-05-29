@@ -1890,6 +1890,12 @@ const CONST = {
         COMPACT: 'compact',
         DEFAULT: 'default',
     },
+    SUBSCRIPTION: {
+        TYPE: {
+            ANNUAL: 'yearly2018',
+            PAYPERUSE: 'monthly2018',
+        },
+    },
     REGEX: {
         SPECIAL_CHARS_WITHOUT_NEWLINE: /((?!\n)[()-\s\t])/g,
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,

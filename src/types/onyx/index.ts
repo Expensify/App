@@ -45,6 +45,7 @@ import type {PolicyTag, PolicyTagList, PolicyTags} from './PolicyTag';
 import type PreferredTheme from './PreferredTheme';
 import type PriorityMode from './PriorityMode';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
+import type PrivateSubscription from './PrivateSubscription';
 import type QuickAction from './QuickAction';
 import type RecentlyUsedCategories from './RecentlyUsedCategories';
 import type RecentlyUsedReportFields from './RecentlyUsedReportFields';
@@ -181,4 +182,5 @@ export type {
     PolicyJoinMember,
     CapturedLogs,
     SearchResults,
+    PrivateSubscription,
 };

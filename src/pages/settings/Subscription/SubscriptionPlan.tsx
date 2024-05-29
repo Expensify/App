@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -11,6 +12,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import SaveWithExpensifyButton from './SaveWithExpensifyButton';
 
 function SubscriptionPlan() {
@@ -19,10 +21,10 @@ function SubscriptionPlan() {
     const theme = useTheme();
 
     const subscriptionPlan = useSubscriptionPlan();
+    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
 
     const isCollect = subscriptionPlan === CONST.POLICY.TYPE.TEAM;
-    // TODO: replace this with a real value once OpenSubscriptionPage API command is implemented
-    const isAnnual = true;
+    const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
 
     const benefitsList = isCollect
         ? [
@@ -59,7 +61,6 @@ function SubscriptionPlan() {
                 <Text style={[styles.yourPlanSubtitle, styles.mb2]}>
                     {translate(`subscription.yourPlan.${isCollect ? 'collect' : 'control'}.${isAnnual ? 'priceAnnual' : 'pricePayPerUse'}`)}
                 </Text>
-                ;
                 {benefitsList.map((benefit) => (
                     <View
                         style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}
