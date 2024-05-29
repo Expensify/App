@@ -1,3 +1,4 @@
+import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import type {OnfidoDataWithApplicantID} from '@components/Onfido/types';
@@ -69,7 +70,7 @@ function openPlaidView() {
     clearPlaid().then(() => ReimbursementAccount.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID));
 }
 
-function setPlaidEvent(eventName: string | null) {
+function setPlaidEvent(eventName: OnyxEntry<string>) {
     Onyx.set(ONYXKEYS.PLAID_CURRENT_EVENT, eventName);
 }
 

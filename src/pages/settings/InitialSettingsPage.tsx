@@ -12,7 +12,6 @@ import CurrentUserPersonalDetailsSkeletonView from '@components/CurrentUserPerso
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
@@ -407,13 +406,11 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                             </PressableWithFeedback>
                         </Tooltip>
                     </View>
-                    <OfflineWithFeedback
-                        pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
-                        style={[styles.mb3, styles.w100]}
-                    >
+                    <View style={[styles.mb3, styles.w100]}>
                         <AvatarWithImagePicker
                             isUsingDefaultAvatar={UserUtils.isDefaultAvatar(currentUserDetails?.avatar ?? '')}
-                            source={UserUtils.getAvatar(avatarURL, accountID)}
+                            source={avatarURL}
+                            avatarID={accountID}
                             onImageSelected={PersonalDetails.updateAvatar}
                             onImageRemoved={PersonalDetails.deleteAvatar}
                             size={CONST.AVATAR_SIZE.XLARGE}
@@ -429,7 +426,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                             fallbackIcon={currentUserDetails?.fallbackIcon}
                             editIconStyle={styles.smallEditIconAccount}
                         />
-                    </OfflineWithFeedback>
+                    </View>
                     <Text
                         style={[styles.textHeadline, styles.pre, styles.textAlignCenter]}
                         numberOfLines={1}

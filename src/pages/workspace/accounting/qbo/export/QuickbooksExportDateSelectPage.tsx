@@ -58,6 +58,7 @@ function QuickbooksExportDateSelectPage({policy}: WithPolicyConnectionsProps) {
                     sections={[{data}]}
                     ListItem={RadioListItem}
                     onSelectRow={selectExportDate}
+                    shouldDebounceRowSelect
                     initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
                 />
             </ScreenWrapper>

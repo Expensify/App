@@ -73,6 +73,12 @@ type ReceiptImageProps = (
 
     /** The size of the fallback icon */
     fallbackIconSize?: number;
+
+    /** The colod of the fallback icon */
+    fallbackIconColor?: string;
+
+    /** Whether the component is hovered */
+    isHovered?: boolean;
 };
 
 function ReceiptImage({
@@ -89,6 +95,8 @@ function ReceiptImage({
     fallbackIcon,
     fallbackIconSize,
     shouldUseInitialObjectPosition = false,
+    fallbackIconColor,
+    isHovered = false,
 }: ReceiptImageProps) {
     const styles = useThemeStyles();
 
@@ -124,7 +132,9 @@ function ReceiptImage({
                 shouldDynamicallyResize={false}
                 fallbackIcon={fallbackIcon}
                 fallbackIconSize={fallbackIconSize}
+                fallbackIconColor={fallbackIconColor}
                 objectPosition={shouldUseInitialObjectPosition ? CONST.IMAGE_OBJECT_POSITION.INITIAL : CONST.IMAGE_OBJECT_POSITION.TOP}
+                isHovered={isHovered}
             />
         );
     }

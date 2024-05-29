@@ -64,7 +64,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
     const isDraft = ReportUtils.isOpenExpenseReport(moneyRequestReport);
     const isOnHold = TransactionUtils.isOnHold(transaction);
-    const {windowWidth} = useWindowDimensions();
+    const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
 
     // Only the requestor can take delete the expense, admins can only edit it.
     const isActionOwner = typeof parentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && parentReportAction.actorAccountID === session?.accountID;
@@ -179,14 +179,14 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
             return;
         }
 
-        if (shouldUseNarrowLayout) {
+        if (isSmallScreenWidth) {
             if (Navigation.getActiveRoute().slice(1) === ROUTES.PROCESS_MONEY_REQUEST_HOLD) {
                 Navigation.goBack();
             }
         } else {
             Navigation.navigate(ROUTES.PROCESS_MONEY_REQUEST_HOLD);
         }
-    }, [shouldUseNarrowLayout, shouldShowHoldMenu]);
+    }, [isSmallScreenWidth, shouldShowHoldMenu]);
 
     const handleHoldRequestClose = () => {
         IOU.setShownHoldUseExplanation();
@@ -259,7 +259,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
                 cancelText={translate('common.cancel')}
                 danger
             />
-            {shouldUseNarrowLayout && shouldShowHoldMenu && (
+            {isSmallScreenWidth && shouldShowHoldMenu && (
                 <ProcessMoneyRequestHoldMenu
                     onClose={handleHoldRequestClose}
                     onConfirm={handleHoldRequestClose}

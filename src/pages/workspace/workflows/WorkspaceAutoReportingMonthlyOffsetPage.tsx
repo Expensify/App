@@ -13,7 +13,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
-import * as Policy from '@userActions/Policy';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -98,6 +98,7 @@ function WorkspaceAutoReportingMonthlyOffsetPage({policy, route}: WorkspaceAutoR
                         headerMessage={headerMessage}
                         ListItem={RadioListItem}
                         onSelectRow={onSelectDayOfMonth}
+                        shouldDebounceRowSelect
                         initiallyFocusedOptionKey={offset.toString()}
                         showScrollIndicator
                     />
