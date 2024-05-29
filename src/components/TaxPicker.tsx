@@ -11,10 +11,10 @@ import CONST from '@src/CONST';
 import type {IOUAction} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Transaction} from '@src/types/onyx';
+import type {ValueOf} from "type-fest";
+import {isEmptyObject} from "@src/types/utils/EmptyObject";
 import SelectionList from './SelectionList';
 import RadioListItem from './SelectionList/RadioListItem';
-import {isEmptyObject} from "@src/types/utils/EmptyObject";
-import {ValueOf} from "type-fest";
 
 type TaxPickerOnyxProps = {
     /** The policy which the user has access to and which the report is tied to */
@@ -125,8 +125,6 @@ export default withOnyx<TaxPickerProps, TaxPickerOnyxProps>({
         },
     },
     splitDraftTransaction: {
-        key: ({transactionID}) => {
-            return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
-        },
+        key: ({transactionID}) => `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`,
     },
 })(TaxPicker);
