@@ -198,7 +198,7 @@ function TripRoomPreview({
                             medium
                             success
                             text={translate('travel.viewTrip')}
-                            onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(chatReport?.iouReportID))}
+                            onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(chatReportID))}
                         />
                     </View>
                 </PressableWithoutFeedback>
