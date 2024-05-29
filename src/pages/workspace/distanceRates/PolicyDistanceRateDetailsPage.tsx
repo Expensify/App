@@ -99,7 +99,7 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
     };
 
     const onTaxRateChange = (newTaxRate: ListItemType) => {
-        Policy.updatePolicyDistanceRateValue(policyID, customUnit, [
+        Policy.updateDistanceTaxRate(policyID, customUnit, [
             {
                 ...rate,
                 attributes: {

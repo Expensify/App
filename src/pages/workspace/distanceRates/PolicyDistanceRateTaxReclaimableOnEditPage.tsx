@@ -44,7 +44,7 @@ function PolicyDistanceRateTaxReclaimableOnEditPage({policy, route}: PolicyDista
     const currency = rate.currency ?? CONST.CURRENCY.USD;
     const currentTaxReclaimableOnValue = rate.attributes?.taxClaimablePercentage && rate.rate ? (rate.attributes.taxClaimablePercentage * rate.rate) / 100 : '';
     const submitTaxReclaimableOn = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT_FORM>) => {
-        Policy.updatePolicyDistanceRateValue(policyID, customUnit, [
+        Policy.updateDistanceTaxClaimableValue(policyID, customUnit, [
             {
                 ...rate,
                 attributes: {
