@@ -58,6 +58,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 contentModel: HTMLContentModel.textual,
             }),
             'mention-user': HTMLElementModel.fromCustomModel({tagName: 'mention-user', contentModel: HTMLContentModel.textual}),
+            'mention-report': HTMLElementModel.fromCustomModel({tagName: 'mention-report', contentModel: HTMLContentModel.textual}),
             'mention-here': HTMLElementModel.fromCustomModel({tagName: 'mention-here', contentModel: HTMLContentModel.textual}),
             'next-step': HTMLElementModel.fromCustomModel({
                 tagName: 'next-step',
@@ -70,8 +71,14 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 mixedUAStyles: {whiteSpace: 'pre'},
                 contentModel: HTMLContentModel.block,
             }),
+            emoji: HTMLElementModel.fromCustomModel({tagName: 'emoji', contentModel: HTMLContentModel.textual}),
+            'completed-task': HTMLElementModel.fromCustomModel({
+                tagName: 'completed-task',
+                mixedUAStyles: {...styles.textSupporting, ...styles.textLineThrough},
+                contentModel: HTMLContentModel.textual,
+            }),
         }),
-        [styles.colorMuted, styles.formError, styles.mb0, styles.textLabelSupporting, styles.lh16],
+        [styles.formError, styles.mb0, styles.colorMuted, styles.textLabelSupporting, styles.lh16, styles.textSupporting, styles.textLineThrough],
     );
     /* eslint-enable @typescript-eslint/naming-convention */
 
@@ -85,6 +92,9 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             tagsStyles={styles.webViewStyles.tagStyles}
             enableCSSInlineProcessing={false}
             systemFonts={Object.values(FontUtils.fontFamily.single)}
+            htmlParserOptions={{
+                recognizeSelfClosing: true,
+            }}
             domVisitors={{
                 // eslint-disable-next-line no-param-reassign
                 onText: (text) => (text.data = convertToLTR(text.data)),

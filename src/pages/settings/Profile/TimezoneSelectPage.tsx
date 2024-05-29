@@ -72,7 +72,8 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
                 textInputValue={timezoneInputText}
                 onChangeText={filterShownTimezones}
                 onSelectRow={saveSelectedTimezone}
-                sections={[{data: timezoneOptions, indexOffset: 0, isDisabled: timezone.automatic}]}
+                shouldDebounceRowSelect
+                sections={[{data: timezoneOptions, isDisabled: timezone.automatic}]}
                 initiallyFocusedOptionKey={timezoneOptions.find((tz) => tz.text === timezone.selected)?.keyForList}
                 showScrollIndicator
                 shouldShowTooltips={false}

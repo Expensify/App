@@ -1,5 +1,5 @@
-import {navigationRef} from '@libs/Navigation/Navigation';
-import NAVIGATORS from '@src/NAVIGATORS';
+import {useEffect, useState} from 'react';
+import Navigation from '@libs/Navigation/Navigation';
 import useWindowDimensions from './useWindowDimensions';
 
 type ResponsiveLayoutResult = {
@@ -7,15 +7,21 @@ type ResponsiveLayoutResult = {
     isSmallScreenWidth: boolean;
     isInModal: boolean;
 };
+
 /**
  * Hook to determine if we are on mobile devices or in the Modal Navigator
  */
 export default function useResponsiveLayout(): ResponsiveLayoutResult {
     const {isSmallScreenWidth} = useWindowDimensions();
-    const state = navigationRef?.current?.getRootState();
-    const lastRoute = state?.routes?.at(-1);
-    const lastRouteName = lastRoute?.name;
-    const isInModal = lastRouteName === NAVIGATORS.LEFT_MODAL_NAVIGATOR || lastRouteName === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
+
+    const [isInModal, setIsInModal] = useState(Navigation.isDisplayedInModal());
+
+    useEffect(() => {
+        Navigation.isNavigationReady().then(() => {
+            setIsInModal(Navigation.isDisplayedInModal());
+        });
+    }, []);
+
     const shouldUseNarrowLayout = isSmallScreenWidth || isInModal;
     return {shouldUseNarrowLayout, isSmallScreenWidth, isInModal};
 }

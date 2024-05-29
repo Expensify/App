@@ -1,4 +1,6 @@
+import * as IOU from '@libs/actions/IOU';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as Policy from '@userActions/Policy/Policy';
 import * as Task from '@userActions/Task';
 
 // There are some methods that are OK to use inside an action file, but should not be exported. These are typically methods that look up and return Onyx data.
@@ -9,6 +11,35 @@ describe('ReportUtils', () => {
     it('does not export getParentReport', () => {
         // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
         expect(ReportUtils.getParentReport).toBeUndefined();
+    });
+
+    it('does not export isOneTransactionReport', () => {
+        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
+        expect(ReportUtils.isOneTransactionReport).toBeUndefined();
+    });
+
+    it('does not export getPolicy', () => {
+        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
+        expect(ReportUtils.getPolicy).toBeUndefined();
+    });
+
+    it('does not export getAllReportActions', () => {
+        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
+        expect(ReportUtils.getAllReportActions).toBeUndefined();
+    });
+});
+
+describe('Policy', () => {
+    it('does not export getPolicy', () => {
+        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
+        expect(Policy.getPolicy).toBeUndefined();
+    });
+});
+
+describe('IOU', () => {
+    it('does not export getPolicy', () => {
+        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
+        expect(IOU.getPolicy).toBeUndefined();
     });
 });
 

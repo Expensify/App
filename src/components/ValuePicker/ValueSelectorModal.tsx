@@ -8,7 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {ValueSelectorModalProps} from './types';
 
-function ValueSelectorModal({items = [], selectedItem, label = '', isVisible, onClose, onItemSelected, shouldShowTooltips = true}: ValueSelectorModalProps) {
+function ValueSelectorModal({items = [], selectedItem, label = '', isVisible, onClose, onItemSelected, shouldShowTooltips = true, onBackdropPress}: ValueSelectorModalProps) {
     const styles = useThemeStyles();
 
     const sections = useMemo(
@@ -24,6 +24,7 @@ function ValueSelectorModal({items = [], selectedItem, label = '', isVisible, on
             onModalHide={onClose}
             hideModalContentWhileAnimating
             useNativeDriver
+            onBackdropPress={onBackdropPress}
         >
             <ScreenWrapper
                 style={styles.pb0}

@@ -5,7 +5,7 @@ export default {
     /** The ID of the reportAction. It is the string representation of the a 64-bit integer. */
     reportActionID: PropTypes.string,
 
-    /** Name of the action e.g. ADDCOMMENT */
+    /** Name of the action e.g. ADD_COMMENT */
     actionName: PropTypes.string,
 
     /** Person who created the action */
@@ -21,11 +21,11 @@ export default {
     originalMessage: PropTypes.shape({
         // The ID of the iou transaction
         IOUTransactionID: PropTypes.string,
+
+        /** accountIDs of the people to which the whisper was sent to (if any). Returns empty array if it is not a whisper */
+        whisperedTo: PropTypes.arrayOf(PropTypes.number),
     }),
 
     /** Error message that's come back from the server. */
     error: PropTypes.string,
-
-    /** accountIDs of the people to which the whisper was sent to (if any). Returns empty array if it is not a whisper */
-    whisperedToAccountIDs: PropTypes.arrayOf(PropTypes.number),
 };

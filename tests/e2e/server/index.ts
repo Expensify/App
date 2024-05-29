@@ -27,6 +27,7 @@ type ServerInstance = {
     addTestStartedListener: AddListener<TestStartedListener>;
     addTestResultListener: AddListener<TestResultListener>;
     addTestDoneListener: AddListener<TestDoneListener>;
+    forceTestCompletion: () => void;
     start: () => Promise<void>;
     stop: () => Promise<Error | undefined>;
 };
@@ -96,6 +97,12 @@ const createServerInstance = (): ServerInstance => {
     const [testResultListeners, addTestResultListener] = createListenerState<TestResultListener>();
     const [testDoneListeners, addTestDoneListener] = createListenerState<TestDoneListener>();
 
+    const forceTestCompletion = () => {
+        testDoneListeners.forEach((listener) => {
+            listener();
+        });
+    };
+
     let activeTestConfig: TestConfig | undefined;
     const networkCache: Record<string, NetworkCacheMap> = {};
 
@@ -131,9 +138,7 @@ const createServerInstance = (): ServerInstance => {
             }
 
             case Routes.testDone: {
-                testDoneListeners.forEach((listener) => {
-                    listener();
-                });
+                forceTestCompletion();
                 return res.end('ok');
             }
 
@@ -148,7 +153,7 @@ const createServerInstance = (): ServerInstance => {
                         res.statusCode = 500;
                         res.end('Error executing command');
                     })
-                    .catch((error) => {
+                    .catch((error: string) => {
                         Logger.error('Error executing command', error);
                         res.statusCode = 500;
                         res.end('Error executing command');
@@ -200,6 +205,7 @@ const createServerInstance = (): ServerInstance => {
         addTestStartedListener,
         addTestResultListener,
         addTestDoneListener,
+        forceTestCompletion,
         start: () =>
             new Promise<void>((resolve) => {
                 server.listen(PORT, resolve);

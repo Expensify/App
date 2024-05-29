@@ -1,19 +1,22 @@
 import {format, lastDayOfMonth, setDate} from 'date-fns';
 import Str from 'expensify-common/lib/str';
 import Onyx from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportNextStep} from '@src/types/onyx';
+import type {Policy, Report, ReportNextStep} from '@src/types/onyx';
 import type {Message} from '@src/types/onyx/ReportNextStep';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import DateUtils from './DateUtils';
 import EmailUtils from './EmailUtils';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
+import * as PolicyUtils from './PolicyUtils';
 import * as ReportUtils from './ReportUtils';
 
 let currentUserAccountID = -1;
+let currentUserEmail = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
@@ -22,7 +25,15 @@ Onyx.connect({
         }
 
         currentUserAccountID = value?.accountID ?? -1;
+        currentUserEmail = value?.email ?? '';
     },
+});
+
+let allPolicies: OnyxCollection<Policy>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    waitForCollectionCallback: true,
+    callback: (value) => (allPolicies = value),
 });
 
 function parseMessage(messages: Message[] | undefined) {
@@ -72,13 +83,14 @@ function buildNextStep(
     }
 
     const {policyID = '', ownerAccountID = -1, managerID = -1} = report;
-    const policy = ReportUtils.getPolicy(policyID);
-    const {submitsTo, harvesting, isPreventSelfApprovalEnabled, preventSelfApproval, autoReportingFrequency, autoReportingOffset} = policy;
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? ({} as Policy);
+    const {harvesting, preventSelfApproval, autoReportingFrequency, autoReportingOffset} = policy;
+    const submitToAccountID = PolicyUtils.getSubmitToAccountID(policy, ownerAccountID);
     const isOwner = currentUserAccountID === ownerAccountID;
     const isManager = currentUserAccountID === managerID;
-    const isSelfApproval = currentUserAccountID === submitsTo;
+    const isSelfApproval = currentUserAccountID === submitToAccountID;
     const ownerLogin = PersonalDetailsUtils.getLoginsByAccountIDs([ownerAccountID])[0] ?? '';
-    const managerDisplayName = isSelfApproval ? 'you' : ReportUtils.getDisplayNameForParticipant(submitsTo) ?? '';
+    const managerDisplayName = isSelfApproval ? 'you' : ReportUtils.getDisplayNameForParticipant(submitToAccountID) ?? '';
     const type: ReportNextStep['type'] = 'neutral';
     let optimisticNextStep: ReportNextStep | null;
 
@@ -164,7 +176,7 @@ function buildNextStep(
             }
 
             // Prevented self submitting
-            if ((isPreventSelfApprovalEnabled ?? preventSelfApproval) && isSelfApproval) {
+            if (preventSelfApproval && isSelfApproval) {
                 optimisticNextStep.message = [
                     {
                         text: "Oops! Looks like you're submitting to ",
@@ -222,7 +234,7 @@ function buildNextStep(
             };
 
             // Self review & another reviewer
-            if (isOwner) {
+            if (!isSelfApproval || (isSelfApproval && isOwner)) {
                 optimisticNextStep.message = [
                     {
                         text: 'Waiting for ',
@@ -247,36 +259,48 @@ function buildNextStep(
             break;
         }
 
+        // Generates an optimistic nextStep once a report has been closed for example in the case of Submit and Close approval flow
+        case CONST.REPORT.STATUS_NUM.CLOSED:
+            optimisticNextStep = {
+                type,
+                title: 'Finished!',
+                message: [
+                    {
+                        text: 'No further action required!',
+                    },
+                ],
+            };
+
+            break;
+
         // Generates an optimistic nextStep once a report has been approved
         case CONST.REPORT.STATUS_NUM.APPROVED:
+            if (
+                ReportUtils.isInvoiceReport(report) ||
+                !ReportUtils.isPayer(
+                    {
+                        accountID: currentUserAccountID,
+                        email: currentUserEmail,
+                    },
+                    report as Report,
+                )
+            ) {
+                optimisticNextStep = {
+                    type,
+                    title: 'Finished!',
+                    message: [
+                        {
+                            text: 'No further action required!',
+                        },
+                    ],
+                };
+                break;
+            }
             // Self review
             optimisticNextStep = {
                 type,
                 title: 'Next Steps:',
                 message: [
-                    {
-                        text: 'Waiting for ',
-                    },
-                    {
-                        text: managerDisplayName,
-                        type: 'strong',
-                    },
-                    {
-                        text: ' to ',
-                    },
-                    {
-                        text: 'pay',
-                        type: 'strong',
-                    },
-                    {
-                        text: ' %expenses.',
-                    },
-                ],
-            };
-
-            // Another owner
-            if (!isOwner) {
-                optimisticNextStep.message = [
                     {
                         text: 'Waiting for ',
                     },
@@ -294,9 +318,8 @@ function buildNextStep(
                     {
                         text: ' %expenses.',
                     },
-                ];
-            }
-
+                ],
+            };
             break;
 
         // Generates an optimistic nextStep once a report has been paid

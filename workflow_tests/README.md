@@ -246,7 +246,7 @@ const FILES_TO_COPY_INTO_TEST_REPO = [
 ];
 
 beforeEach(async () => {
-    mockGithub = new kieMockGithub.MockGithub({
+    mockGithub = new MockGithub({
         repo: {
             testWorkflowsRepo: {
                 files: FILES_TO_COPY_INTO_TEST_REPO,
@@ -339,7 +339,7 @@ const FILES_TO_COPY_INTO_TEST_REPO = [
 `beforeEach` gets executed before each test. Here we create the local test repository with the files defined in the `FILES_TO_COPY_INTO_TEST_REPO` variable. `testWorkflowRepo` is the name of the test repo and can be changed to whichever name you choose, just remember to use it later when accessing this repo. _Note that we can't use `beforeAll()` method, because while mocking steps `Act-js` modifies the workflow file copied into the test repo and thus mocking could persist between tests_
 ```javascript
 beforeEach(async () => {
-    mockGithub = new kieMockGithub.MockGithub({
+    mockGithub = new MockGithub({
         repo: {
             testWorkflowsRepo: {
                 files: FILES_TO_COPY_INTO_TEST_REPO,

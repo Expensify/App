@@ -9,6 +9,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
+import FocusableMenuItem from './FocusableMenuItem';
 import * as Expensicons from './Icon/Expensicons';
 import type {MenuItemProps} from './MenuItem';
 import MenuItem from './MenuItem';
@@ -24,6 +25,9 @@ type PopoverMenuItem = MenuItemProps & {
 
     /** Sub menu items to be rendered after a menu item is selected */
     subMenuItems?: PopoverMenuItem[];
+
+    /** Determines whether the menu item is disabled or not */
+    disabled?: boolean;
 };
 
 type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming'>;
@@ -101,8 +105,8 @@ function PopoverMenu({
             setCurrentMenuItems([...selectedItem.subMenuItems]);
             setEnteredSubMenuIndexes([...enteredSubMenuIndexes, index]);
         } else {
-            onItemSelected(selectedItem, index);
             selectedItemIndex.current = index;
+            onItemSelected(selectedItem, index);
         }
     };
 
@@ -190,7 +194,7 @@ function PopoverMenu({
                 {!!headerText && <Text style={[styles.createMenuHeaderText, styles.ml3]}>{headerText}</Text>}
                 {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
                 {currentMenuItems.map((item, menuIndex) => (
-                    <MenuItem
+                    <FocusableMenuItem
                         key={item.text}
                         icon={item.icon}
                         iconWidth={item.iconWidth}
@@ -200,11 +204,22 @@ function PopoverMenu({
                         title={item.text}
                         shouldCheckActionAllowedOnPress={false}
                         description={item.description}
+                        numberOfLinesDescription={item.numberOfLinesDescription}
                         onPress={() => selectItem(menuIndex)}
                         focused={focusedIndex === menuIndex}
                         displayInDefaultIconColor={item.displayInDefaultIconColor}
                         shouldShowRightIcon={item.shouldShowRightIcon}
+                        iconRight={item.iconRight}
                         shouldPutLeftPaddingWhenNoIcon={item.shouldPutLeftPaddingWhenNoIcon}
+                        label={item.label}
+                        isLabelHoverable={item.isLabelHoverable}
+                        floatRightAvatars={item.floatRightAvatars}
+                        floatRightAvatarSize={item.floatRightAvatarSize}
+                        shouldShowSubscriptRightAvatar={item.shouldShowSubscriptRightAvatar}
+                        disabled={item.disabled}
+                        onFocus={() => setFocusedIndex(menuIndex)}
+                        success={item.success}
+                        containerStyle={item.containerStyle}
                     />
                 ))}
             </View>
@@ -215,4 +230,4 @@ function PopoverMenu({
 PopoverMenu.displayName = 'PopoverMenu';
 
 export default React.memo(PopoverMenu);
-export type {PopoverMenuItem};
+export type {PopoverMenuItem, PopoverMenuProps};

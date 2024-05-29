@@ -1,8 +1,8 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from './CONST';
 import type * as FormTypes from './types/form';
 import type * as OnyxTypes from './types/onyx';
+import type Onboarding from './types/onyx/Onboarding';
 import type AssertTypesEqual from './types/utils/AssertTypesEqual';
 import type DeepValueOf from './types/utils/DeepValueOf';
 
@@ -15,9 +15,6 @@ const ONYXKEYS = {
 
     /** Holds the reportID for the report between the user and their account manager */
     ACCOUNT_MANAGER_REPORT_ID: 'accountManagerReportID',
-
-    /** Boolean flag only true when first set */
-    NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER: 'isFirstTimeNewExpensifyUser',
 
     /** Holds an array of client IDs which is used for multi-tabs on web in order to know
      * which tab is the leader, and which ones are the followers */
@@ -42,9 +39,6 @@ const ONYXKEYS = {
     CREDENTIALS: 'credentials',
     STASHED_CREDENTIALS: 'stashedCredentials',
 
-    // Contains loading data for the IOU feature (MoneyRequestModal, IOUDetail, & MoneyRequestPreview Components)
-    IOU: 'iou',
-
     /** Keeps track if there is modal currently visible or not */
     MODAL: 'modal',
 
@@ -62,6 +56,13 @@ const ONYXKEYS = {
 
     /** Contains all the private personal details of the user */
     PRIVATE_PERSONAL_DETAILS: 'private_personalDetails',
+
+    /**
+     * PERSONAL_DETAILS_METADATA is a perf optimization used to hold loading states of each entry in PERSONAL_DETAILS_LIST.
+     * A lot of components are connected to the PERSONAL_DETAILS_LIST entity and do not care about the loading state.
+     * Setting the loading state directly on the personal details entry caused a lot of unnecessary re-renders.
+     */
+    PERSONAL_DETAILS_METADATA: 'personalDetailsMetadata',
 
     /** Contains all the info for Tasks */
     TASK: 'task',
@@ -106,30 +107,64 @@ const ONYXKEYS = {
     STASHED_SESSION: 'stashedSession',
     BETAS: 'betas',
 
-    /** NVP keys
+    /** NVP keys */
+
+    /** Boolean flag only true when first set */
+    NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER: 'nvp_isFirstTimeNewExpensifyUser',
+
+    /** This NVP contains information about whether the onboarding flow was completed or not */
+    NVP_ONBOARDING: 'nvp_onboarding',
+
     /** Contains the user preference for the LHN priority mode */
     NVP_PRIORITY_MODE: 'nvp_priorityMode',
 
     /** Contains the users's block expiration (if they have one) */
-    NVP_BLOCKED_FROM_CONCIERGE: 'private_blockedFromConcierge',
+    NVP_BLOCKED_FROM_CONCIERGE: 'nvp_private_blockedFromConcierge',
+
+    /** Whether the user is blocked from chat */
+    NVP_BLOCKED_FROM_CHAT: 'nvp_private_blockedFromChat',
 
     /** A unique identifier that each user has that's used to send notifications */
-    NVP_PRIVATE_PUSH_NOTIFICATION_ID: 'private_pushNotificationID',
+    NVP_PRIVATE_PUSH_NOTIFICATION_ID: 'nvp_private_pushNotificationID',
 
     /** The NVP with the last payment method used per policy */
-    NVP_LAST_PAYMENT_METHOD: 'nvp_lastPaymentMethod',
+    NVP_LAST_PAYMENT_METHOD: 'nvp_private_lastPaymentMethod',
 
-    /** This NVP holds to most recent waypoints that a person has used when creating a distance request */
+    /** This NVP holds to most recent waypoints that a person has used when creating a distance expense */
     NVP_RECENT_WAYPOINTS: 'expensify_recentWaypoints',
 
     /** This NVP will be `true` if the user has ever dismissed the engagement modal on either OldDot or NewDot. If it becomes true it should stay true forever. */
-    NVP_HAS_DISMISSED_IDLE_PANEL: 'hasDismissedIdlePanel',
+    NVP_HAS_DISMISSED_IDLE_PANEL: 'nvp_hasDismissedIdlePanel',
 
     /** This NVP contains the choice that the user made on the engagement modal */
-    NVP_INTRO_SELECTED: 'introSelected',
+    NVP_INTRO_SELECTED: 'nvp_introSelected',
+
+    /** This NVP contains the active policyID */
+    NVP_ACTIVE_POLICY_ID: 'nvp_expensify_activePolicyID',
+
+    /** This NVP contains the referral banners the user dismissed */
+    NVP_DISMISSED_REFERRAL_BANNERS: 'nvp_dismissedReferralBanners',
+
+    /** This NVP contains the training modals the user denied showing again */
+    NVP_HAS_SEEN_TRACK_TRAINING: 'nvp_hasSeenTrackTraining',
+
+    /** Indicates which locale should be used */
+    NVP_PREFERRED_LOCALE: 'nvp_preferredLocale',
+
+    /** Whether the user has tried focus mode yet */
+    NVP_TRY_FOCUS_MODE: 'nvp_tryFocusMode',
+
+    /** Whether the user has been shown the hold educational interstitial yet */
+    NVP_HOLD_USE_EXPLAINED: 'holdUseExplained',
+
+    /** Store preferred skintone for emoji */
+    PREFERRED_EMOJI_SKIN_TONE: 'nvp_expensify_preferredEmojiSkinTone',
+
+    /** Store frequently used emojis for this user */
+    FREQUENTLY_USED_EMOJIS: 'nvp_expensify_frequentlyUsedEmojis',
 
     /** The NVP with the last distance rate used per policy */
-    NVP_LAST_SELECTED_DISTANCE_RATES: 'lastSelectedDistanceRates',
+    NVP_LAST_SELECTED_DISTANCE_RATES: 'nvp_expensify_lastSelectedDistanceRates',
 
     /** The NVP with the last action taken (for the Quick Action Button) */
     NVP_QUICK_ACTION_GLOBAL_CREATE: 'nvp_quickActionGlobalCreate',
@@ -153,11 +188,11 @@ const ONYXKEYS = {
     ONFIDO_TOKEN: 'onfidoToken',
     ONFIDO_APPLICANT_ID: 'onfidoApplicantID',
 
-    /** Indicates which locale should be used */
-    NVP_PREFERRED_LOCALE: 'preferredLocale',
-
     /** User's Expensify Wallet */
     USER_WALLET: 'userWallet',
+
+    /** User's metadata that will be used to segmentation */
+    USER_METADATA: 'userMetadata',
 
     /** Object containing Onfido SDK Token + applicantID */
     WALLET_ONFIDO: 'walletOnfido',
@@ -177,12 +212,6 @@ const ONYXKEYS = {
     /** The user's cash card and imported cards (including the Expensify Card) */
     CARD_LIST: 'cardList',
 
-    /** Whether the user has tried focus mode yet */
-    NVP_TRY_FOCUS_MODE: 'tryFocusMode',
-
-    /** Whether the user has been shown the hold educational interstitial yet */
-    NVP_HOLD_USE_EXPLAINED: 'holdUseExplained',
-
     /** Boolean flag used to display the focus mode notification */
     FOCUS_MODE_NOTIFICATION: 'focusModeNotification',
 
@@ -194,12 +223,6 @@ const ONYXKEYS = {
 
     /** Stores information about the active reimbursement account being set up */
     REIMBURSEMENT_ACCOUNT: 'reimbursementAccount',
-
-    /** Store preferred skintone for emoji */
-    PREFERRED_EMOJI_SKIN_TONE: 'preferredEmojiSkinTone',
-
-    /** Store frequently used emojis for this user */
-    FREQUENTLY_USED_EMOJIS: 'frequentlyUsedEmojis',
 
     /** Stores Workspace ID that will be tied to reimbursement account during setup */
     REIMBURSEMENT_ACCOUNT_WORKSPACE_ID: 'reimbursementAccountWorkspaceID',
@@ -262,6 +285,15 @@ const ONYXKEYS = {
     // Max height supported for HTML <canvas> element
     MAX_CANVAS_HEIGHT: 'maxCanvasHeight',
 
+    /** Onboarding Purpose selected by the user during Onboarding flow */
+    ONBOARDING_PURPOSE_SELECTED: 'onboardingPurposeSelected',
+
+    /** Onboarding policyID selected by the user during Onboarding flow */
+    ONBOARDING_POLICY_ID: 'onboardingPolicyID',
+
+    /** Onboarding Purpose selected by the user during Onboarding flow */
+    ONBOARDING_ADMINS_CHAT_REPORT_ID: 'onboardingAdminsChatReportID',
+
     // Max width supported for HTML <canvas> element
     MAX_CANVAS_WIDTH: 'maxCanvasWidth',
 
@@ -274,31 +306,47 @@ const ONYXKEYS = {
     /** Indicates whether an forced upgrade is required */
     UPDATE_REQUIRED: 'updateRequired',
 
+    /** Indicates whether an forced reset is required. Used in emergency situations where we must completely erase the Onyx data in the client because it is in a bad state. This will clear Oynx data without signing the user out. */
+    RESET_REQUIRED: 'resetRequired',
+
     /** Stores the logs of the app for debugging purposes */
     LOGS: 'logs',
 
     /** Indicates whether we should store logs or not */
     SHOULD_STORE_LOGS: 'shouldStoreLogs',
 
+    /** Stores new group chat draft */
+    NEW_GROUP_CHAT_DRAFT: 'newGroupChatDraft',
+
     // Paths of PDF file that has been cached during one session
     CACHED_PDF_PATHS: 'cachedPDFPaths',
+
+    /** Holds the checks used while transferring the ownership of the workspace */
+    POLICY_OWNERSHIP_CHANGE_CHECKS: 'policyOwnershipChangeChecks',
 
     /** Collection Keys */
     COLLECTION: {
         DOWNLOAD: 'download_',
         POLICY: 'policy_',
-        POLICY_MEMBERS: 'policyMembers_',
         POLICY_DRAFTS: 'policyDrafts_',
-        POLICY_MEMBERS_DRAFTS: 'policyMembersDrafts_',
         POLICY_JOIN_MEMBER: 'policyJoinMember_',
         POLICY_CATEGORIES: 'policyCategories_',
+        POLICY_CATEGORIES_DRAFT: 'policyCategoriesDraft_',
         POLICY_RECENTLY_USED_CATEGORIES: 'policyRecentlyUsedCategories_',
         POLICY_TAGS: 'policyTags_',
-        POLICY_RECENTLY_USED_TAGS: 'policyRecentlyUsedTags_',
-        POLICY_REPORT_FIELDS: 'policyReportFields_',
+        POLICY_RECENTLY_USED_TAGS: 'nvp_recentlyUsedTags_',
+        // Whether the policy's connection data was attempted to be fetched in
+        // the current user session. As this state only exists client-side, it
+        // should not be included as part of the policy object. The policy
+        // object should mirror the data as it's stored in the database.
+        POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED: 'policyHasConnectionsDataBeenFetched_',
+        OLD_POLICY_RECENTLY_USED_TAGS: 'policyRecentlyUsedTags_',
+        POLICY_CONNECTION_SYNC_PROGRESS: 'policyConnectionSyncProgress_',
         WORKSPACE_INVITE_MEMBERS_DRAFT: 'workspaceInviteMembersDraft_',
         WORKSPACE_INVITE_MESSAGE_DRAFT: 'workspaceInviteMessageDraft_',
         REPORT: 'report_',
+        REPORT_NAME_VALUE_PAIRS: 'reportNameValuePairs_',
+        REPORT_DRAFT: 'reportDraft_',
         // REPORT_METADATA is a perf optimization used to hold loading states (isLoadingInitialReportActions, isLoadingOlderReportActions, isLoadingNewerReportActions).
         // A lot of components are connected to the Report entity and do not care about the actions. Setting the loading state
         // directly on the report caused a lot of unnecessary re-renders
@@ -307,25 +355,27 @@ const ONYXKEYS = {
         REPORT_ACTIONS_DRAFTS: 'reportActionsDrafts_',
         REPORT_ACTIONS_REACTIONS: 'reportActionsReactions_',
         REPORT_DRAFT_COMMENT: 'reportDraftComment_',
-        REPORT_DRAFT_COMMENT_NUMBER_OF_LINES: 'reportDraftCommentNumberOfLines_',
         REPORT_IS_COMPOSER_FULL_SIZE: 'reportIsComposerFullSize_',
         REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
         REPORT_USER_IS_LEAVING_ROOM: 'reportUserIsLeavingRoom_',
         SECURITY_GROUP: 'securityGroup_',
         TRANSACTION: 'transactions_',
         TRANSACTION_VIOLATIONS: 'transactionViolations_',
-
-        // Holds temporary transactions used during the creation and edit flow
         TRANSACTION_DRAFT: 'transactionsDraft_',
+        SKIP_CONFIRMATION: 'skipConfirmation_',
+        TRANSACTION_BACKUP: 'transactionsBackup_',
         SPLIT_TRANSACTION_DRAFT: 'splitTransactionDraft_',
         PRIVATE_NOTES_DRAFT: 'privateNotesDraft_',
         NEXT_STEP: 'reportNextStep_',
 
-        // Manual request tab selector
+        // Manual expense tab selector
         SELECTED_TAB: 'selectedTab_',
 
         /** This is deprecated, but needed for a migration, so we still need to include it here so that it will be initialized in Onyx.init */
         DEPRECATED_POLICY_MEMBER_LIST: 'policyMemberList_',
+
+        // Search Page related
+        SNAPSHOT: 'snapshot_',
     },
 
     /** List of Form ids */
@@ -346,12 +396,18 @@ const ONYXKEYS = {
         WORKSPACE_TAX_CUSTOM_NAME_DRAFT: 'workspaceTaxCustomNameDraft',
         POLICY_CREATE_DISTANCE_RATE_FORM: 'policyCreateDistanceRateForm',
         POLICY_CREATE_DISTANCE_RATE_FORM_DRAFT: 'policyCreateDistanceRateFormDraft',
+        POLICY_DISTANCE_RATE_EDIT_FORM: 'policyDistanceRateEditForm',
+        POLICY_DISTANCE_RATE_EDIT_FORM_DRAFT: 'policyDistanceRateEditFormDraft',
         CLOSE_ACCOUNT_FORM: 'closeAccount',
         CLOSE_ACCOUNT_FORM_DRAFT: 'closeAccountDraft',
         PROFILE_SETTINGS_FORM: 'profileSettingsForm',
         PROFILE_SETTINGS_FORM_DRAFT: 'profileSettingsFormDraft',
         DISPLAY_NAME_FORM: 'displayNameForm',
         DISPLAY_NAME_FORM_DRAFT: 'displayNameFormDraft',
+        ONBOARDING_PERSONAL_DETAILS_FORM: 'onboardingPersonalDetailsForm',
+        ONBOARDING_PERSONAL_DETAILS_FORM_DRAFT: 'onboardingPersonalDetailsFormDraft',
+        ONBOARDING_PERSONAL_WORK: 'onboardingWorkForm',
+        ONBOARDING_PERSONAL_WORK_DRAFT: 'onboardingWorkFormDraft',
         ROOM_NAME_FORM: 'roomNameForm',
         ROOM_NAME_FORM_DRAFT: 'roomNameFormDraft',
         REPORT_DESCRIPTION_FORM: 'reportDescriptionForm',
@@ -408,8 +464,8 @@ const ONYXKEYS = {
         REPORT_FIELD_EDIT_FORM_DRAFT: 'reportFieldEditFormDraft',
         REIMBURSEMENT_ACCOUNT_FORM: 'reimbursementAccount',
         REIMBURSEMENT_ACCOUNT_FORM_DRAFT: 'reimbursementAccountDraft',
-        PERSONAL_BANK_ACCOUNT: 'personalBankAccountForm',
-        PERSONAL_BANK_ACCOUNT_DRAFT: 'personalBankAccountFormDraft',
+        PERSONAL_BANK_ACCOUNT_FORM: 'personalBankAccount',
+        PERSONAL_BANK_ACCOUNT_FORM_DRAFT: 'personalBankAccountDraft',
         EXIT_SURVEY_REASON_FORM: 'exitSurveyReasonForm',
         EXIT_SURVEY_REASON_FORM_DRAFT: 'exitSurveyReasonFormDraft',
         EXIT_SURVEY_RESPONSE_FORM: 'exitSurveyResponseForm',
@@ -420,6 +476,12 @@ const ONYXKEYS = {
         POLICY_TAG_NAME_FORM_DRAFT: 'policyTagNameFormDraft',
         WORKSPACE_NEW_TAX_FORM: 'workspaceNewTaxForm',
         WORKSPACE_NEW_TAX_FORM_DRAFT: 'workspaceNewTaxFormDraft',
+        WORKSPACE_TAX_NAME_FORM: 'workspaceTaxNameForm',
+        WORKSPACE_TAX_NAME_FORM_DRAFT: 'workspaceTaxNameFormDraft',
+        WORKSPACE_TAX_VALUE_FORM: 'workspaceTaxValueForm',
+        WORKSPACE_TAX_VALUE_FORM_DRAFT: 'workspaceTaxValueFormDraft',
+        NEW_CHAT_NAME_FORM: 'newChatNameForm',
+        NEW_CHAT_NAME_FORM_DRAFT: 'newChatNameFormDraft',
     },
 } as const;
 
@@ -435,6 +497,8 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM]: FormTypes.CloseAccountForm;
     [ONYXKEYS.FORMS.PROFILE_SETTINGS_FORM]: FormTypes.ProfileSettingsForm;
     [ONYXKEYS.FORMS.DISPLAY_NAME_FORM]: FormTypes.DisplayNameForm;
+    [ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM]: FormTypes.DisplayNameForm;
+    [ONYXKEYS.FORMS.ONBOARDING_PERSONAL_WORK]: FormTypes.WorkForm;
     [ONYXKEYS.FORMS.ROOM_NAME_FORM]: FormTypes.RoomNameForm;
     [ONYXKEYS.FORMS.REPORT_DESCRIPTION_FORM]: FormTypes.ReportDescriptionForm;
     [ONYXKEYS.FORMS.LEGAL_NAME_FORM]: FormTypes.LegalNameForm;
@@ -465,12 +529,16 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM]: FormTypes.GetPhysicalCardForm;
     [ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM]: FormTypes.ReportFieldEditForm;
     [ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM]: FormTypes.ReimbursementAccountForm;
-    [ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT]: FormTypes.PersonalBankAccountForm;
+    [ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM]: FormTypes.PersonalBankAccountForm;
     [ONYXKEYS.FORMS.WORKSPACE_DESCRIPTION_FORM]: FormTypes.WorkspaceDescriptionForm;
     [ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS]: FormTypes.AdditionalDetailStepForm;
     [ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM]: FormTypes.PolicyTagNameForm;
     [ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM]: FormTypes.WorkspaceNewTaxForm;
     [ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM]: FormTypes.PolicyCreateDistanceRateForm;
+    [ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM]: FormTypes.PolicyDistanceRateEditForm;
+    [ONYXKEYS.FORMS.WORKSPACE_TAX_NAME_FORM]: FormTypes.WorkspaceTaxNameForm;
+    [ONYXKEYS.FORMS.WORKSPACE_TAX_VALUE_FORM]: FormTypes.WorkspaceTaxValueForm;
+    [ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM]: FormTypes.NewChatNameForm;
 };
 
 type OnyxFormDraftValuesMapping = {
@@ -482,40 +550,46 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.POLICY]: OnyxTypes.Policy;
     [ONYXKEYS.COLLECTION.POLICY_DRAFTS]: OnyxTypes.Policy;
     [ONYXKEYS.COLLECTION.POLICY_CATEGORIES]: OnyxTypes.PolicyCategories;
+    [ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT]: OnyxTypes.PolicyCategories;
     [ONYXKEYS.COLLECTION.POLICY_TAGS]: OnyxTypes.PolicyTagList;
-    [ONYXKEYS.COLLECTION.POLICY_MEMBERS]: OnyxTypes.PolicyMembers;
-    [ONYXKEYS.COLLECTION.POLICY_MEMBERS_DRAFTS]: OnyxTypes.PolicyMember;
     [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES]: OnyxTypes.RecentlyUsedCategories;
-    [ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS]: OnyxTypes.PolicyReportFields;
-    [ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST]: OnyxTypes.PolicyMembers;
+    [ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED]: boolean;
+    [ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST]: OnyxTypes.PolicyEmployeeList;
     [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT]: OnyxTypes.InvitedEmailsToAccountIDs;
     [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT]: string;
     [ONYXKEYS.COLLECTION.REPORT]: OnyxTypes.Report;
+    [ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS]: OnyxTypes.ReportNameValuePairs;
+    [ONYXKEYS.COLLECTION.REPORT_DRAFT]: OnyxTypes.Report;
     [ONYXKEYS.COLLECTION.REPORT_METADATA]: OnyxTypes.ReportMetadata;
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS]: OnyxTypes.ReportActions;
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS]: OnyxTypes.ReportActionsDrafts;
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS]: OnyxTypes.ReportActionReactions;
     [ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT]: string;
-    [ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES]: number;
     [ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE]: boolean;
     [ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING]: OnyxTypes.ReportUserIsTyping;
     [ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM]: boolean;
     [ONYXKEYS.COLLECTION.SECURITY_GROUP]: OnyxTypes.SecurityGroup;
     [ONYXKEYS.COLLECTION.TRANSACTION]: OnyxTypes.Transaction;
     [ONYXKEYS.COLLECTION.TRANSACTION_DRAFT]: OnyxTypes.Transaction;
+    [ONYXKEYS.COLLECTION.SKIP_CONFIRMATION]: boolean;
+    [ONYXKEYS.COLLECTION.TRANSACTION_BACKUP]: OnyxTypes.Transaction;
     [ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS]: OnyxTypes.TransactionViolations;
     [ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT]: OnyxTypes.Transaction;
     [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS]: OnyxTypes.RecentlyUsedTags;
-    [ONYXKEYS.COLLECTION.SELECTED_TAB]: string;
+    [ONYXKEYS.COLLECTION.OLD_POLICY_RECENTLY_USED_TAGS]: OnyxTypes.RecentlyUsedTags;
+    [ONYXKEYS.COLLECTION.SELECTED_TAB]: OnyxTypes.SelectedTabRequest;
     [ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT]: string;
     [ONYXKEYS.COLLECTION.NEXT_STEP]: OnyxTypes.ReportNextStep;
     [ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER]: OnyxTypes.PolicyJoinMember;
+    [ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS]: OnyxTypes.PolicyConnectionSyncProgress;
+    [ONYXKEYS.COLLECTION.SNAPSHOT]: OnyxTypes.SearchResults;
 };
 
 type OnyxValuesMapping = {
     [ONYXKEYS.ACCOUNT]: OnyxTypes.Account;
     [ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID]: string;
     [ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER]: boolean;
+    [ONYXKEYS.NVP_ONBOARDING]: Onboarding | [];
     [ONYXKEYS.ACTIVE_CLIENTS]: string[];
     [ONYXKEYS.DEVICE_ID]: string;
     [ONYXKEYS.IS_SIDEBAR_LOADED]: boolean;
@@ -523,13 +597,14 @@ type OnyxValuesMapping = {
     [ONYXKEYS.CURRENT_DATE]: string;
     [ONYXKEYS.CREDENTIALS]: OnyxTypes.Credentials;
     [ONYXKEYS.STASHED_CREDENTIALS]: OnyxTypes.Credentials;
-    [ONYXKEYS.IOU]: OnyxTypes.IOU;
     [ONYXKEYS.MODAL]: OnyxTypes.Modal;
     [ONYXKEYS.NETWORK]: OnyxTypes.Network;
+    [ONYXKEYS.NEW_GROUP_CHAT_DRAFT]: OnyxTypes.NewGroupChatDraft;
     [ONYXKEYS.CUSTOM_STATUS_DRAFT]: OnyxTypes.CustomStatusDraft;
     [ONYXKEYS.INPUT_FOCUSED]: boolean;
     [ONYXKEYS.PERSONAL_DETAILS_LIST]: OnyxTypes.PersonalDetailsList;
     [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: OnyxTypes.PrivatePersonalDetails;
+    [ONYXKEYS.PERSONAL_DETAILS_METADATA]: Record<string, OnyxTypes.PersonalDetailsMetadata>;
     [ONYXKEYS.TASK]: OnyxTypes.Task;
     [ONYXKEYS.WORKSPACE_RATE_AND_UNIT]: OnyxTypes.WorkspaceRateAndUnit;
     [ONYXKEYS.CURRENCY_LIST]: OnyxTypes.CurrencyList;
@@ -541,10 +616,12 @@ type OnyxValuesMapping = {
     [ONYXKEYS.USER_LOCATION]: OnyxTypes.UserLocation;
     [ONYXKEYS.LOGIN_LIST]: OnyxTypes.LoginList;
     [ONYXKEYS.SESSION]: OnyxTypes.Session;
+    [ONYXKEYS.USER_METADATA]: OnyxTypes.UserMetadata;
     [ONYXKEYS.STASHED_SESSION]: OnyxTypes.Session;
     [ONYXKEYS.BETAS]: OnyxTypes.Beta[];
     [ONYXKEYS.NVP_PRIORITY_MODE]: ValueOf<typeof CONST.PRIORITY_MODE>;
     [ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE]: OnyxTypes.BlockedFromConcierge;
+    [ONYXKEYS.NVP_BLOCKED_FROM_CHAT]: string;
     [ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID]: string;
     [ONYXKEYS.NVP_TRY_FOCUS_MODE]: boolean;
     [ONYXKEYS.NVP_HOLD_USE_EXPLAINED]: boolean;
@@ -561,6 +638,9 @@ type OnyxValuesMapping = {
     [ONYXKEYS.ONFIDO_TOKEN]: string;
     [ONYXKEYS.ONFIDO_APPLICANT_ID]: string;
     [ONYXKEYS.NVP_PREFERRED_LOCALE]: OnyxTypes.Locale;
+    [ONYXKEYS.NVP_ACTIVE_POLICY_ID]: string;
+    [ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS]: OnyxTypes.DismissedReferralBanners;
+    [ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING]: boolean;
     [ONYXKEYS.USER_WALLET]: OnyxTypes.UserWallet;
     [ONYXKEYS.WALLET_ONFIDO]: OnyxTypes.WalletOnfido;
     [ONYXKEYS.WALLET_ADDITIONAL_DETAILS]: OnyxTypes.WalletAdditionalDetails;
@@ -594,14 +674,19 @@ type OnyxValuesMapping = {
     [ONYXKEYS.MAX_CANVAS_AREA]: number;
     [ONYXKEYS.MAX_CANVAS_HEIGHT]: number;
     [ONYXKEYS.MAX_CANVAS_WIDTH]: number;
+    [ONYXKEYS.ONBOARDING_PURPOSE_SELECTED]: string;
+    [ONYXKEYS.ONBOARDING_POLICY_ID]: string;
+    [ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID]: string;
     [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: boolean;
     [ONYXKEYS.LAST_VISITED_PATH]: string | undefined;
     [ONYXKEYS.RECENTLY_USED_REPORT_FIELDS]: OnyxTypes.RecentlyUsedReportFields;
     [ONYXKEYS.UPDATE_REQUIRED]: boolean;
+    [ONYXKEYS.RESET_REQUIRED]: boolean;
     [ONYXKEYS.PLAID_CURRENT_EVENT]: string;
-    [ONYXKEYS.LOGS]: Record<number, OnyxTypes.Log>;
+    [ONYXKEYS.LOGS]: OnyxTypes.CapturedLogs;
     [ONYXKEYS.SHOULD_STORE_LOGS]: boolean;
     [ONYXKEYS.CACHED_PDF_PATHS]: Record<string, string>;
+    [ONYXKEYS.POLICY_OWNERSHIP_CHANGE_CHECKS]: Record<string, OnyxTypes.PolicyOwnershipChangeChecks>;
     [ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE]: OnyxTypes.QuickAction;
 };
 
@@ -613,7 +698,6 @@ type OnyxFormDraftKey = keyof OnyxFormDraftValuesMapping;
 type OnyxValueKey = keyof OnyxValuesMapping;
 
 type OnyxKey = OnyxValueKey | OnyxCollectionKey | OnyxFormKey | OnyxFormDraftKey;
-type OnyxValue<TOnyxKey extends OnyxKey> = TOnyxKey extends keyof OnyxCollectionValuesMapping ? OnyxCollection<OnyxValues[TOnyxKey]> : OnyxEntry<OnyxValues[TOnyxKey]>;
 
 type MissingOnyxKeysError = `Error: Types don't match, OnyxKey type is missing: ${Exclude<AllOnyxKeys, OnyxKey>}`;
 /** If this type errors, it means that the `OnyxKey` type is missing some keys. */
@@ -621,4 +705,4 @@ type MissingOnyxKeysError = `Error: Types don't match, OnyxKey type is missing: 
 type AssertOnyxKeys = AssertTypesEqual<AllOnyxKeys, OnyxKey, MissingOnyxKeysError>;
 
 export default ONYXKEYS;
-export type {OnyxValues, OnyxKey, OnyxCollectionKey, OnyxValue, OnyxValueKey, OnyxFormKey, OnyxFormValuesMapping, OnyxFormDraftKey, OnyxCollectionValuesMapping};
+export type {OnyxCollectionKey, OnyxCollectionValuesMapping, OnyxFormDraftKey, OnyxFormKey, OnyxFormValuesMapping, OnyxKey, OnyxValueKey, OnyxValues};

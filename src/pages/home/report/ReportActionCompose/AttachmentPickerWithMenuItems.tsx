@@ -3,7 +3,6 @@ import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import type {FileObject} from '@components/AttachmentModal';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Icon from '@components/Icon';
@@ -12,21 +11,24 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
+import useIsReportOpenInRHP from '@hooks/useIsReportOpenInRHP';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
+import getIconForAction from '@libs/getIconForAction';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as IOU from '@userActions/IOU';
 import * as Report from '@userActions/Report';
 import * as Task from '@userActions/Task';
+import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
-type MoneyRequestOptions = Record<ValueOf<typeof CONST.IOU.TYPE>, PopoverMenuItem>;
+type MoneyRequestOptions = Record<Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>, PopoverMenuItem>;
 
 type AttachmentPickerWithMenuItemsOnyxProps = {
     /** The policy tied to the report */
@@ -114,7 +116,10 @@ function AttachmentPickerWithMenuItems({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {windowHeight} = useWindowDimensions();
+    const {windowHeight, windowWidth} = useWindowDimensions();
+    const {isSmallScreenWidth} = useWindowDimensions();
+    const isReportOpenInRHP = useIsReportOpenInRHP();
+    const shouldUseNarrowLayout = isReportOpenInRHP || isSmallScreenWidth;
 
     /**
      * Returns the list of IOU Options
@@ -122,26 +127,36 @@ function AttachmentPickerWithMenuItems({
     const moneyRequestOptions = useMemo(() => {
         const options: MoneyRequestOptions = {
             [CONST.IOU.TYPE.SPLIT]: {
-                icon: Expensicons.Receipt,
-                text: translate('iou.splitBill'),
+                icon: Expensicons.Transfer,
+                text: translate('iou.splitExpense'),
                 onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, report?.reportID ?? ''),
             },
-            [CONST.IOU.TYPE.REQUEST]: {
-                icon: Expensicons.MoneyCircle,
-                text: translate('iou.requestMoney'),
-                onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.REQUEST, report?.reportID ?? ''),
+            [CONST.IOU.TYPE.SUBMIT]: {
+                icon: getIconForAction(CONST.IOU.TYPE.REQUEST),
+                text: translate('iou.submitExpense'),
+                onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? ''),
             },
-            [CONST.IOU.TYPE.SEND]: {
-                icon: Expensicons.Send,
-                text: translate('iou.sendMoney'),
-                onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.SEND, report?.reportID ?? ''),
+            [CONST.IOU.TYPE.PAY]: {
+                icon: getIconForAction(CONST.IOU.TYPE.SEND),
+                text: translate('iou.paySomeone', {name: ReportUtils.getPayeeName(report)}),
+                onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.PAY, report?.reportID ?? ''),
+            },
+            [CONST.IOU.TYPE.TRACK]: {
+                icon: getIconForAction(CONST.IOU.TYPE.TRACK),
+                text: translate('iou.trackExpense'),
+                onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, report?.reportID ?? ''),
+            },
+            [CONST.IOU.TYPE.INVOICE]: {
+                icon: Expensicons.InvoiceGeneric,
+                text: translate('workspace.invoices.sendInvoice'),
+                onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.INVOICE, report?.reportID ?? ''),
             },
         };
 
-        return ReportUtils.getMoneyRequestOptions(report, policy, reportParticipantIDs ?? []).map((option) => ({
+        return ReportUtils.temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? []).map((option) => ({
             ...options[option],
         }));
-    }, [report, policy, reportParticipantIDs, translate]);
+    }, [translate, report, policy, reportParticipantIDs]);
 
     /**
      * Determines if we can show the task option
@@ -155,7 +170,7 @@ function AttachmentPickerWithMenuItems({
             {
                 icon: Expensicons.Task,
                 text: translate('newTaskPage.assignTask'),
-                onSelected: () => Task.clearOutTaskInfoAndNavigate(reportID),
+                onSelected: () => Task.clearOutTaskInfoAndNavigate(reportID, report),
             },
         ];
     }, [report, reportID, translate]);
@@ -185,7 +200,6 @@ function AttachmentPickerWithMenuItems({
 
     return (
         <AttachmentPicker>
-            {/* @ts-expect-error TODO: Remove this once AttachmentPicker (https://github.com/Expensify/App/issues/25134) is migrated to TypeScript. */}
             {({openPicker}) => {
                 const triggerAttachmentPicker = () => {
                     onTriggerAttachmentPicker();
@@ -296,7 +310,7 @@ function AttachmentPickerWithMenuItems({
                                     triggerAttachmentPicker();
                                 }
                             }}
-                            anchorPosition={styles.createMenuPositionReportActionCompose(windowHeight)}
+                            anchorPosition={styles.createMenuPositionReportActionCompose(shouldUseNarrowLayout, windowHeight, windowWidth)}
                             anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM}}
                             menuItems={menuItems}
                             withoutOverlay
@@ -314,5 +328,6 @@ AttachmentPickerWithMenuItems.displayName = 'AttachmentPickerWithMenuItems';
 export default withOnyx<AttachmentPickerWithMenuItemsProps, AttachmentPickerWithMenuItemsOnyxProps>({
     policy: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`,
+        initialValue: {} as OnyxTypes.Policy,
     },
 })(AttachmentPickerWithMenuItems);

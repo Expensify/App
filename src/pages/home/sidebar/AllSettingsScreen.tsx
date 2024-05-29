@@ -18,16 +18,15 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, PolicyMembers} from '@src/types/onyx';
+import type {Policy} from '@src/types/onyx';
 
 type AllSettingsScreenOnyxProps = {
     policies: OnyxCollection<Policy>;
-    policyMembers: OnyxCollection<PolicyMembers>;
 };
 
 type AllSettingsScreenProps = AllSettingsScreenOnyxProps;
 
-function AllSettingsScreen({policies, policyMembers}: AllSettingsScreenProps) {
+function AllSettingsScreen({policies}: AllSettingsScreenProps) {
     const styles = useThemeStyles();
     const waitForNavigate = useWaitForNavigation();
     const {translate} = useLocalize();
@@ -48,7 +47,7 @@ function AllSettingsScreen({policies, policyMembers}: AllSettingsScreenProps) {
                     })();
                 },
                 focused: !isSmallScreenWidth,
-                brickRoadIndicator: hasGlobalWorkspaceSettingsRBR(policies, policyMembers) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                brickRoadIndicator: hasGlobalWorkspaceSettingsRBR(policies) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             },
             ...(shouldShowSubscriptionsMenu
                 ? [
@@ -90,7 +89,7 @@ function AllSettingsScreen({policies, policyMembers}: AllSettingsScreenProps) {
             hoverAndPressStyle: styles.hoveredComponentBG,
             brickRoadIndicator: item.brickRoadIndicator,
         }));
-    }, [isSmallScreenWidth, styles.hoveredComponentBG, styles.sectionMenuItem, translate, waitForNavigate, policies, policyMembers]);
+    }, [isSmallScreenWidth, styles.hoveredComponentBG, styles.sectionMenuItem, translate, waitForNavigate, policies]);
 
     return (
         <ScreenWrapper
@@ -125,8 +124,5 @@ AllSettingsScreen.displayName = 'AllSettingsScreen';
 export default withOnyx<AllSettingsScreenProps, AllSettingsScreenOnyxProps>({
     policies: {
         key: ONYXKEYS.COLLECTION.POLICY,
-    },
-    policyMembers: {
-        key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
     },
 })(AllSettingsScreen);

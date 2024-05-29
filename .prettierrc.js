@@ -11,6 +11,7 @@ module.exports = {
         '@assets/(.*)$',
         '@components/(.*)$',
         '@desktop/(.*)$',
+        '@github/(.*)$',
         '@hooks/(.*)$',
         '@libs/(.*)$',
         '@navigation/(.*)$',

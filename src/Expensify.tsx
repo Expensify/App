@@ -1,3 +1,4 @@
+import {Audio} from 'expo-av';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {NativeEventSubscription} from 'react-native';
 import {AppState, Linking} from 'react-native';
@@ -25,12 +26,11 @@ import Navigation from './libs/Navigation/Navigation';
 import NavigationRoot from './libs/Navigation/NavigationRoot';
 import NetworkConnection from './libs/NetworkConnection';
 import PushNotification from './libs/Notification/PushNotification';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import './libs/Notification/PushNotification/subscribePushNotification';
+import Performance from './libs/Performance';
 import StartupTimer from './libs/StartupTimer';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import UnreadIndicatorUpdater from './libs/UnreadIndicatorUpdater';
+import './libs/UnreadIndicatorUpdater';
 import Visibility from './libs/Visibility';
 import ONYXKEYS from './ONYXKEYS';
 import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/PopoverReportActionContextMenu';
@@ -42,6 +42,8 @@ Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
         Log.alert(message);
         console.error(message);
+    } else if (level === 'hmmm') {
+        Log.hmmm(message);
     } else {
         Log.info(message);
     }
@@ -75,7 +77,9 @@ type ExpensifyOnyxProps = {
 
 type ExpensifyProps = ExpensifyOnyxProps;
 
-const SplashScreenHiddenContext = React.createContext({});
+type SplashScreenHiddenContextType = {isSplashHidden?: boolean};
+
+const SplashScreenHiddenContext = React.createContext<SplashScreenHiddenContextType>({});
 
 function Expensify({
     isCheckingPublicRoom = true,
@@ -105,6 +109,9 @@ function Expensify({
     const isAuthenticated = useMemo(() => !!(session?.authToken ?? null), [session]);
     const autoAuthState = useMemo(() => session?.autoAuthState ?? '', [session]);
 
+    const isAuthenticatedRef = useRef(false);
+    isAuthenticatedRef.current = isAuthenticated;
+
     const contextValue = useMemo(
         () => ({
             isSplashHidden,
@@ -132,14 +139,17 @@ function Expensify({
 
     const onSplashHide = useCallback(() => {
         setIsSplashHidden(true);
+        Performance.markEnd(CONST.TIMING.SIDEBAR_LOADED);
     }, []);
 
     useLayoutEffect(() => {
         // Initialize this client as being an active client
         ActiveClientManager.init();
 
-        // Used for the offline indicator appearing when someone is offline
-        NetworkConnection.subscribeToNetInfo();
+        // Used for the offline indicator appearing when someone is offline or backend is unreachable
+        const unsubscribeNetworkStatus = NetworkConnection.subscribeToNetworkStatus();
+
+        return () => unsubscribeNetworkStatus();
     }, []);
 
     useEffect(() => {
@@ -188,7 +198,8 @@ function Expensify({
 
         // Open chat report from a deep link (only mobile native)
         Linking.addEventListener('url', (state) => {
-            Report.openReportFromDeepLink(state.url);
+            // We need to pass 'isAuthenticated' to avoid loading a non-existing profile page twice
+            Report.openReportFromDeepLink(state.url, !isAuthenticatedRef.current);
         });
 
         return () => {
@@ -198,6 +209,11 @@ function Expensify({
             appStateChangeListener.current.remove();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
+    }, []);
+
+    // This is being done since we want to play sound even when iOS device is on silent mode, to align with other platforms.
+    useEffect(() => {
+        Audio.setAudioModeAsync({playsInSilentModeIOS: true});
     }, []);
 
     // Display a blank page until the onyx migration completes

@@ -16,6 +16,7 @@ import RoomNameInput from '@components/RoomNameInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import ValuePicker from '@components/ValuePicker';
+import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -35,7 +36,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {NewRoomForm} from '@src/types/form/NewRoomForm';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
-import type {Account, Policy, Report as ReportType, Session} from '@src/types/onyx';
+import type {Policy, Report as ReportType, Session} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -53,7 +54,7 @@ type WorkspaceNewRoomPageOnyxProps = {
     session: OnyxEntry<Session>;
 
     /** policyID for main workspace */
-    activePolicyID: OnyxEntry<Required<Account>['activePolicyID']>;
+    activePolicyID: OnyxEntry<Required<string>>;
 };
 
 type WorkspaceNewRoomPageProps = WorkspaceNewRoomPageOnyxProps;
@@ -69,6 +70,9 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
     const wasLoading = usePrevious<boolean>(!!formState?.isLoading);
     const visibilityDescription = useMemo(() => translate(`newRoomPage.${visibility}Description`), [translate, visibility]);
     const {isLoading = false, errorFields = {}} = formState ?? {};
+    const {activeWorkspaceID} = useActiveWorkspace();
+
+    const activeWorkspaceOrDefaultID = activeWorkspaceID ?? activePolicyID;
 
     const workspaceOptions = useMemo(
         () =>
@@ -82,8 +86,8 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
         [policies],
     );
     const [policyID, setPolicyID] = useState<string>(() => {
-        if (!!activePolicyID && workspaceOptions.some((option) => option.value === activePolicyID)) {
-            return activePolicyID;
+        if (!!activeWorkspaceOrDefaultID && workspaceOptions.some((option) => option.value === activeWorkspaceOrDefaultID)) {
+            return activeWorkspaceOrDefaultID;
         }
         return '';
     });
@@ -132,12 +136,12 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
             }
             return;
         }
-        if (!!activePolicyID && workspaceOptions.some((opt) => opt.value === activePolicyID)) {
-            setPolicyID(activePolicyID);
+        if (!!activeWorkspaceOrDefaultID && workspaceOptions.some((opt) => opt.value === activeWorkspaceOrDefaultID)) {
+            setPolicyID(activeWorkspaceOrDefaultID);
         } else {
             setPolicyID('');
         }
-    }, [activePolicyID, policyID, workspaceOptions]);
+    }, [activeWorkspaceOrDefaultID, policyID, workspaceOptions]);
 
     useEffect(() => {
         if (!(((wasLoading && !isLoading) || (isOffline && isLoading)) && isEmptyObject(errorFields))) {
@@ -177,6 +181,14 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
                 ErrorUtils.addErrorMessage(errors, 'roomName', 'newRoomPage.roomAlreadyExistsError');
             } else if (values.roomName.length > CONST.TITLE_CHARACTER_LIMIT) {
                 ErrorUtils.addErrorMessage(errors, 'roomName', ['common.error.characterLimitExceedCounter', {length: values.roomName.length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
+            }
+
+            const descriptionLength = ReportUtils.getCommentLength(values.reportDescription);
+            if (descriptionLength > CONST.REPORT_DESCRIPTION.MAX_LENGTH) {
+                ErrorUtils.addErrorMessage(errors, 'reportDescription', [
+                    'common.error.characterLimitExceedCounter',
+                    {length: descriptionLength, limit: CONST.REPORT_DESCRIPTION.MAX_LENGTH},
+                ]);
             }
 
             if (!values.policyID) {
@@ -279,9 +291,10 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
                                     accessibilityLabel={translate('reportDescriptionPage.roomDescriptionOptional')}
                                     role={CONST.ROLE.PRESENTATION}
                                     autoGrowHeight
+                                    maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                                     maxLength={CONST.REPORT_DESCRIPTION.MAX_LENGTH}
                                     autoCapitalize="none"
-                                    containerStyles={[styles.autoGrowHeightMultilineInput]}
+                                    shouldInterceptSwipe
                                 />
                             </View>
                             <View style={[styles.mhn5]}>
@@ -343,8 +356,7 @@ export default withOnyx<WorkspaceNewRoomPageProps, WorkspaceNewRoomPageOnyxProps
         key: ONYXKEYS.SESSION,
     },
     activePolicyID: {
-        key: ONYXKEYS.ACCOUNT,
-        selector: (account) => account?.activePolicyID ?? null,
+        key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
         initialValue: null,
     },
 })(WorkspaceNewRoomPage);

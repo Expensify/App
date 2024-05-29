@@ -25,9 +25,12 @@ type CategoryFormProps = {
 
     /** Function to call when the form is submitted */
     onSubmit: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => void;
+
+    /** Function to validate the edited values of the form */
+    validateEdit?: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>;
 };
 
-function CategoryForm({onSubmit, policyCategories, categoryName}: CategoryFormProps) {
+function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit}: CategoryFormProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -57,7 +60,7 @@ function CategoryForm({onSubmit, policyCategories, categoryName}: CategoryFormPr
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
             onSubmit(values);
             Keyboard.dismiss();
-            Navigation.dismissModal();
+            Navigation.goBack();
         },
         [onSubmit],
     );
@@ -67,7 +70,8 @@ function CategoryForm({onSubmit, policyCategories, categoryName}: CategoryFormPr
             formID={ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM}
             onSubmit={submit}
             submitButtonText={translate('common.save')}
-            validate={validate}
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            validate={validateEdit || validate}
             style={[styles.mh5, styles.flex1]}
             enabledWhenOffline
         >

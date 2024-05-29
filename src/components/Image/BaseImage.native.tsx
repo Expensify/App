@@ -1,17 +1,22 @@
 import {Image as ExpoImage} from 'expo-image';
 import type {ImageLoadEventData} from 'expo-image';
-import {useCallback} from 'react';
+import {useCallback, useRef} from 'react';
 import type {BaseImageProps} from './types';
 
 function BaseImage({onLoad, ...props}: BaseImageProps) {
+    const isLoadedRef = useRef(false);
     const imageLoadedSuccessfully = useCallback(
         (event: ImageLoadEventData) => {
             if (!onLoad) {
                 return;
             }
+            if (isLoadedRef.current === true) {
+                return;
+            }
 
             // We override `onLoad`, so both web and native have the same signature
             const {width, height} = event.source;
+            isLoadedRef.current = true;
             onLoad({nativeEvent: {width, height}});
         },
         [onLoad],

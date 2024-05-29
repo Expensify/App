@@ -27,7 +27,7 @@ import EXIT_SURVEY_REASON_INPUT_IDS from '@src/types/form/ExitSurveyReasonForm';
 import ExitSurveyOffline from './ExitSurveyOffline';
 
 type ExitSurveyConfirmPageOnyxProps = {
-    exitReason?: ExitReason;
+    exitReason?: ExitReason | null;
     isLoading: OnyxEntry<boolean>;
 };
 
@@ -87,6 +87,7 @@ function ExitSurveyConfirmPage({exitReason, isLoading, route, navigation}: ExitS
                         ExitSurvey.switchToOldDot();
 
                         if (NativeModules.HybridAppModule) {
+                            Navigation.resetToHome();
                             NativeModules.HybridAppModule.closeReactNativeApp();
                             return;
                         }
@@ -106,7 +107,7 @@ ExitSurveyConfirmPage.displayName = 'ExitSurveyConfirmPage';
 export default withOnyx<ExitSurveyConfirmPageProps, ExitSurveyConfirmPageOnyxProps>({
     exitReason: {
         key: ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM,
-        selector: (value: OnyxEntry<ExitSurveyReasonForm>) => value?.[EXIT_SURVEY_REASON_INPUT_IDS.REASON],
+        selector: (value: OnyxEntry<ExitSurveyReasonForm>) => value?.[EXIT_SURVEY_REASON_INPUT_IDS.REASON] ?? null,
     },
     isLoading: {
         key: ONYXKEYS.IS_SWITCHING_TO_OLD_DOT,
