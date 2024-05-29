@@ -41,6 +41,7 @@ function ReportAvatar({report = {} as Report, policies, isLoadingApp = true, rou
         title = policy ? ReportUtils.getPolicyName(report, false, policy) : report?.reportName;
     }
 
+    const shouldShowNotFoundPage = !isLoadingApp && (shouldUseGroupChatDraft ? !groupChatDraft : !policy && !report?.reportID);
     return (
         <AttachmentModal
             headerTitle={title}
@@ -52,7 +53,7 @@ function ReportAvatar({report = {} as Report, policies, isLoadingApp = true, rou
             isWorkspaceAvatar
             maybeIcon
             originalFileName={fileName}
-            shouldShowNotFoundPage={!report?.reportID && !groupChatDraft && !isLoadingApp}
+            shouldShowNotFoundPage={shouldShowNotFoundPage}
             isLoading={(!report?.reportID || !policy?.id) && !!isLoadingApp}
         />
     );
