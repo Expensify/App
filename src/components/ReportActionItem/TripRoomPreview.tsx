@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {FlatList, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -134,13 +134,13 @@ function TripRoomPreview({
     const dateInfo = chatReport?.tripData ? DateUtils.getFormattedDateRange(new Date(chatReport.tripData.startDate), new Date(chatReport.tripData.endDate)) : '';
     const {totalDisplaySpend} = ReportUtils.getMoneyRequestSpendBreakdown(chatReport);
 
-    const getDisplayAmount = (): string => {
+    const displayAmount = useMemo(() => {
         if (totalDisplaySpend) {
             return CurrencyUtils.convertToDisplayString(totalDisplaySpend, chatReport?.currency);
         }
 
-        // If chatReport is not available, get amount from the action message (Ex: "Domain20821's Workspace owes $33.00" or "paid ₫60" or "paid -₫60 elsewhere")
-        let displayAmount = '';
+        // If iouReport is not available, get amount from the action message (Ex: "Domain20821's Workspace owes $33.00" or "paid ₫60" or "paid -₫60 elsewhere")
+        let displayAmountValue = '';
         const actionMessage = action.message?.[0]?.text ?? '';
         const splits = actionMessage.split(' ');
 
@@ -149,11 +149,11 @@ function TripRoomPreview({
                 return;
             }
 
-            displayAmount = split;
+            displayAmountValue = split;
         });
 
-        return displayAmount;
-    };
+        return displayAmountValue;
+    }, [action.message, chatReport?.currency, totalDisplaySpend]);
 
     return (
         <OfflineWithFeedback
@@ -185,7 +185,7 @@ function TripRoomPreview({
                             <View style={styles.reportPreviewAmountSubtitleContainer}>
                                 <View style={styles.flexRow}>
                                     <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                        <Text style={styles.textHeadlineH2}>{getDisplayAmount()}</Text>
+                                        <Text style={styles.textHeadlineH2}>{displayAmount}</Text>
                                     </View>
                                 </View>
                                 <View style={styles.flexRow}>
