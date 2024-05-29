@@ -197,6 +197,7 @@ function Expensify({
 
         // Open chat report from a deep link (only mobile native)
         Linking.addEventListener('url', (state) => {
+            // We need to pass isAuthenticated to avoid having a non-existing profile page is loaded twice
             Report.openReportFromDeepLink(state.url, !isAuthenticatedRef.current);
         });
 
