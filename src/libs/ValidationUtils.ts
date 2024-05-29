@@ -340,7 +340,7 @@ function isValidCompanyName(name: string) {
 }
 
 function isValidReportName(name: string) {
-    return name.trim().length < CONST.REPORT_NAME_LIMIT;
+    return name.trim().length <= CONST.REPORT_NAME_LIMIT;
 }
 
 /**
