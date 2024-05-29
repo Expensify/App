@@ -72,6 +72,7 @@ import type {
     InvitedEmailsToAccountIDs,
     PersonalDetailsList,
     Policy,
+    PolicyCategory,
     PolicyEmployee,
     PolicyOwnershipChangeChecks,
     PolicyTag,
