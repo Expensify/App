@@ -8,7 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {removePolicyConnection} from '@libs/actions/connections';
 import getQuickBooksOnlineSetupLink from '@libs/actions/connections/QuickBooksOnline';
 import * as Link from '@userActions/Link';
-import * as PolicyAction from '@userActions/Policy';
+import * as PolicyAction from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import type {ConnectToQuickbooksOnlineButtonProps} from './types';
 
