@@ -10,6 +10,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullComposerAvailable';
+import * as EmojiUtils from '@libs/EmojiUtils';
 import type {ComposerProps} from './types';
 
 function Composer(
@@ -33,6 +34,7 @@ function Composer(
 ) {
     const textInput = useRef<AnimatedMarkdownTextInputRef | null>(null);
     const {isFocused, shouldResetFocus} = useResetComposerFocus(textInput);
+    const textContainsOnlyEmojis = useMemo(() => EmojiUtils.containsOnlyEmojis(value ?? ''), [value]);
     const theme = useTheme();
     const markdownStyle = useMarkdownStyle(value);
     const styles = useThemeStyles();
@@ -64,9 +66,8 @@ function Composer(
         onClear();
     }, [shouldClear, onClear]);
 
-    const isOnlyEmojiLineHeight = useMemo(() => StyleUtils.getOnlyEmojiLineHeight(value), [StyleUtils, value]);
     const maxHeightStyle = useMemo(() => StyleUtils.getComposerMaxHeightStyle(maxLines, isComposerFullSize), [StyleUtils, isComposerFullSize, maxLines]);
-    const composerStyle = useMemo(() => StyleSheet.flatten(style), [style]);
+    const composerStyle = useMemo(() => StyleSheet.flatten([style, textContainsOnlyEmojis ? styles.onlyEmojisTextLineHeight : {}]), [style, textContainsOnlyEmojis, styles]);
 
     return (
         <RNMarkdownTextInput
@@ -79,7 +80,7 @@ function Composer(
             rejectResponderTermination={false}
             smartInsertDelete={false}
             textAlignVertical="center"
-            style={[composerStyle, maxHeightStyle, isOnlyEmojiLineHeight]}
+            style={[composerStyle, maxHeightStyle]}
             markdownStyle={markdownStyle}
             autoFocus={autoFocus}
             /* eslint-disable-next-line react/jsx-props-no-spreading */

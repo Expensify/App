@@ -1122,11 +1122,6 @@ function getAmountWidth(amount: string): number {
     return width;
 }
 
-function getOnlyEmojiLineHeight(text = ''): TextStyle {
-    const isOnlyEmoji = EmojiUtils.containsOnlyEmojis(text);
-    return isOnlyEmoji ? {lineHeight: variables.fontSizeOnlyEmojisHeight} : {};
-}
-
 const staticStyleUtils = {
     positioning,
     combineStyles,
@@ -1199,7 +1194,6 @@ const staticStyleUtils = {
     getButtonStyleWithIcon,
     getCharacterWidth,
     getAmountWidth,
-    getOnlyEmojiLineHeight,
     getBorderRadiusStyle,
 };
 
