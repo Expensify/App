@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import {Animated, View} from 'react-native';
 import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import {isMobile} from '@libs/Browser';
 import textRef from '@src/types/utils/textRef';
 import viewRef from '@src/types/utils/viewRef';
 import type {BaseGenericTooltipProps} from './types';
@@ -38,7 +38,6 @@ function BaseGenericTooltip({
     const [wrapperMeasuredHeight, setWrapperMeasuredHeight] = useState<number>();
     const contentRef = useRef<HTMLDivElement>(null);
     const rootWrapper = useRef<HTMLDivElement>(null);
-    const {isSmallScreenWidth} = useWindowDimensions();
 
     const StyleUtils = useStyleUtils();
 
@@ -106,12 +105,6 @@ function BaseGenericTooltip({
         );
     }
 
-    const body = document.querySelector('body');
-
-    if (!body) {
-        return null;
-    }
-
     const innerTooltip = (
         <Animated.View
             ref={viewRef(rootWrapper)}
@@ -124,8 +117,14 @@ function BaseGenericTooltip({
         </Animated.View>
     );
 
-    if (isSmallScreenWidth) {
+    if (isMobile()) {
         return innerTooltip;
+    }
+
+    const body = document.querySelector('body');
+
+    if (!body) {
+        return null;
     }
 
     return ReactDOM.createPortal(innerTooltip, body);
