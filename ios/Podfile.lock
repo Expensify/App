@@ -1852,7 +1852,7 @@ PODS:
   - RNGoogleSignin (10.0.1):
     - GoogleSignIn (~> 7.0)
     - React-Core
-  - RNLiveMarkdown (0.1.76):
+  - RNLiveMarkdown (0.1.70):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
