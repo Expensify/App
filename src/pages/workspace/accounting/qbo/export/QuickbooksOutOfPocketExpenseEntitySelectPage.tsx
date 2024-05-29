@@ -29,7 +29,7 @@ function Footer({isTaxEnabled, isLocationsEnabled}: {isTaxEnabled: boolean; isLo
     return (
         <View style={[styles.flex1, styles.alignItemsCenter, styles.gap2, styles.mt1]}>
             {isTaxEnabled && <Text style={[styles.mutedNormalTextLabel, styles.pt2]}>{translate('workspace.qbo.outOfPocketTaxEnabledDescription')}</Text>}
-            {isLocationsEnabled && <Text style={styles.mutedTextLabel}>{translate('workspace.qbo.locationsAdditionalDescription')}</Text>}
+            {isLocationsEnabled && <Text style={styles.mutedTextLabel}>{translate('workspace.qbo.outOfPocketLocationEnabledDescription')}</Text>}
         </View>
     );
 }
