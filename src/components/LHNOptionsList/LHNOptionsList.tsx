@@ -69,36 +69,52 @@ function LHNOptionsList({
 
     const emptyLHNSubtitle = useMemo(
         () => (
-            <View>
+            <View style={[styles.emptyLHNDetailsContainer]}>
                 <Text
-                    color={theme.placeholderText}
-                    style={[styles.textAlignCenter]}
+                    style={[
+                        styles.textAlignCenter,
+                        { color: theme.placeholderText },
+                    ]}
                 >
                     {translate('common.emptyLHN.subtitleText1')}
-                    <Icon
-                        src={Expensicons.MagnifyingGlass}
-                        width={variables.emptyLHNIconWidth}
-                        height={variables.emptyLHNIconHeight}
-                        small
-                        inline
-                        fill={theme.icon}
-                        additionalStyles={styles.alignItemsCenter}
-                    />
+                </Text>
+                <Icon
+                    src={Expensicons.MagnifyingGlass}
+                    width={variables.emptyLHNIconWidth}
+                    height={variables.emptyLHNIconHeight}
+                    fill={theme.icon}
+                    small
+                    inline
+                    additionalStyles={styles.mh1}
+                />
+                <Text
+                    style={[
+                        styles.textAlignCenter,
+                        { color: theme.placeholderText },
+                    ]}
+                >
                     {translate('common.emptyLHN.subtitleText2')}
-                    <Icon
-                        src={Expensicons.Plus}
-                        width={variables.emptyLHNIconWidth}
-                        height={variables.emptyLHNIconHeight}
-                        small
-                        inline
-                        fill={theme.icon}
-                        additionalStyles={styles.alignItemsCenter}
-                    />
+                </Text>
+                <Icon
+                    src={Expensicons.Plus}
+                    width={variables.emptyLHNIconWidth}
+                    height={variables.emptyLHNIconHeight}
+                    fill={theme.icon}
+                    small
+                    inline
+                    additionalStyles={styles.mh1}
+                />
+                <Text
+                    style={[
+                        styles.textAlignCenter,
+                        { color: theme.placeholderText },
+                    ]}
+                >
                     {translate('common.emptyLHN.subtitleText3')}
                 </Text>
             </View>
         ),
-        [theme, styles.alignItemsCenter, styles.textAlignCenter, translate],
+        [styles.emptyLHNDetailsContainer, styles.mh1, styles.textAlignCenter, theme.icon, theme.placeholderText, translate],
     );
 
     /**

@@ -4939,6 +4939,14 @@ const styles = (theme: ThemeColors) =>
         reportListItemActionButtonMargin: {
             marginLeft: variables.searchTypeColumnWidth,
         },
+
+        emptyLHNDetailsContainer: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexWrap: 'wrap',
+            textAlign: 'center',
+        },
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;
