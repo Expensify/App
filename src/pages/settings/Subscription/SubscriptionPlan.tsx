@@ -49,16 +49,16 @@ function SubscriptionPlan() {
         <Section
             title={translate('subscription.yourPlan.title')}
             isCentralPane
-            titleStyles={styles.subscriptionSettingsSectionTitle}
+            titleStyles={styles.textStrong}
         >
-            <View style={[styles.subscriptionSettingsBorderWrapper, styles.mt5, styles.p5]}>
+            <View style={[styles.borderedContentCard, styles.mt5, styles.p5]}>
                 <Icon
                     src={isCollect ? Illustrations.Mailbox : Illustrations.ShieldYellow}
                     width={variables.iconHeader}
                     height={variables.iconHeader}
                 />
-                <Text style={[styles.yourPlanTitle, styles.mt2]}>{translate(`subscription.yourPlan.${isCollect ? 'collect' : 'control'}.title`)}</Text>
-                <Text style={[styles.yourPlanSubtitle, styles.mb2]}>
+                <Text style={[styles.headerText, styles.mt2]}>{translate(`subscription.yourPlan.${isCollect ? 'collect' : 'control'}.title`)}</Text>
+                <Text style={[styles.textLabelSupporting, styles.mb2]}>
                     {translate(`subscription.yourPlan.${isCollect ? 'collect' : 'control'}.${isAnnual ? 'priceAnnual' : 'pricePayPerUse'}`)}
                 </Text>
                 {benefitsList.map((benefit) => (
@@ -70,7 +70,7 @@ function SubscriptionPlan() {
                             src={Expensicons.Checkmark}
                             fill={theme.iconSuccessFill}
                         />
-                        <Text style={[styles.yourPlanBenefit, styles.ml2]}>{benefit}</Text>
+                        <Text style={[styles.textMicroSupporting, styles.ml2]}>{benefit}</Text>
                     </View>
                 ))}
             </View>
@@ -82,8 +82,8 @@ function SubscriptionPlan() {
                     additionalStyles={styles.mr2}
                 />
                 <View style={[styles.flexColumn, styles.justifyContentCenter, styles.flex1, styles.mr2]}>
-                    <Text style={[styles.yourPlanTitle, styles.mt2]}>{translate('subscription.yourPlan.saveWithExpensifyTitle')}</Text>
-                    <Text style={[styles.yourPlanSubtitle, styles.mb2]}>{translate('subscription.yourPlan.saveWithExpensifyDescription')}</Text>
+                    <Text style={[styles.headerText, styles.mt2]}>{translate('subscription.yourPlan.saveWithExpensifyTitle')}</Text>
+                    <Text style={[styles.textLabelSupporting, styles.mb2]}>{translate('subscription.yourPlan.saveWithExpensifyDescription')}</Text>
                 </View>
                 <SaveWithExpensifyButton />
             </View>
