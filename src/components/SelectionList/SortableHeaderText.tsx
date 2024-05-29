@@ -46,7 +46,7 @@ export default function SortableHeaderText({text, sortOrder, isActive, textStyle
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
                     <Text
                         numberOfLines={1}
-                        style={[styles.mutedNormalTextLabel, textStyle, isActive && styles.searchTableHeaderActive]}
+                        style={[styles.textMicroSupporting, textStyle, isActive && styles.searchTableHeaderActive]}
                     >
                         {text}
                     </Text>
