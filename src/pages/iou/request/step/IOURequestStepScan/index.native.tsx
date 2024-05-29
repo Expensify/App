@@ -179,8 +179,9 @@ function IOURequestStepScan({
             return isPdfFilePasswordProtected(file).then((isProtected: boolean) => {
                 if (isProtected) {
                     Alert.alert(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.protectedPDFNotSupported'));
+                    return false;
                 }
-                return !isProtected;
+                return true;
             });
         }
 

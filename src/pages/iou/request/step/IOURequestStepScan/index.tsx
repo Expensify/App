@@ -211,8 +211,9 @@ function IOURequestStepScan({
                     return isPdfFilePasswordProtected(file).then((isProtected: boolean) => {
                         if (isProtected) {
                             setUploadReceiptError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.protectedPDFNotSupported');
+                            return false;
                         }
-                        return !isProtected;
+                        return true;
                     });
                 }
                 return true;
