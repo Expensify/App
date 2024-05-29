@@ -87,7 +87,7 @@ function IOURequestStepDistanceRate({
             IOU.setMoneyRequestTaxAmount(transactionID, taxAmount, true);
             IOU.setMoneyRequestTaxRate(transactionID, taxRateExternalID);
         }
-        IOU.updateDistanceRequestRate(transactionID, customUnitRateID, policy?.id ?? '');
+        IOU.updateDistanceRequestRate(transactionID, customUnitRateID, policy?.id ?? '-1');
         navigateBack();
     }
 
