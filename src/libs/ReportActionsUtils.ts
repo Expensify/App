@@ -7,7 +7,6 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportActionsPages} from '@src/types/onyx';
 import type {
     ActionName,
     ChangeLog,
@@ -303,164 +302,6 @@ function getCombinedReportActions(reportActions: ReportAction[], transactionThre
     });
 
     return getSortedReportActions(filteredReportActions, true);
-}
-
-type PageWithIndexes = {
-    ids: string[];
-    firstReportActionID: string;
-    firstReportActionIndex: number;
-    lastReportActionID: string;
-    lastReportActionIndex: number;
-};
-
-/**
- * Finds the id, index in sortedReportActions and index in the page of the first valid report action in the given page.
- */
-function findFirstReportAction(sortedReportActions: ReportAction[], page: string[]): {id: string; index: number} | null {
-    // eslint-disable-next-line @typescript-eslint/prefer-for-of
-    for (let i = 0; i < page.length; i++) {
-        const id = page[i];
-        if (id === CONST.PAGINATION_START_ID) {
-            return {id, index: 0};
-        }
-        const index = sortedReportActions.findIndex((reportAction) => reportAction.reportActionID === id);
-        if (index !== -1) {
-            return {id, index};
-        }
-    }
-    return null;
-}
-
-/**
- * Finds the id, index in sortedReportActions and index in the page of the last valid report action in the given page.
- */
-function findLastReportAction(sortedReportActions: ReportAction[], page: string[]): {id: string; index: number} | null {
-    for (let i = page.length - 1; i >= 0; i--) {
-        const id = page[i];
-        if (id === CONST.PAGINATION_END_ID) {
-            return {id, index: sortedReportActions.length - 1};
-        }
-        const index = sortedReportActions.findIndex((reportAction) => reportAction.reportActionID === id);
-        if (index !== -1) {
-            return {id, index};
-        }
-    }
-    return null;
-}
-
-function getPagesWithIndexes(sortedReportActions: ReportAction[], pages: ReportActionsPages): PageWithIndexes[] {
-    return pages
-        .map((page) => {
-            let firstReportAction = findFirstReportAction(sortedReportActions, page);
-            let lastReportAction = findLastReportAction(sortedReportActions, page);
-
-            // If all actions in the page are not found it will be removed.
-            if (firstReportAction === null || lastReportAction === null) {
-                return null;
-            }
-
-            // In case actions were reordered, we need to swap them.
-            if (firstReportAction.index > lastReportAction.index) {
-                const temp = firstReportAction;
-                firstReportAction = lastReportAction;
-                lastReportAction = temp;
-            }
-
-            return {
-                ids: sortedReportActions.slice(firstReportAction.index, lastReportAction.index + 1).map((reportAction) => reportAction.reportActionID),
-                firstReportActionID: firstReportAction.id,
-                firstReportActionIndex: firstReportAction.index,
-                lastReportActionID: lastReportAction.id,
-                lastReportActionIndex: lastReportAction.index,
-            };
-        })
-        .filter((page) => page !== null) as PageWithIndexes[];
-}
-
-function mergeContinuousPages(sortedReportActions: ReportAction[], pages: ReportActionsPages): ReportActionsPages {
-    const pagesWithIndexes = getPagesWithIndexes(sortedReportActions, pages);
-
-    if (pagesWithIndexes.length === 0) {
-        return [];
-    }
-
-    // Pages need to be sorted by firstReportActionIndex ascending then by lastReportActionIndex descending.
-    const sortedPages = pagesWithIndexes.sort((a, b) => {
-        if (a.firstReportActionIndex !== b.firstReportActionIndex) {
-            return a.firstReportActionIndex - b.firstReportActionIndex;
-        }
-        return b.lastReportActionIndex - a.lastReportActionIndex;
-    });
-
-    const result = [sortedPages[0]];
-    for (let i = 1; i < sortedPages.length; i++) {
-        const page = sortedPages[i];
-        const prevPage = sortedPages[i - 1];
-
-        // Current page in inside the previous page, skip.
-        if (page.lastReportActionIndex <= prevPage.lastReportActionIndex) {
-            // eslint-disable-next-line no-continue
-            continue;
-        }
-
-        // Current page is continuous with the previous page, merge.
-        // This happens if the ids from the current page and previous page are the same
-        // or if the indexes overlap.
-        if (page.firstReportActionID === prevPage.lastReportActionID || page.firstReportActionIndex < prevPage.lastReportActionIndex) {
-            result[result.length - 1] = {
-                firstReportActionID: prevPage.firstReportActionID,
-                firstReportActionIndex: prevPage.firstReportActionIndex,
-                lastReportActionID: page.lastReportActionID,
-                lastReportActionIndex: page.lastReportActionIndex,
-                // Only add items from prevPage that are not included in page in case of overlap.
-                ids: prevPage.ids.slice(0, prevPage.ids.indexOf(page.firstReportActionID)).concat(page.ids),
-            };
-            // eslint-disable-next-line no-continue
-            continue;
-        }
-
-        // No overlap, add the current page as is.
-        result.push(page);
-    }
-
-    return result.map((page) => page.ids);
-}
-
-/**
- * Returns the page of actions that contains the given reportActionID, or the first page if null.
- * See unit tests for example of inputs and expected outputs.
- * Note: sortedReportActions sorted in descending order
- */
-function getContinuousReportActionChain(sortedReportActions: ReportAction[], pages: ReportActionsPages, id?: string): ReportAction[] {
-    if (pages.length === 0) {
-        return id ? [] : sortedReportActions;
-    }
-
-    const pagesWithIndexes = getPagesWithIndexes(sortedReportActions, pages);
-
-    let page: PageWithIndexes;
-
-    if (id) {
-        const index = sortedReportActions.findIndex((reportAction) => reportAction.reportActionID === id);
-
-        // If we are linking to an action that doesn't exist in onyx, return an empty array.
-        if (index === -1) {
-            return [];
-        }
-
-        const linkedPage = pagesWithIndexes.find((pageIndex) => index >= pageIndex.firstReportActionIndex && index <= pageIndex.lastReportActionIndex);
-
-        // If we are linking to an action in a gap just return it.
-        if (!linkedPage) {
-            return [sortedReportActions[index]];
-        }
-
-        page = linkedPage;
-    } else {
-        page = pagesWithIndexes[0];
-    }
-
-    return sortedReportActions.slice(page.firstReportActionIndex, page.lastReportActionIndex + 1);
 }
 
 /**
@@ -1339,7 +1180,6 @@ export {
     shouldReportActionBeVisible,
     shouldHideNewMarker,
     shouldReportActionBeVisibleAsLastAction,
-    getContinuousReportActionChain,
     hasRequestFromCurrentAccount,
     getFirstVisibleReportActionID,
     isMemberChangeAction,
@@ -1356,7 +1196,6 @@ export {
     isActionableJoinRequestPending,
     isActionableTrackExpense,
     isLinkedTransactionHeld,
-    mergeContinuousPages,
 };
 
 export type {LastVisibleMessage};
