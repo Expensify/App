@@ -15,6 +15,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import * as Category from '@userActions/Policy/Category';
+import * as DistanceRate from '@userActions/Policy/DistanceRate';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -63,7 +64,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             isActive: policy?.areDistanceRatesEnabled ?? false,
             pendingAction: policy?.pendingFields?.areDistanceRatesEnabled,
             action: (isEnabled: boolean) => {
-                Policy.enablePolicyDistanceRates(policy?.id ?? '', isEnabled);
+                DistanceRate.enablePolicyDistanceRates(policy?.id ?? '', isEnabled);
             },
         },
         {
