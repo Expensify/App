@@ -14,7 +14,6 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
-import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -666,7 +665,7 @@ function setNewOptimisticAssignee(assigneeLogin: string, assigneeAccountID: numb
 
     const optimisticPersonalDetailsListAction: OnyxTypes.PersonalDetails = {
         accountID: assigneeAccountID,
-        avatar: allPersonalDetails?.[assigneeAccountID]?.avatar ?? UserUtils.getDefaultAvatarURL(assigneeAccountID),
+        avatar: allPersonalDetails?.[assigneeAccountID]?.avatar,
         displayName: allPersonalDetails?.[assigneeAccountID]?.displayName ?? assigneeLogin,
         login: assigneeLogin,
     };

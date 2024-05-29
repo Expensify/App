@@ -76,6 +76,7 @@ function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyConnectionsProps
                     ListItem={RadioListItem}
                     headerContent={listHeaderComponent}
                     onSelectRow={updateAccount}
+                    shouldDebounceRowSelect
                     initiallyFocusedOptionKey={initiallyFocusedOptionKey}
                 />
             </ScreenWrapper>

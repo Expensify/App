@@ -489,6 +489,7 @@ function ComposerWithSuggestions(
         debouncedSaveReportComment.cancel();
         isCommentPendingSaved.current = false;
 
+        setSelection({start: 0, end: 0});
         updateComment('');
         setTextInputShouldClear(true);
         if (isComposerFullSize) {

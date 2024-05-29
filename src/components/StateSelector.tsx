@@ -3,7 +3,7 @@ import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import React, {useEffect, useRef} from 'react';
 import type {ForwardedRef} from 'react';
 import type {View} from 'react-native';
-import useGeographicalStateAndCountryFromRoute from '@hooks/useGeographicalStateAndCountryFromRoute';
+import useGeographicalStateFromRoute from '@hooks/useGeographicalStateFromRoute';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {MaybePhraseKey} from '@libs/Localize';
@@ -44,7 +44,7 @@ function StateSelector(
 ) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {state: stateFromUrl} = useGeographicalStateAndCountryFromRoute();
+    const stateFromUrl = useGeographicalStateFromRoute();
 
     const didOpenStateSelector = useRef(false);
     const isFocused = useIsFocused();

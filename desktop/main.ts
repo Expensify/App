@@ -15,6 +15,8 @@ import type PlatformSpecificUpdater from '@src/setup/platformSetup/types';
 import type {Locale} from '@src/types/onyx';
 import ELECTRON_EVENTS from './ELECTRON_EVENTS';
 
+const createDownloadQueue = require('./createDownloadQueue').default;
+
 const port = process.env.PORT ?? 8082;
 const {DESKTOP_SHORTCUT_ACCELERATOR, LOCALES} = CONST;
 
@@ -611,6 +613,15 @@ const mainWindow = (): Promise<void> => {
                     } else {
                         app.setBadgeCount(totalCount);
                     }
+                });
+
+                const downloadQueue = createDownloadQueue();
+                ipcMain.on(ELECTRON_EVENTS.DOWNLOAD, (event, downloadData) => {
+                    const downloadItem = {
+                        ...downloadData,
+                        win: browserWindow,
+                    };
+                    downloadQueue.enqueueDownloadItem(downloadItem);
                 });
 
                 // Automatically check for and install the latest version in the background

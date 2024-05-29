@@ -1,17 +1,13 @@
-import {FlashList} from '@shopify/flash-list';
 import type {ReactElement} from 'react';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-// We take ScrollView from this package to properly handle the scrolling of AutoCompleteSuggestions in chats since one scroll is nested inside another
-import {ScrollView} from 'react-native-gesture-handler';
+import React, {useCallback, useEffect, useRef} from 'react';
+import {FlatList} from 'react-native-gesture-handler';
 import Animated, {Easing, FadeOutDown, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import {useSuggestionsContext} from '@pages/home/report/ReportActionCompose/ComposerWithSuggestionsEdit/SuggestionsContext';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {AutoCompleteSuggestionsProps, RenderSuggestionMenuItemProps} from './types';
 
@@ -48,11 +44,10 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
     shouldBeDisplayedBelowParentContainer = false,
     containerHeight,
 }: AutoCompleteSuggestionsProps<TSuggestion>) {
-    const {windowWidth, isLargeScreenWidth} = useWindowDimensions();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const rowHeight = useSharedValue(0);
-    const scrollRef = useRef<FlashList<TSuggestion>>(null);
+    const scrollRef = useRef<FlatList<TSuggestion>>(null);
     const {activeID} = useSuggestionsContext();
     /**
      * Render a suggestion menu item component.
@@ -77,13 +72,6 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
     const innerHeight = CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT * suggestions.length;
     const animatedStyles = useAnimatedStyle(() =>
         StyleUtils.getAutoCompleteSuggestionContainerStyles(rowHeight.value, shouldBeDisplayedBelowParentContainer, Boolean(activeID), containerHeight ?? 0),
-    );
-    const estimatedListSize = useMemo(
-        () => ({
-            height: CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT * suggestions.length,
-            width: (isLargeScreenWidth ? windowWidth - variables.sideBarWidth : windowWidth) - CONST.CHAT_FOOTER_HORIZONTAL_PADDING,
-        }),
-        [isLargeScreenWidth, suggestions.length, windowWidth],
     );
 
     useEffect(() => {
@@ -112,14 +100,11 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
             }}
         >
             <ColorSchemeWrapper>
-                <FlashList
-                    estimatedItemSize={CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT}
-                    estimatedListSize={estimatedListSize}
+                <FlatList
                     ref={scrollRef}
                     keyboardShouldPersistTaps="handled"
                     data={suggestions}
                     renderItem={renderItem}
-                    renderScrollComponent={ScrollView}
                     keyExtractor={keyExtractor}
                     removeClippedSubviews={false}
                     showsVerticalScrollIndicator={innerHeight > rowHeight.value}

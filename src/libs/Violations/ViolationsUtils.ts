@@ -280,6 +280,8 @@ const ViolationsUtils = {
                 return translate('violations.taxRateChanged');
             case 'taxRequired':
                 return translate('violations.taxRequired');
+            case 'hold':
+                return translate('violations.hold');
             default:
                 // The interpreter should never get here because the switch cases should be exhaustive.
                 // If typescript is showing an error on the assertion below it means the switch statement is out of

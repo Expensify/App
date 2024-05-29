@@ -95,6 +95,7 @@ function PronounsPage({currentUserPersonalDetails, isLoadingApp = true}: Pronoun
                         sections={[{data: filteredPronounsList}]}
                         ListItem={RadioListItem}
                         onSelectRow={updatePronouns}
+                        shouldDebounceRowSelect
                         onChangeText={setSearchValue}
                         initiallyFocusedOptionKey={currentPronounsKey}
                     />

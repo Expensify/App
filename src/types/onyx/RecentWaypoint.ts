@@ -10,6 +10,9 @@ type RecentWaypoint = {
 
     /** The longitude of the waypoint */
     lng?: number;
+
+    /** A unique key for waypoint is required for correct draggable list rendering */
+    keyForList?: string;
 };
 
 export default RecentWaypoint;

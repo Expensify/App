@@ -5,6 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import AnonymousReportFooter from '@components/AnonymousReportFooter';
 import ArchivedReportFooter from '@components/ArchivedReportFooter';
+import BlockedReportFooter from '@components/BlockedReportFooter';
 import OfflineIndicator from '@components/OfflineIndicator';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import SwipeableView from '@components/SwipeableView';
@@ -30,6 +31,9 @@ type ReportFooterOnyxProps = {
 
     /** Session info for the currently logged in user. */
     session: OnyxEntry<OnyxTypes.Session>;
+
+    /** Whether user is blocked from chat. */
+    blockedFromChat: OnyxEntry<string>;
 };
 
 type ReportFooterProps = ReportFooterOnyxProps & {
@@ -74,6 +78,7 @@ function ReportFooter({
     isReportReadyForDisplay = true,
     listHeight = 0,
     isComposerFullSize = false,
+    blockedFromChat,
     onComposerBlur,
     onComposerFocus,
 }: ReportFooterProps) {
@@ -85,7 +90,7 @@ function ReportFooter({
     const isAnonymousUser = session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
 
     const isSmallSizeLayout = windowWidth - (isSmallScreenWidth ? 0 : variables.sideBarWidth) < variables.anonymousReportFooterBreakpoint;
-    const hideComposer = !ReportUtils.canUserPerformWriteAction(report, reportNameValuePairs);
+    const hideComposer = !ReportUtils.canUserPerformWriteAction(report, reportNameValuePairs) || blockedFromChat;
     const canWriteInReport = ReportUtils.canWriteInReport(report);
     const isSystemChat = ReportUtils.isSystemChat(report);
 
@@ -153,6 +158,7 @@ function ReportFooter({
                         />
                     )}
                     {isArchivedRoom && <ArchivedReportFooter report={report} />}
+                    {!isArchivedRoom && blockedFromChat && <BlockedReportFooter />}
                     {!isAnonymousUser && !canWriteInReport && isSystemChat && <SystemChatReportFooterMessage />}
                     {!isSmallScreenWidth && <View style={styles.offlineIndicatorRow}>{hideComposer && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}</View>}
                 </View>
@@ -189,6 +195,9 @@ export default withOnyx<ReportFooterProps, ReportFooterOnyxProps>({
     },
     session: {
         key: ONYXKEYS.SESSION,
+    },
+    blockedFromChat: {
+        key: ONYXKEYS.NVP_BLOCKED_FROM_CHAT,
     },
 })(
     memo(

@@ -82,7 +82,7 @@ function Banner({
                             containerStyles,
                         ]}
                     >
-                        <View style={[styles.flexRow, styles.flexGrow1, styles.mw100, styles.alignItemsCenter]}>
+                        <View style={[styles.flexRow, styles.flex1, styles.mw100, styles.alignItemsCenter]}>
                             {shouldShowIcon && icon && (
                                 <View style={[styles.mr3]}>
                                     <Icon
@@ -97,7 +97,7 @@ function Banner({
                                 <RenderHTML html={text} />
                             ) : (
                                 <Text
-                                    style={textStyles}
+                                    style={[styles.flex1, styles.flexWrap, textStyles]}
                                     onPress={onPress}
                                     suppressHighlighting
                                 >

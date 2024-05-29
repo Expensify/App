@@ -13,7 +13,7 @@ import type {
     ReimbursementAccountNavigatorParamList,
     SettingsNavigatorParamList,
 } from '@navigation/types';
-import * as Policy from '@userActions/Policy';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';

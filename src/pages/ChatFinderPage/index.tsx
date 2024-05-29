@@ -1,6 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import isEmpty from 'lodash/isEmpty';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -61,6 +61,14 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
     const offlineMessage: MaybePhraseKey = isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : '';
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
+    const [, debouncedSearchValueInServer, setSearchValueInServer] = useDebouncedState('', 500);
+    const updateSearchValue = useCallback(
+        (value: string) => {
+            setSearchValue(value);
+            setSearchValueInServer(value);
+        },
+        [setSearchValue, setSearchValueInServer],
+    );
 
     useEffect(() => {
         Timing.start(CONST.TIMING.CHAT_FINDER_RENDER);
@@ -68,8 +76,8 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
     }, []);
 
     useEffect(() => {
-        Report.searchInServer(debouncedSearchValue.trim());
-    }, [debouncedSearchValue]);
+        Report.searchInServer(debouncedSearchValueInServer.trim());
+    }, [debouncedSearchValueInServer]);
 
     const searchOptions = useMemo(() => {
         if (!areOptionsInitialized || !isScreenTransitionEnd) {
@@ -144,7 +152,7 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
         }
 
         if (option.reportID) {
-            setSearchValue('');
+            updateSearchValue('');
             Navigation.dismissModal(option.reportID);
         } else {
             Report.navigateToAndOpenReport(option.login ? [option.login] : []);
@@ -175,10 +183,11 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
                 textInputValue={searchValue}
                 textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
                 textInputHint={offlineMessage}
-                onChangeText={setSearchValue}
+                onChangeText={updateSearchValue}
                 headerMessage={headerMessage}
                 onLayout={setPerformanceTimersEnd}
                 onSelectRow={selectReport}
+                shouldDebounceRowSelect
                 showLoadingPlaceholder={!areOptionsInitialized || !isScreenTransitionEnd}
                 footerContent={!isDismissed && ChatFinderPageFooterInstance}
                 isLoadingNewOptions={!!isSearchingForReports}

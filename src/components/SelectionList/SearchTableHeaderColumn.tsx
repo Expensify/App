@@ -22,7 +22,7 @@ export default function SearchTableHeaderColumn({containerStyle, text, textStyle
         <View style={containerStyle}>
             <Text
                 numberOfLines={1}
-                style={[styles.mutedNormalTextLabel, textStyle]}
+                style={[styles.textMicroSupporting, textStyle]}
             >
                 {text}
             </Text>

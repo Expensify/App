@@ -180,7 +180,6 @@ function AddressForm({
                     InputComponent={CountrySelector}
                     inputID={INPUT_IDS.COUNTRY}
                     value={country}
-                    onValueChange={onAddressChanged}
                     shouldSaveDraft={shouldSaveDraft}
                 />
             </View>

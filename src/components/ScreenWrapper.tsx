@@ -169,12 +169,18 @@ function ScreenWrapper(
     ).current;
 
     useEffect(() => {
+        // On iOS, the transitionEnd event doesn't trigger some times. As such, we need to set a timeout
+        const timeout = setTimeout(() => {
+            setDidScreenTransitionEnd(true);
+            onEntryTransitionEnd?.();
+        }, CONST.SCREEN_TRANSITION_END_TIMEOUT);
+
         const unsubscribeTransitionEnd = navigation.addListener('transitionEnd', (event) => {
             // Prevent firing the prop callback when user is exiting the page.
             if (event?.data?.closing) {
                 return;
             }
-
+            clearTimeout(timeout);
             setDidScreenTransitionEnd(true);
             onEntryTransitionEnd?.();
         });
@@ -192,6 +198,7 @@ function ScreenWrapper(
             : undefined;
 
         return () => {
+            clearTimeout(timeout);
             unsubscribeTransitionEnd();
 
             if (beforeRemoveSubscription) {
