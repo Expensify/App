@@ -324,6 +324,7 @@ function MoneyReportHeader({
                 confirmText={translate('iou.cancelPayment')}
                 cancelText={translate('common.dismiss')}
                 danger
+                shouldEnableNewFocusManagement
             />
             <ConfirmModal
                 title={translate('iou.deleteExpense')}
@@ -334,6 +335,7 @@ function MoneyReportHeader({
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}
                 danger
+                shouldEnableNewFocusManagement
             />
         </View>
     );
