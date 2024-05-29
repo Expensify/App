@@ -1,7 +1,7 @@
 import {useIsFocused} from '@react-navigation/core';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {Platform, View} from 'react-native';
+import {PixelRatio, Platform, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import BigNumberPad from '@components/BigNumberPad';
 import Button from '@components/Button';
@@ -10,6 +10,7 @@ import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
 import type {MoneyRequestAmountInputRef} from '@components/MoneyRequestAmountInput';
 import ScrollView from '@components/ScrollView';
 import SettlementButton from '@components/SettlementButton';
+import useInitialDimensions from '@hooks/useInitialWindowDimensions';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -25,6 +26,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {SelectedTabRequest} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import flexDistributionPercentCalculation from './IOUUtils';
 
 type CurrentMoney = {amount: string; currency: string; paymentMethod?: PaymentMethodType};
 
@@ -259,6 +261,20 @@ function MoneyRequestAmountForm(
         setFormError('');
     }, [selectedTab]);
 
+    const fontScale = PixelRatio.getFontScale();
+    const {initialHeight} = useInitialDimensions();
+    const restHeightPercent = 80;
+    const buttonHeightPercent = 10;
+    // The rest and button container distribution using flexbox
+    const flexRelativeDistributionInContainer = 2;
+    const {flexTotalHeightPercentRest, flexTotalHeightPercentButton} = flexDistributionPercentCalculation(
+        initialHeight,
+        fontScale,
+        restHeightPercent,
+        buttonHeightPercent,
+        flexRelativeDistributionInContainer,
+    );
+
     return (
         <ScrollView contentContainerStyle={styles.flexGrow1}>
             <View
@@ -301,7 +317,7 @@ function MoneyRequestAmountForm(
             </View>
             <View
                 onMouseDown={(event) => onMouseDown(event, [NUM_PAD_CONTAINER_VIEW_ID, NUM_PAD_VIEW_ID])}
-                style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper, styles.pt0, Platform.OS !== 'web' ? {flex: 0.3} : {}]}
+                style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper, styles.pt0, Platform.OS !== 'web' ? {flex: flexTotalHeightPercentRest} : {}]}
                 id={NUM_PAD_CONTAINER_VIEW_ID}
             >
                 {canUseTouchScreen ? (
@@ -311,7 +327,7 @@ function MoneyRequestAmountForm(
                         longPressHandlerStateChanged={updateLongPressHandlerState}
                     />
                 ) : null}
-                <View style={[styles.w100, Platform.OS !== 'web' ? {flex: 0.5} : {}]}>
+                <View style={[styles.w100, Platform.OS !== 'web' ? {flex: flexTotalHeightPercentButton} : {}]}>
                     {iouType === CONST.IOU.TYPE.PAY && skipConfirmation ? (
                         <SettlementButton
                             pressOnEnter

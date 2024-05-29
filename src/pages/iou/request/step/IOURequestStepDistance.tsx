@@ -1,6 +1,6 @@
 import {isEmpty, isEqual} from 'lodash';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {Platform, View} from 'react-native';
+import {PixelRatio, Platform, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 import type {RenderItemParams} from 'react-native-draggable-flatlist/lib/typescript/types';
@@ -13,6 +13,7 @@ import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import DraggableList from '@components/DraggableList';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import useInitialDimensions from '@hooks/useInitialWindowDimensions';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
@@ -22,6 +23,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import flexDistributionPercentCalculation from '@pages/iou/IOUUtils';
 import * as IOU from '@userActions/IOU';
 import * as MapboxToken from '@userActions/MapboxToken';
 import * as TransactionAction from '@userActions/Transaction';
@@ -426,6 +428,19 @@ function IOURequestStepDistance({
         [isLoadingRoute, navigateToWaypointEditPage, waypoints],
     );
 
+    const fontScale = PixelRatio.getFontScale();
+    const {initialHeight} = useInitialDimensions();
+    const restHeightPercent = 70;
+    const buttonHeightPercent = 10;
+    // The rest and button container distribution using flexbox
+    const flexRelativeDistributionInContainer = 4;
+    const {flexTotalHeightPercentRest, flexTotalHeightPercentButton} = flexDistributionPercentCalculation(
+        initialHeight,
+        fontScale,
+        restHeightPercent,
+        buttonHeightPercent,
+        flexRelativeDistributionInContainer,
+    );
     return (
         <StepScreenWrapper
             headerTitle={translate('common.distance')}
@@ -434,7 +449,7 @@ function IOURequestStepDistance({
             shouldShowWrapper={!isCreatingNewRequest}
         >
             <View style={styles.flex1}>
-                <View style={styles.flex3}>
+                <View style={{flex: flexTotalHeightPercentRest}}>
                     <DraggableList
                         data={waypointsList}
                         keyExtractor={(item) => (waypoints[item]?.keyForList ?? waypoints[item]?.address ?? '') + item}
@@ -451,7 +466,7 @@ function IOURequestStepDistance({
                         }
                     />
                 </View>
-                <View style={[styles.w100, styles.pt2, Platform.OS !== 'web' ? {flex: 0.51} : {}]}>
+                <View style={[styles.w100, styles.pt2, Platform.OS !== 'web' ? {flex: flexTotalHeightPercentButton} : {}]}>
                     {/* Show error message if there is route error or there are less than 2 routes and user has tried submitting, */}
                     {((shouldShowAtLeastTwoDifferentWaypointsError && atLeastTwoDifferentWaypointsError) || duplicateWaypointsError || hasRouteError) && (
                         <DotIndicatorMessage
