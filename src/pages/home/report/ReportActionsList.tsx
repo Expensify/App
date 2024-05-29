@@ -447,12 +447,14 @@ function ReportActionsList({
      * Evaluate new unread marker visibility for each of the report actions.
      */
     const shouldDisplayNewMarker = useCallback(
-        (reportAction: OnyxTypes.ReportAction, index: number): boolean => {
+        (reportAction: OnyxTypes.ReportAction, index: number, lastReadTime?: string): boolean => {
+            // if lastReadTime is null, use the lastReadTimeRef.current
+            const baseLastReadTime = lastReadTime ?? lastReadTimeRef.current;
             let shouldDisplay = false;
             if (!currentUnreadMarker) {
                 const nextMessage = sortedVisibleReportActions[index + 1];
-                const isCurrentMessageUnread = isMessageUnread(reportAction, lastReadTimeRef.current);
-                shouldDisplay = isCurrentMessageUnread && (!nextMessage || !isMessageUnread(nextMessage, lastReadTimeRef.current)) && !ReportActionsUtils.shouldHideNewMarker(reportAction);
+                const isCurrentMessageUnread = isMessageUnread(reportAction, baseLastReadTime);
+                shouldDisplay = isCurrentMessageUnread && (!nextMessage || !isMessageUnread(nextMessage, baseLastReadTime)) && !ReportActionsUtils.shouldHideNewMarker(reportAction);
                 if (shouldDisplay && !messageManuallyMarkedUnread) {
                     const isWithinVisibleThreshold = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? reportAction.created < (userActiveSince.current ?? '') : true;
                     // Prevent displaying a new marker line when report action is of type "REPORT_PREVIEW" and last actor is the current user
@@ -490,19 +492,29 @@ function ReportActionsList({
         return ReportUtils.isExpenseReport(report) || ReportUtils.isIOUReport(report);
     }, [parentReportAction, report, sortedVisibleReportActions]);
 
+    // storing the last read time used to render the unread marker
+    const markerLastReadTimeRef = useRef<string | undefined>();
+
+    useEffect(() => {
+        if (!currentUnreadMarker) {
+            markerLastReadTimeRef.current = undefined;
+        }
+    }, [currentUnreadMarker]);
+
     const calculateUnreadMarker = useCallback(() => {
         // Iterate through the report actions and set appropriate unread marker.
         // This is to avoid a warning of:
         // Cannot update a component (ReportActionsList) while rendering a different component (CellRenderer).
         let markerFound = false;
         sortedVisibleReportActions.forEach((reportAction, index) => {
-            if (!shouldDisplayNewMarker(reportAction, index)) {
+            if (!shouldDisplayNewMarker(reportAction, index, markerLastReadTimeRef.current)) {
                 return;
             }
             markerFound = true;
             if (!currentUnreadMarker && currentUnreadMarker !== reportAction.reportActionID) {
                 cacheUnreadMarkers.set(report.reportID, reportAction.reportActionID);
                 setCurrentUnreadMarker(reportAction.reportActionID);
+                markerLastReadTimeRef.current = lastReadTimeRef.current;
             }
         });
         if (!markerFound && !linkedReportActionID) {
@@ -573,7 +585,7 @@ function ReportActionsList({
                 displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(sortedVisibleReportActions, index)}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                 shouldHideThreadDividerLine={shouldHideThreadDividerLine}
-                shouldDisplayNewMarker={shouldDisplayNewMarker(reportAction, index)}
+                shouldDisplayNewMarker={shouldDisplayNewMarker(reportAction, index, markerLastReadTimeRef.current)}
                 shouldDisplayReplyDivider={sortedVisibleReportActions.length > 1}
                 isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
                 shouldUseThreadDividerLine={shouldUseThreadDividerLine}
