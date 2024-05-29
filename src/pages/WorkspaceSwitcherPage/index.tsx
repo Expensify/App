@@ -23,7 +23,7 @@ import WorkspacesSectionHeader from './WorkspacesSectionHeader';
 
 type WorkspaceListItem = {
     text: string;
-    policyID: string;
+    policyID?: string;
     isPolicyAdmin?: boolean;
     brickRoadIndicator?: BrickRoad;
 } & ListItem;
@@ -114,7 +114,7 @@ function WorkspaceSwitcherPage() {
                 brickRoadIndicator: getIndicatorTypeForPolicy(policy?.id),
                 icons: [
                     {
-                        source: policy?.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy?.name),
+                        source: policy?.avatarURL ? policy.avatarURL : ReportUtils.getDefaultWorkspaceAvatar(policy?.name),
                         fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
                         name: policy?.name,
                         type: CONST.ICON_TYPE_WORKSPACE,
@@ -145,7 +145,6 @@ function WorkspaceSwitcherPage() {
                 data: [
                     {
                         text: CONST.WORKSPACE_SWITCHER.NAME,
-                        policyID: '',
                         icons: [{source: Expensicons.ExpensifyAppIcon, name: CONST.WORKSPACE_SWITCHER.NAME, type: CONST.ICON_TYPE_AVATAR}],
                         brickRoadIndicator: getIndicatorTypeForPolicy(undefined),
                         isSelected: activeWorkspaceID === undefined,
@@ -179,6 +178,7 @@ function WorkspaceSwitcherPage() {
                 ListItem={UserListItem}
                 sections={sections}
                 onSelectRow={selectPolicy}
+                shouldDebounceRowSelect
                 textInputLabel={usersWorkspaces.length >= CONST.WORKSPACE_SWITCHER.MINIMUM_WORKSPACES_TO_SHOW_SEARCH ? translate('common.search') : undefined}
                 textInputValue={searchTerm}
                 onChangeText={setSearchTerm}

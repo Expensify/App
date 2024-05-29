@@ -1,6 +1,7 @@
-import React, {useCallback, useContext, useMemo, useState} from 'react';
+import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
+import type {VideoWithOnFullScreenUpdate} from '@components/VideoPlayer/types';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
@@ -13,27 +14,32 @@ import type {PlaybackSpeed, VideoPopoverMenuContext} from './types';
 const Context = React.createContext<VideoPopoverMenuContext | null>(null);
 
 function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
-    const {currentVideoPlayerRef, currentlyPlayingURL} = usePlaybackContext();
+    const {currentlyPlayingURL} = usePlaybackContext();
     const {translate} = useLocalize();
     const [currentPlaybackSpeed, setCurrentPlaybackSpeed] = useState<PlaybackSpeed>(CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS[2]);
     const {isOffline} = useNetwork();
     const isLocalFile = currentlyPlayingURL && CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => currentlyPlayingURL.startsWith(prefix));
+    const videoPopoverMenuPlayerRef = useRef<VideoWithOnFullScreenUpdate | null>(null);
 
     const updatePlaybackSpeed = useCallback(
         (speed: PlaybackSpeed) => {
             setCurrentPlaybackSpeed(speed);
-            currentVideoPlayerRef.current?.setStatusAsync?.({rate: speed});
+            videoPopoverMenuPlayerRef.current?.setStatusAsync?.({rate: speed});
         },
-        [currentVideoPlayerRef],
+        [videoPopoverMenuPlayerRef],
     );
 
     const downloadAttachment = useCallback(() => {
-        if (currentlyPlayingURL === null) {
+        if (videoPopoverMenuPlayerRef.current === null) {
             return;
         }
-        const sourceURI = addEncryptedAuthTokenToURL(currentlyPlayingURL);
+        const {source} = videoPopoverMenuPlayerRef.current?.props ?? {};
+        if (typeof source === 'number' || !source) {
+            return;
+        }
+        const sourceURI = addEncryptedAuthTokenToURL(source.uri);
         fileDownload(sourceURI);
-    }, [currentlyPlayingURL]);
+    }, [videoPopoverMenuPlayerRef]);
 
     const menuItems = useMemo(() => {
         const items: PopoverMenuItem[] = [];
@@ -63,7 +69,10 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
         return items;
     }, [currentPlaybackSpeed, downloadAttachment, translate, updatePlaybackSpeed, isOffline, isLocalFile]);
 
-    const contextValue = useMemo(() => ({menuItems, updatePlaybackSpeed}), [menuItems, updatePlaybackSpeed]);
+    const contextValue = useMemo(
+        () => ({menuItems, videoPopoverMenuPlayerRef, updatePlaybackSpeed, setCurrentPlaybackSpeed}),
+        [menuItems, videoPopoverMenuPlayerRef, updatePlaybackSpeed, setCurrentPlaybackSpeed],
+    );
     return <Context.Provider value={contextValue}>{children}</Context.Provider>;
 }
 

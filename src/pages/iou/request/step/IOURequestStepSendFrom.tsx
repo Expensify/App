@@ -47,7 +47,8 @@ function IOURequestStepSendFrom({route, transaction, allPolicies}: IOURequestSte
             keyForList: policy.id,
             icons: [
                 {
-                    source: policy?.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
+                    id: policy.id,
+                    source: policy?.avatarURL ? policy.avatarURL : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
                     fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
                     name: policy.name,
                     type: CONST.ICON_TYPE_WORKSPACE,
@@ -85,6 +86,7 @@ function IOURequestStepSendFrom({route, transaction, allPolicies}: IOURequestSte
             <SelectionList
                 sections={[{data: workspaceOptions, title: translate('common.workspaces')}]}
                 onSelectRow={selectWorkspace}
+                shouldDebounceRowSelect
                 ListItem={UserListItem}
                 initiallyFocusedOptionKey={selectedWorkspace?.policyID}
             />

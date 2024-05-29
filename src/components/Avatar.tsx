@@ -52,7 +52,7 @@ type AvatarProps = {
     name?: string;
 
     /** Optional account id if it's user avatar or policy id if it's workspace avatar */
-    accountID?: number | string;
+    avatarID?: number | string;
 };
 
 function Avatar({
@@ -66,7 +66,7 @@ function Avatar({
     fallbackIconTestID = '',
     type = CONST.ICON_TYPE_AVATAR,
     name = '',
-    accountID,
+    avatarID,
 }: AvatarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -80,21 +80,22 @@ function Avatar({
     }, [originalSource]);
 
     const isWorkspace = type === CONST.ICON_TYPE_WORKSPACE;
-    const iconSize = StyleUtils.getAvatarSize(size);
 
-    const imageStyle: StyleProp<ImageStyle> = [StyleUtils.getAvatarStyle(size), imageStyles, styles.noBorderRadius];
-    const iconStyle = imageStyles ? [StyleUtils.getAvatarStyle(size), styles.bgTransparent, imageStyles] : undefined;
-
-    // We pass the color styles down to the SVG for the workspace and fallback avatar.
-    const source = isWorkspace ? originalSource : UserUtils.getAvatar(originalSource, Number(accountID));
+    // If it's user avatar then accountID will be a number
+    const source = isWorkspace ? originalSource : UserUtils.getAvatar(originalSource, avatarID as number);
     const useFallBackAvatar = imageError || !source || source === Expensicons.FallbackAvatar;
     const fallbackAvatar = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatar(name) : fallbackIcon || Expensicons.FallbackAvatar;
     const fallbackAvatarTestID = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatarTestID(name) : fallbackIconTestID || 'SvgFallbackAvatar Icon';
     const avatarSource = useFallBackAvatar ? fallbackAvatar : source;
 
+    // We pass the color styles down to the SVG for the workspace and fallback avatar.
+    const iconSize = StyleUtils.getAvatarSize(size);
+    const imageStyle: StyleProp<ImageStyle> = [StyleUtils.getAvatarStyle(size), imageStyles, styles.noBorderRadius];
+    const iconStyle = imageStyles ? [StyleUtils.getAvatarStyle(size), styles.bgTransparent, imageStyles] : undefined;
+
     let iconColors;
     if (isWorkspace) {
-        iconColors = StyleUtils.getDefaultWorkspaceAvatarColor(accountID?.toString() ?? '');
+        iconColors = StyleUtils.getDefaultWorkspaceAvatarColor(avatarID?.toString() ?? '');
     } else if (useFallBackAvatar) {
         iconColors = StyleUtils.getBackgroundColorAndFill(theme.buttonHoveredBG, theme.icon);
     } else {
