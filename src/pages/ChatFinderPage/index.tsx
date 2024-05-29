@@ -187,6 +187,7 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
                 headerMessage={headerMessage}
                 onLayout={setPerformanceTimersEnd}
                 onSelectRow={selectReport}
+                shouldDebounceRowSelect
                 showLoadingPlaceholder={!areOptionsInitialized || !isScreenTransitionEnd}
                 footerContent={!isDismissed && ChatFinderPageFooterInstance}
                 isLoadingNewOptions={!!isSearchingForReports}

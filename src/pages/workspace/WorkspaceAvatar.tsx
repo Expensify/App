@@ -28,7 +28,7 @@ function WorkspaceAvatar({policy, isLoadingApp = true}: WorkspaceAvatarProps) {
             source={UserUtils.getFullSizeAvatar(avatarURL, 0)}
             onModalClose={Navigation.goBack}
             isWorkspaceAvatar
-            originalFileName={policy?.originalFileName ?? policy?.name ?? ''}
+            originalFileName={policy?.originalFileName ?? policy?.id}
             shouldShowNotFoundPage={!Object.keys(policy ?? {}).length && !isLoadingApp}
             isLoading={!Object.keys(policy ?? {}).length && !!isLoadingApp}
             maybeIcon

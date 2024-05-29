@@ -16,6 +16,8 @@ function BottomTabNavigationContentWrapper({
         <ScreenWrapper
             testID={displayName}
             shouldShowOfflineIndicator={false}
+            shouldEnableKeyboardAvoidingView={false}
+            shouldEnablePickerAvoiding={false}
         >
             <View style={styles.flex1}>{children}</View>
         </ScreenWrapper>

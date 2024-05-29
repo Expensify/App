@@ -87,6 +87,7 @@ function ExitSurveyConfirmPage({exitReason, isLoading, route, navigation}: ExitS
                         ExitSurvey.switchToOldDot();
 
                         if (NativeModules.HybridAppModule) {
+                            Navigation.resetToHome();
                             NativeModules.HybridAppModule.closeReactNativeApp();
                             return;
                         }

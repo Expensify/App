@@ -1,5 +1,4 @@
 import React, {useCallback, useMemo} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -25,7 +24,7 @@ import type NewGroupChatDraft from '@src/types/onyx/NewGroupChatDraft';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type GroupChatNameEditPageOnyxProps = {
-    groupChatDraft: OnyxEntry<NewGroupChatDraft>;
+    groupChatDraft: NewGroupChatDraft | null;
 };
 
 type GroupChatNameEditPageProps = PlatformStackScreenProps<NewChatNavigatorParamList, typeof SCREENS.NEW_CHAT.NEW_CHAT_EDIT_NAME> & GroupChatNameEditPageOnyxProps;
