@@ -73,6 +73,7 @@ const onboardingChoices = {
 type OnboardingPurposeType = ValueOf<typeof onboardingChoices>;
 
 const CONST = {
+    RECENT_WAYPOINTS_NUMBER: 20,
     DEFAULT_POLICY_ROOM_CHAT_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL],
 
     // Note: Group and Self-DM excluded as these are not tied to a Workspace
@@ -208,27 +209,12 @@ const CONST = {
     // Sizes needed for report empty state background image handling
     EMPTY_STATE_BACKGROUND: {
         ASPECT_RATIO: 3.72,
+        OVERLAP: 60,
         SMALL_SCREEN: {
             IMAGE_HEIGHT: 300,
-            CONTAINER_MINHEIGHT: 200,
-            VIEW_HEIGHT: 240,
         },
         WIDE_SCREEN: {
             IMAGE_HEIGHT: 450,
-            CONTAINER_MINHEIGHT: 500,
-            VIEW_HEIGHT: 390,
-        },
-        MONEY_OR_TASK_REPORT: {
-            SMALL_SCREEN: {
-                IMAGE_HEIGHT: 300,
-                CONTAINER_MINHEIGHT: 280,
-                VIEW_HEIGHT: 240,
-            },
-            WIDE_SCREEN: {
-                IMAGE_HEIGHT: 450,
-                CONTAINER_MINHEIGHT: 280,
-                VIEW_HEIGHT: 390,
-            },
         },
     },
 
@@ -942,6 +928,7 @@ const CONST = {
         RESIZE_DEBOUNCE_TIME: 100,
     },
     SEARCH_TABLE_COLUMNS: {
+        RECEIPT: 'receipt',
         DATE: 'date',
         MERCHANT: 'merchant',
         FROM: 'from',
@@ -973,7 +960,7 @@ const CONST = {
         DARK_CONTENT: 'dark-content',
     },
     TRANSACTION: {
-        DEFAULT_MERCHANT: 'Request',
+        DEFAULT_MERCHANT: 'Expense',
         UNKNOWN_MERCHANT: 'Unknown Merchant',
         PARTIAL_TRANSACTION_MERCHANT: '(none)',
         TYPE: {
@@ -1277,6 +1264,8 @@ const CONST = {
         SVFG: 'svfg@expensify.com',
         EXPENSIFY_EMAIL_DOMAIN: '@expensify.com',
     },
+
+    CONCIERGE_DISPLAY_NAME: 'Concierge',
 
     INTEGRATION_ENTITY_MAP_TYPES: {
         DEFAULT: 'DEFAULT',
@@ -2067,7 +2056,7 @@ const CONST = {
     LOGIN_CHARACTER_LIMIT: 254,
     CATEGORY_NAME_LIMIT: 256,
     TAG_NAME_LIMIT: 256,
-    REPORT_NAME_LIMIT: 256,
+    REPORT_NAME_LIMIT: 100,
     TITLE_CHARACTER_LIMIT: 100,
     DESCRIPTION_LIMIT: 500,
     WORKSPACE_NAME_CHARACTER_LIMIT: 80,
@@ -3499,7 +3488,6 @@ const CONST = {
 
     NAVIGATION: {
         TYPE: {
-            FORCED_UP: 'FORCED_UP',
             UP: 'UP',
         },
         ACTION_TYPE: {
@@ -4764,6 +4752,7 @@ const CONST = {
     MAX_TAX_RATE_DECIMAL_PLACES: 4,
 
     DOWNLOADS_PATH: '/Downloads',
+    DOWNLOADS_TIMEOUT: 5000,
     NEW_EXPENSIFY_PATH: '/New Expensify',
 
     ENVIRONMENT_SUFFIX: {
@@ -4778,10 +4767,10 @@ const CONST = {
     },
 
     SEARCH_RESULTS_PAGE_SIZE: 50,
-    SEARCH_BOTTOM_TAB_URL: '/Search_Bottom_Tab',
 
     SEARCH_DATA_TYPES: {
         TRANSACTION: 'transaction',
+        REPORT: 'report',
     },
 
     REFERRER: {
