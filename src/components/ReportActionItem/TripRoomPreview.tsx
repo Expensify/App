@@ -133,7 +133,8 @@ function TripRoomPreview({
     const dateInfo = chatReport?.tripData ? DateUtils.getFormattedDateRange(new Date(chatReport.tripData.startDate), new Date(chatReport.tripData.endDate)) : '';
 
     const displayAmount = useMemo(() => {
-        // If iouReport is not available, get amount from the action message (Ex: "Domain20821's Workspace owes $33.00" or "paid ₫60" or "paid -₫60 elsewhere")
+        // @TODO: It should be read from chatReport?.message, replace it once it's available.
+        // If report is not available, get amount from the action last message text (Ex: "Domain20821's Workspace owes $33.00" or "paid ₫60" or "paid -₫60 elsewhere")
         let displayAmountValue = '';
         const actionMessage = chatReport?.lastMessageText ?? '';
         const splits = actionMessage.split(' ');
