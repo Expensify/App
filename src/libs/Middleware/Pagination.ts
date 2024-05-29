@@ -16,6 +16,17 @@ function isPaginatedRequest<TResource, TResourceKey extends OnyxCollectionKey, T
     return 'isPaginated' in request && request.isPaginated;
 }
 
+/**
+ * This middleware handles paginated requests marked with isPaginated: true. It works by:
+ *
+ * 1. Extracting the paginated resources from the response
+ * 2. Sorting them
+ * 3. Merging the new page of resources with any preexisting pages it overlaps with
+ * 4. Updating the saves pages in Onyx for that resource.
+ *
+ * It does this to keep track of what it's fetched via pagination and what may have showed up from other sources,
+ * so it can keep track of and fill any potential gaps in paginated lists.
+ */
 const Pagination: Middleware = (requestResponse, request) => {
     if (!isPaginatedRequest(request)) {
         return requestResponse;
