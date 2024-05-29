@@ -21,6 +21,14 @@ function getTripReservationIcon(reservationType: ReservationType): IconAsset {
     }
 }
 
+function getTripReservationTitle(reservation: Reservation) {
+    if (reservation.type === CONST.RESERVATION_TYPE.CAR) {
+        return reservation?.vendor ?? reservation.start?.location;
+    }
+
+    return reservation.start?.address;
+}
+
 function getReservationsFromTripTransactions(transactions: Transaction[]): Reservation[] {
     return transactions
         .map((item) => item?.receipt?.reservationList ?? [])
@@ -28,4 +36,4 @@ function getReservationsFromTripTransactions(transactions: Transaction[]): Reser
         .flat();
 }
 
-export {getTripReservationIcon, getReservationsFromTripTransactions};
+export {getTripReservationIcon, getReservationsFromTripTransactions, getTripReservationTitle};

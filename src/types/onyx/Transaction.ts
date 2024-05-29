@@ -111,28 +111,6 @@ type TaxRate = {
     data?: TaxRateData;
 };
 
-type Fare = {
-    amount: number;
-    convertedAmount: number;
-    convertedCurrency: string;
-    currencyCode: string;
-};
-
-type SpotnanaPayload = {
-    tripId: string;
-    pnrId: string;
-    bookingStatus: string;
-    documents: unknown[];
-    carPnr?: unknown;
-    airPnr?: unknown;
-    totalFare: Fare;
-    totalFareAmount: {
-        base: Fare;
-        tax: Fare;
-    };
-    version: number;
-};
-
 type Reservation = {
     reservationID?: string;
     start: ReservationTimeDetails;
@@ -143,9 +121,16 @@ type Reservation = {
     numPassengers?: number;
     numberOfRooms?: number;
     route?: {
-        class: string;
+        airlineCode: string;
         number: string;
     };
+    vendor?: string;
+    carInfo?: CarInfo;
+};
+
+type CarInfo = {
+    engine: string;
+    name: string;
 };
 
 type ReservationTimeDetails = {
@@ -153,7 +138,9 @@ type ReservationTimeDetails = {
     address?: string;
     longName?: string;
     shortName?: string;
+    cityName?: string;
     timezoneOffset?: number;
+    location?: string;
 };
 
 type Company = {

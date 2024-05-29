@@ -333,7 +333,8 @@ type OriginalMessageMoved = {
 type OriginalMessageTripRoomPreview = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.TRIPPREVIEW;
     originalMessage: {
-        // @TODO: Add types here
+        lastModified: string;
+        linkedReportID: string;
     };
 };
 

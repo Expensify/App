@@ -1,8 +1,8 @@
 import React, {useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {FlatList, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -27,16 +27,18 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report, ReportAction} from '@src/types/onyx';
 import type {Reservation} from '@src/types/onyx/Transaction';
-import type {BasicTripInfo} from '@src/types/onyx/TripDetails';
 
 type TripRoomPreviewOnyxProps = {
-    /** Active IOU Report for current report */
-    childReport: OnyxEntry<Report>;
+    /** ChatReport associated with iouReport */
+    chatReport: OnyxEntry<Report>;
 };
 
 type TripRoomPreviewProps = TripRoomPreviewOnyxProps & {
     /** All the data of the action */
     action: ReportAction;
+
+    /** The associated chatReport */
+    chatReportID: string;
 
     /** Extra styles to pass to View wrapper */
     containerStyles?: StyleProp<ViewStyle>;
@@ -64,6 +66,7 @@ function ReservationRow({reservation}: ReservationRowProps) {
     const {translate} = useLocalize();
 
     const reservationIcon = TripReservationUtils.getTripReservationIcon(reservation.type);
+    const title = TripReservationUtils.getTripReservationTitle(reservation);
 
     const titleComponent =
         reservation.type === CONST.RESERVATION_TYPE.FLIGHT ? (
@@ -82,7 +85,7 @@ function ReservationRow({reservation}: ReservationRowProps) {
                 numberOfLines={1}
                 style={styles.labelStrong}
             >
-                {reservation.start.address}
+                {title}
             </Text>
         );
 
@@ -108,22 +111,31 @@ function ReservationRow({reservation}: ReservationRowProps) {
         />
     );
 }
-function TripRoomPreview({action, childReport, containerStyles, contextMenuAnchor, isHovered = false, isWhisper = false, checkIfContextMenuActive = () => {}}: TripRoomPreviewProps) {
+function TripRoomPreview({
+    action,
+    chatReport,
+    chatReportID,
+    containerStyles,
+    contextMenuAnchor,
+    isHovered = false,
+    isWhisper = false,
+    checkIfContextMenuActive = () => {},
+}: TripRoomPreviewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const tripTransactions = ReportUtils.getTripTransactions(childReport?.iouReportID);
+    const tripTransactions = ReportUtils.getTripTransactions(chatReport?.iouReportID);
 
     const renderItem = ({item}: {item: Reservation}) => <ReservationRow reservation={item} />;
 
     const reservations: Reservation[] = TripReservationUtils.getReservationsFromTripTransactions(tripTransactions);
 
-    const dateInfo = DateUtils.getFormattedDateRange(new Date(childReport?.tripData?.startDate), new Date(childReport?.tripData?.endDate));
+    const dateInfo = chatReport?.tripData ? DateUtils.getFormattedDateRange(new Date(chatReport.tripData.startDate), new Date(chatReport.tripData.endDate)) : '';
 
     const displayAmount = useMemo(() => {
         // If iouReport is not available, get amount from the action message (Ex: "Domain20821's Workspace owes $33.00" or "paid ₫60" or "paid -₫60 elsewhere")
         let displayAmountValue = '';
-        const actionMessage = childReport?.lastMessageText ?? '';
+        const actionMessage = chatReport?.lastMessageText ?? '';
         const splits = actionMessage.split(' ');
 
         splits.forEach((split) => {
@@ -135,7 +147,7 @@ function TripRoomPreview({action, childReport, containerStyles, contextMenuAncho
         });
 
         return displayAmountValue;
-    }, [childReport?.lastMessageText]);
+    }, [chatReport?.lastMessageText]);
 
     return (
         <OfflineWithFeedback
@@ -172,7 +184,7 @@ function TripRoomPreview({action, childReport, containerStyles, contextMenuAncho
                                 </View>
                                 <View style={styles.flexRow}>
                                     <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                        <Text style={[styles.textSupportingNormalSize, styles.lh20]}>{childReport?.reportName}</Text>
+                                        <Text style={[styles.textSupportingNormalSize, styles.lh20]}>{chatReport?.reportName}</Text>
                                     </View>
                                 </View>
                             </View>
@@ -186,7 +198,7 @@ function TripRoomPreview({action, childReport, containerStyles, contextMenuAncho
                             medium
                             success
                             text={translate('travel.viewTrip')}
-                            onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(action?.childReportID))}
+                            onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(chatReport?.iouReportID))}
                         />
                     </View>
                 </PressableWithoutFeedback>
@@ -198,7 +210,7 @@ function TripRoomPreview({action, childReport, containerStyles, contextMenuAncho
 TripRoomPreview.displayName = 'TripRoomPreview';
 
 export default withOnyx<TripRoomPreviewProps, TripRoomPreviewOnyxProps>({
-    childReport: {
-        key: ({action}) => `${ONYXKEYS.COLLECTION.REPORT}${action.childReportID}`,
+    chatReport: {
+        key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
     },
 })(TripRoomPreview);
