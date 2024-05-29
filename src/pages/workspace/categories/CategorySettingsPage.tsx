@@ -14,13 +14,13 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setWorkspaceCategoryEnabled} from '@libs/actions/Policy';
+import {setWorkspaceCategoryEnabled} from '@userActions/Policy/Category';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Policy from '@userActions/Policy';
+import * as Category from '@userActions/Policy/Category';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -63,7 +63,7 @@ function CategorySettingsPage({route, policyCategories, navigation}: CategorySet
     };
 
     const deleteCategory = () => {
-        Policy.deleteWorkspaceCategories(route.params.policyID, [route.params.categoryName]);
+        Category.deleteWorkspaceCategories(route.params.policyID, [route.params.categoryName]);
         setDeleteCategoryConfirmModalVisible(false);
         Navigation.dismissModal();
     };
@@ -97,7 +97,7 @@ function CategorySettingsPage({route, policyCategories, navigation}: CategorySet
                         errors={ErrorUtils.getLatestErrorMessageField(policyCategory)}
                         pendingAction={policyCategory?.pendingFields?.enabled}
                         errorRowStyles={styles.mh5}
-                        onClose={() => Policy.clearCategoryErrors(route.params.policyID, route.params.categoryName)}
+                        onClose={() => Category.clearCategoryErrors(route.params.policyID, route.params.categoryName)}
                     >
                         <View style={[styles.mt2, styles.mh5]}>
                             <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>

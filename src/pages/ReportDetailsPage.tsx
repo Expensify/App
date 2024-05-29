@@ -2,12 +2,11 @@ import {useRoute} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import ChatDetailsQuickActionsBar from '@components/ChatDetailsQuickActionsBar';
 import DisplayNames from '@components/DisplayNames';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -17,6 +16,7 @@ import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import PromotedActionsBar, {PromotedActions} from '@components/PromotedActionsBar';
 import RoomHeaderAvatars from '@components/RoomHeaderAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -53,7 +53,7 @@ type ReportDetailsPageMenuItem = {
 
 type ReportDetailsPageOnyxProps = {
     /** Personal details of all the users */
-    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    personalDetails: OnyxCollection<OnyxTypes.PersonalDetails>;
 
     /** Session info for the currently logged in user. */
     session: OnyxEntry<OnyxTypes.Session>;
@@ -68,6 +68,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? ''}`], [policies, report?.policyID]);
     const isPolicyAdmin = useMemo(() => PolicyUtils.isPolicyAdmin(policy ?? null), [policy]);
     const isPolicyEmployee = useMemo(() => PolicyUtils.isPolicyEmployee(report?.policyID ?? '', policies), [report?.policyID, policies]);
+    const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     const shouldUseFullTitle = useMemo(() => ReportUtils.shouldUseFullTitleToDisplay(report), [report]);
     const isChatRoom = useMemo(() => ReportUtils.isChatRoom(report), [report]);
     const isUserCreatedPolicyRoom = useMemo(() => ReportUtils.isUserCreatedPolicyRoom(report), [report]);
@@ -152,17 +153,14 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 subtitle: activeChatMembers.length,
                 isAnonymousAction: false,
                 action: () => {
-                    if (isUserCreatedPolicyRoom || isChatThread) {
+                    if (isUserCreatedPolicyRoom || isChatThread || isPolicyExpenseChat) {
                         Navigation.navigate(ROUTES.ROOM_MEMBERS.getRoute(report?.reportID ?? ''));
                     } else {
                         Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID ?? ''));
                     }
                 },
             });
-        } else if (
-            (isUserCreatedPolicyRoom && (!participants.length || !isPolicyEmployee)) ||
-            ((isDefaultRoom || ReportUtils.isPolicyExpenseChat(report)) && isChatThread && !isPolicyEmployee)
-        ) {
+        } else if ((isUserCreatedPolicyRoom && (!participants.length || !isPolicyEmployee)) || ((isDefaultRoom || isPolicyExpenseChat) && isChatThread && !isPolicyEmployee)) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.INVITE,
                 translationKey: 'common.invite',
@@ -205,6 +203,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         isDefaultRoom,
         isChatThread,
         isPolicyEmployee,
+        isPolicyExpenseChat,
         isUserCreatedPolicyRoom,
         participants.length,
         report,
@@ -334,7 +333,13 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                             />
                         </OfflineWithFeedback>
                     )}
-                    {isGroupChat && <ChatDetailsQuickActionsBar report={report} />}
+                    {isGroupChat && (
+                        <PromotedActionsBar
+                            report={report}
+                            promotedActions={[PromotedActions.pin(report)]}
+                            shouldShowLeaveButton
+                        />
+                    )}
                     {menuItems.map((item) => {
                         const brickRoadIndicator =
                             ReportUtils.hasReportNameError(report) && item.key === CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
