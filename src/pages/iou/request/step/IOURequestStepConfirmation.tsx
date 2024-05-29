@@ -84,7 +84,7 @@ function IOURequestStepConfirmation({
     const {windowWidth} = useWindowDimensions();
     const {isOffline} = useNetwork();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
-    const selectedParticipantsRef = useRef<Participant[]>([]);
+    const [selectedParticipantList, setSelectedParticipantList] = useState<Participant[]>([]);
 
     const [receiptFile, setReceiptFile] = useState<Receipt>();
 
@@ -227,7 +227,7 @@ function IOURequestStepConfirmation({
     }, [receiptType, receiptPath, receiptFilename, requestType, iouType, transactionID, reportID, action, transaction?.receipt]);
 
     const requestMoney = useCallback(
-        (trimmedComment: string, receiptObj?: Receipt, gpsPoints?: IOU.GpsPoint) => {
+        (selectedParticipants: Participant[], trimmedComment: string, receiptObj?: Receipt, gpsPoints?: IOU.GpsPoint) => {
             if (!transaction) {
                 return;
             }
@@ -240,7 +240,7 @@ function IOURequestStepConfirmation({
                 transaction.merchant,
                 currentUserPersonalDetails.login,
                 currentUserPersonalDetails.accountID,
-                selectedParticipantsRef.current[0],
+                selectedParticipants[0],
                 trimmedComment,
                 receiptObj,
                 transaction.category,
@@ -262,7 +262,7 @@ function IOURequestStepConfirmation({
     );
 
     const trackExpense = useCallback(
-        (trimmedComment: string, receiptObj?: Receipt, gpsPoints?: IOU.GpsPoint) => {
+        (selectedParticipants: Participant[], trimmedComment: string, receiptObj?: Receipt, gpsPoints?: IOU.GpsPoint) => {
             if (!report || !transaction) {
                 return;
             }
@@ -274,7 +274,7 @@ function IOURequestStepConfirmation({
                 transaction.merchant,
                 currentUserPersonalDetails.login,
                 currentUserPersonalDetails.accountID,
-                selectedParticipantsRef.current[0],
+                selectedParticipants[0],
                 trimmedComment,
                 receiptObj,
                 transaction.category,
@@ -297,13 +297,13 @@ function IOURequestStepConfirmation({
     );
 
     const createDistanceRequest = useCallback(
-        (trimmedComment: string, customUnitRateID: string) => {
+        (selectedParticipants: Participant[], trimmedComment: string, customUnitRateID: string) => {
             if (!transaction) {
                 return;
             }
             IOU.createDistanceRequest(
                 report,
-                selectedParticipantsRef.current[0],
+                selectedParticipants[0],
                 trimmedComment,
                 transaction.created,
                 transaction.category,
@@ -325,15 +325,15 @@ function IOURequestStepConfirmation({
     );
 
     const createTransaction = useCallback(
-        (locationPermissionGranted = false) => {
-            let splitParticipants = selectedParticipantsRef.current;
+        (selectedParticipants: Participant[], locationPermissionGranted = false) => {
+            let splitParticipants = selectedParticipants;
 
             // Filter out participants with an amount equal to O
             if (iouType === CONST.IOU.TYPE.SPLIT && transaction?.splitShares) {
                 const participantsWithAmount = Object.keys(transaction.splitShares ?? {})
                     .filter((accountID: string): boolean => (transaction?.splitShares?.[Number(accountID)]?.amount ?? 0) > 0)
                     .map((accountID) => Number(accountID));
-                splitParticipants = selectedParticipantsRef.current.filter((participant) => participantsWithAmount.includes(participant.accountID ?? -1));
+                splitParticipants = selectedParticipants.filter((participant) => participantsWithAmount.includes(participant.accountID ?? -1));
             }
             const trimmedComment = (transaction?.comment.comment ?? '').trim();
 
@@ -350,7 +350,7 @@ function IOURequestStepConfirmation({
             if (iouType === CONST.IOU.TYPE.SPLIT && receiptFile) {
                 if (currentUserPersonalDetails.login && !!transaction) {
                     IOU.startSplitBill({
-                        participants: selectedParticipantsRef.current,
+                        participants: selectedParticipants,
                         currentUserLogin: currentUserPersonalDetails.login,
                         currentUserAccountID: currentUserPersonalDetails.accountID,
                         comment: trimmedComment,
@@ -424,7 +424,7 @@ function IOURequestStepConfirmation({
                     if (transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense && locationPermissionGranted) {
                         getCurrentPosition(
                             (successData) => {
-                                trackExpense(trimmedComment, receiptFile, {
+                                trackExpense(selectedParticipants, trimmedComment, receiptFile, {
                                     lat: successData.coords.latitude,
                                     long: successData.coords.longitude,
                                 });
@@ -432,7 +432,7 @@ function IOURequestStepConfirmation({
                             (errorData) => {
                                 Log.info('[IOURequestStepConfirmation] getCurrentPosition failed', false, errorData);
                                 // When there is an error, the money can still be requested, it just won't include the GPS coordinates
-                                trackExpense(trimmedComment, receiptFile);
+                                trackExpense(selectedParticipants, trimmedComment, receiptFile);
                             },
                             {
                                 maximumAge: CONST.GPS.MAX_AGE,
@@ -443,10 +443,10 @@ function IOURequestStepConfirmation({
                     }
 
                     // Otherwise, the money is being requested through the "Manual" flow with an attached image and the GPS coordinates are not needed.
-                    trackExpense(trimmedComment, receiptFile);
+                    trackExpense(selectedParticipants, trimmedComment, receiptFile);
                     return;
                 }
-                trackExpense(trimmedComment, receiptFile);
+                trackExpense(selectedParticipants, trimmedComment, receiptFile);
                 return;
             }
 
@@ -455,7 +455,7 @@ function IOURequestStepConfirmation({
                 if (transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense && locationPermissionGranted) {
                     getCurrentPosition(
                         (successData) => {
-                            requestMoney(trimmedComment, receiptFile, {
+                            requestMoney(selectedParticipants, trimmedComment, receiptFile, {
                                 lat: successData.coords.latitude,
                                 long: successData.coords.longitude,
                             });
@@ -463,7 +463,7 @@ function IOURequestStepConfirmation({
                         (errorData) => {
                             Log.info('[IOURequestStepConfirmation] getCurrentPosition failed', false, errorData);
                             // When there is an error, the money can still be requested, it just won't include the GPS coordinates
-                            requestMoney(trimmedComment, receiptFile);
+                            requestMoney(selectedParticipants, trimmedComment, receiptFile);
                         },
                         {
                             maximumAge: CONST.GPS.MAX_AGE,
@@ -474,17 +474,17 @@ function IOURequestStepConfirmation({
                 }
 
                 // Otherwise, the money is being requested through the "Manual" flow with an attached image and the GPS coordinates are not needed.
-                requestMoney(trimmedComment, receiptFile);
+                requestMoney(selectedParticipants, trimmedComment, receiptFile);
                 return;
             }
 
             if (requestType === CONST.IOU.REQUEST_TYPE.DISTANCE && !IOUUtils.isMovingTransactionFromTrackExpense(action)) {
                 const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '';
-                createDistanceRequest(trimmedComment, customUnitRateID);
+                createDistanceRequest(selectedParticipants, trimmedComment, customUnitRateID);
                 return;
             }
 
-            requestMoney(trimmedComment);
+            requestMoney(selectedParticipants, trimmedComment);
         },
         [
             transaction,
@@ -542,14 +542,13 @@ function IOURequestStepConfirmation({
     const isLoading = !!transaction?.originalCurrency;
 
     const onConfirm = (listOfParticipants: Participant[]) => {
-        selectedParticipantsRef.current = listOfParticipants;
-
+        setSelectedParticipantList(listOfParticipants);
         if (gpsRequired) {
             setStartLocationPermissionFlow(true);
             return;
         }
 
-        createTransaction();
+        createTransaction(listOfParticipants);
     };
 
     return (
@@ -577,8 +576,8 @@ function IOURequestStepConfirmation({
                     {gpsRequired && (
                         <LocationPermissionModal
                             startPermissionFlow={startLocationPermissionFlow}
-                            onGrant={() => createTransaction(true)}
-                            onDeny={() => createTransaction(false)}
+                            onGrant={() => createTransaction(selectedParticipantList, true)}
+                            onDeny={() => createTransaction(selectedParticipantList, false)}
                         />
                     )}
                     <MoneyRequestConfirmationList
