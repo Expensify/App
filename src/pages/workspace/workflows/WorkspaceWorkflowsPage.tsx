@@ -105,7 +105,10 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                           subtitle: translate('workflowsPage.delaySubmissionDescription'),
                           switchAccessibilityLabel: translate('workflowsPage.delaySubmissionDescription'),
                           onToggle: (isEnabled: boolean) => {
-                            Policy.setWorkspaceAutoReportingFrequency(route.params.policyID, isEnabled ? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY : CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
+                              Policy.setWorkspaceAutoReportingFrequency(
+                                  route.params.policyID,
+                                  isEnabled ? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY : CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                              );
                           },
                           subMenuItems: (
                               <MenuItem
