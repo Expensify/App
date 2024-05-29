@@ -230,37 +230,43 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         />
     ) : null;
 
-    const renderAvatar =
-        isMoneyRequestReport || isInvoiceReport ? (
-            <View style={styles.mb3}>
-                <MultipleAvatars
-                    icons={icons}
-                    size={CONST.AVATAR_SIZE.LARGE}
+    const renderAvatar = useMemo(() => {
+        if (isMoneyRequestReport || isInvoiceReport) {
+            return (
+                <View style={styles.mb3}>
+                    <MultipleAvatars
+                        icons={icons}
+                        size={CONST.AVATAR_SIZE.LARGE}
+                    />
+                </View>
+            );
+        }
+        if (isGroupChat && !isThread) {
+            return (
+                <AvatarWithImagePicker
+                    source={icons[0].source}
+                    avatarID={icons[0].id}
+                    isUsingDefaultAvatar={!report.avatarUrl}
+                    size={CONST.AVATAR_SIZE.XLARGE}
+                    avatarStyle={styles.avatarXLarge}
+                    shouldDisableViewPhoto
+                    onImageRemoved={() => {
+                        // Calling this without a file will remove the avatar
+                        Report.updateGroupChatAvatar(report.reportID ?? '');
+                    }}
+                    onImageSelected={(file) => Report.updateGroupChatAvatar(report.reportID ?? '', file)}
+                    editIcon={Expensicons.Camera}
+                    editIconStyle={styles.smallEditIconAccount}
+                    pendingAction={report.pendingFields?.avatar ?? undefined}
+                    errors={report.errorFields?.avatar ?? null}
+                    errorRowStyles={styles.mt6}
+                    onErrorClose={() => Report.clearAvatarErrors(report.reportID ?? '')}
+                    shouldUseStyleUtilityForAnchorPosition
+                    style={[styles.w100, styles.mb3]}
                 />
-            </View>
-        ) : isGroupChat && !isThread ? (
-            <AvatarWithImagePicker
-                source={icons[0].source}
-                avatarID={icons[0].id}
-                isUsingDefaultAvatar={!report.avatarUrl}
-                size={CONST.AVATAR_SIZE.XLARGE}
-                avatarStyle={styles.avatarXLarge}
-                shouldDisableViewPhoto
-                onImageRemoved={() => {
-                    // Calling this without a file will remove the avatar
-                    Report.updateGroupChatAvatar(report.reportID ?? '');
-                }}
-                onImageSelected={(file) => Report.updateGroupChatAvatar(report.reportID ?? '', file)}
-                editIcon={Expensicons.Camera}
-                editIconStyle={styles.smallEditIconAccount}
-                pendingAction={report.pendingFields?.avatar ?? undefined}
-                errors={report.errorFields?.avatar ?? null}
-                errorRowStyles={styles.mt6}
-                onErrorClose={() => Report.clearAvatarErrors(report.reportID ?? '')}
-                shouldUseStyleUtilityForAnchorPosition
-                style={[styles.w100, styles.mb3]}
-            />
-        ) : (
+            );
+        }
+        return (
             <View style={styles.mb3}>
                 <RoomHeaderAvatars
                     icons={icons}
@@ -268,6 +274,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 />
             </View>
         );
+    }, [report, icons, isMoneyRequestReport, isInvoiceReport, isGroupChat, isThread, styles]);
 
     const reportName =
         ReportUtils.isDeprecatedGroupDM(report) || ReportUtils.isGroupChat(report)
