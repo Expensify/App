@@ -26,7 +26,7 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import type {FullScreenNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Policy from '@userActions/Policy';
+import * as Policy from '@userActions/Policy/Policy';
 import ButtonWithDropdownMenu from '@src/components/ButtonWithDropdownMenu';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -226,14 +226,14 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
     const isLoading = !isOffline && customUnit === undefined;
 
     const headerButtons = (
-        <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
+        <View style={[styles.w100, styles.flexRow, styles.gap2, isSmallScreenWidth && styles.mb3]}>
             {selectedDistanceRates.length === 0 ? (
                 <>
                     <Button
                         medium
                         text={translate('workspace.distanceRates.addRate')}
                         onPress={addRate}
-                        style={[styles.mr3, isSmallScreenWidth && styles.flexGrow1]}
+                        style={[isSmallScreenWidth && styles.flex1]}
                         icon={Expensicons.Plus}
                         success
                     />
@@ -242,7 +242,7 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
                         medium
                         text={translate('workspace.common.settings')}
                         onPress={openSettings}
-                        style={[isSmallScreenWidth && styles.flexGrow1]}
+                        style={[isSmallScreenWidth && styles.flex1]}
                         icon={Expensicons.Gear}
                     />
                 </>
