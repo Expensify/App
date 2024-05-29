@@ -719,7 +719,7 @@ export default {
             invalidSplitParticipants: 'Introduce un importe superior a cero para al menos dos participantes.',
             other: 'Error inesperado, por favor inténtalo más tarde.',
             genericHoldExpenseFailureMessage: 'Error inesperado al realizar el gasto, por favor inténtelo de nuevo más tarde.',
-            genericUnholdExpenseFailureMessage: 'Error inesperado al soltar el gasto, por favor inténtelo de nuevo más tarde.',
+            genericUnholdExpenseFailureMessage: 'Error inesperado al desbloquear el gasto, por favor inténtela de nuevo más tarde.',
             genericCreateFailureMessage: 'Error inesperado al enviar este gasto. Por favor, inténtalo más tarde.',
             genericCreateInvoiceFailureMessage: 'Error inesperado al enviar la factura, inténtalo de nuevo más tarde.',
             receiptDeleteFailureError: 'Error inesperado al borrar este recibo. Vuelve a intentarlo más tarde.',
