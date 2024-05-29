@@ -57,7 +57,7 @@ function WorkspaceTaxesPage({
     const isFocused = useIsFocused();
 
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
-    const isConnectedToQbo = policy?.connections?.quickbooksOnline;
+    const isConnectedToQbo = Boolean(policy?.connections?.quickbooksOnline);
 
     const fetchTaxes = useCallback(() => {
         openPolicyTaxesPage(policyID);
