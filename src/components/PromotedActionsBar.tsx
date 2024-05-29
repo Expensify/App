@@ -12,20 +12,19 @@ type PromotedAction = {
     key: string;
 } & ThreeDotsMenuItem;
 
-type ReportPromotedPinAction = (report: OnyxReport) => PromotedAction;
-type ReportPromotedShareAction = (report: OnyxReport, participants: number[]) => PromotedAction;
+type ReportPromotedAction<T> = (params: T) => PromotedAction;
 
 type PromotedActionsType = {
-    pin: ReportPromotedPinAction;
-    share: ReportPromotedShareAction;
+    pin: ReportPromotedAction<{report: OnyxReport}>;
+    share: ReportPromotedAction<{report: OnyxReport; participants: number[]}>;
 };
 
 const PromotedActions = {
-    pin: (report) => ({
+    pin: ({report}) => ({
         key: 'pin',
         ...HeaderUtils.getPinMenuItem(report),
     }),
-    share: (report, participants) => ({
+    share: ({report, participants}) => ({
         key: 'share',
         ...HeaderUtils.getShareMenuItem(report, participants),
     }),
