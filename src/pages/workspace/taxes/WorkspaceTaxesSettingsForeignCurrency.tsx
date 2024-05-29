@@ -29,15 +29,12 @@ function WorkspaceTaxesSettingsForeignCurrency({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const taxRates = policy?.taxRates;
-    const foreignTaxDefault = taxRates?.foreignTaxDefault ?? '';
-    const defaultExternalID = taxRates?.defaultExternalID ?? '';
+    const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault ?? '';
 
-    const selectedTaxRate =
-        foreignTaxDefault === defaultExternalID ? taxRates && TransactionUtils.getDefaultTaxName(taxRates) : TransactionUtils.getTaxName(taxRates?.taxes ?? {}, foreignTaxDefault);
+    const selectedTaxRate = TransactionUtils.getWorkspaceTaxesSettingsName(policy, foreignTaxDefault);
 
     const submit = (taxes: OptionsListUtils.TaxRatesOption) => {
-        setForeignCurrencyDefault(policyID, taxes.data.code ?? '');
+        setForeignCurrencyDefault(policyID, taxes.code ?? '');
         Navigation.goBack(ROUTES.WORKSPACE_TAXES_SETTINGS.getRoute(policyID));
     };
 

@@ -72,7 +72,6 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import type {PolicySelector} from '@pages/home/sidebar/SidebarScreen/FloatingActionButtonAndPopover';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {
     InvitedEmailsToAccountIDs,
@@ -258,7 +257,7 @@ Onyx.connect({
  * Stores in Onyx the policy ID of the last workspace that was accessed by the user
  */
 function updateLastAccessedWorkspace(policyID: OnyxEntry<string>) {
-    Onyx.set(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, policyID);
+    Onyx.set(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, policyID ?? null);
 }
 
 /**
@@ -282,7 +281,7 @@ function getPolicy(policyID: string | undefined): Policy | EmptyObject {
 /**
  * Returns a primary policy for the user
  */
-function getPrimaryPolicy(activePolicyID?: string): Policy | undefined {
+function getPrimaryPolicy(activePolicyID?: OnyxEntry<string>): Policy | undefined {
     const activeAdminWorkspaces = PolicyUtils.getActiveAdminWorkspaces(allPolicies);
     const primaryPolicy: Policy | null | undefined = allPolicies?.[activePolicyID ?? ''];
 
@@ -459,30 +458,23 @@ function buildAnnounceRoomMembersOnyxData(policyID: string, accountIDs: number[]
         return announceRoomMembers;
     }
 
-    if (announceReport?.participantAccountIDs) {
-        // Everyone in special policy rooms is visible
-        const participantAccountIDs = [...announceReport.participantAccountIDs, ...accountIDs];
-        const pendingChatMembers = ReportUtils.getPendingChatMembers(accountIDs, announceReport?.pendingChatMembers ?? [], CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+    const participantAccountIDs = [...Object.keys(announceReport.participants ?? {}).map(Number), ...accountIDs];
+    const pendingChatMembers = ReportUtils.getPendingChatMembers(accountIDs, announceReport?.pendingChatMembers ?? [], CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
-        announceRoomMembers.onyxOptimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport?.reportID}`,
-            value: {
-                participants: ReportUtils.buildParticipantsFromAccountIDs(participantAccountIDs),
-                participantAccountIDs,
-                visibleChatMemberAccountIDs: participantAccountIDs,
-                pendingChatMembers,
-            },
-        });
-    }
+    announceRoomMembers.onyxOptimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport?.reportID}`,
+        value: {
+            participants: ReportUtils.buildParticipantsFromAccountIDs(participantAccountIDs),
+            pendingChatMembers,
+        },
+    });
 
     announceRoomMembers.onyxFailureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport?.reportID}`,
         value: {
-            participants: announceReport?.participants,
-            participantAccountIDs: announceReport?.participantAccountIDs,
-            visibleChatMemberAccountIDs: announceReport?.visibleChatMemberAccountIDs,
+            participants: announceReport?.participants ?? null,
             pendingChatMembers: announceReport?.pendingChatMembers ?? null,
         },
     });
@@ -797,45 +789,43 @@ function removeOptimisticAnnounceRoomMembers(policyID: string, policyName: strin
         return announceRoomMembers;
     }
 
-    if (announceReport?.participantAccountIDs) {
-        const pendingChatMembers = ReportUtils.getPendingChatMembers(accountIDs, announceReport?.pendingChatMembers ?? [], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const pendingChatMembers = ReportUtils.getPendingChatMembers(accountIDs, announceReport?.pendingChatMembers ?? [], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
-        announceRoomMembers.onyxOptimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport.reportID}`,
-            value: {
-                pendingChatMembers,
-                ...(accountIDs.includes(sessionAccountID)
-                    ? {
-                          statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
-                          stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                          oldPolicyName: policyName,
-                      }
-                    : {}),
-            },
-        });
-        announceRoomMembers.onyxFailureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport.reportID}`,
-            value: {
-                pendingChatMembers: announceReport?.pendingChatMembers ?? null,
-                ...(accountIDs.includes(sessionAccountID)
-                    ? {
-                          statusNum: announceReport.statusNum,
-                          stateNum: announceReport.stateNum,
-                          oldPolicyName: announceReport.oldPolicyName,
-                      }
-                    : {}),
-            },
-        });
-        announceRoomMembers.onyxSuccessData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport.reportID}`,
-            value: {
-                pendingChatMembers: announceReport?.pendingChatMembers ?? null,
-            },
-        });
-    }
+    announceRoomMembers.onyxOptimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport.reportID}`,
+        value: {
+            pendingChatMembers,
+            ...(accountIDs.includes(sessionAccountID)
+                ? {
+                      statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                      stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                      oldPolicyName: policyName,
+                  }
+                : {}),
+        },
+    });
+    announceRoomMembers.onyxFailureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport.reportID}`,
+        value: {
+            pendingChatMembers: announceReport?.pendingChatMembers ?? null,
+            ...(accountIDs.includes(sessionAccountID)
+                ? {
+                      statusNum: announceReport.statusNum,
+                      stateNum: announceReport.stateNum,
+                      oldPolicyName: announceReport.oldPolicyName,
+                  }
+                : {}),
+        },
+    });
+    announceRoomMembers.onyxSuccessData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport.reportID}`,
+        value: {
+            pendingChatMembers: announceReport?.pendingChatMembers ?? null,
+        },
+    });
 
     return announceRoomMembers;
 }
@@ -1315,7 +1305,7 @@ function createPolicyExpenseChats(policyID: string, invitedEmailsToAccountIDs: I
         const cleanAccountID = Number(accountID);
         const login = PhoneNumber.addSMSDomainIfPhoneNumber(email);
 
-        const oldChat = ReportUtils.getChatByParticipantsAndPolicy([sessionAccountID, cleanAccountID], policyID);
+        const oldChat = ReportUtils.getPolicyExpenseChat(cleanAccountID, policyID);
 
         // If the chat already exists, we don't want to create a new one - just make sure it's not archived
         if (oldChat) {
@@ -1620,10 +1610,11 @@ function clearAvatarErrors(policyID: string) {
  * Optimistically update the general settings. Set the general settings as pending until the response succeeds.
  * If the response fails set a general error message. Clear the error message when updating.
  */
-function updateGeneralSettings(policyID: string, name: string, currency: string) {
+function updateGeneralSettings(policyID: string, name: string, currencyValue?: string) {
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const distanceUnit = Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
     const customUnitID = distanceUnit?.customUnitID;
+    const currency = currencyValue ?? policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
     if (!policy) {
         return;
@@ -3361,6 +3352,7 @@ function renamePolicyCategory(policyID: string, policyCategory: {oldName: string
                         pendingFields: {
                             name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         },
+                        previousCategoryName: policyCategory.oldName,
                     },
                 },
             },
@@ -3673,6 +3665,7 @@ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName:
                                 pendingFields: {
                                     name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                 },
+                                previousTagName: policyTag.oldName,
                             },
                         },
                     },
@@ -4003,26 +3996,10 @@ function openPolicyDistanceRatesPage(policyID?: string) {
     API.read(READ_COMMANDS.OPEN_POLICY_DISTANCE_RATES_PAGE, params);
 }
 
-function navigateWhenEnableFeature(policyID: string, featureRoute: Route) {
-    const isNarrowLayout = getIsNarrowLayout();
-    if (isNarrowLayout) {
-        setTimeout(() => {
-            Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
-        }, 1000);
-        return;
-    }
-
-    /**
-     * The app needs to set a navigation action to the microtask queue, it guarantees to execute Onyx.update first, then the navigation action.
-     * More details - https://github.com/Expensify/App/issues/37785#issuecomment-1989056726.
-     */
-    new Promise<void>((resolve) => {
-        resolve();
-    }).then(() => {
-        requestAnimationFrame(() => {
-            Navigation.navigate(featureRoute);
-        });
-    });
+function navigateWhenEnableFeature(policyID: string) {
+    setTimeout(() => {
+        Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
+    }, CONST.WORKSPACE_ENABLE_FEATURE_REDIRECT_DELAY);
 }
 
 function enablePolicyCategories(policyID: string, enabled: boolean) {
@@ -4068,8 +4045,8 @@ function enablePolicyCategories(policyID: string, enabled: boolean) {
 
     API.write(WRITE_COMMANDS.ENABLE_POLICY_CATEGORIES, parameters, onyxData);
 
-    if (enabled) {
-        navigateWhenEnableFeature(policyID, ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
+    if (enabled && getIsNarrowLayout()) {
+        navigateWhenEnableFeature(policyID);
     }
 }
 
@@ -4160,8 +4137,8 @@ function enablePolicyDistanceRates(policyID: string, enabled: boolean) {
 
     API.write(WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES, parameters, onyxData);
 
-    if (enabled) {
-        navigateWhenEnableFeature(policyID, ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(policyID));
+    if (enabled && getIsNarrowLayout()) {
+        navigateWhenEnableFeature(policyID);
     }
 }
 
@@ -4252,8 +4229,8 @@ function enablePolicyTags(policyID: string, enabled: boolean) {
 
     API.write(WRITE_COMMANDS.ENABLE_POLICY_TAGS, parameters, onyxData);
 
-    if (enabled) {
-        navigateWhenEnableFeature(policyID, ROUTES.WORKSPACE_TAGS.getRoute(policyID));
+    if (enabled && getIsNarrowLayout()) {
+        navigateWhenEnableFeature(policyID);
     }
 }
 
@@ -4365,8 +4342,8 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
     }
     API.write(WRITE_COMMANDS.ENABLE_POLICY_TAXES, parameters, onyxData);
 
-    if (enabled) {
-        navigateWhenEnableFeature(policyID, ROUTES.WORKSPACE_TAXES.getRoute(policyID));
+    if (enabled && getIsNarrowLayout()) {
+        navigateWhenEnableFeature(policyID);
     }
 }
 
@@ -4456,8 +4433,8 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
 
     API.write(WRITE_COMMANDS.ENABLE_POLICY_WORKFLOWS, parameters, onyxData);
 
-    if (enabled) {
-        navigateWhenEnableFeature(policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID));
+    if (enabled && getIsNarrowLayout()) {
+        navigateWhenEnableFeature(policyID);
     }
 }
 

@@ -4,7 +4,6 @@ import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ModalNavigatorScreenOptions from '@libs/Navigation/AppNavigator/ModalNavigatorScreenOptions';
-import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList, LeftModalNavigatorParamList} from '@libs/Navigation/types';
@@ -13,6 +12,9 @@ import SCREENS from '@src/SCREENS';
 import Overlay from './Overlay';
 
 type LeftModalNavigatorProps = PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.LEFT_MODAL_NAVIGATOR>;
+
+const loadChatFinder = () => require('../../../../pages/ChatFinderPage').default as React.ComponentType;
+const loadWorkspaceSwitcherPage = () => require('../../../../pages/WorkspaceSwitcherPage').default as React.ComponentType;
 
 const Stack = createPlatformStackNavigator<LeftModalNavigatorParamList>();
 
@@ -33,11 +35,11 @@ function LeftModalNavigator({navigation}: LeftModalNavigatorProps) {
                 <Stack.Navigator screenOptions={screenOptions}>
                     <Stack.Screen
                         name={SCREENS.LEFT_MODAL.CHAT_FINDER}
-                        component={ModalStackNavigators.ChatFinderModalStackNavigator}
+                        getComponent={loadChatFinder}
                     />
                     <Stack.Screen
                         name={SCREENS.LEFT_MODAL.WORKSPACE_SWITCHER}
-                        component={ModalStackNavigators.WorkspaceSwitcherModalStackNavigator}
+                        getComponent={loadWorkspaceSwitcherPage}
                     />
                 </Stack.Navigator>
             </View>

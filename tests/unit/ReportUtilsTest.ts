@@ -5,6 +5,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, Report, ReportAction} from '@src/types/onyx';
+import type {ModifiedExpenseAction} from '@src/types/onyx/ReportAction';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import * as NumberUtils from '../../src/libs/NumberUtils';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
@@ -118,7 +119,7 @@ describe('ReportUtils', () => {
                 expect(
                     ReportUtils.getReportName({
                         reportID: '',
-                        participantAccountIDs: [currentUserAccountID, 1],
+                        participants: ReportUtils.buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
                     }),
                 ).toBe('Ragnar Lothbrok');
             });
@@ -127,7 +128,7 @@ describe('ReportUtils', () => {
                 expect(
                     ReportUtils.getReportName({
                         reportID: '',
-                        participantAccountIDs: [currentUserAccountID, 2],
+                        participants: ReportUtils.buildParticipantsFromAccountIDs([currentUserAccountID, 2]),
                     }),
                 ).toBe('floki@vikings.net');
             });
@@ -136,7 +137,7 @@ describe('ReportUtils', () => {
                 expect(
                     ReportUtils.getReportName({
                         reportID: '',
-                        participantAccountIDs: [currentUserAccountID, 4],
+                        participants: ReportUtils.buildParticipantsFromAccountIDs([currentUserAccountID, 4]),
                     }),
                 ).toBe('(833) 240-3627');
             });
@@ -146,7 +147,7 @@ describe('ReportUtils', () => {
             expect(
                 ReportUtils.getReportName({
                     reportID: '',
-                    participantAccountIDs: [currentUserAccountID, 1, 2, 3, 4],
+                    participants: ReportUtils.buildParticipantsFromAccountIDs([currentUserAccountID, 1, 2, 3, 4]),
                 }),
             ).toBe('Ragnar, floki@vikings.net, Lagertha, (833) 240-3627');
         });
@@ -463,13 +464,8 @@ describe('ReportUtils', () => {
         });
 
         describe('return only iou split option if', () => {
-            it('it is a chat room with more than one participant', () => {
-                const onlyHaveSplitOption = [
-                    CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
-                    CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
-                    CONST.REPORT.CHAT_TYPE.DOMAIN_ALL,
-                    CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
-                ].every((chatType) => {
+            it('it is a chat room with more than one participant that is not an announce room', () => {
+                const onlyHaveSplitOption = [CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, CONST.REPORT.CHAT_TYPE.DOMAIN_ALL, CONST.REPORT.CHAT_TYPE.POLICY_ROOM].every((chatType) => {
                     const report = {
                         ...LHNTestUtils.getFakeReport(),
                         chatType,
@@ -769,8 +765,10 @@ describe('ReportUtils', () => {
         it("should disable on a whisper action and it's neither a report preview nor IOU action", () => {
             const reportAction = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
-                whisperedToAccountIDs: [123456],
-            } as ReportAction;
+                originalMessage: {
+                    whisperedTo: [123456],
+                },
+            } as ModifiedExpenseAction;
             expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeTruthy();
         });
 

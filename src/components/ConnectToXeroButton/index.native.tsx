@@ -9,9 +9,11 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {removePolicyConnection} from '@libs/actions/connections';
 import {getXeroSetupLink} from '@libs/actions/connections/ConnectToXero';
+import getUAForWebView from '@libs/getUAForWebView';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session} from '@src/types/onyx';
@@ -29,6 +31,7 @@ function ConnectToXeroButton({policyID, session, shouldDisconnectIntegrationBefo
     const [isWebViewOpen, setWebViewOpen] = useState(false);
 
     const authToken = session?.authToken ?? null;
+    const {isOffline} = useNetwork();
 
     const renderLoading = () => <FullScreenLoadingIndicator />;
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
@@ -46,6 +49,7 @@ function ConnectToXeroButton({policyID, session, shouldDisconnectIntegrationBefo
                 text={translate('workspace.accounting.setup')}
                 style={styles.justifyContentCenter}
                 small
+                isDisabled={isOffline}
             />
             {shouldDisconnectIntegrationBeforeConnecting && isDisconnectModalOpen && integrationToDisconnect && (
                 <ConfirmModal
@@ -82,6 +86,7 @@ function ConnectToXeroButton({policyID, session, shouldDisconnectIntegrationBefo
                                 Cookie: `authToken=${authToken}`,
                             },
                         }}
+                        userAgent={getUAForWebView()}
                         incognito
                         startInLoadingState
                         renderLoading={renderLoading}

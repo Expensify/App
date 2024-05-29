@@ -13,7 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {WorkspacesCentralPaneNavigatorParamList} from '@libs/Navigation/types';
+import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -26,7 +26,7 @@ import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscree
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import ToggleSettingOptionRow from './workflows/ToggleSettingsOptionRow';
 
-type WorkspaceMoreFeaturesPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.MORE_FEATURES>;
+type WorkspaceMoreFeaturesPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.MORE_FEATURES>;
 
 type Item = {
     icon: IconAsset;
@@ -159,7 +159,9 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 <ToggleSettingOptionRow
                     icon={item.icon}
                     title={translate(item.titleTranslationKey)}
+                    titleStyle={styles.textStrong}
                     subtitle={translate(item.subtitleTranslationKey)}
+                    switchAccessibilityLabel={translate(item.subtitleTranslationKey)}
                     isActive={item.isActive}
                     pendingAction={item.pendingAction}
                     onToggle={item.action}
