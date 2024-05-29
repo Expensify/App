@@ -126,6 +126,7 @@ function IOURequestStepTaxRatePage({
                 transactionID={currentTransaction?.transactionID}
                 onSubmit={updateTaxRates}
                 action={action}
+                iouType={iouType}
             />
         </StepScreenWrapper>
     );
