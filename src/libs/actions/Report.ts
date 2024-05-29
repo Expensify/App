@@ -84,6 +84,7 @@ import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {
     InvitedEmailsToAccountIDs,
     NewGroupChatDraft,
+    PersonalDetails,
     PersonalDetailsList,
     PolicyReportField,
     QuickAction,
@@ -871,8 +872,8 @@ function openReport(
         });
 
         // Add optimistic personal details for new participants
-        const optimisticPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
-        const settledPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
+        const optimisticPersonalDetails: OnyxCollection<PersonalDetails> = {};
+        const settledPersonalDetails: OnyxCollection<PersonalDetails> = {};
         const redundantParticipants: Record<number, null> = {};
         const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(participantLoginList);
         participantLoginList.forEach((login, index) => {
@@ -2478,7 +2479,7 @@ function toggleEmojiReaction(
     addEmojiReaction(originalReportID, reportAction.reportActionID, emoji, skinTone);
 }
 
-function openReportFromDeepLink(url: string) {
+function openReportFromDeepLink(url: string, shouldNavigate = true) {
     const reportID = ReportUtils.getReportIDFromLink(url);
 
     if (reportID && !Session.hasAuthToken()) {
@@ -2513,6 +2514,10 @@ function openReportFromDeepLink(url: string) {
                 }
 
                 if (shouldSkipDeepLinkNavigation(route)) {
+                    return;
+                }
+
+                if (!shouldNavigate) {
                     return;
                 }
 
@@ -2562,6 +2567,13 @@ function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(chat?.reportID), CONST.NAVIGATION.TYPE.UP);
         }
     }
+}
+
+function joinRoom(report: OnyxEntry<Report>) {
+    if (!report) {
+        return;
+    }
+    updateNotificationPreference(report.reportID, report.notificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, false, report.parentReportID, report.parentReportActionID);
 }
 
 function leaveGroupChat(reportID: string) {
@@ -3810,6 +3822,7 @@ export {
     showReportActionNotification,
     toggleEmojiReaction,
     shouldShowReportActionNotification,
+    joinRoom,
     leaveRoom,
     inviteToRoom,
     inviteToGroupChat,

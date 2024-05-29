@@ -235,7 +235,7 @@ Onyx.connect({
  * Stores in Onyx the policy ID of the last workspace that was accessed by the user
  */
 function updateLastAccessedWorkspace(policyID: OnyxEntry<string>) {
-    Onyx.set(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, policyID ?? null);
+    Onyx.set(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, policyID);
 }
 
 /**
@@ -712,6 +712,7 @@ function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueO
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 reimbursementChoice,
+                isLoadingWorkspaceReimbursement: true,
                 achAccount: {reimburser: reimburserEmail},
                 errorFields: {reimbursementChoice: null},
                 pendingFields: {reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
@@ -724,6 +725,7 @@ function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueO
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
+                isLoadingWorkspaceReimbursement: false,
                 errorFields: {reimbursementChoice: null},
                 pendingFields: {reimbursementChoice: null},
             },
@@ -735,6 +737,7 @@ function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueO
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
+                isLoadingWorkspaceReimbursement: false,
                 reimbursementChoice: policy.reimbursementChoice ?? null,
                 achAccount: {reimburser: policy.achAccount?.reimburser ?? null},
                 errorFields: {reimbursementChoice: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')},
@@ -3170,6 +3173,7 @@ function createWorkspaceFromIOUPayment(iouReport: Report | EmptyObject): string 
 
 function createPolicyTag(policyID: string, tagName: string) {
     const policyTag = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.[0] ?? {};
+    const newTagName = PolicyUtils.escapeTagName(tagName);
 
     const onyxData: OnyxData = {
         optimisticData: [
@@ -3179,8 +3183,8 @@ function createPolicyTag(policyID: string, tagName: string) {
                 value: {
                     [policyTag.name]: {
                         tags: {
-                            [tagName]: {
-                                name: tagName,
+                            [newTagName]: {
+                                name: newTagName,
                                 enabled: true,
                                 errors: null,
                                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -3197,7 +3201,7 @@ function createPolicyTag(policyID: string, tagName: string) {
                 value: {
                     [policyTag.name]: {
                         tags: {
-                            [tagName]: {
+                            [newTagName]: {
                                 errors: null,
                                 pendingAction: null,
                             },
@@ -3213,7 +3217,7 @@ function createPolicyTag(policyID: string, tagName: string) {
                 value: {
                     [policyTag.name]: {
                         tags: {
-                            [tagName]: {
+                            [newTagName]: {
                                 errors: ErrorUtils.getMicroSecondOnyxError('workspace.tags.genericFailureMessage'),
                             },
                         },
@@ -3225,7 +3229,7 @@ function createPolicyTag(policyID: string, tagName: string) {
 
     const parameters = {
         policyID,
-        tags: JSON.stringify([{name: tagName}]),
+        tags: JSON.stringify([{name: newTagName}]),
     };
 
     API.write(WRITE_COMMANDS.CREATE_POLICY_TAG, parameters, onyxData);
@@ -3414,7 +3418,9 @@ function clearPolicyTagErrors(policyID: string, tagName: string) {
 
 function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName: string}) {
     const tagListName = Object.keys(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})[0];
-    const oldTag = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`]?.[tagListName]?.tags?.[policyTag.oldName] ?? {};
+    const oldTagName = policyTag.oldName;
+    const newTagName = PolicyUtils.escapeTagName(policyTag.newName);
+    const oldTag = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`]?.[tagListName]?.tags?.[oldTagName] ?? {};
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -3423,15 +3429,15 @@ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName:
                 value: {
                     [tagListName]: {
                         tags: {
-                            [policyTag.oldName]: null,
-                            [policyTag.newName]: {
+                            [oldTagName]: null,
+                            [newTagName]: {
                                 ...oldTag,
-                                name: policyTag.newName,
+                                name: newTagName,
                                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                 pendingFields: {
                                     name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                 },
-                                previousTagName: policyTag.oldName,
+                                previousTagName: oldTagName,
                             },
                         },
                     },
@@ -3445,7 +3451,7 @@ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName:
                 value: {
                     [tagListName]: {
                         tags: {
-                            [policyTag.newName]: {
+                            [newTagName]: {
                                 errors: null,
                                 pendingAction: null,
                                 pendingFields: {
@@ -3464,8 +3470,8 @@ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName:
                 value: {
                     [tagListName]: {
                         tags: {
-                            [policyTag.newName]: null,
-                            [policyTag.oldName]: {
+                            [newTagName]: null,
+                            [oldTagName]: {
                                 ...oldTag,
                                 errors: ErrorUtils.getMicroSecondOnyxError('workspace.tags.genericFailureMessage'),
                             },
@@ -3478,8 +3484,8 @@ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName:
 
     const parameters = {
         policyID,
-        oldName: policyTag.oldName,
-        newName: policyTag.newName,
+        oldName: oldTagName,
+        newName: newTagName,
     };
 
     API.write(WRITE_COMMANDS.RENAME_POLICY_TAG, parameters, onyxData);
