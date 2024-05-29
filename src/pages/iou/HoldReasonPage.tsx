@@ -1,4 +1,3 @@
-import type {RouteProp} from '@react-navigation/native';
 import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
@@ -13,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
@@ -35,7 +35,7 @@ type HoldReasonPageRouteParams = {
 
 type HoldReasonPageProps = {
     /** Navigation route context info provided by react navigation */
-    route: RouteProp<{params: HoldReasonPageRouteParams}>;
+    route: PlatformStackRouteProp<{params: HoldReasonPageRouteParams}>;
 };
 
 function HoldReasonPage({route}: HoldReasonPageProps) {

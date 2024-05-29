@@ -1,13 +1,14 @@
-import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ReportScreenWrapper from '@libs/Navigation/AppNavigator/ReportScreenWrapper';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
+import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
+import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {CentralPaneNavigatorParamList} from '@navigation/types';
 import SearchPage from '@pages/Search/SearchPage';
 import SCREENS from '@src/SCREENS';
 
-const Stack = createStackNavigator<CentralPaneNavigatorParamList>();
+const Stack = createPlatformStackNavigator<CentralPaneNavigatorParamList>();
 
 const url = getCurrentUrl();
 const openOnAdminRoom = url ? new URL(url).searchParams.get('openOnAdminRoom') : undefined;
@@ -28,12 +29,14 @@ const settingsScreens = {
 
 function BaseCentralPaneNavigator() {
     const styles = useThemeStyles();
-    const options = {
+    const options: PlatformStackNavigationOptions = {
         headerShown: false,
         title: 'New Expensify',
-
-        // Prevent unnecessary scrolling
-        cardStyle: styles.cardStyleNavigator,
+        animation: 'slide_from_left',
+        webOnly: {
+            // Prevent unnecessary scrolling
+            cardStyle: styles.cardStyleNavigator,
+        },
     };
 
     return (

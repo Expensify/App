@@ -1,12 +1,12 @@
-import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
+import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {FeatureTrainingNavigatorParamList} from '@libs/Navigation/types';
 import TrackTrainingPage from '@pages/TrackTrainingPage';
 import SCREENS from '@src/SCREENS';
 
-const Stack = createStackNavigator<FeatureTrainingNavigatorParamList>();
+const Stack = createPlatformStackNavigator<FeatureTrainingNavigatorParamList>();
 
 function FeatureTrainingModalNavigator() {
     return (
