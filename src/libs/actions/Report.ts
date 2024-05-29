@@ -57,6 +57,8 @@ import {prepareDraftComment} from '@libs/DraftCommentUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import * as Environment from '@libs/Environment/Environment';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import isPublicScreenRoute from '@libs/isPublicScreenRoute';
+import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {NetworkStatus} from '@libs/NetworkConnection';
@@ -83,6 +85,7 @@ import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {
     InvitedEmailsToAccountIDs,
     NewGroupChatDraft,
+    PersonalDetails,
     PersonalDetailsList,
     PolicyReportField,
     QuickAction,
@@ -633,14 +636,44 @@ function updateGroupChatName(reportID: string, reportName: string) {
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 reportName,
+                pendingFields: {
+                    reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
                 errorFields: {
                     reportName: null,
                 },
             },
         },
     ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                pendingFields: {
+                    reportName: null,
+                },
+            },
+        },
+    ];
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                reportName: currentReportData?.[reportID]?.reportName ?? null,
+                errors: {
+                    reportName: Localize.translateLocal('common.genericErrorMessage'),
+                },
+                pendingFields: {
+                    reportName: null,
+                },
+            },
+        },
+    ];
     const parameters: UpdateGroupChatNameParams = {reportName, reportID};
-    API.write(WRITE_COMMANDS.UPDATE_GROUP_CHAT_NAME, parameters, {optimisticData});
+    API.write(WRITE_COMMANDS.UPDATE_GROUP_CHAT_NAME, parameters, {optimisticData, successData, failureData});
 }
 
 function updateGroupChatAvatar(reportID: string, file?: File | CustomRNImageManipulatorResult) {
@@ -807,13 +840,6 @@ function openReport(
         parameters.shouldRetry = false;
     }
 
-    const report = ReportUtils.getReport(reportID);
-    // If we open an exist report, but it is not present in Onyx yet, we should change the method to set for this report
-    // and we need data to be available when we navigate to the chat page
-    if (isEmptyObject(report)) {
-        optimisticData[0].onyxMethod = Onyx.METHOD.SET;
-    }
-
     // If we are creating a new report, we need to add the optimistic report data and a report action
     const isCreatingNewReport = !isEmptyObject(newReportObject);
     if (isCreatingNewReport) {
@@ -847,8 +873,8 @@ function openReport(
         });
 
         // Add optimistic personal details for new participants
-        const optimisticPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
-        const settledPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
+        const optimisticPersonalDetails: OnyxCollection<PersonalDetails> = {};
+        const settledPersonalDetails: OnyxCollection<PersonalDetails> = {};
         const redundantParticipants: Record<number, null> = {};
         const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(participantLoginList);
         participantLoginList.forEach((login, index) => {
@@ -2454,10 +2480,11 @@ function toggleEmojiReaction(
     addEmojiReaction(originalReportID, reportAction.reportActionID, emoji, skinTone);
 }
 
-function openReportFromDeepLink(url: string) {
+function openReportFromDeepLink(url: string, shouldNavigate = true) {
     const reportID = ReportUtils.getReportIDFromLink(url);
+    const isAuthenticated = Session.hasAuthToken();
 
-    if (reportID && !Session.hasAuthToken()) {
+    if (reportID && !isAuthenticated) {
         // Call the OpenReport command to check in the server if it's a public room. If so, we'll open it as an anonymous user
         openReport(reportID, '', [], {}, '0', true);
 
@@ -2470,12 +2497,17 @@ function openReportFromDeepLink(url: string) {
         Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
     }
 
+    const route = ReportUtils.getRouteFromLink(url);
+
+    // If we are not authenticated and are navigating to a public screen, we don't want to navigate again to the screen after sign-in/sign-up
+    if (!isAuthenticated && isPublicScreenRoute(route)) {
+        return;
+    }
+
     // Navigate to the report after sign-in/sign-up.
     InteractionManager.runAfterInteractions(() => {
         Session.waitForUserSignIn().then(() => {
             Navigation.waitForProtectedRoutes().then(() => {
-                const route = ReportUtils.getRouteFromLink(url);
-
                 if (route && Session.isAnonymousUser() && !Session.canAnonymousUserAccessRoute(route)) {
                     Session.signOutAndRedirectToSignIn(true);
                     return;
@@ -2489,6 +2521,10 @@ function openReportFromDeepLink(url: string) {
                 }
 
                 if (shouldSkipDeepLinkNavigation(route)) {
+                    return;
+                }
+
+                if (!shouldNavigate) {
                     return;
                 }
 
@@ -2538,6 +2574,13 @@ function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(chat?.reportID), CONST.NAVIGATION.TYPE.UP);
         }
     }
+}
+
+function joinRoom(report: OnyxEntry<Report>) {
+    if (!report) {
+        return;
+    }
+    updateNotificationPreference(report.reportID, report.notificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, false, report.parentReportID, report.parentReportActionID);
 }
 
 function leaveGroupChat(reportID: string) {
@@ -3786,6 +3829,7 @@ export {
     showReportActionNotification,
     toggleEmojiReaction,
     shouldShowReportActionNotification,
+    joinRoom,
     leaveRoom,
     inviteToRoom,
     inviteToGroupChat,
