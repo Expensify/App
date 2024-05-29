@@ -1004,8 +1004,8 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[]) 
  * @param parentReportAction the parent comment of a thread
  * @param parentReportID The reportID of the parent
  */
-function navigateToAndOpenChildReport(childReportID = '0', parentReportAction: Partial<ReportAction> = {}, parentReportID = '0') {
-    if (childReportID !== '0') {
+function navigateToAndOpenChildReport(childReportID = '-1', parentReportAction: Partial<ReportAction> = {}, parentReportID = '-1') {
+    if (childReportID !== '-1') {
         openReport(childReportID);
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
     } else {
