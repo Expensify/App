@@ -1,7 +1,7 @@
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import type {MapState} from '@rnmapbox/maps';
 import Mapbox, {MarkerView, setAccessToken} from '@rnmapbox/maps';
-import {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -30,7 +30,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
 
         const cameraRef = useRef<Mapbox.Camera>(null);
         const [isIdle, setIsIdle] = useState(false);
-        const initialLocation = initialState && {longitude: initialState.location[0], latitude: initialState.location[1]};
+        const initialLocation = useMemo(() => initialState && {longitude: initialState.location[0], latitude: initialState.location[1]}, [initialState]);
         const [currentPosition, setCurrentPosition] = useState(cachedUserLocation ?? initialLocation);
         const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
         const shouldInitializeCurrentPosition = useRef(true);

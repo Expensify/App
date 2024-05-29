@@ -5,7 +5,7 @@
 import {useFocusEffect} from '@react-navigation/native';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {MapRef} from 'react-map-gl';
 import Map, {Marker} from 'react-map-gl';
 import {View} from 'react-native';
@@ -52,7 +52,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
         const StyleUtils = useStyleUtils();
 
         const [mapRef, setMapRef] = useState<MapRef | null>(null);
-        const initialLocation = {longitude: initialState.location[0], latitude: initialState.location[1]};
+        const initialLocation = useMemo(() => ({longitude: initialState.location[0], latitude: initialState.location[1]}), [initialState]);
         const [currentPosition, setCurrentPosition] = useState(cachedUserLocation ?? initialLocation);
         const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
         const [shouldResetBoundaries, setShouldResetBoundaries] = useState<boolean>(false);
