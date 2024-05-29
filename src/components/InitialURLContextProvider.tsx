@@ -1,6 +1,5 @@
-import React, {createContext, useEffect, useState} from 'react';
+import React, {createContext} from 'react';
 import type {ReactNode} from 'react';
-import {Linking} from 'react-native';
 import type {Route} from '@src/ROUTES';
 
 /** Initial url that will be opened when NewDot is embedded into Hybrid App. */
@@ -15,16 +14,7 @@ type InitialURLContextProviderProps = {
 };
 
 function InitialURLContextProvider({children, url}: InitialURLContextProviderProps) {
-    const [initialURL, setInitialURL] = useState(url);
-    useEffect(() => {
-        if (initialURL) {
-            return;
-        }
-        Linking.getInitialURL().then((initURL) => {
-            setInitialURL(initURL as Route);
-        });
-    }, [initialURL]);
-    return <InitialURLContext.Provider value={initialURL}>{children}</InitialURLContext.Provider>;
+    return <InitialURLContext.Provider value={url}>{children}</InitialURLContext.Provider>;
 }
 
 InitialURLContextProvider.displayName = 'InitialURLContextProvider';
