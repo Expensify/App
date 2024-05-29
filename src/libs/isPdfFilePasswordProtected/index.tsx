@@ -1,20 +1,32 @@
-import {pdfjs} from 'react-pdf';
+import {PDFDocument} from 'pdf-lib';
 import type {FileObject} from '@components/AttachmentModal';
 
-const isPdfFilePasswordProtected = (file: FileObject): Promise<boolean> =>
-    new Promise((resolve) => {
-        if (!file.uri) {
-            resolve(false);
-        }
+const isPdfFilePasswordProtected = (file: FileObject) => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
 
-        pdfjs.getDocument(file.uri ?? '').onPassword = (_callback: () => void, reason: number) => {
-            // 1 is the error code for password protected PDF error
-            if (reason === 1) {
-                resolve(true);
+        reader.onload = (event) => {
+            const arrayBuffer = event.target?.result;
+            if (!arrayBuffer) {
+                resolve(false);
                 return;
             }
+
+            PDFDocument.load(arrayBuffer, {ignoreEncryption: true})
+                .then((pdfDoc) => {
+                    resolve(pdfDoc.isEncrypted);
+                })
+                .catch(() => {
+                    resolve(false);
+                });
+        };
+
+        reader.onerror = (error) => {
             resolve(false);
         };
+
+        reader.readAsArrayBuffer(file as File);
     });
+};
 
 export default isPdfFilePasswordProtected;
