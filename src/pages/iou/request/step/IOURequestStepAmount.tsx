@@ -36,6 +36,9 @@ type IOURequestStepAmountOnyxProps = {
     /** The draft transaction that holds data to be persisted on the current transaction */
     splitDraftTransaction: OnyxEntry<OnyxTypes.Transaction>;
 
+    /** The draft transaction object being modified in Onyx */
+    draftTransaction: OnyxEntry<OnyxTypes.Transaction>;
+
     /** Whether the confirmation step should be skipped */
     skipConfirmation: OnyxEntry<boolean>;
 
@@ -63,6 +66,7 @@ function IOURequestStepAmount({
     personalDetails,
     currentUserPersonalDetails,
     splitDraftTransaction,
+    draftTransaction,
     skipConfirmation,
 }: IOURequestStepAmountProps) {
     const {translate} = useLocalize();
@@ -76,7 +80,7 @@ function IOURequestStepAmount({
     const isEditingSplitBill = isEditing && isSplitBill;
     const currentTransaction = isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction;
     const {amount: transactionAmount} = ReportUtils.getTransactionDetails(currentTransaction) ?? {amount: 0};
-    const {currency: originalCurrency} = ReportUtils.getTransactionDetails(currentTransaction) ?? {currency: CONST.CURRENCY.USD};
+    const {currency: originalCurrency} = ReportUtils.getTransactionDetails(isEditing ? draftTransaction : transaction) ?? {currency: CONST.CURRENCY.USD};
     const currency = CurrencyUtils.isValidCurrencyCode(selectedCurrency) ? selectedCurrency : originalCurrency;
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace request, as
@@ -321,6 +325,12 @@ const IOURequestStepAmountWithOnyx = withOnyx<IOURequestStepAmountProps, IOURequ
         key: ({route}) => {
             const transactionID = route.params.transactionID ?? 0;
             return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
+        },
+    },
+    draftTransaction: {
+        key: ({route}) => {
+            const transactionID = route.params.transactionID ?? 0;
+            return `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`;
         },
     },
     skipConfirmation: {
