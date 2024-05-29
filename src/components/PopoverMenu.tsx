@@ -5,6 +5,7 @@ import {View} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
@@ -26,6 +27,9 @@ type PopoverMenuItem = MenuItemProps & {
 
     /** Sub menu items to be rendered after a menu item is selected */
     subMenuItems?: PopoverMenuItem[];
+
+    /** Back button text to be shown if sub menu items are opened */
+    backButtonText?: string;
 
     /** Determines whether the menu item is disabled or not */
     disabled?: boolean;
@@ -92,6 +96,7 @@ function PopoverMenu({
     shouldSetModalVisibility = true,
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {isSmallScreenWidth} = useWindowDimensions();
     const selectedItemIndex = useRef<number | null>(null);
 
@@ -127,13 +132,16 @@ function PopoverMenu({
     const renderBackButtonItem = () => {
         const previousMenuItems = getPreviousSubMenu();
         const previouslySelectedItem = previousMenuItems[enteredSubMenuIndexes[enteredSubMenuIndexes.length - 1]];
+        const hasBackButtonText = !!previouslySelectedItem.backButtonText;
 
         return (
             <MenuItem
                 key={previouslySelectedItem.text}
                 icon={Expensicons.BackArrow}
-                iconFill="gray"
-                title={previouslySelectedItem.text}
+                iconFill={theme.icon}
+                title={hasBackButtonText ? previouslySelectedItem.backButtonText : previouslySelectedItem.text}
+                titleStyle={hasBackButtonText ? styles.createMenuHeaderText : undefined}
+                shouldShowBasicTitle={hasBackButtonText}
                 shouldCheckActionAllowedOnPress={false}
                 description={previouslySelectedItem.description}
                 onPress={() => {

@@ -206,6 +206,7 @@ function SettlementButton({
                 text: translate('iou.settlePersonal', {formattedAmount}),
                 icon: Expensicons.User,
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                backButtonText: translate('iou.individual'),
                 subMenuItems: [
                     {
                         text: translate('iou.payElsewhere', {formattedAmount: ''}),
