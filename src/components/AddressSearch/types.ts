@@ -24,19 +24,12 @@ type StreetValue = {
     street: string;
 };
 
-type PredefinedPlace = Place & {
-    name?: string;
-};
-
 type AddressSearchProps = {
     /** The ID used to uniquely identify the input in a Form */
     inputID?: string;
 
     /** Saves a draft of the input value when used in a form */
     shouldSaveDraft?: boolean;
-
-    /** Callback that is called when the text input is focused */
-    onFocus?: () => void;
 
     /** Callback that is called when the text input is blurred */
     onBlur?: () => void;
@@ -72,7 +65,7 @@ type AddressSearchProps = {
     canUseCurrentLocation?: boolean;
 
     /** A list of predefined places that can be shown when the user isn't searching for something */
-    predefinedPlaces?: PredefinedPlace[] | null;
+    predefinedPlaces?: Place[] | null;
 
     /** A map of inputID key names */
     renamedInputKeys?: Address;
@@ -92,4 +85,4 @@ type AddressSearchProps = {
 
 type IsCurrentTargetInsideContainerType = (event: FocusEvent | NativeSyntheticEvent<TextInputFocusEventData>, containerRef: RefObject<View | HTMLElement>) => boolean;
 
-export type {CurrentLocationButtonProps, AddressSearchProps, IsCurrentTargetInsideContainerType, StreetValue, PredefinedPlace};
+export type {CurrentLocationButtonProps, AddressSearchProps, IsCurrentTargetInsideContainerType, StreetValue};

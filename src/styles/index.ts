@@ -3481,6 +3481,7 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeNormal,
             lineHeight: variables.fontSizeNormalHeight,
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
+            flex: 1,
         },
 
         searchPressable: {
