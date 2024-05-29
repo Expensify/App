@@ -5266,7 +5266,12 @@ function shouldReportBeInOptionList({
         return includeSelfDM;
     }
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-    if (parentReportAction && ReportActionsUtils.isPendingRemove(parentReportAction) && ReportActionsUtils.isThreadParentMessage(parentReportAction, report?.reportID ?? '')) {
+    if (
+        parentReportAction &&
+        !isEmptyObject(parentReportAction) &&
+        ReportActionsUtils.isPendingRemove(parentReportAction) &&
+        ReportActionsUtils.isThreadParentMessage(parentReportAction, report?.reportID ?? '')
+    ) {
         return false;
     }
     return true;
