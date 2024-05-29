@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
-import * as Policy from '@src/libs/actions/Policy';
+import * as Policy from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy as PolicyType, Report, ReportAction} from '@src/types/onyx';
 import type {OriginalMessageJoinPolicyChangeLog} from '@src/types/onyx/OriginalMessage';
@@ -11,6 +11,7 @@ import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import createRandomReport from '../utils/collections/reports';
 import * as TestHelper from '../utils/TestHelper';
+import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 OnyxUpdateManager();
@@ -21,9 +22,10 @@ describe('actions/PolicyMember', () => {
         });
     });
 
+    let mockFetch: MockFetch;
     beforeEach(() => {
-        // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
         global.fetch = TestHelper.getGlobalFetchMock();
+        mockFetch = fetch as MockFetch;
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
@@ -39,8 +41,7 @@ describe('actions/PolicyMember', () => {
                 actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST,
             } as ReportAction;
 
-            // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-            fetch.pause();
+            mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`, fakeReport);
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fakeReport.reportID}`, {
@@ -67,8 +68,7 @@ describe('actions/PolicyMember', () => {
                     },
                 });
             });
-            // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-            await fetch.resume();
+            await mockFetch?.resume?.();
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connectionID = Onyx.connect({
@@ -101,8 +101,7 @@ describe('actions/PolicyMember', () => {
                 },
             };
 
-            // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-            fetch.pause();
+            mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {[fakeUser2.accountID]: fakeUser2});
             await waitForBatchedUpdates();
@@ -121,8 +120,7 @@ describe('actions/PolicyMember', () => {
                     },
                 });
             });
-            // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-            await fetch.resume();
+            await mockFetch?.resume?.();
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connectionID = Onyx.connect({
@@ -144,8 +142,7 @@ describe('actions/PolicyMember', () => {
             const fakeEmail = 'fake@gmail.com';
             const fakeAccountID = 1;
 
-            // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-            fetch.pause();
+            mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Onyx.merge(ONYXKEYS.SESSION, {email: fakeEmail, accountID: fakeAccountID});
             Policy.requestWorkspaceOwnerChange(fakePolicy.id);
@@ -164,8 +161,7 @@ describe('actions/PolicyMember', () => {
                     },
                 });
             });
-            // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-            await fetch.resume();
+            await mockFetch?.resume?.();
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connectionID = Onyx.connect({
@@ -197,8 +193,7 @@ describe('actions/PolicyMember', () => {
             };
             const fakeAccountID = 1;
 
-            // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-            fetch.pause();
+            mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Onyx.merge(ONYXKEYS.SESSION, {email: fakeEmail, accountID: fakeAccountID});
             Policy.addBillingCardAndRequestPolicyOwnerChange(fakePolicy.id, fakeCard);
@@ -217,8 +212,7 @@ describe('actions/PolicyMember', () => {
                     },
                 });
             });
-            // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-            await fetch.resume();
+            await mockFetch?.resume?.();
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connectionID = Onyx.connect({

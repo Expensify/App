@@ -1,11 +1,12 @@
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
-import * as Policy from '@src/libs/actions/Policy';
+import * as Policy from '@src/libs/actions/Policy/Policy';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import createRandomPolicy from '../utils/collections/policies';
 import * as TestHelper from '../utils/TestHelper';
+import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 OnyxUpdateManager();
@@ -16,9 +17,10 @@ describe('actions/PolicyProfile', () => {
         });
     });
 
+    let mockFetch: MockFetch;
     beforeEach(() => {
-        // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
         global.fetch = TestHelper.getGlobalFetchMock();
+        mockFetch = fetch as MockFetch;
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
@@ -29,8 +31,7 @@ describe('actions/PolicyProfile', () => {
             const oldDescription = fakePolicy.description ?? '';
             const newDescription = 'Updated description';
             const parsedDescription = ReportUtils.getParsedComment(newDescription);
-            // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-            fetch.pause();
+            mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Policy.updateWorkspaceDescription(fakePolicy.id, newDescription, oldDescription);
             await waitForBatchedUpdates();
@@ -48,8 +49,7 @@ describe('actions/PolicyProfile', () => {
                     },
                 });
             });
-            // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-            await fetch.resume();
+            await mockFetch?.resume?.();
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connectionID = Onyx.connect({
