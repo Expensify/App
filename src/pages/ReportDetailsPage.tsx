@@ -65,10 +65,9 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const route = useRoute();
-    const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? ''}`], [policies, report?.policyID]) ?? null;
+    const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? ''}`], [policies, report?.policyID]);
     const isPolicyAdmin = useMemo(() => PolicyUtils.isPolicyAdmin(policy ?? null), [policy]);
     const isPolicyEmployee = useMemo(() => PolicyUtils.isPolicyEmployee(report?.policyID ?? '', policies), [report?.policyID, policies]);
-    const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     const shouldUseFullTitle = useMemo(() => ReportUtils.shouldUseFullTitleToDisplay(report), [report]);
     const isChatRoom = useMemo(() => ReportUtils.isChatRoom(report), [report]);
     const isTaskReport = useMemo(() => ReportUtils.isTaskReport(report), [report]);
@@ -214,7 +213,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         isUserCreatedPolicyRoom,
         participants.length,
         report,
-        isPolicyExpenseChat,
         isMoneyRequestReport,
         isInvoiceReport,
         activeChatMembers.length,

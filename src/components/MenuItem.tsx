@@ -269,7 +269,7 @@ type MenuItemBaseProps = {
     /** Optional account id if it's user avatar or policy id if it's workspace avatar */
     avatarID?: number | string;
 
-    /** Should we center text or not */
+    /** Should we center all text or not */
     shouldCenter?: boolean;
 };
 
