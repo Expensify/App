@@ -44,6 +44,7 @@ function NotificationPreferencePage({report}: NotificationPreferencePageProps) {
                     onSelectRow={(option) =>
                         report && ReportActions.updateNotificationPreference(report.reportID, report.notificationPreference, option.value, true, undefined, undefined, report)
                     }
+                    shouldDebounceRowSelect
                     initiallyFocusedOptionKey={notificationPreferenceOptions.find((locale) => locale.isSelected)?.keyForList}
                 />
             </FullPageNotFoundView>
