@@ -156,36 +156,40 @@ function IOURequestStepScan({
         }, []),
     );
 
-    const validateReceipt = (file: FileObject) => {
-        const {fileExtension} = FileUtils.splitExtensionFromFileName(file?.name ?? '');
-        if (
-            !CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(fileExtension.toLowerCase() as (typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS)[number])
-        ) {
-            Alert.alert(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.notAllowedExtension'));
-            return false;
-        }
+    const validateReceipt = (file: FileObject): Promise<boolean> => {
+        return new Promise((resolve) => {
+            const {fileExtension} = FileUtils.splitExtensionFromFileName(file?.name ?? '');
+            if (
+                !CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(
+                    fileExtension.toLowerCase() as (typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS)[number],
+                )
+            ) {
+                Alert.alert(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.notAllowedExtension'));
+                resolve(false);
+            }
 
-        if ((file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-            Alert.alert(translate('attachmentPicker.attachmentTooLarge'), translate('attachmentPicker.sizeExceeded'));
-            return false;
-        }
+            if ((file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+                Alert.alert(translate('attachmentPicker.attachmentTooLarge'), translate('attachmentPicker.sizeExceeded'));
+                resolve(false);
+            }
 
-        if ((file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-            Alert.alert(translate('attachmentPicker.attachmentTooSmall'), translate('attachmentPicker.sizeNotMet'));
-            return false;
-        }
+            if ((file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+                Alert.alert(translate('attachmentPicker.attachmentTooSmall'), translate('attachmentPicker.sizeNotMet'));
+                resolve(false);
+            }
 
-        if (fileExtension === 'pdf') {
-            return isPdfFilePasswordProtected(file).then((isProtected: boolean) => {
-                if (isProtected) {
-                    Alert.alert(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.protectedPDFNotSupported'));
-                    return false;
-                }
-                return true;
-            });
-        }
+            if (fileExtension === 'pdf') {
+                return isPdfFilePasswordProtected(file).then((isProtected: boolean) => {
+                    if (isProtected) {
+                        Alert.alert(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.protectedPDFNotSupported'));
+                        resolve(false);
+                    }
+                    resolve(true);
+                });
+            }
 
-        return true;
+            resolve(true);
+        });
     };
 
     const navigateBack = () => {
@@ -380,21 +384,22 @@ function IOURequestStepScan({
      * Sets the Receipt objects and navigates the user to the next page
      */
     const setReceiptAndNavigate = (file: FileObject) => {
-        if (!validateReceipt(file)) {
-            return;
-        }
+        validateReceipt(file).then((isFileValid) => {
+            if (!isFileValid) {
+                return;
+            }
+            // Store the receipt on the transaction object in Onyx
+            // On Android devices, fetching blob for a file with name containing spaces fails to retrieve the type of file.
+            // So, let us also save the file type in receipt for later use during blob fetch
+            IOU.setMoneyRequestReceipt(transactionID, file?.uri ?? '', file.name ?? '', action !== CONST.IOU.ACTION.EDIT, file.type);
 
-        // Store the receipt on the transaction object in Onyx
-        // On Android devices, fetching blob for a file with name containing spaces fails to retrieve the type of file.
-        // So, let us also save the file type in receipt for later use during blob fetch
-        IOU.setMoneyRequestReceipt(transactionID, file?.uri ?? '', file.name ?? '', action !== CONST.IOU.ACTION.EDIT, file.type);
+            if (action === CONST.IOU.ACTION.EDIT) {
+                updateScanAndNavigate(file, file?.uri ?? '');
+                return;
+            }
 
-        if (action === CONST.IOU.ACTION.EDIT) {
-            updateScanAndNavigate(file, file?.uri ?? '');
-            return;
-        }
-
-        navigateToConfirmationStep(file, file.uri ?? '');
+            navigateToConfirmationStep(file, file.uri ?? '');
+        });
     };
 
     const capturePhoto = useCallback(() => {
