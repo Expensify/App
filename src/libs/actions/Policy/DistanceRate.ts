@@ -23,7 +23,7 @@ import type {
 import type {ErrorFields} from '@src/types/onyx/OnyxCommon';
 import type {Attributes, CustomUnit, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
-import {navigateWhenEnableFeature, removePendingFieldsFromCustomUnit, prepareCustomUnitRatesArray} from './Policy';
+import {navigateWhenEnableFeature, removePendingFieldsFromCustomUnit} from './Policy';
 
 type NewCustomUnit = {
     customUnitID: string;
@@ -64,6 +64,21 @@ Onyx.connect({
         allPolicies[key] = val;
     },
 });
+
+/**
+ * Takes array of customUnitRates and removes pendingFields and errorFields from each rate - we don't want to send those via API
+ */
+function prepareCustomUnitRatesArray(customUnitRates: Rate[]): Rate[] {
+    const customUnitRateArray: Rate[] = [];
+    customUnitRates.forEach((rate) => {
+        const cleanedRate = {...rate};
+        delete cleanedRate.pendingFields;
+        delete cleanedRate.errorFields;
+        customUnitRateArray.push(cleanedRate);
+    });
+
+    return customUnitRateArray;
+}
 
 function openPolicyDistanceRatesPage(policyID?: string) {
     if (!policyID) {
