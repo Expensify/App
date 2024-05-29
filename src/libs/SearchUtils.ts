@@ -12,7 +12,6 @@ import type {RootStackParamList, State} from './Navigation/types';
 import * as TransactionUtils from './TransactionUtils';
 import * as UserUtils from './UserUtils';
 
-// Todo use Valueof
 type SortOrder = ValueOf<typeof CONST.SORT_ORDER>;
 type SearchColumnType = ValueOf<typeof CONST.SEARCH_TABLE_COLUMNS>;
 

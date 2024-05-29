@@ -20,6 +20,12 @@ type SearchColumnConfig = {
 
 const SearchColumns: SearchColumnConfig[] = [
     {
+        columnName: CONST.SEARCH_TABLE_COLUMNS.RECEIPT,
+        translationKey: 'common.receipt',
+        shouldShow: () => true,
+        isSortable: false,
+    },
+    {
         columnName: CONST.SEARCH_TABLE_COLUMNS.DATE,
         translationKey: 'common.date',
         shouldShow: () => true,
@@ -94,24 +100,18 @@ function SearchTableHeader({data, sortBy, sortOrder, onSortPress}: SearchTableHe
         return;
     }
 
-    // Todo add textStyle
-    // <SearchTableHeaderColumn
-    //     containerStyle={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.RECEIPT)]}
-    //     textStyle={StyleUtils.getTextOverflowStyle('clip')}
-    //     text={translate('common.receipt')}
-    // />
-
     return (
         <View style={[styles.ph5, styles.pb3]}>
             <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.ph4]}>
-
                 {SearchColumns.map(({columnName, translationKey, shouldShow, isSortable}) => {
                     const isActive = sortBy === columnName;
+                    const textStyle = columnName === CONST.SEARCH_TABLE_COLUMNS.RECEIPT ? StyleUtils.getTextOverflowStyle('clip') : null;
 
                     return (
                         <SortableHeaderText
                             key={translationKey}
                             text={translate(translationKey)}
+                            textStyle={textStyle}
                             sortOrder={sortOrder ?? CONST.SORT_ORDER.ASC}
                             isActive={isActive}
                             containerStyle={[StyleUtils.getSearchTableColumnStyles(columnName)]}
