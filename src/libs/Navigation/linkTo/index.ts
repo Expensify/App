@@ -1,0 +1,199 @@
+import {getActionFromState} from '@react-navigation/core';
+import {findFocusedRoute} from '@react-navigation/native';
+import type {NavigationContainerRef, NavigationState, PartialState} from '@react-navigation/native';
+import {omitBy} from 'lodash';
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import extractPolicyIDsFromState from '@libs/Navigation/linkingConfig/extractPolicyIDsFromState';
+import shallowCompare from '@libs/ObjectUtils';
+import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
+import getActionsFromPartialDiff from '@navigation/AppNavigator/getActionsFromPartialDiff';
+import getPartialStateDiff from '@navigation/AppNavigator/getPartialStateDiff';
+import dismissModal from '@navigation/dismissModal';
+import extrapolateStateFromParams from '@navigation/extrapolateStateFromParams';
+import getPolicyIDFromState from '@navigation/getPolicyIDFromState';
+import getStateFromPath from '@navigation/getStateFromPath';
+import getTopmostBottomTabRoute from '@navigation/getTopmostBottomTabRoute';
+import getTopmostCentralPaneRoute from '@navigation/getTopmostCentralPaneRoute';
+import getTopmostReportId from '@navigation/getTopmostReportId';
+import isSideModalNavigator from '@navigation/isSideModalNavigator';
+import linkingConfig from '@navigation/linkingConfig';
+import getAdaptedStateFromPath from '@navigation/linkingConfig/getAdaptedStateFromPath';
+import getMatchingBottomTabRouteForState from '@navigation/linkingConfig/getMatchingBottomTabRouteForState';
+import getMatchingCentralPaneRouteForState from '@navigation/linkingConfig/getMatchingCentralPaneRouteForState';
+import replacePathInNestedState from '@navigation/linkingConfig/replacePathInNestedState';
+import type {NavigationRoot, RootStackParamList, StackNavigationAction, State} from '@navigation/types';
+import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
+import type {Route} from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
+import getActionForBottomTabNavigator from './getActionForBottomTabNavigator';
+import getMinimalAction from './getMinimalAction';
+
+export default function linkTo(navigation: NavigationContainerRef<RootStackParamList> | null, path: Route, type?: string, isActiveRoute?: boolean) {
+    if (!navigation) {
+        throw new Error("Couldn't find a navigation object. Is your component inside a screen in a navigator?");
+    }
+    let root: NavigationRoot = navigation;
+    let current: NavigationRoot | undefined;
+    // Traverse up to get the root navigation
+    // eslint-disable-next-line no-cond-assign
+    while ((current = root.getParent())) {
+        root = current;
+    }
+
+    const pathWithoutPolicyID = getPathWithoutPolicyID(`/${path}`) as Route;
+    const rootState = navigation.getRootState() as NavigationState<RootStackParamList>;
+    const stateFromPath = getStateFromPath(pathWithoutPolicyID) as PartialState<NavigationState<RootStackParamList>>;
+
+    // Creating path with /w/ included if necessary.
+    const topmostCentralPaneRoute = getTopmostCentralPaneRoute(rootState);
+    const policyIDs = !!topmostCentralPaneRoute?.params && 'policyIDs' in topmostCentralPaneRoute.params ? (topmostCentralPaneRoute?.params?.policyIDs as string) : '';
+    const extractedPolicyID = extractPolicyIDFromPath(`/${path}`);
+    const policyIDFromState = getPolicyIDFromState(rootState);
+    const policyID = extractedPolicyID ?? policyIDFromState ?? policyIDs;
+
+    const isNarrowLayout = getIsNarrowLayout();
+
+    const isFullScreenOnTop = rootState.routes?.at(-1)?.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR;
+
+    // policyIDs is present only on SCREENS.SEARCH.CENTRAL_PANE and it's displayed in the url as a query param, on the other pages this parameter is called policyID and it's shown in the url in the format: /w/:policyID
+    if (policyID && !isFullScreenOnTop && !policyIDs) {
+        // The stateFromPath doesn't include proper path if there is a policy passed with /w/id.
+        // We need to replace the path in the state with the proper one.
+        // To avoid this hacky solution we may want to create custom getActionFromState function in the future.
+        replacePathInNestedState(stateFromPath, `/w/${policyID}${pathWithoutPolicyID}`);
+    }
+
+    const action: StackNavigationAction = getActionFromState(stateFromPath, linkingConfig.config);
+
+    // If action type is different than NAVIGATE we can't change it to the PUSH safely
+    if (action?.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE) {
+        const topRouteName = rootState?.routes?.at(-1)?.name;
+        const isTargetNavigatorOnTop = topRouteName === action.payload.name;
+
+        const isTargetScreenDifferentThanCurrent = Boolean(!topmostCentralPaneRoute || topmostCentralPaneRoute.name !== action.payload.params?.screen);
+        const areParamsDifferent =
+            action.payload.params?.screen === SCREENS.REPORT
+                ? getTopmostReportId(rootState) !== getTopmostReportId(stateFromPath)
+                : !shallowCompare(
+                      omitBy(topmostCentralPaneRoute?.params as Record<string, unknown> | undefined, (value) => value === undefined),
+                      omitBy(action.payload.params?.params as Record<string, unknown> | undefined, (value) => value === undefined),
+                  );
+
+        // If the type is UP, we deeplinked into one of the RHP flows and we want to replace the current screen with the previous one in the flow
+        // and at the same time we want the back button to go to the page we were before the deeplink
+        if (type === CONST.NAVIGATION.TYPE.UP) {
+            action.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
+
+            // If this action is navigating to the report screen and the top most navigator is different from the one we want to navigate - PUSH the new screen to the top of the stack
+        } else if (action.payload.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR && (isTargetScreenDifferentThanCurrent || areParamsDifferent)) {
+            // We need to push a tab if the tab doesn't match the central pane route that we are going to push.
+            const topmostBottomTabRoute = getTopmostBottomTabRoute(rootState);
+            const policyIDsFromState = extractPolicyIDsFromState(stateFromPath);
+            const matchingBottomTabRoute = getMatchingBottomTabRouteForState(stateFromPath, policyID || policyIDsFromState);
+            const isNewPolicyID =
+                (topmostBottomTabRoute?.params as Record<string, string | undefined>)?.policyID !== (matchingBottomTabRoute?.params as Record<string, string | undefined>)?.policyID;
+            if (topmostBottomTabRoute && (topmostBottomTabRoute.name !== matchingBottomTabRoute.name || isNewPolicyID)) {
+                root.dispatch({
+                    type: CONST.NAVIGATION.ACTION_TYPE.PUSH,
+                    payload: matchingBottomTabRoute,
+                });
+            }
+
+            action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
+
+            // If we navigate to SCREENS.SEARCH.CENTRAL_PANE, it's necessary to pass the current policyID, but we have to remember that this param is called policyIDs on this page
+            if (action.payload.params?.screen === SCREENS.SEARCH.CENTRAL_PANE && action.payload?.params?.params && policyID) {
+                action.payload.params.params.policyIDs = policyID;
+            }
+
+            // If this action is navigating to ModalNavigator or FullScreenNavigator and the last route on the root navigator is not already opened Navigator then push
+        } else if ((action.payload.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR || isSideModalNavigator(action.payload.name)) && !isTargetNavigatorOnTop) {
+            if (isSideModalNavigator(topRouteName)) {
+                dismissModal(navigation);
+            }
+
+            // If this RHP has mandatory central pane and bottom tab screens defined we need to push them.
+            const {adaptedState, metainfo} = getAdaptedStateFromPath(path, linkingConfig.config);
+            if (adaptedState && (metainfo.isCentralPaneAndBottomTabMandatory || metainfo.isFullScreenNavigatorMandatory)) {
+                const diff = getPartialStateDiff(rootState, adaptedState as State<RootStackParamList>, metainfo);
+                const diffActions = getActionsFromPartialDiff(diff);
+                for (const diffAction of diffActions) {
+                    root.dispatch(diffAction);
+                }
+            }
+            // All actions related to FullScreenNavigator on wide screen are pushed when comparing differences between rootState and adaptedState.
+            if (action.payload.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR && !isNarrowLayout) {
+                return;
+            }
+            action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
+
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        } else if (action.payload.name === NAVIGATORS.BOTTOM_TAB_NAVIGATOR) {
+            // If path contains a policyID, we should invoke the navigate function
+            const shouldNavigate = !!extractedPolicyID;
+            const actionForBottomTabNavigator = getActionForBottomTabNavigator(action, rootState, policyID, shouldNavigate);
+
+            if (!actionForBottomTabNavigator) {
+                return;
+            }
+
+            root.dispatch(actionForBottomTabNavigator);
+
+            // If the layout is wide we need to push matching central pane route to the stack.
+            if (!isNarrowLayout) {
+                // stateFromPath should always include bottom tab navigator state, so getMatchingCentralPaneRouteForState will be always defined.
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                const matchingCentralPaneRoute = getMatchingCentralPaneRouteForState(stateFromPath, rootState)!;
+                if (matchingCentralPaneRoute && 'name' in matchingCentralPaneRoute) {
+                    root.dispatch({
+                        type: CONST.NAVIGATION.ACTION_TYPE.PUSH,
+                        payload: {
+                            name: NAVIGATORS.CENTRAL_PANE_NAVIGATOR,
+                            params: {
+                                screen: matchingCentralPaneRoute.name,
+                                params: matchingCentralPaneRoute.params,
+                            },
+                        },
+                    });
+                }
+            } else {
+                // If the layout is small we need to pop everything from the central pane so the bottom tab navigator is visible.
+                root.dispatch({
+                    type: 'POP_TO_TOP',
+                    target: rootState.key,
+                });
+            }
+            return;
+        }
+    }
+
+    if (action && 'payload' in action && action.payload && 'name' in action.payload && isSideModalNavigator(action.payload.name)) {
+        // Information about the state may be in the params.
+        const currentFocusedRoute = findFocusedRoute(extrapolateStateFromParams(rootState));
+        const targetFocusedRoute = findFocusedRoute(stateFromPath);
+
+        // If the current focused route is the same as the target focused route, we don't want to navigate.
+        if (currentFocusedRoute?.name === targetFocusedRoute?.name) {
+            return;
+        }
+
+        const minimalAction = getMinimalAction(action, navigation.getRootState());
+        if (minimalAction) {
+            // There are situations where a route already exists on the current navigation stack
+            // But we want to push the same route instead of going back in the stack
+            // Which would break the user navigation history
+            if (!isActiveRoute && type === CONST.NAVIGATION.ACTION_TYPE.PUSH) {
+                minimalAction.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
+            }
+            root.dispatch(minimalAction);
+            return;
+        }
+    }
+
+    if (action !== undefined) {
+        root.dispatch(action);
+    } else {
+        root.reset(stateFromPath);
+    }
+}
