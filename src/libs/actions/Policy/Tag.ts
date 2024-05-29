@@ -112,6 +112,7 @@ function buildOptimisticPolicyRecentlyUsedTags(policyID?: string, transactionTag
 
     return newOptimisticPolicyRecentlyUsedTags;
 }
+
 function createPolicyTag(policyID: string, tagName: string) {
     const policyTag = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.[0] ?? {};
     const newTagName = PolicyUtils.escapeTagName(tagName);
