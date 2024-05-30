@@ -1,7 +1,11 @@
+import type {SortOrder} from '@libs/SearchUtils';
+
 type SearchParams = {
+    hash: number;
     query: string;
     policyIDs?: string;
-    hash: number;
+    sortBy?: string;
+    sortOrder?: SortOrder;
     offset: number;
 };
 

@@ -1,3 +1,4 @@
+import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
 import SelectionList from '@components/SelectionList';
@@ -5,7 +6,6 @@ import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
-import {getTrackingCategory} from '@libs/actions/connections/ConnectToXero';
 import Navigation from '@libs/Navigation/Navigation';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -13,13 +13,26 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 
-function XeroMapCostCentersToConfigurationPage({policy}: WithPolicyProps) {
+type RouteParams = {
+    categoryId?: string;
+    categoryName?: string;
+};
+
+const TRACKING_CATEGORIES_KEY = 'trackingCategory_';
+
+function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
+    const route = useRoute();
+    const params = route.params as RouteParams;
     const styles = useThemeStyles();
-
+    const categoryId = params?.categoryId ?? '';
+    const categoryName = decodeURIComponent(params?.categoryName ?? '');
     const policyID = policy?.id ?? '';
+    const {trackingCategories} = policy?.connections?.xero?.data ?? {};
+    const {mappings} = policy?.connections?.xero?.config ?? {};
 
-    const category = getTrackingCategory(policy, CONST.XERO_CONFIG.TRACKING_CATEGORY_FIELDS.COST_CENTERS);
+    const currentTrackingCategory = trackingCategories?.find((category) => category.id === categoryId);
+    const currentTrackingCategoryValue = currentTrackingCategory ? mappings?.[`${TRACKING_CATEGORIES_KEY}${currentTrackingCategory.id}`] ?? '' : '';
 
     const optionsList = useMemo(
         () =>
@@ -27,44 +40,47 @@ function XeroMapCostCentersToConfigurationPage({policy}: WithPolicyProps) {
                 value: option,
                 text: translate(`workspace.xero.trackingCategoriesOptions.${option.toLowerCase()}` as TranslationPaths),
                 keyForList: option,
-                isSelected: option.toLowerCase() === category?.value?.toLowerCase(),
+                isSelected: option === currentTrackingCategoryValue,
             })),
-        [translate, category],
+        [translate, currentTrackingCategoryValue],
     );
 
     const updateMapping = useCallback(
         (option: {value: string}) => {
-            if (option.value !== category?.value) {
+            if (option.value !== categoryName) {
                 Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.MAPPINGS, {
                     ...(policy?.connections?.xero?.config?.mappings ?? {}),
-                    ...(category?.id ? {[`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${category.id}`]: option.value} : {}),
+                    ...(categoryId ? {[`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${categoryId}`]: option.value} : {}),
                 });
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES.getRoute(policyID));
         },
-        [category, policyID, policy?.connections?.xero?.config?.mappings],
+        [categoryId, categoryName, policyID, policy?.connections?.xero?.config?.mappings],
     );
 
     return (
         <ConnectionLayout
-            displayName={XeroMapCostCentersToConfigurationPage.displayName}
-            headerTitle="workspace.xero.mapXeroCostCentersTo"
-            title="workspace.xero.mapXeroCostCentersToDescription"
+            displayName={XeroMapTrackingCategoryConfigurationPage.displayName}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
-            policyID={policyID && category?.id ? policyID : ''}
+            policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             titleStyle={[styles.pb2, styles.ph5]}
             contentContainerStyle={[styles.flex1]}
             shouldUseScrollView={false}
+            headerTitleAlreadyTranslated={translate('workspace.xero.mapTrackingCategoryTo', {categoryName})}
+            titleAlreadyTranslated={translate('workspace.xero.mapTrackingCategoryToDescription', {categoryName})}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
         >
             <SelectionList
                 sections={[{data: optionsList}]}
                 ListItem={RadioListItem}
                 onSelectRow={updateMapping}
+                initiallyFocusedOptionKey={optionsList.find((option) => option.isSelected)?.keyForList}
+                shouldDebounceRowSelect
             />
         </ConnectionLayout>
     );
 }
 
-XeroMapCostCentersToConfigurationPage.displayName = 'XeroMapCostCentersToConfigurationPage';
-export default withPolicyConnections(XeroMapCostCentersToConfigurationPage);
+XeroMapTrackingCategoryConfigurationPage.displayName = 'XeroMapTrackingCategoryConfigurationPage';
+export default withPolicyConnections(XeroMapTrackingCategoryConfigurationPage);
