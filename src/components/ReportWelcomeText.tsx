@@ -44,7 +44,7 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
     const isDefault = !(isChatRoom || isPolicyExpenseChat || isSelfDM || isInvoiceRoom);
     const participantAccountIDs = Object.keys(report?.participants ?? {})
         .map(Number)
-        .filter((accountID) => accountID !== session?.accountID || !isOneOnOneChat);
+        .filter((accountID) => accountID !== session?.accountID || (!isOneOnOneChat && !isSystemDM));
     const isMultipleParticipant = participantAccountIDs.length > 1;
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails), isMultipleParticipant);
     const isUserPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
