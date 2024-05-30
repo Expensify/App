@@ -60,6 +60,7 @@ function XeroMapRegionsToConfigurationPage({policy}: WithPolicyProps) {
                 sections={[{data: optionsList}]}
                 ListItem={RadioListItem}
                 onSelectRow={updateMapping}
+                shouldDebounceRowSelect
             />
         </ConnectionLayout>
     );
