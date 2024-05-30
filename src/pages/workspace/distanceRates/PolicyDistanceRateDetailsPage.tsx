@@ -108,6 +108,7 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
                 },
             },
         ]);
+        setIsTaxRateSelectionModalVisible(false);
         Keyboard.dismiss();
     };
 
@@ -182,27 +183,34 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
                         />
                     </OfflineWithFeedback>
                     {isTrackTaxEnabled && (
-                        <View style={styles.w100}>
-                            <MenuItemWithTopDescription
-                                title={taxRate}
-                                description={translate('workspace.taxes.taxRate')}
-                                shouldShowRightIcon
-                                onPress={() => setIsTaxRateSelectionModalVisible(true)}
-                            />
-                            <PolicyDistanceRateTaxRateSelectionModal
-                                isVisible={isTaxRateSelectionModalVisible}
-                                items={taxRateItems}
-                                onTaxRateChange={onTaxRateChange}
-                                onClose={() => setIsTaxRateSelectionModalVisible(false)}
-                            />
-                        </View>
+                        <OfflineWithFeedback
+                            errors={ErrorUtils.getLatestErrorField(rate, 'attributes')}
+                            pendingAction={rate?.pendingFields?.attributes}
+                            errorRowStyles={styles.mh5}
+                            onClose={() => clearErrorFields('attributes')}
+                        >
+                            <View style={styles.w100}>
+                                <MenuItemWithTopDescription
+                                    title={taxRate}
+                                    description={translate('workspace.taxes.taxRate')}
+                                    shouldShowRightIcon
+                                    onPress={() => setIsTaxRateSelectionModalVisible(true)}
+                                />
+                                <PolicyDistanceRateTaxRateSelectionModal
+                                    isVisible={isTaxRateSelectionModalVisible}
+                                    items={taxRateItems}
+                                    onTaxRateChange={onTaxRateChange}
+                                    onClose={() => setIsTaxRateSelectionModalVisible(false)}
+                                />
+                            </View>
+                        </OfflineWithFeedback>
                     )}
                     {isTrackTaxEnabled && (
                         <OfflineWithFeedback
-                            errors={ErrorUtils.getLatestErrorField(rate, 'rate')}
-                            pendingAction={rate?.pendingFields?.rate ?? rate?.pendingFields?.currency}
+                            errors={ErrorUtils.getLatestErrorField(rate, 'attributes')}
+                            pendingAction={rate?.pendingFields?.attributes}
                             errorRowStyles={styles.mh5}
-                            onClose={() => clearErrorFields('rate')}
+                            onClose={() => clearErrorFields('attributes')}
                         >
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon

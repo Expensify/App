@@ -1,12 +1,10 @@
 import React from 'react';
-import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
 type ListItemType = {
@@ -16,7 +14,7 @@ type ListItemType = {
     keyForList: string;
 };
 
-type WorkspaceMemberDetailsPageProps = {
+type PolicyDistanceRateTaxRateSelectionModalProps = {
     /** Whether the modal is visible */
     isVisible: boolean;
 
@@ -30,9 +28,8 @@ type WorkspaceMemberDetailsPageProps = {
     onClose: () => void;
 };
 
-function PolicyDistanceRateTaxRateSelectionModal({isVisible, items, onTaxRateChange, onClose = () => {}}: WorkspaceMemberDetailsPageProps) {
+function PolicyDistanceRateTaxRateSelectionModal({isVisible, items, onTaxRateChange, onClose = () => {}}: PolicyDistanceRateTaxRateSelectionModalProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
 
     return (
         <Modal
@@ -51,14 +48,12 @@ function PolicyDistanceRateTaxRateSelectionModal({isVisible, items, onTaxRateCha
                     title={translate('workspace.taxes.taxRate')}
                     onBackButtonPress={onClose}
                 />
-                <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
-                    <SelectionList
-                        sections={[{data: items}]}
-                        ListItem={RadioListItem}
-                        onSelectRow={onTaxRateChange}
-                        initiallyFocusedOptionKey={items.find((item) => item.isSelected)?.keyForList}
-                    />
-                </View>
+                <SelectionList
+                    sections={[{data: items}]}
+                    ListItem={RadioListItem}
+                    onSelectRow={onTaxRateChange}
+                    initiallyFocusedOptionKey={items.find((item) => item.isSelected)?.keyForList}
+                />
             </ScreenWrapper>
         </Modal>
     );

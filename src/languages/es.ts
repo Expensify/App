@@ -2539,6 +2539,7 @@ export default {
             centrallyManage: 'Gestiona centralizadamente las tasas, elige si contabilizar en millas o kilómetros, y define una categoría por defecto',
             rate: 'Tasa',
             addRate: 'Agregar tasa',
+            trackTax: 'Impuesto de seguimiento',
             deleteRates: ({count}: DistanceRateOperationsParams) => `Eliminar ${Str.pluralize('tasa', 'tasas', count)}`,
             enableRates: ({count}: DistanceRateOperationsParams) => `Activar ${Str.pluralize('tasa', 'tasas', count)}`,
             disableRates: ({count}: DistanceRateOperationsParams) => `Desactivar ${Str.pluralize('tasa', 'tasas', count)}`,

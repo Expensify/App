@@ -120,10 +120,10 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
                     <OfflineWithFeedback errorRowStyles={styles.mh5}>
                         <View style={[styles.mt2, styles.mh4]}>
                             <View style={[styles.flexRow, styles.mb2, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                <Text style={[styles.textNormal, styles.colorMuted]}>Track Tax</Text>
+                                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.distanceRates.trackTax')}</Text>
                                 <Switch
                                     isOn={Boolean(isTrackTaxEnabled)}
-                                    accessibilityLabel="Track Tax"
+                                    accessibilityLabel={translate('workspace.distanceRates.trackTax')}
                                     onToggle={onToggleTrackTax}
                                     disabled={!policy?.tax?.trackingEnabled}
                                 />
