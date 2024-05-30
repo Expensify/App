@@ -2045,10 +2045,8 @@ export default {
             accountsSwitchDescription: 'Enabled categories are available for members to select when creating their expenses.',
             trackingCategories: 'Tracking categories',
             trackingCategoriesDescription: 'Choose whether to import tracking categories and see where they are displayed.',
-            mapXeroCostCentersTo: 'Map Xero cost centers to',
-            mapXeroRegionsTo: 'Map Xero regions to',
-            mapXeroCostCentersToDescription: 'Choose where to map cost centers to when exporting to Xero.',
-            mapXeroRegionsToDescription: 'Choose where to map employee regions when exporting expense reports to Xero.',
+            mapTrackingCategoryTo: ({categoryName}) => `Map Xero ${categoryName} to`,
+            mapTrackingCategoryToDescription: ({categoryName}) => `Choose where to map ${categoryName} to when exporting to Xero.`,
             customers: 'Re-bill customers',
             customersDescription: 'Import customer contacts. Billable expenses need tags for export. Expenses will carry the customer information to Xero for sales invoices.',
             taxesDescription: 'Choose whether to import tax rates and tax defaults from your accounting integration.',
@@ -2105,10 +2103,12 @@ export default {
                 },
             },
             invoiceStatus: {
+                label: 'Purchase bill status',
+                description: 'When exported to Xero what state should purchase bills have.',
                 values: {
-                    [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_PAYMENT]: 'Authorised',
                     [CONST.XERO_CONFIG.INVOICE_STATUS.DRAFT]: 'Draft',
-                    [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_APPROVAL]: 'Submitted',
+                    [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_APPROVAL]: 'Awaiting approval',
+                    [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_PAYMENT]: 'Awaiting payment',
                 },
             },
             exportPreferredExporterNote: 'This can be any workspace admin, but must be a domain admin if you set different export accounts for individual company cards in domain settings.',
@@ -2187,6 +2187,12 @@ export default {
                 title: 'Accounting',
                 subtitle: 'Sync your chart of accounts and more.',
             },
+            connectionsWarningModal: {
+                featureEnabledTitle: 'Not so fast...',
+                featureEnabledText: 'To enable or disable this feature change your accounting import settings.',
+                disconnectText: 'Disconnect your accounting connection from the workspace if you want to disable Accounting.',
+                manageSettings: 'Manage settings',
+            },
         },
         reportFields: {
             delete: 'Delete field',
@@ -2242,6 +2248,7 @@ export default {
                 enable: 'Enable rate',
                 enableMultiple: 'Enable rates',
             },
+            importedFromAccountingSoftware: 'The taxes below are imported from your',
         },
         emptyWorkspace: {
             title: 'Create a workspace',
@@ -2342,6 +2349,17 @@ export default {
                     }
                 }
             },
+            syncError: (integration?: ConnectionName): string => {
+                switch (integration) {
+                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
+                        return "Couldn't connect to QuickBooks Online.";
+                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
+                        return "Couldn't connect to Xero.";
+                    default: {
+                        return "Couldn't connect to integration.";
+                    }
+                }
+            },
             accounts: 'Chart of accounts',
             taxes: 'Taxes',
             imported: 'Imported',
@@ -2398,7 +2416,9 @@ export default {
                             return 'Checking QuickBooks Online connection';
                         case 'quickbooksOnlineImportMain':
                             return 'Importing your QuickBooks Online data';
-                        case 'startingImport':
+                        case 'startingImportXero':
+                            return 'Importing your Xero data';
+                        case 'startingImportQBO':
                             return 'Importing your QuickBooks Online data';
                         case 'quickbooksOnlineSyncTitle':
                             return 'Synchronizing QuickBooks Online data';
