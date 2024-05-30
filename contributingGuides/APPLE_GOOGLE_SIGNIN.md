@@ -102,24 +102,23 @@ The Apple/Google Sign In button renders differently in development mode. To prev
 for developers about a possible regression, we decided to not render third party buttons in
 development mode.
 
-Here's how you can re-enable the SSO buttons in development mode:
+To re-enable the SSO buttons in development mode, remove this [condition](https://github.com/Expensify/App/blob/c2a718c9100e704c89ad9564301348bc53a49777/src/pages/signin/LoginForm/BaseLoginForm.tsx#L300) so that we always render the SSO button components:
 
-- Remove this [condition](https://github.com/Expensify/App/blob/c2a718c9100e704c89ad9564301348bc53a49777/src/pages/signin/LoginForm/BaseLoginForm.tsx#L300) so that we always render the SSO button components
-    ```diff
-    diff --git a/src/pages/signin/LoginForm/BaseLoginForm.tsx b/src/pages/signin/LoginForm/BaseLoginForm.tsx
-    index 4286a26033..850f8944ca 100644
-    --- a/src/pages/signin/LoginForm/BaseLoginForm.tsx
-    +++ b/src/pages/signin/LoginForm/BaseLoginForm.tsx
-    @@ -288,7 +288,7 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
-                                // for developers about possible regressions, we won't render buttons in development mode.
-                                // For more information about these differences and how to test in development mode,
-                                // see`Expensify/App/contributingGuides/APPLE_GOOGLE_SIGNIN.md`
-    -                            CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.DEV && (
-    +                            (
-                                    <View style={[getSignInWithStyles()]}>
-                                        <Text
-                                            accessibilityElementsHidden
-    ```
+```diff
+diff --git a/src/pages/signin/LoginForm/BaseLoginForm.tsx b/src/pages/signin/LoginForm/BaseLoginForm.tsx
+index 4286a26033..850f8944ca 100644
+--- a/src/pages/signin/LoginForm/BaseLoginForm.tsx
++++ b/src/pages/signin/LoginForm/BaseLoginForm.tsx
+@@ -288,7 +288,7 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
+                            // for developers about possible regressions, we won't render buttons in development mode.
+                            // For more information about these differences and how to test in development mode,
+                            // see`Expensify/App/contributingGuides/APPLE_GOOGLE_SIGNIN.md`
+-                            CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.DEV && (
++                            (
+                                <View style={[getSignInWithStyles()]}>
+                                    <Text
+                                        accessibilityElementsHidden
+```
 
 ## Desktop-specific setup
 
@@ -231,6 +230,8 @@ This is required because the desktop app needs to know the address of the web ap
 Note that changing this value to a domain that isn't configured for use with Expensify will cause Android to break, as it is still using the real client ID, but now has an incorrect value for `redirectURI`.
 
 ## Google
+
+Unlike with Apple, to test Google Sign-In we don't need to set up any http/ssh tunnels. We can just use `localhost`. But we need to set up the web and desktop environments to use `localhost` instead of `dev.new.expensify.com`
 
 - (web/desktop) Update the webpack.dev.ts [config](https://github.com/Expensify/App/blob/1d6bb1d14cff3dd029868a0a7c8ee14ae78c527b/config/webpack/webpack.dev.js#L47-L49) to change `host` from `dev.new.expensify.com` to `localhost` and server type from `https` to `http`. The reason for this is that Google Sign In allows localhost, but `dev.new.expensify.com` is not a registered Google Sign In domain.
     ```diff
