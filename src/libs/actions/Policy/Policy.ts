@@ -48,7 +48,6 @@ import type {
     UpdateWorkspaceGeneralSettingsParams,
     UpdateWorkspaceMembersRoleParams,
 } from '@libs/API/parameters';
-import type SetPolicyTagsEnabled from '@libs/API/parameters/SetPolicyTagsEnabled';
 import type UpdatePolicyAddressParams from '@libs/API/parameters/UpdatePolicyAddressParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
