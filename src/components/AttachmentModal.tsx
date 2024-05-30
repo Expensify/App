@@ -1,3 +1,4 @@
+
 import Str from 'expensify-common/lib/str';
 import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
 import {Animated, Keyboard, View} from 'react-native';
@@ -462,7 +463,7 @@ function AttachmentModal({
     let shouldShowThreeDotsButton = false;
     if (!isEmptyObject(report)) {
         headerTitleNew = translate(isReceiptAttachment ? 'common.receipt' : 'common.attachment');
-        shouldShowDownloadButton = allowDownload && isDownloadButtonReadyToBeShown && !isReceiptAttachment && !isOffline;
+        shouldShowDownloadButton = allowDownload && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isReceiptAttachment && !isOffline;
         shouldShowThreeDotsButton = isReceiptAttachment && isModalOpen && threeDotsMenuItems.length !== 0;
     }
     const context = useMemo(
@@ -526,7 +527,8 @@ function AttachmentModal({
                                 onLinkPress={() => Navigation.dismissModal()}
                             />
                         )}
-                        {!isEmptyObject(report) && !isReceiptAttachment ? (
+                        {!shouldShowNotFoundPage && (
+                            !isEmptyObject(report) && !isReceiptAttachment ? (
                             <AttachmentCarousel
                                 accountID={accountID}
                                 type={type}
@@ -540,7 +542,7 @@ function AttachmentModal({
                             !!sourceForAttachmentView &&
                             shouldLoadAttachment &&
                             !isLoading &&
-                            !shouldShowNotFoundPage && (
+                            (
                                 <AttachmentCarouselPagerContext.Provider value={context}>
                                     <AttachmentView
                                         containerStyles={[styles.mh5]}
@@ -556,7 +558,7 @@ function AttachmentModal({
                                     />
                                 </AttachmentCarouselPagerContext.Provider>
                             )
-                        )}
+                        ))}
                     </View>
                     {/* If we have an onConfirm method show a confirmation button */}
                     {!!onConfirm && (
