@@ -32,10 +32,13 @@ type FeatureListProps = {
     /** Action to call on cta button press */
     onCtaPress?: () => void;
 
+    /** Text of the secondary button button */
     secondaryButtonText?: string;
 
+    /** Accessibility label for the secondary button */
     secondaryButtonAccessibilityLabel?: string;
 
+    /** Action to call on secondary button press */
     onSecondaryButtonPress?: () => void;
 
     /** A list of menuItems representing the feature list. */
