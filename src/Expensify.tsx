@@ -109,6 +109,9 @@ function Expensify({
     const isAuthenticated = useMemo(() => !!(session?.authToken ?? null), [session]);
     const autoAuthState = useMemo(() => session?.autoAuthState ?? '', [session]);
 
+    const isAuthenticatedRef = useRef(false);
+    isAuthenticatedRef.current = isAuthenticated;
+
     const contextValue = useMemo(
         () => ({
             isSplashHidden,
@@ -195,7 +198,8 @@ function Expensify({
 
         // Open chat report from a deep link (only mobile native)
         Linking.addEventListener('url', (state) => {
-            Report.openReportFromDeepLink(state.url);
+            // We need to pass 'isAuthenticated' to avoid loading a non-existing profile page twice
+            Report.openReportFromDeepLink(state.url, !isAuthenticatedRef.current);
         });
 
         return () => {
