@@ -52,11 +52,11 @@ const Pagination: Middleware = (requestResponse, request) => {
             newPage.unshift(CONST.PAGINATION_START_ID);
         }
 
-        const existingItems = OnyxCache.getValue(resourceKey) as OnyxValues[typeof resourceKey];
+        const existingItems = (OnyxCache.getValue(resourceKey) ?? {}) as OnyxValues[typeof resourceKey];
         const allItems = fastMerge(existingItems, pageItems, true);
         const sortedAllItems = sortItems(allItems);
 
-        const existingPages = OnyxCache.getValue(pageKey) as Pages;
+        const existingPages = (OnyxCache.getValue(pageKey) ?? []) as Pages;
         const mergedPages = PaginationUtils.mergeContinuousPages(sortedAllItems, [...existingPages, newPage], getItemID);
 
         response.onyxData.push({
