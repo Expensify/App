@@ -81,14 +81,14 @@ function ReservationView({reservation}: ReservationViewProps) {
             return (
                 <View style={styles.gap1}>
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-                        <Text style={[styles.textNormalBold, styles.lh20, shouldUseNarrowLayout && styles.flex1]}>{formatAirportInfo(reservation.start)}</Text>
+                        <Text style={[styles.textStrong, styles.lh20, shouldUseNarrowLayout && styles.flex1]}>{formatAirportInfo(reservation.start)}</Text>
                         <Icon
                             src={Expensicons.ArrowRightLong}
                             width={variables.iconSizeSmall}
                             height={variables.iconSizeSmall}
                             fill={theme.icon}
                         />
-                        <Text style={[styles.textNormalBold, styles.lh20, shouldUseNarrowLayout && styles.flex1]}>{formatAirportInfo(reservation.end)}</Text>
+                        <Text style={[styles.textStrong, styles.lh20, shouldUseNarrowLayout && styles.flex1]}>{formatAirportInfo(reservation.end)}</Text>
                     </View>
                     {bottomDescription && <Text style={[styles.textSupportingSmallSize, styles.lh14]}>{bottomDescription}</Text>}
                 </View>
@@ -99,7 +99,7 @@ function ReservationView({reservation}: ReservationViewProps) {
             <View style={styles.gap1}>
                 <Text
                     numberOfLines={1}
-                    style={[styles.textNormalBold, styles.lh20]}
+                    style={[styles.textStrong, styles.lh20]}
                 >
                     {reservation.type === CONST.RESERVATION_TYPE.CAR ? reservation.carInfo?.name : reservation.start.longName}
                 </Text>

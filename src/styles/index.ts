@@ -413,11 +413,6 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeExtraSmall,
         },
 
-        textNormalBold: {
-            fontSize: variables.fontSizeNormal,
-            fontWeight: 'bold',
-        },
-
         textNormal: {
             fontSize: variables.fontSizeNormal,
         },
