@@ -6,10 +6,8 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import DateUtils from '@libs/DateUtils';
 import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
@@ -17,7 +15,6 @@ import CONST from '@src/CONST';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import * as TripReservationUtils from '@src/libs/TripReservationUtils';
 import type {Reservation, ReservationTimeDetails} from '@src/types/onyx/Transaction';
-import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
 
 type TripDetailsViewProps = {
     /** The active tripRoomReportID, used for Onyx subscription */
@@ -133,8 +130,7 @@ function TripDetailsView({tripRoomReportID, shouldShowHorizontalRule}: TripDetai
     const reservations: Reservation[] = TripReservationUtils.getReservationsFromTripTransactions(tripTransactions);
 
     return (
-        <View style={styles.pRelative}>
-            <AnimatedEmptyStateBackground />
+        <View>
             <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv2]}>
                 <View style={[styles.flex1, styles.justifyContentCenter]}>
                     <Text
