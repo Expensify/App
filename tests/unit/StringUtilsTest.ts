@@ -17,4 +17,18 @@ describe('StringUtils', () => {
             expect(acronym).toBe('HEO');
         });
     });
+
+    describe('sanitizeTrailingNewline', () => {
+        test('Test trailing newline replacement', () => {
+            const text = 'Test string.\r\n';
+            const sanitizedText = 'Test string.';
+            expect(StringUtils.sanitizeTrailingNewline(text)).toBe(sanitizedText);
+        });
+
+        test('Test leading and trailing newline replacement with multiline text', () => {
+            const text = '\r\nTest\r\nstring.\r\n';
+            const sanitizedText = 'Test\r\nstring.';
+            expect(StringUtils.sanitizeTrailingNewline(text)).toBe(sanitizedText);
+        });
+    })
 });

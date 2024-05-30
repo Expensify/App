@@ -11,6 +11,15 @@ function sanitizeString(str: string): string {
 }
 
 /**
+ * Remove trailing Carriage Return and Line feed
+ * @param text - Input text to be sanitized 
+ * @returns Sanitized string
+ */
+function sanitizeTrailingNewline(text: string): string {
+    return text.replace(CONST.REGEX.TRAILING_CRLF, ''); 
+}
+
+/**
  *  Check if the string would be empty if all invisible characters were removed.
  */
 function isEmptyString(value: string): boolean {
@@ -96,4 +105,4 @@ function lineBreaksToSpaces(text = '') {
     return text.replace(CONST.REGEX.LINE_BREAK, ' ');
 }
 
-export default {sanitizeString, isEmptyString, removeInvisibleCharacters, normalizeCRLF, getAcronym, lineBreaksToSpaces};
+export default {sanitizeString, isEmptyString, removeInvisibleCharacters, normalizeCRLF, getAcronym, lineBreaksToSpaces, sanitizeTrailingNewline};

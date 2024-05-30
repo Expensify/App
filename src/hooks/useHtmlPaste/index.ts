@@ -1,6 +1,7 @@
 import {useNavigation} from '@react-navigation/native';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import {useCallback, useEffect} from 'react';
+import StringUtils from '@libs/StringUtils';
 import type UseHtmlPaste from './types';
 
 const insertByCommand = (text: string) => {
@@ -12,7 +13,7 @@ const insertAtCaret = (target: HTMLElement, text: string) => {
     if (selection?.rangeCount) {
         const range = selection.getRangeAt(0);
         range.deleteContents();
-        const node = document.createTextNode(text);
+        const node = document.createTextNode(StringUtils.sanitizeTrailingNewline(text));
         range.insertNode(node);
 
         // Move caret to the end of the newly inserted text node.
