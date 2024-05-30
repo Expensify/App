@@ -14,9 +14,9 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DraftCommentUtils from '@libs/DraftCommentUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import variables from '@styles/variables';
@@ -52,8 +52,8 @@ function LHNOptionsList({
     const styles = useThemeStyles();
     const {canUseViolations} = usePermissions();
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
-    const shouldShowEmptyLHN = isSmallScreenWidth && data.length === 0;
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const shouldShowEmptyLHN = shouldUseNarrowLayout && data.length === 0;
 
     // When the first item renders we want to call the onFirstItemRendered callback.
     // At this point in time we know that the list is actually displaying items.
