@@ -21,9 +21,10 @@ type SearchPageProps = StackScreenProps<CentralPaneNavigatorParamList, typeof SC
 function SearchPage({route}: SearchPageProps) {
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const currentQuery = route?.params?.query;
-    const policyIDs = route?.params?.policyIDs;
-    const query = currentQuery as SearchQuery;
+
+    const {query: rawQuery, policyIDs, sortBy, sortOrder} = route?.params ?? {};
+
+    const query = rawQuery as SearchQuery;
     const isValidQuery = Object.values(CONST.TAB_SEARCH).includes(query);
 
     const headerContent: {[key in SearchQuery]: {icon: IconAsset; title: string}} = {
@@ -57,6 +58,8 @@ function SearchPage({route}: SearchPageProps) {
                 <Search
                     policyIDs={policyIDs}
                     query={query}
+                    sortBy={sortBy}
+                    sortOrder={sortOrder}
                 />
             </FullPageNotFoundView>
         </ScreenWrapper>

@@ -685,6 +685,7 @@ const CONST = {
                 REIMBURSEMENT_DEQUEUED: 'REIMBURSEMENTDEQUEUED',
                 REIMBURSEMENT_REQUESTED: 'REIMBURSEMENTREQUESTED', // OldDot Action
                 REIMBURSEMENT_SETUP: 'REIMBURSEMENTSETUP', // OldDot Action
+                REIMBURSEMENT_SETUP_REQUESTED: 'REIMBURSEMENTSETUPREQUESTED', // OldDot Action
                 RENAMED: 'RENAMED',
                 REPORT_PREVIEW: 'REPORTPREVIEW',
                 SELECTED_FOR_RANDOM_AUDIT: 'SELECTEDFORRANDOMAUDIT', // OldDot Action
@@ -931,6 +932,7 @@ const CONST = {
         RECEIPT: 'receipt',
         DATE: 'date',
         MERCHANT: 'merchant',
+        DESCRIPTION: 'description',
         FROM: 'from',
         TO: 'to',
         CATEGORY: 'category',
@@ -4775,6 +4777,11 @@ const CONST = {
 
     REFERRER: {
         NOTIFICATION: 'notification',
+    },
+
+    SORT_ORDER: {
+        ASC: 'asc',
+        DESC: 'desc',
     },
 } as const;
 
