@@ -11,6 +11,13 @@ function stripCommaFromAmount(amount: string): string {
 }
 
 /**
+ * Strip dot from the amount
+ */
+function stripDotFromAmount(amount: string): string {
+    return amount.replace(/\./g, '');
+}
+
+/**
  * Strip spaces from the amount
  */
 function stripSpacesFromAmount(amount: string): string {
@@ -50,7 +57,7 @@ function calculateAmountLength(amount: string): number {
         return CONST.IOU.AMOUNT_MAX_LENGTH + 1;
     }
 
-    return leadingZeroesLength + (absAmount === '0' ? 2 : absAmount.length);
+    return leadingZeroesLength + (absAmount === '0' ? 2 : stripDotFromAmount(absAmount).length);
 }
 
 /**
