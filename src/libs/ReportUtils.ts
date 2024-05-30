@@ -81,7 +81,7 @@ import * as ReportActionsUtils from './ReportActionsUtils';
 import StringUtils from './StringUtils';
 import * as TransactionUtils from './TransactionUtils';
 import * as Url from './Url';
-import type * as UserUtils from './UserUtils';
+import type {AvatarSource} from './UserUtils';
 
 type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18;
 
@@ -117,7 +117,7 @@ type SpendBreakdown = {
     totalDisplaySpend: number;
 };
 
-type ParticipantDetails = [number, string, UserUtils.AvatarSource, UserUtils.AvatarSource];
+type ParticipantDetails = [number, string, AvatarSource, AvatarSource];
 
 type OptimisticAddCommentReportAction = Pick<
     ReportAction,
@@ -587,7 +587,7 @@ function getLastUpdatedReport(): OnyxEntry<Report> {
     return lastUpdatedReport;
 }
 
-function getCurrentUserAvatar(): UserUtils.AvatarSource | undefined {
+function getCurrentUserAvatar(): AvatarSource | undefined {
     return currentUserPersonalDetails?.avatar;
 }
 
@@ -1714,7 +1714,7 @@ function getDefaultWorkspaceAvatarTestID(workspaceName: string): string {
     return !alphaNumeric ? defaultAvatarBuildingIconTestID : `SvgDefaultAvatar_${alphaNumeric[0]} Icon`;
 }
 
-function getWorkspaceAvatar(report: OnyxEntry<Report>): UserUtils.AvatarSource {
+function getWorkspaceAvatar(report: OnyxEntry<Report>): AvatarSource {
     const workspaceName = getPolicyName(report, false, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]);
     const avatar = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.avatarURL ?? '';
     return !isEmpty(avatar) ? avatar : getDefaultWorkspaceAvatar(workspaceName);
@@ -1921,7 +1921,7 @@ function getParticipants(reportID: string) {
 function getIcons(
     report: OnyxEntry<Report>,
     personalDetails: OnyxCollection<PersonalDetails>,
-    defaultIcon: UserUtils.AvatarSource | null = null,
+    defaultIcon: AvatarSource | null = null,
     defaultName = '',
     defaultAccountID = -1,
     policy: OnyxEntry<Policy> = null,
