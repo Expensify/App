@@ -80,7 +80,7 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
     const editRateValue = () => {
         Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATE_EDIT.getRoute(policyID, rateID));
     };
-    const editTaxReclaimableOnValue = () => {
+    const editTaxReclaimableValue = () => {
         Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT.getRoute(policyID, rateID));
     };
 
@@ -184,7 +184,6 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
                     {isTrackTaxEnabled && (
                         <View style={styles.w100}>
                             <MenuItemWithTopDescription
-                                disabled={false}
                                 title={taxRate}
                                 description={translate('workspace.taxes.taxRate')}
                                 shouldShowRightIcon
@@ -210,7 +209,7 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
                                 title={taxClaimableValueToDisplay}
                                 description={translate('workspace.taxes.taxReclaimableOn')}
                                 descriptionTextStyle={styles.textNormal}
-                                onPress={editTaxReclaimableOnValue}
+                                onPress={editTaxReclaimableValue}
                             />
                         </OfflineWithFeedback>
                     )}

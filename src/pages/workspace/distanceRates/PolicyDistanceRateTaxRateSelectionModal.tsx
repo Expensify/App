@@ -30,7 +30,7 @@ type WorkspaceMemberDetailsPageProps = {
     onClose: () => void;
 };
 
-function PolicyDistanceRateTaxRateSelectionModal({isVisible, items, onTaxRateChange, onClose}: WorkspaceMemberDetailsPageProps) {
+function PolicyDistanceRateTaxRateSelectionModal({isVisible, items, onTaxRateChange, onClose = () => {}}: WorkspaceMemberDetailsPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -38,7 +38,7 @@ function PolicyDistanceRateTaxRateSelectionModal({isVisible, items, onTaxRateCha
         <Modal
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             isVisible={isVisible}
-            onClose={() => onClose?.()}
+            onClose={onClose}
             onModalHide={onClose}
             hideModalContentWhileAnimating
             useNativeDriver
