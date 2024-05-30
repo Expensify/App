@@ -656,11 +656,11 @@ function getRootParentReport(report: OnyxEntry<Report> | undefined | EmptyObject
 /**
  * Returns the policy of the report
  */
-function getPolicy(policyID: string | undefined): Policy | EmptyObject {
+function getPolicy(policyID: string | undefined): OnyxEntry<Policy> {
     if (!allPolicies || !policyID) {
-        return {};
+        return null;
     }
-    return allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? {};
+    return allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
 }
 
 /**
@@ -1254,7 +1254,7 @@ function isJoinRequestInAdminRoom(report: OnyxEntry<Report>): boolean {
     // since they are not a part of the company, and should not action it on their behalf.
     if (report.policyID) {
         const policy = getPolicy(report.policyID);
-        if (!PolicyUtils.isExpensifyTeam(policy.owner) && PolicyUtils.isExpensifyTeam(currentUserPersonalDetails?.login)) {
+        if (!PolicyUtils.isExpensifyTeam(policy?.owner) && PolicyUtils.isExpensifyTeam(currentUserPersonalDetails?.login)) {
             return false;
         }
     }
@@ -2623,8 +2623,8 @@ function canEditMoneyRequest(reportAction: OnyxEntry<ReportAction>): boolean {
         return isProcessingReport(moneyRequestReport) && isRequestor;
     }
 
-    const policy = getPolicy(moneyRequestReport?.policyID ?? '');
-    const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
+    const policy = getPolicy(moneyRequestReport?.policyID);
+    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = currentUserAccountID === moneyRequestReport?.managerID;
 
     if (isInvoiceReport(moneyRequestReport) && isManager) {
@@ -2679,8 +2679,8 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxEntry<ReportAction>, field
     }
 
     if ((fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT || fieldToEdit === CONST.EDIT_REQUEST_FIELD.CURRENCY) && TransactionUtils.isDistanceRequest(transaction)) {
-        const policy = getPolicy(moneyRequestReport?.reportID ?? '');
-        const isAdmin = isExpenseReport(moneyRequestReport) && policy.role === CONST.POLICY.ROLE.ADMIN;
+        const policy = getPolicy(moneyRequestReport?.reportID);
+        const isAdmin = isExpenseReport(moneyRequestReport) && policy?.role === CONST.POLICY.ROLE.ADMIN;
         const isManager = isExpenseReport(moneyRequestReport) && currentUserAccountID === moneyRequestReport?.managerID;
 
         return isAdmin || isManager;
@@ -3677,7 +3677,7 @@ function getHumanReadableStatus(statusNum: number): string {
  * If after all replacements the formula is empty, the original formula is returned.
  * See {@link https://help.expensify.com/articles/expensify-classic/insights-and-custom-reporting/Custom-Templates}
  */
-function populateOptimisticReportFormula(formula: string, report: OptimisticExpenseReport, policy: Policy | EmptyObject): string {
+function populateOptimisticReportFormula(formula: string, report: OptimisticExpenseReport, policy: OnyxEntry<Policy>): string {
     const createdDate = report.lastVisibleActionCreated ? new Date(report.lastVisibleActionCreated) : undefined;
     const result = formula
         // We don't translate because the server response is always in English
@@ -3685,7 +3685,7 @@ function populateOptimisticReportFormula(formula: string, report: OptimisticExpe
         .replaceAll('{report:startdate}', createdDate ? format(createdDate, CONST.DATE.FNS_FORMAT_STRING) : '')
         .replaceAll('{report:total}', report.total !== undefined ? CurrencyUtils.convertToDisplayString(Math.abs(report.total), report.currency).toString() : '')
         .replaceAll('{report:currency}', report.currency ?? '')
-        .replaceAll('{report:policyname}', policy.name ?? '')
+        .replaceAll('{report:policyname}', policy?.name ?? '')
         .replaceAll('{report:created}', createdDate ? format(createdDate, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING) : '')
         .replaceAll('{report:created:yyyy-MM-dd}', createdDate ? format(createdDate, CONST.DATE.FNS_FORMAT_STRING) : '')
         .replaceAll('{report:status}', report.statusNum !== undefined ? getHumanReadableStatus(report.statusNum) : '')
@@ -3776,7 +3776,7 @@ function buildOptimisticExpenseReport(chatReportID: string, policyID: string, pa
 function getIOUSubmittedMessage(report: OnyxEntry<Report>) {
     const policy = getPolicy(report?.policyID);
 
-    if (report?.ownerAccountID !== currentUserAccountID && policy.role === CONST.POLICY.ROLE.ADMIN) {
+    if (report?.ownerAccountID !== currentUserAccountID && policy?.role === CONST.POLICY.ROLE.ADMIN) {
         const ownerPersonalDetail = getPersonalDetailsForAccountID(report?.ownerAccountID ?? 0);
         const ownerDisplayName = `${ownerPersonalDetail.displayName ?? ''}${ownerPersonalDetail.displayName !== ownerPersonalDetail.login ? ` (${ownerPersonalDetail.login})` : ''}`;
 
@@ -6537,11 +6537,8 @@ function isReportOwner(report: OnyxEntry<Report>): boolean {
 
 function isAllowedToApproveExpenseReport(report: OnyxEntry<Report>, approverAccountID?: number): boolean {
     const policy = getPolicy(report?.policyID);
-    const {preventSelfApproval} = policy;
-
     const isOwner = (approverAccountID ?? currentUserAccountID) === report?.ownerAccountID;
-
-    return !(preventSelfApproval && isOwner);
+    return !(policy?.preventSelfApproval && isOwner);
 }
 
 function isAllowedToSubmitDraftExpenseReport(report: OnyxEntry<Report>): boolean {

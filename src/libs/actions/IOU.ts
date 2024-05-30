@@ -6034,7 +6034,7 @@ function sendMoneyWithWallet(report: OnyxEntry<OnyxTypes.Report>, amount: number
     Report.notifyNewAction(params.chatReportID, managerID);
 }
 
-function canApproveIOU(iouReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, chatReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, policy: OnyxEntry<OnyxTypes.Policy> | EmptyObject) {
+function canApproveIOU(iouReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, chatReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, policy: OnyxEntry<OnyxTypes.Policy>) {
     if (isEmptyObject(chatReport)) {
         return false;
     }
@@ -6061,7 +6061,7 @@ function canApproveIOU(iouReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, cha
     return isCurrentUserManager && !isOpenExpenseReport && !isApproved && !iouSettled && !isArchivedReport;
 }
 
-function canIOUBePaid(iouReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, chatReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, policy: OnyxEntry<OnyxTypes.Policy> | EmptyObject) {
+function canIOUBePaid(iouReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, chatReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, policy: OnyxEntry<OnyxTypes.Policy>) {
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
     const isChatReportArchived = ReportUtils.isArchivedRoom(chatReport);
 

@@ -9,7 +9,6 @@ import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyCategories, PolicyEmployeeList, PolicyTagList, PolicyTags, TaxRate} from '@src/types/onyx';
 import type {PolicyFeatureName, Rate, Tenant} from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Navigation from './Navigation/Navigation';
 import * as NetworkStore from './Network/NetworkStore';
@@ -130,12 +129,12 @@ function isExpensifyTeam(email: string | undefined): boolean {
 /**
  * Checks if the current user is an admin of the policy.
  */
-const isPolicyAdmin = (policy: OnyxEntry<Policy> | EmptyObject): boolean => policy?.role === CONST.POLICY.ROLE.ADMIN;
+const isPolicyAdmin = (policy: OnyxEntry<Policy>): boolean => policy?.role === CONST.POLICY.ROLE.ADMIN;
 
 /**
  * Checks if the policy is a free group policy.
  */
-const isFreeGroupPolicy = (policy: OnyxEntry<Policy> | EmptyObject): boolean => policy?.type === CONST.POLICY.TYPE.FREE;
+const isFreeGroupPolicy = (policy: OnyxEntry<Policy>): boolean => policy?.type === CONST.POLICY.TYPE.FREE;
 
 const isPolicyEmployee = (policyID: string, policies: OnyxCollection<Policy>): boolean => Object.values(policies ?? {}).some((policy) => policy?.id === policyID);
 
@@ -267,7 +266,7 @@ function isPendingDeletePolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
-function isPaidGroupPolicy(policy: OnyxEntry<Policy> | EmptyObject): boolean {
+function isPaidGroupPolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.TEAM || policy?.type === CONST.POLICY.TYPE.CORPORATE;
 }
 
@@ -284,14 +283,14 @@ function isTaxTrackingEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Po
  * Checks if policy's scheduled submit / auto reporting frequency is "instant".
  * Note: Free policies have "instant" submit always enabled.
  */
-function isInstantSubmitEnabled(policy: OnyxEntry<Policy> | EmptyObject): boolean {
+function isInstantSubmitEnabled(policy: OnyxEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.FREE || (policy?.autoReporting === true && policy?.autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
 }
 
 /**
  * Checks if policy's approval mode is "optional", a.k.a. "Submit & Close"
  */
-function isSubmitAndClose(policy: OnyxEntry<Policy> | EmptyObject): boolean {
+function isSubmitAndClose(policy: OnyxEntry<Policy>): boolean {
     return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 }
 
@@ -334,7 +333,7 @@ function canEditTaxRate(policy: Policy, taxID: string): boolean {
     return policy.taxRates?.defaultExternalID !== taxID;
 }
 
-function isPolicyFeatureEnabled(policy: OnyxEntry<Policy> | EmptyObject, featureName: PolicyFeatureName): boolean {
+function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFeatureName): boolean {
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED) {
         return Boolean(policy?.tax?.trackingEnabled);
     }
@@ -342,7 +341,7 @@ function isPolicyFeatureEnabled(policy: OnyxEntry<Policy> | EmptyObject, feature
     return Boolean(policy?.[featureName]);
 }
 
-function getApprovalWorkflow(policy: OnyxEntry<Policy> | EmptyObject): ValueOf<typeof CONST.POLICY.APPROVAL_MODE> {
+function getApprovalWorkflow(policy: OnyxEntry<Policy>): ValueOf<typeof CONST.POLICY.APPROVAL_MODE> {
     if (policy?.type === CONST.POLICY.TYPE.PERSONAL) {
         return CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     }
@@ -350,14 +349,14 @@ function getApprovalWorkflow(policy: OnyxEntry<Policy> | EmptyObject): ValueOf<t
     return policy?.approvalMode ?? CONST.POLICY.APPROVAL_MODE.ADVANCED;
 }
 
-function getDefaultApprover(policy: OnyxEntry<Policy> | EmptyObject): string {
+function getDefaultApprover(policy: OnyxEntry<Policy>): string {
     return policy?.approver ?? policy?.owner ?? '';
 }
 
 /**
  * Returns the accountID to whom the given employeeAccountID submits reports to in the given Policy.
  */
-function getSubmitToAccountID(policy: OnyxEntry<Policy> | EmptyObject, employeeAccountID: number): number {
+function getSubmitToAccountID(policy: OnyxEntry<Policy>, employeeAccountID: number): number {
     const employeeLogin = getLoginsByAccountIDs([employeeAccountID])[0];
     const defaultApprover = getDefaultApprover(policy);
 
