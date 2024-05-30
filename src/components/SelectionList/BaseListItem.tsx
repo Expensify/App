@@ -100,6 +100,7 @@ function BaseListItem<TItem extends ListItem>({
                 onFocus={onFocus}
                 onMouseUp={handleMouseUp}
                 onMouseLeave={handleMouseUp}
+                tabIndex={item.tabIndex}
             >
                 <View style={wrapperStyle}>
                     {typeof children === 'function' ? children(hovered) : children}

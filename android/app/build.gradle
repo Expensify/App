@@ -2,12 +2,21 @@ apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 apply plugin: "com.google.firebase.firebase-perf"
+apply plugin: "fullstory"
 apply from: project(':react-native-config').projectDir.getPath() + "/dotenv.gradle"
 
 /**
  * This is the configuration block to customize your React Native Android app.
  * By default you don't need to apply any configuration, just uncomment the lines you need.
  */
+
+/* Fullstory settings */
+fullstory {
+    org 'o-1WN56P-na1'
+    enabledVariants 'all'
+    logcatLevel 'debug'
+}
+
 react {
     /* Folders */
     //   The root of your project, i.e. where "package.json" lives. Default is '..'
@@ -98,8 +107,8 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         multiDexEnabled rootProject.ext.multiDexEnabled
-        versionCode 1001047404
-        versionName "1.4.74-4"
+        versionCode 1001047704
+        versionName "1.4.77-4"
         // Supported language variants must be declared here to avoid from being removed during the compilation.
         // This also helps us to not include unnecessary language variants in the APK.
         resConfigs "en", "es"
@@ -162,7 +171,7 @@ android {
             signingConfig null
             // buildTypes take precedence over productFlavors when it comes to the signing configuration,
             // thus we need to manually set the signing config, so that the e2e uses the debug config again.
-            // In other words, the signingConfig setting above will be ignored when we build the flavor in release mode. 
+            // In other words, the signingConfig setting above will be ignored when we build the flavor in release mode.
             productFlavors.all { flavor ->
                 // All release builds should be signed with the release config ...
                 flavor.signingConfig signingConfigs.release

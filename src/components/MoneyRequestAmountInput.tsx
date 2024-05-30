@@ -25,6 +25,9 @@ type MoneyRequestAmountInputProps = {
     /** IOU amount saved in Onyx */
     amount?: number;
 
+    /** A callback to format the amount number */
+    onFormatAmount?: (amount: number, currency?: string) => string;
+
     /** Currency chosen by user or saved in Onyx */
     currency?: string;
 
@@ -75,6 +78,11 @@ type MoneyRequestAmountInputProps = {
 
     /** Hide the focus styles on TextInput */
     hideFocusedState?: boolean;
+
+    /**
+     * Autogrow input container length based on the entered text.
+     */
+    autoGrow?: boolean;
 };
 
 type Selection = {
@@ -90,6 +98,8 @@ const getNewSelection = (oldSelection: Selection, prevLength: number, newLength:
     return {start: cursorPosition, end: cursorPosition};
 };
 
+const defaultOnFormatAmount = (amount: number) => CurrencyUtils.convertToFrontendAmount(amount).toString();
+
 function MoneyRequestAmountInput(
     {
         amount = 0,
@@ -102,9 +112,11 @@ function MoneyRequestAmountInput(
         shouldUpdateSelection = true,
         moneyRequestAmountInputRef,
         disableKeyboard = true,
+        onFormatAmount = defaultOnFormatAmount,
         formatAmountOnBlur,
         maxLength,
         hideFocusedState = true,
+        autoGrow = true,
         ...props
     }: MoneyRequestAmountInputProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
@@ -114,7 +126,7 @@ function MoneyRequestAmountInput(
     const textInput = useRef<BaseTextInputRef | null>(null);
 
     const decimals = CurrencyUtils.getCurrencyDecimals(currency);
-    const selectedAmountAsString = amount ? CurrencyUtils.convertToFrontendAmount(amount).toString() : '';
+    const selectedAmountAsString = amount ? onFormatAmount(amount, currency) : '';
 
     const [currentAmount, setCurrentAmount] = useState(selectedAmountAsString);
 
@@ -183,7 +195,7 @@ function MoneyRequestAmountInput(
         if (!currency || typeof amount !== 'number' || (formatAmountOnBlur && textInput.current?.isFocused())) {
             return;
         }
-        const frontendAmount = formatAmountOnBlur ? CurrencyUtils.convertToDisplayStringWithoutCurrency(amount, currency) : CurrencyUtils.convertToFrontendAmount(amount).toString();
+        const frontendAmount = onFormatAmount(amount, currency);
         setCurrentAmount(frontendAmount);
 
         // Only update selection if the amount prop was changed from the outside and is not the same as the current amount we just computed
@@ -234,7 +246,7 @@ function MoneyRequestAmountInput(
         if (!formatAmountOnBlur) {
             return;
         }
-        const formattedAmount = CurrencyUtils.convertToDisplayStringWithoutCurrency(amount, currency);
+        const formattedAmount = onFormatAmount(amount, currency);
         if (maxLength && formattedAmount.length > maxLength) {
             return;
         }
@@ -243,7 +255,7 @@ function MoneyRequestAmountInput(
             start: formattedAmount.length,
             end: formattedAmount.length,
         });
-    }, [amount, currency, formatAmountOnBlur, maxLength]);
+    }, [amount, currency, onFormatAmount, formatAmountOnBlur, maxLength]);
 
     const formattedAmount = MoneyRequestUtils.replaceAllDigits(currentAmount, toLocaleDigit);
 
@@ -263,6 +275,7 @@ function MoneyRequestAmountInput(
 
     return (
         <TextInputWithCurrencySymbol
+            autoGrow={autoGrow}
             disableKeyboard={disableKeyboard}
             formattedAmount={formattedAmount}
             onChangeAmount={setNewAmount}
