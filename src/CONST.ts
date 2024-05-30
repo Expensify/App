@@ -932,6 +932,7 @@ const CONST = {
         RECEIPT: 'receipt',
         DATE: 'date',
         MERCHANT: 'merchant',
+        DESCRIPTION: 'description',
         FROM: 'from',
         TO: 'to',
         CATEGORY: 'category',
@@ -4776,6 +4777,11 @@ const CONST = {
 
     REFERRER: {
         NOTIFICATION: 'notification',
+    },
+
+    SORT_ORDER: {
+        ASC: 'asc',
+        DESC: 'desc',
     },
 } as const;
 
