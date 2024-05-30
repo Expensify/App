@@ -3480,6 +3480,7 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeNormal,
             lineHeight: variables.fontSizeNormalHeight,
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
+            flex: 1,
         },
 
         searchPressable: {
@@ -3505,6 +3506,10 @@ const styles = (theme: ThemeColors) =>
             color: theme.textSupporting,
             fontSize: 13,
             lineHeight: 16,
+        },
+
+        searchTableHeaderActive: {
+            fontWeight: 'bold',
         },
 
         threeDotsPopoverOffset: (windowWidth: number) =>

@@ -7,7 +7,6 @@ import {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import ChatDetailsQuickActionsBar from '@components/ChatDetailsQuickActionsBar';
 import DisplayNames from '@components/DisplayNames';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -17,6 +16,7 @@ import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import PromotedActionsBar, {PromotedActions} from '@components/PromotedActionsBar';
 import RoomHeaderAvatars from '@components/RoomHeaderAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -241,34 +241,51 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         />
     ) : null;
 
-    const renderAvatar =
-        isGroupChat && !isThread ? (
-            <AvatarWithImagePicker
-                source={icons[0].source}
-                avatarID={icons[0].id}
-                isUsingDefaultAvatar={!report.avatarUrl}
-                size={CONST.AVATAR_SIZE.XLARGE}
-                avatarStyle={styles.avatarXLarge}
-                shouldDisableViewPhoto
-                onImageRemoved={() => {
-                    // Calling this without a file will remove the avatar
-                    Report.updateGroupChatAvatar(report.reportID ?? '');
-                }}
-                onImageSelected={(file) => Report.updateGroupChatAvatar(report.reportID ?? '', file)}
-                editIcon={Expensicons.Camera}
-                editIconStyle={styles.smallEditIconAccount}
-                pendingAction={report.pendingFields?.avatar ?? undefined}
-                errors={report.errorFields?.avatar ?? null}
-                errorRowStyles={styles.mt6}
-                onErrorClose={() => Report.clearAvatarErrors(report.reportID ?? '')}
-                shouldUseStyleUtilityForAnchorPosition
-            />
-        ) : (
-            <RoomHeaderAvatars
-                icons={icons}
-                reportID={report?.reportID}
-            />
+    const renderAvatar = useMemo(() => {
+        if (isMoneyRequestReport || isInvoiceReport) {
+            return (
+                <View style={styles.mb3}>
+                    <MultipleAvatars
+                        icons={icons}
+                        size={CONST.AVATAR_SIZE.LARGE}
+                    />
+                </View>
+            );
+        }
+        if (isGroupChat && !isThread) {
+            return (
+                <AvatarWithImagePicker
+                    source={icons[0].source}
+                    avatarID={icons[0].id}
+                    isUsingDefaultAvatar={!report.avatarUrl}
+                    size={CONST.AVATAR_SIZE.XLARGE}
+                    avatarStyle={styles.avatarXLarge}
+                    shouldDisableViewPhoto
+                    onImageRemoved={() => {
+                        // Calling this without a file will remove the avatar
+                        Report.updateGroupChatAvatar(report.reportID ?? '');
+                    }}
+                    onImageSelected={(file) => Report.updateGroupChatAvatar(report.reportID ?? '', file)}
+                    editIcon={Expensicons.Camera}
+                    editIconStyle={styles.smallEditIconAccount}
+                    pendingAction={report.pendingFields?.avatar ?? undefined}
+                    errors={report.errorFields?.avatar ?? null}
+                    errorRowStyles={styles.mt6}
+                    onErrorClose={() => Report.clearAvatarErrors(report.reportID ?? '')}
+                    shouldUseStyleUtilityForAnchorPosition
+                    style={[styles.w100, styles.mb3]}
+                />
+            );
+        }
+        return (
+            <View style={styles.mb3}>
+                <RoomHeaderAvatars
+                    icons={icons}
+                    reportID={report?.reportID}
+                />
+            </View>
         );
+    }, [report, icons, isMoneyRequestReport, isInvoiceReport, isGroupChat, isThread, styles]);
 
     const reportName =
         ReportUtils.isDeprecatedGroupDM(report) || ReportUtils.isGroupChat(report)
@@ -301,16 +318,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 />
                 <ScrollView style={[styles.flex1]}>
                     <View style={[styles.reportDetailsTitleContainer, !shouldShowRoomName && styles.mb5]}>
-                        <View style={styles.mb3}>
-                            {isMoneyRequestReport || isInvoiceReport ? (
-                                <MultipleAvatars
-                                    icons={icons}
-                                    size={CONST.AVATAR_SIZE.LARGE}
-                                />
-                            ) : (
-                                renderAvatar
-                            )}
-                        </View>
+                        {renderAvatar}
                         <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
                             {!shouldShowRoomName && (
                                 <>
@@ -384,7 +392,13 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                             />
                         </OfflineWithFeedback>
                     )}
-                    {isGroupChat && <ChatDetailsQuickActionsBar report={report} />}
+                    {isGroupChat && (
+                        <PromotedActionsBar
+                            report={report}
+                            promotedActions={[PromotedActions.pin(report)]}
+                            shouldShowLeaveButton
+                        />
+                    )}
                     {menuItems.map((item) => {
                         const brickRoadIndicator =
                             ReportUtils.hasReportNameError(report) && item.key === CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;

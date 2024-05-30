@@ -11,11 +11,11 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as Tag from '@libs/actions/Policy/Tag';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -35,7 +35,7 @@ function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPag
 
     const updateWorkspaceRequiresTag = useCallback(
         (value: boolean) => {
-            Policy.setPolicyRequiresTag(route.params.policyID, value);
+            Tag.setPolicyRequiresTag(route.params.policyID, value);
         },
         [route.params.policyID],
     );

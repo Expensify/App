@@ -1,6 +1,6 @@
 import React from 'react';
 import useLocalize from '@hooks/useLocalize';
-import type {PolicyAccessVariant} from '@pages/workspace/AccessOrNotFoundWrapper';
+import type {AccessVariant} from '@pages/workspace/AccessOrNotFoundWrapper';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {TranslationPaths} from '@src/languages/types';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
@@ -45,7 +45,7 @@ type SelectionScreenProps = {
     policyID: string;
 
     /** Defines which types of access should be verified */
-    accessVariants?: PolicyAccessVariant[];
+    accessVariants?: AccessVariant[];
 
     /** The current feature name that the user tries to get access to */
     featureName?: PolicyFeatureName;
