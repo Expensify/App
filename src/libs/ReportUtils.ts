@@ -1940,11 +1940,11 @@ function getIcons(
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
         const workspaceIcon = getWorkspaceIcon(report, policy);
         const memberIcon = {
-            source: personalDetails?.[parentReportAction.actorAccountID ?? -1]?.avatar ?? FallbackAvatar,
-            id: parentReportAction.actorAccountID,
+            source: personalDetails?.[parentReportAction?.actorAccountID ?? -1]?.avatar ?? FallbackAvatar,
+            id: parentReportAction?.actorAccountID,
             type: CONST.ICON_TYPE_AVATAR,
-            name: personalDetails?.[parentReportAction.actorAccountID ?? -1]?.displayName ?? '',
-            fallbackIcon: personalDetails?.[parentReportAction.actorAccountID ?? -1]?.fallbackIcon,
+            name: personalDetails?.[parentReportAction?.actorAccountID ?? -1]?.displayName ?? '',
+            fallbackIcon: personalDetails?.[parentReportAction?.actorAccountID ?? -1]?.fallbackIcon,
         };
 
         return [memberIcon, workspaceIcon];
@@ -1952,14 +1952,14 @@ function getIcons(
     if (isChatThread(report)) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
 
-        const actorAccountID = parentReportAction.actorAccountID;
+        const actorAccountID = parentReportAction?.actorAccountID;
         const actorDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(allPersonalDetails?.[actorAccountID ?? -1], '', false);
         const actorIcon = {
             id: actorAccountID,
             source: personalDetails?.[actorAccountID ?? -1]?.avatar ?? FallbackAvatar,
             name: actorDisplayName,
             type: CONST.ICON_TYPE_AVATAR,
-            fallbackIcon: personalDetails?.[parentReportAction.actorAccountID ?? -1]?.fallbackIcon,
+            fallbackIcon: personalDetails?.[parentReportAction?.actorAccountID ?? -1]?.fallbackIcon,
         };
 
         if (isWorkspaceThread(report)) {
@@ -3057,7 +3057,7 @@ function isChangeLogObject(originalMessage?: ChangeLog): ChangeLog | undefined {
  * @param parentReportAction
  * @param parentReportActionMessage
  */
-function getAdminRoomInvitedParticipants(parentReportAction: ReportAction | Record<string, never>, parentReportActionMessage: string) {
+function getAdminRoomInvitedParticipants(parentReportAction: OnyxEntry<ReportAction>, parentReportActionMessage: string) {
     if (!parentReportAction?.originalMessage) {
         return parentReportActionMessage || Localize.translateLocal('parentReportAction.deletedMessage');
     }
@@ -3108,7 +3108,7 @@ function getInvoicePayerName(report: OnyxEntry<Report>): string {
 /**
  * Get the report action message for a report action.
  */
-function getReportActionMessage(reportAction: ReportAction | EmptyObject, parentReportID?: string) {
+function getReportActionMessage(reportAction: OnyxEntry<ReportAction>, parentReportID?: string) {
     if (isEmptyObject(reportAction)) {
         return '';
     }
@@ -6414,7 +6414,7 @@ function getAllAncestorReportActions(report: Report | null | undefined): Ancesto
             break;
         }
 
-        const isParentReportActionUnread = ReportActionsUtils.isCurrentActionUnread(parentReport ?? {}, parentReportAction);
+        const isParentReportActionUnread = ReportActionsUtils.isCurrentActionUnread(parentReport, parentReportAction);
         allAncestors.push({
             report: currentReport,
             reportAction: parentReportAction,

@@ -3012,12 +3012,12 @@ function createWorkspaceFromIOUPayment(iouReport: Report | EmptyObject): string 
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
-        value: {[reportPreview.reportActionID]: null},
+        value: {[reportPreview?.reportActionID ?? '']: null},
     });
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
-        value: {[reportPreview.reportActionID]: reportPreview},
+        value: {[reportPreview?.reportActionID ?? '']: reportPreview},
     });
 
     // To optimistically remove the GBR from the DM we need to update the hasOutstandingChildRequest param to false
@@ -3059,7 +3059,7 @@ function createWorkspaceFromIOUPayment(iouReport: Report | EmptyObject): string 
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${memberData.workspaceChatReportID}`,
-        value: {[reportPreview.reportActionID]: null},
+        value: {[reportPreview?.reportActionID ?? '']: null},
     });
 
     // Create the MOVED report action and add it to the DM chat which indicates to the user where the report has been moved

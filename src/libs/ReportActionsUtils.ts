@@ -22,7 +22,6 @@ import type {
 import type Report from '@src/types/onyx/Report';
 import type {Message, ReportActionBase, ReportActionMessageJSON, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import DateUtils from './DateUtils';
 import * as Environment from './Environment/Environment';
@@ -121,7 +120,7 @@ function isReversedTransaction(reportAction: OnyxEntry<ReportAction | Optimistic
     return (reportAction?.message?.[0]?.isReversedTransaction ?? false) && ((reportAction as ReportAction)?.childVisibleActionCount ?? 0) > 0;
 }
 
-function isPendingRemove(reportAction: OnyxEntry<ReportAction> | EmptyObject): boolean {
+function isPendingRemove(reportAction: OnyxEntry<ReportAction>): boolean {
     if (isEmptyObject(reportAction)) {
         return false;
     }
@@ -148,7 +147,7 @@ function isModifiedExpenseAction(reportAction: OnyxEntry<ReportAction> | ReportA
  * We are in the process of deprecating reportAction.originalMessage and will be setting the db version of "message" to reportAction.message in the future see: https://github.com/Expensify/App/issues/39797
  * In the interim, we must check to see if we have an object or array for the reportAction.message, if we have an array we will use the originalMessage as this means we have not yet migrated.
  */
-function getWhisperedTo(reportAction: OnyxEntry<ReportAction> | EmptyObject): number[] {
+function getWhisperedTo(reportAction: OnyxEntry<ReportAction>): number[] {
     const originalMessage = reportAction?.originalMessage;
     const message = reportAction?.message;
 
@@ -163,7 +162,7 @@ function getWhisperedTo(reportAction: OnyxEntry<ReportAction> | EmptyObject): nu
     return [];
 }
 
-function isWhisperAction(reportAction: OnyxEntry<ReportAction> | EmptyObject): boolean {
+function isWhisperAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return getWhisperedTo(reportAction).length > 0;
 }
 
@@ -216,11 +215,11 @@ function isThreadParentMessage(reportAction: OnyxEntry<ReportAction>, reportID: 
  *
  * @deprecated Use Onyx.connect() or withOnyx() instead
  */
-function getParentReportAction(report: OnyxEntry<Report> | EmptyObject): ReportAction | EmptyObject {
+function getParentReportAction(report: OnyxEntry<Report>): OnyxEntry<ReportAction> {
     if (!report?.parentReportID || !report.parentReportActionID) {
-        return {};
+        return null;
     }
-    return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID] ?? {};
+    return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID] ?? null;
 }
 
 /**
@@ -238,7 +237,7 @@ function isSentMoneyReportAction(reportAction: OnyxEntry<ReportAction | Optimist
  * Returns whether the thread is a transaction thread, which is any thread with IOU parent
  * report action from requesting money (type - create) or from sending money (type - pay with IOUDetails field)
  */
-function isTransactionThread(parentReportAction: OnyxEntry<ReportAction> | EmptyObject): boolean {
+function isTransactionThread(parentReportAction: OnyxEntry<ReportAction>): boolean {
     return (
         parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
         (parentReportAction.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE ||
@@ -1176,9 +1175,9 @@ function isReportActionUnread(reportAction: OnyxEntry<ReportAction>, lastReadTim
  * Check whether the current report action of the report is unread or not
  *
  */
-function isCurrentActionUnread(report: Report | EmptyObject, reportAction: ReportAction): boolean {
-    const lastReadTime = report.lastReadTime ?? '';
-    const sortedReportActions = getSortedReportActions(Object.values(getAllReportActions(report.reportID)));
+function isCurrentActionUnread(report: OnyxEntry<Report>, reportAction: ReportAction): boolean {
+    const lastReadTime = report?.lastReadTime ?? '';
+    const sortedReportActions = getSortedReportActions(Object.values(getAllReportActions(report?.reportID ?? '')));
     const currentActionIndex = sortedReportActions.findIndex((action) => action.reportActionID === reportAction.reportActionID);
     if (currentActionIndex === -1) {
         return false;
@@ -1205,14 +1204,14 @@ function isActionableJoinRequestPending(reportID: string): boolean {
     return !!findPendingRequest;
 }
 
-function isApprovedOrSubmittedReportAction(action: OnyxEntry<ReportAction> | EmptyObject) {
+function isApprovedOrSubmittedReportAction(action: OnyxEntry<ReportAction>) {
     return [CONST.REPORT.ACTIONS.TYPE.APPROVED, CONST.REPORT.ACTIONS.TYPE.SUBMITTED].some((type) => type === action?.actionName);
 }
 
 /**
  * Gets the text version of the message in a report action
  */
-function getReportActionMessageText(reportAction: OnyxEntry<ReportAction> | EmptyObject): string {
+function getReportActionMessageText(reportAction: OnyxEntry<ReportAction>): string {
     return reportAction?.message?.reduce((acc, curr) => `${acc}${curr?.text}`, '') ?? '';
 }
 
