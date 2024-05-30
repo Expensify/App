@@ -1,4 +1,5 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import lodashDebounce from 'lodash/debounce';
 import isEmpty from 'lodash/isEmpty';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
@@ -35,6 +36,7 @@ function BaseSelectionList<TItem extends ListItem>(
         ListItem,
         canSelectMultiple = false,
         onSelectRow,
+        shouldDebounceRowSelect = false,
         onCheckboxPress,
         onSelectAll,
         onDismissError,
@@ -261,6 +263,9 @@ function BaseSelectionList<TItem extends ListItem>(
         isFocused,
     });
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const debouncedOnSelectRow = useCallback(lodashDebounce(onSelectRow, 1000, {leading: true}), [onSelectRow]);
+
     /**
      * Logic to run when a row is selected, either with click/press or keyboard hotkeys.
      *
@@ -282,7 +287,11 @@ function BaseSelectionList<TItem extends ListItem>(
             }
         }
 
-        onSelectRow(item);
+        if (shouldDebounceRowSelect) {
+            debouncedOnSelectRow(item);
+        } else {
+            onSelectRow(item);
+        }
 
         if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow && innerTextInputRef.current) {
             innerTextInputRef.current.focus();
@@ -306,6 +315,11 @@ function BaseSelectionList<TItem extends ListItem>(
 
         selectRow(focusedOption);
     };
+
+    // This debounce happens on the trailing edge because on repeated enter presses, rapid component state update cancels the existing debounce and the redundant
+    // enter presses runs the debounced function again.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const debouncedSelectFocusedOption = useCallback(lodashDebounce(selectFocusedOption, 100), [selectFocusedOption]);
 
     /**
      * This function is used to compute the layout of any given item in our list.
@@ -460,6 +474,26 @@ function BaseSelectionList<TItem extends ListItem>(
         [scrollToIndex, setFocusedIndex],
     );
 
+    useEffect(() => {
+        if (!(shouldDebounceRowSelect && debouncedOnSelectRow.cancel)) {
+            return;
+        }
+
+        return () => {
+            debouncedOnSelectRow.cancel();
+        };
+    }, [debouncedOnSelectRow, shouldDebounceRowSelect]);
+
+    useEffect(() => {
+        if (!(shouldDebounceRowSelect && debouncedSelectFocusedOption.cancel)) {
+            return;
+        }
+
+        return () => {
+            debouncedSelectFocusedOption.cancel();
+        };
+    }, [debouncedSelectFocusedOption, shouldDebounceRowSelect]);
+
     /** Focuses the text input when the component comes into focus and after any navigation animations finish. */
     useFocusEffect(
         useCallback(() => {
@@ -549,7 +583,7 @@ function BaseSelectionList<TItem extends ListItem>(
     useImperativeHandle(ref, () => ({scrollAndHighlightItem}), [scrollAndHighlightItem]);
 
     /** Selects row when pressing Enter */
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, shouldDebounceRowSelect ? debouncedSelectFocusedOption : selectFocusedOption, {
         captureOnInputs: true,
         shouldBubble: !flattenedSections.allOptions[focusedIndex],
         shouldStopPropagation,
@@ -609,7 +643,7 @@ function BaseSelectionList<TItem extends ListItem>(
                                 selectTextOnFocus
                                 spellCheck={false}
                                 iconLeft={textInputIconLeft}
-                                onSubmitEditing={selectFocusedOption}
+                                onSubmitEditing={shouldDebounceRowSelect ? debouncedSelectFocusedOption : selectFocusedOption}
                                 blurOnSubmit={!!flattenedSections.allOptions.length}
                                 isLoading={isLoadingNewOptions}
                                 testID="selection-list-text-input"
@@ -619,7 +653,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     )}
                     {/* If we are loading new options we will avoid showing any header message. This is mostly because one of the header messages says there are no options. */}
                     {/* This is misleading because we might be in the process of loading fresh options from the server. */}
-                    {!isLoadingNewOptions && !!headerMessage && (
+                    {(!isLoadingNewOptions || headerMessage !== translate('common.noResultsFound')) && !!headerMessage && (
                         <View style={headerMessageStyle ?? [styles.ph5, styles.pb5]}>
                             <Text style={[styles.textLabel, styles.colorMuted]}>{headerMessage}</Text>
                         </View>

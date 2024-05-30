@@ -107,7 +107,7 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
             };
         }
 
-        const newOptions = OptionsListUtils.filterOptions(searchOptions, debouncedSearchValue, betas);
+        const newOptions = OptionsListUtils.filterOptions(searchOptions, debouncedSearchValue, {betas, preferChatroomsOverThreads: true});
         const header = OptionsListUtils.getHeaderMessage(newOptions.recentReports.length + Number(!!newOptions.userToInvite) > 0, false, debouncedSearchValue);
         return {
             recentReports: newOptions.recentReports,
@@ -187,6 +187,7 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
                 headerMessage={headerMessage}
                 onLayout={setPerformanceTimersEnd}
                 onSelectRow={selectReport}
+                shouldDebounceRowSelect
                 showLoadingPlaceholder={!areOptionsInitialized || !isScreenTransitionEnd}
                 footerContent={!isDismissed && ChatFinderPageFooterInstance}
                 isLoadingNewOptions={!!isSearchingForReports}
