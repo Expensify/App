@@ -17,7 +17,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Policy from '@userActions/Policy';
+import * as Tag from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -58,12 +58,12 @@ function EditTagPage({route, policyTags}: EditTagPageProps) {
             const tagName = values.tagName.trim();
             // Do not call the API if the edited tag name is the same as the current tag name
             if (currentTagName !== tagName) {
-                Policy.renamePolicyTag(route.params.policyID, {oldName: currentTagName, newName: values.tagName.trim()});
+                Tag.renamePolicyTag(route.params.policyID, {oldName: route.params.tagName, newName: values.tagName.trim()});
             }
             Keyboard.dismiss();
             Navigation.goBack();
         },
-        [route.params.policyID, currentTagName],
+        [route.params.policyID, route.params.tagName, currentTagName],
     );
 
     return (
