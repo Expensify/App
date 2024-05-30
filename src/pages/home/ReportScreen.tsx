@@ -31,6 +31,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import Timing from '@libs/actions/Timing';
 import Navigation from '@libs/Navigation/Navigation';
 import clearReportNotifications from '@libs/Notification/clearReportNotifications';
+import PaginationUtils from '@libs/PaginationUtils';
 import Performance from '@libs/Performance';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -258,7 +259,7 @@ function ReportScreen({
         if (!sortedAllReportActions.length) {
             return [];
         }
-        return ReportActionsUtils.getContinuousReportActionChain(sortedAllReportActions, pages ?? [], reportActionIDFromRoute);
+        return PaginationUtils.getContinuousChain(sortedAllReportActions, pages ?? [], (item) => item.reportActionID, reportActionIDFromRoute);
     }, [reportActionIDFromRoute, sortedAllReportActions, pages]);
 
     // Define here because reportActions are recalculated before mount, allowing data to display faster than useEffect can trigger.
