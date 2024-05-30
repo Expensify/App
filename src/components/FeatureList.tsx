@@ -32,6 +32,12 @@ type FeatureListProps = {
     /** Action to call on cta button press */
     onCtaPress?: () => void;
 
+    secondaryButtonText?: string;
+
+    secondaryButtonAccessibilityLabel?: string;
+
+    onSecondaryButtonPress?: () => void;
+
     /** A list of menuItems representing the feature list. */
     menuItems: FeatureListItem[];
 
@@ -57,6 +63,9 @@ function FeatureList({
     ctaText = '',
     ctaAccessibilityLabel = '',
     onCtaPress,
+    secondaryButtonText = '',
+    secondaryButtonAccessibilityLabel = '',
+    onSecondaryButtonPress,
     menuItems,
     illustration,
     illustrationStyle,
@@ -99,6 +108,15 @@ function FeatureList({
                         </View>
                     ))}
                 </View>
+                {secondaryButtonText && (
+                    <Button
+                        text={secondaryButtonText}
+                        onPress={onSecondaryButtonPress}
+                        accessibilityLabel={secondaryButtonAccessibilityLabel}
+                        style={[styles.w100, styles.mb3]}
+                        large
+                    />
+                )}
                 <Button
                     text={ctaText}
                     onPress={onCtaPress}
