@@ -161,8 +161,8 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     /** Whether we're editing a split expense */
     isEditingSplitBill?: boolean;
 
-    /** Whether we're shwowing a created split expense */
-    isSplitBillDetailsPage?: boolean;
+    /** Whether we can navigate to receipt page */
+    shouldDisplayReceipt?: boolean;
 
     /** Whether we should show the amount, date, and merchant fields. */
     shouldShowSmartScanFields?: boolean;
@@ -227,7 +227,7 @@ function MoneyRequestConfirmationList({
     allPolicies,
     action = CONST.IOU.ACTION.CREATE,
     currencyList,
-    isSplitBillDetailsPage = false,
+    shouldDisplayReceipt = false,
 }: MoneyRequestConfirmationListProps) {
     const policy = policyReal ?? policyDraft;
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
@@ -1102,7 +1102,7 @@ function MoneyRequestConfirmationList({
                         onPress={() => Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(reportID ?? '', transactionID ?? ''))}
                         accessibilityRole={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('accessibilityHints.viewAttachment')}
-                        disabled={!isSplitBillDetailsPage}
+                        disabled={!shouldDisplayReceipt}
                         disabledStyle={styles.cursorDefault}
                     >
                         <PDFThumbnail
@@ -1116,7 +1116,7 @@ function MoneyRequestConfirmationList({
                 ) : (
                     <PressableWithoutFocus
                         onPress={() => Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(reportID ?? '', transactionID ?? ''))}
-                        disabled={!isSplitBillDetailsPage || isThumbnail}
+                        disabled={!shouldDisplayReceipt || isThumbnail}
                         accessibilityRole={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                         disabledStyle={styles.cursorDefault}
@@ -1152,7 +1152,7 @@ function MoneyRequestConfirmationList({
             transactionID,
             translate,
             styles.cursorDefault,
-            isSplitBillDetailsPage,
+            shouldDisplayReceipt,
         ],
     );
 
