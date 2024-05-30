@@ -769,11 +769,11 @@ function getFormattedReservationRangeDate(date1: Date, date2: Date): string {
     const {translateLocal} = Localize;
     if (isSameDay(date1, date2) && isThisYear(date1)) {
         // Dates are from the same day
-        return format(date1, 'EEEE, MMM d, yyyy');
+        return format(date1, 'EEEE, MMM d');
     }
     if (isSameDay(date1, date2)) {
-        // Dates are from the same day
-        return format(date1, 'EEEE, MMM d');
+        // Dates are from the same day but not this year
+        return format(date1, 'EEEE, MMM d, yyyy');
     }
     if (isSameYear(date1, date2) && isThisYear(date1)) {
         // Dates are in the current year, differ by months
