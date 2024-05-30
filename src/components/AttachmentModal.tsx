@@ -1,4 +1,3 @@
-
 import Str from 'expensify-common/lib/str';
 import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
 import {Animated, Keyboard, View} from 'react-native';
@@ -527,38 +526,37 @@ function AttachmentModal({
                                 onLinkPress={() => Navigation.dismissModal()}
                             />
                         )}
-                        {!shouldShowNotFoundPage && (
-                            !isEmptyObject(report) && !isReceiptAttachment ? (
-                            <AttachmentCarousel
-                                accountID={accountID}
-                                type={type}
-                                report={report}
-                                onNavigate={onNavigate}
-                                onClose={closeModal}
-                                source={source}
-                                setDownloadButtonVisibility={setDownloadButtonVisibility}
-                            />
-                        ) : (
-                            !!sourceForAttachmentView &&
-                            shouldLoadAttachment &&
-                            !isLoading &&
-                            (
-                                <AttachmentCarouselPagerContext.Provider value={context}>
-                                    <AttachmentView
-                                        containerStyles={[styles.mh5]}
-                                        source={sourceForAttachmentView}
-                                        isAuthTokenRequired={isAuthTokenRequiredState}
-                                        file={file}
-                                        onToggleKeyboard={updateConfirmButtonVisibility}
-                                        isWorkspaceAvatar={isWorkspaceAvatar}
-                                        maybeIcon={maybeIcon}
-                                        fallbackSource={fallbackSource}
-                                        isUsedInAttachmentModal
-                                        transactionID={transaction?.transactionID}
-                                    />
-                                </AttachmentCarouselPagerContext.Provider>
-                            )
-                        ))}
+                        {!shouldShowNotFoundPage &&
+                            (!isEmptyObject(report) && !isReceiptAttachment ? (
+                                <AttachmentCarousel
+                                    accountID={accountID}
+                                    type={type}
+                                    report={report}
+                                    onNavigate={onNavigate}
+                                    onClose={closeModal}
+                                    source={source}
+                                    setDownloadButtonVisibility={setDownloadButtonVisibility}
+                                />
+                            ) : (
+                                !!sourceForAttachmentView &&
+                                shouldLoadAttachment &&
+                                !isLoading && (
+                                    <AttachmentCarouselPagerContext.Provider value={context}>
+                                        <AttachmentView
+                                            containerStyles={[styles.mh5]}
+                                            source={sourceForAttachmentView}
+                                            isAuthTokenRequired={isAuthTokenRequiredState}
+                                            file={file}
+                                            onToggleKeyboard={updateConfirmButtonVisibility}
+                                            isWorkspaceAvatar={isWorkspaceAvatar}
+                                            maybeIcon={maybeIcon}
+                                            fallbackSource={fallbackSource}
+                                            isUsedInAttachmentModal
+                                            transactionID={transaction?.transactionID}
+                                        />
+                                    </AttachmentCarouselPagerContext.Provider>
+                                )
+                            ))}
                     </View>
                     {/* If we have an onConfirm method show a confirmation button */}
                     {!!onConfirm && (
