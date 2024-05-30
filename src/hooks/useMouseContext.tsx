@@ -28,7 +28,6 @@ function MouseProvider({children}: MouseProviderProps) {
     return <MouseContext.Provider value={value}>{children}</MouseContext.Provider>;
 }
 
-// Custom hook to use the mouse context
 const useMouseContext = () => useContext(MouseContext);
 
 export {MouseProvider, useMouseContext};
