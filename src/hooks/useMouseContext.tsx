@@ -7,7 +7,6 @@ type MouseContextProps = {
     setMouseUp: () => void;
 };
 
-// Create a context with default values and handlers
 const MouseContext = createContext<MouseContextProps>({
     isMouseDownOnInput: false,
     setMouseDown: () => {},
@@ -18,7 +17,6 @@ type MouseProviderProps = {
     children: ReactNode;
 };
 
-// Context provider component
 function MouseProvider({children}: MouseProviderProps) {
     const [isMouseDownOnInput, setIsMouseDownOnInput] = useState(false);
 
