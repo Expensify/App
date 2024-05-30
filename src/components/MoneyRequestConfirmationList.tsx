@@ -723,9 +723,7 @@ function MoneyRequestConfirmationList({
                 playSound(SOUNDS.DONE);
                 setDidConfirm(true);
                 onConfirm?.(selectedParticipants);
-            }
-
-            else {
+            } else {
                 if (formError) {
                     return;
                 }
