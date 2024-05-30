@@ -40,11 +40,17 @@ type ThumbnailImageProps = {
     /** The size of the fallback icon */
     fallbackIconSize?: number;
 
+    /** The colod of the fallback icon */
+    fallbackIconColor?: string;
+
     /** Should the image be resized on load or just fit container */
     shouldDynamicallyResize?: boolean;
 
     /** The object position of image */
     objectPosition?: ImageObjectPosition;
+
+    /** Whether the component is hovered */
+    isHovered?: boolean;
 };
 
 type UpdateImageSizeParams = {
@@ -61,7 +67,9 @@ function ThumbnailImage({
     shouldDynamicallyResize = true,
     fallbackIcon = Expensicons.Gallery,
     fallbackIconSize = variables.iconSizeSuperLarge,
+    fallbackIconColor,
     objectPosition = CONST.IMAGE_OBJECT_POSITION.INITIAL,
+    isHovered = false,
 }: ThumbnailImageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -100,15 +108,15 @@ function ThumbnailImage({
 
     const sizeStyles = shouldDynamicallyResize ? [thumbnailDimensionsStyles] : [styles.w100, styles.h100];
 
-    if (failedToLoad) {
+    if (failedToLoad || previewSourceURL === '') {
         return (
-            <View style={[style, styles.overflowHidden, styles.hoveredComponentBG]}>
+            <View style={[style, styles.overflowHidden, isHovered ? styles.activeComponentBG : styles.hoveredComponentBG]}>
                 <View style={[...sizeStyles, styles.alignItemsCenter, styles.justifyContentCenter]}>
                     <Icon
                         src={isOffline ? Expensicons.OfflineCloud : fallbackIcon}
                         height={fallbackIconSize}
                         width={fallbackIconSize}
-                        fill={theme.border}
+                        fill={fallbackIconColor ?? theme.border}
                     />
                 </View>
             </View>
