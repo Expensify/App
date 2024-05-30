@@ -303,8 +303,6 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Indicates transaction loading */
         isLoading?: boolean;
 
-        originalSpotnanaPayload?: SpotnanaPayload;
-
         /** Holds individual shares of a split keyed by accountID, only used locally */
         splitShares?: SplitShares;
 
