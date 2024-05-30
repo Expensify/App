@@ -66,8 +66,9 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         }
         return reportActions.find((action) => action.reportActionID === transactionThreadReport.parentReportActionID) as OnyxTypes.ReportAction & OnyxTypes.OriginalMessageIOU;
     }, [reportActions, transactionThreadReport?.parentReportActionID]);
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${requestParentReportAction?.originalMessage?.IOUTransactionID ?? 0}`);
+    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [shownHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_HOLD_USE_EXPLAINED, {initWithStoredValues: false});
+    const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${requestParentReportAction?.originalMessage?.IOUTransactionID ?? 0}`] ?? null;
 
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -119,7 +120,8 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const shouldShowSettlementButton = !ReportUtils.isInvoiceReport(moneyRequestReport) && (shouldShowPayButton || shouldShowApproveButton) && !allHavePendingRTERViolation;
 
-    const hasOnlyHeldExpenses = ReportUtils.hasOnlyHeldExpenses(moneyRequestReport.reportID);
+    // allTransactions in TransactionUtils might have stale data
+    const hasOnlyHeldExpenses = ReportUtils.hasOnlyHeldExpenses(moneyRequestReport.reportID, transactions);
     const shouldShowSubmitButton = isDraft && reimbursableSpend !== 0 && !allHavePendingRTERViolation && !hasOnlyHeldExpenses;
     const shouldDisableSubmitButton = shouldShowSubmitButton && !ReportUtils.isAllowedToSubmitDraftExpenseReport(moneyRequestReport);
     const shouldShowMarkAsCashButton = isDraft && allHavePendingRTERViolation && !hasOnlyHeldExpenses;
