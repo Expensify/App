@@ -293,13 +293,13 @@ function MoneyRequestConfirmationList({
 
     const canUpdateSenderWorkspace = useMemo(() => PolicyUtils.canSendInvoice(allPolicies) && !!transaction?.isFromGlobalCreate, [allPolicies, transaction?.isFromGlobalCreate]);
 
+    const canModifyTaxFields = !isReadOnly && !isDistanceRequest;
+
     // A flag for showing the tags field
     // TODO: remove the !isTypeInvoice from this condition after BE supports tags for invoices: https://github.com/Expensify/App/issues/41281
     const shouldShowTags = useMemo(() => isPolicyExpenseChat && OptionsListUtils.hasEnabledTags(policyTagLists) && !isTypeInvoice, [isPolicyExpenseChat, policyTagLists, isTypeInvoice]);
 
-    // A flag for showing tax rate
-    // TODO: remove the !isTypeInvoice from this condition after BE supports tax for invoices: https://github.com/Expensify/App/issues/41281
-    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy) && !isTypeInvoice;
+    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest) && !isTypeInvoice;
 
     // A flag for showing the billable field
     const shouldShowBillable = policy?.disabledFields?.defaultBillable === false;
@@ -497,6 +497,7 @@ function MoneyRequestConfirmationList({
             isSelected: false,
             rightElement: (
                 <MoneyRequestAmountInput
+                    autoGrow={false}
                     amount={transaction?.splitShares?.[participantOption.accountID ?? 0]?.amount}
                     currency={iouCurrencyCode}
                     prefixCharacter={currencySymbol}
@@ -507,8 +508,9 @@ function MoneyRequestConfirmationList({
                     formatAmountOnBlur
                     prefixContainerStyle={[styles.pv0]}
                     inputStyle={[styles.optionRowAmountInput, amountWidth] as TextStyle[]}
-                    containerStyle={[styles.textInputContainer]}
+                    containerStyle={[styles.textInputContainer, amountWidth]}
                     touchableInputWrapperStyle={[styles.ml3]}
+                    onFormatAmount={CurrencyUtils.convertToDisplayStringWithoutCurrency}
                     onAmountChange={(value: string) => onSplitShareChange(participantOption.accountID ?? 0, Number(value))}
                     maxLength={formattedTotalAmount.length}
                 />
@@ -545,7 +547,7 @@ function MoneyRequestConfirmationList({
     const getSplitSectionHeader = useCallback(
         () => (
             <View style={[styles.mt2, styles.mb1, styles.flexRow, styles.justifyContentBetween]}>
-                <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('moneyRequestConfirmationList.splitAmounts')}</Text>
+                <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('iou.participants')}</Text>
                 {!shouldShowReadOnlySplits && isSplitModified && (
                     <PressableWithFeedback
                         onPress={() => {
@@ -946,6 +948,7 @@ function MoneyRequestConfirmationList({
                     brickRoadIndicator={shouldDisplayMerchantError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     errorText={shouldDisplayMerchantError ? translate('common.error.fieldRequired') : ''}
                     rightLabel={isMerchantRequired && !shouldDisplayMerchantError ? translate('common.required') : ''}
+                    numberOfLinesTitle={2}
                 />
             ),
             shouldShow: shouldShowMerchant,
@@ -1023,14 +1026,14 @@ function MoneyRequestConfirmationList({
             item: (
                 <MenuItemWithTopDescription
                     key={`${taxRates?.name}${taxRateTitle}`}
-                    shouldShowRightIcon={!isReadOnly}
+                    shouldShowRightIcon={canModifyTaxFields}
                     title={taxRateTitle}
                     description={taxRates?.name}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
                     disabled={didConfirm}
-                    interactive={!isReadOnly}
+                    interactive={canModifyTaxFields}
                 />
             ),
             shouldShow: shouldShowTax,
@@ -1040,14 +1043,14 @@ function MoneyRequestConfirmationList({
             item: (
                 <MenuItemWithTopDescription
                     key={`${taxRates?.name}${formattedTaxAmount}`}
-                    shouldShowRightIcon={!isReadOnly}
+                    shouldShowRightIcon={canModifyTaxFields}
                     title={formattedTaxAmount}
                     description={translate('iou.taxAmount')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
                     disabled={didConfirm}
-                    interactive={!isReadOnly}
+                    interactive={canModifyTaxFields}
                 />
             ),
             shouldShow: shouldShowTax,
@@ -1229,6 +1232,7 @@ function MoneyRequestConfirmationList({
             sections={sections}
             ListItem={UserListItem}
             onSelectRow={navigateToReportOrUserDetail}
+            shouldDebounceRowSelect
             canSelectMultiple={false}
             shouldPreventDefaultFocusOnSelectRow
             footerContent={footerContent}

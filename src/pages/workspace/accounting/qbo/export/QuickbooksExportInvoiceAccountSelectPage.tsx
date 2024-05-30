@@ -78,6 +78,7 @@ function QuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyConnection
                     sections={data.length ? [{data}] : []}
                     ListItem={RadioListItem}
                     onSelectRow={selectExportInvoice}
+                    shouldDebounceRowSelect
                     initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
                     listEmptyContent={listEmptyContent}
                 />

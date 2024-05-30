@@ -14,14 +14,14 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {setWorkspaceTagEnabled} from '@libs/actions/Policy';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Policy from '@userActions/Policy';
+import {setWorkspaceTagEnabled} from '@userActions/Policy/Tag';
+import * as Tag from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -60,7 +60,7 @@ function TagSettingsPage({route, policyTags, navigation}: TagSettingsPageProps) 
     }
 
     const deleteTagAndHideModal = () => {
-        Policy.deletePolicyTags(route.params.policyID, [currentPolicyTag.name]);
+        Tag.deletePolicyTags(route.params.policyID, [currentPolicyTag.name]);
         setIsDeleteTagModalOpen(false);
         Navigation.goBack();
     };
@@ -118,7 +118,7 @@ function TagSettingsPage({route, policyTags, navigation}: TagSettingsPageProps) 
                         errors={ErrorUtils.getLatestErrorMessageField(currentPolicyTag)}
                         pendingAction={currentPolicyTag.pendingFields?.enabled}
                         errorRowStyles={styles.mh5}
-                        onClose={() => Policy.clearPolicyTagErrors(route.params.policyID, route.params.tagName)}
+                        onClose={() => Tag.clearPolicyTagErrors(route.params.policyID, route.params.tagName)}
                     >
                         <View style={[styles.mt2, styles.mh5]}>
                             <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>

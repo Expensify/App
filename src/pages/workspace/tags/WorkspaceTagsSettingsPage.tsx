@@ -11,7 +11,7 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Policy from '@libs/actions/Policy';
+import * as Tag from '@libs/actions/Policy/Tag';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -36,7 +36,7 @@ function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPag
     const hasEnabledOptions = OptionsListUtils.hasEnabledOptions(Object.values(policyTags ?? {}).flatMap(({tags}) => Object.values(tags)));
     const updateWorkspaceRequiresTag = useCallback(
         (value: boolean) => {
-            Policy.setPolicyRequiresTag(route.params.policyID, value);
+            Tag.setPolicyRequiresTag(route.params.policyID, value);
         },
         [route.params.policyID],
     );

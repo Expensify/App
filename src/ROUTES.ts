@@ -2,6 +2,8 @@ import type {ValueOf} from 'type-fest';
 import type CONST from './CONST';
 import type {IOUAction, IOUType} from './CONST';
 import type {IOURequestType} from './libs/actions/IOU';
+import type {CentralPaneNavigatorParamList} from './libs/Navigation/types';
+import type {SearchQuery} from './types/onyx/SearchResults';
 import type AssertTypesNotEqual from './types/utils/AssertTypesNotEqual';
 
 // This is a file containing constants for all the routes we want to be able to go to
@@ -14,10 +16,20 @@ function getUrlWithBackToParam<TUrl extends string>(url: TUrl, backTo?: string):
     return `${url}${backToParam}` as const;
 }
 
-const ROUTES = {
+const PUBLIC_SCREENS_ROUTES = {
     // If the user opens this route, we'll redirect them to the path saved in the last visited path or to the home page if the last visited path is empty.
     ROOT: '',
+    TRANSITION_BETWEEN_APPS: 'transition',
+    CONNECTION_COMPLETE: 'connection-complete',
+    VALIDATE_LOGIN: 'v/:accountID/:validateCode',
+    UNLINK_LOGIN: 'u/:accountID/:validateCode',
+    APPLE_SIGN_IN: 'sign-in-with-apple',
+    GOOGLE_SIGN_IN: 'sign-in-with-google',
+    SAML_SIGN_IN: 'sign-in-with-saml',
+} as const;
 
+const ROUTES = {
+    ...PUBLIC_SCREENS_ROUTES,
     // This route renders the list of reports.
     HOME: 'home',
 
@@ -25,7 +37,15 @@ const ROUTES = {
 
     SEARCH: {
         route: '/search/:query',
-        getRoute: (query: string) => `search/${query}` as const,
+        getRoute: (searchQuery: SearchQuery, queryParams?: CentralPaneNavigatorParamList['Search_Central_Pane']) => {
+            const {sortBy, sortOrder} = queryParams ?? {};
+
+            if (!sortBy && !sortOrder) {
+                return `search/${searchQuery}` as const;
+            }
+
+            return `search/${searchQuery}?sortBy=${sortBy}&sortOrder=${sortOrder}` as const;
+        },
     },
 
     SEARCH_REPORT: {
@@ -53,18 +73,11 @@ const ROUTES = {
         getRoute: (accountID: string | number) => `a/${accountID}/avatar` as const,
     },
 
-    TRANSITION_BETWEEN_APPS: 'transition',
-    VALIDATE_LOGIN: 'v/:accountID/:validateCode',
-    CONNECTION_COMPLETE: 'connection-complete',
     GET_ASSISTANCE: {
         route: 'get-assistance/:taskID',
         getRoute: (taskID: string, backTo: string) => getUrlWithBackToParam(`get-assistance/${taskID}`, backTo),
     },
-    UNLINK_LOGIN: 'u/:accountID/:validateCode',
-    APPLE_SIGN_IN: 'sign-in-with-apple',
-    GOOGLE_SIGN_IN: 'sign-in-with-google',
     DESKTOP_SIGN_IN_REDIRECT: 'desktop-signin-redirect',
-    SAML_SIGN_IN: 'sign-in-with-saml',
 
     // This is a special validation URL that will take the user to /workspace/new after validation. This is used
     // when linking users from e.com in order to share a session in this app.
@@ -88,6 +101,7 @@ const ROUTES = {
     SETTINGS_TIMEZONE_SELECT: 'settings/profile/timezone/select',
     SETTINGS_PRONOUNS: 'settings/profile/pronouns',
     SETTINGS_PREFERENCES: 'settings/preferences',
+    SETTINGS_SUBSCRIPTION: 'settings/subscription',
     SETTINGS_PRIORITY_MODE: 'settings/preferences/priority-mode',
     SETTINGS_LANGUAGE: 'settings/preferences/language',
     SETTINGS_THEME: 'settings/preferences/theme',
@@ -182,7 +196,10 @@ const ROUTES = {
     SETTINGS_STATUS_CLEAR_AFTER_DATE: 'settings/profile/status/clear-after/date',
     SETTINGS_STATUS_CLEAR_AFTER_TIME: 'settings/profile/status/clear-after/time',
     SETTINGS_TROUBLESHOOT: 'settings/troubleshoot',
-    SETTINGS_CONSOLE: 'settings/troubleshoot/console',
+    SETTINGS_CONSOLE: {
+        route: 'settings/troubleshoot/console',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`settings/troubleshoot/console`, backTo),
+    },
     SETTINGS_SHARE_LOG: {
         route: 'settings/troubleshoot/console/share-log',
         getRoute: (source: string) => `settings/troubleshoot/console/share-log?source=${encodeURI(source)}` as const,
@@ -875,7 +892,7 @@ const HYBRID_APP_ROUTES = {
     MONEY_REQUEST_SUBMIT_CREATE: '/submit/new/scan',
 } as const;
 
-export {HYBRID_APP_ROUTES, getUrlWithBackToParam};
+export {HYBRID_APP_ROUTES, getUrlWithBackToParam, PUBLIC_SCREENS_ROUTES};
 export default ROUTES;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -73,6 +73,9 @@ function saveWaypoint(transactionID: string, index: string, waypoint: RecentWayp
             waypoints: {
                 [`waypoint${index}`]: waypoint,
             },
+            customUnit: {
+                quantity: null,
+            },
         },
         // We want to reset the amount only for draft transactions (when creating the expense).
         // When modifying an existing transaction, the amount will be updated on the actual IOU update operation.
