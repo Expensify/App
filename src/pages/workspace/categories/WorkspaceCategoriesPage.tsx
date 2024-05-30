@@ -24,14 +24,14 @@ import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {deleteWorkspaceCategories, setWorkspaceCategoryEnabled} from '@libs/actions/Policy';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Policy from '@userActions/Policy';
+import {deleteWorkspaceCategories, setWorkspaceCategoryEnabled} from '@userActions/Policy/Category';
+import * as Category from '@userActions/Policy/Category';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -59,7 +59,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyId}`);
 
     const fetchCategories = useCallback(() => {
-        Policy.openPolicyCategoriesPage(policyId);
+        Category.openPolicyCategoriesPage(policyId);
     }, [policyId]);
 
     const {isOffline} = useNetwork({onReconnect: fetchCategories});
@@ -132,7 +132,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     };
 
     const dismissError = (item: PolicyOption) => {
-        Policy.clearCategoryErrors(policyId, item.keyForList);
+        Category.clearCategoryErrors(policyId, item.keyForList);
     };
 
     const selectedCategoriesArray = Object.keys(selectedCategories).filter((key) => selectedCategories[key]);
@@ -217,7 +217,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         }
 
         return (
-            <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
+            <View style={[styles.w100, styles.flexRow, styles.gap2, isSmallScreenWidth && styles.mb3]}>
                 {!PolicyUtils.hasAccountingConnections(policy) && (
                     <Button
                         medium
@@ -225,7 +225,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         onPress={navigateToCreateCategoryPage}
                         icon={Expensicons.Plus}
                         text={translate('workspace.categories.addCategory')}
-                        style={[styles.mr3, isSmallScreenWidth && styles.flex1]}
+                        style={[isSmallScreenWidth && styles.flex1]}
                     />
                 )}
                 <Button
