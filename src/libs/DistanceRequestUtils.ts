@@ -60,23 +60,17 @@ function getMileageRates(policy: OnyxEntry<Policy>, includeDisableRate = true): 
     }
 
     Object.entries(distanceUnit.rates).forEach(([rateID, rate]) => {
-        if (includeDisableRate) {
-            mileageRates[rateID] = {
-                rate: rate.rate,
-                currency: rate.currency,
-                unit: distanceUnit.attributes.unit,
-                name: rate.name,
-                customUnitRateID: rate.customUnitRateID,
-            };
-        } else if (rate.enabled) {
-            mileageRates[rateID] = {
-                rate: rate.rate,
-                currency: rate.currency,
-                unit: distanceUnit.attributes.unit,
-                name: rate.name,
-                customUnitRateID: rate.customUnitRateID,
-            };
+        if (!includeDisableRate && !rate.enabled) {
+            return;
         }
+    
+        mileageRates[rateID] = {
+            rate: rate.rate,
+            currency: rate.currency,
+            unit: distanceUnit.attributes.unit,
+            name: rate.name,
+            customUnitRateID: rate.customUnitRateID,
+        };
     });
 
     return mileageRates;
