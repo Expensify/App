@@ -105,7 +105,7 @@ function getForDistanceRequest(newDistance: string, oldDistance: string, newAmou
  * ModifiedExpense::getNewDotComment in Web-Expensify should match this.
  * If we change this function be sure to update the backend as well.
  */
-function getForReportAction(reportID: string | undefined, reportAction: OnyxEntry<ReportAction> | ReportAction | Record<string, never>): string {
+function getForReportAction(reportID: string | undefined, reportAction: OnyxEntry<ReportAction>): string {
     if (reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
         return '';
     }

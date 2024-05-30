@@ -139,7 +139,7 @@ function isReportActionSubmitted(reportAction: OnyxEntry<ReportAction>): boolean
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED;
 }
 
-function isModifiedExpenseAction(reportAction: OnyxEntry<ReportAction> | ReportAction | Record<string, never>): boolean {
+function isModifiedExpenseAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE;
 }
 

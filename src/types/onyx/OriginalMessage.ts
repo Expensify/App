@@ -1,6 +1,7 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import type {EmptyObject} from '@src/types/utils/EmptyObject';
 
 type PaymentMethodType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE | typeof CONST.IOU.REPORT_ACTION_TYPE | typeof CONST.WALLET.TRANSFER_METHOD_TYPE>;
 
@@ -331,7 +332,7 @@ type OriginalMessageMoved = {
 
 type OriginalMessageMergedWithCashTransaction = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION;
-    originalMessage: Record<string, never>; // No data is sent with this action
+    originalMessage: EmptyObject; // No data is sent with this action
 };
 
 type OriginalMessageDismissedViolation = {
