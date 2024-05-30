@@ -4941,10 +4941,10 @@ const styles = (theme: ThemeColors) =>
         },
 
         emptyLHNDetailsContainer: {
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexWrap: 'wrap',
+            ...flex.flexRow,
+            ...flex.alignItemsCenter,
+            ...flex.justifyContentCenter,
+            ...flex.flexWrap,
             textAlign: 'center',
         },
     } satisfies Styles);
