@@ -6,7 +6,6 @@ import * as Report from './actions/Report';
 import * as Session from './actions/Session';
 import * as Localize from './Localize';
 import Navigation from './Navigation/Navigation';
-import * as ReportUtils from './ReportUtils';
 
 function getPinMenuItem(report: OnyxReport): ThreeDotsMenuItem {
     const isPinned = !!report.isPinned;
@@ -18,14 +17,11 @@ function getPinMenuItem(report: OnyxReport): ThreeDotsMenuItem {
     };
 }
 
-function getShareMenuItem(report: OnyxReport, participants: number[]): ThreeDotsMenuItem {
-    const isGroupDMChat = ReportUtils.isDM(report) && participants.length > 1;
-
+function getShareMenuItem(report: OnyxReport): ThreeDotsMenuItem {
     return {
         icon: Expensicons.QrCode,
         text: Localize.translateLocal('common.share'),
         onSelected: () => Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.getRoute(report?.reportID ?? '')),
-        isHidden: isGroupDMChat,
     };
 }
 

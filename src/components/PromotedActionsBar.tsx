@@ -12,21 +12,16 @@ type PromotedAction = {
     key: string;
 } & ThreeDotsMenuItem;
 
-type ReportPromotedAction<T> = (params: T) => PromotedAction;
-
-type PromotedActionsType = {
-    pin: ReportPromotedAction<{report: OnyxReport}>;
-    share: ReportPromotedAction<{report: OnyxReport; participants: number[]}>;
-};
+type PromotedActionsType = Record<'pin' | 'share', (report: OnyxReport) => PromotedAction>;
 
 const PromotedActions = {
-    pin: ({report}) => ({
+    pin: (report) => ({
         key: 'pin',
         ...HeaderUtils.getPinMenuItem(report),
     }),
-    share: ({report, participants}) => ({
+    share: (report) => ({
         key: 'share',
-        ...HeaderUtils.getShareMenuItem(report, participants),
+        ...HeaderUtils.getShareMenuItem(report),
     }),
 } satisfies PromotedActionsType;
 
@@ -48,26 +43,20 @@ function PromotedActionsBar({promotedActions, containerStyle}: PromotedActionsBa
 
     return (
         <View style={[styles.flexRow, styles.ph5, styles.mb5, styles.gap2, styles.mw100, styles.w100, styles.justifyContentCenter, containerStyle]}>
-            {promotedActions.map(({key, onSelected, ...props}) => {
-                if (props.isHidden) {
-                    return null;
-                }
-
-                return (
-                    <View
-                        style={[styles.flex1, styles.mw50]}
-                        key={key}
-                    >
-                        <Button
-                            onPress={onSelected}
-                            iconFill={theme.icon}
-                            medium
-                            // eslint-disable-next-line react/jsx-props-no-spreading
-                            {...props}
-                        />
-                    </View>
-                );
-            })}
+            {promotedActions.map(({key, onSelected, ...props}) => (
+                <View
+                    style={[styles.flex1, styles.mw50]}
+                    key={key}
+                >
+                    <Button
+                        onPress={onSelected}
+                        iconFill={theme.icon}
+                        medium
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...props}
+                    />
+                </View>
+            ))}
         </View>
     );
 }
