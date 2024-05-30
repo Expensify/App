@@ -361,7 +361,7 @@ function MoneyRequestParticipantsSelector({participants = [], onFinish, onPartic
             onSelectRow={(item) => (isIOUSplit ? addParticipantToSelection(item) : addSingleParticipant(item))}
             shouldDebounceRowSelect
             footerContent={footerContent}
-            listEmptyContent={<EmptySelectionListContent content={iouType} />}
+            listEmptyContent={<EmptySelectionListContent contentType={iouType} />}
             headerMessage={headerMessage}
             showLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
             canSelectMultiple={isIOUSplit && isAllowedToSplit}

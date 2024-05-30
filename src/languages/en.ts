@@ -417,40 +417,22 @@ export default {
     },
     emptyList: {
         [CONST.IOU.TYPE.SUBMIT]: {
-            title: 'Get paid back',
-            subtitle: 'Submit your expense to any email or\nphone number.',
+            title: 'Submit an expense',
+            subtitleText1: 'Submit to someone and ',
+            subtitleText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            subtitleText3: ' when they become a customer.',
         },
         [CONST.IOU.TYPE.SPLIT]: {
-            title: 'Get paid back',
-            subtitle: 'Submit your expense to any email or phone number.',
-        },
-        [CONST.IOU.TYPE.TRACK]: {
-            title: 'Get paid back',
-            subtitle: 'Submit your expense to any email or phone number.',
+            title: 'Split an expense',
+            subtitleText1: 'Split with a friend and ',
+            subtitleText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            subtitleText3: ' when they become a customer.',
         },
         [CONST.IOU.TYPE.PAY]: {
-            title: 'Get paid back',
-            subtitle: 'Submit your expense to any email or phone number.',
-        },
-        [CONST.IOU.TYPE.INVOICE]: {
-            title: 'Get paid back',
-            subtitle: 'Submit your expense to any email or phone number.',
-        },
-        [CONST.IOU.TYPE.SEND]: {
-            title: 'Get paid back',
-            subtitle: 'Submit your expense to any email or phone number.',
-        },
-        [CONST.IOU.TYPE.REQUEST]: {
-            title: 'Get paid back',
-            subtitle: 'Submit your expense to any email or phone number.',
-        },
-        startChat: {
-            title: 'Get paid back',
-            subtitle: 'Submit your expense to any email or phone number.',
-        },
-        assignTask: {
-            title: 'Get paid back',
-            subtitle: 'Submit your expense to any email or phone number.',
+            title: 'Pay someone',
+            subtitleText1: 'Pay anyone and ',
+            subtitleText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            subtitleText3: ' when they become a customer.',
         },
     },
     videoChatButtonAndMenu: {
