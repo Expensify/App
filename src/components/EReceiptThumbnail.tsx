@@ -21,7 +21,7 @@ type EReceiptThumbnailOnyxProps = {
     transaction: OnyxEntry<Transaction>;
 };
 
-type IconSize = 'small' | 'medium' | 'large';
+type IconSize = 'x-small' | 'small' | 'medium' | 'large';
 
 type EReceiptThumbnailProps = EReceiptThumbnailOnyxProps & {
     /** TransactionID of the transaction this EReceipt corresponds to. It's used by withOnyx HOC */
@@ -40,7 +40,7 @@ type EReceiptThumbnailProps = EReceiptThumbnailOnyxProps & {
     /** Center the eReceipt Icon vertically */
     centerIconV?: boolean;
 
-    /** Size of the eReceipt icon. Possible values 'small', 'medium' or 'large' */
+    /** Size of the eReceipt icon. Possible values 'x-small', 'small', 'medium' or 'large' */
     iconSize?: IconSize;
 };
 
@@ -72,8 +72,16 @@ function EReceiptThumbnail({transaction, borderRadius, fileExtension, isReceiptT
     let receiptMCCSize: number = variables.eReceiptMCCHeightWidth;
     let labelFontSize: number = variables.fontSizeNormal;
     let labelLineHeight: number = variables.lineHeightLarge;
+    let backgroundImageMinWidth: number = variables.eReceiptBackgroundImageMinWidth;
 
-    if (iconSize === 'small') {
+    if (iconSize === 'x-small') {
+        receiptIconWidth = variables.eReceiptIconWidthXSmall;
+        receiptIconHeight = variables.eReceiptIconHeightXSmall;
+        receiptMCCSize = variables.iconSizeXSmall;
+        labelFontSize = variables.fontSizeExtraSmall;
+        labelLineHeight = variables.lineHeightXSmall;
+        backgroundImageMinWidth = variables.w80;
+    } else if (iconSize === 'small') {
         receiptIconWidth = variables.eReceiptIconWidthSmall;
         receiptIconHeight = variables.eReceiptIconHeightSmall;
         receiptMCCSize = variables.eReceiptMCCHeightWidthSmall;
@@ -100,7 +108,7 @@ function EReceiptThumbnail({transaction, borderRadius, fileExtension, isReceiptT
         >
             <Image
                 source={backgroundImage}
-                style={styles.eReceiptBackgroundThumbnail}
+                style={[styles.eReceiptBackgroundThumbnail, StyleUtils.getMinimumWidth(backgroundImageMinWidth)]}
                 resizeMode="cover"
             />
             <View style={[styles.alignItemsCenter, styles.ph8, styles.pt8, styles.pb8]}>

@@ -137,6 +137,11 @@ type PressableProps = RNPressableProps &
 
         /** Turns off drag area for the component */
         noDragArea?: boolean;
+
+        /**
+         * Specifies if the pressable responder should be disabled
+         */
+        fullDisabled?: boolean;
     };
 
 type PressableRef = ForwardedRef<HTMLDivElement | View | RNText | undefined>;
