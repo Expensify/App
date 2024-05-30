@@ -63,7 +63,7 @@ function getMileageRates(policy: OnyxEntry<Policy>, includeDisableRate = true): 
         if (!includeDisableRate && !rate.enabled) {
             return;
         }
-    
+
         mileageRates[rateID] = {
             rate: rate.rate,
             currency: rate.currency,
