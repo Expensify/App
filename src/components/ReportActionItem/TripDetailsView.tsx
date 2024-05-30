@@ -17,6 +17,7 @@ import CONST from '@src/CONST';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import * as TripReservationUtils from '@src/libs/TripReservationUtils';
 import type {Reservation, ReservationTimeDetails} from '@src/types/onyx/Transaction';
+import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
 
 type TripDetailsViewProps = {
     /** The active tripRoomReportID, used for Onyx subscription */
@@ -125,8 +126,6 @@ function ReservationView({reservation}: ReservationViewProps) {
 }
 
 function TripDetailsView({tripRoomReportID, shouldShowHorizontalRule}: TripDetailsViewProps) {
-    const StyleUtils = useStyleUtils();
-    const {isSmallScreenWidth} = useWindowDimensions();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -134,7 +133,8 @@ function TripDetailsView({tripRoomReportID, shouldShowHorizontalRule}: TripDetai
     const reservations: Reservation[] = TripReservationUtils.getReservationsFromTripTransactions(tripTransactions);
 
     return (
-        <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true)]}>
+        <View style={styles.pRelative}>
+            <AnimatedEmptyStateBackground />
             <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv2]}>
                 <View style={[styles.flex1, styles.justifyContentCenter]}>
                     <Text
