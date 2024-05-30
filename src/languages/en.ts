@@ -2247,6 +2247,7 @@ export default {
                 enable: 'Enable rate',
                 enableMultiple: 'Enable rates',
             },
+            importedFromAccountingSoftware: 'The taxes below are imported from your',
         },
         emptyWorkspace: {
             title: 'Create a workspace',

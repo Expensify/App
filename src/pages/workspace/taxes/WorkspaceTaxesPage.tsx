@@ -15,6 +15,8 @@ import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRight
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+import TextLink from '@components/TextLink';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
@@ -47,11 +49,15 @@ function WorkspaceTaxesPage({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
+    const {environmentURL} = useEnvironment();
     const [selectedTaxesIDs, setSelectedTaxesIDs] = useState<string[]>([]);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
     const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
     const isFocused = useIsFocused();
+
+    const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
+    const isConnectedToQbo = Boolean(policy?.connections?.quickbooksOnline);
 
     const fetchTaxes = useCallback(() => {
         openPolicyTaxesPage(policyID);
@@ -238,7 +244,20 @@ function WorkspaceTaxesPage({
 
     const getHeaderText = () => (
         <View style={[styles.ph5, styles.pb5, styles.pt3]}>
-            <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.taxes.subtitle')}</Text>
+            {isConnectedToAccounting ? (
+                <Text>
+                    <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.taxes.importedFromAccountingSoftware')} `}</Text>
+                    <TextLink
+                        style={[styles.textNormal, styles.link]}
+                        href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
+                    >
+                        {`${translate(isConnectedToQbo ? 'workspace.accounting.qbo' : 'workspace.accounting.xero')} ${translate('workspace.accounting.settings')}`}
+                    </TextLink>
+                    <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
+                </Text>
+            ) : (
+                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.taxes.subtitle')}</Text>
+            )}
         </View>
     );
 
@@ -262,6 +281,7 @@ function WorkspaceTaxesPage({
                     {!isSmallScreenWidth && headerButtons}
                 </HeaderWithBackButton>
                 {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
+
                 {!isSmallScreenWidth && getHeaderText()}
                 {isLoading && (
                     <ActivityIndicator
