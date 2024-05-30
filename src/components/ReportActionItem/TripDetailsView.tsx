@@ -55,13 +55,16 @@ function ReservationView({reservation}: ReservationViewProps) {
     const bottomDescription = useMemo(() => {
         const code = `${reservation.confirmations && reservation.confirmations?.length > 0 ? `${reservation.confirmations[0].value} • ` : ''}`;
         if (reservation.type === CONST.RESERVATION_TYPE.FLIGHT) {
-            return `${code}${reservation.company?.longName} • ${reservation?.company?.shortName ?? ''} ${reservation.route?.number}`;
+            const longName = reservation.company?.longName ? `${reservation.company?.longName} • ` : '';
+            const shortName = reservation?.company?.shortName ? `${reservation?.company?.shortName} ` : '';
+            return `${code}${longName}${shortName}${reservation.route?.number}`;
         }
         if (reservation.type === CONST.RESERVATION_TYPE.HOTEL) {
             return `${code}${reservation.start.address}`;
         }
         if (reservation.type === CONST.RESERVATION_TYPE.CAR) {
-            return `${reservation.vendor} • ${reservation.start.location}`;
+            const vendor = reservation.vendor ? `${reservation.vendor} • ` : '';
+            return `${vendor}${reservation.start.location}`;
         }
         return reservation.start.address ?? reservation.start.location;
     }, [reservation]);
