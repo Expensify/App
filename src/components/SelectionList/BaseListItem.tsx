@@ -47,8 +47,6 @@ function BaseListItem<TItem extends ListItem>({
     const {setMouseUp} = useMouseContext();
     const handleMouseUp = (e: React.MouseEvent<Element, MouseEvent>) => {
         e.stopPropagation();
-        // eslint-disable-next-line no-console
-        console.log('mouse up on BaseListItem');
         setMouseUp();
     };
 
@@ -79,8 +77,6 @@ function BaseListItem<TItem extends ListItem>({
                 onPress={(e) => {
                     if (isMouseDownOnInput) {
                         e?.stopPropagation(); // Preventing the click action
-                        // eslint-disable-next-line no-console
-                        console.log('Click prevented due to mouse down on input');
                         return;
                     }
                     if (shouldPreventEnterKeySubmit && e && 'key' in e && e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {

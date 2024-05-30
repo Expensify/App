@@ -262,14 +262,10 @@ function MoneyRequestAmountInput(
     const {setMouseDown, setMouseUp} = useMouseContext();
     const handleMouseDown = (e: React.MouseEvent<Element, MouseEvent>) => {
         e.stopPropagation();
-        // eslint-disable-next-line no-console
-        console.log('mouse down on TextInputWithCurrencySymbol');
         setMouseDown();
     };
     const handleMouseUp = (e: React.MouseEvent<Element, MouseEvent>) => {
         e.stopPropagation();
-        // eslint-disable-next-line no-console
-        console.log('mouse up on TextInputWithCurrencySymbol');
         setMouseUp();
     };
 
