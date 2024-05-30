@@ -5,6 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import type {FullPageNotFoundViewProps} from '@components/BlockingViews/FullPageNotFoundView';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -19,8 +20,8 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 const POLICY_ACCESS_VARIANTS = {
     [CONST.POLICY.ACCESS_VARIANTS.PAID]: (policy: OnyxEntry<OnyxTypes.Policy>) => PolicyUtils.isPaidGroupPolicy(policy) && !!policy?.isPolicyExpenseChatEnabled,
-    [CONST.POLICY.ACCESS_VARIANTS.ADMIN]: (policy: OnyxEntry<OnyxTypes.Policy>) => PolicyUtils.isPolicyAdmin(policy),
-} as const satisfies Record<string, (policy: OnyxTypes.Policy) => boolean>;
+    [CONST.POLICY.ACCESS_VARIANTS.ADMIN]: (policy: OnyxEntry<OnyxTypes.Policy>, login: string) => PolicyUtils.isPolicyAdmin(policy, login),
+} as const satisfies Record<string, (policy: OnyxTypes.Policy, login: string) => boolean>;
 
 type PolicyAccessVariant = keyof typeof POLICY_ACCESS_VARIANTS;
 type AccessOrNotFoundWrapperOnyxProps = {
@@ -73,7 +74,7 @@ function PageNotFoundFallback({policyID, shouldShowFullScreenFallback, fullPageN
 
 function AccessOrNotFoundWrapper({accessVariants = [], fullPageNotFoundViewProps, shouldBeBlocked, ...props}: AccessOrNotFoundWrapperProps) {
     const {policy, policyID, featureName, isLoadingReportData} = props;
-
+    const {login = ''} = useCurrentUserPersonalDetails();
     const isPolicyIDInRoute = !!policyID?.length;
 
     useEffect(() => {
@@ -92,7 +93,7 @@ function AccessOrNotFoundWrapper({accessVariants = [], fullPageNotFoundViewProps
 
     const isPageAccessible = accessVariants.reduce((acc, variant) => {
         const accessFunction = POLICY_ACCESS_VARIANTS[variant];
-        return acc && accessFunction(policy);
+        return acc && accessFunction(policy, login);
     }, true);
 
     const shouldShowNotFoundPage =
