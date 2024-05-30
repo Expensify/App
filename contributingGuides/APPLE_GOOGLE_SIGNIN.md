@@ -127,10 +127,47 @@ index 4286a26033..850f8944ca 100644
     - For Apple, see [Configure the SSH tunneling](#configure-the-ssh-tunneling)
 2. Download and install the latest version of [SwiftDefaultApps](https://github.com/Lord-Kamina/SwiftDefaultApps?tab=readme-ov-file#installing--uninstalling).
 3. Open `System Settings` => `Swift Default Apps` => `URI Schemes` => `new-expensify` and select `New Expensify.app`
-4. Run `npm run web` _before_ running the desktop app. Make sure you're signed out of the web dev build.
-5. Note that a dev build of the desktop app will not work. You'll create and install a local staging build:
+4. Note that a dev build of the desktop app will not work. You'll create and install a local staging build:
    1. Update `build-desktop.sh` replacing `--publish always` with `--publish never`. 
    2. Run `npm run desktop-build-staging` and install the locally-generated desktop app to test.
+5. (Google only) apply the following diff:
+
+    ```diff
+    diff --git a/src/components/DeeplinkWrapper/index.website.tsx b/src/components/DeeplinkWrapper/index.website.tsx
+    index 765fbab038..4318528b4c 100644
+    --- a/src/components/DeeplinkWrapper/index.website.tsx
+    +++ b/src/components/DeeplinkWrapper/index.website.tsx
+    @@ -63,14 +63,7 @@ function DeeplinkWrapper({children, isAuthenticated, autoAuthState}: DeeplinkWra
+             const isUnsupportedDeeplinkRoute = routeRegex.test(window.location.pathname);
+     
+             // Making a few checks to exit early before checking authentication status
+    -        if (
+    -            !isMacOSWeb() ||
+    -            isUnsupportedDeeplinkRoute ||
+    -            hasShownPrompt ||
+    -            CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV ||
+    -            autoAuthState === CONST.AUTO_AUTH_STATE.NOT_STARTED ||
+    -            Session.isAnonymousUser()
+    -        ) {
+    +        if (!isMacOSWeb() || isUnsupportedDeeplinkRoute || hasShownPrompt || autoAuthState === CONST.AUTO_AUTH_STATE.NOT_STARTED || Session.isAnonymousUser()) {
+                 return;
+             }
+             // We want to show the prompt immediately if the user is already authenticated.
+    diff --git a/src/libs/Navigation/linkingConfig/prefixes.ts b/src/libs/Navigation/linkingConfig/prefixes.ts
+    index ca2da6f56b..2c191598f0 100644
+    --- a/src/libs/Navigation/linkingConfig/prefixes.ts
+    +++ b/src/libs/Navigation/linkingConfig/prefixes.ts
+    @@ -8,6 +8,7 @@ const prefixes: LinkingOptions<RootStackParamList>['prefixes'] = [
+         'https://www.expensify.cash',
+         'https://staging.expensify.cash',
+         'https://dev.new.expensify.com',
+    +    'http://localhost',
+         CONST.NEW_EXPENSIFY_URL,
+         CONST.STAGING_NEW_EXPENSIFY_URL,
+     ];
+    ```
+
+6. Run `npm run web`
 
 ## Apple
 
