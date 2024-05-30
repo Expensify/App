@@ -81,7 +81,7 @@ import * as ReportActionsUtils from './ReportActionsUtils';
 import StringUtils from './StringUtils';
 import * as TransactionUtils from './TransactionUtils';
 import * as Url from './Url';
-import type * as UserUtils from './UserUtils';
+import * as UserUtils from './UserUtils';
 
 type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18;
 
@@ -1210,7 +1210,7 @@ function findLastAccessedReport(
 
     // If we only have two reports and one of them is the system chat, filter it out so we don't
     // overwrite showing the concierge chat
-    let hasSystemChat = sortedReports.find((report) => isSystemChat(report)) ?? false;
+    const hasSystemChat = sortedReports.find((report) => isSystemChat(report)) ?? false;
     if (sortedReports.length === 2 && hasSystemChat) {
         sortedReports = sortedReports.filter((report) => !isSystemChat(report)) ?? [];
     }

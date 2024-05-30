@@ -88,7 +88,6 @@ function HeaderView({
     const theme = useTheme();
     const styles = useThemeStyles();
     const isSelfDM = ReportUtils.isSelfDM(report);
-    const isSystemDM = ReportUtils.isSystemChat(report);
     const isGroupChat = ReportUtils.isGroupChat(report) || ReportUtils.isDeprecatedGroupDM(report);
     const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
 
