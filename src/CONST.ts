@@ -1595,6 +1595,9 @@ const CONST = {
                 ACCOUNTANT: 'accountant',
             },
         },
+        ACCESS_VARIANTS: {
+            CREATE: 'create',
+        },
     },
 
     GROWL: {
