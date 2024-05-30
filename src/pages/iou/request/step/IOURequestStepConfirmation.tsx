@@ -80,7 +80,7 @@ function IOURequestStepConfirmation({
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
     const {isOffline} = useNetwork();
-    const [receiptFile, setReceiptFile] = useState<Receipt>();
+    const [receiptFile, setReceiptFile] = useState<OnyxEntry<Receipt>>();
 
     const receiptFilename = transaction?.filename;
     const receiptPath = transaction?.receipt?.source;
@@ -254,7 +254,7 @@ function IOURequestStepConfirmation({
     );
 
     const trackExpense = useCallback(
-        (selectedParticipants: Participant[], trimmedComment: string, receiptObj?: Receipt, gpsPoints?: IOU.GpsPoint) => {
+        (selectedParticipants: Participant[], trimmedComment: string, receiptObj?: OnyxEntry<Receipt>, gpsPoints?: IOU.GpsPoint) => {
             if (!report || !transaction) {
                 return;
             }

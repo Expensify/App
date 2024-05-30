@@ -16,7 +16,7 @@ type CategorizeTrackedExpenseParams = {
     reportPreviewReportActionID: string;
     category?: string;
     tag?: string;
-    receipt?: Receipt;
+    receipt: Receipt | null;
     taxCode: string;
     taxAmount: number;
     billable?: boolean;
