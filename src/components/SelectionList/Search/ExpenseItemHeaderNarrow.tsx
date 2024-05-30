@@ -13,11 +13,13 @@ import UserInfoCell from './UserInfoCell';
 type ExpenseItemHeaderNarrowProps = {
     participantFrom: SearchAccountDetails;
     participantTo: SearchAccountDetails;
+    participantFromDisplayName: string;
+    participantToDisplayName: string;
     buttonText: string;
     onButtonPress: () => void;
 };
 
-function ExpenseItemHeaderNarrow({participantFrom, participantTo, buttonText, onButtonPress}: ExpenseItemHeaderNarrowProps) {
+function ExpenseItemHeaderNarrow({participantFrom, participantFromDisplayName, participantTo, participantToDisplayName, buttonText, onButtonPress}: ExpenseItemHeaderNarrowProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
@@ -26,7 +28,10 @@ function ExpenseItemHeaderNarrow({participantFrom, participantTo, buttonText, on
         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mb2, styles.gap2]}>
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.flex1]}>
                 <View style={[styles.mw50]}>
-                    <UserInfoCell participant={participantFrom} />
+                    <UserInfoCell
+                        participant={participantFrom}
+                        displayName={participantFromDisplayName}
+                    />
                 </View>
                 <Icon
                     src={Expensicons.ArrowRightLong}
@@ -35,7 +40,10 @@ function ExpenseItemHeaderNarrow({participantFrom, participantTo, buttonText, on
                     fill={theme.icon}
                 />
                 <View style={[styles.flex1, styles.mw50]}>
-                    <UserInfoCell participant={participantTo} />
+                    <UserInfoCell
+                        participant={participantTo}
+                        displayName={participantToDisplayName}
+                    />
                 </View>
             </View>
             <View style={[StyleUtils.getWidthStyle(variables.w80)]}>
