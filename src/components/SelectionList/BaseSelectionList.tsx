@@ -440,7 +440,6 @@ function BaseSelectionList<TItem extends ListItem>(
                 />
                 {item.footerContent && item.footerContent}
             </>
-
         );
     };
 
