@@ -19,7 +19,7 @@ function acceptSpotnanaTerms() {
         },
     ];
 
-    API.write(WRITE_COMMANDS.ACCEPT_SPOTNANA_TERMS, {}, {successData});
+    API.write(WRITE_COMMANDS.ACCEPT_SPOTNANA_TERMS, null, {successData});
 }
 
 // eslint-disable-next-line import/prefer-default-export

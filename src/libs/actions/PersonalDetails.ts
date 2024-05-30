@@ -397,7 +397,7 @@ function deleteAvatar() {
         },
     ];
 
-    API.write(WRITE_COMMANDS.DELETE_USER_AVATAR, {}, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.DELETE_USER_AVATAR, null, {optimisticData, failureData});
 }
 
 /**
