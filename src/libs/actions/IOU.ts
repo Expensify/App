@@ -2390,7 +2390,7 @@ function calculateAmountForUpdatedWaypoint(
 ) {
     let updatedAmount: number = CONST.IOU.DEFAULT_AMOUNT;
     let updatedMerchant = Localize.translateLocal('iou.fieldPending');
-    if (!isEmptyObject(transactionChanges?.routes)) {
+    if (!isEmptyObject(transactionChanges?.routes?.route0?.geometry)) {
         const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '';
         const mileageRates = DistanceRequestUtils.getMileageRates(policy);
         const policyCurrency = policy?.outputCurrency ?? PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
