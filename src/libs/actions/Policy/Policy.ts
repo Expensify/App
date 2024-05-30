@@ -1407,7 +1407,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
     ];
 
     const params: AddMembersToWorkspaceParams = {
-        employees: JSON.stringify(logins.map((login) => ({email: login}))),
+        employees: JSON.stringify(logins.map((login, index) => ({email: login, accountID: accountIDs[index]}))),
         welcomeNote: new ExpensiMark().replace(welcomeNote),
         policyID,
     };
