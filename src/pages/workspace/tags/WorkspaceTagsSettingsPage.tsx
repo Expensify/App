@@ -1,8 +1,8 @@
-import type { StackScreenProps } from '@react-navigation/stack';
-import React, { useCallback, useMemo } from 'react';
-import { ActivityIndicator, View } from 'react-native';
-import type { OnyxEntry } from 'react-native-onyx';
-import { withOnyx } from 'react-native-onyx';
+import type {StackScreenProps} from '@react-navigation/stack';
+import React, {useCallback, useMemo} from 'react';
+import {ActivityIndicator, View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -11,19 +11,19 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Tag from '@libs/actions/Policy/Tag';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import type { SettingsNavigatorParamList } from '@navigation/types';
+import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import useNetwork from '@hooks/useNetwork';
 
 type WorkspaceTagsSettingsPageOnyxProps = {
     /** Collection of tags attached to a policy */
@@ -31,13 +31,13 @@ type WorkspaceTagsSettingsPageOnyxProps = {
 };
 type WorkspaceTagsSettingsPageProps = WorkspaceTagsSettingsPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS_SETTINGS>;
 
-function WorkspaceTagsSettingsPage({ route, policyTags }: WorkspaceTagsSettingsPageProps) {
+function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const { translate } = useLocalize();
+    const {translate} = useLocalize();
     const [policyTagLists, isMultiLevelTags] = useMemo(() => [PolicyUtils.getTagLists(policyTags), PolicyUtils.isMultiLevelTags(policyTags)], [policyTags]);
     const isLoading = !PolicyUtils.getTagLists(policyTags)?.[0];
-    const { isOffline } = useNetwork();
+    const {isOffline} = useNetwork();
 
     const updateWorkspaceRequiresTag = useCallback(
         (value: boolean) => {
@@ -86,23 +86,21 @@ function WorkspaceTagsSettingsPage({ route, policyTags }: WorkspaceTagsSettingsP
                 </OfflineWithFeedback>
             )}
         </View>
-    )
+    );
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={route.params.policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
         >
-            {({ policy }) => (
+            {({policy}) => (
                 <ScreenWrapper
                     includeSafeAreaPaddingBottom={false}
                     style={[styles.defaultModalContainer]}
                     testID={WorkspaceTagsSettingsPage.displayName}
                 >
                     <HeaderWithBackButton title={translate('common.settings')} />
-                    {isOffline && isLoading ? <FullPageOfflineBlockingView>
-                        {getTagsSettings(policy)}
-                    </FullPageOfflineBlockingView> : getTagsSettings(policy)}
+                    {isOffline && isLoading ? <FullPageOfflineBlockingView>{getTagsSettings(policy)}</FullPageOfflineBlockingView> : getTagsSettings(policy)}
                 </ScreenWrapper>
             )}
         </AccessOrNotFoundWrapper>
@@ -113,6 +111,6 @@ WorkspaceTagsSettingsPage.displayName = 'WorkspaceTagsSettingsPage';
 
 export default withOnyx<WorkspaceTagsSettingsPageProps, WorkspaceTagsSettingsPageOnyxProps>({
     policyTags: {
-        key: ({ route }) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${route.params.policyID}`,
+        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${route.params.policyID}`,
     },
 })(WorkspaceTagsSettingsPage);
