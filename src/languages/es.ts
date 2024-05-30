@@ -2228,6 +2228,7 @@ export default {
             delete: 'Eliminar campos',
             deleteConfirmation: '¿Estás seguro de que quieres eliminar esta campos?',
         },
+
         tags: {
             tagName: 'Nombre de etiqueta',
             requiresTag: 'Los miembros deben etiquetar todos los gastos',
@@ -2544,6 +2545,8 @@ export default {
             enableRate: 'Activar tasa',
             status: 'Estado',
             unit: 'Unidad',
+            taxFeatureNotEnabledMessage: 'Los impuestos deben estar activados en el área de trabajo para poder utilizar esta función. Dirígete a ',
+            changePromptMessage: ' para hacer ese cambio.',
             defaultCategory: 'Categoría predeterminada',
             deleteDistanceRate: 'Eliminar tasa de distancia',
             areYouSureDelete: ({count}: DistanceRateOperationsParams) => `¿Estás seguro de que quieres eliminar ${Str.pluralize('esta tasa', 'estas tasas', count)}?`,

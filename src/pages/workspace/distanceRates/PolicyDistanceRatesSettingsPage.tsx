@@ -135,14 +135,14 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
                                     style={styles.colorMuted}
                                     fontSize={14}
                                 >
-                                    Taxes must be enabled on the workspace to use this feature. Head over to{' '}
+                                    {translate('workspace.distanceRates.taxFeatureNotEnabledMessage')}
                                     <TextLink
                                         fontSize={14}
                                         onPress={() => Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID))}
                                     >
-                                        More features
-                                    </TextLink>{' '}
-                                    to make that change.
+                                        {translate('workspace.common.moreFeatures')}
+                                    </TextLink>
+                                    {translate('workspace.distanceRates.changePromptMessage')}
                                 </Text>
                             </View>
                         )}

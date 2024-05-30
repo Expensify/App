@@ -2192,6 +2192,7 @@ export default {
             delete: 'Delete field',
             deleteConfirmation: 'Are you sure that you want to delete this field?',
         },
+
         tags: {
             tagName: 'Tag name',
             requiresTag: 'Members must tag all expenses',
@@ -2507,6 +2508,8 @@ export default {
             enableRate: 'Enable rate',
             status: 'Status',
             unit: 'Unit',
+            taxFeatureNotEnabledMessage: 'Taxes must be enabled on the workspace to use this feature. Head over to ',
+            changePromptMessage: ' to make that change.',
             defaultCategory: 'Default category',
             deleteDistanceRate: 'Delete distance rate',
             areYouSureDelete: ({count}: DistanceRateOperationsParams) => `Are you sure you want to delete ${Str.pluralize('this rate', 'these rates', count)}?`,
