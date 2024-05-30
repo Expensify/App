@@ -24,6 +24,7 @@ type SingletonAppleSignInButtonProps = AppleSignInDivProps & {
 
 type AppleSignInProps = WithNavigationFocusProps & {
     isDesktopFlow?: boolean;
+    // eslint-disable-next-line react/no-unused-prop-types
     onPress?: () => void;
 };
 

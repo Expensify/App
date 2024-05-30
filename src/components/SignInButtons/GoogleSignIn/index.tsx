@@ -9,6 +9,7 @@ import type Response from '@src/types/modules/google';
 
 type GoogleSignInProps = {
     isDesktopFlow?: boolean;
+    // eslint-disable-next-line react/no-unused-prop-types
     onPress?: () => void;
 };
 

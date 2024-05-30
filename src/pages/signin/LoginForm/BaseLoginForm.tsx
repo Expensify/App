@@ -26,7 +26,6 @@ import * as LoginUtils from '@libs/LoginUtils';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
-import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import * as CloseAccount from '@userActions/CloseAccount';
 import * as Session from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
@@ -50,8 +49,6 @@ type BaseLoginFormOnyxProps = {
 };
 
 type BaseLoginFormProps = WithToggleVisibilityViewProps & BaseLoginFormOnyxProps & LoginFormProps;
-
-const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 
 function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false, isVisible}: BaseLoginFormProps, ref: ForwardedRef<InputHandle>) {
     const styles = useThemeStyles();
