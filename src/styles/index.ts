@@ -15,7 +15,6 @@ import colors from './theme/colors';
 import type {ThemeColors} from './theme/types';
 import addOutlineWidth from './utils/addOutlineWidth';
 import borders from './utils/borders';
-import chatContentScrollViewPlatformStyles from './utils/chatContentScrollViewPlatformStyles';
 import codeStyles from './utils/codeStyles';
 import cursor from './utils/cursor';
 import display from './utils/display';
@@ -1941,10 +1940,8 @@ const styles = (theme: ThemeColors) =>
         },
 
         chatContentScrollView: {
-            flexGrow: 1,
-            justifyContent: 'flex-start',
+            justifyContent: 'flex-end',
             paddingBottom: 16,
-            ...chatContentScrollViewPlatformStyles,
         },
 
         // Chat Item
