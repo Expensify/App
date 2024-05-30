@@ -90,7 +90,7 @@ function ReservationView({reservation}: ReservationViewProps) {
                         />
                         <Text style={[styles.textStrong, styles.lh20, shouldUseNarrowLayout && styles.flex1]}>{formatAirportInfo(reservation.end)}</Text>
                     </View>
-                    {bottomDescription && <Text style={[styles.textSupportingSmallSize, styles.lh14]}>{bottomDescription}</Text>}
+                    {bottomDescription && <Text style={[styles.textSmall, styles.colorMuted, styles.lh14]}>{bottomDescription}</Text>}
                 </View>
             );
         }
@@ -103,7 +103,7 @@ function ReservationView({reservation}: ReservationViewProps) {
                 >
                     {reservation.type === CONST.RESERVATION_TYPE.CAR ? reservation.carInfo?.name : reservation.start.longName}
                 </Text>
-                {bottomDescription && <Text style={[styles.textSupportingSmallSize, styles.lh14]}>{bottomDescription}</Text>}
+                {bottomDescription && <Text style={[styles.textSmall, styles.colorMuted, styles.lh14]}>{bottomDescription}</Text>}
             </View>
         );
     };
@@ -125,7 +125,7 @@ function ReservationView({reservation}: ReservationViewProps) {
             onSecondaryInteraction={() => {}}
             iconHeight={20}
             iconWidth={20}
-            iconStyles={[styles.tripReservationIconContainer(true), styles.mr3]}
+            iconStyles={[styles.tripReservationIconContainer, styles.mr3]}
             secondaryIconFill={theme.icon}
         />
     );

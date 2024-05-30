@@ -386,6 +386,11 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightNormal,
         },
 
+        textSmall: {
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
+            fontSize: variables.fontSizeSmall,
+        },
+
         textMicro: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeSmall,
@@ -1331,18 +1336,6 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightNormal,
         },
 
-        textSupportingSmallSize: {
-            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
-            fontSize: variables.fontSizeSmall,
-            color: theme.textSupporting,
-        },
-
-        textSupportingNormalSize: {
-            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
-            fontSize: variables.fontSizeNormal,
-            color: theme.textSupporting,
-        },
-
         textLabelSupporting: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeLabel,
@@ -1390,7 +1383,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         lh14: {
-            lineHeight: 14,
+            lineHeight: variables.lineHeightSmall,
         },
 
         lh16: {
@@ -4941,14 +4934,14 @@ const styles = (theme: ThemeColors) =>
             flex: 1,
         },
 
-        tripReservationIconContainer: (isBiggerIcon: boolean) => ({
-            width: isBiggerIcon ? 40 : 32,
-            height: isBiggerIcon ? 40 : 32,
-            backgroundColor: theme.overlay,
-            borderRadius: isBiggerIcon ? 40 : 32,
+        tripReservationIconContainer: {
+            width: variables.avatarSizeNormal,
+            height: variables.avatarSizeNormal,
+            backgroundColor: theme.border,
+            borderRadius: variables.componentBorderRadiusXLarge,
             alignItems: 'center',
             justifyContent: 'center',
-        }),
+        },
 
         textLineThrough: {
             textDecorationLine: 'line-through',
