@@ -409,7 +409,6 @@ export default {
     },
     moneyRequestConfirmationList: {
         paidBy: 'Paid by',
-        splitAmounts: 'Split amounts',
         whatsItFor: "What's it for?",
     },
     selectionList: {
@@ -947,6 +946,7 @@ export default {
             noLogsAvailable: 'No logs available',
             logSizeTooLarge: ({size}: LogSizeParams) => `Log size exceeds the limit of ${size} MB. Please use "Save log" to download the log file instead.`,
             logs: 'Logs',
+            viewConsole: 'View console',
         },
         security: 'Security',
         signOut: 'Sign out',
@@ -1924,6 +1924,7 @@ export default {
             distanceRates: 'Distance rates',
             welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
                 `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
+            subscription: 'Subscription',
         },
         qbo: {
             importDescription: 'Choose which coding configurations are imported from QuickBooks Online to Expensify.',
