@@ -44,7 +44,6 @@ import type {Status} from '@src/types/onyx/PersonalDetails';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OriginalMessage} from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import applyOnyxUpdatesReliably from './applyOnyxUpdatesReliably';
 import * as Link from './Link';
 import * as Report from './Report';
@@ -60,7 +59,7 @@ Onyx.connect({
     },
 });
 
-let myPersonalDetails: OnyxEntry<OnyxPersonalDetails> | EmptyObject = {};
+let myPersonalDetails: OnyxEntry<OnyxPersonalDetails>;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
