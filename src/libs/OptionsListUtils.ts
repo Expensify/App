@@ -1663,7 +1663,10 @@ function shouldShowViolations(report: Report, betas: OnyxEntry<Beta[]>, transact
     }
     const parentReportActions = allReportActions ? allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`] ?? {} : {};
     const parentReportAction = parentReportActions[parentReportActionID] ?? null;
-    return (!!parentReportAction && ReportUtils.shouldDisplayTransactionThreadViolations(report, transactionViolations, parentReportAction)) ?? false;
+    if (!parentReportAction) {
+        return false;
+    }
+    return ReportUtils.shouldDisplayTransactionThreadViolations(report, transactionViolations, parentReportAction);
 }
 
 /**
