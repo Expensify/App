@@ -58,6 +58,7 @@ import type ReportActionReactions from './ReportActionReactions';
 import type ReportActionsDraft from './ReportActionsDraft';
 import type ReportActionsDrafts from './ReportActionsDrafts';
 import type ReportMetadata from './ReportMetadata';
+import type ReportNameValuePairs from './ReportNameValuePairs';
 import type ReportNextStep from './ReportNextStep';
 import type ReportUserIsTyping from './ReportUserIsTyping';
 import type Request from './Request';
@@ -73,6 +74,7 @@ import type {TransactionViolation, ViolationName} from './TransactionViolation';
 import type TransactionViolations from './TransactionViolation';
 import type User from './User';
 import type UserLocation from './UserLocation';
+import type UserMetadata from './UserMetadata';
 import type UserWallet from './UserWallet';
 import type WalletAdditionalDetails from './WalletAdditionalDetails';
 import type {WalletAdditionalQuestionDetails} from './WalletAdditionalDetails';
@@ -134,6 +136,7 @@ export type {
     RecentlyUsedTags,
     ReimbursementAccount,
     Report,
+    ReportNameValuePairs,
     ReportAction,
     ReportActionReactions,
     ReportActions,
@@ -156,6 +159,7 @@ export type {
     TransactionViolations,
     User,
     UserLocation,
+    UserMetadata,
     UserWallet,
     ViolationName,
     WalletAdditionalDetails,
