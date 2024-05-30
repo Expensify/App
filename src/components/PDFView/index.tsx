@@ -9,6 +9,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -26,7 +27,8 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, max
     const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {windowHeight, isSmallScreenWidth} = useWindowDimensions();
+    const {windowHeight} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const prevWindowHeight = usePrevious(windowHeight);
     const {translate} = useLocalize();
 
@@ -37,13 +39,13 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, max
      */
     const toggleKeyboardOnSmallScreens = useCallback(
         (isKBOpen: boolean) => {
-            if (!isSmallScreenWidth) {
+            if (!shouldUseNarrowLayout) {
                 return;
             }
             setIsKeyboardOpen(isKBOpen);
             onToggleKeyboard?.(isKBOpen);
         },
-        [isSmallScreenWidth, onToggleKeyboard],
+        [shouldUseNarrowLayout, onToggleKeyboard],
     );
 
     /**
@@ -95,7 +97,7 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, max
                     contentContainerStyle={style as CSSProperties}
                     file={sourceURL}
                     pageMaxWidth={variables.pdfPageMaxWidth}
-                    isSmallScreen={isSmallScreenWidth}
+                    isSmallScreen={shouldUseNarrowLayout}
                     maxCanvasWidth={maxCanvasWidth}
                     maxCanvasHeight={maxCanvasHeight}
                     maxCanvasArea={maxCanvasArea}
