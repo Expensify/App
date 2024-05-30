@@ -28,7 +28,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const getSelectedAccountName = useMemo(
         () => (accountID: string) => {
             const selectedAccount = (bankAccounts ?? []).find((bank) => bank.id === accountID);
-            return selectedAccount?.name ?? '';
+            return selectedAccount?.name ?? bankAccounts?.[0]?.name ?? '';
         },
         [bankAccounts],
     );
@@ -47,6 +47,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={[styles.pb2, styles.ph5]}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
         >
             <ToggleSettingOptionRow
                 key={translate('workspace.xero.advancedConfig.autoSync')}
