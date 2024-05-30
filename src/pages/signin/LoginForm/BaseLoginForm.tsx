@@ -215,6 +215,8 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
 
     const serverErrorText = useMemo(() => (account ? ErrorUtils.getLatestErrorMessage(account) : ''), [account]);
     const shouldShowServerError = !!serverErrorText && !formError;
+    const didPressGoogleOrIOSButton = useRef(false);
+    const setDidPressGoogleOrIOSButton = useCallback((pressed: boolean) => (didPressGoogleOrIOSButton.current = pressed), []);
 
     return (
         <>
@@ -237,18 +239,15 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
                         // As we have only two signin buttons (Apple/Google) other than the text input,
                         // for natives onBlur is called only when the buttons are pressed and we don't need
                         // to validate in those case as the user has opted for other signin flow.
-                        willBlurTextInputOnTapOutside
-                            ? () =>
-                                  // This delay is to avoid the validate being called before google iframe is rendered to
-                                  // avoid error message appearing after pressing google signin button.
-                                  setTimeout(() => {
-                                      if (firstBlurred.current || !Visibility.isVisible() || !Visibility.hasFocus()) {
-                                          return;
-                                      }
-                                      firstBlurred.current = true;
-                                      validate(login);
-                                  }, 500)
-                            : undefined
+                        () =>
+                            setTimeout(() => {
+                                if (didPressGoogleOrIOSButton.current || firstBlurred.current || !Visibility.isVisible() || !Visibility.hasFocus()) {
+                                    setDidPressGoogleOrIOSButton(false);
+                                    return;
+                                }
+                                firstBlurred.current = true;
+                                validate(login);
+                            }, 500)
                     }
                     onChangeText={onTextInput}
                     onSubmitEditing={validateAndSubmitForm}
@@ -300,10 +299,10 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
 
                                     <View style={shouldUseNarrowLayout ? styles.loginButtonRowSmallScreen : styles.loginButtonRow}>
                                         <View>
-                                            <AppleSignIn />
+                                            <AppleSignIn onPress={() => setDidPressGoogleOrIOSButton(true)} />
                                         </View>
                                         <View>
-                                            <GoogleSignIn />
+                                            <GoogleSignIn onPress={() => setDidPressGoogleOrIOSButton(true)} />
                                         </View>
                                     </View>
                                 </View>

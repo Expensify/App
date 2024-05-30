@@ -24,6 +24,7 @@ type SingletonAppleSignInButtonProps = AppleSignInDivProps & {
 
 type AppleSignInProps = WithNavigationFocusProps & {
     isDesktopFlow?: boolean;
+    onPress?: () => void;
 };
 
 /**
@@ -139,3 +140,4 @@ function AppleSignIn({isDesktopFlow = false}: AppleSignInProps) {
 
 AppleSignIn.displayName = 'AppleSignIn';
 export default withNavigationFocus(AppleSignIn);
+export type {AppleSignInProps};

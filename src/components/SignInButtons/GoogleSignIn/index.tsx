@@ -9,6 +9,7 @@ import type Response from '@src/types/modules/google';
 
 type GoogleSignInProps = {
     isDesktopFlow?: boolean;
+    onPress?: () => void;
 };
 
 /** Div IDs for styling the two different Google Sign-In buttons. */
@@ -90,3 +91,4 @@ function GoogleSignIn({isDesktopFlow = false}: GoogleSignInProps) {
 GoogleSignIn.displayName = 'GoogleSignIn';
 
 export default GoogleSignIn;
+export type {GoogleSignInProps};
