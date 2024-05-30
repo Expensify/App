@@ -786,8 +786,8 @@ function getFormattedReservationRangeDate(date1: Date, date2: Date): string {
 /**
  * Returns a formatted date of a transport mean departure.
  * Dates are formatted as follows:
- * 1. When the date reffers to the current day: Departs on Sunday, Mar 17 at 8:00
- * 2. When the date reffers not to the current day: Departs on Wednesday, Mar 17, 2023 at 8:00
+ * 1. When the date refers to the current day: Departs on Sunday, Mar 17 at 8:00
+ * 2. When the date refers not to the current day: Departs on Wednesday, Mar 17, 2023 at 8:00
  */
 function getFormattedTransportDate(date: Date): string {
     const {translateLocal} = Localize;
