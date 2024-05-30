@@ -14,7 +14,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
-import * as Policy from '@userActions/Policy';
+import * as Category from '@userActions/Policy/Category';
+import * as Policy from '@userActions/Policy/Policy';
+import * as Tag from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type SCREENS from '@src/SCREENS';
@@ -86,7 +88,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             disabled: hasAccountingConnection,
             pendingAction: policy?.pendingFields?.areCategoriesEnabled,
             action: (isEnabled: boolean) => {
-                Policy.enablePolicyCategories(policy?.id ?? '', isEnabled);
+                Category.enablePolicyCategories(policy?.id ?? '', isEnabled);
             },
         },
         {
@@ -97,7 +99,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             disabled: hasAccountingConnection,
             pendingAction: policy?.pendingFields?.areTagsEnabled,
             action: (isEnabled: boolean) => {
-                Policy.enablePolicyTags(policy?.id ?? '', isEnabled);
+                Tag.enablePolicyTags(policy?.id ?? '', isEnabled);
             },
         },
         {
@@ -159,7 +161,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 <ToggleSettingOptionRow
                     icon={item.icon}
                     title={translate(item.titleTranslationKey)}
-                    titleStyle={styles.textStrong}
                     subtitle={translate(item.subtitleTranslationKey)}
                     switchAccessibilityLabel={translate(item.subtitleTranslationKey)}
                     isActive={item.isActive}

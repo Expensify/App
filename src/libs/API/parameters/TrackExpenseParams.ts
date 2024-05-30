@@ -26,6 +26,7 @@ type TrackExpenseParams = {
     transactionThreadReportID: string;
     createdReportActionIDForThread: string;
     waypoints?: string;
+    actionableWhisperReportActionID?: string;
 };
 
 export default TrackExpenseParams;
