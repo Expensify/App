@@ -1,21 +1,36 @@
-import React, {createContext, useContext, useState} from 'react';
+import type {ReactNode} from 'react';
+import React, {createContext, useContext, useMemo, useState} from 'react';
+
+type MouseContextProps = {
+    isMouseDownOnInput: boolean;
+    setMouseDown: () => void;
+    setMouseUp: () => void;
+};
 
 // Create a context with default values and handlers
-const MouseContext = createContext({
+const MouseContext = createContext<MouseContextProps>({
     isMouseDownOnInput: false,
     setMouseDown: () => {},
     setMouseUp: () => {},
 });
 
+type MouseProviderProps = {
+    children: ReactNode;
+};
+
 // Context provider component
-export const MouseProvider = ({children}) => {
+function MouseProvider({children}: MouseProviderProps) {
     const [isMouseDownOnInput, setIsMouseDownOnInput] = useState(false);
 
     const setMouseDown = () => setIsMouseDownOnInput(true);
     const setMouseUp = () => setIsMouseDownOnInput(false);
 
-    return <MouseContext.Provider value={{isMouseDownOnInput, setMouseDown, setMouseUp}}>{children}</MouseContext.Provider>;
-};
+    const value = useMemo(() => ({isMouseDownOnInput, setMouseDown, setMouseUp}), [isMouseDownOnInput]);
+
+    return <MouseContext.Provider value={value}>{children}</MouseContext.Provider>;
+}
 
 // Custom hook to use the mouse context
-export const useMouseContext = () => useContext(MouseContext);
+const useMouseContext = () => useContext(MouseContext);
+
+export {MouseProvider, useMouseContext};

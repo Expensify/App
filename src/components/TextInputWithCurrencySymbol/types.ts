@@ -37,6 +37,11 @@ type TextInputWithCurrencySymbolProps = {
      */
     onMouseDown?: ((e: React.MouseEvent) => void) | undefined;
 
+    /**
+     * Callback that is called when the text input is pressed up
+     */
+    onMouseUp?: ((e: React.MouseEvent) => void) | undefined;
+
     /** Whether the currency symbol is pressable */
     isCurrencyPressable: boolean;
 
