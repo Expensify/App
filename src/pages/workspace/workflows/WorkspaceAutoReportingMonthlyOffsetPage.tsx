@@ -98,6 +98,7 @@ function WorkspaceAutoReportingMonthlyOffsetPage({policy, route}: WorkspaceAutoR
                         headerMessage={headerMessage}
                         ListItem={RadioListItem}
                         onSelectRow={onSelectDayOfMonth}
+                        shouldDebounceRowSelect
                         initiallyFocusedOptionKey={offset.toString()}
                         showScrollIndicator
                     />

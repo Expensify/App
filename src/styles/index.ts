@@ -3319,6 +3319,12 @@ const styles = (theme: ThemeColors) =>
             marginTop: 6,
         },
 
+        workspaceListRBR: {
+            flexDirection: 'column',
+            justifyContent: 'flex-start',
+            marginTop: 10,
+        },
+
         peopleRow: {
             width: '100%',
             flexDirection: 'row',
@@ -3501,6 +3507,10 @@ const styles = (theme: ThemeColors) =>
             color: theme.textSupporting,
             fontSize: 13,
             lineHeight: 16,
+        },
+
+        searchTableHeaderActive: {
+            fontWeight: 'bold',
         },
 
         threeDotsPopoverOffset: (windowWidth: number) =>

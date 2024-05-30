@@ -358,6 +358,7 @@ function MoneyRequestParticipantsSelector({participants = [], onFinish, onPartic
             onChangeText={setSearchTerm}
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
             onSelectRow={(item) => (isIOUSplit ? addParticipantToSelection(item) : addSingleParticipant(item))}
+            shouldDebounceRowSelect
             footerContent={footerContent}
             headerMessage={headerMessage}
             showLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}

@@ -58,6 +58,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const backTo = route.params?.backTo;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyId}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyId}`);
+    const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
+    const isConnectedToQbo = Boolean(policy?.connections?.quickbooksOnline);
 
     const fetchCategories = useCallback(() => {
         Category.openPolicyCategoriesPage(policyId);
@@ -258,15 +260,16 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const getHeaderText = () => (
         <View style={[styles.ph5, styles.pb5, styles.pt3]}>
-            {Object.keys(policy?.connections ?? {}).length > 0 ? (
+            {isConnectedToAccounting ? (
                 <Text>
                     <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.categories.importedFromAccountingSoftware')} `}</Text>
                     <TextLink
                         style={[styles.textNormal, styles.link]}
                         href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyId)}`}
                     >
-                        {`${translate('workspace.accounting.qbo')} ${translate('workspace.accounting.settings')}`}
+                        {`${translate(isConnectedToQbo ? 'workspace.accounting.qbo' : 'workspace.accounting.xero')} ${translate('workspace.accounting.settings')}`}
                     </TextLink>
+                    <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
                 </Text>
             ) : (
                 <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
@@ -306,7 +309,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     danger
                 />
                 {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
-                {!shouldUseNarrowLayout && getHeaderText()}
+                {(!shouldUseNarrowLayout || shouldShowEmptyState || isLoading) && getHeaderText()}
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
