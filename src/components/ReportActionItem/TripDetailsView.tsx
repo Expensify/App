@@ -34,8 +34,15 @@ function ReservationView({reservation}: ReservationViewProps) {
 
     const reservationIcon = TripReservationUtils.getTripReservationIcon(reservation.type);
 
-    const formatAirportInfo = (reservationTimeDetails: ReservationTimeDetails) =>
-        `${reservationTimeDetails?.longName ? `${reservationTimeDetails?.longName} ` : ''}${reservationTimeDetails?.shortName}`;
+    const formatAirportInfo = (reservationTimeDetails: ReservationTimeDetails) => {
+        const longName = reservationTimeDetails?.longName ? `${reservationTimeDetails?.longName} ` : '';
+        let shortName = reservationTimeDetails?.shortName ? `${reservationTimeDetails?.shortName}` : '';
+
+        shortName = longName && shortName ? `(${shortName})` : shortName;
+
+        return `${longName}${shortName}`;
+    };
+
     const getFormattedDate = () => {
         switch (reservation.type) {
             case CONST.RESERVATION_TYPE.FLIGHT:
