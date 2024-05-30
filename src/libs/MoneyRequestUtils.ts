@@ -45,7 +45,8 @@ function calculateAmountLength(amount: string): number {
     const leadingZeroesLength = leadingZeroes?.[0]?.length ?? 0;
     const absAmount = parseFloat((Number(stripCommaFromAmount(amount)) * 100).toFixed(2)).toString();
 
-    if (/\D/.test(absAmount)) {
+    // Don't allow the amount if the parsing to number results in NaN, Infinity, or with a scientific notation (e.g., 1e+26)
+    if (/NaN|Infinity|e\+/.test(absAmount)) {
         return CONST.IOU.AMOUNT_MAX_LENGTH + 1;
     }
 
