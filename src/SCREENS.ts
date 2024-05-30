@@ -103,6 +103,10 @@ const SCREENS = {
             RESPONSE: 'Settings_ExitSurvey_Response',
             CONFIRM: 'Settings_ExitSurvey_Confirm',
         },
+
+        SUBSCRIPTION: {
+            ROOT: 'Settings_Subscription',
+        },
     },
     SAVE_THE_WORLD: {
         ROOT: 'SaveTheWorld_Root',

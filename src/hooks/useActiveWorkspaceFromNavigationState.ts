@@ -18,7 +18,13 @@ function useActiveWorkspaceFromNavigationState() {
             Log.warn('useActiveWorkspaceFromNavigationState should be called only from BottomTab screens');
         }
 
-        return state.routes.at(-1)?.params?.policyID;
+        const policyID = state.routes.at(-1)?.params?.policyID;
+
+        if (!policyID) {
+            return undefined;
+        }
+
+        return policyID;
     });
 
     return activeWorkpsaceID;

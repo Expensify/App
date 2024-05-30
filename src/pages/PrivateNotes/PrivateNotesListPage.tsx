@@ -1,6 +1,7 @@
 import React, {useCallback, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import {AttachmentContext} from '@components/AttachmentContext';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -16,11 +17,11 @@ import withReportAndPrivateNotesOrNotFound from '@pages/home/report/withReportAn
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetailsList, Report} from '@src/types/onyx';
+import type {PersonalDetails, Report} from '@src/types/onyx';
 
 type PrivateNotesListPageOnyxProps = {
     /** All of the personal details for everyone */
-    personalDetailsList: OnyxEntry<PersonalDetailsList>;
+    personalDetailsList: OnyxCollection<PersonalDetails>;
 };
 
 type PrivateNotesListPageProps = WithReportAndPrivateNotesOrNotFoundProps &
