@@ -23,6 +23,7 @@ const settingsScreens = {
     [SCREENS.SETTINGS.ABOUT]: () => require('../../../../../pages/settings/AboutPage/AboutPage').default as React.ComponentType,
     [SCREENS.SETTINGS.TROUBLESHOOT]: () => require('../../../../../pages/settings/Troubleshoot/TroubleshootPage').default as React.ComponentType,
     [SCREENS.SETTINGS.SAVE_THE_WORLD]: () => require('../../../../../pages/TeachersUnite/SaveTheWorldPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: () => require('../../../../../pages/settings/Subscription/SubscriptionSettingsPage').default as React.ComponentType,
 } satisfies Screens;
 
 function BaseCentralPaneNavigator() {
@@ -34,6 +35,7 @@ function BaseCentralPaneNavigator() {
         // Prevent unnecessary scrolling
         cardStyle: styles.cardStyleNavigator,
     };
+
     return (
         <Stack.Navigator screenOptions={options}>
             <Stack.Screen

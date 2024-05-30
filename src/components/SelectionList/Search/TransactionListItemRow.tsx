@@ -6,12 +6,14 @@ import Avatar from '@components/Avatar';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import ReceiptImage from '@components/ReceiptImage';
 import type {
     ActionCellProps,
     CellProps,
     CurrencyCellProps,
     DateCellProps,
     MerchantCellProps,
+    ReceiptCellProps,
     TransactionCellProps,
     TransactionListItemType,
     TypeCellProps,
@@ -26,6 +28,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 import type {SearchTransactionType} from '@src/types/onyx/SearchResults';
@@ -38,6 +42,7 @@ type TransactionListItemRowProps = {
     onButtonPress: () => void;
     showItemHeaderOnNarrowLayout?: boolean;
     containerStyle?: StyleProp<ViewStyle>;
+    isHovered?: boolean;
 };
 
 const getTypeIcon = (type?: SearchTransactionType) => {
@@ -52,9 +57,37 @@ const getTypeIcon = (type?: SearchTransactionType) => {
             return Expensicons.Cash;
     }
 };
+
 function arePropsEqual(prevProps: CellProps, nextProps: CellProps) {
     return prevProps.keyForList === nextProps.keyForList;
 }
+
+function areReceiptPropsEqual(prevProps: ReceiptCellProps, nextProps: ReceiptCellProps) {
+    return prevProps.keyForList === nextProps.keyForList && prevProps.isHovered === nextProps.isHovered;
+}
+
+const ReceiptCell = memo(({transactionItem, isHovered = false}: ReceiptCellProps) => {
+    const theme = useTheme();
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+
+    return (
+        <View style={[StyleUtils.getWidthAndHeightStyle(variables.h36, variables.w40), StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusSmall), styles.overflowHidden]}>
+            <ReceiptImage
+                source={tryResolveUrlFromApiRoot(transactionItem?.receipt?.source ?? '')}
+                isEReceipt={transactionItem.hasEReceipt}
+                transactionID={transactionItem.transactionID}
+                shouldUseThumbnailImage={!transactionItem?.receipt?.source}
+                isAuthTokenRequired
+                fallbackIcon={Expensicons.ReceiptPlus}
+                fallbackIconSize={20}
+                fallbackIconColor={theme.icon}
+                iconSize="x-small"
+                isHovered={isHovered}
+            />
+        </View>
+    );
+}, areReceiptPropsEqual);
 
 const DateCell = memo(({showTooltip, date, isLargeScreenWidth}: DateCellProps) => {
     const styles = useThemeStyles();
@@ -201,7 +234,7 @@ function getMerchant(item: TransactionListItemType) {
     return merchant;
 }
 
-function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeaderOnNarrowLayout = true, containerStyle}: TransactionListItemRowProps) {
+function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeaderOnNarrowLayout = true, containerStyle, isHovered = false}: TransactionListItemRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isLargeScreenWidth} = useWindowDimensions();
@@ -228,7 +261,14 @@ function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeade
                     />
                 )}
 
-                <View style={[styles.flexRow, styles.justifyContentBetween, styles.gap1]}>
+                <View style={[styles.flexRow, styles.justifyContentBetween, styles.gap3]}>
+                    <ReceiptCell
+                        transactionItem={item}
+                        keyForList={item.keyForList ?? ''}
+                        isLargeScreenWidth={false}
+                        showTooltip={false}
+                        isHovered={isHovered}
+                    />
                     <View style={[styles.flex2, styles.gap1]}>
                         <MerchantCell
                             showTooltip={showTooltip}
@@ -284,6 +324,15 @@ function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeade
     return (
         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, containerStyle]}>
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.RECEIPT)]}>
+                    <ReceiptCell
+                        transactionItem={item}
+                        keyForList={item.keyForList ?? ''}
+                        isLargeScreenWidth={false}
+                        showTooltip={false}
+                        isHovered={isHovered}
+                    />
+                </View>
                 <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DATE)]}>
                     <DateCell
                         showTooltip={showTooltip}
