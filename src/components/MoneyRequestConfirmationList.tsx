@@ -723,11 +723,10 @@ function MoneyRequestConfirmationList({
                 onConfirm?.(selectedParticipants);
             }
 
-            if (formError) {
-                return;
-            }
-
-            if (iouType === CONST.IOU.TYPE.PAY) {
+            else {
+                if (formError) {
+                    return;
+                }
                 if (!paymentMethod) {
                     return;
                 }
