@@ -15,6 +15,8 @@ import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRight
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+import TextLink from '@components/TextLink';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
@@ -47,11 +49,15 @@ function WorkspaceTaxesPage({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
+    const {environmentURL} = useEnvironment();
     const [selectedTaxesIDs, setSelectedTaxesIDs] = useState<string[]>([]);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
     const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
     const isFocused = useIsFocused();
+
+    const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
+    const isConnectedToQbo = Boolean(policy?.connections?.quickbooksOnline);
 
     const fetchTaxes = useCallback(() => {
         openPolicyTaxesPage(policyID);
@@ -171,14 +177,15 @@ function WorkspaceTaxesPage({
 
     const dropdownMenuOptions = useMemo(() => {
         const isMultiple = selectedTaxesIDs.length > 1;
-        const options: Array<DropdownOption<WorkspaceTaxRatesBulkActionType>> = [
-            {
+        const options: Array<DropdownOption<WorkspaceTaxRatesBulkActionType>> = [];
+        if (!PolicyUtils.hasAccountingConnections(policy)) {
+            options.push({
                 icon: Expensicons.Trashcan,
                 text: isMultiple ? translate('workspace.taxes.actions.deleteMultiple') : translate('workspace.taxes.actions.delete'),
                 value: CONST.POLICY.TAX_RATES_BULK_ACTION_TYPES.DELETE,
                 onSelected: () => setIsDeleteModalVisible(true),
-            },
-        ];
+            });
+        }
 
         // `Disable rates` when at least one enabled rate is selected.
         if (selectedTaxesIDs.some((taxID) => !policy?.taxRates?.taxes[taxID]?.isDisabled)) {
@@ -200,18 +207,20 @@ function WorkspaceTaxesPage({
             });
         }
         return options;
-    }, [policy?.taxRates?.taxes, selectedTaxesIDs, toggleTaxes, translate]);
+    }, [policy, selectedTaxesIDs, toggleTaxes, translate]);
 
     const headerButtons = !selectedTaxesIDs.length ? (
-        <View style={[styles.w100, styles.flexRow, styles.gap2, isSmallScreenWidth && styles.mb3]}>
-            <Button
-                medium
-                success
-                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAX_CREATE.getRoute(policyID))}
-                icon={Expensicons.Plus}
-                text={translate('workspace.taxes.addRate')}
-                style={[isSmallScreenWidth && styles.flex1]}
-            />
+        <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
+            {!PolicyUtils.hasAccountingConnections(policy) && (
+                <Button
+                    medium
+                    success
+                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAX_CREATE.getRoute(policyID))}
+                    icon={Expensicons.Plus}
+                    text={translate('workspace.taxes.addRate')}
+                    style={[styles.mr3, isSmallScreenWidth && styles.flex1]}
+                />
+            )}
             <Button
                 medium
                 onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAXES_SETTINGS.getRoute(policyID))}
@@ -235,7 +244,20 @@ function WorkspaceTaxesPage({
 
     const getHeaderText = () => (
         <View style={[styles.ph5, styles.pb5, styles.pt3]}>
-            <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.taxes.subtitle')}</Text>
+            {isConnectedToAccounting ? (
+                <Text>
+                    <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.taxes.importedFromAccountingSoftware')} `}</Text>
+                    <TextLink
+                        style={[styles.textNormal, styles.link]}
+                        href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
+                    >
+                        {`${translate(isConnectedToQbo ? 'workspace.accounting.qbo' : 'workspace.accounting.xero')} ${translate('workspace.accounting.settings')}`}
+                    </TextLink>
+                    <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
+                </Text>
+            ) : (
+                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.taxes.subtitle')}</Text>
+            )}
         </View>
     );
 
@@ -259,6 +281,7 @@ function WorkspaceTaxesPage({
                     {!isSmallScreenWidth && headerButtons}
                 </HeaderWithBackButton>
                 {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
+
                 {!isSmallScreenWidth && getHeaderText()}
                 {isLoading && (
                     <ActivityIndicator
