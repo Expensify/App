@@ -1230,17 +1230,17 @@ function MoneyRequestConfirmationList({
 
     return (
         <MouseProvider>
-        <SelectionList<MoneyRequestConfirmationListItem>
-            sections={sections}
-            ListItem={UserListItem}
-            onSelectRow={navigateToReportOrUserDetail}
-            shouldDebounceRowSelect
-            canSelectMultiple={false}
-            shouldPreventDefaultFocusOnSelectRow
-            footerContent={footerContent}
-            listFooterContent={listFooterContent}
-            containerStyle={[styles.flexBasisAuto]}
-        />
+            <SelectionList<MoneyRequestConfirmationListItem>
+                sections={sections}
+                ListItem={UserListItem}
+                onSelectRow={navigateToReportOrUserDetail}
+                shouldDebounceRowSelect
+                canSelectMultiple={false}
+                shouldPreventDefaultFocusOnSelectRow
+                footerContent={footerContent}
+                listFooterContent={listFooterContent}
+                containerStyle={[styles.flexBasisAuto]}
+            />
         </MouseProvider>
     );
 }
