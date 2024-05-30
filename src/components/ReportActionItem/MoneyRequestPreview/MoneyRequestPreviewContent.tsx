@@ -3,6 +3,7 @@ import truncate from 'lodash/truncate';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmedRoute from '@components/ConfirmedRoute';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -36,7 +37,6 @@ import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {IOUMessage} from '@src/types/onyx/OriginalMessage';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {MoneyRequestPreviewProps, PendingMessageProps} from './types';
 
@@ -214,10 +214,8 @@ function MoneyRequestPreviewContent({
     };
 
     const getDisplayDeleteAmountText = (): string => {
-        const iouOriginalMessage: IOUMessage | EmptyObject = action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? action.originalMessage : {};
-        const {amount = 0, currency = CONST.CURRENCY.USD} = iouOriginalMessage;
-
-        return CurrencyUtils.convertToDisplayString(amount, currency);
+        const iouOriginalMessage: OnyxEntry<IOUMessage> = action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? action.originalMessage : null;
+        return CurrencyUtils.convertToDisplayString(iouOriginalMessage?.amount, iouOriginalMessage?.currency);
     };
 
     const displayAmount = isDeleted ? getDisplayDeleteAmountText() : getDisplayAmountText();

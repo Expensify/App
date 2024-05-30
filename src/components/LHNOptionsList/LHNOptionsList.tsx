@@ -123,7 +123,7 @@ function LHNOptionsList({
             if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
                 lastReportActionTransactionID = lastReportAction.originalMessage?.IOUTransactionID ?? '';
             }
-            const lastReportActionTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${lastReportActionTransactionID}`] ?? {};
+            const lastReportActionTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${lastReportActionTransactionID}`];
 
             return (
                 <OptionRowLHNData

@@ -7,7 +7,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {LastSelectedDistanceRates, Report} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import * as CurrencyUtils from './CurrencyUtils';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportUtils from './ReportUtils';
@@ -48,7 +47,7 @@ const METERS_TO_MILES = 0.000621371; // There are approximately 0.000621371 mile
  * @returns [currency] - The currency associated with the rate.
  * @returns [unit] - The unit of measurement for the distance.
  */
-function getDefaultMileageRate(policy: OnyxEntry<Policy> | EmptyObject): MileageRate | null {
+function getDefaultMileageRate(policy: OnyxEntry<Policy>): MileageRate | null {
     if (!policy?.customUnits) {
         return null;
     }

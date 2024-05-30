@@ -26,7 +26,6 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type ModalType from '@src/types/utils/ModalType';
 import AttachmentCarousel from './Attachments/AttachmentCarousel';
@@ -99,7 +98,7 @@ type AttachmentModalProps = AttachmentModalOnyxProps & {
     headerTitle?: string;
 
     /** The report that has this attachment */
-    report?: OnyxEntry<OnyxTypes.Report> | EmptyObject;
+    report?: OnyxEntry<OnyxTypes.Report>;
 
     /** Optional callback to fire when we want to do something after modal show. */
     onModalShow?: () => void;

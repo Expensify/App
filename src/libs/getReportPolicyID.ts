@@ -2,7 +2,6 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
 
 let allReports: OnyxCollection<Report>;
 Onyx.connect({
@@ -14,12 +13,12 @@ Onyx.connect({
 /**
  * Get the report given a reportID
  */
-function getReport(reportID: string | undefined): OnyxEntry<Report> | EmptyObject {
+function getReport(reportID: string | undefined): OnyxEntry<Report> {
     if (!allReports) {
-        return {};
+        return null;
     }
 
-    return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? {};
+    return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 }
 
 /**

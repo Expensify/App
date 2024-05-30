@@ -17,7 +17,6 @@ import type {ButtonSizeValue} from '@src/styles/utils/types';
 import type {LastPaymentMethod, Policy, Report} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {PaymentType} from './ButtonWithDropdownMenu/types';
 import * as Expensicons from './Icon/Expensicons';
@@ -55,7 +54,7 @@ type SettlementButtonProps = SettlementButtonOnyxProps & {
     chatReportID?: string;
 
     /** The IOU/Expense report we are paying */
-    iouReport?: OnyxEntry<Report> | EmptyObject;
+    iouReport?: OnyxEntry<Report>;
 
     /** Should we show the payment options? */
     shouldHidePaymentOptions?: boolean;
@@ -123,7 +122,7 @@ function SettlementButton({
     enablePaymentsRoute,
     // The "iouReport" and "nvpLastPaymentMethod" objects needs to be stable to prevent the "useMemo"
     // hook from being recreated unnecessarily, hence the use of CONST.EMPTY_ARRAY and CONST.EMPTY_OBJECT
-    iouReport = CONST.EMPTY_OBJECT,
+    iouReport = null,
     nvpLastPaymentMethod = CONST.EMPTY_OBJECT,
     isDisabled = false,
     isLoading = false,
@@ -150,7 +149,7 @@ function SettlementButton({
     const session = useSession();
     const chatReport = ReportUtils.getReport(chatReportID);
     const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicyExpenseChat(chatReport);
-    const shouldShowPaywithExpensifyOption = !isPaidGroupPolicy || (!shouldHidePaymentOptions && ReportUtils.isPayer(session, iouReport as OnyxEntry<Report>));
+    const shouldShowPaywithExpensifyOption = !isPaidGroupPolicy || (!shouldHidePaymentOptions && ReportUtils.isPayer(session, iouReport));
     const shouldShowPayElsewhereOption = !isPaidGroupPolicy || policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
     const paymentButtonOptions = useMemo(() => {
         const buttonOptions = [];
@@ -222,7 +221,7 @@ function SettlementButton({
             if (confirmApproval) {
                 confirmApproval();
             } else {
-                IOU.approveMoneyRequest(iouReport ?? {});
+                IOU.approveMoneyRequest(iouReport);
             }
             return;
         }

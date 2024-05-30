@@ -6078,7 +6078,7 @@ function canIOUBePaid(iouReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, chat
             return chatReport?.invoiceReceiver?.accountID === userAccountID;
         }
 
-        return PolicyUtils.getPolicy(chatReport?.invoiceReceiver?.policyID).role === CONST.POLICY.ROLE.ADMIN;
+        return PolicyUtils.getPolicy(chatReport?.invoiceReceiver?.policyID)?.role === CONST.POLICY.ROLE.ADMIN;
     }
 
     const isPayer = ReportUtils.isPayer(
@@ -6112,20 +6112,20 @@ function hasIOUToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report> | EmptyObj
     });
 }
 
-function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject, full?: boolean) {
-    const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`] ?? null;
-    let total = expenseReport.total ?? 0;
-    const hasHeldExpenses = ReportUtils.hasHeldExpenses(expenseReport.reportID);
-    if (hasHeldExpenses && !full && !!expenseReport.unheldTotal) {
-        total = expenseReport.unheldTotal;
+function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: boolean) {
+    const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport?.reportID}`] ?? null;
+    let total = expenseReport?.total ?? 0;
+    const hasHeldExpenses = ReportUtils.hasHeldExpenses(expenseReport?.reportID);
+    if (hasHeldExpenses && !full && !!expenseReport?.unheldTotal) {
+        total = expenseReport?.unheldTotal;
     }
-    const optimisticApprovedReportAction = ReportUtils.buildOptimisticApprovedReportAction(total, expenseReport.currency ?? '', expenseReport.reportID);
+    const optimisticApprovedReportAction = ReportUtils.buildOptimisticApprovedReportAction(total, expenseReport?.currency ?? '', expenseReport?.reportID ?? '');
     const optimisticNextStep = NextStepUtils.buildNextStep(expenseReport, CONST.REPORT.STATUS_NUM.APPROVED);
-    const chatReport = ReportUtils.getReport(expenseReport.chatReportID);
+    const chatReport = ReportUtils.getReport(expenseReport?.chatReportID);
 
     const optimisticReportActionsData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
         value: {
             [optimisticApprovedReportAction.reportActionID]: {
                 ...(optimisticApprovedReportAction as OnyxTypes.ReportAction),
@@ -6135,7 +6135,7 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject, full
     };
     const optimisticIOUReportData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport?.reportID}`,
         value: {
             ...expenseReport,
             lastMessageText: optimisticApprovedReportAction.message?.[0]?.text,
@@ -6158,7 +6158,7 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject, full
 
     const optimisticNextStepData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
+        key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport?.reportID}`,
         value: optimisticNextStep,
     };
     const optimisticData: OnyxUpdate[] = [optimisticIOUReportData, optimisticReportActionsData, optimisticNextStepData, optimisticChatReportData];
@@ -6166,7 +6166,7 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject, full
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
             value: {
                 [optimisticApprovedReportAction.reportActionID]: {
                     pendingAction: null,
@@ -6175,7 +6175,7 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject, full
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport?.reportID}`,
             value: {
                 pendingFields: {
                     partial: null,
@@ -6187,7 +6187,7 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject, full
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
             value: {
                 [optimisticApprovedReportAction.reportActionID]: {
                     errors: ErrorUtils.getMicroSecondOnyxError('iou.error.other'),
@@ -6196,7 +6196,7 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject, full
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.chatReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport?.chatReportID}`,
             value: {
                 hasOutstandingChildRequest: chatReport?.hasOutstandingChildRequest,
                 pendingFields: {
@@ -6206,14 +6206,14 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject, full
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport?.reportID}`,
             value: currentNextStep,
         },
     ];
 
     // Clear hold reason of all transactions if we approve all requests
     if (full && hasHeldExpenses) {
-        const heldTransactions = ReportUtils.getAllHeldTransactions(expenseReport.reportID);
+        const heldTransactions = ReportUtils.getAllHeldTransactions(expenseReport?.reportID);
         heldTransactions.forEach((heldTransaction) => {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -6237,7 +6237,7 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject, full
     }
 
     const parameters: ApproveMoneyRequestParams = {
-        reportID: expenseReport.reportID,
+        reportID: expenseReport?.reportID ?? '',
         approvedReportActionID: optimisticApprovedReportAction.reportActionID,
         full,
     };
@@ -6251,7 +6251,7 @@ function submitReport(expenseReport: OnyxTypes.Report) {
     const policy = PolicyUtils.getPolicy(expenseReport.policyID);
     const isCurrentUserManager = currentUserPersonalDetails.accountID === expenseReport.managerID;
     const isSubmitAndClosePolicy = PolicyUtils.isSubmitAndClose(policy);
-    const adminAccountID = policy.role === CONST.POLICY.ROLE.ADMIN ? currentUserPersonalDetails.accountID : undefined;
+    const adminAccountID = policy?.role === CONST.POLICY.ROLE.ADMIN ? currentUserPersonalDetails.accountID : undefined;
     const optimisticSubmittedReportAction = ReportUtils.buildOptimisticSubmittedReportAction(expenseReport?.total ?? 0, expenseReport.currency ?? '', expenseReport.reportID, adminAccountID);
     const optimisticNextStep = NextStepUtils.buildNextStep(expenseReport, isSubmitAndClosePolicy ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.SUBMITTED);
 
@@ -6374,7 +6374,7 @@ function cancelPayment(expenseReport: OnyxTypes.Report, chatReport: OnyxTypes.Re
     const optimisticReportAction = ReportUtils.buildOptimisticCancelPaymentReportAction(expenseReport.reportID, -(expenseReport.total ?? 0), expenseReport.currency ?? '');
     const policy = PolicyUtils.getPolicy(chatReport.policyID);
     const isFree = policy && policy.type === CONST.POLICY.TYPE.FREE;
-    const approvalMode = policy.approvalMode ?? CONST.POLICY.APPROVAL_MODE.BASIC;
+    const approvalMode = policy?.approvalMode ?? CONST.POLICY.APPROVAL_MODE.BASIC;
     let stateNum: ValueOf<typeof CONST.REPORT.STATE_NUM> = CONST.REPORT.STATE_NUM.SUBMITTED;
     let statusNum: ValueOf<typeof CONST.REPORT.STATUS_NUM> = CONST.REPORT.STATUS_NUM.SUBMITTED;
     if (!isFree) {
