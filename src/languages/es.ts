@@ -400,7 +400,6 @@ export default {
     },
     moneyRequestConfirmationList: {
         paidBy: 'Pagado por',
-        splitAmounts: 'Importes a dividir',
         whatsItFor: '¿Para qué es?',
     },
     selectionList: {
@@ -942,6 +941,7 @@ export default {
             noLogsAvailable: 'No hay registros disponibles',
             logSizeTooLarge: ({size}: LogSizeParams) => `El tamaño del registro excede el límite de ${size} MB. Utilice "Guardar registro" para descargar el archivo de registro.`,
             logs: 'Logs',
+            viewConsole: 'Ver consola',
         },
         security: 'Seguridad',
         restoreStashed: 'Restablecer login guardado',

@@ -16,6 +16,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import * as Category from '@userActions/Policy/Category';
 import * as Policy from '@userActions/Policy/Policy';
+import * as Tag from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type SCREENS from '@src/SCREENS';
@@ -98,7 +99,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             disabled: hasAccountingConnection,
             pendingAction: policy?.pendingFields?.areTagsEnabled,
             action: (isEnabled: boolean) => {
-                Policy.enablePolicyTags(policy?.id ?? '', isEnabled);
+                Tag.enablePolicyTags(policy?.id ?? '', isEnabled);
             },
         },
         {

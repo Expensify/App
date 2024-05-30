@@ -225,7 +225,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             exact: true,
                         },
                         [SCREENS.SETTINGS.CONSOLE]: {
-                            path: ROUTES.SETTINGS_CONSOLE,
+                            path: ROUTES.SETTINGS_CONSOLE.route,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.SHARE_LOG]: ROUTES.SETTINGS_SHARE_LOG.route,

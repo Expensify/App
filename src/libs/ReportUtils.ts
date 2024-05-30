@@ -81,7 +81,7 @@ import * as ReportActionsUtils from './ReportActionsUtils';
 import StringUtils from './StringUtils';
 import * as TransactionUtils from './TransactionUtils';
 import * as Url from './Url';
-import type * as UserUtils from './UserUtils';
+import * as UserUtils from './UserUtils';
 
 type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18;
 
@@ -4151,6 +4151,45 @@ function buildOptimisticReportPreview(chatReport: OnyxEntry<Report>, iouReport: 
 }
 
 /**
+ * Builds an optimistic ACTIONABLETRACKEXPENSEWHISPER action with a randomly generated reportActionID.
+ */
+function buildOptimisticActionableTrackExpenseWhisper(iouAction: OptimisticIOUReportAction, transactionID: string): ReportAction {
+    const currentTime = DateUtils.getDBTime();
+    const targetEmail = CONST.EMAIL.CONCIERGE;
+    const actorAccountID = PersonalDetailsUtils.getAccountIDsByLogins([targetEmail])[0];
+    const reportActionID = NumberUtils.rand64();
+    return {
+        actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER,
+        actorAccountID,
+        avatar: UserUtils.getDefaultAvatarURL(actorAccountID),
+        created: DateUtils.addMillisecondsFromDateTime(currentTime, 1),
+        lastModified: DateUtils.addMillisecondsFromDateTime(currentTime, 1),
+        message: [
+            {
+                html: CONST.ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE,
+                text: CONST.ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE,
+                whisperedTo: [],
+                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+            },
+        ],
+        originalMessage: {
+            lastModified: DateUtils.addMillisecondsFromDateTime(currentTime, 1),
+            transactionID,
+        },
+        person: [
+            {
+                text: CONST.DISPLAY_NAME.EXPENSIFY_CONCIERGE,
+                type: 'TEXT',
+            },
+        ],
+        previousReportActionID: iouAction?.reportActionID,
+        reportActionID,
+        shouldShow: true,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+    };
+}
+
+/**
  * Builds an optimistic modified expense action with a randomly generated reportActionID.
  */
 function buildOptimisticModifiedExpenseReportAction(
@@ -6738,6 +6777,7 @@ export {
     buildOptimisticMovedTrackedExpenseModifiedReportAction,
     buildOptimisticRenamedRoomReportAction,
     buildOptimisticReportPreview,
+    buildOptimisticActionableTrackExpenseWhisper,
     buildOptimisticSubmittedReportAction,
     buildOptimisticTaskCommentReportAction,
     buildOptimisticTaskReport,
