@@ -19,7 +19,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Report from '@libs/actions/Report';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as UserUtils from '@libs/UserUtils';
 import Navigation from '@navigation/Navigation';
 import type {ParticipantsNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
@@ -52,7 +51,6 @@ function ReportParticipantDetails({personalDetails, report, route}: ReportPartic
 
     const member = report?.participants?.[accountID];
     const details = personalDetails?.[accountID] ?? ({} as PersonalDetails);
-    const avatar = details.avatar ?? UserUtils.getDefaultAvatar();
     const fallbackIcon = details.fallbackIcon ?? '';
     const displayName = details.displayName ?? '';
     const isCurrentUserAdmin = ReportUtils.isGroupChatAdmin(report, currentUserPersonalDetails?.accountID);
@@ -82,7 +80,8 @@ function ReportParticipantDetails({personalDetails, report, route}: ReportPartic
                     <Avatar
                         containerStyles={[styles.avatarXLarge, styles.mv5, styles.noOutline]}
                         imageStyles={[styles.avatarXLarge]}
-                        source={UserUtils.getAvatar(avatar, accountID)}
+                        source={details.avatar}
+                        avatarID={accountID}
                         size={CONST.AVATAR_SIZE.XLARGE}
                         fallbackIcon={fallbackIcon}
                     />
