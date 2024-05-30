@@ -303,13 +303,11 @@ function AvatarWithImagePicker({
     }, [isMenuVisible, windowWidth]);
 
     return (
-        <View style={StyleSheet.flatten([styles.alignItemsCenter, style])}>
+        <View style={style}>
             <View style={styles.w100}>
                 <OfflineWithFeedback
-                    pendingAction={pendingAction}
                     errors={errors}
                     errorRowStyles={errorRowStyles}
-                    style={type === CONST.ICON_TYPE_AVATAR && styles.alignItemsCenter}
                     onClose={onErrorClose}
                 >
                     <Tooltip
@@ -328,10 +326,10 @@ function AvatarWithImagePicker({
                             accessibilityLabel={translate('avatarWithImagePicker.editImage')}
                             disabled={isAvatarCropModalOpen || (disabled && !enablePreview)}
                             disabledStyle={disabledStyle}
-                            style={[styles.pRelative, avatarStyle]}
+                            style={[styles.pRelative, avatarStyle, type === CONST.ICON_TYPE_AVATAR && styles.alignSelfCenter]}
                             ref={anchorRef}
                         >
-                            <View>
+                            <OfflineWithFeedback pendingAction={pendingAction}>
                                 {source ? (
                                     <Avatar
                                         containerStyles={avatarStyle}
@@ -345,7 +343,7 @@ function AvatarWithImagePicker({
                                 ) : (
                                     <DefaultAvatar />
                                 )}
-                            </View>
+                            </OfflineWithFeedback>
                             {!disabled && (
                                 <View style={StyleSheet.flatten([styles.smallEditIcon, styles.smallAvatarEditIcon, editIconStyle])}>
                                     <Icon

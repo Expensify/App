@@ -113,43 +113,46 @@ function ReportListItem<TItem extends ListItem>({
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
         >
-            <View style={styles.flex1}>
-                {!isLargeScreenWidth && (
-                    <ExpenseItemHeaderNarrow
-                        participantFrom={participantFrom}
-                        participantTo={participantTo}
-                        buttonText={translate('common.view')}
-                        onButtonPress={handleOnButtonPress}
-                    />
-                )}
-                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                    <View style={[styles.flexRow, styles.flex1, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex2]}>
-                            <View style={[styles.flexShrink1]}>
-                                <Text style={[styles.reportListItemTitle]}>{reportItem?.reportName}</Text>
-                                <Text style={[styles.textMicroSupporting]}>{`${reportItem.transactions.length} ${translate('search.groupedExpenses')}`}</Text>
-                            </View>
-                        </View>
-                        <View style={[styles.flexRow, styles.flex1, styles.justifyContentEnd]}>{totalCell}</View>
-                    </View>
-                    {/** styles.reportListItemActionButtonMargin added here to move the action button by the type column distance */}
-                    {isLargeScreenWidth && (
-                        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.ACTION), styles.reportListItemActionButtonMargin]}>{actionCell}</View>
+            {(hovered?: boolean) => (
+                <View style={styles.flex1}>
+                    {!isLargeScreenWidth && (
+                        <ExpenseItemHeaderNarrow
+                            participantFrom={participantFrom}
+                            participantTo={participantTo}
+                            buttonText={translate('common.view')}
+                            onButtonPress={handleOnButtonPress}
+                        />
                     )}
+                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                        <View style={[styles.flexRow, styles.flex1, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex2]}>
+                                <View style={[styles.flexShrink1]}>
+                                    <Text style={[styles.reportListItemTitle]}>{reportItem?.reportName}</Text>
+                                    <Text style={[styles.textMicroSupporting]}>{`${reportItem.transactions.length} ${translate('search.groupedExpenses')}`}</Text>
+                                </View>
+                            </View>
+                            <View style={[styles.flexRow, styles.flex1, styles.justifyContentEnd]}>{totalCell}</View>
+                        </View>
+                        {/** styles.reportListItemActionButtonMargin added here to move the action button by the type column distance */}
+                        {isLargeScreenWidth && (
+                            <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.ACTION), styles.reportListItemActionButtonMargin]}>{actionCell}</View>
+                        )}
+                    </View>
+                    <View style={[styles.mt3, styles.reportListItemSeparator]} />
+                    {reportItem.transactions.map((transaction) => (
+                        <TransactionListItemRow
+                            item={transaction}
+                            showTooltip={showTooltip}
+                            onButtonPress={() => {
+                                openReportInRHP(transaction);
+                            }}
+                            showItemHeaderOnNarrowLayout={false}
+                            containerStyle={styles.mt3}
+                            isHovered={hovered}
+                        />
+                    ))}
                 </View>
-                <View style={[styles.mt3, styles.reportListItemSeparator]} />
-                {reportItem.transactions.map((transaction) => (
-                    <TransactionListItemRow
-                        item={transaction}
-                        showTooltip={showTooltip}
-                        onButtonPress={() => {
-                            openReportInRHP(transaction);
-                        }}
-                        showItemHeaderOnNarrowLayout={false}
-                        containerStyle={styles.mt3}
-                    />
-                ))}
-            </View>
+            )}
         </BaseListItem>
     );
 }
