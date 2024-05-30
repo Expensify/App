@@ -4,14 +4,15 @@ import type {MaybePhraseKey} from '@libs/Localize';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import type CONST from '@src/CONST';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {SearchAccountDetails, SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {SearchAccountDetails, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type InviteMemberListItem from './InviteMemberListItem';
 import type RadioListItem from './RadioListItem';
+import type ReportListItem from './Search/ReportListItem';
+import type TransactionListItem from './Search/TransactionListItem';
 import type TableListItem from './TableListItem';
-import type TransactionListItem from './TransactionListItem';
 import type UserListItem from './UserListItem';
 
 type TRightHandSideComponent<TItem extends ListItem> = {
@@ -125,6 +126,9 @@ type ListItem = {
 
     /** Whether the brick road indicator should be shown */
     brickRoadIndicator?: BrickRoad | '' | null;
+
+    /** Whether item pressable wrapper should be focusable */
+    tabIndex?: 0 | -1;
 };
 
 type TransactionListItemType = ListItem &
@@ -134,6 +138,21 @@ type TransactionListItemType = ListItem &
 
         /** The personal details of the user paying the request */
         to: SearchAccountDetails;
+
+        /** final and formatted "from" value used for displaying and sorting */
+        formattedFrom: string;
+
+        /** final and formatted "to" value used for displaying and sorting */
+        formattedTo: string;
+
+        /** final and formatted "total" value used for displaying and sorting */
+        formattedTotal: number;
+
+        /** final and formatted "merchant" value used for displaying and sorting */
+        formattedMerchant: string;
+
+        /** final "date" value used for sorting */
+        date: string;
 
         /** Whether we should show the merchant column */
         shouldShowMerchant: boolean;
@@ -146,6 +165,11 @@ type TransactionListItemType = ListItem &
 
         /** Whether we should show the tax column */
         shouldShowTax: boolean;
+    };
+
+type ReportListItemType = ListItem &
+    SearchReport & {
+        transactions: TransactionListItemType[];
     };
 
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
@@ -206,7 +230,9 @@ type TableListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
-type ValidListItem = typeof RadioListItem | typeof UserListItem | typeof TableListItem | typeof InviteMemberListItem | typeof TransactionListItem;
+type ReportListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+
+type ValidListItem = typeof RadioListItem | typeof UserListItem | typeof TableListItem | typeof InviteMemberListItem | typeof TransactionListItem | typeof ReportListItem;
 
 type Section<TItem extends ListItem> = {
     /** Title of the section */
@@ -239,6 +265,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Callback to fire when a row is pressed */
     onSelectRow: (item: TItem) => void;
+
+    /** Whether to debounce `onRowSelect` */
+    shouldDebounceRowSelect?: boolean;
 
     /** Optional callback function triggered upon pressing a checkbox. If undefined and the list displays checkboxes, checkbox interactions are managed by onSelectRow, allowing for pressing anywhere on the list. */
     onCheckboxPress?: (item: TItem) => void;
@@ -321,6 +350,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Custom content to display in the header */
     headerContent?: ReactNode;
 
+    /** Custom content to display in the header of list component. */
+    listHeaderContent?: React.JSX.Element | null;
+
     /** Custom content to display in the footer */
     footerContent?: ReactNode;
 
@@ -376,6 +408,18 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
      * within half the visible length of the list.
      */
     onEndReachedThreshold?: number;
+
+    /**
+     * While maxToRenderPerBatch tells the amount of items rendered per batch, setting updateCellsBatchingPeriod tells your VirtualizedList the delay in milliseconds between batch renders (how frequently your component will be rendering the windowed items).
+     * https://reactnative.dev/docs/optimizing-flatlist-configuration#updatecellsbatchingperiod
+     */
+    updateCellsBatchingPeriod?: number;
+
+    /**
+     * The number passed here is a measurement unit where 1 is equivalent to your viewport height. The default value is 21 (10 viewports above, 10 below, and one in between).
+     * https://reactnative.dev/docs/optimizing-flatlist-configuration#windowsize
+     */
+    windowSize?: number;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
@@ -391,6 +435,7 @@ type FlattenedSectionsReturn<TItem extends ListItem> = {
     allOptions: TItem[];
     selectedOptions: TItem[];
     disabledOptionsIndexes: number[];
+    disabledArrowKeyOptionsIndexes: number[];
     itemLayouts: ItemLayout[];
     allSelected: boolean;
 };
@@ -414,6 +459,8 @@ export type {
     ListItem,
     ListItemProps,
     RadioListItemProps,
+    ReportListItemProps,
+    ReportListItemType,
     Section,
     SectionListDataType,
     SectionWithIndexOffset,

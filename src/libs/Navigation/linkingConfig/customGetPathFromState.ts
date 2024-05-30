@@ -6,7 +6,7 @@ import type {BottomTabName, RootStackParamList, State} from '@libs/Navigation/ty
 import SCREENS from '@src/SCREENS';
 
 // The policy ID parameter should be included in the URL when any of these pages is opened in the bottom tab.
-const SCREENS_WITH_POLICY_ID_IN_URL: BottomTabName[] = [SCREENS.HOME, SCREENS.SEARCH.BOTTOM_TAB] as const;
+const SCREENS_WITH_POLICY_ID_IN_URL: BottomTabName[] = [SCREENS.HOME] as const;
 
 const removePolicyIDParamFromState = (state: State<RootStackParamList>) => {
     const stateCopy = _.cloneDeep(state);

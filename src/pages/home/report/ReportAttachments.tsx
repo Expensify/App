@@ -11,10 +11,12 @@ import type SCREENS from '@src/SCREENS';
 import {useOnyx} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-type ReportAttachmentsProps = StackScreenProps<AuthScreensParamList, typeof SCREENS.REPORT_ATTACHMENTS>;
+type ReportAttachmentsProps = StackScreenProps<AuthScreensParamList, typeof SCREENS.ATTACHMENTS>;
 
 function ReportAttachments({route}: ReportAttachmentsProps) {
     const reportID = route.params.reportID;
+    const type = route.params.type;
+    const accountID = route.params.accountID;
     const report = ReportUtils.getReport(reportID);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP)
 
@@ -23,14 +25,16 @@ function ReportAttachments({route}: ReportAttachmentsProps) {
 
     const onCarouselAttachmentChange = useCallback(
         (attachment: Attachment) => {
-            const routeToNavigate = ROUTES.REPORT_ATTACHMENTS.getRoute(reportID, String(attachment.source));
+            const routeToNavigate = ROUTES.ATTACHMENTS.getRoute(reportID, type, String(attachment.source), Number(accountID));
             Navigation.navigate(routeToNavigate);
         },
-        [reportID],
+        [reportID, accountID, type],
     );
 
     return (
         <AttachmentModal
+            accountID={Number(accountID)}
+            type={type}
             allowDownload
             defaultOpen
             report={report}
