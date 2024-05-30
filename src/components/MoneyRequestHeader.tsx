@@ -21,6 +21,7 @@ import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportAction} from '@src/types/onyx';
 import type {OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import type IconAsset from '@src/types/utils/IconAsset';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import Button from './Button';
 import ConfirmModal from './ConfirmModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
@@ -29,7 +30,6 @@ import * as Expensicons from './Icon/Expensicons';
 import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusBar';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import ProcessMoneyRequestHoldMenu from './ProcessMoneyRequestHoldMenu';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type MoneyRequestHeaderProps = {
     /** The report currently being looked at */
