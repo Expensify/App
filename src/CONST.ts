@@ -73,7 +73,6 @@ const onboardingChoices = {
 type OnboardingPurposeType = ValueOf<typeof onboardingChoices>;
 
 const CONST = {
-    RECENT_WAYPOINTS_NUMBER: 20,
     DEFAULT_POLICY_ROOM_CHAT_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL],
 
     // Note: Group and Self-DM excluded as these are not tied to a Workspace
@@ -152,6 +151,7 @@ const CONST = {
     DISPLAY_NAME: {
         MAX_LENGTH: 50,
         RESERVED_NAMES: ['Expensify', 'Concierge'],
+        EXPENSIFY_CONCIERGE: 'Expensify Concierge',
     },
 
     GPS: {
@@ -685,6 +685,7 @@ const CONST = {
                 REIMBURSEMENT_DEQUEUED: 'REIMBURSEMENTDEQUEUED',
                 REIMBURSEMENT_REQUESTED: 'REIMBURSEMENTREQUESTED', // OldDot Action
                 REIMBURSEMENT_SETUP: 'REIMBURSEMENTSETUP', // OldDot Action
+                REIMBURSEMENT_SETUP_REQUESTED: 'REIMBURSEMENTSETUPREQUESTED', // OldDot Action
                 RENAMED: 'RENAMED',
                 REPORT_PREVIEW: 'REPORTPREVIEW',
                 SELECTED_FOR_RANDOM_AUDIT: 'SELECTEDFORRANDOMAUDIT', // OldDot Action
@@ -931,6 +932,7 @@ const CONST = {
         RECEIPT: 'receipt',
         DATE: 'date',
         MERCHANT: 'merchant',
+        DESCRIPTION: 'description',
         FROM: 'from',
         TO: 'to',
         CATEGORY: 'category',
@@ -3736,7 +3738,7 @@ const CONST = {
 
     ONBOARDING_INTRODUCTION: 'Let’s get you set up 🔧',
     ONBOARDING_CHOICES: {...onboardingChoices},
-
+    ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE: 'What would you like to do with this expense?',
     ONBOARDING_CONCIERGE: {
         [onboardingChoices.EMPLOYER]:
             '# Expensify is the fastest way to get paid back!\n' +
@@ -4777,6 +4779,11 @@ const CONST = {
 
     REFERRER: {
         NOTIFICATION: 'notification',
+    },
+
+    SORT_ORDER: {
+        ASC: 'asc',
+        DESC: 'desc',
     },
 } as const;
 

@@ -18,6 +18,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import * as Category from '@userActions/Policy/Category';
 import * as Policy from '@userActions/Policy/Policy';
+import * as Tag from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
@@ -124,7 +125,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     });
                     return;
                 }
-                Policy.enablePolicyTags(policy?.id ?? '', isEnabled);
+                Tag.enablePolicyTags(policy?.id ?? '', isEnabled);
             },
         },
         {
