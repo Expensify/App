@@ -1186,6 +1186,10 @@ const CONST = {
         WEBP: 'image/webp',
         JPEG: 'image/jpeg',
     },
+    ATTACHMENT_TYPE: {
+        REPORT: 'r',
+        NOTE: 'n',
+    },
 
     IMAGE_OBJECT_POSITION: {
         TOP: 'top',
