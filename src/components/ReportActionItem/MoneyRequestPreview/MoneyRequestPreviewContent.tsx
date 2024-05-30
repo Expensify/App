@@ -65,7 +65,8 @@ function MoneyRequestPreviewContent({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
+    const {windowWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const sessionAccountID = session?.accountID;
     const managerID = iouReport?.managerID ?? -1;
@@ -290,7 +291,12 @@ function MoneyRequestPreviewContent({
                                                     style={[
                                                         styles.textHeadlineH1,
                                                         isBillSplit &&
-                                                            StyleUtils.getAmountFontSizeAndLineHeight(isSmallScreenWidth, windowWidth, displayAmount.length, sortedParticipantAvatars.length),
+                                                            StyleUtils.getAmountFontSizeAndLineHeight(
+                                                                shouldUseNarrowLayout,
+                                                                windowWidth,
+                                                                displayAmount.length,
+                                                                sortedParticipantAvatars.length,
+                                                            ),
                                                         isDeleted && styles.lineThrough,
                                                     ]}
                                                     numberOfLines={1}
