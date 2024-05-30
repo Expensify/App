@@ -2188,7 +2188,7 @@ export default {
                 subtitle: 'Sync your chart of accounts and more.',
             },
             connectionsWarningModal: {
-                featureEnabledTitle: `Not so fast...`,
+                featureEnabledTitle: 'Not so fast...',
                 featureEnabledText: 'To enable or disable this feature change your accounting import settings.',
                 disconnectText: 'Disconnect your accounting connection from the workspace if you want to disable Accounting.',
                 manageSettings: 'Manage settings',
