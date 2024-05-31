@@ -154,11 +154,11 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     };
 
     const navigateToTagSettings = (tag: TagListItem) => {
-        if (tag.orderWeight !== undefined) {
+        if (tag.orderWeight != null) {
             Navigation.navigate(ROUTES.WORKSPACE_TAG_LIST_VIEW.getRoute(policyID, tag.orderWeight));
             return;
         }
-        Navigation.navigate(ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, 0, tag.value));
+        Navigation.navigate(ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, tag.value));
     };
 
     const selectedTagsArray = Object.keys(selectedTags).filter((key) => selectedTags[key]);
@@ -238,7 +238,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 value: CONST.POLICY.TAGS_BULK_ACTION_TYPES.DISABLE,
                 onSelected: () => {
                     setSelectedTags({});
-                    Policy.setWorkspaceTagEnabled(policyID, tagsToDisable, 0);
+                    Policy.setWorkspaceTagEnabled(policyID, tagsToDisable);
                 },
             });
         }
@@ -250,7 +250,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 value: CONST.POLICY.TAGS_BULK_ACTION_TYPES.ENABLE,
                 onSelected: () => {
                     setSelectedTags({});
-                    Policy.setWorkspaceTagEnabled(policyID, tagsToEnable, 0);
+                    Policy.setWorkspaceTagEnabled(policyID, tagsToEnable);
                 },
             });
         }

@@ -672,12 +672,12 @@ const ROUTES = {
         getRoute: (policyID: string, orderWeight: number) => `settings/workspaces/${policyID}/tags/${orderWeight}/edit` as const,
     },
     WORKSPACE_TAG_EDIT: {
-        route: 'settings/workspaces/:policyID/tag/:orderWeight/:tagName/edit',
-        getRoute: (policyID: string, orderWeight: number, tagName: string) => `settings/workspaces/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}/edit` as const,
+        route: 'settings/workspace/:policyID/tag/:tagName/edit',
+        getRoute: (policyID: string, tagName: string) => `settings/workspace/${policyID}/tag/${encodeURIComponent(tagName)}/edit` as const,
     },
     WORKSPACE_TAG_SETTINGS: {
-        route: 'settings/workspaces/:policyID/tag/:orderWeight/:tagName',
-        getRoute: (policyID: string, orderWeight: number, tagName: string) => `settings/workspaces/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}` as const,
+        route: 'settings/workspaces/:policyID/tag/:tagName',
+        getRoute: (policyID: string, tagName: string) => `settings/workspaces/${policyID}/tag/${encodeURIComponent(tagName)}` as const,
     },
     WORKSPACE_TAG_LIST_VIEW: {
         route: 'settings/workspaces/:policyID/tag-list/:orderWeight',

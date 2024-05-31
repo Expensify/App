@@ -41,7 +41,7 @@ function EditTagPage({route, policyTags}: EditTagPageProps) {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM> = {};
             const tagName = values.tagName.trim();
-            const {tags} = PolicyUtils.getTagList(policyTags, route.params.orderWeight);
+            const {tags} = PolicyUtils.getTagList(policyTags, 0);
             if (!ValidationUtils.isRequiredFulfilled(tagName)) {
                 errors.tagName = 'workspace.tags.tagRequiredError';
             } else if (tags?.[tagName] && currentTagName !== tagName) {
@@ -50,7 +50,7 @@ function EditTagPage({route, policyTags}: EditTagPageProps) {
 
             return errors;
         },
-        [route.params.orderWeight, currentTagName, policyTags],
+        [currentTagName, policyTags],
     );
 
     const editTag = useCallback(
