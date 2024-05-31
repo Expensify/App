@@ -2044,7 +2044,7 @@ PODS:
     - React-Codegen
     - React-Core
     - ReactCommon/turbomodule/core
-  - RNReanimated (3.9.0-rc.1):
+  - RNReanimated (3.11.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2717,7 +2717,7 @@ SPEC CHECKSUMS:
   rnmapbox-maps: 5165c95556507e5424440a5e7319bd9941194b47
   RNPermissions: 3b49dcd1645a1f9d57ebff7aa891c28f3de72bce
   RNReactNativeHapticFeedback: 616c35bdec7d20d4c524a7949ca9829c09e35f37
-  RNReanimated: 8224e5c25e803359c8db7337be6920897d323935
+  RNReanimated: 2f33b2f8c79c456ce3858a7cd2e07460eb5f61e0
   RNScreens: 63fe8222c172a79f5c30dd1aefaeb369c6eb57b6
   RNShare: 2a4cdfc0626ad56b0ef583d424f2038f772afe58
   RNSound: 6c156f925295bdc83e8e422e7d8b38d33bc71852
