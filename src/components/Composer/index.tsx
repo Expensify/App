@@ -75,7 +75,7 @@ function Composer(
     }: ComposerProps,
     ref: ForwardedRef<TextInput | HTMLInputElement>,
 ) {
-    const textContainsOnlyEmojis = EmojiUtils.containsOnlyEmojis(value ?? '');
+    const textContainsOnlyEmojis = useMemo(() => EmojiUtils.containsOnlyEmojis(value ?? ''), [value]);
     const theme = useTheme();
     const styles = useThemeStyles();
     const markdownStyle = useMarkdownStyle(textContainsOnlyEmojis);
@@ -315,10 +315,11 @@ function Composer(
             scrollStyleMemo,
             StyleUtils.getComposerMaxHeightStyle(maxLines, isComposerFullSize),
             isComposerFullSize ? ({height: '100%', maxHeight: 'none' as DimensionValue} as TextStyle) : undefined,
+            textContainsOnlyEmojis ? styles.onlyEmojisTextLineHeight : {},
             textContainsOnlyEmojis ? styles.emojisOnlyComposer : null,
         ],
 
-        [style, StyleUtils, isComposerFullSize, styles.rtlTextRenderForSafari, styles.emojisOnlyComposer, scrollStyleMemo, maxLines, textContainsOnlyEmojis],
+        [style, styles.rtlTextRenderForSafari, styles.onlyEmojisTextLineHeight, scrollStyleMemo, StyleUtils, maxLines, isComposerFullSize, textContainsOnlyEmojis],
     );
 
     return (
