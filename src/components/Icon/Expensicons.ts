@@ -2,8 +2,10 @@ import AddReaction from '@assets/images/add-reaction.svg';
 import All from '@assets/images/all.svg';
 import Android from '@assets/images/android.svg';
 import Apple from '@assets/images/apple.svg';
+import ArrowDownLong from '@assets/images/arrow-down-long.svg';
 import ArrowRightLong from '@assets/images/arrow-right-long.svg';
 import ArrowRight from '@assets/images/arrow-right.svg';
+import ArrowUpLong from '@assets/images/arrow-up-long.svg';
 import UpArrow from '@assets/images/arrow-up.svg';
 import ArrowsUpDown from '@assets/images/arrows-updown.svg';
 import AdminRoomAvatar from '@assets/images/avatars/admin-room.svg';
@@ -40,6 +42,7 @@ import Close from '@assets/images/close.svg';
 import ClosedSign from '@assets/images/closed-sign.svg';
 import Coins from '@assets/images/coins.svg';
 import Collapse from '@assets/images/collapse.svg';
+import CommentBubbles from '@assets/images/comment-bubbles.svg';
 import Concierge from '@assets/images/concierge.svg';
 import Connect from '@assets/images/connect.svg';
 import ConnectionComplete from '@assets/images/connection-complete.svg';
@@ -181,6 +184,8 @@ export {
     ArrowRight,
     ArrowRightLong,
     ArrowsUpDown,
+    ArrowUpLong,
+    ArrowDownLong,
     Wrench,
     BackArrow,
     Bank,
@@ -203,6 +208,7 @@ export {
     Close,
     ClosedSign,
     Collapse,
+    CommentBubbles,
     Concierge,
     ConciergeAvatar,
     Connect,
