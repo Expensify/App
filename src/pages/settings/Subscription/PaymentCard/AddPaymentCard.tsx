@@ -52,7 +52,7 @@ function AddPaymentCard() {
     return (
         <ScreenWrapper testID={AddPaymentCard.displayName}>
             <HeaderWithBackButton title={translate('subscription.paymentCard.addPaymentCard')} />
-            <View style={[styles.containerWithSpaceBetween, styles.pb5]}>
+            <View style={styles.containerWithSpaceBetween}>
                 <PaymentCardForm
                     shouldShowPaymentCardForm
                     addPaymentCard={addPaymentCard}
