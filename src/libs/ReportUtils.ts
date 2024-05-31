@@ -674,7 +674,7 @@ function getPolicyType(report: OnyxEntry<Report>, policies: OnyxCollection<Polic
 /**
  * Get the policy name from a given report
  */
-function getPolicyName(report: OnyxEntry<Report> | undefined | EmptyObject, returnEmptyIfNotFound = false, policy: OnyxEntry<Policy> = undefined): string {
+function getPolicyName(report: OnyxEntry<Report> | undefined | EmptyObject, returnEmptyIfNotFound = false, policy?: OnyxEntry<Policy>): string {
     const noPolicyFound = returnEmptyIfNotFound ? '' : Localize.translateLocal('workspace.common.unavailable');
     if (isEmptyObject(report)) {
         return noPolicyFound;
@@ -1925,7 +1925,7 @@ function getIcons(
     defaultIcon: AvatarSource | null = null,
     defaultName = '',
     defaultAccountID = -1,
-    policy: OnyxEntry<Policy> = undefined,
+    policy?: OnyxEntry<Policy>,
 ): Icon[] {
     if (isEmptyObject(report)) {
         const fallbackIcon: Icon = {
@@ -2361,7 +2361,7 @@ function getMoneyRequestSpendBreakdown(report: OnyxEntry<Report>, allReportsDict
 /**
  * Get the title for a policy expense chat which depends on the role of the policy member seeing this report
  */
-function getPolicyExpenseChatName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> | undefined = undefined): string | undefined {
+function getPolicyExpenseChatName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>): string | undefined {
     const ownerAccountID = report?.ownerAccountID;
     const personalDetails = allPersonalDetails?.[ownerAccountID ?? -1];
     const login = personalDetails ? personalDetails.login : null;
@@ -2503,7 +2503,7 @@ function getAvailableReportFields(report: Report, policyReportFields: PolicyRepo
 /**
  * Get the title for an IOU or expense chat which will be showing the payer and the amount
  */
-function getMoneyRequestReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> | undefined = undefined): string {
+function getMoneyRequestReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>): string {
     const isReportSettled = isSettled(report?.reportID ?? '');
     const reportFields = isReportSettled ? report?.fieldList : getReportFieldsByPolicyID(report?.policyID ?? '');
     const titleReportField = getFormulaTypeReportField(reportFields ?? {});
@@ -2822,7 +2822,7 @@ function getReportPreviewMessage(
     iouReportAction: OnyxEntry<ReportAction> | EmptyObject = {},
     shouldConsiderScanningReceiptOrPendingRoute = false,
     isPreviewMessageForParentChatReport = false,
-    policy: OnyxEntry<Policy> = undefined,
+    policy?: OnyxEntry<Policy>,
     isForListPreview = false,
     originalReportAction: OnyxEntry<ReportAction> | EmptyObject = iouReportAction,
 ): string {
@@ -4126,7 +4126,7 @@ function buildOptimisticSubmittedReportAction(amount: number, currency: string, 
  * @param [comment] - User comment for the IOU.
  * @param [transaction] - optimistic first transaction of preview
  */
-function buildOptimisticReportPreview(chatReport: OnyxEntry<Report>, iouReport: Report, comment = '', transaction: OnyxEntry<Transaction> = undefined, childReportID?: string): ReportAction {
+function buildOptimisticReportPreview(chatReport: OnyxEntry<Report>, iouReport: Report, comment = '', transaction?: OnyxEntry<Transaction>, childReportID?: string): ReportAction {
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const isReceiptBeingScanned = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
     const message = getReportPreviewMessage(iouReport);
@@ -4289,7 +4289,7 @@ function updateReportPreview(
     reportPreviewAction: ReportPreviewAction,
     isPayRequest = false,
     comment = '',
-    transaction: OnyxEntry<Transaction> = undefined,
+    transaction?: OnyxEntry<Transaction>,
 ): ReportPreviewAction {
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const recentReceiptTransactions = reportPreviewAction?.childRecentReceiptTransactionIDs ?? {};
@@ -4380,13 +4380,13 @@ function buildOptimisticTaskReportAction(
 function buildOptimisticChatReport(
     participantList: number[],
     reportName: string = CONST.REPORT.DEFAULT_REPORT_NAME,
-    chatType: ValueOf<typeof CONST.REPORT.CHAT_TYPE> | undefined = undefined,
+    chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>,
     policyID: string = CONST.POLICY.OWNER_EMAIL_FAKE,
     ownerAccountID: number = CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
     isOwnPolicyExpenseChat = false,
     oldPolicyName = '',
-    visibility: ValueOf<typeof CONST.REPORT.VISIBILITY> | undefined = undefined,
-    writeCapability: ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES> | undefined = undefined,
+    visibility?: ValueOf<typeof CONST.REPORT.VISIBILITY>,
+    writeCapability?: ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES>,
     notificationPreference: NotificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
     parentReportActionID = '',
     parentReportID = '',

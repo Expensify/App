@@ -23,7 +23,7 @@ function getCurrentUserPersonalDetailsFromOnyx(currentUserAccountID: number): Pr
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             callback: (val) => {
                 Onyx.disconnect(connectionID);
-                return resolve(val?.[currentUserAccountID] ?? null);
+                return resolve(val?.[currentUserAccountID] ?? undefined);
             },
         });
     });

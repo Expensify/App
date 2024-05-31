@@ -117,7 +117,7 @@ function createTaskAndNavigate(
     description: string,
     assigneeEmail: string,
     assigneeAccountID = 0,
-    assigneeChatReport: OnyxEntry<OnyxTypes.Report> = null,
+    assigneeChatReport?: OnyxEntry<OnyxTypes.Report>,
     policyID: string = CONST.POLICY.OWNER_EMAIL_FAKE,
 ) {
     const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserAccountID, assigneeAccountID, parentReportID, title, description, policyID);
@@ -508,13 +508,7 @@ function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task
     Report.notifyNewAction(report.reportID, currentUserAccountID);
 }
 
-function editTaskAssignee(
-    report: OnyxTypes.Report,
-    ownerAccountID: number,
-    assigneeEmail: string,
-    assigneeAccountID: number | null = 0,
-    assigneeChatReport: OnyxEntry<OnyxTypes.Report> = null,
-) {
+function editTaskAssignee(report: OnyxTypes.Report, ownerAccountID: number, assigneeEmail: string, assigneeAccountID: number | null = 0, assigneeChatReport?: OnyxEntry<OnyxTypes.Report>) {
     // Create the EditedReportAction on the task
     const editTaskReportAction = ReportUtils.buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID ?? 0);
     const reportName = report.reportName?.trim();
@@ -770,7 +764,7 @@ function getAssignee(assigneeAccountID: number, personalDetails: OnyxEntry<OnyxT
  * Get the share destination data
  * */
 function getShareDestination(reportID: string, reports: OnyxCollection<OnyxTypes.Report>, personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>): ShareDestination {
-    const report = reports?.[`report_${reportID}`] ?? null;
+    const report = reports?.[`report_${reportID}`];
 
     const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
 
