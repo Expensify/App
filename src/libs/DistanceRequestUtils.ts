@@ -43,11 +43,11 @@ const METERS_TO_MILES = 0.000621371; // There are approximately 0.000621371 mile
  * Retrieves the mileage rates for given policy.
  *
  * @param policy - The policy from which to extract the mileage rates.
- * @param includeDisableRate - Should include disable rate
+ * @param includeDisabledRates - Should include disable rate
  *
  * @returns An array of mileage rates or an empty array if not found.
  */
-function getMileageRates(policy: OnyxEntry<Policy>, includeDisableRate = true): Record<string, MileageRate> {
+function getMileageRates(policy: OnyxEntry<Policy>, includeDisabledRates = false): Record<string, MileageRate> {
     const mileageRates: Record<string, MileageRate> = {};
 
     if (!policy || !policy?.customUnits) {
@@ -60,7 +60,7 @@ function getMileageRates(policy: OnyxEntry<Policy>, includeDisableRate = true): 
     }
 
     Object.entries(distanceUnit.rates).forEach(([rateID, rate]) => {
-        if (!includeDisableRate && !rate.enabled) {
+        if (!includeDisabledRates && !rate.enabled) {
             return;
         }
 
@@ -95,7 +95,7 @@ function getDefaultMileageRate(policy: OnyxEntry<Policy> | EmptyObject): Mileage
     if (!distanceUnit?.rates) {
         return null;
     }
-    const mileageRates = getMileageRates(policy, false);
+    const mileageRates = getMileageRates(policy);
 
     const distanceRate = Object.values(mileageRates).find((rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE) ?? Object.values(mileageRates)[0];
 
@@ -265,15 +265,10 @@ function getCustomUnitRateID(reportID: string) {
     const policy = PolicyUtils.getPolicy(report?.policyID ?? parentReport?.policyID ?? '');
     let customUnitRateID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
 
-    if (isEmptyObject(policy) || !policy?.customUnits) {
-        return customUnitRateID;
-    }
-
-    const distanceUnit = Object.values(policy?.customUnits).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
-    const lastSelectedDistanceRateID = lastSelectedDistanceRates?.[policy?.id ?? ''] ?? '';
-    const lastSelectedDistanceRate = distanceUnit?.rates[lastSelectedDistanceRateID] ?? {};
-
     if (ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isPolicyExpenseChat(parentReport)) {
+        const distanceUnit = Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+        const lastSelectedDistanceRateID = lastSelectedDistanceRates?.[policy?.id ?? ''] ?? '';
+        const lastSelectedDistanceRate = distanceUnit?.rates[lastSelectedDistanceRateID] ?? {};
         if (lastSelectedDistanceRate.enabled && lastSelectedDistanceRateID) {
             customUnitRateID = lastSelectedDistanceRateID;
         } else {
