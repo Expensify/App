@@ -138,7 +138,10 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
                                     {translate('workspace.distanceRates.taxFeatureNotEnabledMessage')}
                                     <TextLink
                                         fontSize={14}
-                                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID))}
+                                        onPress={() => {
+                                            Navigation.dismissModal();
+                                            Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
+                                        }}
                                     >
                                         {translate('workspace.common.moreFeatures')}
                                     </TextLink>
