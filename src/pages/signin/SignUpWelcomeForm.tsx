@@ -1,45 +1,45 @@
 import React from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import { withOnyx } from 'react-native-onyx';
-import Button from '../../components/Button';
-import Text from '../../components/Text';
-import * as Session from '../../libs/actions/Session';
-import ONYXKEYS from '../../ONYXKEYS';
-import redirectToSignIn from '../../libs/actions/SignInRedirect';
-import Terms from './Terms';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {Account, Locale} from '@src/types/onyx';
+import Button from '@components/Button';
+import Text from '@components/Text';
+import * as Session from '@userActions/Session';
+import ONYXKEYS from '@src/ONYXKEYS';
+import redirectToSignIn from '@userActions/SignInRedirect';
+import type {Account} from '@src/types/onyx';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import Terms from './Terms';
 
 type SignUpWelcomeFormOnyxProps = {
     /** State for the account */
     account: OnyxEntry<Account>;
-
-    /** The user's preferred locale */
-    preferredLocale: OnyxEntry<Locale>;
 };
 
 type SignUpWelcomeFormProps = SignUpWelcomeFormOnyxProps;
 
-function SignUpWelcomeForm({account, preferredLocale}: SignUpWelcomeFormProps) {
+function SignUpWelcomeForm({account}: SignUpWelcomeFormProps) {
     const network = useNetwork();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     return <>
         <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-            <TouchableOpacity onPress={() => redirectToSignIn()}>
+            <PressableWithFeedback 
+            accessibilityLabel={translate('common.back')}
+            onPress={() => redirectToSignIn()}>
                 <Text style={[styles.link]}>{translate('common.back')}</Text>
-            </TouchableOpacity>
+            </PressableWithFeedback>
             <Button
                 medium
                 success
-                text={translate('welcomeForm.join')}
+                text={translate('welcomeSignUpForm.join')}
                 isLoading={account?.isLoading}
-                onPress={() => Session.signUpUser(preferredLocale)}
-                isDisabled={network.isOffline || !_.isEmpty(props.account.message)}
+                onPress={() => Session.signUpUser()}
+                isDisabled={network.isOffline || !!account?.message}
                 pressOnEnter
             />
         </View>
@@ -52,7 +52,4 @@ SignUpWelcomeForm.displayName = 'SignUpWelcomeForm';
 
 export default withOnyx<SignUpWelcomeFormProps, SignUpWelcomeFormOnyxProps>({
     account: {key: ONYXKEYS.ACCOUNT},
-    preferredLocale: {
-        key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    },
 })(SignUpWelcomeForm);

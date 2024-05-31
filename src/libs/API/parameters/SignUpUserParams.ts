@@ -1,6 +1,9 @@
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
+
 type SignUpUserParams = {
     email?: string;
-    preferredLocale: string;
+    preferredLocale: ValueOf<typeof CONST.LOCALES>
 };
 
 export default SignUpUserParams;

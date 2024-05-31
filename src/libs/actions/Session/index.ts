@@ -414,9 +414,8 @@ function beginSignIn(email: string) {
 /**
  * Creates an account for the new user and signs them into the application with the newly created account.
  *
- * @param {String} [preferredLocale] Indicates which language to use when the user lands in the app
  */
-function signUpUser(preferredLocale: string = CONST.LOCALES.DEFAULT) {
+function signUpUser() {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
