@@ -20,8 +20,8 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import {setWorkspaceTagEnabled} from '@userActions/Policy/Policy';
-import * as Policy from '@userActions/Policy/Policy';
+import {setWorkspaceTagEnabled} from '@userActions/Policy/Tag';
+import * as Tag from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -38,7 +38,7 @@ type TagSettingsPageProps = TagSettingsPageOnyxProps & StackScreenProps<Settings
 function TagSettingsPage({route, policyTags, navigation}: TagSettingsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const policyTag = useMemo(() => PolicyUtils.getTagList(policyTags, 0), [policyTags]);
+    const policyTag = useMemo(() => PolicyUtils.getTagList(policyTags, route.params.orderWeight), [policyTags, route.params.orderWeight]);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`);
 
     const {windowWidth} = useWindowDimensions();
@@ -60,17 +60,17 @@ function TagSettingsPage({route, policyTags, navigation}: TagSettingsPageProps) 
     }
 
     const deleteTagAndHideModal = () => {
-        Policy.deletePolicyTags(route.params.policyID, [currentPolicyTag.name]);
+        Tag.deletePolicyTags(route.params.policyID, [currentPolicyTag.name]);
         setIsDeleteTagModalOpen(false);
         Navigation.goBack();
     };
 
     const updateWorkspaceTagEnabled = (value: boolean) => {
-        setWorkspaceTagEnabled(route.params.policyID, {[currentPolicyTag.name]: {name: currentPolicyTag.name, enabled: value}});
+        setWorkspaceTagEnabled(route.params.policyID, {[currentPolicyTag.name]: {name: currentPolicyTag.name, enabled: value}}, policyTag.orderWeight);
     };
 
     const navigateToEditTag = () => {
-        Navigation.navigate(ROUTES.WORKSPACE_TAG_EDIT.getRoute(route.params.policyID, currentPolicyTag.name));
+        Navigation.navigate(ROUTES.WORKSPACE_TAG_EDIT.getRoute(route.params.policyID, route.params.orderWeight, currentPolicyTag.name));
     };
 
     const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
@@ -118,7 +118,7 @@ function TagSettingsPage({route, policyTags, navigation}: TagSettingsPageProps) 
                         errors={ErrorUtils.getLatestErrorMessageField(currentPolicyTag)}
                         pendingAction={currentPolicyTag.pendingFields?.enabled}
                         errorRowStyles={styles.mh5}
-                        onClose={() => Policy.clearPolicyTagErrors(route.params.policyID, route.params.tagName)}
+                        onClose={() => Tag.clearPolicyTagErrors(route.params.policyID, route.params.tagName)}
                     >
                         <View style={[styles.mt2, styles.mh5]}>
                             <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>

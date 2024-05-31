@@ -35,7 +35,7 @@ function VideoRenderer({tnode, key}: VideoRendererProps) {
                     videoDimensions={{width, height}}
                     videoDuration={duration}
                     onShowModalPress={() => {
-                        const route = ROUTES.REPORT_ATTACHMENTS.getRoute(report?.reportID ?? '-1', sourceURL);
+                        const route = ROUTES.ATTACHMENTS.getRoute(report?.reportID ?? '-1', CONST.ATTACHMENT_TYPE.REPORT, sourceURL);
                         Navigation.navigate(route);
                     }}
                 />
