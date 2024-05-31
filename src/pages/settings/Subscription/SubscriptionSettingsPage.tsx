@@ -4,17 +4,24 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import Navigation from '@libs/Navigation/Navigation';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as Subscription from '@userActions/Subscription';
 import SubscriptionPlan from './SubscriptionPlan';
 
 function SubscriptionSettingsPage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
+    const subscriptionPlan = useSubscriptionPlan();
 
     useEffect(() => {
         Subscription.openSubscriptionPage();
     }, []);
+
+    if (!subscriptionPlan) {
+        return <NotFoundPage />;
+    }
 
     return (
         <ScreenWrapper testID={SubscriptionSettingsPage.displayName}>
