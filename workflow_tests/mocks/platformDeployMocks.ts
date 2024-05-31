@@ -199,8 +199,9 @@ const PLATFORM_DEPLOY__WEB__STEP_MOCKS = [
     PLATFORM_DEPLOY__WEB__PURGE_STAGING_CACHE__STEP_MOCK,
 ];
 
-// deploy hybridAoo
-const PLATFORM_DEPLOY__HYBRID_APP__STEP_MOCKS = [createMockStep('hybridApp', 'Deploy HybridApp', 'DEPLOY_CHECKLIST')];
+// deploy hybridApp
+const PLATFORM_DEPLOY__HYBRID_APP__STEP_MOCK = createMockStep('hybridApp', 'Deploy HybridApp', 'HYBRID_APP_DEPLOY');
+const PLATFORM_DEPLOY__HYBRID_APP__STEP_MOCKS = [PLATFORM_DEPLOY__HYBRID_APP__STEP_MOCK];
 
 // post slack message on failure
 const PLATFORM_DEPLOY__POST_SLACK_FAIL__POST_SLACK__STEP_MOCK = createMockStep('Post Slack message on failure', 'Posting Slack message on platform deploy failure', 'POST_SLACK_FAIL', [
