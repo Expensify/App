@@ -1,6 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import Str from 'expensify-common/lib/str';
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -92,7 +92,7 @@ function ProfilePage({route}: ProfilePageProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const accountID = Number(route.params?.accountID ?? 0);
     const isCurrentUser = session?.accountID === accountID;
-    const details: PersonalDetails | EmptyObject = personalDetails?.[accountID] ?? (ValidationUtils.isValidAccountRoute(accountID) ? {} : {accountID: 0});
+    const [details , setDetails] = useState<PersonalDetails | EmptyObject>(personalDetails?.[accountID] ?? (ValidationUtils.isValidAccountRoute(accountID) ? {} : {accountID: 0}));
 
     const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(details, undefined, undefined, isCurrentUser);
     const fallbackIcon = details?.fallbackIcon ?? '';
@@ -137,6 +137,11 @@ function ProfilePage({route}: ProfilePageProps) {
         }
     }, [accountID]);
 
+    useEffect(() => {
+        if(details?.accountID == undefined){
+            Navigation.goBack(navigateBackTo);
+        }
+    }, [])
     return (
         <ScreenWrapper testID={ProfilePage.displayName}>
             <FullPageNotFoundView shouldShow={CONST.RESTRICTED_ACCOUNT_IDS.includes(accountID)}>
