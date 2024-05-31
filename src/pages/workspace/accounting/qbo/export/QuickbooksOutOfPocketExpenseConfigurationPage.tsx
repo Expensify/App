@@ -18,12 +18,8 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConne
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
-    const {syncLocations, reimbursableExpensesAccount, reimbursableExpensesExportDestination, errorFields, syncTax, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
-    const isLocationEnabled = Boolean(syncLocations && syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
-    const isTaxesEnabled = Boolean(syncTax);
-    const shouldShowTaxError = isTaxesEnabled && reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY;
-    const shouldShowLocationError = isLocationEnabled && reimbursableExpensesExportDestination !== CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY;
-    const hasErrors = Boolean(errorFields?.reimbursableExpensesExportDestination) || shouldShowTaxError || shouldShowLocationError;
+    const {reimbursableExpensesAccount, reimbursableExpensesExportDestination, errorFields, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
+    const hasErrors = Boolean(errorFields?.reimbursableExpensesExportDestination);
 
     return (
         <AccessOrNotFoundWrapper
@@ -37,7 +33,7 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConne
             >
                 <HeaderWithBackButton title={translate('workspace.qbo.exportExpenses')} />
                 <ScrollView contentContainerStyle={styles.pb2}>
-                    {!isLocationEnabled && <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportOutOfPocketExpensesDescription')}</Text>}
+                    <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportOutOfPocketExpensesDescription')}</Text>
                     <OfflineWithFeedback pendingAction={pendingFields?.reimbursableExpensesExportDestination}>
                         <MenuItemWithTopDescription
                             title={reimbursableExpensesExportDestination ? translate(`workspace.qbo.accounts.${reimbursableExpensesExportDestination}`) : undefined}
@@ -47,24 +43,22 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConne
                             brickRoadIndicator={hasErrors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             shouldShowRightIcon
                             hintText={
-                                reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL && !isLocationEnabled
+                                reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL
                                     ? translate('workspace.qbo.exportVendorBillDescription')
                                     : undefined
                             }
                         />
                     </OfflineWithFeedback>
-                    {!isLocationEnabled && (
-                        <OfflineWithFeedback pendingAction={pendingFields?.reimbursableExpensesAccount}>
-                            <MenuItemWithTopDescription
-                                title={reimbursableExpensesAccount?.name}
-                                description={translate('workspace.qbo.accountsPayable')}
-                                onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT.getRoute(policyID))}
-                                brickRoadIndicator={errorFields?.exportAccount ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                shouldShowRightIcon
-                                errorText={errorFields?.exportAccount ? translate('common.genericErrorMessage') : undefined}
-                            />
-                        </OfflineWithFeedback>
-                    )}
+                    <OfflineWithFeedback pendingAction={pendingFields?.reimbursableExpensesAccount}>
+                        <MenuItemWithTopDescription
+                            title={reimbursableExpensesAccount?.name}
+                            description={translate('workspace.qbo.accountsPayable')}
+                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT.getRoute(policyID))}
+                            brickRoadIndicator={errorFields?.exportAccount ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            shouldShowRightIcon
+                            errorText={errorFields?.exportAccount ? translate('common.genericErrorMessage') : undefined}
+                        />
+                    </OfflineWithFeedback>
                 </ScrollView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
