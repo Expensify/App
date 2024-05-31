@@ -4,7 +4,9 @@ import {withOnyx} from 'react-native-onyx';
 import FormHelpMessage from '@components/FormHelpMessage';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {READ_COMMANDS} from '@libs/API/types';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import HttpUtils from '@libs/HttpUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -84,6 +86,7 @@ function IOURequestStepParticipants({
 
     const addParticipant = useCallback(
         (val: Participant[]) => {
+            HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
             IOU.setMoneyRequestParticipants(transactionID, val);
             const rateID = DistanceRequestUtils.getCustomUnitRateID(val[0]?.reportID ?? '');
             IOU.setCustomUnitRateID(transactionID, rateID);
