@@ -303,8 +303,7 @@ function MoneyRequestConfirmationList({
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest) && !isTypeInvoice;
 
     useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (isEmptyObject(policy) || !shouldShowTax || transaction?.taxCode || !taxRates) {
+        if (isEmptyObject(policy) || !shouldShowTax || !!transaction?.taxCode || !taxRates) {
             return;
         }
         const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction);
