@@ -1,6 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useMemo, useState} from 'react';
-import {Keyboard, View} from 'react-native';
+import React, {useState} from 'react';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
@@ -27,8 +27,6 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Rate} from '@src/types/onyx/Policy';
-import type {ListItemType} from './PolicyDistanceRateTaxRateSelectionModal';
-import PolicyDistanceRateTaxRateSelectionModal from './PolicyDistanceRateTaxRateSelectionModal';
 
 type PolicyDistanceRateDetailsPageOnyxProps = {
     /** Policy details */
@@ -43,8 +41,6 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
     const {windowWidth} = useWindowDimensions();
     const [isWarningModalVisible, setIsWarningModalVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
-    const [isTaxRateSelectionModalVisible, setIsTaxRateSelectionModalVisible] = useState(false);
-
     const policyID = route.params.policyID;
     const rateID = route.params.rateID;
     const customUnits = policy?.customUnits ?? {};
@@ -56,17 +52,6 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
 
     const isTrackTaxEnabled = customUnit.attributes.taxEnabled;
     const taxRate = taxRateExternalID ? `${policy?.taxRates?.taxes[taxRateExternalID].name} (${policy?.taxRates?.taxes[taxRateExternalID].value})` : '';
-    const taxRateItems: ListItemType[] = useMemo(() => {
-        const taxes = policy?.taxRates?.taxes;
-        const result = Object.entries(taxes ?? {}).map(([key, value]) => ({
-            value: key,
-            text: `${value.name} (${value.value})`,
-            isSelected: taxRateExternalID === key,
-            keyForList: key,
-        }));
-        return result;
-    }, [policy, taxRateExternalID]);
-
     // Rates can be disabled or deleted as long as in the remaining rates there is always at least one enabled rate and there are no pending delete action
     const canDisableOrDeleteRate = Object.values(customUnit?.rates).some(
         (distanceRate: Rate) => distanceRate?.enabled && rateID !== distanceRate?.customUnitRateID && distanceRate?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
@@ -83,6 +68,9 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
     const editTaxReclaimableValue = () => {
         Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT.getRoute(policyID, rateID));
     };
+    const editTaxRateValue = () => {
+        Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATE_TAX_RATE_EDIT.getRoute(policyID, rateID));
+    };
 
     const toggleRate = () => {
         if (!rate?.enabled || canDisableOrDeleteRate) {
@@ -96,20 +84,6 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
         Navigation.goBack();
         Policy.deletePolicyDistanceRates(policyID, customUnit, [rateID]);
         setIsDeleteModalVisible(false);
-    };
-
-    const onTaxRateChange = (newTaxRate: ListItemType) => {
-        Policy.updateDistanceTaxRate(policyID, customUnit, [
-            {
-                ...rate,
-                attributes: {
-                    ...rate.attributes,
-                    taxRateExternalID: newTaxRate.value,
-                },
-            },
-        ]);
-        setIsTaxRateSelectionModalVisible(false);
-        Keyboard.dismiss();
     };
 
     const rateValueToDisplay = CurrencyUtils.convertAmountToDisplayString(rate?.rate, currency);
@@ -194,13 +168,7 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
                                     title={taxRate}
                                     description={translate('workspace.taxes.taxRate')}
                                     shouldShowRightIcon
-                                    onPress={() => setIsTaxRateSelectionModalVisible(true)}
-                                />
-                                <PolicyDistanceRateTaxRateSelectionModal
-                                    isVisible={isTaxRateSelectionModalVisible}
-                                    items={taxRateItems}
-                                    onTaxRateChange={onTaxRateChange}
-                                    onClose={() => setIsTaxRateSelectionModalVisible(false)}
+                                    onPress={editTaxRateValue}
                                 />
                             </View>
                         </OfflineWithFeedback>
