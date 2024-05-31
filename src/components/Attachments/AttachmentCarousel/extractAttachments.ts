@@ -1,8 +1,10 @@
 import {Parser as HtmlParser} from 'htmlparser2';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import type {Attachment} from '@components/Attachments/types';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import {getReport} from '@libs/ReportUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
@@ -10,8 +12,13 @@ import type {ReportAction, ReportActions} from '@src/types/onyx';
 /**
  * Constructs the initial component state from report actions
  */
-function extractAttachmentsFromReport(parentReportAction?: OnyxEntry<ReportAction>, reportActions?: OnyxEntry<ReportActions>) {
-    const actions = [...(parentReportAction ? [parentReportAction] : []), ...ReportActionsUtils.getSortedReportActions(Object.values(reportActions ?? {}))];
+function extractAttachments(
+    type: ValueOf<typeof CONST.ATTACHMENT_TYPE>,
+    {reportID, accountID, parentReportAction, reportActions}: {reportID?: string; accountID?: number; parentReportAction?: OnyxEntry<ReportAction>; reportActions?: OnyxEntry<ReportActions>},
+) {
+    const report = getReport(reportID);
+    const privateNotes = report?.privateNotes;
+    const targetNote = privateNotes?.[Number(accountID)]?.note ?? '';
     const attachments: Attachment[] = [];
 
     // We handle duplicate image sources by considering the first instance as original. Selecting any duplicate
@@ -71,6 +78,14 @@ function extractAttachmentsFromReport(parentReportAction?: OnyxEntry<ReportActio
         },
     });
 
+    if (type === CONST.ATTACHMENT_TYPE.NOTE) {
+        htmlParser.write(targetNote);
+        htmlParser.end();
+
+        return attachments.reverse();
+    }
+
+    const actions = [...(parentReportAction ? [parentReportAction] : []), ...ReportActionsUtils.getSortedReportActions(Object.values(reportActions ?? {}))];
     actions.forEach((action, key) => {
         if (!ReportActionsUtils.shouldReportActionBeVisible(action, key) || ReportActionsUtils.isMoneyRequestAction(action)) {
             return;
@@ -86,4 +101,4 @@ function extractAttachmentsFromReport(parentReportAction?: OnyxEntry<ReportActio
     return attachments.reverse();
 }
 
-export default extractAttachmentsFromReport;
+export default extractAttachments;
