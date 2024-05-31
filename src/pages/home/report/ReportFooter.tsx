@@ -177,7 +177,7 @@ function ReportFooter({
                     {isArchivedRoom && <ArchivedReportFooter report={report} />}
                     {!isArchivedRoom && blockedFromChat && <BlockedReportFooter />}
                     {!isAnonymousUser && !canWriteInReport && isSystemChat && <SystemChatReportFooterMessage />}
-                    {isAdminsOnlyPostingRoom && !isUserPolicyAdmin && !isArchivedRoom && !isAnonymousUser && (
+                    {isAdminsOnlyPostingRoom && !isUserPolicyAdmin && !isArchivedRoom && !isAnonymousUser && !blockedFromChat && (
                         <Banner
                             containerStyles={[styles.chatFooterBanner]}
                             text={translate('adminOnlyCanPost')}
