@@ -40,6 +40,9 @@ type BaseBlockingViewProps = {
 
     /** Determines how the image should be resized to fit its container */
     contentFitImage?: ImageContentFit;
+
+    /** Additional styles to apply to the container */
+    containerStyle?: StyleProp<ViewStyle>;
 };
 
 type BlockingViewIconProps = {
@@ -86,6 +89,7 @@ function BlockingView({
     animationWebStyle = {},
     CustomSubtitle,
     contentFitImage,
+    containerStyle,
 }: BlockingViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -122,7 +126,7 @@ function BlockingView({
     }, [styles, subtitleText, shouldEmbedLinkWithSubtitle, CustomSubtitle]);
 
     return (
-        <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10]}>
+        <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10, containerStyle]}>
             {animation && (
                 <Lottie
                     source={animation}

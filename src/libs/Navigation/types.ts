@@ -408,9 +408,7 @@ type SettingsNavigatorParamList = {
 
 type NewChatNavigatorParamList = {
     [SCREENS.NEW_CHAT.ROOT]: undefined;
-    [SCREENS.NEW_CHAT.NEW_CHAT_EDIT_NAME]: {
-        reportID?: string;
-    };
+    [SCREENS.NEW_CHAT.NEW_CHAT_EDIT_NAME]: undefined;
 };
 
 type DetailsNavigatorParamList = {
@@ -436,11 +434,10 @@ type ReportDetailsNavigatorParamList = {
 };
 
 type ReportSettingsNavigatorParamList = {
-    [SCREENS.REPORT_SETTINGS.ROOT]: undefined;
-    [SCREENS.REPORT_SETTINGS.ROOM_NAME]: undefined;
-    [SCREENS.REPORT_SETTINGS.GROUP_NAME]: undefined;
-    [SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES]: undefined;
-    [SCREENS.REPORT_SETTINGS.WRITE_CAPABILITY]: undefined;
+    [SCREENS.REPORT_SETTINGS.ROOT]: {reportID: string};
+    [SCREENS.REPORT_SETTINGS.NAME]: {reportID: string};
+    [SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES]: {reportID: string};
+    [SCREENS.REPORT_SETTINGS.WRITE_CAPABILITY]: {reportID: string};
     [SCREENS.REPORT_SETTINGS.VISIBILITY]: {
         reportID: string;
     };

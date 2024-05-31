@@ -197,8 +197,7 @@ const SCREENS = {
 
     REPORT_SETTINGS: {
         ROOT: 'Report_Settings_Root',
-        ROOM_NAME: 'Report_Settings_Room_Name',
-        GROUP_NAME: 'Report_Settings_Group_Name',
+        NAME: 'Report_Settings_Name',
         NOTIFICATION_PREFERENCES: 'Report_Settings_Notification_Preferences',
         WRITE_CAPABILITY: 'Report_Settings_Write_Capability',
         VISIBILITY: 'Report_Settings_Visibility',
