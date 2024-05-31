@@ -179,6 +179,7 @@ function ReportPreview({
         if (ReportUtils.hasHeldExpenses(iouReport?.reportID)) {
             setIsHoldMenuVisible(true);
         } else if (chatReport) {
+            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
             IOU.payMoneyRequest(type, chatReport, iouReport as Report, false);
         }
     };
@@ -188,6 +189,7 @@ function ReportPreview({
         if (ReportUtils.hasHeldExpenses(iouReport?.reportID)) {
             setIsHoldMenuVisible(true);
         } else {
+            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
             IOU.approveMoneyRequest(iouReport as Report, true);
         }
     };
@@ -440,6 +442,7 @@ function ReportPreview({
                     isVisible={isHoldMenuVisible}
                     paymentType={paymentType}
                     chatReport={chatReport}
+                    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                     moneyRequestReport={iouReport as Report}
                 />
             )}
