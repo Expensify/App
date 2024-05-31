@@ -1,0 +1,13 @@
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/defaults/DefaultNewArchitectureEntryPoint.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/defaults/DefaultNewArchitectureEntryPoint.kt
+index 59ffe9b..20eef64 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/defaults/DefaultNewArchitectureEntryPoint.kt
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/defaults/DefaultNewArchitectureEntryPoint.kt
+@@ -30,7 +30,7 @@ public object DefaultNewArchitectureEntryPoint {
+   public fun load(
+       turboModulesEnabled: Boolean = true,
+       fabricEnabled: Boolean = true,
+-      bridgelessEnabled: Boolean = true
++      bridgelessEnabled: Boolean = false
+   ) {
+     val (isValid, errorMessage) =
+         isConfigurationValid(turboModulesEnabled, fabricEnabled, bridgelessEnabled)
