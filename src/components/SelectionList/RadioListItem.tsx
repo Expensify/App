@@ -40,7 +40,6 @@ function RadioListItem<TItem extends ListItem>({
             keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
-            pendingAction={item.pendingAction}
         >
             <>
                 <View style={[styles.flex1, styles.alignItemsStart]}>
