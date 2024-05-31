@@ -1324,7 +1324,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.BUTTON_STATES.PRESSED:
                 return {backgroundColor: theme.buttonPressedBG};
             case CONST.BUTTON_STATES.ACTIVE:
-                return isMenuItem ? {backgroundColor: theme.hoverComponentBG} : {backgroundColor: theme.buttonHoveredBG};
+                return isMenuItem ? {backgroundColor: theme.border} : {backgroundColor: theme.buttonHoveredBG};
             case CONST.BUTTON_STATES.DISABLED:
             case CONST.BUTTON_STATES.DEFAULT:
             default:

@@ -8,6 +8,7 @@ import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/UserListItem';
+import useCancelSearchOnModalClose from '@hooks/useCancelSearchOnModalClose';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
@@ -69,6 +70,7 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
         },
         [setSearchValue, setSearchValueInServer],
     );
+    useCancelSearchOnModalClose();
 
     useEffect(() => {
         Timing.start(CONST.TIMING.CHAT_FINDER_RENDER);
