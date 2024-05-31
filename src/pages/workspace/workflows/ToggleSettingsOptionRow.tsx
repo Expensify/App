@@ -15,7 +15,9 @@ type ToggleSettingOptionRowProps = {
     /** Title of the option */
     title: string;
     /** Subtitle of the option */
-    subtitle: string;
+    subtitle?: string;
+    /** Accessibility label for the switch */
+    switchAccessibilityLabel: string;
     /** subtitle should show below switch and title */
     shouldPlaceSubtitleBelowSwitch?: boolean;
     /** Used to apply styles to the outermost container */
@@ -34,6 +36,9 @@ type ToggleSettingOptionRowProps = {
     onCloseError?: () => void;
     /** Whether the toggle should be disabled */
     disabled?: boolean;
+
+    /** Whether to show the lock icon even if the switch is enabled */
+    showLockIcon?: boolean;
 };
 const ICON_SIZE = 48;
 
@@ -41,6 +46,7 @@ function ToggleSettingOptionRow({
     icon,
     title,
     subtitle,
+    switchAccessibilityLabel,
     shouldPlaceSubtitleBelowSwitch,
     wrapperStyle,
     onToggle,
@@ -50,12 +56,13 @@ function ToggleSettingOptionRow({
     errors,
     onCloseError,
     disabled = false,
+    showLockIcon = false,
 }: ToggleSettingOptionRowProps) {
     const styles = useThemeStyles();
 
     const subTitleView = useMemo(
-        () => <Text style={[styles.textLabel, shouldPlaceSubtitleBelowSwitch ? styles.mt4 : {...styles.mt1, ...styles.mr5}, styles.textSupporting]}>{subtitle}</Text>,
-        [shouldPlaceSubtitleBelowSwitch, subtitle, styles.mr5, styles.mt1, styles.mt4, styles.textLabel, styles.textSupporting],
+        () => <Text style={[styles.textLabel, shouldPlaceSubtitleBelowSwitch ? styles.mt1 : {...styles.mt1, ...styles.mr5}, styles.textSupporting]}>{subtitle}</Text>,
+        [shouldPlaceSubtitleBelowSwitch, subtitle, styles.mr5, styles.mt1, styles.textLabel, styles.textSupporting],
     );
 
     return (
@@ -78,18 +85,19 @@ function ToggleSettingOptionRow({
                             />
                         )}
                         <View style={[styles.flexColumn, styles.flex1]}>
-                            <Text style={[!shouldPlaceSubtitleBelowSwitch && styles.textMicroBold, styles.textNormal, styles.lh20]}>{title}</Text>
-                            {!shouldPlaceSubtitleBelowSwitch && subTitleView}
+                            <Text style={[styles.textNormal, styles.lh20]}>{title}</Text>
+                            {!shouldPlaceSubtitleBelowSwitch && subtitle && subTitleView}
                         </View>
                     </View>
                     <Switch
-                        accessibilityLabel={subtitle}
+                        accessibilityLabel={switchAccessibilityLabel}
                         onToggle={onToggle}
                         isOn={isActive}
                         disabled={disabled}
+                        showLockIcon={showLockIcon}
                     />
                 </View>
-                {shouldPlaceSubtitleBelowSwitch && subTitleView}
+                {shouldPlaceSubtitleBelowSwitch && subtitle && subTitleView}
                 {isActive && subMenuItems}
             </View>
         </OfflineWithFeedback>
