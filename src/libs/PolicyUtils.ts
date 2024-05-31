@@ -303,7 +303,7 @@ function extractPolicyIDFromPath(path: string) {
  * Whether the policy has active accounting integration connections
  */
 function hasAccountingConnections(policy: OnyxEntry<Policy>) {
-    return Boolean(policy?.connections);
+    return !isEmptyObject(policy?.connections);
 }
 
 function getPathWithoutPolicyID(path: string) {
