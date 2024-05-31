@@ -6,9 +6,9 @@ import {StyleSheet} from 'react-native';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
@@ -30,7 +30,7 @@ function BaseAnchorForCommentsOnly({onPressIn, onPressOut, href = '', rel = '', 
         [],
     );
 
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const linkProps: LinkProps = {};
     if (onPress) {
@@ -38,7 +38,7 @@ function BaseAnchorForCommentsOnly({onPressIn, onPressOut, href = '', rel = '', 
     } else {
         linkProps.href = href;
     }
-    const defaultTextStyle = DeviceCapabilities.canUseTouchScreen() || isSmallScreenWidth ? {} : {...styles.userSelectText, ...styles.cursorPointer};
+    const defaultTextStyle = DeviceCapabilities.canUseTouchScreen() || shouldUseNarrowLayout ? {} : {...styles.userSelectText, ...styles.cursorPointer};
     const isEmail = Str.isValidEmail(href.replace(/mailto:/i, ''));
 
     return (

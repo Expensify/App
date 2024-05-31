@@ -263,7 +263,7 @@ function AddressSearch(
                 }
 
                 setIsFetchingCurrentLocation(false);
-                setLocationErrorCode(errorData.code);
+                setLocationErrorCode(errorData?.code ?? null);
             },
             {
                 maximumAge: 0, // No cache, always get fresh location info

@@ -40,6 +40,7 @@ function WorkspaceEditTaxPage({
     const {windowWidth} = useWindowDimensions();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const canEdit = policy && PolicyUtils.canEditTaxRate(policy, taxID);
+    const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
 
     const toggleTaxRate = () => {
         if (!currentTaxRate) {
@@ -58,14 +59,17 @@ function WorkspaceEditTaxPage({
     };
 
     const threeDotsMenuItems: ThreeDotsMenuItem[] = useMemo(
-        () => [
-            {
-                icon: Expensicons.Trashcan,
-                text: translate('common.delete'),
-                onSelected: () => setIsDeleteModalVisible(true),
-            },
-        ],
-        [translate],
+        () =>
+            canEdit && !hasAccountingConnections
+                ? [
+                      {
+                          icon: Expensicons.Trashcan,
+                          text: translate('common.delete'),
+                          onSelected: () => setIsDeleteModalVisible(true),
+                      },
+                  ]
+                : [],
+        [translate, canEdit, hasAccountingConnections],
     );
 
     if (!currentTaxRate) {
@@ -86,7 +90,7 @@ function WorkspaceEditTaxPage({
                     <HeaderWithBackButton
                         title={currentTaxRate?.name}
                         threeDotsMenuItems={threeDotsMenuItems}
-                        shouldShowThreeDotsButton={!!canEdit}
+                        shouldShowThreeDotsButton={threeDotsMenuItems.length > 0}
                         threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
                     />
                     <OfflineWithFeedback

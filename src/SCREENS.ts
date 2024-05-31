@@ -7,7 +7,7 @@ import type DeepValueOf from './types/utils/DeepValueOf';
 const PROTECTED_SCREENS = {
     HOME: 'Home',
     CONCIERGE: 'Concierge',
-    REPORT_ATTACHMENTS: 'ReportAttachments',
+    ATTACHMENTS: 'Attachments',
 } as const;
 
 const SCREENS = {
@@ -102,6 +102,10 @@ const SCREENS = {
             REASON: 'Settings_ExitSurvey_Reason',
             RESPONSE: 'Settings_ExitSurvey_Response',
             CONFIRM: 'Settings_ExitSurvey_Confirm',
+        },
+
+        SUBSCRIPTION: {
+            ROOT: 'Settings_Subscription',
         },
     },
     SAVE_THE_WORLD: {
@@ -229,7 +233,6 @@ const SCREENS = {
             QUICKBOOKS_ONLINE_EXPORT_INVOICE_ACCOUNT_SELECT: 'Workspace_Accounting_Quickbooks_Online_Export_Invoice_Account_Select',
             QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT: 'Workspace_Accounting_Quickbooks_Online_Export_Company_Card_Expense',
             QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT: 'Workspace_Accounting_Quickbooks_Online_Export_Company_Card_Expense_Account_Select',
-            QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_PAYABLE_SELECT: 'Workspace_Accounting_Quickbooks_Online_Export_Company_Card_Expense_Account_Payable_Select',
             QUICKBOOKS_ONLINE_NON_REIMBURSABLE_DEFAULT_VENDOR_SELECT: 'Workspace_Accounting_Quickbooks_Online_Export_Non_Reimbursable_Default_Vendor_Select',
             QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_COMPANY_CARD_SELECT: 'Workspace_Accounting_Quickbooks_Online_Export_Company_Card_Expense_Select',
             QUICKBOOKS_ONLINE_EXPORT_PREFERRED_EXPORTER: 'Workspace_Accounting_Quickbooks_Online_Export_Preferred_Exporter',
@@ -245,11 +248,11 @@ const SCREENS = {
             XERO_CUSTOMER: 'Policy_Acounting_Xero_Import_Customer',
             XERO_TAXES: 'Policy_Accounting_Xero_Taxes',
             XERO_TRACKING_CATEGORIES: 'Policy_Accounting_Xero_Tracking_Categories',
-            XERO_MAP_COST_CENTERS: 'Policy_Accounting_Xero_Map_Cost_Centers',
-            XERO_MAP_REGION: 'Policy_Accounting_Xero_Map_Region',
+            XERO_MAP_TRACKING_CATEGORY: 'Policy_Accounting_Xero_Map_Tracking_Category',
             XERO_EXPORT: 'Policy_Accounting_Xero_Export',
             XERO_EXPORT_PURCHASE_BILL_DATE_SELECT: 'Policy_Accounting_Xero_Export_Purchase_Bill_Date_Select',
             XERO_ADVANCED: 'Policy_Accounting_Xero_Advanced',
+            XERO_BILL_STATUS_SELECTOR: 'Policy_Accounting_Xero_Export_Bill_Status_Selector',
             XERO_INVOICE_ACCOUNT_SELECTOR: 'Policy_Accounting_Xero_Invoice_Account_Selector',
             XERO_EXPORT_PREFERRED_EXPORTER_SELECT: 'Workspace_Accounting_Xero_Export_Preferred_Exporter_Select',
             XERO_BILL_PAYMENT_ACCOUNT_SELECTOR: 'Policy_Accounting_Xero_Bill_Payment_Account_Selector',

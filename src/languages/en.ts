@@ -409,10 +409,9 @@ export default {
     },
     moneyRequestConfirmationList: {
         paidBy: 'Paid by',
-        splitAmounts: 'Split amounts',
         whatsItFor: "What's it for?",
     },
-    optionsSelector: {
+    selectionList: {
         nameEmailOrPhoneNumber: 'Name, email, or phone number',
         findMember: 'Find a member',
     },
@@ -540,6 +539,7 @@ export default {
         hereAlternateText: 'Notify everyone in this conversation',
     },
     newMessages: 'New messages',
+    youHaveBeenBanned: 'Note: You have been banned from communicating in this channel',
     reportTypingIndicator: {
         isTyping: 'is typing...',
         areTyping: 'are typing...',
@@ -647,6 +647,10 @@ export default {
         canceled: 'Canceled',
         posted: 'Posted',
         deleteReceipt: 'Delete receipt',
+        pendingMatchWithCreditCard: 'Receipt pending match with credit card.',
+        pendingMatchWithCreditCardDescription: 'Receipt pending match with credit card. Mark as cash to ignore and request payment.',
+        markAsCash: 'Mark as cash',
+        routePending: 'Route pending...',
         receiptScanning: 'Receipt scanning...',
         receiptScanInProgress: 'Receipt scan in progress.',
         receiptScanInProgressDescription: 'Receipt scan in progress. Check back later or enter the details now.',
@@ -690,14 +694,14 @@ export default {
         managerApprovedAmount: ({manager, amount}: ManagerApprovedAmountParams) => `${manager} approved ${amount}`,
         payerSettled: ({amount}: PayerSettledParams) => `paid ${amount}`,
         approvedAmount: ({amount}: ApprovedAmountParams) => `approved ${amount}`,
-        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up, payment is held until ${submitterDisplayName} adds a bank account`,
+        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up. Payment is on hold until ${submitterDisplayName} adds a bank account.`,
         adminCanceledRequest: ({manager, amount}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''}cancelled the ${amount} payment.`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `canceled the ${amount} payment, because ${submitterDisplayName} did not enable their Expensify Wallet within 30 days`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} added a bank account. The ${amount} payment has been made.`,
         paidElsewhereWithAmount: ({payer, amount}: PaidElsewhereWithAmountParams) => `${payer ? `${payer} ` : ''}paid ${amount} elsewhere`,
-        paidWithExpensifyWithAmount: ({payer, amount}: PaidWithExpensifyWithAmountParams) => `${payer ? `${payer} ` : ''}paid ${amount} using Expensify`,
+        paidWithExpensifyWithAmount: ({payer, amount}: PaidWithExpensifyWithAmountParams) => `${payer ? `${payer} ` : ''}paid ${amount} with Expensify`,
         noReimbursableExpenses: 'This report has an invalid amount',
         pendingConversionMessage: "Total will update when you're back online",
         changedTheExpense: 'changed the expense',
@@ -735,7 +739,7 @@ export default {
             splitExpenseMultipleParticipantsErrorMessage: 'An expense cannot be split between a workspace and other members. Please update your selection.',
             invalidMerchant: 'Please enter a correct merchant.',
         },
-        waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `Started settling up, payment is held until ${submitterDisplayName} enables their Wallet`,
+        waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up. Payment is on hold until ${submitterDisplayName} enables their wallet.`,
         enableWallet: 'Enable Wallet',
         hold: 'Hold',
         holdExpense: 'Hold expense',
@@ -746,10 +750,10 @@ export default {
         reason: 'Reason',
         holdReasonRequired: 'A reason is required when holding.',
         expenseOnHold: 'This expense was put on hold. Review the comments for next steps.',
-        confirmApprove: 'Confirm what to approve',
-        confirmApprovalAmount: 'Approve the entire report total or only the amount not on hold.',
-        confirmPay: 'Confirm what to pay',
-        confirmPayAmount: 'Pay all out-of-pocket spend or only the amount not on hold.',
+        confirmApprove: 'Confirm approval amount',
+        confirmApprovalAmount: "Approve what's not on hold, or approve the entire report.",
+        confirmPay: 'Confirm payment amount',
+        confirmPayAmount: "Pay what's not on hold, or pay all out-of-pocket spend.",
         payOnly: 'Pay only',
         approveOnly: 'Approve only',
         holdEducationalTitle: 'This expense is on',
@@ -942,6 +946,7 @@ export default {
             noLogsAvailable: 'No logs available',
             logSizeTooLarge: ({size}: LogSizeParams) => `Log size exceeds the limit of ${size} MB. Please use "Save log" to download the log file instead.`,
             logs: 'Logs',
+            viewConsole: 'View console',
         },
         security: 'Security',
         signOut: 'Sign out',
@@ -1023,8 +1028,8 @@ export default {
     },
     privateNotes: {
         title: 'Private notes',
-        personalNoteMessage: 'Keep notes about this chat here. You are the only person who can add, edit or view these notes.',
-        sharedNoteMessage: 'Keep notes about this chat here. Expensify employees and other users on the team.expensify.com domain can view these notes.',
+        personalNoteMessage: "Keep notes about this chat here. You're the only person who can add, edit, or view these notes.",
+        sharedNoteMessage: 'Keep notes about this chat here. Expensify employees and other members on the team.expensify.com domain can view these notes.',
         composerLabel: 'Notes',
         myNote: 'My note',
         error: {
@@ -1073,14 +1078,14 @@ export default {
         secureAccessToYourMoney: 'Secure access to your money',
         receiveMoney: 'Receive money in your local currency',
         expensifyWallet: 'Expensify Wallet',
-        sendAndReceiveMoney: 'Send and receive money from your Expensify Wallet.',
-        enableWalletToSendAndReceiveMoney: 'Enable your Expensify Wallet to start sending and receiving money with friends!',
+        sendAndReceiveMoney: 'Send and receive money with friends.',
+        enableWalletToSendAndReceiveMoney: 'Enable your wallet to send and receive money with friends.',
         enableWallet: 'Enable wallet',
         bankAccounts: 'Bank accounts',
         addBankAccountToSendAndReceive: 'Add a bank account to send and receive payments directly in the app.',
         addBankAccount: 'Add bank account',
         assignedCards: 'Assigned cards',
-        assignedCardsDescription: 'These are cards assigned by a Workspace admin to manage company spend.',
+        assignedCardsDescription: 'These are cards assigned by a workspace admin to manage company spend.',
         expensifyCard: 'Expensify Card',
         walletActivationPending: "We're reviewing your information, please check back in a few minutes!",
         walletActivationFailed: 'Unfortunately your wallet cannot be enabled at this time. Please chat with Concierge for further assistance.',
@@ -1295,7 +1300,7 @@ export default {
                 label: 'Light',
             },
             system: {
-                label: 'Use Device Settings',
+                label: 'Use device settings',
             },
         },
         chooseThemeBelowOrSync: 'Choose a theme below, or sync with your device settings.',
@@ -1359,7 +1364,8 @@ export default {
         whereYouWork: 'Where do you work?',
         purpose: {
             title: 'What do you want to do today?',
-            error: 'Please make a selection before continuing.',
+            errorSelection: 'Please make a selection to continue.',
+            errorContinue: 'Please press continue to get set up.',
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Get paid back by my employer',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: "Manage my team's expenses",
             [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: 'Track and budget expenses',
@@ -1918,6 +1924,7 @@ export default {
             distanceRates: 'Distance rates',
             welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
                 `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
+            subscription: 'Subscription',
         },
         qbo: {
             importDescription: 'Choose which coding configurations are imported from QuickBooks Online to Expensify.',
@@ -1931,6 +1938,8 @@ export default {
             customersDescription: 'Choose whether to import customers/projects and see where customers/projects are displayed.',
             locationsDescription: 'Choose whether to import locations, and see where locations are displayed.',
             taxesDescription: 'Choose whether to import tax rates and tax defaults from your accounting integration.',
+            taxesJournalEntrySwitchNote:
+                'Note: QuickBooks Online does not support a field for tax on Journal Entry exports. Change your export preference to Vendor Bill or Check to import taxes.',
             locationsAdditionalDescription:
                 'Locations are imported as Tags. This limits exporting expense reports as Vendor Bills or Checks to QuickBooks Online. To unlock these export options, either disable Locations import or upgrade to the Control Plan to export Locations encoded as a Report Field.',
             export: 'Export',
@@ -2036,10 +2045,8 @@ export default {
             accountsSwitchDescription: 'Enabled categories are available for members to select when creating their expenses.',
             trackingCategories: 'Tracking categories',
             trackingCategoriesDescription: 'Choose whether to import tracking categories and see where they are displayed.',
-            mapXeroCostCentersTo: 'Map Xero cost centers to',
-            mapXeroRegionsTo: 'Map Xero regions to',
-            mapXeroCostCentersToDescription: 'Choose where to map cost centers to when exporting to Xero.',
-            mapXeroRegionsToDescription: 'Choose where to map employee regions when exporting expense reports to Xero.',
+            mapTrackingCategoryTo: ({categoryName}) => `Map Xero ${categoryName} to`,
+            mapTrackingCategoryToDescription: ({categoryName}) => `Choose where to map ${categoryName} to when exporting to Xero.`,
             customers: 'Re-bill customers',
             customersDescription: 'Import customer contacts. Billable expenses need tags for export. Expenses will carry the customer information to Xero for sales invoices.',
             taxesDescription: 'Choose whether to import tax rates and tax defaults from your accounting integration.',
@@ -2096,10 +2103,12 @@ export default {
                 },
             },
             invoiceStatus: {
+                label: 'Purchase bill status',
+                description: 'When exported to Xero what state should purchase bills have.',
                 values: {
-                    [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_PAYMENT]: 'Authorised',
                     [CONST.XERO_CONFIG.INVOICE_STATUS.DRAFT]: 'Draft',
-                    [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_APPROVAL]: 'Submitted',
+                    [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_APPROVAL]: 'Awaiting approval',
+                    [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_PAYMENT]: 'Awaiting payment',
                 },
             },
             exportPreferredExporterNote: 'This can be any workspace admin, but must be a domain admin if you set different export accounts for individual company cards in domain settings.',
@@ -2152,7 +2161,7 @@ export default {
             },
             distanceRates: {
                 title: 'Distance rates',
-                subtitle: 'Add, update and enforce rates.',
+                subtitle: 'Add, update, and enforce rates.',
             },
             workflows: {
                 title: 'Workflows',
@@ -2178,6 +2187,12 @@ export default {
                 title: 'Accounting',
                 subtitle: 'Sync your chart of accounts and more.',
             },
+            connectionsWarningModal: {
+                featureEnabledTitle: 'Not so fast...',
+                featureEnabledText: 'To enable or disable this feature change your accounting import settings.',
+                disconnectText: 'Disconnect your accounting connection from the workspace if you want to disable Accounting.',
+                manageSettings: 'Manage settings',
+            },
         },
         reportFields: {
             delete: 'Delete field',
@@ -2185,7 +2200,7 @@ export default {
         },
         tags: {
             tagName: 'Tag name',
-            requiresTag: 'Members must tag all spend',
+            requiresTag: 'Members must tag all expenses',
             customTagName: 'Custom tag name',
             enableTag: 'Enable tag',
             enableTags: 'Enable tags',
@@ -2233,6 +2248,7 @@ export default {
                 enable: 'Enable rate',
                 enableMultiple: 'Enable rates',
             },
+            importedFromAccountingSoftware: 'The taxes below are imported from your',
         },
         emptyWorkspace: {
             title: 'Create a workspace',
@@ -2333,6 +2349,17 @@ export default {
                     }
                 }
             },
+            syncError: (integration?: ConnectionName): string => {
+                switch (integration) {
+                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
+                        return "Couldn't connect to QuickBooks Online.";
+                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
+                        return "Couldn't connect to Xero.";
+                    default: {
+                        return "Couldn't connect to integration.";
+                    }
+                }
+            },
             accounts: 'Chart of accounts',
             taxes: 'Taxes',
             imported: 'Imported',
@@ -2389,7 +2416,9 @@ export default {
                             return 'Checking QuickBooks Online connection';
                         case 'quickbooksOnlineImportMain':
                             return 'Importing your QuickBooks Online data';
-                        case 'startingImport':
+                        case 'startingImportXero':
+                            return 'Importing your Xero data';
+                        case 'startingImportQBO':
                             return 'Importing your QuickBooks Online data';
                         case 'quickbooksOnlineSyncTitle':
                             return 'Synchronizing QuickBooks Online data';
@@ -2638,6 +2667,9 @@ export default {
         memberNotFound: 'Member not found. To invite a new member to the room, please use the Invite button above.',
         notAuthorized: `You do not have access to this page. Are you trying to join the room? Please reach out to a member of this room so they can add you as a member! Something else? Reach out to ${CONST.EMAIL.CONCIERGE}`,
         removeMembersPrompt: 'Are you sure you want to remove the selected members from the room?',
+        error: {
+            genericAdd: 'There was a problem adding this room member.',
+        },
     },
     newTaskPage: {
         assignTask: 'Assign task',
@@ -2696,6 +2728,7 @@ export default {
                 subtitle: 'Try creating something using the green + button.',
             },
         },
+        groupedExpenses: 'grouped expenses',
     },
     genericErrorPage: {
         title: 'Uh-oh, something went wrong!',
@@ -2974,7 +3007,7 @@ export default {
             body: `Get paid to talk to your friends! Start a chat with a new Expensify account and get $${CONST.REFERRAL_PROGRAM.REVENUE} when they become a customer.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
-            buttonText1: 'Submit expense, ',
+            buttonText1: 'Submit an expense, ',
             buttonText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
             header: `Submit an expense, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             body: `It pays to get paid! Submit an expense to a new Expensify account and get $${CONST.REFERRAL_PROGRAM.REVENUE} when they become a customer.`,
@@ -3054,6 +3087,7 @@ export default {
         taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams) => `${taxName ?? 'Tax'} no longer valid`,
         taxRateChanged: 'Tax rate was modified',
         taxRequired: 'Missing tax rate',
+        hold: 'Hold',
     },
     violationDismissal: {
         rter: {

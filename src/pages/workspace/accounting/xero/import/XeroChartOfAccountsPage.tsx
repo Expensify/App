@@ -12,7 +12,7 @@ import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import variables from '@styles/variables';
-import * as Policy from '@userActions/Policy';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 
 function XeroChartOfAccountsPage({policy}: WithPolicyProps) {
@@ -20,7 +20,6 @@ function XeroChartOfAccountsPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
     const xeroConfig = policy?.connections?.xero?.config;
-    const {enableNewCategories, pendingFields} = xeroConfig ?? {};
 
     return (
         <ConnectionLayout
@@ -31,6 +30,7 @@ function XeroChartOfAccountsPage({policy}: WithPolicyProps) {
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={[styles.pb2, styles.ph5]}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
         >
             <View style={[styles.flexRow, styles.mb4, styles.alignItemsCenter, styles.justifyContentBetween]}>
                 <View style={styles.flex1}>
@@ -55,10 +55,12 @@ function XeroChartOfAccountsPage({policy}: WithPolicyProps) {
             <ToggleSettingOptionRow
                 title={translate('workspace.common.enabled')}
                 subtitle={translate('workspace.xero.accountsSwitchDescription')}
+                switchAccessibilityLabel={translate('workspace.xero.accountsSwitchDescription')}
                 shouldPlaceSubtitleBelowSwitch
-                isActive={!!enableNewCategories}
-                onToggle={() => Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.ENABLE_NEW_CATEGORIES, !enableNewCategories)}
-                pendingAction={pendingFields?.enableNewCategories}
+                isActive={!!xeroConfig?.enableNewCategories}
+                onToggle={() =>
+                    Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.ENABLE_NEW_CATEGORIES, !xeroConfig?.enableNewCategories)
+                }
                 errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.ENABLE_NEW_CATEGORIES)}
                 onCloseError={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.ENABLE_NEW_CATEGORIES)}
             />
