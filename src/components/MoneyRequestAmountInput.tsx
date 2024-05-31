@@ -140,7 +140,6 @@ function MoneyRequestAmountInput(
 
     const forwardDeletePressedRef = useRef(false);
     const resetFlag = useRef(false);
-    const formattedAmount = MoneyRequestUtils.replaceAllDigits(currentAmount, toLocaleDigit);
 
     /**
      * Sets the selection and the amount accordingly to the value passed to the input
@@ -198,17 +197,16 @@ function MoneyRequestAmountInput(
             return selection;
         },
     }));
-
+    
     useEffect(() => {
-        if (!resetClicked) {
-            return;
+        if (resetClicked) {
+            resetFlag.current = true;
+            setNewAmount(selectedAmountAsString);
+            setSelection({start: formattedAmount.length, end: formattedAmount.length}); // Move cursor to the end
+       
         }
-    
-        resetFlag.current = true;
-        setNewAmount(selectedAmountAsString);
-        setSelection({ start: formattedAmount.length, end: formattedAmount.length }); // Move cursor to the end
     }, [resetClicked, selectedAmountAsString, setNewAmount]);
-    
+
     useEffect(() => {
         if (!currency || typeof amount !== 'number' || (formatAmountOnBlur && textInput.current?.isFocused())) {
             return;
@@ -264,7 +262,7 @@ function MoneyRequestAmountInput(
         if (!formatAmountOnBlur) {
             return;
         }
-         formattedAmount = onFormatAmount(amount, currency);
+        const formattedAmount = onFormatAmount(amount, currency);
         if (maxLength && formattedAmount.length > maxLength) {
             return;
         }
@@ -275,6 +273,18 @@ function MoneyRequestAmountInput(
         });
     }, [amount, currency, onFormatAmount, formatAmountOnBlur, maxLength]);
 
+    const formattedAmount = MoneyRequestUtils.replaceAllDigits(currentAmount, toLocaleDigit);
+
+    useEffect(() => {
+        if (!resetClicked) {
+            return;
+        }
+    
+        resetFlag.current = true;
+        setNewAmount(selectedAmountAsString);
+        setSelection({ start: formattedAmount.length, end: formattedAmount.length }); // Move cursor to the end
+    }, [resetClicked, selectedAmountAsString, setNewAmount]);
+    
     return (
         <TextInputWithCurrencySymbol
             autoGrow={autoGrow}
