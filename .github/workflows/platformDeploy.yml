@@ -354,9 +354,11 @@ jobs:
 
   # Build a version of iOS and Android HybridApp if we are deploying to staging
   hybridApp:
-    name: 'Deploy HybridApp'
-    if: ${{ github.event_name == 'push' }}
-    uses: Expensify/Mobile-Deploy/.github/workflows/deploy.yml@main
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Deploy HybridApp'
+        if: ${{ github.event_name == 'push' }}
+        uses: Expensify/Mobile-Deploy/.github/workflows/deploy.yml@main
 
   postSlackMessageOnFailure:
     name: Post a Slack message when any platform fails to build or deploy

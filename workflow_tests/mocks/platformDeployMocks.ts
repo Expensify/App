@@ -200,7 +200,7 @@ const PLATFORM_DEPLOY__WEB__STEP_MOCKS = [
 ];
 
 // deploy hybridApp
-const PLATFORM_DEPLOY__HYBRID_APP__STEP_MOCK = createMockStep('hybridApp', 'Deploy HybridApp', 'HYBRID_APP_DEPLOY');
+const PLATFORM_DEPLOY__HYBRID_APP__STEP_MOCK = createMockStep('Deploy HybridApp', 'Deploy HybridApp', 'HYBRID_APP');
 const PLATFORM_DEPLOY__HYBRID_APP__STEP_MOCKS = [PLATFORM_DEPLOY__HYBRID_APP__STEP_MOCK];
 
 // post slack message on failure
