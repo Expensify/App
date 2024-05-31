@@ -4,9 +4,12 @@ import {withOnyx} from 'react-native-onyx';
 import FormHelpMessage from '@components/FormHelpMessage';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {READ_COMMANDS} from '@libs/API/types';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import HttpUtils from '@libs/HttpUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
 import * as IOU from '@userActions/IOU';
@@ -83,6 +86,7 @@ function IOURequestStepParticipants({
 
     const addParticipant = useCallback(
         (val: Participant[]) => {
+            HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
             IOU.setMoneyRequestParticipants(transactionID, val);
             const rateID = DistanceRequestUtils.getCustomUnitRateID(val[0]?.reportID ?? '');
             IOU.setCustomUnitRateID(transactionID, rateID);
@@ -104,6 +108,7 @@ function IOURequestStepParticipants({
 
     const goToNextStep = useCallback(() => {
         const isCategorizing = action === CONST.IOU.ACTION.CATEGORIZE;
+        const isShareAction = action === CONST.IOU.ACTION.SHARE;
 
         const isPolicyExpenseChat = participants?.some((participant) => participant.isPolicyExpenseChat);
         if (iouType === CONST.IOU.TYPE.SPLIT && !isPolicyExpenseChat && transaction?.amount && transaction?.currency) {
@@ -113,6 +118,11 @@ function IOURequestStepParticipants({
 
         IOU.setMoneyRequestTag(transactionID, '');
         IOU.setMoneyRequestCategory(transactionID, '');
+        if ((isCategorizing || isShareAction) && numberOfParticipants.current === 0) {
+            ReportUtils.createDraftWorkspaceAndNavigateToConfirmationScreen(transactionID, action);
+            return;
+        }
+
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, selectedReportID.current || reportID);
         if (isCategorizing) {
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, selectedReportID.current || reportID, iouConfirmationPageRoute));

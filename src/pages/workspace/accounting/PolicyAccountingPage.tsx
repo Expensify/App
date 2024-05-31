@@ -11,7 +11,10 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {MenuItemProps} from '@components/MenuItem';
+import MenuItem from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
+import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
@@ -23,12 +26,11 @@ import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {removePolicyConnection} from '@libs/actions/connections';
-import {syncConnection} from '@libs/actions/connections/QuickBooksOnline';
+import {hasSynchronizationError, removePolicyConnection, syncConnection} from '@libs/actions/connections';
 import {findCurrentXeroOrganization, getCurrentXeroOrganizationName, getXeroTenants} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
@@ -39,11 +41,13 @@ import type {PolicyConnectionName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 
+type MenuItemData = MenuItemProps & {pendingAction?: OfflineWithFeedbackProps['pendingAction']; errors?: OfflineWithFeedbackProps['errors']};
+
 type PolicyAccountingPageOnyxProps = {
     connectionSyncProgress: OnyxEntry<PolicyConnectionSyncProgress>;
 };
 
-type PolicyAccountingPageProps = WithPolicyProps &
+type PolicyAccountingPageProps = WithPolicyConnectionsProps &
     PolicyAccountingPageOnyxProps & {
         // This is not using OnyxEntry<OnyxTypes.Policy> because the HOC withPolicyConnections will only render this component if there is a policy
         policy: Policy;
@@ -128,7 +132,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
             {
                 icon: Expensicons.Sync,
                 text: translate('workspace.accounting.syncNow'),
-                onSelected: () => syncConnection(policyID),
+                onSelected: () => syncConnection(policyID, connectedIntegration),
                 disabled: isOffline,
             },
             {
@@ -137,10 +141,10 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                 onSelected: () => setIsDisconnectModalOpen(true),
             },
         ],
-        [translate, policyID, isOffline],
+        [translate, policyID, isOffline, connectedIntegration],
     );
 
-    const connectionsMenuItems: MenuItemProps[] = useMemo(() => {
+    const connectionsMenuItems: MenuItemData[] = useMemo(() => {
         if (isEmptyObject(policy?.connections) && !isSyncInProgress) {
             return accountingIntegrations.map((integration) => {
                 const integrationData = accountingIntegrationData(integration, policyID, translate);
@@ -159,16 +163,19 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
         if (!connectedIntegration) {
             return [];
         }
+        const shouldShowSynchronizationError = hasSynchronizationError(policy, connectedIntegration, isSyncInProgress);
         const integrationData = accountingIntegrationData(connectedIntegration, policyID, translate);
         const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
         return [
             {
                 ...iconProps,
                 interactive: false,
-                wrapperStyle: [styles.sectionMenuItemTopDescription],
+                wrapperStyle: [styles.sectionMenuItemTopDescription, shouldShowSynchronizationError && styles.pb0],
                 shouldShowRightComponent: true,
                 title: integrationData?.title,
-
+                errorText: shouldShowSynchronizationError ? translate('workspace.accounting.syncError', connectedIntegration) : undefined,
+                errorTextStyle: [styles.mt5],
+                shouldShowRedDotIndicator: true,
                 description: isSyncInProgress
                     ? translate('workspace.accounting.connections.syncStageName', connectionSyncProgress.stageInProgress)
                     : translate('workspace.accounting.lastSync'),
@@ -195,7 +202,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                     </View>
                 ),
             },
-            ...(policyConnectedToXero
+            ...(policyConnectedToXero && !shouldShowSynchronizationError
                 ? [
                       {
                           description: translate('workspace.xero.organization'),
@@ -211,10 +218,12 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                               }
                               Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ORGANIZATION.getRoute(policyID, currentXeroOrganization?.id ?? ''));
                           },
+                          pendingAction: policy?.connections?.xero?.config?.pendingFields?.tenantID,
+                          brickRoadIndicator: policy?.connections?.xero?.config?.errorFields?.tenantID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                       },
                   ]
                 : []),
-            ...(isEmptyObject(policy?.connections)
+            ...(isEmptyObject(policy?.connections) || shouldShowSynchronizationError
                 ? []
                 : [
                       {
@@ -244,21 +253,25 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                   ]),
         ];
     }, [
-        connectedIntegration,
-        connectionSyncProgress?.stageInProgress,
-        currentXeroOrganization,
-        currentXeroOrganizationName,
-        tenants,
+        policy,
         isSyncInProgress,
-        overflowMenu,
-        policy?.connections,
-        policyConnectedToXero,
+        connectedIntegration,
         policyID,
-        styles,
-        theme.spinner,
-        threeDotsMenuPosition,
         translate,
+        styles.sectionMenuItemTopDescription,
+        styles.pb0,
+        styles.mt5,
+        styles.popoverMenuIcon,
+        styles.fontWeightNormal,
+        connectionSyncProgress?.stageInProgress,
+        theme.spinner,
+        overflowMenu,
+        threeDotsMenuPosition,
+        policyConnectedToXero,
+        currentXeroOrganizationName,
+        tenants.length,
         accountingIntegrations,
+        currentXeroOrganization?.id,
     ]);
 
     const otherIntegrationsItems = useMemo(() => {
@@ -291,21 +304,6 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
         accountingIntegrations,
     ]);
 
-    const headerThreeDotsMenuItems: ThreeDotsMenuProps['menuItems'] = [
-        {
-            icon: Expensicons.Key,
-            shouldShowRightIcon: true,
-            iconRight: Expensicons.NewWindow,
-            text: translate('workspace.accounting.enterCredentials'),
-            onSelected: () => {},
-        },
-        {
-            icon: Expensicons.Trashcan,
-            text: translate('workspace.accounting.disconnect'),
-            onSelected: () => setIsDisconnectModalOpen(true),
-        },
-    ];
-
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -321,9 +319,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                     title={translate('workspace.common.accounting')}
                     shouldShowBackButton={isSmallScreenWidth}
                     icon={Illustrations.Accounting}
-                    shouldShowThreeDotsButton
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
-                    threeDotsMenuItems={headerThreeDotsMenuItems}
                 />
                 <ScrollView contentContainerStyle={styles.pt3}>
                     <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
@@ -335,10 +331,16 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                             titleStyles={styles.accountSettingsSectionTitle}
                             childrenStyles={styles.pt5}
                         >
-                            <MenuItemList
-                                menuItems={connectionsMenuItems}
-                                shouldUseSingleExecution
-                            />
+                            {connectionsMenuItems.map((menuItem) => (
+                                <OfflineWithFeedback pendingAction={menuItem.pendingAction}>
+                                    <MenuItem
+                                        key={menuItem.title}
+                                        brickRoadIndicator={menuItem.brickRoadIndicator}
+                                        // eslint-disable-next-line react/jsx-props-no-spreading
+                                        {...menuItem}
+                                    />
+                                </OfflineWithFeedback>
+                            ))}
                             {otherIntegrationsItems && (
                                 <CollapsibleSection
                                     title={translate('workspace.accounting.other')}
@@ -383,4 +385,5 @@ export default withPolicyConnections(
             key: (props) => `${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${props.route.params.policyID}`,
         },
     })(PolicyAccountingPage),
+    false,
 );
