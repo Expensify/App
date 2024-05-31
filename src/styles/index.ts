@@ -2813,6 +2813,10 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
+        sectionSelectCircle: {
+            backgroundColor: colors.productDark200,
+        },
+
         qrShareSection: {
             width: 264,
         },

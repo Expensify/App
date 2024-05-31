@@ -37,6 +37,7 @@ function OptionItem({title, icon, onPress, isSelected, isDisabled = false}: Opti
             role={CONST.ROLE.BUTTON}
             accessibilityLabel={translate('common.close')}
             disabled={isDisabled}
+            wrapperStyle={[styles.flex1]}
         >
             <View style={[isSelected ? styles.borderedContentCardFocused : styles.borderedContentCard, styles.p5]}>
                 <View style={[styles.flexRow, styles.justifyContentBetween]}>
@@ -49,7 +50,10 @@ function OptionItem({title, icon, onPress, isSelected, isDisabled = false}: Opti
                         <Text style={[styles.headerText, styles.mt2]}>{title}</Text>
                     </View>
                     <View>
-                        <SelectCircle isChecked={isSelected} />
+                        <SelectCircle
+                            isChecked={isSelected}
+                            selectCircleStyles={styles.sectionSelectCircle}
+                        />
                     </View>
                 </View>
             </View>
