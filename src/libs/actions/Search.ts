@@ -32,7 +32,13 @@ function search({hash, query, policyIDs, offset, sortBy, sortOrder}: SearchParam
 
     API.read(READ_COMMANDS.SEARCH, {hash, query, offset, policyIDs, sortBy, sortOrder}, {optimisticData, finallyData});
 }
+
+function openTransactionThread(hash: number, transactionID: string) {
+    console.log('over here', {hash, transactionID});
+}
+
 export {
     // eslint-disable-next-line import/prefer-default-export
     search,
+    openTransactionThread,
 };

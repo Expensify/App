@@ -37,6 +37,11 @@ function isReportListItemType(item: TransactionListItemType | ReportListItemType
     return reportListItem.transactions !== undefined;
 }
 
+function isTransactionListItemType(item: TransactionListItemType | ReportListItemType): item is TransactionListItemType {
+    const transactionListItem = item as TransactionListItemType;
+    return transactionListItem.transactionID !== undefined;
+}
+
 function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
@@ -135,6 +140,11 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
             sections={[{data: sortedData, isDisabled: false}]}
             onSelectRow={(item) => {
                 const reportID = isReportListItemType(item) ? item.reportID : item.transactionThreadReportID;
+
+                if (isTransactionListItemType(item) && (!reportID || reportID === '0')) {
+                    SearchActions.openTransactionThread(hash, item.transactionID);
+                    return;
+                }
 
                 openReport(reportID);
             }}
