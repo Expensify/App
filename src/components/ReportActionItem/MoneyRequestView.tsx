@@ -15,12 +15,10 @@ import ViolationMessages from '@components/ViolationMessages';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViolations from '@hooks/useViolations';
 import type {ViolationField} from '@hooks/useViolations';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CardUtils from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import type {MileageRate} from '@libs/DistanceRequestUtils';
@@ -97,9 +95,7 @@ function MoneyRequestView({
     const theme = useTheme();
     const styles = useThemeStyles();
     const session = useSession();
-    const StyleUtils = useStyleUtils();
     const {isOffline} = useNetwork();
-    const {isSmallScreenWidth} = useWindowDimensions();
     const {translate, toLocaleDigit} = useLocalize();
     const parentReportAction = parentReportActions?.[report.parentReportActionID ?? ''] ?? null;
     const isTrackExpense = ReportUtils.isTrackExpenseReport(report);
@@ -141,6 +137,8 @@ function MoneyRequestView({
 
     // Used for non-restricted fields such as: description, category, tag, billable, etc.
     const canEdit = ReportUtils.canEditMoneyRequest(parentReportAction);
+    const canEditTaxFields = canEdit && !isDistanceRequest;
+
     const canEditAmount = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.AMOUNT);
     const canEditMerchant = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.MERCHANT);
     const canEditDate = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DATE);
@@ -148,8 +146,7 @@ function MoneyRequestView({
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const isReceiptBeingScanned = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
     const didRceiptScanSucceed = hasReceipt && TransactionUtils.didRceiptScanSucceed(transaction);
-    // TODO: remove the !isTrackExpense from this condition after this fix: https://github.com/Expensify/Expensify/issues/382786
-    const canEditDistance = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE) && !isTrackExpense;
+    const canEditDistance = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE);
 
     const isAdmin = policy?.role === 'admin';
     const isApprover = ReportUtils.isMoneyRequestReport(moneyRequestReport) && moneyRequestReport?.managerID !== null && session?.accountID === moneyRequestReport?.managerID;
@@ -170,8 +167,7 @@ function MoneyRequestView({
     const shouldShowTag = isPolicyExpenseChat && (transactionTag || OptionsListUtils.hasEnabledTags(policyTagLists));
     const shouldShowBillable = isPolicyExpenseChat && (!!transactionBillable || !(policy?.disabledFields?.defaultBillable ?? true));
 
-    // A flag for showing tax rate
-    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy);
+    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest);
 
     const {getViolationsForField} = useViolations(transactionViolations ?? []);
     const hasViolations = useCallback(
@@ -319,16 +315,24 @@ function MoneyRequestView({
 
     const shouldShowMapOrReceipt = showMapAsImage || hasReceipt;
     const shouldShowReceiptEmptyState = !hasReceipt && !isInvoice && (canEditReceipt || isAdmin || isApprover);
-    const noticeTypeViolations = transactionViolations?.filter((violation) => violation.type === 'notice').map((v) => ViolationsUtils.getViolationTranslation(v, translate)) ?? [];
+    const receiptViolationNames: OnyxTypes.ViolationName[] = [
+        CONST.VIOLATIONS.RECEIPT_REQUIRED,
+        CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED,
+        CONST.VIOLATIONS.MODIFIED_DATE,
+        CONST.VIOLATIONS.CASH_EXPENSE_WITH_NO_RECEIPT,
+        CONST.VIOLATIONS.SMARTSCAN_FAILED,
+    ];
+    const receiptViolations =
+        transactionViolations?.filter((violation) => receiptViolationNames.includes(violation.name)).map((violation) => ViolationsUtils.getViolationTranslation(violation, translate)) ?? [];
     const shouldShowNotesViolations = !isReceiptBeingScanned && canUseViolations && ReportUtils.isPaidGroupPolicy(report);
 
     return (
-        <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true, shouldShowAnimatedBackground)]}>
+        <View style={styles.pRelative}>
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
-            <View style={shouldShowAnimatedBackground && [StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth, true)]}>
+            <>
                 {!isInvoice && (
                     <ReceiptAuditHeader
-                        notes={noticeTypeViolations}
+                        notes={receiptViolations}
                         shouldShowAuditMessage={Boolean(shouldShowNotesViolations && didRceiptScanSucceed)}
                     />
                 )}
@@ -383,8 +387,7 @@ function MoneyRequestView({
                     />
                 )}
                 {!shouldShowReceiptEmptyState && !shouldShowMapOrReceipt && <View style={{marginVertical: 6}} />}
-                {shouldShowNotesViolations && <ReceiptAuditMessages notes={noticeTypeViolations} />}
-                {canUseViolations && <ViolationMessages violations={getViolationsForField('receipt')} />}
+                {shouldShowNotesViolations && <ReceiptAuditMessages notes={receiptViolations} />}
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('amount')}>
                     <MenuItemWithTopDescription
                         title={amountTitle}
@@ -427,8 +430,10 @@ function MoneyRequestView({
                             onPress={() =>
                                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '', report.reportID))
                             }
+                            wrapperStyle={[styles.taskDescriptionMenuItem]}
                             brickRoadIndicator={getErrorForField('merchant') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             errorText={getErrorForField('merchant')}
+                            numberOfLinesTitle={0}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -504,8 +509,8 @@ function MoneyRequestView({
                         <MenuItemWithTopDescription
                             title={taxRateTitle ?? ''}
                             description={taxRatesDescription}
-                            interactive={canEdit}
-                            shouldShowRightIcon={canEdit}
+                            interactive={canEditTaxFields}
+                            shouldShowRightIcon={canEditTaxFields}
                             titleStyle={styles.flex1}
                             onPress={() =>
                                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '', report.reportID))
@@ -521,8 +526,8 @@ function MoneyRequestView({
                         <MenuItemWithTopDescription
                             title={formattedTaxAmount ? formattedTaxAmount.toString() : ''}
                             description={translate('iou.taxAmount')}
-                            interactive={canEdit}
-                            shouldShowRightIcon={canEdit}
+                            interactive={canEditTaxFields}
+                            shouldShowRightIcon={canEditTaxFields}
                             titleStyle={styles.flex1}
                             onPress={() =>
                                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '', report.reportID))
@@ -551,7 +556,7 @@ function MoneyRequestView({
                         />
                     </View>
                 )}
-            </View>
+            </>
         </View>
     );
 }
