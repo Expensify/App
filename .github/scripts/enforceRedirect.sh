@@ -6,7 +6,9 @@
 declare -r REDIRECTS_FILE="docs/redirects.csv"
 declare -r ARTICLES_DIRECTORY="docs/articles"
 
-diffWithStatus=$(git log main.. --name-status --pretty=format:\\n $ARTICLES_DIRECTORY)
-hasAddedRedirect=$(git diff $REDIRECTS_FILE)
+hasMovedOrDeletedArticle=$(git log main.. --name-status --pretty=format: docs/articles | grep -E "^(R|D)")
+hasModifiedRedirect=$(git log main.. --name-status --pretty=format: docs/redirects.csv | grep "^M")
 
-echo $diffWithStatus
+echo $hasMovedOrDeletedArticle
+
+echo $hasModifiedRedirect
