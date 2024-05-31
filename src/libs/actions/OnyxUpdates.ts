@@ -4,6 +4,7 @@ import type {Merge} from 'type-fest';
 import Log from '@libs/Log';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import PusherUtils from '@libs/PusherUtils';
+import requestDataProcessor from '@libs/requestDataProcessor';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxUpdateEvent, OnyxUpdatesFromServer, Request} from '@src/types/onyx';
@@ -33,12 +34,17 @@ function applyHTTPSOnyxUpdates(request: Request, response: Response) {
     // apply successData or failureData. This ensures that we do not update any pending, loading, or other UI states contained
     // in successData/failureData until after the component has received and API data.
     const onyxDataUpdatePromise = response.onyxData ? updateHandler(response.onyxData) : Promise.resolve();
+    const command = request.command ?? '';
+    let newSuccessData = request.successData;
+    if (!!requestDataProcessor[command] && request.successData && response.onyxData) {
+        newSuccessData = requestDataProcessor[command]?.({successData: request.successData, onyxData: response.onyxData});
+    }
 
     return onyxDataUpdatePromise
         .then(() => {
             // Handle the request's success/failure data (client-side data)
-            if (response.jsonCode === 200 && request.successData) {
-                return updateHandler(request.successData);
+            if (response.jsonCode === 200 && newSuccessData) {
+                return updateHandler(newSuccessData);
             }
             if (response.jsonCode !== 200 && request.failureData) {
                 return updateHandler(request.failureData);

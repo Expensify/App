@@ -1409,7 +1409,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
     ];
 
     const params: AddMembersToWorkspaceParams = {
-        employees: JSON.stringify(logins.map((login) => ({email: login}))),
+        employees: JSON.stringify(Object.entries(invitedEmailsToAccountIDs).map(([login, accountID]) => ({email: PhoneNumber.addSMSDomainIfPhoneNumber(login), accountID}))),
         welcomeNote: new ExpensiMark().replace(welcomeNote),
         policyID,
     };
