@@ -126,7 +126,7 @@ describe('test workflow platformDeploy', () => {
                 assertions.assertDesktopJobExecuted(result, true, false);
                 assertions.assertIOSJobExecuted(result, true, false, true);
                 assertions.assertWebJobExecuted(result, true, false);
-                assertions.assertHybridAppJobExecuted(result, true, false);
+                assertions.assertHybridAppJobExecuted(result, true);
                 assertions.assertPostSlackOnFailureJobExecuted(result, false);
                 assertions.assertPostSlackOnSuccessJobExecuted(result, true, false);
                 assertions.assertPostGithubCommentJobExecuted(result, true, false);
@@ -212,7 +212,7 @@ describe('test workflow platformDeploy', () => {
                 assertions.assertDesktopJobExecuted(result, true, false);
                 assertions.assertIOSJobExecuted(result, true, false, true);
                 assertions.assertWebJobExecuted(result, true, false);
-                assertions.assertHybridAppJobExecuted(result, true, false);
+                assertions.assertHybridAppJobExecuted(result, true);
                 assertions.assertPostSlackOnFailureJobExecuted(result, false);
                 assertions.assertPostSlackOnSuccessJobExecuted(result, true, false);
                 assertions.assertPostGithubCommentJobExecuted(result, true, false);
