@@ -85,7 +85,7 @@ function IOURequestStepConfirmation({
     const receiptFilename = transaction?.filename;
     const receiptPath = transaction?.receipt?.source;
     const receiptType = transaction?.receipt?.type;
-    const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction);
+    const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, TransactionUtils.getCurrency(transaction));
     const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
     const isSharingTrackExpense = action === CONST.IOU.ACTION.SHARE;

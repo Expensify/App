@@ -180,7 +180,7 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
 type MoneyRequestConfirmationListItem = Participant | ReportUtils.OptionData;
 
 const getTaxAmount = (transaction: OnyxEntry<OnyxTypes.Transaction>, policy: OnyxEntry<OnyxTypes.Policy>) => {
-    const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction) ?? '';
+    const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, TransactionUtils.getCurrency(transaction)) ?? '';
 
     const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, transaction?.taxCode ?? defaultTaxCode) ?? '';
     return TransactionUtils.calculateTaxAmount(taxPercentage, transaction?.amount ?? 0);
@@ -302,15 +302,14 @@ function MoneyRequestConfirmationList({
 
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest) && !isTypeInvoice;
 
+    const transactionCurrency = TransactionUtils.getCurrency(transaction);
     useEffect(() => {
-        if (isEmptyObject(policy) || !shouldShowTax || !!transaction?.taxCode || !taxRates) {
+        if (isEmptyObject(policy) || !shouldShowTax || !taxRates) {
             return;
         }
-        const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction);
-        if (defaultTaxCode) {
-            IOU.setMoneyRequestTaxRate(transactionID, defaultTaxCode);
-        }
-    }, [policy, shouldShowTax, taxRates, transaction, transaction?.taxCode, transactionID]);
+        const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transactionCurrency);
+        IOU.setMoneyRequestTaxRate(transactionID, defaultTaxCode ?? '');
+    }, [policy, shouldShowTax, taxRates, transactionCurrency, transactionID]);
 
     // A flag for showing the billable field
     const shouldShowBillable = policy?.disabledFields?.defaultBillable === false;

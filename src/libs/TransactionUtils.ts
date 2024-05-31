@@ -694,10 +694,10 @@ function getRateID(transaction: OnyxEntry<Transaction>): string | undefined {
  * Gets the tax code based on selected currency.
  * Returns policy default tax rate if transaction is in policy default currency, otherwise returns foreign default tax rate
  */
-function getDefaultTaxCode(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, currency?: string | undefined) {
+function getDefaultTaxCode(policy: OnyxEntry<Policy>, currency: string) {
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
     const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
-    return policy?.outputCurrency === (currency ?? getCurrency(transaction)) ? defaultExternalID : foreignTaxDefault;
+    return policy?.outputCurrency === currency ? defaultExternalID : foreignTaxDefault;
 }
 
 /**
@@ -715,7 +715,7 @@ function transformedTaxRates(policy: OnyxEntry<Policy> | undefined, transaction?
             return defaultExternalID;
         }
 
-        return policy && getDefaultTaxCode(policy, transaction);
+        return policy && getDefaultTaxCode(policy, getCurrency(transaction));
     };
 
     const getModifiedName = (data: TaxRate, code: string) =>
@@ -742,7 +742,7 @@ function getWorkspaceTaxesSettingsName(policy: OnyxEntry<Policy>, taxCode: strin
  * Gets the tax name
  */
 function getTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>) {
-    const defaultTaxCode = getDefaultTaxCode(policy, transaction);
+    const defaultTaxCode = getDefaultTaxCode(policy, getCurrency(transaction));
     return Object.values(transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === (transaction?.taxCode ?? defaultTaxCode))?.modifiedName;
 }
 
