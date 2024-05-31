@@ -6,8 +6,7 @@
 declare -r REDIRECTS_FILE="docs/redirects.csv"
 declare -r ARTICLES_DIRECTORY="docs/articles"
 
-# shouldAddRedirect=git
-hasAddedRedirect=git diff $REDIRECTS_FILE
+diffWithStatus=$(git log main.. --name-status --pretty=format: docs/articles)
+hasAddedRedirect=$(git diff $REDIRECTS_FILE)
 
-
-echo $hasAddedRedirect
+echo $diffWithStatus
