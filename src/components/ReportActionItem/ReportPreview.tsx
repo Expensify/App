@@ -430,7 +430,7 @@ function ReportPreview({
                     </View>
                 </PressableWithoutFeedback>
             </View>
-            {isHoldMenuVisible && requestType !== undefined && !!iouReport && (
+            {isHoldMenuVisible && !!iouReport && requestType !== undefined && (
                 <ProcessMoneyReportHoldMenu
                     nonHeldAmount={!ReportUtils.hasOnlyHeldExpenses(iouReport?.reportID ?? '') ? nonHeldAmount : undefined}
                     requestType={requestType}
