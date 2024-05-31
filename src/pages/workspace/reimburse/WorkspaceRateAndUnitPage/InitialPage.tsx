@@ -116,7 +116,7 @@ function WorkspaceRateAndUnitPage(props: WorkspaceRateAndUnitPageProps) {
                                 }}
                                 errorRowStyles={styles.mh5}
                                 pendingAction={distanceCustomUnit?.pendingAction ?? distanceCustomRate?.pendingAction}
-                                onClose={() => Policy.clearCustomUnitErrors(props.policy?.id ?? '-1', distanceCustomUnit?.customUnitID ?? '', distanceCustomRate?.customUnitRateID ?? '')}
+                                onClose={() => Policy.clearCustomUnitErrors(props.policy?.id ?? '-1', distanceCustomUnit?.customUnitID ?? '-1', distanceCustomRate?.customUnitRateID ?? '-1')}
                             >
                                 <MenuItemWithTopDescription
                                     description={translate('workspace.reimburse.trackDistanceRate')}
