@@ -54,7 +54,7 @@ export default function (): Promise<void> {
                     if (isEmptyObject(newReportActionsDraftsForReport)) {
                         Log.info('[Migrate Onyx] NO REMAINING');
                         // Clear if there are no drafts remaining
-                        newReportActionsDrafts[onyxKey as ReportActionsDraftsKey] = null;
+                        newReportActionsDrafts[onyxKey as ReportActionsDraftsKey] = undefined;
                     } else if (hasUnmigratedDraft) {
                         // Only migrate if there are unmigrated drafts, there's no need to overwrite this onyx key with the same data
                         newReportActionsDrafts[onyxKey as ReportActionsDraftsKey] = newReportActionsDraftsForReport;

@@ -52,7 +52,7 @@ function NewTaskPage({task, reports, personalDetails}: NewTaskPageProps) {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
-    const [parentReport, setParentReport] = useState<OnyxEntry<Report>>(null);
+    const [parentReport, setParentReport] = useState<OnyxEntry<Report>>();
 
     const hasDestinationError = task?.skipConfirmation && !task?.parentReportID;
     const isAllowedToCreateTask = useMemo(() => isEmptyObject(parentReport) || ReportUtils.isAllowedToComment(parentReport), [parentReport]);

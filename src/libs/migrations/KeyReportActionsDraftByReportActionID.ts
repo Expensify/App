@@ -32,7 +32,7 @@ export default function () {
                     if (typeof reportActionDraft !== 'string') {
                         return;
                     }
-                    newReportActionsDrafts[onyxKey as ReportActionsDraftsKey] = null;
+                    newReportActionsDrafts[onyxKey as ReportActionsDraftsKey] = undefined;
 
                     if (isEmptyObject(reportActionDraft)) {
                         return;

@@ -1049,7 +1049,7 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
     },
     linkedTransactionRouteError: {
         key: ({action}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${(action as OnyxTypes.OriginalMessageIOU)?.originalMessage?.IOUTransactionID ?? 0}`,
-        selector: (transaction: OnyxEntry<OnyxTypes.Transaction>) => transaction?.errorFields?.route ?? null,
+        selector: (transaction: OnyxEntry<OnyxTypes.Transaction>) => transaction?.errorFields?.route ?? undefined,
     },
 })(
     memo(ReportActionItem, (prevProps, nextProps) => {

@@ -51,7 +51,7 @@ function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) 
     const styles = useThemeStyles();
     const fieldKey = ReportUtils.getReportFieldKey(route.params.fieldID);
     const reportField = report?.fieldList?.[fieldKey] ?? policy?.fieldList?.[fieldKey];
-    const isDisabled = ReportUtils.isReportFieldDisabled(report, reportField ?? null, policy);
+    const isDisabled = ReportUtils.isReportFieldDisabled(report, reportField, policy);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const {translate} = useLocalize();
 

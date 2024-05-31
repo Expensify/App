@@ -642,7 +642,7 @@ function isOnHoldByTransactionID(transactionID: string): boolean {
         return false;
     }
 
-    return isOnHold(allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? null);
+    return isOnHold(allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]);
 }
 
 /**

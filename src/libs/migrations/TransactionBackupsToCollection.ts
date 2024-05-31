@@ -38,7 +38,7 @@ export default function (): Promise<void> {
                         onyxData[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`] = transaction;
 
                         // Delete the transaction backup stored in the transaction collection
-                        onyxData[transactionOnyxKey] = null;
+                        onyxData[transactionOnyxKey] = undefined;
                     }
                 });
 

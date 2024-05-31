@@ -34,7 +34,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
     const {translate} = useLocalize();
     const reportIDRef = useRef('0');
     const typeRef = useRef<ContextMenuType>();
-    const reportActionRef = useRef<OnyxEntry<ReportAction>>(null);
+    const reportActionRef = useRef<OnyxEntry<ReportAction>>(undefined);
     const reportActionIDRef = useRef('0');
     const originalReportIDRef = useRef('0');
     const selectionRef = useRef('');
@@ -131,7 +131,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
 
     const clearActiveReportAction = () => {
         reportActionIDRef.current = '0';
-        reportActionRef.current = null;
+        reportActionRef.current = undefined;
     };
 
     /**

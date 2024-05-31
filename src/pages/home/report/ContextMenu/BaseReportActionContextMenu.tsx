@@ -129,9 +129,9 @@ function BaseReportActionContextMenu({
 
     const reportAction: OnyxEntry<ReportAction> = useMemo(() => {
         if (isEmptyObject(reportActions) || reportActionID === '0') {
-            return null;
+            return;
         }
-        return reportActions[reportActionID] ?? null;
+        return reportActions[reportActionID];
     }, [reportActions, reportActionID]);
 
     const shouldEnableArrowNavigation = !isMini && (isVisible || shouldKeepOpen);

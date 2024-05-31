@@ -387,8 +387,7 @@ export default memo(
     withOnyx<HeaderViewProps, HeaderViewOnyxProps>({
         guideCalendarLink: {
             key: ONYXKEYS.ACCOUNT,
-            selector: (account) => account?.guideCalendarLink ?? null,
-            initialValue: null,
+            selector: (account) => account?.guideCalendarLink,
         },
         parentReport: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID ?? report?.reportID}`,
