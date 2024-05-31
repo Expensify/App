@@ -132,10 +132,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
         setIsCurrencyModalOpen(false);
     }, [policy?.outputCurrency, isCurrencyModalOpen]);
 
-    // We have the same focus effect in the WorkspaceProfilePage, this way we can get the policy data in narrow
-    // as well as in the wide layout when looking at policy settings.
     const fetchPolicyData = useCallback(() => {
-        Policy.openPolicyProfilePage(route.params.policyID);
+        Policy.openPolicyInitialPage(route.params.policyID);
     }, [route.params.policyID]);
 
     useNetwork({onReconnect: fetchPolicyData});
