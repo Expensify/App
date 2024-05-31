@@ -501,6 +501,7 @@ function MoneyRequestConfirmationList({
             isSelected: false,
             rightElement: (
                 <MoneyRequestAmountInput
+                    autoGrow={false}
                     amount={transaction?.splitShares?.[participantOption.accountID ?? 0]?.amount}
                     currency={iouCurrencyCode}
                     prefixCharacter={currencySymbol}
@@ -511,8 +512,9 @@ function MoneyRequestConfirmationList({
                     formatAmountOnBlur
                     prefixContainerStyle={[styles.pv0]}
                     inputStyle={[styles.optionRowAmountInput, amountWidth] as TextStyle[]}
-                    containerStyle={[styles.textInputContainer]}
+                    containerStyle={[styles.textInputContainer, amountWidth]}
                     touchableInputWrapperStyle={[styles.ml3]}
+                    onFormatAmount={CurrencyUtils.convertToDisplayStringWithoutCurrency}
                     onAmountChange={(value: string) => onSplitShareChange(participantOption.accountID ?? 0, Number(value))}
                     maxLength={formattedTotalAmount.length}
                 />
@@ -549,7 +551,7 @@ function MoneyRequestConfirmationList({
     const getSplitSectionHeader = useCallback(
         () => (
             <View style={[styles.mt2, styles.mb1, styles.flexRow, styles.justifyContentBetween]}>
-                <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('moneyRequestConfirmationList.splitAmounts')}</Text>
+                <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('iou.participants')}</Text>
                 {!shouldShowReadOnlySplits && isSplitModified && (
                     <PressableWithFeedback
                         onPress={() => {
