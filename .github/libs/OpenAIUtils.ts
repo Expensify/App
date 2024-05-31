@@ -1,7 +1,7 @@
 import {context} from '@actions/github';
 import InitOpenAI from 'openai';
-import CONST from './CONST';
 import type {GitHubType} from '@github/libs/GithubUtils';
+import CONST from './CONST';
 
 const OpenAI = new InitOpenAI({apiKey: process.env.OPENAI_API_KEY});
 
@@ -9,7 +9,7 @@ type OpenAIUtilsPrompt = {
     createAndRunResponse: InitOpenAI.Beta.Threads.Runs.Run;
     payload: typeof context.payload;
     octokit: InstanceType<typeof GitHubType>;
-}
+};
 
 async function prompt({createAndRunResponse, payload, octokit}: OpenAIUtilsPrompt) {
     return new Promise((resolve, reject) => {
@@ -62,9 +62,9 @@ async function prompt({createAndRunResponse, payload, octokit}: OpenAIUtilsPromp
                                     return;
                                 }
                                 // replace {user} from response template with @username
-                                assistantResponse = assistantResponse.replace('{user}', `@${payload.comment?.user.login}`);
+                                assistantResponse = assistantResponse.replace('{user}', `@${payload.comment?.user.login as string}`);
                                 // replace {proposalLink} from response template with the link to the comment
-                                assistantResponse = assistantResponse.replace('{proposalLink}', payload.comment?.html_url);
+                                assistantResponse = assistantResponse.replace('{proposalLink}', payload.comment?.html_url as string);
 
                                 // remove any double quotes from the final comment because sometimes the assistant's
                                 // response contains double quotes / sometimes it doesn't
@@ -79,7 +79,7 @@ async function prompt({createAndRunResponse, payload, octokit}: OpenAIUtilsPromp
                                 });
 
                                 // resolve the Promise with the response
-                                resolve({ response: assistantResponse });
+                                resolve({response: assistantResponse});
                                 // stop polling
                                 clearInterval(intervalID);
                             });
@@ -170,7 +170,7 @@ async function promptEdit({createAndRunResponse, payload, octokit}: OpenAIUtilsP
                                 }
 
                                 // resolve the Promise with the response
-                                resolve({ response: assistantResponse });
+                                resolve({response: assistantResponse});
                                 clearInterval(intervalID);
                             });
                         })
