@@ -14284,6 +14284,29 @@ function wrappy (fn, cb) {
 
 "use strict";
 
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -14291,6 +14314,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const github_1 = __nccwpck_require__(5438);
 const openai_1 = __importDefault(__nccwpck_require__(47));
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
+const OpenAIUtils = __importStar(__nccwpck_require__(3));
 const OpenAI = new openai_1.default({ apiKey: process.env.OPENAI_API_KEY });
 async function processIssueComment(octokit) {
     const payload = github_1.context.payload;
@@ -14300,84 +14324,38 @@ async function processIssueComment(octokit) {
         return;
     }
     if (!OPENAI_ASSISTANT_ID) {
-        console.log('OPENAI_ASSISTANT_ID missing from the environment variables');
+        console.error('OPENAI_ASSISTANT_ID missing from the environment variables');
         return;
     }
-    // 1, check if comment is proposal and if proposal template is followed
-    const content = `I NEED HELP WITH CASE (1.), CHECK IF COMMENT IS PROPOSAL AND IF TEMPLATE IS FOLLOWED AS PER INSTRUCTIONS. IT IS MANDATORY THAT YOU RESPOND ONLY WITH "NO_ACTION" IN CASE THE COMMENT IS NOT A PROPOSAL. Comment content: ${payload.comment?.body}`;
+    if (!payload.comment?.body.trim()) {
+        return;
+    }
+    console.log('Action triggered for comment:', payload.comment?.body);
+    let content = '';
+    console.log('-> GitHub Action Type: ', payload.action?.toUpperCase());
+    if (payload.action === CONST_1.default.ACTIONS.CREATED) {
+        content = `I NEED HELP WITH CASE (1.), CHECK IF COMMENT IS PROPOSAL AND IF TEMPLATE IS FOLLOWED AS PER INSTRUCTIONS. IT IS MANDATORY THAT YOU RESPOND ONLY WITH "${CONST_1.default.NO_ACTION}" IN CASE THE COMMENT IS NOT A PROPOSAL. Comment content: ${payload.comment?.body}`;
+    }
+    else if (payload.action === CONST_1.default.ACTIONS.EDIT) {
+        content = `I NEED HELP WITH CASE (2.) WHEN A USER THAT POSTED AN INITIAL PROPOSAL OR COMMENT (UNEDITED) THEN EDITS THE COMMENT - WE NEED TO CLASSIFY THE COMMENT BASED IN THE GIVEN INSTRUCTIONS AND IF TEMPLATE IS FOLLOWED AS PER INSTRUCTIONS. IT IS MANDATORY THAT YOU RESPOND ONLY WITH "${CONST_1.default.NO_ACTION}" IN CASE THE COMMENT IS NOT A PROPOSAL. \n\nPrevious comment content: ${payload.changes.body?.from}.\n\nEdited comment content: ${payload.comment?.body}`;
+    }
+    if (content === '') {
+        console.log('Early return - Comment body content is empty.');
+        return;
+    }
+    console.log('Comment body content for assistant:', content);
     // create thread with first user message and run it
     const createAndRunResponse = await OpenAI.beta.threads.createAndRun({
         /* eslint-disable @typescript-eslint/naming-convention */
         assistant_id: OPENAI_ASSISTANT_ID ?? '',
         thread: { messages: [{ role: 'user', content }] },
     });
-    // count calls for debug purposes
-    let count = 0;
-    // poll for run completion
-    const intervalID = setInterval(() => {
-        OpenAI.beta.threads.runs
-            .retrieve(createAndRunResponse.thread_id, createAndRunResponse.id)
-            .then((threadRun) => {
-            // return if run is not completed
-            if (threadRun.status !== 'completed') {
-                return;
-            }
-            // get assistant response
-            OpenAI.beta.threads.messages
-                .list(createAndRunResponse.thread_id)
-                .then((threadMessages) => {
-                // list thread messages content
-                threadMessages.data.forEach((message, index) => {
-                    // @ts-expect-error - we do have `text` in content[0] but typescript doesn't know that this is an 'openai' package type issue
-                    let assistantResponse = message.content?.[index]?.text?.value;
-                    console.log('issue_comment.created - assistantResponse', assistantResponse);
-                    if (!assistantResponse) {
-                        return console.log('issue_comment.created - assistantResponse is empty');
-                    }
-                    // check if assistant response is either NO_ACTION or "NO_ACTION" strings
-                    // as sometimes the assistant response varies
-                    const isNoAction = assistantResponse === 'NO_ACTION' || assistantResponse === '"NO_ACTION"';
-                    // if assistant response is NO_ACTION or message role is 'user', do nothing
-                    if (isNoAction || threadMessages.data?.[index]?.role === 'user') {
-                        if (threadMessages.data?.[index]?.role === 'user') {
-                            return;
-                        }
-                        return console.log('issue_comment.created - NO_ACTION');
-                    }
-                    // if the assistant responded with no action but there's some context in the response
-                    if (assistantResponse.includes('[NO_ACTION]')) {
-                        // extract the text after [NO_ACTION] from assistantResponse since this is a
-                        // bot related action keyword
-                        const noActionContext = assistantResponse.split('[NO_ACTION] ')?.[1]?.replace('"', '');
-                        console.log('issue_comment.created - [NO_ACTION] w/ context: ', noActionContext);
-                        return;
-                    }
-                    // replace {user} from response template with @username
-                    assistantResponse = assistantResponse.replace('{user}', `@${payload.comment?.user.login}`);
-                    // replace {proposalLink} from response template with the link to the comment
-                    assistantResponse = assistantResponse.replace('{proposalLink}', payload.comment?.html_url);
-                    // remove any double quotes from the final comment because sometimes the assistant's
-                    // response contains double quotes / sometimes it doesn't
-                    assistantResponse = assistantResponse.replace('"', '');
-                    // create a comment with the assistant's response
-                    console.log('issue_comment.created - proposal-police posts comment');
-                    octokit.issues.createComment({
-                        ...github_1.context.repo,
-                        /* eslint-disable @typescript-eslint/naming-convention */
-                        issue_number: payload.issue?.number ?? -1,
-                        body: assistantResponse,
-                    });
-                });
-            })
-                .catch((error) => console.log('threads.messages.list - error', error));
-            // stop polling
-            clearInterval(intervalID);
-        })
-            .catch((error) => console.log('threads.runs.retrieve - error', error));
-        // increment count for every threads.runs.retrieve call
-        count++;
-        console.log('threads.runs.retrieve - called:', count);
-    }, 1500);
+    if (payload.action === CONST_1.default.ACTIONS.CREATED) {
+        await OpenAIUtils.prompt({ createAndRunResponse, payload, octokit });
+    }
+    else if (payload.action === CONST_1.default.ACTIONS.EDIT) {
+        await OpenAIUtils.promptEdit({ createAndRunResponse, payload, octokit });
+    }
 }
 // Main function to process the workflow event
 async function run() {
@@ -14414,6 +14392,10 @@ const CONST = {
         INTERNAL_QA: 'InternalQA',
         HELP_WANTED: 'Help Wanted',
     },
+    ACTIONS: {
+        CREATED: 'created',
+        EDIT: 'edited',
+    },
     DATE_FORMAT_STRING: 'yyyy-MM-dd',
     PULL_REQUEST_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/pull/([0-9]+).*`),
     ISSUE_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/issues/([0-9]+).*`),
@@ -14421,8 +14403,195 @@ const CONST = {
     POLL_RATE: 10000,
     APP_REPO_URL: `https://github.com/${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}`,
     APP_REPO_GIT_URL: `git@github.com:${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}.git`,
+    NO_ACTION: 'NO_ACTION',
+    OPENAI_POLL_RATE: 1500,
 };
 exports["default"] = CONST;
+
+
+/***/ }),
+
+/***/ 3:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.promptEdit = exports.prompt = void 0;
+const github_1 = __nccwpck_require__(5438);
+const openai_1 = __importDefault(__nccwpck_require__(47));
+const CONST_1 = __importDefault(__nccwpck_require__(9873));
+const OpenAI = new openai_1.default({ apiKey: process.env.OPENAI_API_KEY });
+async function prompt({ createAndRunResponse, payload, octokit }) {
+    return new Promise((resolve, reject) => {
+        // count calls for debug purposes
+        let count = 0;
+        // poll for run completion
+        const intervalID = setInterval(() => {
+            OpenAI.beta.threads.runs
+                .retrieve(createAndRunResponse.thread_id, createAndRunResponse.id)
+                .then((threadRun) => {
+                // return if run is not completed
+                if (threadRun.status !== 'completed') {
+                    return;
+                }
+                // get assistant response
+                OpenAI.beta.threads.messages
+                    .list(createAndRunResponse.thread_id)
+                    .then((threadMessages) => {
+                    // list thread messages content
+                    threadMessages.data.forEach((message, index) => {
+                        // @ts-expect-error - we do have `text` in content[0] but typescript doesn't know that this is an 'openai' package type issue
+                        let assistantResponse = message.content?.[index]?.text?.value;
+                        console.log('issue_comment.created - assistantResponse', assistantResponse);
+                        if (!assistantResponse) {
+                            return console.log('issue_comment.created - assistantResponse is empty');
+                        }
+                        // check if assistant response is either NO_ACTION or "NO_ACTION" strings
+                        // as sometimes the assistant response varies
+                        const isNoAction = assistantResponse.replaceAll('"', '').toUpperCase() === CONST_1.default.NO_ACTION;
+                        // If assistant response is NO_ACTION, do nothing
+                        if (isNoAction) {
+                            console.log('Detected NO_ACTION for comment, returning early');
+                            return;
+                        }
+                        // If thread message role is 'user', do nothing
+                        if (threadMessages.data?.[index]?.role === 'user') {
+                            console.log('Detected message role "user", returning early...');
+                            return;
+                        }
+                        // if the assistant responded with no action but there's some context in the response
+                        if (assistantResponse.includes(`[${CONST_1.default.NO_ACTION}]`)) {
+                            // extract the text after [NO_ACTION] from assistantResponse since this is a
+                            // bot related action keyword
+                            const noActionContext = assistantResponse.split(`[${CONST_1.default.NO_ACTION}] `)?.[1]?.replace('"', '');
+                            console.log('issue_comment.created - [NO_ACTION] w/ context: ', noActionContext);
+                            return;
+                        }
+                        // replace {user} from response template with @username
+                        assistantResponse = assistantResponse.replace('{user}', `@${payload.comment?.user.login}`);
+                        // replace {proposalLink} from response template with the link to the comment
+                        assistantResponse = assistantResponse.replace('{proposalLink}', payload.comment?.html_url);
+                        // remove any double quotes from the final comment because sometimes the assistant's
+                        // response contains double quotes / sometimes it doesn't
+                        assistantResponse = assistantResponse.replace('"', '').replace(/^"|"$/g, '');
+                        // create a comment with the assistant's response
+                        console.log('issue_comment.created - proposal-police posts comment');
+                        octokit.issues.createComment({
+                            ...github_1.context.repo,
+                            /* eslint-disable @typescript-eslint/naming-convention */
+                            issue_number: payload.issue?.number ?? -1,
+                            body: assistantResponse,
+                        });
+                        // resolve the Promise with the response
+                        resolve({ response: assistantResponse });
+                        // stop polling
+                        clearInterval(intervalID);
+                    });
+                })
+                    .catch((error) => {
+                    console.error('threads.messages.list - error', error);
+                    reject(error);
+                    clearInterval(intervalID);
+                });
+                // stop polling
+                clearInterval(intervalID);
+            })
+                .catch((error) => {
+                console.error('threads.runs.retrieve - error', error);
+                reject(error);
+                clearInterval(intervalID);
+            });
+            // increment count for every threads.runs.retrieve call
+            count++;
+            console.log('threads.runs.retrieve - called:', count);
+        }, CONST_1.default.OPENAI_POLL_RATE);
+    });
+}
+exports.prompt = prompt;
+async function promptEdit({ createAndRunResponse, payload, octokit }) {
+    return new Promise((resolve, reject) => {
+        // count calls for debug purposes
+        let count = 0;
+        // poll for run completion
+        const intervalID = setInterval(() => {
+            OpenAI.beta.threads.runs
+                .retrieve(createAndRunResponse.thread_id, createAndRunResponse.id)
+                .then((threadRun) => {
+                // return if run is not completed yet
+                if (threadRun.status !== 'completed') {
+                    console.log('issue_comment.edited - run pending completion');
+                    return;
+                }
+                // get assistant response
+                OpenAI.beta.threads.messages
+                    .list(createAndRunResponse.thread_id)
+                    .then((threadMessages) => {
+                    // list thread messages content
+                    threadMessages.data.forEach((message, index) => {
+                        // @ts-expect-error - we do have `text` in content[0] but typescript doesn't know that this is a 'openai' package type issue
+                        const assistantResponse = message.content?.[index]?.text?.value;
+                        console.log('issue_comment.edited - assistantResponse', assistantResponse);
+                        if (!assistantResponse) {
+                            return console.log('issue_comment.edited - assistantResponse is empty');
+                        }
+                        // check if assistant response is either NO_ACTION or "NO_ACTION" strings
+                        // as sometimes the assistant response varies
+                        const isNoAction = assistantResponse.replaceAll('"', '').toUpperCase() === CONST_1.default.NO_ACTION;
+                        // If assistant response is NO_ACTION, do nothing
+                        if (isNoAction) {
+                            console.log('Detected NO_ACTION for comment, returning early');
+                            return;
+                        }
+                        // If thread message role is 'user', do nothing
+                        if (threadMessages.data?.[index]?.role === 'user') {
+                            console.log('Detected message role "user", returning early...');
+                            return;
+                        }
+                        // edit comment if assistant detected substantial changes and if the comment was not edited already by the bot
+                        if (assistantResponse.includes('[EDIT_COMMENT]') && !payload.comment?.body.includes('Edited by **proposal-police**')) {
+                            // extract the text after [EDIT_COMMENT] from assistantResponse since this is a
+                            // bot related action keyword
+                            let extractedNotice = assistantResponse.split('[EDIT_COMMENT] ')?.[1]?.replace('"', '');
+                            // format the github's updated_at like: 2024-01-24 13:15:24 UTC not 2024-01-28 18:18:28.000 UTC
+                            const date = new Date(payload.comment?.updated_at ?? '');
+                            const formattedDate = `${date.toISOString()?.split('.')?.[0]?.replace('T', ' ')} UTC`;
+                            extractedNotice = extractedNotice.replace('{updated_timestamp}', formattedDate);
+                            console.log(`issue_comment.edited - proposal-police edits comment: ${payload.comment?.id}`);
+                            octokit.issues.updateComment({
+                                ...github_1.context.repo,
+                                /* eslint-disable @typescript-eslint/naming-convention */
+                                comment_id: payload.comment?.id ?? -1,
+                                body: `${extractedNotice}\n\n${payload.comment?.body}`,
+                            });
+                        }
+                        // resolve the Promise with the response
+                        resolve({ response: assistantResponse });
+                        clearInterval(intervalID);
+                    });
+                })
+                    .catch((error) => {
+                    console.error('threads.messages.list - error', error);
+                    reject(error);
+                    clearInterval(intervalID);
+                });
+                clearInterval(intervalID);
+            })
+                .catch((error) => {
+                console.error('threads.runs.retrieve - error', error);
+                reject(error);
+                clearInterval(intervalID);
+            });
+            // increment count for every threads.runs.retrieve call
+            count++;
+            console.log('threads.runs.retrieve - called:', count);
+        }, CONST_1.default.OPENAI_POLL_RATE);
+    });
+}
+exports.promptEdit = promptEdit;
 
 
 /***/ }),
@@ -16815,7 +16984,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.fileFromPath = exports.toFile = exports.UnprocessableEntityError = exports.PermissionDeniedError = exports.InternalServerError = exports.AuthenticationError = exports.BadRequestError = exports.RateLimitError = exports.ConflictError = exports.NotFoundError = exports.APIUserAbortError = exports.APIConnectionTimeoutError = exports.APIConnectionError = exports.APIError = exports.OpenAIError = exports.OpenAI = void 0;
+exports.AzureOpenAI = exports.fileFromPath = exports.toFile = exports.UnprocessableEntityError = exports.PermissionDeniedError = exports.InternalServerError = exports.AuthenticationError = exports.BadRequestError = exports.RateLimitError = exports.ConflictError = exports.NotFoundError = exports.APIUserAbortError = exports.APIConnectionTimeoutError = exports.APIConnectionError = exports.APIError = exports.OpenAIError = exports.OpenAI = void 0;
 const Core = __importStar(__nccwpck_require__(1798));
 const Errors = __importStar(__nccwpck_require__(8905));
 const Uploads = __importStar(__nccwpck_require__(3394));
@@ -16929,7 +17098,125 @@ exports.fileFromPath = Uploads.fileFromPath;
     OpenAI.Batches = API.Batches;
     OpenAI.BatchesPage = API.BatchesPage;
 })(OpenAI = exports.OpenAI || (exports.OpenAI = {}));
+/** API Client for interfacing with the Azure OpenAI API. */
+class AzureOpenAI extends OpenAI {
+    /**
+     * API Client for interfacing with the Azure OpenAI API.
+     *
+     * @param {string | undefined} [opts.apiVersion=process.env['OPENAI_API_VERSION'] ?? undefined]
+     * @param {string | undefined} [opts.endpoint=process.env['AZURE_OPENAI_ENDPOINT'] ?? undefined] - Your Azure endpoint, including the resource, e.g. `https://example-resource.azure.openai.com/`
+     * @param {string | undefined} [opts.apiKey=process.env['AZURE_OPENAI_API_KEY'] ?? undefined]
+     * @param {string | undefined} opts.deployment - A model deployment, if given, sets the base client URL to include `/deployments/{deployment}`.
+     * @param {string | null | undefined} [opts.organization=process.env['OPENAI_ORG_ID'] ?? null]
+     * @param {string} [opts.baseURL=process.env['OPENAI_BASE_URL']] - Sets the base URL for the API.
+     * @param {number} [opts.timeout=10 minutes] - The maximum amount of time (in milliseconds) the client will wait for a response before timing out.
+     * @param {number} [opts.httpAgent] - An HTTP agent used to manage HTTP(s) connections.
+     * @param {Core.Fetch} [opts.fetch] - Specify a custom `fetch` function implementation.
+     * @param {number} [opts.maxRetries=2] - The maximum number of times the client will retry a request.
+     * @param {Core.Headers} opts.defaultHeaders - Default headers to include with every request to the API.
+     * @param {Core.DefaultQuery} opts.defaultQuery - Default query parameters to include with every request to the API.
+     * @param {boolean} [opts.dangerouslyAllowBrowser=false] - By default, client-side use of this library is not allowed, as it risks exposing your secret API credentials to attackers.
+     */
+    constructor({ baseURL = Core.readEnv('OPENAI_BASE_URL'), apiKey = Core.readEnv('AZURE_OPENAI_API_KEY'), apiVersion = Core.readEnv('OPENAI_API_VERSION'), endpoint, deployment, azureADTokenProvider, dangerouslyAllowBrowser, ...opts } = {}) {
+        if (!apiVersion) {
+            throw new Errors.OpenAIError("The OPENAI_API_VERSION environment variable is missing or empty; either provide it, or instantiate the AzureOpenAI client with an apiVersion option, like new AzureOpenAI({ apiVersion: 'My API Version' }).");
+        }
+        if (typeof azureADTokenProvider === 'function') {
+            dangerouslyAllowBrowser = true;
+        }
+        if (!azureADTokenProvider && !apiKey) {
+            throw new Errors.OpenAIError('Missing credentials. Please pass one of `apiKey` and `azureADTokenProvider`, or set the `AZURE_OPENAI_API_KEY` environment variable.');
+        }
+        if (azureADTokenProvider && apiKey) {
+            throw new Errors.OpenAIError('The `apiKey` and `azureADTokenProvider` arguments are mutually exclusive; only one can be passed at a time.');
+        }
+        // define a sentinel value to avoid any typing issues
+        apiKey ?? (apiKey = API_KEY_SENTINEL);
+        opts.defaultQuery = { ...opts.defaultQuery, 'api-version': apiVersion };
+        if (!baseURL) {
+            if (!endpoint) {
+                endpoint = process.env['AZURE_OPENAI_ENDPOINT'];
+            }
+            if (!endpoint) {
+                throw new Errors.OpenAIError('Must provide one of the `baseURL` or `endpoint` arguments, or the `AZURE_OPENAI_ENDPOINT` environment variable');
+            }
+            baseURL = `${endpoint}/openai`;
+        }
+        else {
+            if (endpoint) {
+                throw new Errors.OpenAIError('baseURL and endpoint are mutually exclusive');
+            }
+        }
+        super({
+            apiKey,
+            baseURL,
+            ...opts,
+            ...(dangerouslyAllowBrowser !== undefined ? { dangerouslyAllowBrowser } : {}),
+        });
+        this.apiVersion = '';
+        this._azureADTokenProvider = azureADTokenProvider;
+        this.apiVersion = apiVersion;
+        this._deployment = deployment;
+    }
+    buildRequest(options) {
+        if (_deployments_endpoints.has(options.path) && options.method === 'post' && options.body !== undefined) {
+            if (!Core.isObj(options.body)) {
+                throw new Error('Expected request body to be an object');
+            }
+            const model = this._deployment || options.body['model'];
+            delete options.body['model'];
+            if (model !== undefined && !this.baseURL.includes('/deployments')) {
+                options.path = `/deployments/${model}${options.path}`;
+            }
+        }
+        return super.buildRequest(options);
+    }
+    async _getAzureADToken() {
+        if (typeof this._azureADTokenProvider === 'function') {
+            const token = await this._azureADTokenProvider();
+            if (!token || typeof token !== 'string') {
+                throw new Errors.OpenAIError(`Expected 'azureADTokenProvider' argument to return a string but it returned ${token}`);
+            }
+            return token;
+        }
+        return undefined;
+    }
+    authHeaders(opts) {
+        return {};
+    }
+    async prepareOptions(opts) {
+        if (opts.headers?.['Authorization'] || opts.headers?.['api-key']) {
+            return super.prepareOptions(opts);
+        }
+        const token = await this._getAzureADToken();
+        opts.headers ?? (opts.headers = {});
+        if (token) {
+            opts.headers['Authorization'] = `Bearer ${token}`;
+        }
+        else if (this.apiKey !== API_KEY_SENTINEL) {
+            opts.headers['api-key'] = this.apiKey;
+        }
+        else {
+            throw new Errors.OpenAIError('Unable to handle auth');
+        }
+        return super.prepareOptions(opts);
+    }
+}
+exports.AzureOpenAI = AzureOpenAI;
+const _deployments_endpoints = new Set([
+    '/completions',
+    '/chat/completions',
+    '/embeddings',
+    '/audio/transcriptions',
+    '/audio/translations',
+    '/audio/speech',
+    '/images/generations',
+    '/batches',
+]);
+const API_KEY_SENTINEL = '<Missing Key>';
+// ---------------------- End Azure ----------------------
 exports = module.exports = OpenAI;
+module.exports.AzureOpenAI = AzureOpenAI;
 exports["default"] = OpenAI;
 //# sourceMappingURL=index.js.map
 
@@ -18221,7 +18508,7 @@ _AssistantStream_addEvent = function _AssistantStream_addEvent(event) {
                     }
                     else {
                         snapshot.content[contentElement.index] = contentElement;
-                        //This is a new element
+                        // This is a new element
                         newContent.push(contentElement);
                     }
                 }
@@ -19380,6 +19667,15 @@ class Messages extends resource_1.APIResource {
             headers: { 'OpenAI-Beta': 'assistants=v2', ...options?.headers },
         });
     }
+    /**
+     * Deletes a message.
+     */
+    del(threadId, messageId, options) {
+        return this._client.delete(`/threads/${threadId}/messages/${messageId}`, {
+            ...options,
+            headers: { 'OpenAI-Beta': 'assistants=v2', ...options?.headers },
+        });
+    }
 }
 exports.Messages = Messages;
 class MessagesPage extends pagination_1.CursorPage {
@@ -19535,6 +19831,7 @@ class Runs extends resource_1.APIResource {
                     break;
                 //We return the run in any terminal state.
                 case 'requires_action':
+                case 'incomplete':
                 case 'cancelled':
                 case 'completed':
                 case 'failed':
@@ -19861,6 +20158,7 @@ class FileBatches extends resource_1.APIResource {
                     await (0, core_2.sleep)(sleepInterval);
                     break;
                 case 'failed':
+                case 'cancelled':
                 case 'completed':
                     return batch;
             }
@@ -20034,6 +20332,7 @@ class Files extends resource_1.APIResource {
     }
     /**
      * Upload a file to the `files` API and then attach it to the given vector store.
+     *
      * Note the file will be asynchronously processed (you can use the alternative
      * polling helper method to wait for processing to complete).
      */
@@ -20045,7 +20344,7 @@ class Files extends resource_1.APIResource {
      * Add a file to a vector store and poll until processing is complete.
      */
     async uploadAndPoll(vectorStoreId, file, options) {
-        const fileInfo = await this._client.files.create({ file: file, purpose: 'assistants' }, options);
+        const fileInfo = await this.upload(vectorStoreId, file, options);
         return await this.poll(vectorStoreId, fileInfo.id, options);
     }
 }
@@ -20335,14 +20634,18 @@ const core_3 = __nccwpck_require__(1798);
 const pagination_1 = __nccwpck_require__(7401);
 class Files extends resource_1.APIResource {
     /**
-     * Upload a file that can be used across various endpoints. The size of all the
-     * files uploaded by one organization can be up to 100 GB.
+     * Upload a file that can be used across various endpoints. Individual files can be
+     * up to 512 MB, and the size of all files uploaded by one organization can be up
+     * to 100 GB.
      *
-     * The size of individual files can be a maximum of 512 MB or 2 million tokens for
-     * Assistants. See the
-     * [Assistants Tools guide](https://platform.openai.com/docs/assistants/tools) to
-     * learn more about the types of files supported. The Fine-tuning API only supports
-     * `.jsonl` files.
+     * The Assistants API supports files up to 2 million tokens and of specific file
+     * types. See the
+     * [Assistants Tools guide](https://platform.openai.com/docs/assistants/tools) for
+     * details.
+     *
+     * The Fine-tuning API only supports `.jsonl` files.
+     *
+     * The Batch API only supports `.jsonl` files up to 100 MB in size.
      *
      * Please [contact us](https://help.openai.com/) if you need to increase these
      * storage limits.
@@ -21434,7 +21737,7 @@ const addFormValue = async (form, key, value) => {
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.VERSION = void 0;
-exports.VERSION = '4.38.5'; // x-release-please-version
+exports.VERSION = '4.47.2'; // x-release-please-version
 //# sourceMappingURL=version.js.map
 
 /***/ }),

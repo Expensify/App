@@ -1,5 +1,5 @@
-name: 'ProposalPolice™ Comment Check'
-description: 'Verifies whether a proposal comment follows the template'
+name: 'ProposalPolice™ Comment Check Script'
+description: 'Verifies whether a proposal comment follows the template OR an updated proposal had substantial changes'
 inputs:
   GITHUB_TOKEN:
     description: 'Auth token for New Expensify Github'
