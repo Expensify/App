@@ -52,7 +52,7 @@ function ReportListItem<TItem extends ListItem>({
     const totalCell = (
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
-            text={CurrencyUtils.convertToDisplayString(reportItem?.total , reportItem?.currency)}
+            text={CurrencyUtils.convertToDisplayString(reportItem?.total, reportItem?.currency)}
             style={[styles.optionDisplayName, styles.textNewKansasNormal, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? undefined : styles.textAlignRight]}
         />
     );
