@@ -55,6 +55,7 @@ function WriteCapabilityPage({report, policy}: WriteCapabilityPageProps) {
                     sections={[{data: writeCapabilityOptions}]}
                     ListItem={RadioListItem}
                     onSelectRow={(option) => report && ReportActions.updateWriteCapabilityAndNavigate(report, option.value)}
+                    shouldDebounceRowSelect
                     initiallyFocusedOptionKey={writeCapabilityOptions.find((locale) => locale.isSelected)?.keyForList}
                 />
             </FullPageNotFoundView>

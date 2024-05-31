@@ -10,7 +10,15 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 
 jest.mock('@libs/Permissions');
 jest.mock('@hooks/usePermissions.ts');
-jest.mock('@libs/Navigation/Navigation');
+jest.mock('@src/hooks/useActiveWorkspaceFromNavigationState');
+jest.mock('../../src/libs/Navigation/Navigation', () => ({
+    navigate: jest.fn(),
+    isActiveRoute: jest.fn(),
+    getTopmostReportId: jest.fn(),
+    getTopmostReportActionId: jest.fn(),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
+    isDisplayedInModal: jest.fn(() => false),
+}));
 jest.mock('@components/Icon/Expensicons');
 
 jest.mock('@react-navigation/native');

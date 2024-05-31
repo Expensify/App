@@ -20,6 +20,7 @@ buildscript {
     repositories {
         google()
         mavenCentral()
+        maven {url "https://maven.fullstory.com"}
     }
     dependencies {
         classpath("com.android.tools.build:gradle")
@@ -27,6 +28,9 @@ buildscript {
         classpath("com.google.gms:google-services:4.3.4")
         classpath("com.google.firebase:firebase-crashlytics-gradle:2.7.1")
         classpath("com.google.firebase:perf-plugin:1.4.1")
+        // Fullstory integration
+        classpath ("com.fullstory:gradle-plugin-local:1.47.0")
+
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
@@ -70,7 +74,7 @@ allprojects {
                 // 'mapbox' is the fixed username for Mapbox's Maven repository.
                 username = 'mapbox'
 
-                // The value for password is read from the 'MAPBOX_DOWNLOADS_TOKEN' gradle property. 
+                // The value for password is read from the 'MAPBOX_DOWNLOADS_TOKEN' gradle property.
                 // Run "npm run setup-mapbox-sdk" to set this property in «USER_HOME»/.gradle/gradle.properties
 
                 // Example gradle.properties entry:

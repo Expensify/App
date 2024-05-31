@@ -141,7 +141,28 @@ PODS:
     - FirebaseInstallations (~> 8.0)
     - GoogleUtilities/Environment (~> 7.7)
     - "GoogleUtilities/NSData+zlib (~> 7.7)"
-  - fmt (9.1.0)
+  - fmt (6.2.1)
+  - FullStory (1.48.0)
+  - fullstory_react-native (1.4.2):
+    - FullStory (~> 1.14)
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2022.05.16.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Codegen
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - glog (0.3.5)
   - GoogleAppMeasurement (8.8.0):
     - GoogleAppMeasurement/AdIdSupport (= 8.8.0)
@@ -1815,8 +1836,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNCPicker (2.7.5):
-    - DoubleConversion
+  - RNCPicker (2.7.6):
     - glog
     - hermes-engine
     - RCT-Folly (= 2024.01.01.00)
@@ -1924,7 +1944,6 @@ PODS:
     - GoogleSignIn (~> 7.0)
     - React-Core
   - RNLiveMarkdown (0.1.70):
-    - DoubleConversion
     - glog
     - hermes-engine
     - RCT-Folly (= 2024.01.01.00)
@@ -1946,7 +1965,6 @@ PODS:
     - RNLiveMarkdown/common (= 0.1.70)
     - Yoga
   - RNLiveMarkdown/common (0.1.70):
-    - DoubleConversion
     - glog
     - hermes-engine
     - RCT-Folly (= 2024.01.01.00)
@@ -2192,7 +2210,8 @@ DEPENDENCIES:
   - ExpoImageManipulator (from `../node_modules/expo-image-manipulator/ios`)
   - ExpoModulesCore (from `../node_modules/expo-modules-core`)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
-  - fmt (from `../node_modules/react-native/third-party-podspecs/fmt.podspec`)
+  - "FullStory (from `{:http=>\"https://ios-releases.fullstory.com/fullstory-1.48.0-xcframework.tar.gz\"}`)"
+  - "fullstory_react-native (from `../node_modules/@fullstory/react-native`)"
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
   - lottie-react-native (from `../node_modules/lottie-react-native`)
@@ -2354,8 +2373,10 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-modules-core"
   FBLazyVector:
     :path: "../node_modules/react-native/Libraries/FBLazyVector"
-  fmt:
-    :podspec: "../node_modules/react-native/third-party-podspecs/fmt.podspec"
+  FullStory:
+    :http: https://ios-releases.fullstory.com/fullstory-1.48.0-xcframework.tar.gz
+  fullstory_react-native:
+    :path: "../node_modules/@fullstory/react-native"
   glog:
     :podspec: "../node_modules/react-native/third-party-podspecs/glog.podspec"
   hermes-engine:
@@ -2550,6 +2571,10 @@ EXTERNAL SOURCES:
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
+CHECKOUT OPTIONS:
+  FullStory:
+    :http: https://ios-releases.fullstory.com/fullstory-1.48.0-xcframework.tar.gz
+
 SPEC CHECKSUMS:
   Airship: 5a6d3f8a982398940b0d48423bb9b8736717c123
   AirshipFrameworkProxy: 7255f4ed9836dc2920f2f1ea5657ced4cee8a35c
@@ -2575,7 +2600,9 @@ SPEC CHECKSUMS:
   FirebaseInstallations: 40bd9054049b2eae9a2c38ef1c3dd213df3605cd
   FirebasePerformance: 0c01a7a496657d7cea86d40c0b1725259d164c6c
   FirebaseRemoteConfig: 2d6e2cfdb49af79535c8af8a80a4a5009038ec2b
-  fmt: 4c2741a687cc09f0634a2e2c72a838b99f1ff120
+  fmt: ff9d55029c625d3757ed641535fd4a75fedc7ce9
+  FullStory: 097347c823c21c655ca25fd8d5e6355a9326ec54
+  fullstory_react-native: 6cba8a2c054374a24a44dc4310407d9435459cae
   glog: c5d68082e772fa1c511173d6b30a9de2c05a69a2
   GoogleAppMeasurement: 5ba1164e3c844ba84272555e916d0a6d3d977e91
   GoogleDataTransport: 6c09b596d841063d76d4288cc2d2f42cc36e1e2a
@@ -2665,9 +2692,9 @@ SPEC CHECKSUMS:
   React-utils: f013537c3371270d2095bff1d594d00d4bc9261b
   ReactCommon: 2cde697fd80bd31da1d6448d25a5803088585219
   RNAppleAuthentication: 0571c08da8c327ae2afc0261b48b4a515b0286a6
-  RNCClipboard: c18616039db765751ddb4a85aca6ad4cb1910dd0
-  RNCPicker: e84f13a98cbc8977870692948ccae15a389461bb
-  RNDeviceInfo: 698f8475f11b2ec301efd27f16e9026d7f1bd724
+  RNCClipboard: 081418ae3b391b1012c3f41d045e5e39f1beed71
+  RNCPicker: 106d11a1c159ce937009b2bd52db2bdb1577454f
+  RNDeviceInfo: 449272e9faf2afe94a3fe2896d169e92277fffa8
   RNDevMenu: 72807568fe4188bd4c40ce32675d82434b43c45d
   RNFBAnalytics: f76bfa164ac235b00505deb9fc1776634056898c
   RNFBApp: 729c0666395b1953198dc4a1ec6deb8fbe1c302e
@@ -2677,7 +2704,7 @@ SPEC CHECKSUMS:
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 9265c3b902cd8408ba4376b1a34d9708a6da4ac3
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
-  RNLiveMarkdown: f243575435f220bcc1bd43ee187fd374486a1c21
+  RNLiveMarkdown: 23250f3d64c9d5f82ff36c4733c03544af0222d2
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: 5165c95556507e5424440a5e7319bd9941194b47
   RNPermissions: 3b49dcd1645a1f9d57ebff7aa891c28f3de72bce
@@ -2693,9 +2720,9 @@ SPEC CHECKSUMS:
   SDWebImageWebPCoder: e38c0a70396191361d60c092933e22c20d5b1380
   SocketRocket: abac6f5de4d4d62d24e11868d7a2f427e0ef940d
   Turf: 13d1a92d969ca0311bbc26e8356cca178ce95da2
-  VisionCamera: 547714c9e14633d475d8055c81a272f8ba3d0af2
-  Yoga: 56f906bf6c11c931588191dde1229fd3e4e3d557
+  VisionCamera: 1394a316c7add37e619c48d7aa40b38b954bf055
+  Yoga: 64cd2a583ead952b0315d5135bf39e053ae9be70
 
-PODFILE CHECKSUM: cd30a1d49d0a8352ebfc677a91f3d6c2b8cb3fd4
+PODFILE CHECKSUM: 66a5c97ae1059e4da1993a4ad95abe5d819f555b
 
 COCOAPODS: 1.13.0
