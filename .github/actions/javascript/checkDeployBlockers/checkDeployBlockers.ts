@@ -60,7 +60,7 @@ const run = function (): Promise<void> {
                 core.setOutput('HAS_DEPLOY_BLOCKERS', false);
             }
         })
-        .catch((error: string | Error) => {
+        .catch((error) => {
             console.error('A problem occurred while trying to communicate with the GitHub API', error);
             core.setFailed(error);
         });

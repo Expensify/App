@@ -7,7 +7,6 @@ import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -41,8 +40,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
     const [failedToLoadPDF, setFailedToLoadPDF] = useState(false);
     const [successToLoadPDF, setSuccessToLoadPDF] = useState(false);
     const [password, setPassword] = useState('');
-    const {windowWidth, windowHeight} = useWindowDimensions();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {windowWidth, windowHeight, isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const themeStyles = useThemeStyles();
     const {isKeyboardShown} = useKeyboardState();
@@ -131,7 +129,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
         }
         const containerStyles =
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            isUsedAsChatAttachment || (shouldRequestPassword && shouldUseNarrowLayout) ? [themeStyles.w100, themeStyles.flex1] : [themeStyles.alignItemsCenter, themeStyles.flex1];
+            isUsedAsChatAttachment || (shouldRequestPassword && isSmallScreenWidth) ? [themeStyles.w100, themeStyles.flex1] : [themeStyles.alignItemsCenter, themeStyles.flex1];
         const loadingIndicatorStyles = isUsedAsChatAttachment
             ? [themeStyles.chatItemPDFAttachmentLoading, StyleUtils.getWidthAndHeightStyle(LOADING_THUMBNAIL_WIDTH, LOADING_THUMBNAIL_HEIGHT)]
             : [];
@@ -167,10 +165,9 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
         );
     }
 
-    return onPress ? (
+    return onPress && !successToLoadPDF ? (
         <PressableWithoutFeedback
             onPress={onPress}
-            fullDisabled={successToLoadPDF}
             style={[themeStyles.flex1, themeStyles.alignSelfStretch, !failedToLoadPDF && themeStyles.flexRow]}
             accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing

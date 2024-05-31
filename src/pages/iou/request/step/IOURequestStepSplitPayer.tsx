@@ -87,7 +87,6 @@ function IOURequestStepSplitPayer({
                 sections={sections}
                 ListItem={UserListItem}
                 onSelectRow={setSplitPayer}
-                shouldDebounceRowSelect
                 showLoadingPlaceholder={!didScreenTransitionEnd}
             />
         </StepScreenWrapper>

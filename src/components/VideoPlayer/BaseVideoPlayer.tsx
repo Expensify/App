@@ -223,25 +223,22 @@ function BaseVideoPlayer({
             return;
         }
 
-        // If we are uploading a new video, we want to pause previous playing video and immediately set the video player ref.
-        if (currentVideoPlayerRef.current) {
-            pauseVideo();
-        }
+        // If we are uploading a new video, we want to immediately set the video player ref.
         currentVideoPlayerRef.current = videoPlayerRef.current;
-    }, [url, currentVideoPlayerRef, isUploading, pauseVideo]);
+    }, [url, currentVideoPlayerRef, isUploading]);
 
     const isCurrentlyURLSetRef = useRef<boolean>();
     isCurrentlyURLSetRef.current = isCurrentlyURLSet;
 
     useEffect(
         () => () => {
-            if (shouldUseSharedVideoElement || !isCurrentlyURLSetRef.current) {
+            if (!isCurrentlyURLSetRef.current) {
                 return;
             }
 
             setCurrentlyPlayingURL(null);
         },
-        [setCurrentlyPlayingURL, shouldUseSharedVideoElement],
+        [setCurrentlyPlayingURL],
     );
     // update shared video elements
     useEffect(() => {
@@ -327,7 +324,6 @@ function BaseVideoPlayer({
                                     </>
                                 ) : (
                                     <View
-                                        fsClass="fs-exclude"
                                         style={styles.flex1}
                                         ref={(el) => {
                                             if (!el) {

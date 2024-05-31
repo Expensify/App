@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {createContext, useEffect, useMemo, useState} from 'react';
 import {Dimensions} from 'react-native';
@@ -9,6 +10,25 @@ import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {NewDimensions, WindowDimensionsContextData, WindowDimensionsProps} from './types';
 
 const WindowDimensionsContext = createContext<WindowDimensionsContextData | null>(null);
+const windowDimensionsPropTypes = {
+    // Width of the window
+    windowWidth: PropTypes.number.isRequired,
+
+    // Height of the window
+    windowHeight: PropTypes.number.isRequired,
+
+    // Is the window width extra narrow, like on a Fold mobile device?
+    isExtraSmallScreenWidth: PropTypes.bool.isRequired,
+
+    // Is the window width narrow, like on a mobile device?
+    isSmallScreenWidth: PropTypes.bool.isRequired,
+
+    // Is the window width medium sized, like on a tablet device?
+    isMediumScreenWidth: PropTypes.bool.isRequired,
+
+    // Is the window width wide, like on a browser or desktop?
+    isLargeScreenWidth: PropTypes.bool.isRequired,
+};
 
 function WindowDimensionsProvider(props: ChildrenProps) {
     const [windowDimension, setWindowDimension] = useState(() => {
@@ -78,4 +98,4 @@ export default function withWindowDimensions<TProps extends WindowDimensionsProp
     return React.forwardRef(WithWindowDimensions);
 }
 
-export {WindowDimensionsProvider};
+export {WindowDimensionsProvider, windowDimensionsPropTypes};

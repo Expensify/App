@@ -14,8 +14,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Category from '@userActions/Policy/Category';
-import * as Policy from '@userActions/Policy/Policy';
+import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -56,7 +55,7 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
             return;
         }
 
-        Category.setPolicyDistanceRatesDefaultCategory(policyID, customUnit, {
+        Policy.setPolicyDistanceRatesDefaultCategory(policyID, customUnit, {
             ...customUnit,
             defaultCategory: defaultCategory === category.searchText ? '' : category.searchText,
         });

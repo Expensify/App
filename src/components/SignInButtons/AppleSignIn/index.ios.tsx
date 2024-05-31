@@ -1,5 +1,4 @@
 import appleAuth from '@invertase/react-native-apple-authentication';
-import type {AppleError} from '@invertase/react-native-apple-authentication';
 import React from 'react';
 import IconButton from '@components/SignInButtons/IconButton';
 import Log from '@libs/Log';
@@ -36,11 +35,11 @@ function AppleSignIn() {
     const handleSignIn = () => {
         appleSignInRequest()
             .then((token) => Session.beginAppleSignIn(token))
-            .catch((error: {code: AppleError}) => {
-                if (error.code === appleAuth.Error.CANCELED) {
+            .catch((e) => {
+                if (e.code === appleAuth.Error.CANCELED) {
                     return null;
                 }
-                Log.alert('[Apple Sign In] Apple authentication failed', error);
+                Log.alert('[Apple Sign In] Apple authentication failed', e);
             });
     };
     return (

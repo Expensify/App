@@ -74,26 +74,6 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
         return DateUtils.isTimeAtLeastOneMinuteInFuture({dateTimeString: clearAfterTime});
     }, [draftClearAfter, currentUserClearAfter]);
 
-    const navigateBackToPreviousScreenTask = useRef<{
-        then: (
-            onfulfilled?: () => typeof InteractionManager.runAfterInteractions,
-            onrejected?: () => typeof InteractionManager.runAfterInteractions,
-        ) => Promise<typeof InteractionManager.runAfterInteractions>;
-        done: (...args: Array<typeof InteractionManager.runAfterInteractions>) => typeof InteractionManager.runAfterInteractions;
-        cancel: () => void;
-    } | null>(null);
-
-    useEffect(
-        () => () => {
-            if (!navigateBackToPreviousScreenTask.current) {
-                return;
-            }
-
-            navigateBackToPreviousScreenTask.current.cancel();
-        },
-        [],
-    );
-
     const navigateBackToPreviousScreen = useCallback(() => Navigation.goBack(), []);
     const updateStatus = useCallback(
         ({emojiCode, statusText}: FormOnyxValues<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM>) => {
@@ -110,7 +90,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
                 clearAfter: clearAfterTime !== CONST.CUSTOM_STATUS_TYPES.NEVER ? clearAfterTime : '',
             });
             User.clearDraftCustomStatus();
-            navigateBackToPreviousScreenTask.current = InteractionManager.runAfterInteractions(() => {
+            InteractionManager.runAfterInteractions(() => {
                 navigateBackToPreviousScreen();
             });
         },
@@ -126,7 +106,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
         });
         formRef.current?.resetForm({[INPUT_IDS.EMOJI_CODE]: ''});
 
-        navigateBackToPreviousScreenTask.current = InteractionManager.runAfterInteractions(() => {
+        InteractionManager.runAfterInteractions(() => {
             navigateBackToPreviousScreen();
         });
     };

@@ -115,7 +115,7 @@ function BaseProfilingToolMenu({isProfilingInProgress = false, pathToBeUsed, dis
                 .then(() => {
                     Log.hmmm('[ProfilingToolMenu] file copied successfully');
                 })
-                .catch((error: Record<string, unknown>) => {
+                .catch((error) => {
                     Log.hmmm('[ProfilingToolMenu] error copying file: ', error);
                 });
 

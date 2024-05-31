@@ -36,9 +36,7 @@ type PusherEventMap = {
     [TYPE.USER_IS_LEAVING_ROOM]: UserIsLeavingRoomEvent;
 };
 
-type EventData<EventName extends string> = {chunk?: string; id?: string; index?: number; final?: boolean} & (EventName extends keyof PusherEventMap
-    ? PusherEventMap[EventName]
-    : OnyxUpdatesFromServer);
+type EventData<EventName extends string> = EventName extends keyof PusherEventMap ? PusherEventMap[EventName] : OnyxUpdatesFromServer;
 
 type EventCallbackError = {type: ValueOf<typeof CONST.ERROR>; data: {code: number}};
 
@@ -73,8 +71,6 @@ let socket: PusherWithAuthParams | null;
 let pusherSocketID = '';
 const socketEventCallbacks: SocketEventCallback[] = [];
 let customAuthorizer: ChannelAuthorizerGenerator;
-
-const eventsBoundToChannels = new Map<Channel, Set<PusherEventName>>();
 
 /**
  * Trigger each of the socket event callbacks with the event information
@@ -157,7 +153,7 @@ function getChannel(channelName: string): Channel | undefined {
  * Binds an event callback to a channel + eventName
  */
 function bindEventToChannel<EventName extends PusherEventName>(channel: Channel | undefined, eventName: EventName, eventCallback: (data: EventData<EventName>) => void = () => {}) {
-    if (!eventName || !channel) {
+    if (!eventName) {
         return;
     }
 
@@ -168,9 +164,9 @@ function bindEventToChannel<EventName extends PusherEventName>(channel: Channel 
             return;
         }
 
-        let data: EventData<EventName>;
+        let data;
         try {
-            data = isObject(eventData) ? eventData : JSON.parse(eventData);
+            data = isObject(eventData) ? eventData : JSON.parse(eventData as string);
         } catch (err) {
             Log.alert('[Pusher] Unable to parse single JSON event data from Pusher', {error: err, eventData});
             return;
@@ -191,9 +187,7 @@ function bindEventToChannel<EventName extends PusherEventName>(channel: Channel 
 
         // Add it to the rolling list.
         const chunkedEvent = chunkedDataEvents[data.id];
-        if (data.index !== undefined) {
-            chunkedEvent.chunks[data.index] = data.chunk;
-        }
+        chunkedEvent.chunks[data.index] = data.chunk;
 
         // If this is the last packet, mark that we've hit the end.
         if (data.final) {
@@ -204,7 +198,7 @@ function bindEventToChannel<EventName extends PusherEventName>(channel: Channel 
         // packet.
         if (chunkedEvent.receivedFinal && chunkedEvent.chunks.length === Object.keys(chunkedEvent.chunks).length) {
             try {
-                eventCallback(JSON.parse(chunkedEvent.chunks.join('')) as EventData<EventName>);
+                eventCallback(JSON.parse(chunkedEvent.chunks.join('')));
             } catch (err) {
                 Log.alert('[Pusher] Unable to parse chunked JSON response from Pusher', {
                     error: err,
@@ -219,11 +213,7 @@ function bindEventToChannel<EventName extends PusherEventName>(channel: Channel 
         }
     };
 
-    channel.bind(eventName, callback);
-    if (!eventsBoundToChannels.has(channel)) {
-        eventsBoundToChannels.set(channel, new Set());
-    }
-    eventsBoundToChannels.get(channel)?.add(eventName);
+    channel?.bind(eventName, callback);
 }
 
 /**
@@ -298,12 +288,6 @@ function unsubscribe(channelName: string, eventName: PusherEventName = '') {
     if (eventName) {
         Log.info('[Pusher] Unbinding event', false, {eventName, channelName});
         channel.unbind(eventName);
-        eventsBoundToChannels.get(channel)?.delete(eventName);
-        if (eventsBoundToChannels.get(channel)?.size === 0) {
-            Log.info(`[Pusher] After unbinding ${eventName} from channel ${channelName}, no other events were bound to that channel. Unsubscribing...`, false);
-            eventsBoundToChannels.delete(channel);
-            socket?.unsubscribe(channelName);
-        }
     } else {
         if (!channel.subscribed) {
             Log.info('Pusher] Attempted to unsubscribe from channel, but we are not subscribed to begin with', false, {channelName});

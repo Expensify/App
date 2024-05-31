@@ -82,7 +82,6 @@ function BaseListItem<TItem extends ListItem>({
                 id={keyForList ?? ''}
                 style={pressableStyle}
                 onFocus={onFocus}
-                tabIndex={item.tabIndex}
             >
                 <View style={wrapperStyle}>
                     {typeof children === 'function' ? children(hovered) : children}

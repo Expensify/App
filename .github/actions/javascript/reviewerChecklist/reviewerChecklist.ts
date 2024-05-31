@@ -90,7 +90,7 @@ function checkIssueForCompletedChecklist(numberOfChecklistItems: number) {
 
 getNumberOfItemsFromReviewerChecklist()
     .then(checkIssueForCompletedChecklist)
-    .catch((err: string | Error) => {
+    .catch((err) => {
         console.error(err);
         core.setFailed(err);
     });

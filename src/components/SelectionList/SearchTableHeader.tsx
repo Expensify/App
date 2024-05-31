@@ -33,11 +33,6 @@ function SearchTableHeader({data}: SearchTableHeaderProps) {
         <View style={[styles.ph5, styles.pb3]}>
             <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.ph4]}>
                 <SearchTableHeaderColumn
-                    containerStyle={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.RECEIPT)]}
-                    textStyle={StyleUtils.getTextOverflowStyle('clip')}
-                    text={translate('common.receipt')}
-                />
-                <SearchTableHeaderColumn
                     containerStyle={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DATE)]}
                     text={translate('common.date')}
                 />

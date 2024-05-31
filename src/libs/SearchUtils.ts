@@ -1,27 +1,19 @@
 import type {ValueOf} from 'react-native-gesture-handler/lib/typescript/typeUtils';
-import ReportListItem from '@components/SelectionList/Search/ReportListItem';
-import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
-import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import TransactionListItem from '@components/SelectionList/TransactionListItem';
+import type {TransactionListItemType} from '@components/SelectionList/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes, SearchTypeToItemMap} from '@src/types/onyx/SearchResults';
-import getTopmostCentralPaneRoute from './Navigation/getTopmostCentralPaneRoute';
-import navigationRef from './Navigation/navigationRef';
-import type {RootStackParamList, State} from './Navigation/types';
 import * as UserUtils from './UserUtils';
 
-function isSearchDataType(type: string): type is SearchDataTypes {
-    const searchDataTypes: string[] = Object.values(CONST.SEARCH_DATA_TYPES);
-    return searchDataTypes.includes(type);
-}
-
 function getSearchType(search: OnyxTypes.SearchResults['search']): SearchDataTypes | undefined {
-    if (!isSearchDataType(search.type)) {
-        return undefined;
+    switch (search.type) {
+        case CONST.SEARCH_DATA_TYPES.TRANSACTION:
+            return CONST.SEARCH_DATA_TYPES.TRANSACTION;
+        default:
+            return undefined;
     }
-
-    return search.type;
 }
 
 function getShouldShowMerchant(data: OnyxTypes.SearchResults['data']): boolean {
@@ -62,54 +54,10 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data']): Transac
         });
 }
 
-function getReportSections(data: OnyxTypes.SearchResults['data']): ReportListItemType[] {
-    const shouldShowMerchant = getShouldShowMerchant(data);
-    const shouldShowCategory = getShouldShowColumn(data, CONST.SEARCH_TABLE_COLUMNS.CATEGORY);
-    const shouldShowTag = getShouldShowColumn(data, CONST.SEARCH_TABLE_COLUMNS.TAG);
-    const shouldShowTax = getShouldShowColumn(data, CONST.SEARCH_TABLE_COLUMNS.TAX_AMOUNT);
-
-    const reportIDToTransactions: Record<string, ReportListItemType> = {};
-    for (const key in data) {
-        if (key.startsWith(ONYXKEYS.COLLECTION.REPORT)) {
-            const value = {...data[key]};
-            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${value.reportID}`;
-            reportIDToTransactions[reportKey] = {
-                ...value,
-                transactions: reportIDToTransactions[reportKey]?.transactions ?? [],
-            };
-        } else if (key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
-            const value = {...data[key]};
-            const isExpenseReport = value.reportType === CONST.REPORT.TYPE.EXPENSE;
-            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${value.reportID}`;
-            const transaction = {
-                ...value,
-                from: data.personalDetailsList?.[value.accountID],
-                to: isExpenseReport ? data[`${ONYXKEYS.COLLECTION.POLICY}${value.policyID}`] : data.personalDetailsList?.[value.managerID],
-                shouldShowMerchant,
-                shouldShowCategory,
-                shouldShowTag,
-                shouldShowTax,
-                keyForList: value.transactionID,
-            };
-            if (reportIDToTransactions[reportKey]?.transactions) {
-                reportIDToTransactions[reportKey].transactions.push(transaction);
-            } else {
-                reportIDToTransactions[reportKey] = {transactions: [transaction]};
-            }
-        }
-    }
-
-    return Object.values(reportIDToTransactions);
-}
-
 const searchTypeToItemMap: SearchTypeToItemMap = {
     [CONST.SEARCH_DATA_TYPES.TRANSACTION]: {
         listItem: TransactionListItem,
         getSections: getTransactionsSections,
-    },
-    [CONST.SEARCH_DATA_TYPES.REPORT]: {
-        listItem: ReportListItem,
-        getSections: getReportSections,
     },
 };
 
@@ -126,9 +74,4 @@ function getQueryHash(query: string, policyID?: string): number {
     return UserUtils.hashText(textToHash, 2 ** 32);
 }
 
-function getSearchParams() {
-    const topmostCentralPaneRoute = getTopmostCentralPaneRoute(navigationRef.getRootState() as State<RootStackParamList>);
-    return topmostCentralPaneRoute?.params;
-}
-
-export {getListItem, getQueryHash, getSearchType, getSections, getShouldShowColumn, getShouldShowMerchant, getSearchParams};
+export {getListItem, getQueryHash, getSections, getShouldShowColumn, getShouldShowMerchant, getSearchType};

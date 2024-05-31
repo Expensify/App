@@ -9,7 +9,6 @@ import type {ThreeDotsMenuItem} from '@components/HeaderWithBackButton/types';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MultipleAvatars from '@components/MultipleAvatars';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
@@ -146,7 +145,7 @@ function HeaderView({
         }
 
         // Task is not closed
-        if (ReportUtils.canWriteInReport(report) && report.stateNum !== CONST.REPORT.STATE_NUM.APPROVED && !ReportUtils.isClosedReport(report) && canModifyTask) {
+        if (ReportUtils.canWriteInReport(report) && report.stateNum !== CONST.REPORT.STATE_NUM.APPROVED && report.statusNum !== CONST.REPORT.STATUS_NUM.CLOSED && canModifyTask) {
             threeDotMenuItems.push({
                 icon: Expensicons.Trashcan,
                 text: translate('common.delete'),
@@ -155,7 +154,9 @@ function HeaderView({
         }
     }
 
-    const join = Session.checkIfActionIsAllowed(() => Report.joinRoom(report));
+    const join = Session.checkIfActionIsAllowed(() =>
+        Report.updateNotificationPreference(reportID, report.notificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, false, report.parentReportID, report.parentReportActionID),
+    );
 
     const canJoin = ReportUtils.canJoinChat(report, parentReportAction, policy);
     if (canJoin) {
@@ -264,12 +265,10 @@ function HeaderView({
                                             size={defaultSubscriptSize}
                                         />
                                     ) : (
-                                        <OfflineWithFeedback pendingAction={report.pendingFields?.avatar}>
-                                            <MultipleAvatars
-                                                icons={icons}
-                                                shouldShowTooltip={!isChatRoom || isChatThread}
-                                            />
-                                        </OfflineWithFeedback>
+                                        <MultipleAvatars
+                                            icons={icons}
+                                            shouldShowTooltip={!isChatRoom || isChatThread}
+                                        />
                                     )}
                                     <View style={[styles.flex1, styles.flexColumn]}>
                                         <DisplayNames

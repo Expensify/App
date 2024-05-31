@@ -1,4 +1,5 @@
 import type {NavigationState} from '@react-navigation/native';
+import PropTypes from 'prop-types';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {createContext, forwardRef, useCallback, useMemo, useState} from 'react';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
@@ -15,6 +16,15 @@ type CurrentReportIDContextProviderProps = {
 };
 
 const CurrentReportIDContext = createContext<CurrentReportIDContextValue | null>(null);
+
+// TODO: Remove when depended components are migrated to TypeScript.
+const withCurrentReportIDPropTypes = {
+    /** Function to update the state */
+    updateCurrentReportID: PropTypes.func.isRequired,
+
+    /** The top most report id */
+    currentReportID: PropTypes.string,
+};
 
 const withCurrentReportIDDefaultProps = {
     currentReportID: '',
@@ -85,5 +95,5 @@ export default function withCurrentReportID<TProps extends CurrentReportIDContex
     return forwardRef(WithCurrentReportID);
 }
 
-export {withCurrentReportIDDefaultProps, CurrentReportIDContextProvider, CurrentReportIDContext};
+export {withCurrentReportIDPropTypes, withCurrentReportIDDefaultProps, CurrentReportIDContextProvider, CurrentReportIDContext};
 export type {CurrentReportIDContextValue};

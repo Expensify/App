@@ -1,7 +1,7 @@
 import React from 'react';
 import VideoPlayer from '@components/VideoPlayer';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {AttachmentViewProps} from '..';
 
 type AttachmentViewVideoProps = Pick<AttachmentViewProps, 'duration' | 'isHovered'> & {
@@ -12,13 +12,13 @@ type AttachmentViewVideoProps = Pick<AttachmentViewProps, 'duration' | 'isHovere
 };
 
 function AttachmentViewVideo({source, isHovered = false, shouldUseSharedVideoElement = false, duration = 0}: AttachmentViewVideoProps) {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isSmallScreenWidth} = useWindowDimensions();
     const styles = useThemeStyles();
 
     return (
         <VideoPlayer
             url={source}
-            shouldUseSharedVideoElement={shouldUseSharedVideoElement && !shouldUseNarrowLayout}
+            shouldUseSharedVideoElement={shouldUseSharedVideoElement && !isSmallScreenWidth}
             isVideoHovered={isHovered}
             videoDuration={duration}
             style={[styles.w100, styles.h100]}

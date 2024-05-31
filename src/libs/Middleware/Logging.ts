@@ -1,5 +1,4 @@
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
-import type HttpsError from '@libs/Errors/HttpsError';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import type Request from '@src/types/onyx/Request';
@@ -43,7 +42,7 @@ const Logging: Middleware = (response, request) => {
             logRequestDetails(`Finished API request in ${Date.now() - startTime}ms`, request, data);
             return data;
         })
-        .catch((error: HttpsError) => {
+        .catch((error) => {
             const logParams: Record<string, unknown> = {
                 message: error.message,
                 status: error.status,
@@ -71,12 +70,12 @@ const Logging: Middleware = (response, request) => {
                     CONST.ERROR.IOS_NETWORK_CONNECTION_LOST_RUSSIAN,
                     CONST.ERROR.IOS_NETWORK_CONNECTION_LOST_SWEDISH,
                     CONST.ERROR.IOS_NETWORK_CONNECTION_LOST_SPANISH,
-                ].some((message) => message === error.message)
+                ].includes(error.message)
             ) {
                 // These errors seem to happen for native devices with interrupted connections. Often we will see logs about Pusher disconnecting together with these.
                 // This type of error may also indicate a problem with SSL certs.
                 Log.hmmm('[Network] API request error: Connection interruption likely', logParams);
-            } else if ([CONST.ERROR.FIREFOX_DOCUMENT_LOAD_ABORTED, CONST.ERROR.SAFARI_DOCUMENT_LOAD_ABORTED].some((message) => message === error.message)) {
+            } else if ([CONST.ERROR.FIREFOX_DOCUMENT_LOAD_ABORTED, CONST.ERROR.SAFARI_DOCUMENT_LOAD_ABORTED].includes(error.message)) {
                 // This message can be observed page load is interrupted (closed or navigated away).
                 Log.hmmm('[Network] API request error: User likely navigated away from or closed browser', logParams);
             } else if (error.message === CONST.ERROR.IOS_LOAD_FAILED) {

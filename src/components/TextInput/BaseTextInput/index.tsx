@@ -371,9 +371,7 @@ function BaseTextInput(
 
                                     // Explicitly change boxSizing attribute for mobile chrome in order to apply line-height
                                     // for the issue mentioned here https://github.com/Expensify/App/issues/26735
-                                    // Set overflow property to enable the parent flexbox to shrink its size
-                                    // (See https://github.com/Expensify/App/issues/41766)
-                                    !isMultiline && Browser.isMobileChrome() && {boxSizing: 'content-box', height: undefined, ...styles.overflowAuto},
+                                    !isMultiline && Browser.isMobileChrome() && {boxSizing: 'content-box', height: undefined},
 
                                     // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
                                     ...(autoGrowHeight

@@ -7,7 +7,6 @@ import {ShowContextMenuContext, showContextMenuForReport} from '@components/Show
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
-import * as Browser from '@libs/Browser';
 import fileDownload from '@libs/fileDownload';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as Download from '@userActions/Download';
@@ -49,7 +48,7 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', dow
                             return;
                         }
                         Download.setDownload(sourceID, true);
-                        fileDownload(sourceURLWithAuth, displayName, '', Browser.isMobileSafari()).then(() => Download.setDownload(sourceID, false));
+                        fileDownload(sourceURLWithAuth, displayName).then(() => Download.setDownload(sourceID, false));
                     }}
                     onPressIn={onPressIn}
                     onPressOut={onPressOut}

@@ -80,7 +80,6 @@ function CountrySelectionPage({route, navigation}: CountrySelectionPageProps) {
                 sections={[{data: searchResults}]}
                 ListItem={RadioListItem}
                 onSelectRow={selectCountry}
-                shouldDebounceRowSelect
                 onChangeText={setSearchValue}
                 initiallyFocusedOptionKey={currentCountry}
                 shouldUseDynamicMaxToRenderPerBatch

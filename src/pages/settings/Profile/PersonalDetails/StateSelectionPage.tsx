@@ -105,7 +105,6 @@ function StateSelectionPage() {
 
             <SelectionList
                 onSelectRow={selectCountryState}
-                shouldDebounceRowSelect
                 headerMessage={headerMessage}
                 // Label can be an empty string
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing

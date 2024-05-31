@@ -7,6 +7,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ReportWelcomeText from '@components/ReportWelcomeText';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -37,6 +38,7 @@ type ReportActionItemCreatedProps = ReportActionItemCreatedOnyxProps & {
 };
 function ReportActionItemCreated(props: ReportActionItemCreatedProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
 
     const {translate} = useLocalize();
     const {isSmallScreenWidth, isLargeScreenWidth} = useWindowDimensions();
@@ -60,29 +62,27 @@ function ReportActionItemCreated(props: ReportActionItemCreatedProps) {
             onClose={() => navigateToConciergeChatAndDeleteReport(props.report?.reportID ?? props.reportID)}
             needsOffscreenAlphaCompositing
         >
-            <View style={[styles.pRelative]}>
+            <View style={StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth)}>
                 <AnimatedEmptyStateBackground />
                 <View
                     accessibilityLabel={translate('accessibilityHints.chatWelcomeMessage')}
-                    style={[styles.p5]}
+                    style={[styles.p5, StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}
                 >
-                    <OfflineWithFeedback pendingAction={props.report?.pendingFields?.avatar}>
-                        <PressableWithoutFeedback
-                            onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
-                            style={[styles.mh5, styles.mb3, styles.alignSelfStart]}
-                            accessibilityLabel={translate('common.details')}
-                            role={CONST.ROLE.BUTTON}
-                            disabled={shouldDisableDetailPage}
-                        >
-                            <MultipleAvatars
-                                icons={icons}
-                                size={isLargeScreenWidth || (icons && icons.length < 3) ? CONST.AVATAR_SIZE.LARGE : CONST.AVATAR_SIZE.MEDIUM}
-                                shouldStackHorizontally
-                                shouldDisplayAvatarsInRows={isSmallScreenWidth}
-                                maxAvatarsInRow={isSmallScreenWidth ? CONST.AVATAR_ROW_SIZE.DEFAULT : CONST.AVATAR_ROW_SIZE.LARGE_SCREEN}
-                            />
-                        </PressableWithoutFeedback>
-                    </OfflineWithFeedback>
+                    <PressableWithoutFeedback
+                        onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
+                        style={[styles.mh5, styles.mb3, styles.alignSelfStart]}
+                        accessibilityLabel={translate('common.details')}
+                        role={CONST.ROLE.BUTTON}
+                        disabled={shouldDisableDetailPage}
+                    >
+                        <MultipleAvatars
+                            icons={icons}
+                            size={isLargeScreenWidth || (icons && icons.length < 3) ? CONST.AVATAR_SIZE.LARGE : CONST.AVATAR_SIZE.MEDIUM}
+                            shouldStackHorizontally
+                            shouldDisplayAvatarsInRows={isSmallScreenWidth}
+                            maxAvatarsInRow={isSmallScreenWidth ? CONST.AVATAR_ROW_SIZE.DEFAULT : CONST.AVATAR_ROW_SIZE.LARGE_SCREEN}
+                        />
+                    </PressableWithoutFeedback>
                     <View style={[styles.ph5]}>
                         <ReportWelcomeText
                             report={props.report}

@@ -38,9 +38,6 @@ type Waypoint = {
 
     /** Address street line 2 */
     street2?: string;
-
-    /** A unique key for waypoint is required for correct draggable list rendering */
-    keyForList?: string;
 };
 
 type WaypointCollection = Record<string, RecentWaypoint | Waypoint>;
@@ -272,7 +269,6 @@ export type {
     Comment,
     Receipt,
     Waypoint,
-    Routes,
     ReceiptError,
     ReceiptErrors,
     TransactionPendingFieldsKey,

@@ -80,7 +80,6 @@ function QuickbooksPreferredExporterConfigurationPage({policy}: WithPolicyConnec
                     sections={[{data}]}
                     ListItem={RadioListItem}
                     onSelectRow={selectExporter}
-                    shouldDebounceRowSelect
                     initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
                 />
             </ScreenWrapper>

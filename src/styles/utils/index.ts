@@ -401,20 +401,11 @@ function getZoomSizingStyle(
 }
 
 /**
- * Returns a style with width set to the specified number
+ * Returns auto grow text input style
  */
 function getWidthStyle(width: number): ViewStyle & ImageStyle {
     return {
         width,
-    };
-}
-
-/**
- * Returns a style with border radius set to the specified number
- */
-function getBorderRadiusStyle(borderRadius: number): ViewStyle & ImageStyle {
-    return {
-        borderRadius,
     };
 }
 
@@ -698,7 +689,7 @@ function getMinimumHeight(minHeight: number): ViewStyle {
 /**
  * Get minimum width as style
  */
-function getMinimumWidth(minWidth: number): ViewStyle & ImageStyle {
+function getMinimumWidth(minWidth: number): ViewStyle {
     return {
         minWidth,
     };
@@ -779,40 +770,37 @@ function getHorizontalStackedOverlayAvatarStyle(oneAvatarSize: AvatarSize, oneAv
 /**
  * Gets the correct size for the empty state background image based on screen dimensions
  */
-function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean): ImageStyle {
+function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean, isMoneyOrTaskReport = false): ImageStyle {
+    const emptyStateBackground = isMoneyOrTaskReport ? CONST.EMPTY_STATE_BACKGROUND.MONEY_OR_TASK_REPORT : CONST.EMPTY_STATE_BACKGROUND;
+
     if (isSmallScreenWidth) {
         return {
-            position: 'absolute',
-            bottom: 0,
-            height: CONST.EMPTY_STATE_BACKGROUND.SMALL_SCREEN.IMAGE_HEIGHT,
+            height: emptyStateBackground.SMALL_SCREEN.IMAGE_HEIGHT,
             width: '100%',
+            position: 'absolute',
         };
     }
 
     return {
-        position: 'absolute',
-        bottom: 0,
-        height: CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.IMAGE_HEIGHT,
+        height: emptyStateBackground.WIDE_SCREEN.IMAGE_HEIGHT,
         width: '100%',
+        position: 'absolute',
     };
 }
 
 /**
- * Gets the style for the container of the empty state background image that overlap the created report action
+ * Gets the correct top margin size for the chat welcome message based on screen dimensions
  */
-function getReportWelcomeBackgroundContainerStyle(isSmallScreenWidth: boolean): ViewStyle {
+function getReportWelcomeTopMarginStyle(isSmallScreenWidth: boolean, isMoneyOrTaskReport = false): ViewStyle {
+    const emptyStateBackground = isMoneyOrTaskReport ? CONST.EMPTY_STATE_BACKGROUND.MONEY_OR_TASK_REPORT : CONST.EMPTY_STATE_BACKGROUND;
     if (isSmallScreenWidth) {
         return {
-            position: 'absolute',
-            top: CONST.EMPTY_STATE_BACKGROUND.OVERLAP,
-            width: '100%',
+            marginTop: emptyStateBackground.SMALL_SCREEN.VIEW_HEIGHT,
         };
     }
 
     return {
-        position: 'absolute',
-        top: CONST.EMPTY_STATE_BACKGROUND.OVERLAP,
-        width: '100%',
+        marginTop: emptyStateBackground.WIDE_SCREEN.VIEW_HEIGHT,
     };
 }
 
@@ -832,6 +820,23 @@ function getLineHeightStyle(lineHeight: number): TextStyle {
     return {
         lineHeight,
     };
+}
+
+/**
+ * Gets the correct size for the empty state container based on screen dimensions
+ */
+function getReportWelcomeContainerStyle(isSmallScreenWidth: boolean, isMoneyOrTaskReport = false, shouldShowAnimatedBackground = true): ViewStyle {
+    const emptyStateBackground = isMoneyOrTaskReport ? CONST.EMPTY_STATE_BACKGROUND.MONEY_OR_TASK_REPORT : CONST.EMPTY_STATE_BACKGROUND;
+    const baseStyles: ViewStyle = {
+        display: 'flex',
+        justifyContent: 'space-between',
+    };
+
+    if (shouldShowAnimatedBackground) {
+        baseStyles.minHeight = isSmallScreenWidth ? emptyStateBackground.SMALL_SCREEN.CONTAINER_MINHEIGHT : emptyStateBackground.WIDE_SCREEN.CONTAINER_MINHEIGHT;
+    }
+
+    return baseStyles;
 }
 
 type GetBaseAutoCompleteSuggestionContainerStyleParams = {
@@ -1148,7 +1153,8 @@ const staticStyleUtils = {
     getHorizontalStackedAvatarStyle,
     getHorizontalStackedOverlayAvatarStyle,
     getReportWelcomeBackgroundImageStyle,
-    getReportWelcomeBackgroundContainerStyle,
+    getReportWelcomeTopMarginStyle,
+    getReportWelcomeContainerStyle,
     getBaseAutoCompleteSuggestionContainerStyle,
     getBorderColorStyle,
     getCheckboxPressableStyle,
@@ -1193,7 +1199,6 @@ const staticStyleUtils = {
     getButtonStyleWithIcon,
     getCharacterWidth,
     getAmountWidth,
-    getBorderRadiusStyle,
 };
 
 const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
@@ -1324,7 +1329,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.BUTTON_STATES.PRESSED:
                 return {backgroundColor: theme.buttonPressedBG};
             case CONST.BUTTON_STATES.ACTIVE:
-                return isMenuItem ? {backgroundColor: theme.hoverComponentBG} : {backgroundColor: theme.buttonHoveredBG};
+                return isMenuItem ? {backgroundColor: theme.border} : {backgroundColor: theme.buttonHoveredBG};
             case CONST.BUTTON_STATES.DISABLED:
             case CONST.BUTTON_STATES.DEFAULT:
             default:
@@ -1559,9 +1564,6 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     getSearchTableColumnStyles: (columnName: string): ViewStyle => {
         let columnWidth;
         switch (columnName) {
-            case CONST.SEARCH_TABLE_COLUMNS.RECEIPT:
-                columnWidth = {...getWidthStyle(variables.w36), ...styles.alignItemsCenter};
-                break;
             case CONST.SEARCH_TABLE_COLUMNS.DATE:
                 columnWidth = getWidthStyle(variables.w44);
                 break;
@@ -1588,10 +1590,6 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
 
         return columnWidth;
     },
-
-    getTextOverflowStyle: (overflow: string): TextStyle => ({
-        textOverflow: overflow,
-    }),
 
     /**
      * Returns container styles for showing the icons in MultipleAvatars/SubscriptAvatar

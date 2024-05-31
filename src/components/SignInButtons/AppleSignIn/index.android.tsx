@@ -37,11 +37,11 @@ function AppleSignIn() {
     const handleSignIn = () => {
         appleSignInRequest()
             .then((token) => Session.beginAppleSignIn(token))
-            .catch((error: Record<string, unknown>) => {
-                if (error.message === appleAuthAndroid.Error.SIGNIN_CANCELLED) {
+            .catch((e) => {
+                if (e.message === appleAuthAndroid.Error.SIGNIN_CANCELLED) {
                     return null;
                 }
-                Log.alert('[Apple Sign In] Apple authentication failed', error);
+                Log.alert('[Apple Sign In] Apple authentication failed', e);
             });
     };
     return (

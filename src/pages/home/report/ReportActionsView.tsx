@@ -12,6 +12,7 @@ import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import DateUtils from '@libs/DateUtils';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
+import Log from '@libs/Log';
 import type {CentralPaneNavigatorParamList} from '@libs/Navigation/types';
 import * as NumberUtils from '@libs/NumberUtils';
 import {generateNewRandomInt} from '@libs/NumberUtils';
@@ -104,7 +105,6 @@ function ReportActionsView({
     const didLayout = useRef(false);
     const didLoadOlderChats = useRef(false);
     const didLoadNewerChats = useRef(false);
-    const {isOffline} = useNetwork();
 
     // triggerListID is used when navigating to a chat with messages loaded from LHN. Typically, these include thread actions, task actions, etc. Since these messages aren't the latest,we don't maintain their position and instead trigger a recalculation of their positioning in the list.
     // we don't set currentReportActionID on initial render as linkedID as it should trigger visibleReportActions after linked message was positioned
@@ -128,14 +128,6 @@ function ReportActionsView({
 
         Report.openReport(reportID, reportActionID);
     };
-
-    useEffect(() => {
-        // When we linked to message - we do not need to wait for initial actions - they already exists
-        if (!reportActionID || !isOffline) {
-            return;
-        }
-        Report.updateLoadingInitialReportAction(report.reportID);
-    }, [isOffline, report.reportID, reportActionID]);
 
     useLayoutEffect(() => {
         setCurrentReportActionID('');
@@ -208,7 +200,7 @@ function ReportActionsView({
      */
     const fetchNewerAction = useCallback(
         (newestReportAction: OnyxTypes.ReportAction) => {
-            if (isLoadingNewerReportActions || isLoadingInitialReportActions || (reportActionID && isOffline)) {
+            if (isLoadingNewerReportActions || isLoadingInitialReportActions) {
                 return;
             }
 
@@ -225,7 +217,7 @@ function ReportActionsView({
                 Report.getNewerActions(reportID, newestReportAction.reportActionID);
             }
         },
-        [isLoadingNewerReportActions, isLoadingInitialReportActions, reportActionID, isOffline, transactionThreadReport, reportActionIDMap, reportID],
+        [isLoadingNewerReportActions, isLoadingInitialReportActions, reportID, transactionThreadReport, reportActionIDMap],
     );
 
     const hasMoreCached = reportActions.length < combinedReportActions.length;
@@ -297,6 +289,17 @@ function ReportActionsView({
      */
     const loadOlderChats = useCallback(
         (force = false) => {
+            Log.info(
+                `[ReportActionsView] loadOlderChats ${JSON.stringify({
+                    isOffline: network.isOffline,
+                    isLoadingOlderReportActions,
+                    isLoadingInitialReportActions,
+                    oldestReportActionID: oldestReportAction?.reportActionID,
+                    hasCreatedAction,
+                    isTransactionThread: !isEmptyObject(transactionThreadReport),
+                })}`,
+            );
+
             // Only fetch more if we are neither already fetching (so that we don't initiate duplicate requests) nor offline.
             if (
                 !force &&
@@ -348,6 +351,18 @@ function ReportActionsView({
             // and there are fewer than 23 items, indicating we've reached the oldest message.
             const isLoadingOlderReportsFirstNeeded = checkIfContentSmallerThanList() && reportActions.length > 23;
 
+            Log.info(
+                `[ReportActionsView] loadNewerChats ${JSON.stringify({
+                    isOffline: network.isOffline,
+                    isLoadingNewerReportActions,
+                    isLoadingInitialReportActions,
+                    newestReportAction: newestReportAction.pendingAction,
+                    firstReportActionID: newestReportAction?.reportActionID,
+                    isLoadingOlderReportsFirstNeeded,
+                    reportActionID,
+                })}`,
+            );
+
             if (
                 !force &&
                 (!reportActionID ||
@@ -357,6 +372,7 @@ function ReportActionsView({
                     // If there was an error only try again once on initial mount. We should also still load
                     // more in case we have cached messages.
                     (!hasMoreCached && didLoadNewerChats.current && hasLoadingNewerReportActionsError) ||
+                    network.isOffline ||
                     newestReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
             ) {
                 return;
@@ -375,6 +391,7 @@ function ReportActionsView({
             reportActionID,
             indexOfLinkedAction,
             handleReportActionPagination,
+            network.isOffline,
             reportActions.length,
             newestReportAction,
             isFocused,
@@ -613,7 +630,6 @@ export default Performance.withRenderTrace({id: '<ReportActionsView> rendering'}
         },
         transactionThreadReport: {
             key: ({transactionThreadReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
-            initialValue: {} as OnyxTypes.Report,
         },
     })(MemoizedReportActionsView),
 );

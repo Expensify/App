@@ -1,5 +1,4 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import lodashDebounce from 'lodash/debounce';
 import isEmpty from 'lodash/isEmpty';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
@@ -36,7 +35,6 @@ function BaseSelectionList<TItem extends ListItem>(
         ListItem,
         canSelectMultiple = false,
         onSelectRow,
-        shouldDebounceRowSelect = false,
         onCheckboxPress,
         onSelectAll,
         onDismissError,
@@ -82,8 +80,6 @@ function BaseSelectionList<TItem extends ListItem>(
         listHeaderContent,
         onEndReached = () => {},
         onEndReachedThreshold,
-        windowSize = 5,
-        updateCellsBatchingPeriod = 50,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -107,10 +103,9 @@ function BaseSelectionList<TItem extends ListItem>(
     const incrementPage = () => setCurrentPage((prev) => prev + 1);
 
     /**
-     * Iterates through the sections and items inside each section, and builds 4 arrays along the way:
+     * Iterates through the sections and items inside each section, and builds 3 arrays along the way:
      * - `allOptions`: Contains all the items in the list, flattened, regardless of section
-     * - `disabledOptionsIndexes`: Contains the indexes of all the unselectable and disabled items in the list
-     * - `disabledArrowKeyOptionsIndexes`: Contains the indexes of item that is not navigatable by the arrow key. The list is separated from disabledOptionsIndexes because unselectable item is still navigatable by the arrow key.
+     * - `disabledOptionsIndexes`: Contains the indexes of all the disabled items in the list, to be used by the ArrowKeyFocusManager
      * - `itemLayouts`: Contains the layout information for each item, header and footer in the list,
      * so we can calculate the position of any given item when scrolling programmatically
      */
@@ -118,7 +113,6 @@ function BaseSelectionList<TItem extends ListItem>(
         const allOptions: TItem[] = [];
 
         const disabledOptionsIndexes: number[] = [];
-        const disabledArrowKeyOptionsIndexes: number[] = [];
         let disabledIndex = 0;
 
         let offset = 0;
@@ -140,13 +134,9 @@ function BaseSelectionList<TItem extends ListItem>(
                 });
 
                 // If disabled, add to the disabled indexes array
-                const isItemDisabled = !!section.isDisabled || (item.isDisabled && !item.isSelected);
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                if (isItemDisabled || item.isDisabledCheckbox) {
+                if (!!section.isDisabled || (item.isDisabled && !item.isSelected) || item.isDisabledCheckbox) {
                     disabledOptionsIndexes.push(disabledIndex);
-                    if (isItemDisabled) {
-                        disabledArrowKeyOptionsIndexes.push(disabledIndex);
-                    }
                 }
                 disabledIndex += 1;
 
@@ -179,7 +169,6 @@ function BaseSelectionList<TItem extends ListItem>(
             allOptions,
             selectedOptions,
             disabledOptionsIndexes,
-            disabledArrowKeyOptionsIndexes,
             itemLayouts,
             allSelected: selectedOptions.length > 0 && selectedOptions.length === allOptions.length - disabledOptionsIndexes.length,
         };
@@ -241,30 +230,27 @@ function BaseSelectionList<TItem extends ListItem>(
         [flattenedSections.allOptions],
     );
 
-    const [disabledArrowKeyIndexes, setDisabledArrowKeyIndexes] = useState(flattenedSections.disabledArrowKeyOptionsIndexes);
+    const [disabledIndexes, setDisabledIndexes] = useState(flattenedSections.disabledOptionsIndexes);
     useEffect(() => {
-        if (arraysEqual(disabledArrowKeyIndexes, flattenedSections.disabledArrowKeyOptionsIndexes)) {
+        if (arraysEqual(disabledIndexes, flattenedSections.disabledOptionsIndexes)) {
             return;
         }
 
-        setDisabledArrowKeyIndexes(flattenedSections.disabledArrowKeyOptionsIndexes);
+        setDisabledIndexes(flattenedSections.disabledOptionsIndexes);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [flattenedSections.disabledArrowKeyOptionsIndexes]);
+    }, [flattenedSections.disabledOptionsIndexes]);
 
     // If `initiallyFocusedOptionKey` is not passed, we fall back to `-1`, to avoid showing the highlight on the first member
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: flattenedSections.allOptions.findIndex((option) => option.keyForList === initiallyFocusedOptionKey),
         maxIndex: Math.min(flattenedSections.allOptions.length - 1, CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage - 1),
-        disabledIndexes: disabledArrowKeyIndexes,
+        disabledIndexes,
         isActive: true,
         onFocusedIndexChange: (index: number) => {
             scrollToIndex(index, true);
         },
         isFocused,
     });
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    const debouncedOnSelectRow = useCallback(lodashDebounce(onSelectRow, 1000, {leading: true}), [onSelectRow]);
 
     /**
      * Logic to run when a row is selected, either with click/press or keyboard hotkeys.
@@ -287,11 +273,7 @@ function BaseSelectionList<TItem extends ListItem>(
             }
         }
 
-        if (shouldDebounceRowSelect) {
-            debouncedOnSelectRow(item);
-        } else {
-            onSelectRow(item);
-        }
+        onSelectRow(item);
 
         if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow && innerTextInputRef.current) {
             innerTextInputRef.current.focus();
@@ -315,11 +297,6 @@ function BaseSelectionList<TItem extends ListItem>(
 
         selectRow(focusedOption);
     };
-
-    // This debounce happens on the trailing edge because on repeated enter presses, rapid component state update cancels the existing debounce and the redundant
-    // enter presses runs the debounced function again.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    const debouncedSelectFocusedOption = useCallback(lodashDebounce(selectFocusedOption, 100), [selectFocusedOption]);
 
     /**
      * This function is used to compute the layout of any given item in our list.
@@ -426,16 +403,10 @@ function BaseSelectionList<TItem extends ListItem>(
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 // We're already handling the Enter key press in the useKeyboardShortcut hook, so we don't want the list item to submit the form
                 shouldPreventEnterKeySubmit
-                // Change this because of lint
-                rightHandSideComponent={rightHandSideComponent && (typeof rightHandSideComponent === 'function' ? rightHandSideComponent({} as TItem) : rightHandSideComponent)}
+                rightHandSideComponent={rightHandSideComponent}
                 keyForList={item.keyForList ?? ''}
                 isMultilineSupported={isRowMultilineSupported}
-                onFocus={() => {
-                    if (isDisabled) {
-                        return;
-                    }
-                    setFocusedIndex(normalizedIndex);
-                }}
+                onFocus={() => setFocusedIndex(normalizedIndex)}
                 shouldSyncFocus={!isTextInputFocusedRef.current}
             />
         );
@@ -473,26 +444,6 @@ function BaseSelectionList<TItem extends ListItem>(
         },
         [scrollToIndex, setFocusedIndex],
     );
-
-    useEffect(() => {
-        if (!(shouldDebounceRowSelect && debouncedOnSelectRow.cancel)) {
-            return;
-        }
-
-        return () => {
-            debouncedOnSelectRow.cancel();
-        };
-    }, [debouncedOnSelectRow, shouldDebounceRowSelect]);
-
-    useEffect(() => {
-        if (!(shouldDebounceRowSelect && debouncedSelectFocusedOption.cancel)) {
-            return;
-        }
-
-        return () => {
-            debouncedSelectFocusedOption.cancel();
-        };
-    }, [debouncedSelectFocusedOption, shouldDebounceRowSelect]);
 
     /** Focuses the text input when the component comes into focus and after any navigation animations finish. */
     useFocusEffect(
@@ -583,7 +534,7 @@ function BaseSelectionList<TItem extends ListItem>(
     useImperativeHandle(ref, () => ({scrollAndHighlightItem}), [scrollAndHighlightItem]);
 
     /** Selects row when pressing Enter */
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, shouldDebounceRowSelect ? debouncedSelectFocusedOption : selectFocusedOption, {
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
         captureOnInputs: true,
         shouldBubble: !flattenedSections.allOptions[focusedIndex],
         shouldStopPropagation,
@@ -643,7 +594,7 @@ function BaseSelectionList<TItem extends ListItem>(
                                 selectTextOnFocus
                                 spellCheck={false}
                                 iconLeft={textInputIconLeft}
-                                onSubmitEditing={shouldDebounceRowSelect ? debouncedSelectFocusedOption : selectFocusedOption}
+                                onSubmitEditing={selectFocusedOption}
                                 blurOnSubmit={!!flattenedSections.allOptions.length}
                                 isLoading={isLoadingNewOptions}
                                 testID="selection-list-text-input"
@@ -653,7 +604,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     )}
                     {/* If we are loading new options we will avoid showing any header message. This is mostly because one of the header messages says there are no options. */}
                     {/* This is misleading because we might be in the process of loading fresh options from the server. */}
-                    {(!isLoadingNewOptions || headerMessage !== translate('common.noResultsFound')) && !!headerMessage && (
+                    {!isLoadingNewOptions && !!headerMessage && (
                         <View style={headerMessageStyle ?? [styles.ph5, styles.pb5]}>
                             <Text style={[styles.textLabel, styles.colorMuted]}>{headerMessage}</Text>
                         </View>
@@ -686,8 +637,7 @@ function BaseSelectionList<TItem extends ListItem>(
                                 showsVerticalScrollIndicator={showScrollIndicator}
                                 initialNumToRender={12}
                                 maxToRenderPerBatch={maxToRenderPerBatch}
-                                windowSize={windowSize}
-                                updateCellsBatchingPeriod={updateCellsBatchingPeriod}
+                                windowSize={5}
                                 viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
                                 testID="selection-list"
                                 onLayout={onSectionListLayout}

@@ -46,7 +46,7 @@ type GetModalStylesStyleUtil = {
 
 const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({theme, styles}) => ({
     getModalStyles: (type, windowDimensions, popoverAnchorPosition = {}, innerContainerStyle = {}, outerStyle = {}): GetModalStyles => {
-        const {windowWidth, isSmallScreenWidth} = windowDimensions;
+        const {isSmallScreenWidth, windowWidth} = windowDimensions;
 
         let modalStyle: GetModalStyles['modalStyle'] = {
             margin: 0,

@@ -10,7 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Category from '@userActions/Policy/Category';
+import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -30,7 +30,7 @@ function CreateCategoryPage({route, policyCategories}: CreateCategoryPageProps) 
 
     const createCategory = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
-            Category.createPolicyCategory(route.params.policyID, values.categoryName.trim());
+            Policy.createPolicyCategory(route.params.policyID, values.categoryName.trim());
         },
         [route.params.policyID],
     );

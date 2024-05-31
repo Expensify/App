@@ -49,9 +49,6 @@ type AvatarWithImagePickerProps = {
     /** Avatar source to display */
     source?: AvatarSource;
 
-    /** Account id of user for which avatar is displayed  */
-    avatarID?: number | string;
-
     /** Additional style props */
     style?: StyleProp<ViewStyle>;
 
@@ -126,9 +123,6 @@ type AvatarWithImagePickerProps = {
 
     /** Optionally override the default "Edit" icon */
     editIcon?: IconAsset;
-
-    /** Determines if a style utility function should be used for calculating the PopoverMenu anchor position. */
-    shouldUseStyleUtilityForAnchorPosition?: boolean;
 };
 
 function AvatarWithImagePicker({
@@ -142,7 +136,6 @@ function AvatarWithImagePicker({
     errorRowStyles,
     onErrorClose = () => {},
     source = '',
-    avatarID,
     fallbackIcon = Expensicons.FallbackAvatar,
     size = CONST.AVATAR_SIZE.DEFAULT,
     type = CONST.ICON_TYPE_AVATAR,
@@ -159,7 +152,6 @@ function AvatarWithImagePicker({
     enablePreview = false,
     shouldDisableViewPhoto = false,
     editIcon = Expensicons.Pencil,
-    shouldUseStyleUtilityForAnchorPosition = false,
 }: AvatarWithImagePickerProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -303,11 +295,13 @@ function AvatarWithImagePicker({
     }, [isMenuVisible, windowWidth]);
 
     return (
-        <View style={style}>
+        <View style={StyleSheet.flatten([styles.alignItemsCenter, style])}>
             <View style={styles.w100}>
                 <OfflineWithFeedback
+                    pendingAction={pendingAction}
                     errors={errors}
                     errorRowStyles={errorRowStyles}
+                    style={type === CONST.ICON_TYPE_AVATAR && styles.alignItemsCenter}
                     onClose={onErrorClose}
                 >
                     <Tooltip
@@ -326,16 +320,15 @@ function AvatarWithImagePicker({
                             accessibilityLabel={translate('avatarWithImagePicker.editImage')}
                             disabled={isAvatarCropModalOpen || (disabled && !enablePreview)}
                             disabledStyle={disabledStyle}
-                            style={[styles.pRelative, avatarStyle, type === CONST.ICON_TYPE_AVATAR && styles.alignSelfCenter]}
+                            style={[styles.pRelative, avatarStyle]}
                             ref={anchorRef}
                         >
-                            <OfflineWithFeedback pendingAction={pendingAction}>
+                            <View>
                                 {source ? (
                                     <Avatar
                                         containerStyles={avatarStyle}
                                         imageStyles={[avatarStyle, styles.alignSelfCenter]}
                                         source={source}
-                                        avatarID={avatarID}
                                         fallbackIcon={fallbackIcon}
                                         size={size}
                                         type={type}
@@ -343,7 +336,7 @@ function AvatarWithImagePicker({
                                 ) : (
                                     <DefaultAvatar />
                                 )}
-                            </OfflineWithFeedback>
+                            </View>
                             {!disabled && (
                                 <View style={StyleSheet.flatten([styles.smallEditIcon, styles.smallAvatarEditIcon, editIconStyle])}>
                                     <Icon
@@ -400,7 +393,7 @@ function AvatarWithImagePicker({
                                             }
                                         }}
                                         menuItems={menuItems}
-                                        anchorPosition={shouldUseStyleUtilityForAnchorPosition ? styles.popoverMenuOffset(windowWidth) : popoverPosition}
+                                        anchorPosition={popoverPosition}
                                         anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
                                         withoutOverlay
                                         anchorRef={anchorRef}

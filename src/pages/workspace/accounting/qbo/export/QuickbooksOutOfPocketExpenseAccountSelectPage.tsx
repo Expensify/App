@@ -76,7 +76,6 @@ function QuickbooksOutOfPocketExpenseAccountSelectPage({policy}: WithPolicyConne
                     sections={[{data}]}
                     ListItem={RadioListItem}
                     onSelectRow={selectExportAccount}
-                    shouldDebounceRowSelect
                     initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
                 />
             </ScreenWrapper>

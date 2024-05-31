@@ -153,7 +153,7 @@ export default {
      */
     clearNotifications(shouldClearNotification: (notificationData: LocalNotificationData) => boolean) {
         Object.values(notificationCache)
-            .filter((notification) => shouldClearNotification(notification.data as LocalNotificationData))
+            .filter((notification) => shouldClearNotification(notification.data))
             .forEach((notification) => notification.close());
     },
 };

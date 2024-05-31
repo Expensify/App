@@ -70,6 +70,7 @@ function DetailsPage({personalDetails, route, session}: DetailsPageProps) {
             accountID: optimisticAccountID,
             login,
             displayName: login,
+            avatar: UserUtils.getDefaultAvatar(optimisticAccountID),
         };
     }
 
@@ -114,8 +115,7 @@ function DetailsPage({personalDetails, route, session}: DetailsPageProps) {
                                                 <Avatar
                                                     containerStyles={[styles.avatarLarge, styles.mb3]}
                                                     imageStyles={[styles.avatarLarge]}
-                                                    source={details?.avatar}
-                                                    avatarID={details?.accountID}
+                                                    source={UserUtils.getAvatar(details?.avatar, details?.accountID)}
                                                     size={CONST.AVATAR_SIZE.LARGE}
                                                     fallbackIcon={details?.fallbackIcon}
                                                 />

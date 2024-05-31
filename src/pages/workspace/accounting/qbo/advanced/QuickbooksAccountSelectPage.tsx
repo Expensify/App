@@ -75,7 +75,6 @@ function QuickbooksAccountSelectPage({policy}: WithPolicyConnectionsProps) {
                     ListItem={RadioListItem}
                     headerContent={listHeaderComponent}
                     onSelectRow={saveSelection}
-                    shouldDebounceRowSelect
                     initiallyFocusedOptionKey={initiallyFocusedOptionKey}
                 />
             </ScreenWrapper>

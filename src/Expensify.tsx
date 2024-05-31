@@ -1,4 +1,3 @@
-import {Audio} from 'expo-av';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {NativeEventSubscription} from 'react-native';
 import {AppState, Linking} from 'react-native';
@@ -109,9 +108,6 @@ function Expensify({
     const isAuthenticated = useMemo(() => !!(session?.authToken ?? null), [session]);
     const autoAuthState = useMemo(() => session?.autoAuthState ?? '', [session]);
 
-    const isAuthenticatedRef = useRef(false);
-    isAuthenticatedRef.current = isAuthenticated;
-
     const contextValue = useMemo(
         () => ({
             isSplashHidden,
@@ -198,8 +194,7 @@ function Expensify({
 
         // Open chat report from a deep link (only mobile native)
         Linking.addEventListener('url', (state) => {
-            // We need to pass 'isAuthenticated' to avoid loading a non-existing profile page twice
-            Report.openReportFromDeepLink(state.url, !isAuthenticatedRef.current);
+            Report.openReportFromDeepLink(state.url);
         });
 
         return () => {
@@ -209,11 +204,6 @@ function Expensify({
             appStateChangeListener.current.remove();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
-    }, []);
-
-    // This is being done since we want to play sound even when iOS device is on silent mode, to align with other platforms.
-    useEffect(() => {
-        Audio.setAudioModeAsync({playsInSilentModeIOS: true});
     }, []);
 
     // Display a blank page until the onyx migration completes

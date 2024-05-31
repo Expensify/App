@@ -42,14 +42,14 @@ class ExtendedAct extends Act {
         if (opts.workflowFile) {
             workflowFiles = [path.basename(opts.workflowFile)];
         } else if (this['workflowFile'] !== this['cwd']) {
-            workflowFiles = [path.basename(this['workflowFile'] as string)];
+            workflowFiles = [path.basename(this['workflowFile'])];
         } else {
             const availableWorkflows = await this.list(undefined, opts.cwd, opts.workflowFile);
             workflowFiles = availableWorkflows.filter(filter).map((workflow: Workflow) => workflow.workflowFile);
         }
 
         return workflowFiles.map((workflowFile) => {
-            const jobMocker = new JobMocker(workflowFile, opts.cwd ?? (this['cwd'] as string));
+            const jobMocker = new JobMocker(workflowFile, opts.cwd ?? this['cwd']);
             return jobMocker.mock(opts.mockJobs);
         });
     }

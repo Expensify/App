@@ -130,7 +130,7 @@ const register: Register = (notificationID) => {
             // Refresh notification opt-in status NVP for the new user.
             refreshNotificationOptInStatus();
         })
-        .catch((error: Record<string, unknown>) => {
+        .catch((error) => {
             Log.warn('[PushNotification] Failed to register for push notifications! Reason: ', error);
         });
 };

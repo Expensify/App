@@ -6,10 +6,10 @@ import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react
 import {View} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import ControlSelection from '@libs/ControlSelection';
 import convertToLTR from '@libs/convertToLTR';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
@@ -353,7 +353,7 @@ function MenuItem(
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const combinedStyle = [style, styles.popoverMenuItem];
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isSmallScreenWidth} = useWindowDimensions();
     const {isExecuting, singleExecution, waitForNavigate} = useContext(MenuItemGroupContext) ?? {};
 
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
@@ -452,7 +452,7 @@ function MenuItem(
                 {(isHovered) => (
                     <PressableWithSecondaryInteraction
                         onPress={shouldCheckActionAllowedOnPress ? Session.checkIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction}
-                        onPressIn={() => shouldBlockSelection && shouldUseNarrowLayout && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+                        onPressIn={() => shouldBlockSelection && isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                         onPressOut={ControlSelection.unblock}
                         onSecondaryInteraction={onSecondaryInteraction}
                         wrapperStyle={outerWrapperStyle}
@@ -527,7 +527,7 @@ function MenuItem(
                                                         <Avatar
                                                             imageStyles={[styles.alignSelfCenter]}
                                                             size={CONST.AVATAR_SIZE.DEFAULT}
-                                                            source={icon}
+                                                            source={icon as AvatarSource}
                                                             fallbackIcon={fallbackIcon}
                                                             name={title}
                                                             avatarID={avatarID}
@@ -537,8 +537,7 @@ function MenuItem(
                                                     {iconType === CONST.ICON_TYPE_AVATAR && (
                                                         <Avatar
                                                             imageStyles={[styles.alignSelfCenter]}
-                                                            source={icon}
-                                                            avatarID={avatarID}
+                                                            source={icon as AvatarSource}
                                                             fallbackIcon={fallbackIcon}
                                                             size={avatarSize}
                                                         />

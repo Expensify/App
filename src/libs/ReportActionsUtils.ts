@@ -32,7 +32,6 @@ import Log from './Log';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import type {OptimisticIOUReportAction} from './ReportUtils';
-import StringUtils from './StringUtils';
 import * as TransactionUtils from './TransactionUtils';
 
 type LastVisibleMessage = {
@@ -310,7 +309,7 @@ function shouldIgnoreGap(currentReportAction: ReportAction | undefined, nextRepo
  * Returns a sorted and filtered list of report actions from a report and it's associated child
  * transaction thread report in order to correctly display reportActions from both reports in the one-transaction report view.
  */
-function getCombinedReportActions(reportActions: ReportAction[], transactionThreadReportActions: ReportAction[], reportID?: string): ReportAction[] {
+function getCombinedReportActions(reportActions: ReportAction[], transactionThreadReportActions: ReportAction[]): ReportAction[] {
     if (isEmptyObject(transactionThreadReportActions)) {
         return reportActions;
     }
@@ -318,14 +317,9 @@ function getCombinedReportActions(reportActions: ReportAction[], transactionThre
     // Filter out the created action from the transaction thread report actions, since we already have the parent report's created action in `reportActions`
     const filteredTransactionThreadReportActions = transactionThreadReportActions?.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
 
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    const isSelfDM = report?.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM;
     // Filter out request and send money request actions because we don't want to show any preview actions for one transaction reports
     const filteredReportActions = [...reportActions, ...filteredTransactionThreadReportActions].filter((action) => {
         const actionType = (action as OriginalMessageIOU).originalMessage?.type ?? '';
-        if (isSelfDM) {
-            return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && !isSentMoneyReportAction(action);
-        }
         return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && actionType !== CONST.IOU.REPORT_ACTION_TYPE.TRACK && !isSentMoneyReportAction(action);
     });
 
@@ -405,7 +399,8 @@ function getMostRecentIOURequestActionID(reportActions: ReportAction[] | null): 
 function extractLinksFromMessageHtml(reportAction: OnyxEntry<ReportAction>): string[] {
     const htmlContent = reportAction?.message?.[0]?.html;
 
-    const regex = CONST.REGEX_LINK_IN_ANCHOR;
+    // Regex to get link in href prop inside of <a/> component
+    const regex = /<a\s+(?:[^>]*?\s+)?href="([^"]*)"/gi;
 
     if (!htmlContent) {
         return [];
@@ -506,17 +501,6 @@ function isReportActionDeprecated(reportAction: OnyxEntry<ReportAction>, key: st
         return true;
     }
 
-    const deprecatedOldDotReportActions: ActionName[] = [
-        CONST.REPORT.ACTIONS.TYPE.DELETED_ACCOUNT,
-        CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REQUESTED,
-        CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP_REQUESTED,
-        CONST.REPORT.ACTIONS.TYPE.DONATION,
-    ];
-    if (deprecatedOldDotReportActions.includes(reportAction.actionName as ActionName)) {
-        Log.info('Front end filtered out reportAction for being an older, deprecated report action', false, reportAction);
-        return true;
-    }
-
     return false;
 }
 
@@ -577,23 +561,6 @@ function shouldHideNewMarker(reportAction: OnyxEntry<ReportAction>): boolean {
 }
 
 /**
- * Checks whether an action is actionable track expense.
- *
- */
-function isActionableTrackExpense(reportAction: OnyxEntry<ReportAction>): reportAction is ReportActionBase & OriginalMessageActionableTrackedExpenseWhisper {
-    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER;
-}
-
-/**
- * Checks whether an action is actionable track expense and resolved.
- *
- */
-function isResolvedActionTrackExpense(reportAction: OnyxEntry<ReportAction>): boolean {
-    const resolution = (reportAction?.originalMessage as OriginalMessageActionableMentionWhisper['originalMessage'])?.resolution;
-    return isActionableTrackExpense(reportAction) && !!resolution;
-}
-
-/**
  * Checks if a reportAction is fit for display as report last action, meaning that
  * it satisfies shouldReportActionBeVisible, it's not whisper action and not deleted.
  */
@@ -611,8 +578,7 @@ function shouldReportActionBeVisibleAsLastAction(reportAction: OnyxEntry<ReportA
     return (
         shouldReportActionBeVisible(reportAction, reportAction.reportActionID) &&
         !(isWhisperAction(reportAction) && !isReportPreviewAction(reportAction) && !isMoneyRequestAction(reportAction)) &&
-        !(isDeletedAction(reportAction) && !isDeletedParentAction(reportAction)) &&
-        !isResolvedActionTrackExpense(reportAction)
+        !(isDeletedAction(reportAction) && !isDeletedParentAction(reportAction))
     );
 }
 
@@ -668,7 +634,7 @@ function getLastVisibleMessage(reportID: string, actionsToMerge: OnyxCollection<
 
     let messageText = message?.text ?? '';
     if (messageText) {
-        messageText = StringUtils.lineBreaksToSpaces(String(messageText)).substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
+        messageText = String(messageText).replace(CONST.REGEX.LINE_BREAK, ' ').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
     }
     return {
         lastMessageText: messageText,
@@ -678,7 +644,7 @@ function getLastVisibleMessage(reportID: string, actionsToMerge: OnyxCollection<
 /**
  * A helper method to filter out report actions keyed by sequenceNumbers.
  */
-function filterOutDeprecatedReportActions(reportActions: ReportActions | null): ReportAction[] {
+function filterOutDeprecatedReportActions(reportActions: OnyxEntry<ReportActions>): ReportAction[] {
     return Object.entries(reportActions ?? {})
         .filter(([key, reportAction]) => !isReportActionDeprecated(reportAction, key))
         .map((entry) => entry[1]);
@@ -690,7 +656,7 @@ function filterOutDeprecatedReportActions(reportActions: ReportActions | null): 
  * to ensure they will always be displayed in the same order (in case multiple actions have the same timestamp).
  * This is all handled with getSortedReportActions() which is used by several other methods to keep the code DRY.
  */
-function getSortedReportActionsForDisplay(reportActions: ReportActions | null | ReportAction[], shouldIncludeInvisibleActions = false): ReportAction[] {
+function getSortedReportActionsForDisplay(reportActions: OnyxEntry<ReportActions> | ReportAction[], shouldIncludeInvisibleActions = false): ReportAction[] {
     let filteredReportActions: ReportAction[] = [];
     if (!reportActions) {
         return [];
@@ -714,7 +680,7 @@ function getSortedReportActionsForDisplay(reportActions: ReportActions | null | 
  * Additionally, archived #admins and #announce do not have the closed report action so we will return null if none is found.
  *
  */
-function getLastClosedReportAction(reportActions: ReportActions | null): OnyxEntry<ReportAction> {
+function getLastClosedReportAction(reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> {
     // If closed report action is not present, return early
     if (!Object.values(reportActions ?? {}).some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED)) {
         return null;
@@ -767,7 +733,7 @@ function getLinkedTransactionID(reportActionOrID: string | OnyxEntry<ReportActio
     return reportAction.originalMessage?.IOUTransactionID ?? null;
 }
 
-function getReportAction(reportID: string, reportActionID: string): OnyxEntry<ReportAction> {
+function getReportAction(reportID: string, reportActionID: string): ReportAction | null {
     return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]?.[reportActionID] ?? null;
 }
 
@@ -1195,6 +1161,10 @@ function isActionableJoinRequest(reportAction: OnyxEntry<ReportAction>): reportA
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST;
 }
 
+function isActionableTrackExpense(reportAction: OnyxEntry<ReportAction>): reportAction is ReportActionBase & OriginalMessageActionableTrackedExpenseWhisper {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER;
+}
+
 /**
  * Checks if any report actions correspond to a join request action that is still pending.
  * @param reportID
@@ -1295,7 +1265,6 @@ export {
     isActionableJoinRequestPending,
     isActionableTrackExpense,
     isLinkedTransactionHeld,
-    isResolvedActionTrackExpense,
 };
 
 export type {LastVisibleMessage};

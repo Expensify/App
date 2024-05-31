@@ -2,9 +2,9 @@ import React from 'react';
 import {View} from 'react-native';
 import {Circle, Rect} from 'react-native-svg';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -20,18 +20,18 @@ function ReportHeaderSkeletonView({shouldAnimate = true, onBackButtonPress = () 
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isSmallScreenWidth} = useWindowDimensions();
     const smallScreenHeight = styles.appContentHeader.height;
-    const height = !shouldUseNarrowLayout ? styles.headerBarDesktopHeight.height : smallScreenHeight;
+    const height = !isSmallScreenWidth ? styles.headerBarDesktopHeight.height : smallScreenHeight;
     const radius = 20;
     const circleY = height / 2;
     const circleTopY = circleY - radius;
     const circleBottomY = circleY + radius;
 
     return (
-        <View style={[styles.appContentHeader, shouldUseNarrowLayout && styles.pl2, styles.h100]}>
-            <View style={[styles.appContentHeaderTitle, !shouldUseNarrowLayout && styles.pl5]}>
-                {shouldUseNarrowLayout && (
+        <View style={[styles.appContentHeader, isSmallScreenWidth && styles.pl2, styles.h100]}>
+            <View style={[styles.appContentHeaderTitle, !isSmallScreenWidth && styles.pl5]}>
+                {isSmallScreenWidth && (
                     <PressableWithFeedback
                         onPress={onBackButtonPress}
                         style={[styles.touchableButtonImage]}

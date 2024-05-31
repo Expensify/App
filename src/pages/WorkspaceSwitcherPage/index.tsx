@@ -178,7 +178,6 @@ function WorkspaceSwitcherPage() {
                 ListItem={UserListItem}
                 sections={sections}
                 onSelectRow={selectPolicy}
-                shouldDebounceRowSelect
                 textInputLabel={usersWorkspaces.length >= CONST.WORKSPACE_SWITCHER.MINIMUM_WORKSPACES_TO_SHOW_SEARCH ? translate('common.search') : undefined}
                 textInputValue={searchTerm}
                 onChangeText={setSearchTerm}

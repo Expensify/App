@@ -8,10 +8,9 @@ import type {FileDownload} from './types';
 /**
  * The function downloads an attachment on web/desktop platforms.
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const fileDownload: FileDownload = (url, fileName, successMessage = '', shouldOpenExternalLink = false) => {
+const fileDownload: FileDownload = (url, fileName) => {
     const resolvedUrl = tryResolveUrlFromApiRoot(url);
-    if (shouldOpenExternalLink || (!resolvedUrl.startsWith(ApiUtils.getApiRoot()) && !CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => resolvedUrl.startsWith(prefix)))) {
+    if (!resolvedUrl.startsWith(ApiUtils.getApiRoot()) && !CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => resolvedUrl.startsWith(prefix))) {
         // Different origin URLs might pose a CORS issue during direct downloads.
         // Opening in a new tab avoids this limitation, letting the browser handle the download.
         Link.openExternalLink(url);
