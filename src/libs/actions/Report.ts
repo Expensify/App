@@ -1160,7 +1160,10 @@ function expandURLPreview(reportID: string, reportActionID: string) {
     API.read(READ_COMMANDS.EXPAND_URL_PREVIEW, parameters);
 }
 
-/** Marks the new report actions as read */
+/** Marks the new report actions as read
+ *
+ * @param shouldResetUnreadMarker Should we reset unread indicator
+ */
 function readNewestAction(reportID: string, shouldResetUnreadMarker = false) {
     const lastReadTime = DateUtils.getDBTime();
 
