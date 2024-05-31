@@ -26,6 +26,7 @@ import type {
     OpenDraftWorkspaceRequestParams,
     OpenPolicyDistanceRatesPageParams,
     OpenPolicyMoreFeaturesPageParams,
+    OpenPolicyProfilePageParams,
     OpenPolicyTaxesPageParams,
     OpenPolicyWorkflowsPageParams,
     OpenWorkspaceInvitePageParams,
@@ -3588,6 +3589,12 @@ function openPolicyMoreFeaturesPage(policyID: string) {
     API.read(READ_COMMANDS.OPEN_POLICY_MORE_FEATURES_PAGE, params);
 }
 
+function openPolicyProfilePage(policyID: string) {
+    const params: OpenPolicyProfilePageParams = {policyID};
+
+    API.read(READ_COMMANDS.OPEN_POLICY_PROFILE_PAGE, params);
+}
+
 function createPolicyDistanceRate(policyID: string, customUnitID: string, customUnitRate: Rate) {
     const optimisticData: OnyxUpdate[] = [
         {
@@ -4219,6 +4226,7 @@ export {
     enablePolicyWorkflows,
     openPolicyDistanceRatesPage,
     openPolicyMoreFeaturesPage,
+    openPolicyProfilePage,
     generateCustomUnitID,
     createPolicyDistanceRate,
     clearCreateDistanceRateItemAndError,

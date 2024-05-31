@@ -1,4 +1,4 @@
-import {useNavigationState} from '@react-navigation/native';
+import {useFocusEffect, useNavigationState} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -85,7 +85,7 @@ function dismissError(policyID: string, pendingAction: PendingAction | undefined
     }
 }
 
-function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAccount, policyCategories}: WorkspaceInitialPageProps) {
+function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAccount, policyCategories, route}: WorkspaceInitialPageProps) {
     const styles = useThemeStyles();
     const policy = policyDraft?.id ? policyDraft : policyProp;
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
@@ -131,6 +131,20 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
         }
         setIsCurrencyModalOpen(false);
     }, [policy?.outputCurrency, isCurrencyModalOpen]);
+
+    // We have the same focus effect in the WorkspaceProfilePage, this way we can get the policy data in narrow
+    // as well as in the wide layout when looking at policy settings.
+    const fetchPolicyData = useCallback(() => {
+        Policy.openPolicyProfilePage(route.params.policyID);
+    }, [route.params.policyID]);
+
+    useNetwork({onReconnect: fetchPolicyData});
+
+    useFocusEffect(
+        useCallback(() => {
+            fetchPolicyData();
+        }, [fetchPolicyData]),
+    );
 
     /** Call update workspace currency and hide the modal */
     const confirmCurrencyChangeAndHideModal = useCallback(() => {
