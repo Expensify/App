@@ -82,6 +82,9 @@ type MoneyRequestAmountInputProps = {
      * Autogrow input container length based on the entered text.
      */
     autoGrow?: boolean;
+
+     /** Flag indicating if the reset button was clicked to reset the amount */
+     resetClicked?: boolean;
 };
 
 type Selection = {
@@ -116,6 +119,7 @@ function MoneyRequestAmountInput(
         maxLength,
         hideFocusedState = true,
         autoGrow = true,
+        resetClicked = false,
         ...props
     }: MoneyRequestAmountInputProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
@@ -135,6 +139,7 @@ function MoneyRequestAmountInput(
     });
 
     const forwardDeletePressedRef = useRef(false);
+    const resetFlag = useRef(false);
 
     /**
      * Sets the selection and the amount accordingly to the value passed to the input
@@ -165,8 +170,11 @@ function MoneyRequestAmountInput(
                     hasSelectionBeenSet = true;
                     setSelection((prevSelection) => getNewSelection(prevSelection, isForwardDelete ? strippedAmount.length : prevAmount.length, strippedAmount.length));
                 }
-                onAmountChange?.(strippedAmount);
-                return strippedAmount;
+                 const resultAmount = resetFlag.current ? selectedAmountAsString : strippedAmount;
+                onAmountChange?.(resultAmount);
+               
+                resetFlag.current = false; // Reset the flag after handling
+                return resultAmount;
             });
         },
         [decimals, onAmountChange],
@@ -189,6 +197,14 @@ function MoneyRequestAmountInput(
             return selection;
         },
     }));
+    useEffect(() => {
+        if (resetClicked) {
+            resetFlag.current = true;
+            setNewAmount(selectedAmountAsString);
+            setSelection({start: formattedAmount.length, end: formattedAmount.length}); // Move cursor to the end
+       
+        }
+    }, [resetClicked, selectedAmountAsString, setNewAmount]);
 
     useEffect(() => {
         if (!currency || typeof amount !== 'number' || (formatAmountOnBlur && textInput.current?.isFocused())) {

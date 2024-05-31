@@ -344,7 +344,8 @@ function MoneyRequestConfirmationList({
     const shouldDisplayMerchantError = isMerchantRequired && (shouldDisplayFieldError || formError === 'iou.error.invalidMerchant') && isMerchantEmpty;
 
     const isCategoryRequired = !!policy?.requiresCategory;
-
+    const [resetClicked, setResetClicked] = useState(false);
+    
     useEffect(() => {
         if (shouldDisplayFieldError && hasSmartScanFailed) {
             setFormError('iou.receiptScanningFailed');
@@ -513,6 +514,7 @@ function MoneyRequestConfirmationList({
                     onFormatAmount={CurrencyUtils.convertToDisplayStringWithoutCurrency}
                     onAmountChange={(value: string) => onSplitShareChange(participantOption.accountID ?? 0, Number(value))}
                     maxLength={formattedTotalAmount.length}
+                    resetClicked={resetClicked}
                 />
             ),
         }));
@@ -552,6 +554,7 @@ function MoneyRequestConfirmationList({
                     <PressableWithFeedback
                         onPress={() => {
                             IOU.resetSplitShares(transaction);
+                            setResetClicked(true);
                         }}
                         accessibilityLabel={CONST.ROLE.BUTTON}
                         role={CONST.ROLE.BUTTON}
