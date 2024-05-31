@@ -43,7 +43,7 @@ const METERS_TO_MILES = 0.000621371; // There are approximately 0.000621371 mile
  * Retrieves the mileage rates for given policy.
  *
  * @param policy - The policy from which to extract the mileage rates.
- * @param includeDisabledRates - Should include disable rate
+ * @param includeDisabledRates - Whether disabled rates should be included.
  *
  * @returns An array of mileage rates or an empty array if not found.
  */

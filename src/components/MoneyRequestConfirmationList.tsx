@@ -1258,7 +1258,7 @@ export default withOnyx<MoneyRequestConfirmationListProps, MoneyRequestConfirmat
     },
     mileageRates: {
         key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-        selector: (policy: OnyxEntry<OnyxTypes.Policy>) => DistanceRequestUtils.getMileageRates(policy, true),
+        selector: (policy: OnyxEntry<OnyxTypes.Policy>) => DistanceRequestUtils.getMileageRates(policy),
     },
     policy: {
         key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
