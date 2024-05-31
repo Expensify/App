@@ -76,7 +76,7 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConne
                         <OfflineWithFeedback pendingAction={pendingFields?.reimbursableExpensesAccount}>
                             <MenuItemWithTopDescription
                                 title={reimbursableExpensesAccount?.name}
-                                description={translate('workspace.qbo.accountsPayable')}
+                                description={accountDescription}
                                 onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT.getRoute(policyID))}
                                 brickRoadIndicator={errorFields?.exportAccount ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                 shouldShowRightIcon
