@@ -196,7 +196,7 @@ platform | result
     });
 
     it('comments on pull requests correctly for a standard production deploy', async () => {
-        mockGetInput.mockImplementation((key) => {
+        mockGetInput.mockImplementation((key: string) => {
             if (key === 'IS_PRODUCTION_DEPLOY') {
                 return true;
             }
@@ -226,7 +226,7 @@ platform | result
     });
 
     it('comments on pull requests correctly for a cherry pick', async () => {
-        mockGetInput.mockImplementation((key) => {
+        mockGetInput.mockImplementation((key: string) => {
             if (key === 'PR_LIST') {
                 return JSON.stringify([3]);
             }
@@ -281,7 +281,7 @@ platform | result
     });
 
     it('comments on pull requests correctly when one platform fails', async () => {
-        mockGetInput.mockImplementation((key) => {
+        mockGetInput.mockImplementation((key: string) => {
             if (key === 'ANDROID') {
                 return 'skipped';
             }

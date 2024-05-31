@@ -105,11 +105,11 @@ function IOURequestStepScan({
             return;
         }
 
-        camera.current.focus(point).catch((ex) => {
-            if (ex.message === '[unknown/unknown] Cancelled by another startFocusAndMetering()') {
+        camera.current.focus(point).catch((error: Record<string, unknown>) => {
+            if (error.message === '[unknown/unknown] Cancelled by another startFocusAndMetering()') {
                 return;
             }
-            Log.warn('Error focusing camera', ex);
+            Log.warn('Error focusing camera', error);
         });
     };
 
