@@ -255,7 +255,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                         setIsOrganizeWarningModalOpen(false);
                         Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
                     }}
-                    onCancel={() =>setIsOrganizeWarningModalOpen(false)}
+                    onCancel={() => setIsOrganizeWarningModalOpen(false)}
                     isVisible={isOrganizeWarningModalOpen}
                     prompt={translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledText')}
                     confirmText={translate('workspace.moreFeatures.connectionsWarningModal.manageSettings')}
