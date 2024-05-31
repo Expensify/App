@@ -11,7 +11,7 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import type {MileageRate} from '@libs/DistanceRequestUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {isTaxTrackingEnabled} from '@libs/PolicyUtils';
+import {getCustomUnit, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -50,7 +50,7 @@ function IOURequestStepDistanceRate({
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
-    const distanceUnit = DistanceRequestUtils.getCustomUnit(policy);
+    const distanceUnit = getCustomUnit(policy);
     const customUnitID = distanceUnit?.customUnitID;
     const isPolicyExpenseChat = ReportUtils.isReportInGroupPolicy(report);
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest);

@@ -11,7 +11,7 @@ import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import * as CurrencyUtils from './CurrencyUtils';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportUtils from './ReportUtils';
-import * as TransactionUtils from "@libs/TransactionUtils";
+import * as TransactionUtils from './TransactionUtils';
 
 type MileageRate = {
     customUnitRateID?: string;
@@ -54,7 +54,7 @@ function getDefaultMileageRate(policy: OnyxEntry<Policy> | EmptyObject): Mileage
         return null;
     }
 
-    const distanceUnit = Object.values(policy.customUnits).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+    const distanceUnit = PolicyUtils.getCustomUnit(policy);
     if (!distanceUnit?.rates) {
         return null;
     }
@@ -194,7 +194,7 @@ function getMileageRates(policy: OnyxEntry<Policy>): Record<string, MileageRate>
         return mileageRates;
     }
 
-    const distanceUnit = Object.values(policy.customUnits).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+    const distanceUnit = PolicyUtils.getCustomUnit(policy);
     if (!distanceUnit?.rates) {
         return mileageRates;
     }
@@ -267,12 +267,8 @@ function getCustomUnitRateID(reportID: string) {
     return customUnitRateID;
 }
 
-function getCustomUnit(policy: OnyxEntry<Policy>) {
-    return Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
-}
-
 function calculateTaxAmount(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, customUnitRateID: string) {
-    const distanceUnit = getCustomUnit(policy);
+    const distanceUnit = PolicyUtils.getCustomUnit(policy);
     const customUnitID = distanceUnit?.customUnitID;
     if (!policy?.customUnits || !customUnitID) {
         return 0;
@@ -286,9 +282,6 @@ function calculateTaxAmount(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Tr
     const taxRateExternalID = policyCustomUnitRate.attributes?.taxRateExternalID ?? '';
     const taxableAmount = amount * taxClaimablePercentage;
     const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, taxRateExternalID) ?? '';
-    console.debug(amount);
-    console.debug(taxPercentage);
-    console.debug(TransactionUtils.calculateTaxAmount(taxPercentage, taxableAmount));
     return TransactionUtils.calculateTaxAmount(taxPercentage, taxableAmount);
 }
 
@@ -303,7 +296,6 @@ export default {
     getCustomUnitRateID,
     convertToDistanceInMeters,
     calculateTaxAmount,
-    getCustomUnit,
 };
 
 export type {MileageRate};
