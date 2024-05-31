@@ -1,4 +1,7 @@
-import React, {useEffect} from 'react';
+import {useNavigation} from '@react-navigation/native';
+import type {StackNavigationProp} from '@react-navigation/stack';
+import React, {useEffect, useRef} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -6,45 +9,64 @@ import * as SearchActions from '@libs/actions/Search';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import * as SearchUtils from '@libs/SearchUtils';
+import type {SearchColumnType, SortOrder} from '@libs/SearchUtils';
 import Navigation from '@navigation/Navigation';
+import type {CentralPaneNavigatorParamList} from '@navigation/types';
 import EmptySearchView from '@pages/Search/EmptySearchView';
-import useCustomBackHandler from '@pages/Search/useCustomBackHandler';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {SearchQuery} from '@src/types/onyx/SearchResults';
+import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import SelectionList from './SelectionList';
 import SearchTableHeader from './SelectionList/SearchTableHeader';
+import type {ReportListItemType, TransactionListItemType} from './SelectionList/types';
 import TableListItemSkeleton from './Skeletons/TableListItemSkeleton';
 
 type SearchProps = {
-    query: string;
+    query: SearchQuery;
     policyIDs?: string;
+    sortBy?: SearchColumnType;
+    sortOrder?: SortOrder;
 };
 
-function Search({query, policyIDs}: SearchProps) {
+function isReportListItemType(item: TransactionListItemType | ReportListItemType): item is ReportListItemType {
+    const reportListItem = item as ReportListItemType;
+    return reportListItem.transactions !== undefined;
+}
+
+function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
-    useCustomBackHandler();
+    const navigation = useNavigation<StackNavigationProp<CentralPaneNavigatorParamList>>();
+    const lastSearchResultsRef = useRef<OnyxEntry<SearchResults>>();
 
-    const hash = SearchUtils.getQueryHash(query, policyIDs);
-    const [searchResults, searchResultsMeta] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
+    const hash = SearchUtils.getQueryHash(query, policyIDs, sortBy, sortOrder);
+    const [currentSearchResults, searchResultsMeta] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
+
+    // save last non-empty search results to avoid ugly flash of loading screen when hash changes and onyx returns empty data
+    if (currentSearchResults?.data && currentSearchResults !== lastSearchResultsRef.current) {
+        lastSearchResultsRef.current = currentSearchResults;
+    }
+
+    const searchResults = currentSearchResults?.data ? currentSearchResults : lastSearchResultsRef.current;
 
     useEffect(() => {
         if (isOffline) {
             return;
         }
 
-        SearchActions.search(hash, query, 0, policyIDs);
+        SearchActions.search({hash, query, policyIDs, offset: 0, sortBy, sortOrder});
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [hash, isOffline]);
 
-    const isLoadingInitialItems = (!isOffline && isLoadingOnyxValue(searchResultsMeta)) || searchResults?.data === undefined;
-    const isLoadingMoreItems = !isLoadingInitialItems && searchResults?.search?.isLoading;
-    const shouldShowEmptyState = !isLoadingInitialItems && isEmptyObject(searchResults?.data);
+    const isLoadingItems = (!isOffline && isLoadingOnyxValue(searchResultsMeta)) || searchResults?.data === undefined;
+    const isLoadingMoreItems = !isLoadingItems && searchResults?.search?.isLoading;
+    const shouldShowEmptyState = !isLoadingItems && isEmptyObject(searchResults?.data);
 
-    if (isLoadingInitialItems) {
+    if (isLoadingItems) {
         return <TableListItemSkeleton shouldAnimate />;
     }
 
@@ -61,11 +83,11 @@ function Search({query, policyIDs}: SearchProps) {
     };
 
     const fetchMoreResults = () => {
-        if (!searchResults?.search?.hasMoreResults || isLoadingInitialItems || isLoadingMoreItems) {
+        if (!searchResults?.search?.hasMoreResults || isLoadingItems || isLoadingMoreItems) {
             return;
         }
         const currentOffset = searchResults?.search?.offset ?? 0;
-        SearchActions.search(hash, query, currentOffset + CONST.SEARCH_RESULTS_PAGE_SIZE);
+        SearchActions.search({hash, query, offset: currentOffset + CONST.SEARCH_RESULTS_PAGE_SIZE, sortBy, sortOrder});
     };
 
     const type = SearchUtils.getSearchType(searchResults?.search);
@@ -76,16 +98,47 @@ function Search({query, policyIDs}: SearchProps) {
     }
 
     const ListItem = SearchUtils.getListItem(type);
+
     const data = SearchUtils.getSections(searchResults?.data ?? {}, type);
 
+    const onSortPress = (column: SearchColumnType, order: SortOrder) => {
+        navigation.setParams({
+            sortBy: column,
+            sortOrder: order,
+        });
+    };
+
+    const sortedData = SearchUtils.getSortedSections(type, data, sortBy, sortOrder);
+
     return (
-        <SelectionList
-            customListHeader={<SearchTableHeader data={searchResults?.data} />}
+        <SelectionList<ReportListItemType | TransactionListItemType>
+            customListHeader={
+                <SearchTableHeader
+                    data={searchResults?.data}
+                    onSortPress={onSortPress}
+                    sortOrder={sortOrder}
+                    sortBy={sortBy}
+                />
+            }
+            // To enhance the smoothness of scrolling and minimize the risk of encountering blank spaces during scrolling,
+            // we have configured a larger windowSize and a longer delay between batch renders.
+            // The windowSize determines the number of items rendered before and after the currently visible items.
+            // A larger windowSize helps pre-render more items, reducing the likelihood of blank spaces appearing.
+            // The updateCellsBatchingPeriod sets the delay (in milliseconds) between rendering batches of cells.
+            // A longer delay allows the UI to handle rendering in smaller increments, which can improve performance and smoothness.
+            // For more information, refer to the React Native documentation:
+            // https://reactnative.dev/docs/0.73/optimizing-flatlist-configuration#windowsize
+            // https://reactnative.dev/docs/0.73/optimizing-flatlist-configuration#updatecellsbatchingperiod
+            windowSize={111}
+            updateCellsBatchingPeriod={200}
             ListItem={ListItem}
-            sections={[{data, isDisabled: false}]}
+            sections={[{data: sortedData, isDisabled: false}]}
             onSelectRow={(item) => {
-                openReport(item.transactionThreadReportID);
+                const reportID = isReportListItemType(item) ? item.reportID : item.transactionThreadReportID;
+
+                openReport(reportID);
             }}
+            shouldDebounceRowSelect
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
             listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
             containerStyle={[styles.pv0]}
