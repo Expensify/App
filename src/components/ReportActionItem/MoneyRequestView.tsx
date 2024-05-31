@@ -98,7 +98,7 @@ function MoneyRequestView({
     const session = useSession();
     const {isOffline} = useNetwork();
     const {translate, toLocaleDigit} = useLocalize();
-    const parentReportAction = parentReportActions?.[report.parentReportActionID ?? ''] ?? null;
+    const parentReportAction = parentReportActions?.[report.parentReportActionID ?? ''];
     const isTrackExpense = ReportUtils.isTrackExpenseReport(report);
     const {canUseViolations, canUseP2PDistanceRequests} = usePermissions(isTrackExpense ? CONST.IOU.TYPE.TRACK : undefined);
     const moneyRequestReport = parentReport;
