@@ -43,6 +43,7 @@ jobs:
         run: ./.github/scripts/verifyRedirect.sh
 
       - name: Enforce that a redirect link has been created
+        if: success() || failure()
         run: ./.github/scripts/enforceRedirect.sh
 
       - name: Build with Jekyll
