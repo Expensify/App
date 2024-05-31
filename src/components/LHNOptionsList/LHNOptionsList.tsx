@@ -69,12 +69,10 @@ function LHNOptionsList({
 
     const emptyLHNSubtitle = useMemo(
         () => (
-            <View style={[styles.emptyLHNDetailsContainer]}>
+            <View style={[styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.flexWrap, styles.textAlignCenter]}>
                 <Text
-                    style={[
-                        styles.textAlignCenter,
-                        { color: theme.placeholderText },
-                    ]}
+                    color={theme.placeholderText}
+                    style={[styles.textAlignCenter]}
                 >
                     {translate('common.emptyLHN.subtitleText1')}
                 </Text>
@@ -88,10 +86,8 @@ function LHNOptionsList({
                     additionalStyles={styles.mh1}
                 />
                 <Text
-                    style={[
-                        styles.textAlignCenter,
-                        { color: theme.placeholderText },
-                    ]}
+                    color={theme.placeholderText}
+                    style={[styles.textAlignCenter]}
                 >
                     {translate('common.emptyLHN.subtitleText2')}
                 </Text>
@@ -105,10 +101,8 @@ function LHNOptionsList({
                     additionalStyles={styles.mh1}
                 />
                 <Text
-                    style={[
-                        styles.textAlignCenter,
-                        { color: theme.placeholderText },
-                    ]}
+                    color={theme.placeholderText}
+                    style={[styles.textAlignCenter]}
                 >
                     {translate('common.emptyLHN.subtitleText3')}
                 </Text>
