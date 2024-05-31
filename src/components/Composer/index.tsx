@@ -318,7 +318,7 @@ function Composer(
             textContainsOnlyEmojis ? styles.emojisOnlyComposer : null,
         ],
 
-        [style, styles.rtlTextRenderForSafari, scrollStyleMemo, StyleUtils, maxLines, isComposerFullSize, textContainsOnlyEmojis],
+        [style, styles.rtlTextRenderForSafari, styles.emojisOnlyComposer, scrollStyleMemo, StyleUtils, maxLines, isComposerFullSize, textContainsOnlyEmojis],
     );
 
     return (
