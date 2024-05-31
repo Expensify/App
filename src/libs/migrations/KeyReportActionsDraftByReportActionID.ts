@@ -1,4 +1,4 @@
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxInput} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -27,12 +27,12 @@ export default function () {
                     return resolve();
                 }
 
-                const newReportActionsDrafts: Record<ReportActionsDraftsKey, OnyxEntry<ReportActionsDrafts>> = {};
+                const newReportActionsDrafts: Record<ReportActionsDraftsKey, OnyxInput<ReportActionsDrafts>> = {};
                 Object.entries(allReportActionsDrafts).forEach(([onyxKey, reportActionDraft]) => {
                     if (typeof reportActionDraft !== 'string') {
                         return;
                     }
-                    newReportActionsDrafts[onyxKey as ReportActionsDraftsKey] = undefined;
+                    newReportActionsDrafts[onyxKey as ReportActionsDraftsKey] = null;
 
                     if (isEmptyObject(reportActionDraft)) {
                         return;
