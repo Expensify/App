@@ -2,6 +2,7 @@ import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useRef, useState} from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import AddressSearch from '@components/AddressSearch';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
@@ -18,6 +19,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -31,7 +33,7 @@ type PaymentCardFormProps = {
     showCurrencyField?: boolean;
     showStateSelector?: boolean;
     isDebitCard?: boolean;
-    addPaymentCard: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM>) => void;
+    addPaymentCard: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM>, currency?: ValueOf<typeof CONST.CURRENCY>) => void;
     submitButtonText: string;
     /** Custom content to display in the footer after card form */
     footerContent?: ReactNode;
@@ -72,6 +74,59 @@ const REQUIRED_FIELDS = [
     INPUT_IDS.ADDRESS_STATE,
 ];
 
+const CARD_TYPES = {
+    DEBIT_CARD: 'debit',
+    PAYMENT_CARD: 'payment',
+};
+
+const CARD_TYPE_SECTIONS = {
+    DEFAULTS: 'defaults',
+    ERROR: 'error',
+};
+type CartTypesMap = (typeof CARD_TYPES)[keyof typeof CARD_TYPES];
+type CartTypeSectionsMap = (typeof CARD_TYPE_SECTIONS)[keyof typeof CARD_TYPE_SECTIONS];
+
+type CardLabels = Record<CartTypesMap, Record<CartTypeSectionsMap, Record<string, TranslationPaths>>>;
+
+const CARD_LABELS: CardLabels = {
+    [CARD_TYPES.DEBIT_CARD]: {
+        [CARD_TYPE_SECTIONS.DEFAULTS]: {
+            cardNumber: 'addDebitCardPage.debitCardNumber',
+            nameOnCard: 'addDebitCardPage.nameOnCard',
+            expirationDate: 'addDebitCardPage.expirationDate',
+            expiration: 'addDebitCardPage.expiration',
+            securityCode: 'addDebitCardPage.cvv',
+            billingAddress: 'addDebitCardPage.billingAddress',
+        },
+        [CARD_TYPE_SECTIONS.ERROR]: {
+            nameOnCard: 'addDebitCardPage.error.invalidName',
+            cardNumber: 'addDebitCardPage.error.debitCardNumber',
+            expirationDate: 'addDebitCardPage.error.expirationDate',
+            securityCode: 'addDebitCardPage.error.securityCode',
+            addressStreet: 'addDebitCardPage.error.addressStreet',
+            addressZipCode: 'addDebitCardPage.error.addressZipCode',
+        },
+    },
+    [CARD_TYPES.PAYMENT_CARD]: {
+        defaults: {
+            cardNumber: 'addPaymentCardPage.paymentCardNumber',
+            nameOnCard: 'addPaymentCardPage.nameOnCard',
+            expirationDate: 'addPaymentCardPage.expirationDate',
+            expiration: 'addPaymentCardPage.expiration',
+            securityCode: 'addPaymentCardPage.cvv',
+            billingAddress: 'addPaymentCardPage.billingAddress',
+        },
+        error: {
+            nameOnCard: 'addPaymentCardPage.error.invalidName',
+            cardNumber: 'addPaymentCardPage.error.paymentCardNumber',
+            expirationDate: 'addPaymentCardPage.error.expirationDate',
+            securityCode: 'addPaymentCardPage.error.securityCode',
+            addressStreet: 'addPaymentCardPage.error.addressStreet',
+            addressZipCode: 'addPaymentCardPage.error.addressZipCode',
+        },
+    },
+};
+
 function PaymentCardForm({
     shouldShowPaymentCardForm,
     addPaymentCard,
@@ -87,6 +142,7 @@ function PaymentCardForm({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const route = useRoute();
+    const label = CARD_LABELS[isDebitCard ? CARD_TYPES.DEBIT_CARD : CARD_TYPES.PAYMENT_CARD];
 
     const cardNumberRef = useRef<AnimatedTextInputRef>(null);
 
@@ -97,27 +153,27 @@ function PaymentCardForm({
         const errors = ValidationUtils.getFieldRequiredErrors(formValues, REQUIRED_FIELDS);
 
         if (formValues.nameOnCard && !ValidationUtils.isValidLegalName(formValues.nameOnCard)) {
-            errors.nameOnCard = 'addDebitCardPage.error.invalidName';
+            errors.nameOnCard = label.error.nameOnCard;
         }
 
         if (formValues.cardNumber && !ValidationUtils.isValidDebitCard(formValues.cardNumber.replace(/ /g, ''))) {
-            errors.cardNumber = 'addDebitCardPage.error.debitCardNumber';
+            errors.cardNumber = label.error.cardNumber;
         }
 
         if (formValues.expirationDate && !ValidationUtils.isValidExpirationDate(formValues.expirationDate)) {
-            errors.expirationDate = 'addDebitCardPage.error.expirationDate';
+            errors.expirationDate = label.error.expirationDate;
         }
 
         if (formValues.securityCode && !ValidationUtils.isValidSecurityCode(formValues.securityCode)) {
-            errors.securityCode = 'addDebitCardPage.error.securityCode';
+            errors.securityCode = label.error.securityCode;
         }
 
         if (formValues.addressStreet && !ValidationUtils.isValidAddress(formValues.addressStreet)) {
-            errors.addressStreet = 'addDebitCardPage.error.addressStreet';
+            errors.addressStreet = label.error.addressStreet;
         }
 
         if (formValues.addressZipCode && !ValidationUtils.isValidZipCode(formValues.addressZipCode)) {
-            errors.addressZipCode = 'addDebitCardPage.error.addressZipCode';
+            errors.addressZipCode = label.error.addressZipCode;
         }
 
         if (!formValues.acceptTerms) {
@@ -146,7 +202,7 @@ function PaymentCardForm({
             <FormProvider
                 formID={ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM}
                 validate={validate}
-                onSubmit={addPaymentCard}
+                onSubmit={(formData) => addPaymentCard(formData, currency)}
                 submitButtonText={submitButtonText}
                 scrollContextEnabled
                 style={[styles.mh5, styles.flexGrow1]}
@@ -154,8 +210,8 @@ function PaymentCardForm({
                 <InputWrapper
                     InputComponent={TextInput}
                     inputID={INPUT_IDS.CARD_NUMBER}
-                    label={translate('addDebitCardPage.debitCardNumber')}
-                    aria-label={translate('addDebitCardPage.debitCardNumber')}
+                    label={translate(label.defaults.cardNumber)}
+                    aria-label={translate(label.defaults.cardNumber)}
                     role={CONST.ROLE.PRESENTATION}
                     ref={cardNumberRef}
                     inputMode={CONST.INPUT_MODE.NUMERIC}
@@ -163,8 +219,8 @@ function PaymentCardForm({
                 <InputWrapper
                     InputComponent={TextInput}
                     inputID={INPUT_IDS.NAME_ON_CARD}
-                    label={translate('addDebitCardPage.nameOnCard')}
-                    aria-label={translate('addDebitCardPage.nameOnCard')}
+                    label={translate(label.defaults.nameOnCard)}
+                    aria-label={translate(label.defaults.nameOnCard)}
                     role={CONST.ROLE.PRESENTATION}
                     containerStyles={[styles.mt5]}
                     spellCheck={false}
@@ -174,10 +230,10 @@ function PaymentCardForm({
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.EXPIRATION_DATE}
-                            label={translate('addDebitCardPage.expiration')}
-                            aria-label={translate('addDebitCardPage.expiration')}
+                            label={translate(label.defaults.expiration)}
+                            aria-label={translate(label.defaults.expiration)}
                             role={CONST.ROLE.PRESENTATION}
-                            placeholder={translate('addDebitCardPage.expirationDate')}
+                            placeholder={translate(label.defaults.expirationDate)}
                             inputMode={CONST.INPUT_MODE.NUMERIC}
                             maxLength={4}
                         />
@@ -186,8 +242,8 @@ function PaymentCardForm({
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.SECURITY_CODE}
-                            label={translate('addDebitCardPage.cvv')}
-                            aria-label={translate('addDebitCardPage.cvv')}
+                            label={translate(label.defaults.securityCode)}
+                            aria-label={translate(label.defaults.securityCode)}
                             role={CONST.ROLE.PRESENTATION}
                             maxLength={4}
                             inputMode={CONST.INPUT_MODE.NUMERIC}
@@ -195,15 +251,17 @@ function PaymentCardForm({
                     </View>
                 </View>
                 {!!showAddressField && (
-                    <InputWrapper
-                        InputComponent={AddressSearch}
-                        inputID={INPUT_IDS.ADDRESS_STREET}
-                        label={translate('addDebitCardPage.billingAddress')}
-                        containerStyles={[styles.mt5]}
-                        maxInputLength={CONST.FORM_CHARACTER_LIMIT}
-                        // Limit the address search only to the USA until we fully can support international debit cards
-                        isLimitedToUSA
-                    />
+                    <View>
+                        <InputWrapper
+                            InputComponent={AddressSearch}
+                            inputID={INPUT_IDS.ADDRESS_STREET}
+                            label={translate(label.defaults.billingAddress)}
+                            containerStyles={[styles.mt5]}
+                            maxInputLength={CONST.FORM_CHARACTER_LIMIT}
+                            // Limit the address search only to the USA until we fully can support international debit cards
+                            isLimitedToUSA
+                        />
+                    </View>
                 )}
                 <InputWrapper
                     InputComponent={TextInput}
