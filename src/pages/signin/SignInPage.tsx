@@ -224,8 +224,8 @@ function SignInPageInner({credentials, account, activeClients = [], preferredLoc
             } else {
                 welcomeHeader = shouldUseNarrowLayout ? '' : translate('welcomeText.welcome');
                 welcomeText = shouldUseNarrowLayout
-                    ? `${translate('welcomeText.welcome')} ${translate('welcomeText.newFaceEnterMagicCode', {login: userLoginToDisplay})}`
-                    : translate('welcomeText.newFaceEnterMagicCode', {login: userLoginToDisplay});
+                    ? `${translate('welcomeText.welcome')} ${translate('welcomeText.welcomeNewFace', {login: userLoginToDisplay})}`
+                    : translate('welcomeText.welcomeNewFace', {login: userLoginToDisplay});
             }
         }
     } else if (shouldShowUnlinkLoginForm || shouldShowEmailDeliveryFailurePage || shouldShowChooseSSOOrMagicCode) {
