@@ -178,9 +178,8 @@ function ReportPreview({
         setRequestType('pay');
         if (ReportUtils.hasHeldExpenses(iouReport?.reportID)) {
             setIsHoldMenuVisible(true);
-        } else if (chatReport) {
-            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-            IOU.payMoneyRequest(type, chatReport, iouReport as Report, false);
+        } else if (chatReport && iouReport) {
+            IOU.payMoneyRequest(type, chatReport, iouReport, false);
         }
     };
 
@@ -189,8 +188,7 @@ function ReportPreview({
         if (ReportUtils.hasHeldExpenses(iouReport?.reportID)) {
             setIsHoldMenuVisible(true);
         } else {
-            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-            IOU.approveMoneyRequest(iouReport as Report, true);
+            IOU.approveMoneyRequest(iouReport ?? {}, true);
         }
     };
 
@@ -432,7 +430,7 @@ function ReportPreview({
                     </View>
                 </PressableWithoutFeedback>
             </View>
-            {isHoldMenuVisible && requestType !== undefined && (
+            {isHoldMenuVisible && requestType !== undefined && !!iouReport && (
                 <ProcessMoneyReportHoldMenu
                     nonHeldAmount={!ReportUtils.hasOnlyHeldExpenses(iouReport?.reportID ?? '') ? nonHeldAmount : undefined}
                     requestType={requestType}
@@ -442,8 +440,7 @@ function ReportPreview({
                     isVisible={isHoldMenuVisible}
                     paymentType={paymentType}
                     chatReport={chatReport}
-                    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                    moneyRequestReport={iouReport as Report}
+                    moneyRequestReport={iouReport}
                 />
             )}
         </OfflineWithFeedback>
