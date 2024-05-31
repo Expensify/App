@@ -83,8 +83,8 @@ type MoneyRequestAmountInputProps = {
      */
     autoGrow?: boolean;
 
-     /** Flag indicating if the reset button was clicked to reset the amount */
-     resetClicked?: boolean;
+    /** Flag indicating if the reset button was clicked to reset the amount */
+    resetClicked?: boolean;
 };
 
 type Selection = {
@@ -170,9 +170,9 @@ function MoneyRequestAmountInput(
                     hasSelectionBeenSet = true;
                     setSelection((prevSelection) => getNewSelection(prevSelection, isForwardDelete ? strippedAmount.length : prevAmount.length, strippedAmount.length));
                 }
-                 const resultAmount = resetFlag.current ? selectedAmountAsString : strippedAmount;
+                const resultAmount = resetFlag.current ? selectedAmountAsString : strippedAmount;
                 onAmountChange?.(resultAmount);
-               
+
                 resetFlag.current = false; // Reset the flag after handling
                 return resultAmount;
             });
@@ -270,12 +270,12 @@ function MoneyRequestAmountInput(
         if (!resetClicked) {
             return;
         }
-    
+
         resetFlag.current = true;
         setNewAmount(selectedAmountAsString);
-        setSelection({ start: formattedAmount.length, end: formattedAmount.length }); // Move cursor to the end
+        setSelection({start: formattedAmount.length, end: formattedAmount.length}); // Move cursor to the end
     }, [resetClicked, selectedAmountAsString, setNewAmount, formattedAmount]);
-    
+
     return (
         <TextInputWithCurrencySymbol
             autoGrow={autoGrow}
