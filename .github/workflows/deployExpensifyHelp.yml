@@ -42,6 +42,9 @@ jobs:
       - name: Check for duplicates and cycles in redirects.csv
         run: ./.github/scripts/verifyRedirect.sh
 
+      - name: Enforce that a redirect link has been created
+        run: ./.github/scripts/enforceRedirect.sh
+
       - name: Build with Jekyll
         uses: actions/jekyll-build-pages@0143c158f4fa0c5dcd99499a5d00859d79f70b0e
         with:
