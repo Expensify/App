@@ -351,6 +351,7 @@ export default withOnyx<WorkspaceNewRoomPageProps, WorkspaceNewRoomPageOnyxProps
     },
     formState: {
         key: ONYXKEYS.FORMS.NEW_ROOM_FORM,
+        initWithStoredValues: false,
     },
     session: {
         key: ONYXKEYS.SESSION,

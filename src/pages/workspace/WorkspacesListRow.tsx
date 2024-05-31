@@ -142,9 +142,9 @@ function WorkspacesListRow({
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
 
     const ThreeDotMenuOrPendingIcon = (
-        <View style={[isNarrow && styles.mr5]}>
+        <View style={[styles.flexRow]}>
             {isJoinRequestPending && (
-                <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.flex1, styles.justifyContentEnd, !isNarrow && styles.pr4, isNarrow && styles.workspaceListBadge]}>
+                <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.flex1, styles.justifyContentEnd, isNarrow && styles.workspaceListBadge]}>
                     <Badge
                         text={translate('workspace.common.requested')}
                         textStyles={styles.textStrong}
@@ -154,14 +154,11 @@ function WorkspacesListRow({
                 </View>
             )}
             {!isJoinRequestPending && (
-                <>
-                    <View style={[styles.flexRow, styles.flex0, styles.gap2, isNarrow && styles.mr5, styles.alignItemsCenter]}>
+                <View style={[styles.flexRow, styles.ml2, styles.gap1, !isSmallScreenWidth && styles.workspaceThreeDotMenu]}>
+                    <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, isNarrow && styles.workspaceListRBR]}>
                         <BrickRoadIndicatorIcon brickRoadIndicator={brickRoadIndicator} />
                     </View>
-                    <View
-                        ref={threeDotsMenuContainerRef}
-                        style={[!isSmallScreenWidth && styles.workspaceThreeDotMenu]}
-                    >
+                    <View ref={threeDotsMenuContainerRef}>
                         <ThreeDotsMenu
                             onIconPress={() => {
                                 if (isSmallScreenWidth) {
@@ -181,13 +178,13 @@ function WorkspacesListRow({
                             disabled={shouldDisableThreeDotsMenu}
                         />
                     </View>
-                </>
+                </View>
             )}
         </View>
     );
 
     return (
-        <View style={[styles.flexRow, styles.highlightBG, rowStyles, style, isWide && styles.gap5, styles.br3, styles.pv5, styles.pl5]}>
+        <View style={[styles.flexRow, styles.highlightBG, rowStyles, style, isWide && styles.gap5, styles.br3, styles.p5]}>
             <View style={[isWide ? styles.flexRow : styles.flexColumn, styles.flex1, isWide && styles.gap5]}>
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.flex1, isNarrow && styles.mb3, styles.alignItemsCenter]}>
                     <View style={[styles.flexRow, styles.gap3, styles.flex1, styles.alignItemsCenter]}>
@@ -209,11 +206,12 @@ function WorkspacesListRow({
                     </View>
                     {isSmallScreenWidth && ThreeDotMenuOrPendingIcon}
                 </View>
-                <View style={[styles.flexRow, isWide && styles.flex1, styles.gap2, isNarrow && styles.mr5, styles.alignItemsCenter]}>
+                <View style={[styles.flexRow, isWide && styles.flex1, styles.gap2, styles.alignItemsCenter]}>
                     {!!ownerDetails && (
                         <>
                             <Avatar
                                 source={ownerDetails.avatar}
+                                avatarID={ownerDetails.accountID}
                                 size={CONST.AVATAR_SIZE.SMALL}
                                 containerStyles={styles.workspaceOwnerAvatarWrapper}
                             />
@@ -234,7 +232,7 @@ function WorkspacesListRow({
                         </>
                     )}
                 </View>
-                <View style={[styles.flexRow, isWide && styles.flex1, styles.gap2, isNarrow && styles.mr5, styles.alignItemsCenter]}>
+                <View style={[styles.flexRow, isWide && styles.flex1, styles.gap2, styles.alignItemsCenter]}>
                     <Icon
                         src={workspaceTypeIcon(workspaceType)}
                         width={variables.workspaceTypeIconWidth}

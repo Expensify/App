@@ -12,6 +12,7 @@ import type {
 } from '@react-navigation/native';
 import type {ValueOf} from 'type-fest';
 import type {IOURequestType} from '@libs/actions/IOU';
+import type {SearchColumnType, SortOrder} from '@libs/SearchUtils';
 import type CONST from '@src/CONST';
 import type {Country, IOUAction, IOUType} from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
@@ -64,8 +65,13 @@ type CentralPaneNavigatorParamList = {
     [SCREENS.SETTINGS.WORKSPACES]: undefined;
     [SCREENS.SEARCH.CENTRAL_PANE]: {
         query: string;
+        policyIDs?: string;
+        offset?: number;
+        sortBy?: SearchColumnType;
+        sortOrder?: SortOrder;
     };
     [SCREENS.SETTINGS.SAVE_THE_WORLD]: undefined;
+    [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: undefined;
 };
 
 type BackToParams = {
@@ -98,6 +104,7 @@ type SettingsNavigatorParamList = {
         backTo: Routes;
     };
     [SCREENS.SETTINGS.PREFERENCES.ROOT]: undefined;
+    [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.LANGUAGE]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.THEME]: undefined;
@@ -107,10 +114,13 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.TROUBLESHOOT]: undefined;
     [SCREENS.SETTINGS.APP_DOWNLOAD_LINKS]: undefined;
     [SCREENS.SETTINGS.TROUBLESHOOT]: undefined;
-    [SCREENS.SETTINGS.CONSOLE]: undefined;
+    [SCREENS.SETTINGS.CONSOLE]: {
+        backTo: Routes;
+    };
     [SCREENS.SETTINGS.SHARE_LOG]: {
         /** URL of the generated file to share logs in a report */
         source: string;
+        backTo: Routes;
     };
     [SCREENS.SETTINGS.WALLET.ROOT]: undefined;
     [SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: undefined;
@@ -332,11 +342,10 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_TRACKING_CATEGORIES]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.XERO_MAP_COST_CENTERS]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.XERO_MAP_TRACKING_CATEGORY]: {
         policyID: string;
-    };
-    [SCREENS.WORKSPACE.ACCOUNTING.XERO_MAP_REGION]: {
-        policyID: string;
+        categoryId: string;
+        categoryName: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_EXPORT]: {
         policyID: string;
@@ -345,6 +354,9 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_ADVANCED]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.XERO_BILL_STATUS_SELECTOR]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_INVOICE_ACCOUNT_SELECTOR]: {
@@ -866,9 +878,11 @@ type PublicScreensParamList = SharedScreensParamList & {
 type AuthScreensParamList = SharedScreensParamList & {
     [NAVIGATORS.CENTRAL_PANE_NAVIGATOR]: NavigatorScreenParams<CentralPaneNavigatorParamList>;
     [SCREENS.CONCIERGE]: undefined;
-    [SCREENS.REPORT_ATTACHMENTS]: {
+    [SCREENS.ATTACHMENTS]: {
         reportID: string;
         source: string;
+        type: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
+        accountID: string;
     };
     [SCREENS.PROFILE_AVATAR]: {
         accountID: string;
