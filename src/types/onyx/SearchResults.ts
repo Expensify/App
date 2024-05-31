@@ -60,6 +60,9 @@ type SearchReport = {
     /** The report currency */
     currency?: string;
 
+    /** The report type */
+    type?: string;
+
     /** The action that can be performed for the report */
     action?: string;
 };

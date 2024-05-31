@@ -4939,10 +4939,6 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeNormal,
             fontWeight: FontUtils.fontWeight.bold,
         },
-
-        reportListItemActionButtonMargin: {
-            marginLeft: variables.searchTypeColumnWidth,
-        },
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;
