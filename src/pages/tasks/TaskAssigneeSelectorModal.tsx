@@ -103,14 +103,14 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
 
     const report: OnyxEntry<Report> = useMemo(() => {
         if (!route.params?.reportID) {
-            return null;
+            return;
         }
         if (report && !ReportUtils.isTaskReport(report)) {
             Navigation.isNavigationReady().then(() => {
                 Navigation.dismissModal(report.reportID);
             });
         }
-        return reports?.[`${ONYXKEYS.COLLECTION.REPORT}${route.params?.reportID}`] ?? null;
+        return reports?.[`${ONYXKEYS.COLLECTION.REPORT}${route.params?.reportID}`];
     }, [reports, route]);
 
     const sections = useMemo(() => {
@@ -172,7 +172,7 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
                         option?.login ?? '',
                         option?.accountID ?? -1,
                         report.reportID,
-                        null, // passing null as report because for editing task the report will be task details report page not the actual report where task was created
+                        undefined, // passing null as report because for editing task the report will be task details report page not the actual report where task was created
                         OptionsListUtils.isCurrentUser({...option, accountID: option?.accountID ?? -1, login: option?.login ?? ''}),
                     );
 
@@ -186,7 +186,7 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
                     option?.login ?? '',
                     option.accountID,
                     task?.shareDestination ?? '',
-                    null, // passing null as report is null in this condition
+                    undefined, // passing null as report is null in this condition
                     OptionsListUtils.isCurrentUser({...option, accountID: option?.accountID ?? -1, login: option?.login ?? undefined}),
                 );
                 Navigation.goBack(ROUTES.NEW_TASK);

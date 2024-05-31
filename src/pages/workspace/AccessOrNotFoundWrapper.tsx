@@ -115,7 +115,7 @@ function AccessOrNotFoundWrapper({accessVariants = [], fullPageNotFoundViewProps
 
     const isPageAccessible = accessVariants.reduce((acc, variant) => {
         const accessFunction = ACCESS_VARIANTS[variant];
-        return acc && accessFunction(policy, report, allPolicies ?? null, iouType);
+        return acc && accessFunction(policy, report, allPolicies, iouType);
     }, true);
 
     const isPolicyNotAccessible = isEmptyObject(policy) || (Object.keys(policy).length === 1 && !isEmptyObject(policy.errors)) || !policy?.id;

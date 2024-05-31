@@ -358,6 +358,5 @@ export default withOnyx<WorkspaceNewRoomPageProps, WorkspaceNewRoomPageOnyxProps
     },
     activePolicyID: {
         key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-        initialValue: null,
     },
 })(WorkspaceNewRoomPage);

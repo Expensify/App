@@ -108,7 +108,7 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
                     )}
                     {!!participants.length && (
                         <MoneyRequestConfirmationList
-                            payeePersonalDetails={payeePersonalDetails}
+                            payeePersonalDetails={payeePersonalDetails ?? undefined}
                             selectedParticipants={participantsExcludingPayee}
                             iouAmount={splitAmount ?? 0}
                             iouCurrencyCode={splitCurrency}

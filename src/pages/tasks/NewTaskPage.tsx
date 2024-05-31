@@ -79,7 +79,7 @@ function NewTaskPage({task, reports, personalDetails}: NewTaskPageProps) {
         // If we have a share destination, we want to set the parent report and
         // the share destination data
         if (task?.shareDestination) {
-            setParentReport(reports?.[`report_${task.shareDestination}`] ?? null);
+            setParentReport(reports?.[`report_${task.shareDestination}`]);
             const displayDetails = TaskActions.getShareDestination(task.shareDestination, reports, personalDetails);
             setShareDestination(displayDetails);
         }
