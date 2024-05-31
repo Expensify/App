@@ -86,7 +86,7 @@ function WorkspaceEditTaxPage({
                     <HeaderWithBackButton
                         title={currentTaxRate?.name}
                         threeDotsMenuItems={threeDotsMenuItems}
-                        shouldShowThreeDotsButton={!!canEdit}
+                        shouldShowThreeDotsButton={!!canEdit && !PolicyUtils.hasAccountingConnections(policy)}
                         threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
                     />
                     <OfflineWithFeedback

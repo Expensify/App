@@ -400,7 +400,6 @@ export default {
     },
     moneyRequestConfirmationList: {
         paidBy: 'Pagado por',
-        splitAmounts: 'Importes a dividir',
         whatsItFor: '¿Para qué es?',
     },
     selectionList: {
@@ -946,6 +945,7 @@ export default {
             noLogsAvailable: 'No hay registros disponibles',
             logSizeTooLarge: ({size}: LogSizeParams) => `El tamaño del registro excede el límite de ${size} MB. Utilice "Guardar registro" para descargar el archivo de registro.`,
             logs: 'Logs',
+            viewConsole: 'Ver consola',
         },
         security: 'Seguridad',
         restoreStashed: 'Restablecer login guardado',
@@ -1952,6 +1952,7 @@ export default {
             distanceRates: 'Tasas de distancia',
             welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
                 `¡Has sido invitado a ${workspaceName}! Descargue la aplicación móvil Expensify en use.expensify.com/download para comenzar a rastrear sus gastos.`,
+            subscription: 'Suscripción',
         },
         qbo: {
             importDescription: 'Elige que configuraciónes de codificación son importadas desde QuickBooks Online a Expensify.',
@@ -2080,10 +2081,8 @@ export default {
             accountsSwitchDescription: 'Las categorías activas estarán disponibles para ser escogidas cuando se crea un gasto.',
             trackingCategories: 'Categorías de seguimiento',
             trackingCategoriesDescription: 'Elige si deseas importar categorías de seguimiento y ver dónde se muestran.',
-            mapXeroCostCentersTo: 'Asignar centros de coste de Xero a',
-            mapXeroRegionsTo: 'Asignar regiones de Xero a',
-            mapXeroCostCentersToDescription: 'Elige dónde mapear los centros de coste al exportar a Xero.',
-            mapXeroRegionsToDescription: 'Elige dónde asignar las regiones de los empleados al exportar informes de gastos a Xero.',
+            mapTrackingCategoryTo: ({categoryName}) => `Asignar ${categoryName} de Xero a`,
+            mapTrackingCategoryToDescription: ({categoryName}) => `Elige dónde mapear ${categoryName} al exportar a Xero.`,
             customers: 'Volver a facturar a los clientes',
             customersDescription:
                 'Importar contactos de clientes. Los gastos facturables necesitan etiquetas para la exportación. Los gastos llevarán la información del cliente a Xero para las facturas de ventas.',
@@ -2143,10 +2142,12 @@ export default {
                 },
             },
             invoiceStatus: {
+                label: 'Estado de la factura de compra',
+                description: 'Qué estado deben tener las facturas de compra cuando se exportan a Xero.',
                 values: {
-                    [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_PAYMENT]: 'Autorizado',
                     [CONST.XERO_CONFIG.INVOICE_STATUS.DRAFT]: 'Borrador',
-                    [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_APPROVAL]: 'Enviado',
+                    [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_APPROVAL]: 'Pendiente de aprobación',
+                    [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_PAYMENT]: 'Pendiente de pago',
                 },
             },
             exportPreferredExporterNote:
@@ -2226,6 +2227,12 @@ export default {
                 title: 'Contabilidad',
                 subtitle: 'Sincroniza tu plan de cuentas y otras opciones.',
             },
+            connectionsWarningModal: {
+                featureEnabledTitle: 'No tan rápido...',
+                featureEnabledText: 'Para activar o desactivar esta función, cambia la configuración de importación contable.',
+                disconnectText: 'Desconecta tu conexión contable del espacio de trabajo si deseas desactivar la Contabilidad.',
+                manageSettings: 'Gestionar la configuración',
+            },
         },
         reportFields: {
             delete: 'Eliminar campos',
@@ -2281,6 +2288,7 @@ export default {
                 enable: 'Activar tasa',
                 enableMultiple: 'Activar tasas',
             },
+            importedFromAccountingSoftware: 'Impuestos importadas desde',
         },
         emptyWorkspace: {
             title: 'Crea un espacio de trabajo',
@@ -2349,6 +2357,17 @@ export default {
                     }
                 }
             },
+            syncError: (integration?: ConnectionName): string => {
+                switch (integration) {
+                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
+                        return 'No se puede conectar a QuickBooks Online.';
+                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
+                        return 'No se puede conectar a Xero';
+                    default: {
+                        return 'No se ha podido conectar a la integración.';
+                    }
+                }
+            },
             accounts: 'Plan de cuentas',
             taxes: 'Impuestos',
             imported: 'Importado',
@@ -2405,7 +2424,9 @@ export default {
                             return 'Revisando conexión a QuickBooks Online';
                         case 'quickbooksOnlineImportMain':
                             return 'Importando datos desde QuickBooks Online';
-                        case 'startingImport':
+                        case 'startingImportXero':
+                            return 'Importando datos desde Xero';
+                        case 'startingImportQBO':
                             return 'Importando datos desde QuickBooks Online';
                         case 'quickbooksOnlineSyncTitle':
                             return 'Sincronizando datos desde QuickBooks Online';
