@@ -1,0 +1,61 @@
+diff --git a/node_modules/@expensify/react-native-live-markdown/android/src/main/java/com/expensify/livemarkdown/CustomMountingManager.java b/node_modules/@expensify/react-native-live-markdown/android/src/main/java/com/expensify/livemarkdown/CustomMountingManager.java
+index 1b4381b..c7f6ad6 100644
+--- a/node_modules/@expensify/react-native-live-markdown/android/src/main/java/com/expensify/livemarkdown/CustomMountingManager.java
++++ b/node_modules/@expensify/react-native-live-markdown/android/src/main/java/com/expensify/livemarkdown/CustomMountingManager.java
+@@ -21,7 +21,7 @@ import com.facebook.react.fabric.mounting.MountingManager;
+ import com.facebook.react.uimanager.PixelUtil;
+ import com.facebook.react.uimanager.ViewManagerRegistry;
+ import com.facebook.react.views.text.TextAttributeProps;
+-import com.facebook.react.views.text.TextInlineViewPlaceholderSpan;
++import com.facebook.react.views.text.internal.span.TextInlineViewPlaceholderSpan;
+ import com.facebook.react.views.text.TextLayoutManagerMapBuffer;
+ import com.facebook.yoga.YogaMeasureMode;
+ import com.facebook.yoga.YogaMeasureOutput;
+diff --git a/node_modules/@expensify/react-native-live-markdown/android/src/main/java/com/expensify/livemarkdown/LiveMarkdownModule.java b/node_modules/@expensify/react-native-live-markdown/android/src/main/java/com/expensify/livemarkdown/LiveMarkdownModule.java
+index ed1428b..80641ce 100644
+--- a/node_modules/@expensify/react-native-live-markdown/android/src/main/java/com/expensify/livemarkdown/LiveMarkdownModule.java
++++ b/node_modules/@expensify/react-native-live-markdown/android/src/main/java/com/expensify/livemarkdown/LiveMarkdownModule.java
+@@ -1,7 +1,6 @@
+ package com.expensify.livemarkdown;
+ 
+ import com.facebook.react.bridge.ReactApplicationContext;
+-import com.facebook.react.bridge.UIManager;
+ import com.facebook.react.fabric.FabricUIManager;
+ import com.facebook.react.uimanager.UIManagerHelper;
+ import com.facebook.react.uimanager.common.UIManagerType;
+diff --git a/node_modules/@expensify/react-native-live-markdown/android/src/main/java/com/expensify/livemarkdown/MarkdownUtils.java b/node_modules/@expensify/react-native-live-markdown/android/src/main/java/com/expensify/livemarkdown/MarkdownUtils.java
+index cf7cf5f..f37c608 100644
+--- a/node_modules/@expensify/react-native-live-markdown/android/src/main/java/com/expensify/livemarkdown/MarkdownUtils.java
++++ b/node_modules/@expensify/react-native-live-markdown/android/src/main/java/com/expensify/livemarkdown/MarkdownUtils.java
+@@ -1,17 +1,12 @@
+ package com.expensify.livemarkdown;
+ 
+-import static com.facebook.infer.annotation.ThreadConfined.UI;
+-
+ import android.content.res.AssetManager;
+ import android.text.SpannableStringBuilder;
+ import android.text.Spanned;
+ 
+ import androidx.annotation.NonNull;
+ 
+-import com.facebook.infer.annotation.Assertions;
+-import com.facebook.infer.annotation.ThreadConfined;
+-import com.facebook.react.bridge.UiThreadUtil;
+-import com.facebook.react.views.text.CustomLineHeightSpan;
++import com.facebook.react.views.text.internal.span.CustomLineHeightSpan;
+ import com.facebook.soloader.SoLoader;
+ 
+ import org.json.JSONArray;
+diff --git a/node_modules/@expensify/react-native-live-markdown/android/src/main/new_arch/CMakeLists.txt b/node_modules/@expensify/react-native-live-markdown/android/src/main/new_arch/CMakeLists.txt
+index f5dfedf..11b54cd 100644
+--- a/node_modules/@expensify/react-native-live-markdown/android/src/main/new_arch/CMakeLists.txt
++++ b/node_modules/@expensify/react-native-live-markdown/android/src/main/new_arch/CMakeLists.txt
+@@ -42,6 +42,8 @@ target_link_libraries(
+   ReactAndroid::rrc_textinput
+   ReactAndroid::react_render_textlayoutmanager
+   ReactAndroid::react_render_imagemanager
++  ReactAndroid::reactnativejni
++  ReactAndroid::mapbufferjni
+   fabricjni
+   fbjni
+   folly_runtime
