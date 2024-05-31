@@ -197,15 +197,6 @@ function MoneyRequestAmountInput(
             return selection;
         },
     }));
-    
-    useEffect(() => {
-        if (resetClicked) {
-            resetFlag.current = true;
-            setNewAmount(selectedAmountAsString);
-            setSelection({start: formattedAmount.length, end: formattedAmount.length}); // Move cursor to the end
-       
-        }
-    }, [resetClicked, selectedAmountAsString, setNewAmount]);
 
     useEffect(() => {
         if (!currency || typeof amount !== 'number' || (formatAmountOnBlur && textInput.current?.isFocused())) {
