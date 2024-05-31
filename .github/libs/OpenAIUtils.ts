@@ -1,7 +1,7 @@
 import {context} from '@actions/github';
 import InitOpenAI from 'openai';
-import type {GitHubType} from '@github/libs/GithubUtils';
 import CONST from './CONST';
+import type {GitHubType} from './GithubUtils';
 
 const OpenAI = new InitOpenAI({apiKey: process.env.OPENAI_API_KEY});
 
