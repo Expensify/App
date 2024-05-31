@@ -39,14 +39,6 @@ Onyx.connect({
 const METERS_TO_KM = 0.001; // 1 kilometer is 1000 meters
 const METERS_TO_MILES = 0.000621371; // There are approximately 0.000621371 miles in a meter
 
-/**
- * Retrieves the mileage rates for given policy.
- *
- * @param policy - The policy from which to extract the mileage rates.
- * @param includeDisabledRates - Whether disabled rates should be included.
- *
- * @returns An array of mileage rates or an empty array if not found.
- */
 function getMileageRates(policy: OnyxEntry<Policy>, includeDisabledRates = false): Record<string, MileageRate> {
     const mileageRates: Record<string, MileageRate> = {};
 
