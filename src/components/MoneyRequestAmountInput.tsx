@@ -200,14 +200,15 @@ function MoneyRequestAmountInput(
     }));
 
     useEffect(() => {
-        if (resetClicked) {
-            resetFlag.current = true;
-            setNewAmount(selectedAmountAsString);
-            setSelection({start: formattedAmount.length, end: formattedAmount.length}); // Move cursor to the end
-       
+        if (!resetClicked) {
+            return;
         }
+    
+        resetFlag.current = true;
+        setNewAmount(selectedAmountAsString);
+        setSelection({ start: formattedAmount.length, end: formattedAmount.length }); // Move cursor to the end
     }, [resetClicked, selectedAmountAsString, setNewAmount]);
-
+    
     useEffect(() => {
         if (!currency || typeof amount !== 'number' || (formatAmountOnBlur && textInput.current?.isFocused())) {
             return;
@@ -263,7 +264,7 @@ function MoneyRequestAmountInput(
         if (!formatAmountOnBlur) {
             return;
         }
-        const formattedAmount = onFormatAmount(amount, currency);
+         formattedAmount = onFormatAmount(amount, currency);
         if (maxLength && formattedAmount.length > maxLength) {
             return;
         }
