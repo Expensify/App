@@ -178,8 +178,8 @@ function ReportPreview({
         setRequestType('pay');
         if (ReportUtils.hasHeldExpenses(iouReport?.reportID)) {
             setIsHoldMenuVisible(true);
-        } else if (chatReport && iouReport) {
-            IOU.payMoneyRequest(type, chatReport, iouReport, false);
+        } else if (chatReport) {
+            IOU.payMoneyRequest(type, chatReport, iouReport!, false);
         }
     };
 
