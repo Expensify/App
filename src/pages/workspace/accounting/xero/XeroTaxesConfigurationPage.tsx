@@ -7,7 +7,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import * as Policy from '@userActions/Policy';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 
 function XeroTaxesConfigurationPage({policy}: WithPolicyProps) {
@@ -26,6 +26,7 @@ function XeroTaxesConfigurationPage({policy}: WithPolicyProps) {
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={[styles.pb2, styles.ph5]}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
         >
             <ToggleSettingOptionRow
                 title={translate('workspace.accounting.import')}

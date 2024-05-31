@@ -34,7 +34,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
-import * as Policy from './Policy';
+import * as Policy from './Policy/Policy';
 import * as Session from './Session';
 import Timing from './Timing';
 
