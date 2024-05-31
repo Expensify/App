@@ -177,7 +177,7 @@ function MoneyRequestAmountInput(
                 return resultAmount;
             });
         },
-        [decimals, onAmountChange],
+        [decimals, onAmountChange, selectedAmountAsString],
     );
 
     useImperativeHandle(moneyRequestAmountInputRef, () => ({
@@ -274,7 +274,7 @@ function MoneyRequestAmountInput(
         resetFlag.current = true;
         setNewAmount(selectedAmountAsString);
         setSelection({ start: formattedAmount.length, end: formattedAmount.length }); // Move cursor to the end
-    }, [resetClicked, selectedAmountAsString, setNewAmount]);
+    }, [resetClicked, selectedAmountAsString, setNewAmount, formattedAmount]);
     
     return (
         <TextInputWithCurrencySymbol
