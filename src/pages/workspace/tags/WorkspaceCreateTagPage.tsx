@@ -18,7 +18,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Policy from '@userActions/Policy';
+import * as Tag from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -59,7 +59,7 @@ function CreateTagPage({route, policyTags}: CreateTagPageProps) {
 
     const createTag = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
-            Policy.createPolicyTag(route.params.policyID, values.tagName.trim());
+            Tag.createPolicyTag(route.params.policyID, values.tagName.trim());
             Keyboard.dismiss();
             Navigation.goBack();
         },
