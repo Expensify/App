@@ -14,12 +14,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
-import sortWorkspacesBySelected from '@src/utils/sortWorkspacesBySelected';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
+import {sortWorkspacesBySelected} from "@libs/PolicyUtils";
 
 type WorkspaceListItem = ListItem & {
     value: string;
