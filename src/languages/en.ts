@@ -649,6 +649,7 @@ export default {
         deleteReceipt: 'Delete receipt',
         pendingMatchWithCreditCard: 'Receipt pending match with credit card.',
         pendingMatchWithCreditCardDescription: 'Receipt pending match with credit card. Mark as cash to ignore and request payment.',
+        markAsCash: 'Mark as cash',
         routePending: 'Route pending...',
         receiptScanning: 'Receipt scanning...',
         receiptScanInProgress: 'Receipt scan in progress.',
@@ -1298,7 +1299,7 @@ export default {
                 label: 'Light',
             },
             system: {
-                label: 'Use Device Settings',
+                label: 'Use device settings',
             },
         },
         chooseThemeBelowOrSync: 'Choose a theme below, or sync with your device settings.',
@@ -1978,11 +1979,16 @@ export default {
             exportPreferredExporterNote: 'This can be any workspace admin, but must be a Domain Admin if you set different export accounts for individual company cards in Domain Settings.',
             exportPreferredExporterSubNote: 'Once set, the preferred exporter will see reports for export in their account.',
             exportOutOfPocketExpensesDescription: 'Set how out-of-pocket expenses export to QuickBooks Online.',
+            exportCheckDescription: "We'll create a single itemized check for each Expensify report. You can write the check from your bank account of choice (below).",
+            exportJournalEntryDescription: "We'll create a single itemized journal entry for each Expensify report. You can post the offset entry to your account of choice (below).",
             exportVendorBillDescription:
                 "We'll create a single itemized vendor bill for each Expensify report. If the period of the bill is closed, we'll post to the 1st of the next open period. You can add the vendor bill to your A/P account of choice (below).",
-            accountsPayable: 'Accounts payable',
             account: 'Account',
+            accountDescription: 'This is your chosen account to post the journal entry offset for each report.',
+            accountsPayable: 'Accounts payable',
             accountsPayableDescription: 'This is your chosen A/P account, against which vendor bills for each report are created.',
+            bankAccount: 'Bank account',
+            bankAccountDescription: 'This is your chosen bank account to write checks from.',
             optionBelow: 'Choose an option below:',
             companyCardsLocationEnabledDescription:
                 'Note: QuickBooks Online does not support a field for locations on vendor bill exports. As you have locations enabled on your workspace, this export option is unavailable.',
@@ -2030,6 +2036,8 @@ export default {
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK}Error`]: 'Check is not available when locations are enabled. Please select a different export option.',
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY}Error`]: 'Journal entry is not available when taxes enabled. please select a different export option.',
             },
+            noAccountsFound: 'No accounts found',
+            noAccountsFoundDescription: 'Add the account in Quickbooks Online and sync the connection again',
         },
         xero: {
             organization: 'Xero organization',
@@ -2108,6 +2116,8 @@ export default {
             },
             exportPreferredExporterNote: 'This can be any workspace admin, but must be a domain admin if you set different export accounts for individual company cards in domain settings.',
             exportPreferredExporterSubNote: 'Once set, the preferred exporter will see reports for export in their account.',
+            noAccountsFound: 'No accounts found',
+            noAccountsFoundDescription: 'Add the account in Xero and sync the connection again',
         },
         type: {
             free: 'Free',
@@ -2978,7 +2988,7 @@ export default {
             body: `Get paid to talk to your friends! Start a chat with a new Expensify account and get $${CONST.REFERRAL_PROGRAM.REVENUE} when they become a customer.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
-            buttonText1: 'Submit expense, ',
+            buttonText1: 'Submit an expense, ',
             buttonText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
             header: `Submit an expense, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             body: `It pays to get paid! Submit an expense to a new Expensify account and get $${CONST.REFERRAL_PROGRAM.REVENUE} when they become a customer.`,

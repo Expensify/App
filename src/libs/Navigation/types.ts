@@ -211,6 +211,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.TAG_SETTINGS]: {
         policyID: string;
+        orderWeight: number;
         tagName: string;
     };
     [SCREENS.WORKSPACE.TAG_LIST_VIEW]: {
@@ -223,6 +224,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.TAG_EDIT]: {
         policyID: string;
+        orderWeight: number;
         tagName: string;
     };
     [SCREENS.WORKSPACE.TAXES_SETTINGS]: {
@@ -306,9 +308,6 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_COMPANY_CARD_SELECT]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_PAYABLE_SELECT]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT_PREFERRED_EXPORTER]: {
@@ -794,7 +793,6 @@ type FullScreenNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.TAGS]: {
         policyID: string;
-        tagName: string;
     };
     [SCREENS.WORKSPACE.TAXES]: {
         policyID: string;
