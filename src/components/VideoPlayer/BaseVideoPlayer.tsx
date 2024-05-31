@@ -11,6 +11,7 @@ import Hoverable from '@components/Hoverable';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {useFullScreenContext} from '@components/VideoPlayerContexts/FullScreenContext';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
+import type {PlaybackSpeed} from '@components/VideoPlayerContexts/types';
 import {useVideoPopoverMenuContext} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
 import {useVolumeContext} from '@components/VideoPlayerContexts/VolumeContext';
 import VideoPopoverMenu from '@components/VideoPopoverMenu';
@@ -82,7 +83,7 @@ function BaseVideoPlayer({
     const isUploading = CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => url.startsWith(prefix));
     const videoStateRef = useRef<AVPlaybackStatus | null>(null);
     const {updateVolume} = useVolumeContext();
-    const {videoPopoverMenuPlayerRef} = useVideoPopoverMenuContext();
+    const {videoPopoverMenuPlayerRef, setCurrentPlaybackSpeed} = useVideoPopoverMenuContext();
 
     const togglePlayCurrentVideo = useCallback(() => {
         videoResumeTryNumber.current = 0;
@@ -96,8 +97,14 @@ function BaseVideoPlayer({
     }, [isCurrentlyURLSet, isPlaying, pauseVideo, playVideo, updateCurrentlyPlayingURL, url, videoResumeTryNumber]);
 
     const showPopoverMenu = (event?: GestureResponderEvent | KeyboardEvent) => {
-        setIsPopoverVisible(true);
         videoPopoverMenuPlayerRef.current = videoPlayerRef.current;
+        videoPlayerRef.current?.getStatusAsync().then((status) => {
+            if (!('rate' in status && status.rate)) {
+                return;
+            }
+            setIsPopoverVisible(true);
+            setCurrentPlaybackSpeed(status.rate as PlaybackSpeed);
+        });
         if (!event || !('nativeEvent' in event)) {
             return;
         }
@@ -216,22 +223,25 @@ function BaseVideoPlayer({
             return;
         }
 
-        // If we are uploading a new video, we want to immediately set the video player ref.
+        // If we are uploading a new video, we want to pause previous playing video and immediately set the video player ref.
+        if (currentVideoPlayerRef.current) {
+            pauseVideo();
+        }
         currentVideoPlayerRef.current = videoPlayerRef.current;
-    }, [url, currentVideoPlayerRef, isUploading]);
+    }, [url, currentVideoPlayerRef, isUploading, pauseVideo]);
 
     const isCurrentlyURLSetRef = useRef<boolean>();
     isCurrentlyURLSetRef.current = isCurrentlyURLSet;
 
     useEffect(
         () => () => {
-            if (!isCurrentlyURLSetRef.current) {
+            if (shouldUseSharedVideoElement || !isCurrentlyURLSetRef.current) {
                 return;
             }
 
             setCurrentlyPlayingURL(null);
         },
-        [setCurrentlyPlayingURL],
+        [setCurrentlyPlayingURL, shouldUseSharedVideoElement],
     );
     // update shared video elements
     useEffect(() => {
@@ -317,6 +327,7 @@ function BaseVideoPlayer({
                                     </>
                                 ) : (
                                     <View
+                                        fsClass="fs-exclude"
                                         style={styles.flex1}
                                         ref={(el) => {
                                             if (!el) {

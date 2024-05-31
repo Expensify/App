@@ -23,7 +23,7 @@ import WorkspacesSectionHeader from './WorkspacesSectionHeader';
 
 type WorkspaceListItem = {
     text: string;
-    policyID: string;
+    policyID?: string;
     isPolicyAdmin?: boolean;
     brickRoadIndicator?: BrickRoad;
 } & ListItem;
@@ -145,7 +145,6 @@ function WorkspaceSwitcherPage() {
                 data: [
                     {
                         text: CONST.WORKSPACE_SWITCHER.NAME,
-                        policyID: '',
                         icons: [{source: Expensicons.ExpensifyAppIcon, name: CONST.WORKSPACE_SWITCHER.NAME, type: CONST.ICON_TYPE_AVATAR}],
                         brickRoadIndicator: getIndicatorTypeForPolicy(undefined),
                         isSelected: activeWorkspaceID === undefined,
@@ -179,6 +178,7 @@ function WorkspaceSwitcherPage() {
                 ListItem={UserListItem}
                 sections={sections}
                 onSelectRow={selectPolicy}
+                shouldDebounceRowSelect
                 textInputLabel={usersWorkspaces.length >= CONST.WORKSPACE_SWITCHER.MINIMUM_WORKSPACES_TO_SHOW_SEARCH ? translate('common.searchText') : undefined}
                 textInputValue={searchTerm}
                 onChangeText={setSearchTerm}
