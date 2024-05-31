@@ -1236,7 +1236,7 @@ function isLinkedTransactionHeld(reportActionID: string, reportID: string): bool
 /**
  * Check if the current user is the requestor of the action
  */
-function isRequestor(reportAction: OnyxEntry<ReportAction>): boolean {
+function wasActionTakenByCurrentUser(reportAction: OnyxEntry<ReportAction>): boolean {
     return currentUserAccountID === reportAction?.actorAccountID;
 }
 
@@ -1308,7 +1308,7 @@ export {
     isActionableTrackExpense,
     getAllReportActions,
     isLinkedTransactionHeld,
-    isRequestor,
+    wasActionTakenByCurrentUser,
     isResolvedActionTrackExpense,
 };
 
