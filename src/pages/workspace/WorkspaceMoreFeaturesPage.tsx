@@ -1,7 +1,8 @@
 import {useFocusEffect} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback} from 'react';
+import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
+import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -13,12 +14,14 @@ import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import * as Category from '@userActions/Policy/Category';
 import * as Policy from '@userActions/Policy/Policy';
 import * as Tag from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -27,6 +30,12 @@ import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import ToggleSettingOptionRow from './workflows/ToggleSettingsOptionRow';
+
+type ItemType = 'organize' | 'integrate';
+type ConnectionWarningModalState = {
+    isOpen: boolean;
+    itemType?: ItemType;
+};
 
 type WorkspaceMoreFeaturesPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.MORE_FEATURES>;
 
@@ -55,6 +64,9 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const {canUseAccountingIntegrations} = usePermissions();
     const hasAccountingConnection = !!policy?.areConnectionsEnabled && !isEmptyObject(policy?.connections);
     const isSyncTaxEnabled = !!policy?.connections?.quickbooksOnline?.config.syncTax || !!policy?.connections?.xero?.config.importTaxRates;
+    const policyID = policy?.id ?? '';
+
+    const [connectionWarningModalState, setConnectionWarningModalState] = useState<ConnectionWarningModalState>({isOpen: false});
 
     const spendItems: Item[] = [
         {
@@ -88,6 +100,13 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             disabled: hasAccountingConnection,
             pendingAction: policy?.pendingFields?.areCategoriesEnabled,
             action: (isEnabled: boolean) => {
+                if (hasAccountingConnection) {
+                    setConnectionWarningModalState({
+                        isOpen: true,
+                        itemType: 'organize',
+                    });
+                    return;
+                }
                 Category.enablePolicyCategories(policy?.id ?? '', isEnabled);
             },
         },
@@ -99,6 +118,13 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             disabled: hasAccountingConnection,
             pendingAction: policy?.pendingFields?.areTagsEnabled,
             action: (isEnabled: boolean) => {
+                if (hasAccountingConnection) {
+                    setConnectionWarningModalState({
+                        isOpen: true,
+                        itemType: 'organize',
+                    });
+                    return;
+                }
                 Tag.enablePolicyTags(policy?.id ?? '', isEnabled);
             },
         },
@@ -107,9 +133,16 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             titleTranslationKey: 'workspace.moreFeatures.taxes.title',
             subtitleTranslationKey: 'workspace.moreFeatures.taxes.subtitle',
             isActive: (policy?.tax?.trackingEnabled ?? false) || isSyncTaxEnabled,
-            disabled: isSyncTaxEnabled || policy?.connections?.quickbooksOnline?.data?.country === CONST.COUNTRY.US,
+            disabled: hasAccountingConnection,
             pendingAction: policy?.pendingFields?.tax,
             action: (isEnabled: boolean) => {
+                if (hasAccountingConnection) {
+                    setConnectionWarningModalState({
+                        isOpen: true,
+                        itemType: 'organize',
+                    });
+                    return;
+                }
                 Policy.enablePolicyTaxes(policy?.id ?? '', isEnabled);
             },
         },
@@ -123,6 +156,13 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             isActive: !!policy?.areConnectionsEnabled,
             pendingAction: policy?.pendingFields?.areConnectionsEnabled,
             action: (isEnabled: boolean) => {
+                if (hasAccountingConnection) {
+                    setConnectionWarningModalState({
+                        isOpen: true,
+                        itemType: 'integrate',
+                    });
+                    return;
+                }
                 Policy.enablePolicyConnections(policy?.id ?? '', isEnabled);
             },
             disabled: hasAccountingConnection,
@@ -166,7 +206,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     isActive={item.isActive}
                     pendingAction={item.pendingAction}
                     onToggle={item.action}
-                    disabled={item.disabled}
+                    showLockIcon={item.disabled}
                     errors={item.errors}
                     onCloseError={item.onCloseError}
                 />
@@ -207,6 +247,17 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         }, [fetchFeatures]),
     );
 
+    const getConnectionWarningPrompt = useCallback(() => {
+        switch (connectionWarningModalState.itemType) {
+            case 'organize':
+                return translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledText');
+            case 'integrate':
+                return translate('workspace.moreFeatures.connectionsWarningModal.disconnectText');
+            default:
+                return undefined;
+        }
+    }, [connectionWarningModalState.itemType, translate]);
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -225,6 +276,27 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 />
 
                 <ScrollView contentContainerStyle={styles.pb2}>{sections.map(renderSection)}</ScrollView>
+
+                <ConfirmModal
+                    title={translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledTitle')}
+                    onConfirm={() => {
+                        setConnectionWarningModalState({
+                            isOpen: false,
+                            itemType: undefined,
+                        });
+                        Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
+                    }}
+                    onCancel={() =>
+                        setConnectionWarningModalState({
+                            isOpen: false,
+                            itemType: undefined,
+                        })
+                    }
+                    isVisible={connectionWarningModalState.isOpen}
+                    prompt={getConnectionWarningPrompt()}
+                    confirmText={translate('workspace.moreFeatures.connectionsWarningModal.manageSettings')}
+                    cancelText={translate('common.cancel')}
+                />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
