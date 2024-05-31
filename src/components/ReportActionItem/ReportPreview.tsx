@@ -179,7 +179,8 @@ function ReportPreview({
         if (ReportUtils.hasHeldExpenses(iouReport?.reportID)) {
             setIsHoldMenuVisible(true);
         } else if (chatReport) {
-            IOU.payMoneyRequest(type, chatReport, iouReport!, false);
+            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+            IOU.payMoneyRequest(type, chatReport, iouReport as Report, false);
         }
     };
 
