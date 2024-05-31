@@ -70,7 +70,6 @@ type Participant = {
     /** TODO: I think this type could be changes to `IOUType` */
     /** The type of IOU report, i.e. split, request, send, track */
     iouType?: string;
-    ownerAccountID?: number;
 };
 
 /** Model of IOU split */
@@ -113,7 +112,6 @@ type Split = {
 
     /** Created report action ID for thread */
     createdReportActionIDForThread?: string;
-    taxAmount?: number;
 };
 
 /** Model of IOU request */

@@ -8,6 +8,11 @@ import type {WorkspaceTravelSettings} from './TravelSettings';
 /** Distance units */
 type Unit = 'mi' | 'km';
 
+type TaxRateAttributes = {
+    taxClaimablePercentage?: number;
+    taxRateExternalID?: string;
+};
+
 /** Model of policy distance rate */
 type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Name of the distance rate */
@@ -30,12 +35,14 @@ type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Form fields that triggered the errors */
     errorFields?: OnyxCommon.ErrorFields;
+    attributes?: TaxRateAttributes;
 }>;
 
 /** Custom unit attributes */
 type Attributes = {
     /** Distance unit name */
     unit: Unit;
+    taxEnabled?: boolean;
 };
 
 /** Policy custom unit */
@@ -821,6 +828,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Indicates if the Policy is in loading state */
         isLoading?: boolean;
+
+        /** Indicates the Policy's SetWorkspaceReimbursement call loading state */
+        isLoadingWorkspaceReimbursement?: boolean;
 
         /** Indicates if the Policy ownership change is successful */
         isChangeOwnerSuccessful?: boolean;

@@ -37,10 +37,10 @@ type AvatarType = typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPA
 /** Icon properties */
 type Icon = {
     /** Avatar source to display */
-    source?: AvatarSource;
+    source: AvatarSource;
 
     /** Denotes whether it is an avatar or a workspace avatar */
-    type?: AvatarType;
+    type: AvatarType;
 
     /** Owner of the avatar. If user, displayName. If workspace, policy name */
     name?: string;
