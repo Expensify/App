@@ -143,7 +143,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             pendingAction: policy?.pendingFields?.areConnectionsEnabled,
             action: (isEnabled: boolean) => {
                 if (hasAccountingConnection) {
-                    setIsIntegrateWarningModalOpen(false);
+                    setIsIntegrateWarningModalOpen(true);
                     return;
                 }
                 Policy.enablePolicyConnections(policy?.id ?? '', isEnabled);
