@@ -269,6 +269,8 @@ function Expensify({
     );
 }
 
+Expensify.displayName = 'Expensify';
+
 export default withOnyx<ExpensifyProps, ExpensifyOnyxProps>({
     isCheckingPublicRoom: {
         key: ONYXKEYS.IS_CHECKING_PUBLIC_ROOM,
