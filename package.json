@@ -166,7 +166,7 @@
     "react-native-reanimated": "3.11.0",
     "react-native-release-profiler": "^0.1.6",
     "react-native-render-html": "6.3.1",
-    "react-native-safe-area-context": "4.10.0-rc.2",
+    "react-native-safe-area-context": "4.10.3",
     "react-native-screens": "3.31.1",
     "react-native-share": "^10.0.2",
     "react-native-sound": "^0.11.2",
@@ -304,8 +304,7 @@
   "overrides": {
     "expo": "51.0.0-beta.0",
     "react-native": "0.74.0",
-    "react-native-svg": "$react-native-svg",
-    "react-native-safe-area-context": "4.10.0-rc.2"
+    "react-native-svg": "$react-native-svg"
   },
   "expo": {
     "autolinking": {
