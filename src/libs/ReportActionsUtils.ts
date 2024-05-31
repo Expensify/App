@@ -644,7 +644,7 @@ function getLastVisibleMessage(reportID: string, actionsToMerge: OnyxCollection<
 /**
  * A helper method to filter out report actions keyed by sequenceNumbers.
  */
-function filterOutDeprecatedReportActions(reportActions: OnyxEntry<ReportActions>): ReportAction[] {
+function filterOutDeprecatedReportActions(reportActions: ReportActions | null): ReportAction[] {
     return Object.entries(reportActions ?? {})
         .filter(([key, reportAction]) => !isReportActionDeprecated(reportAction, key))
         .map((entry) => entry[1]);
@@ -656,7 +656,7 @@ function filterOutDeprecatedReportActions(reportActions: OnyxEntry<ReportActions
  * to ensure they will always be displayed in the same order (in case multiple actions have the same timestamp).
  * This is all handled with getSortedReportActions() which is used by several other methods to keep the code DRY.
  */
-function getSortedReportActionsForDisplay(reportActions: OnyxEntry<ReportActions> | ReportAction[], shouldIncludeInvisibleActions = false): ReportAction[] {
+function getSortedReportActionsForDisplay(reportActions: ReportActions | null | ReportAction[], shouldIncludeInvisibleActions = false): ReportAction[] {
     let filteredReportActions: ReportAction[] = [];
     if (!reportActions) {
         return [];
@@ -680,7 +680,7 @@ function getSortedReportActionsForDisplay(reportActions: OnyxEntry<ReportActions
  * Additionally, archived #admins and #announce do not have the closed report action so we will return null if none is found.
  *
  */
-function getLastClosedReportAction(reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> {
+function getLastClosedReportAction(reportActions: ReportActions | null): OnyxEntry<ReportAction> {
     // If closed report action is not present, return early
     if (!Object.values(reportActions ?? {}).some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED)) {
         return null;
@@ -733,7 +733,7 @@ function getLinkedTransactionID(reportActionOrID: string | OnyxEntry<ReportActio
     return reportAction.originalMessage?.IOUTransactionID ?? null;
 }
 
-function getReportAction(reportID: string, reportActionID: string): ReportAction | null {
+function getReportAction(reportID: string, reportActionID: string): OnyxEntry<ReportAction> {
     return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]?.[reportActionID] ?? null;
 }
 

@@ -184,7 +184,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                             onPress={navigateToCreateTagPage}
                             icon={Expensicons.Plus}
                             text={translate('workspace.tags.addTag')}
-                            style={[styles.mr3, isSmallScreenWidth && styles.flex1]}
+                            style={[styles.mr3, isSmallScreenWidth && styles.w50]}
                         />
                     )}
                     {policyTags && (
@@ -193,7 +193,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                             onPress={navigateToTagsSettings}
                             icon={Expensicons.Gear}
                             text={translate('common.settings')}
-                            style={[isSmallScreenWidth && styles.flex1]}
+                            style={[isSmallScreenWidth && styles.w50]}
                         />
                     )}
                 </View>
@@ -269,24 +269,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         );
     };
 
-    const getHeaderText = () => (
-        <View style={[styles.ph5, styles.pb5, styles.pt3]}>
-            {isConnectedToAccounting ? (
-                <Text>
-                    <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.tags.importedFromAccountingSoftware')} `}</Text>
-                    <TextLink
-                        style={[styles.textNormal, styles.link]}
-                        href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
-                    >
-                        {`${translate('workspace.accounting.qbo')} ${translate('workspace.accounting.settings')}`}
-                    </TextLink>
-                </Text>
-            ) : (
-                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.tags.subtitle')}</Text>
-            )}
-        </View>
-    );
-
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -307,7 +289,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 >
                     {!isSmallScreenWidth && getHeaderButtons()}
                 </HeaderWithBackButton>
-                {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                 <ConfirmModal
                     isVisible={isDeleteTagsConfirmModalVisible}
                     onConfirm={deleteTags}
@@ -318,7 +299,22 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     cancelText={translate('common.cancel')}
                     danger
                 />
-                {!isSmallScreenWidth && getHeaderText()}
+                {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
+                <View style={[styles.ph5, styles.pb5, styles.pt3]}>
+                    {isConnectedToAccounting ? (
+                        <Text>
+                            <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.tags.importedFromAccountingSoftware')} `}</Text>
+                            <TextLink
+                                style={[styles.textNormal, styles.link]}
+                                href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
+                            >
+                                {`${translate('workspace.accounting.qbo')} ${translate('workspace.accounting.settings')}`}
+                            </TextLink>
+                        </Text>
+                    ) : (
+                        <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.tags.subtitle')}</Text>
+                    )}
+                </View>
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -345,7 +341,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         onDismissError={(item) => Policy.clearPolicyTagErrors(policyID, item.value)}
-                        listHeaderContent={isSmallScreenWidth ? getHeaderText() : null}
                         showScrollIndicator={false}
                     />
                 )}

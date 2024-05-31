@@ -13,7 +13,6 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import * as IOU from '@userActions/IOU';
-import * as TransactionActions from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -126,10 +125,9 @@ function MoneyReportHeader({
 
     const shouldShowSubmitButton = isDraft && reimbursableSpend !== 0 && !allHavePendingRTERViolation;
     const shouldDisableSubmitButton = shouldShowSubmitButton && !ReportUtils.isAllowedToSubmitDraftExpenseReport(moneyRequestReport);
-    const shouldShowMarkAsCashButton = isDraft && allHavePendingRTERViolation;
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
     const shouldShowNextStep = !ReportUtils.isClosedExpenseReportWithNoExpenses(moneyRequestReport) && isFromPaidPolicy && !!nextStep?.message?.length && !allHavePendingRTERViolation;
-    const shouldShowAnyButton = shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextStep || allHavePendingRTERViolation;
+    const shouldShowAnyButton = shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextStep;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
     const formattedAmount = CurrencyUtils.convertToDisplayString(reimbursableSpend, moneyRequestReport.currency);
     const [nonHeldAmount, fullAmount] = ReportUtils.getNonHeldAndFullAmount(moneyRequestReport, policy);
@@ -170,16 +168,6 @@ function MoneyReportHeader({
 
         setIsDeleteRequestModalVisible(false);
     }, [moneyRequestReport?.reportID, requestParentReportAction, setIsDeleteRequestModalVisible]);
-
-    const markAsCash = useCallback(() => {
-        if (!requestParentReportAction) {
-            return;
-        }
-        const iouTransactionID = requestParentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? requestParentReportAction.originalMessage?.IOUTransactionID ?? '' : '';
-        const reportID = transactionThreadReport?.reportID ?? '';
-
-        TransactionActions.markAsCash(iouTransactionID, reportID);
-    }, [requestParentReportAction, transactionThreadReport?.reportID]);
 
     // The submit button should be success green colour only if the user is submitter and the policy does not have Scheduled Submit turned on
     const isWaitingForSubmissionFromCurrentUser = useMemo(
@@ -261,44 +249,20 @@ function MoneyReportHeader({
                         />
                     </View>
                 )}
-                {shouldShowMarkAsCashButton && !shouldUseNarrowLayout && (
-                    <View style={[styles.pv2]}>
-                        <Button
-                            medium
-                            success
-                            text={translate('iou.markAsCash')}
-                            style={[styles.pv2, styles.pr0]}
-                            onPress={markAsCash}
-                        />
-                    </View>
-                )}
             </HeaderWithBackButton>
             {allHavePendingRTERViolation && (
-                <View>
-                    {shouldShowMarkAsCashButton && shouldUseNarrowLayout && (
-                        <View style={[styles.ph5, styles.pb3]}>
-                            <Button
-                                medium
-                                success
-                                text={translate('iou.markAsCash')}
-                                style={[styles.w100, styles.pr0]}
-                                onPress={markAsCash}
-                            />
-                        </View>
-                    )}
-                    <MoneyRequestHeaderStatusBar
-                        title={
-                            <Icon
-                                src={Expensicons.Hourglass}
-                                height={variables.iconSizeSmall}
-                                width={variables.iconSizeSmall}
-                                fill={theme.icon}
-                            />
-                        }
-                        description={translate('iou.pendingMatchWithCreditCardDescription')}
-                        shouldShowBorderBottom
-                    />
-                </View>
+                <MoneyRequestHeaderStatusBar
+                    title={
+                        <Icon
+                            src={Expensicons.Hourglass}
+                            height={variables.iconSizeSmall}
+                            width={variables.iconSizeSmall}
+                            fill={theme.icon}
+                        />
+                    }
+                    description={translate('iou.pendingMatchWithCreditCardDescription')}
+                    shouldShowBorderBottom
+                />
             )}
             <View style={isMoreContentShown ? [styles.dFlex, styles.flexColumn, styles.borderBottom] : []}>
                 {shouldShowSettlementButton && shouldUseNarrowLayout && (

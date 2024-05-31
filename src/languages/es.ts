@@ -642,7 +642,6 @@ export default {
         deleteReceipt: 'Eliminar recibo',
         pendingMatchWithCreditCard: 'Recibo pendiente de adjuntar con la tarjeta de crédito.',
         pendingMatchWithCreditCardDescription: 'Recibo pendiente de adjuntar con tarjeta de crédito. Marca como efectivo para ignorar y solicitar pago.',
-        markAsCash: 'Marcar como efectivo',
         routePending: 'Ruta pendiente...',
         receiptIssuesFound: (count: number) => `${count === 1 ? 'Problema encontrado' : 'Problemas encontrados'}`,
         fieldPending: 'Pendiente...',

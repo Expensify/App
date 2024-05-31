@@ -11,7 +11,7 @@ import {buildOptimisticDismissedViolationReportAction} from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {RecentWaypoint, ReportActions, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {RecentWaypoint, ReportActions, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 
@@ -31,12 +31,6 @@ Onyx.connect({
         const transactionID = CollectionUtils.extractCollectionItemID(key);
         allTransactions[transactionID] = transaction;
     },
-});
-
-let allTransactionViolations: TransactionViolations = [];
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-    callback: (val) => (allTransactionViolations = val ?? []),
 });
 
 function createInitialWaypoints(transactionID: string) {
@@ -271,7 +265,7 @@ function clearError(transactionID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {errors: null, errorFields: {route: null}});
 }
 
-function markAsCash(transactionID: string, transactionThreadReportID: string) {
+function markAsCash(transactionID: string, transactionThreadReportID: string, existingViolations: TransactionViolation[]) {
     const optimisticReportAction = buildOptimisticDismissedViolationReportAction({
         reason: 'manual',
         violationName: CONST.VIOLATIONS.RTER,
@@ -285,7 +279,7 @@ function markAsCash(transactionID: string, transactionThreadReportID: string) {
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-                value: allTransactionViolations.filter((violation: TransactionViolation) => violation.name !== CONST.VIOLATIONS.RTER),
+                value: existingViolations.filter((violation: TransactionViolation) => violation.name !== CONST.VIOLATIONS.RTER),
             },
             // Optimistically adding the system message indicating we dismissed the violation
             {
@@ -299,7 +293,7 @@ function markAsCash(transactionID: string, transactionThreadReportID: string) {
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-                value: allTransactionViolations,
+                value: existingViolations,
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,

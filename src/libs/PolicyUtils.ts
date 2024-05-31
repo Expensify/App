@@ -30,7 +30,7 @@ Onyx.connect({
  */
 function getActivePolicies(policies: OnyxCollection<Policy>): Policy[] {
     return Object.values(policies ?? {}).filter<Policy>(
-        (policy): policy is Policy => !!policy && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !!policy.name && !!policy.id,
+        (policy): policy is Policy => policy !== null && policy && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !!policy.name && !!policy.id,
     );
 }
 

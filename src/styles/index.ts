@@ -4481,10 +4481,6 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 8,
         },
 
-        selectionListStickyHeader: {
-            backgroundColor: theme.appBG,
-        },
-
         draggableTopBar: {
             height: 30,
             width: '100%',
