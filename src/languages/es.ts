@@ -2025,7 +2025,7 @@ export default {
             outOfPocketTaxEnabledError: 'La Anotacion en el diario no está disponible cuando los impuestos están activados. Por favor, selecciona una opción de exportación diferente.',
             outOfPocketLocationEnabledError: 'Las facturas de proveedores no están disponibles cuando las ubicaciones están activadas. Seleccione otra opción de exportación.',
             outOfPocketLocationEnabledDescription:
-                'Nota: QuickBooks Online no admite un campo para Ubicaciones como Etiquetas en las exportaciones de Facturas de Proveedor. Al importar Ubicaciones como Etiquetas, esta opción de exportación no está disponible.',
+                'Nota: QuickBooks Online no permite añadir una ubicación a las facturas de proveedores o a los cheques. Al importar ubicaciones como etiquetas, esta opción de exportación no está disponible.',
 
             advancedConfig: {
                 advanced: 'Avanzado',
