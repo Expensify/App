@@ -290,6 +290,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         </View>
     );
 
+    const hasVisibleTag = tagList.some((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -329,14 +331,14 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         color={theme.spinner}
                     />
                 )}
-                {tagList.length === 0 && !isLoading && (
+                {!hasVisibleTag && !isLoading && (
                     <WorkspaceEmptyStateSection
                         title={translate('workspace.tags.emptyTags.title')}
                         icon={Illustrations.EmptyStateExpenses}
                         subtitle={translate('workspace.tags.emptyTags.subtitle')}
                     />
                 )}
-                {tagList.length > 0 && !isLoading && (
+                {hasVisibleTag && !isLoading && (
                     <SelectionList
                         canSelectMultiple={canSelectMultiple}
                         sections={[{data: tagList, isDisabled: false}]}
