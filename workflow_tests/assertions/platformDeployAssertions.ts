@@ -376,7 +376,7 @@ function assertPostGithubCommentJobExecuted(workflowResult: Step[], didExecute =
     });
 }
 
-function assertHybridAppJobExecuted(workflowResult: Step[], didExecute = true, isProduction = true, didDeploy = true) {
+function assertHybridAppJobExecuted(workflowResult: Step[], didExecute = true) {
     const steps = [createStepAssertion('Deploy HybridApp', true, null, 'HYBRID_APP', 'Deploy HybridApp')] as const;
 
     steps.forEach((expectedStep) => {
