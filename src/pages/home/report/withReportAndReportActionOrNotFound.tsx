@@ -2,7 +2,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {useCallback, useEffect} from 'react';
-import type {OnyxCollection, OnyxEntry, WithOnyxInstanceState} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, WithOnyxState} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import withWindowDimensions from '@components/withWindowDimensions';
@@ -129,12 +129,12 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
             },
             parentReportAction: {
                 key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : 0}`,
-                selector: (parentReportActions: OnyxEntry<OnyxTypes.ReportActions>, props: WithOnyxInstanceState<OnyxProps>): OnyxEntry<OnyxTypes.ReportAction> => {
+                selector: (parentReportActions: OnyxEntry<OnyxTypes.ReportActions>, props?: WithOnyxState<OnyxProps>): OnyxEntry<OnyxTypes.ReportAction> => {
                     const parentReportActionID = props?.report?.parentReportActionID;
                     if (!parentReportActionID) {
-                        return null;
+                        return;
                     }
-                    return parentReportActions?.[parentReportActionID] ?? null;
+                    return parentReportActions?.[parentReportActionID];
                 },
                 canEvict: false,
             },

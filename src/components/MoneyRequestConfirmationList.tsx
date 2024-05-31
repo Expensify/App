@@ -131,7 +131,7 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     selectedParticipants: Participant[];
 
     /** Payee of the expense with login */
-    payeePersonalDetails?: OnyxEntry<OnyxTypes.PersonalDetails>;
+    payeePersonalDetails?: OnyxEntry<OnyxTypes.PersonalDetails> | null;
 
     /** Should the list be read only, and not editable? */
     isReadOnly?: boolean;
