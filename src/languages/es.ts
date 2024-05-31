@@ -419,8 +419,7 @@ export default {
         phrase2: 'El dinero habla. Y ahora que chat y pagos están en un mismo lugar, es también fácil.',
         phrase3: 'Tus pagos llegan tan rápido como tus mensajes.',
         enterPassword: 'Por favor, introduce tu contraseña',
-        newFaceEnterMagicCode: ({login}: NewFaceEnterMagicCodeParams) =>
-            `¡Siempre es genial ver una cara nueva por aquí! Por favor ingresa el código mágico enviado a ${login}. Debería llegar en un par de minutos.`,
+        welcomeNewFace: ({login}: NewFaceEnterMagicCodeParams) => `Bienvenido ${login}, ¡siempre es genial ver una cara nueva por aquí!`,
         welcomeEnterMagicCode: ({login}: WelcomeEnterMagicCodeParams) => `Por favor, introduce el código mágico enviado a ${login}. Debería llegar en un par de minutos.`,
     },
     login: {
@@ -1423,6 +1422,9 @@ export default {
         helpConfigure: ', pero es posible que necesites que el departamento de informática te ayude a configurar los ajustes de correo electrónico.',
         onceTheAbove: 'Una vez completados los pasos anteriores, ponte en contacto con ',
         toUnblock: ' para desbloquear el inicio de sesión.',
+    },
+    welcomeSignUpForm: {
+        join: 'Unirse',
     },
     detailsPage: {
         localTime: 'Hora local',

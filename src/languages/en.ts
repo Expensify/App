@@ -428,8 +428,7 @@ export default {
         phrase2: "Money talks. And now that chat and payments are in one place, it's also easy.",
         phrase3: 'Your payments get to you as fast as you can get your point across.',
         enterPassword: 'Please enter your password',
-        newFaceEnterMagicCode: ({login}: NewFaceEnterMagicCodeParams) =>
-            `It's always great to see a new face around here! Please enter the magic code sent to ${login}. It should arrive within a minute or two.`,
+        welcomeNewFace: ({login}: NewFaceEnterMagicCodeParams) => `Welcome ${login}, it's always great to see a new face around here!`,
         welcomeEnterMagicCode: ({login}: WelcomeEnterMagicCodeParams) => `Please enter the magic code sent to ${login}. It should arrive within a minute or two.`,
     },
     login: {
@@ -1422,6 +1421,9 @@ export default {
         helpConfigure: ' but you may need your IT department to help configure your email settings.',
         onceTheAbove: 'Once the above steps are completed, please reach out to ',
         toUnblock: ' to unblock your login.',
+    },
+    welcomeSignUpForm: {
+        join: 'Join',
     },
     detailsPage: {
         localTime: 'Local time',
