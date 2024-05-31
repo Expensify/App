@@ -183,7 +183,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                 title: integrationData?.title,
                 errorText: shouldShowSynchronizationError ? translate('workspace.accounting.syncError', connectedIntegration) : undefined,
                 errorTextStyle: [styles.mt5],
-                shouldShowRedDotIndicator: true,                
+                shouldShowRedDotIndicator: true,
                 description: isSyncInProgress ? translate('workspace.accounting.connections.syncStageName', connectionSyncProgress.stageInProgress) : datetimeToRelative,
                 rightComponent: isSyncInProgress ? (
                     <ActivityIndicator
