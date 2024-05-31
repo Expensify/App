@@ -208,7 +208,7 @@ function WorkspaceTaxesPage({
             });
         }
         return options;
-     }, [hasAccountingConnections, policy?.taxRates?.taxes, selectedTaxesIDs, toggleTaxes, translate]);
+    }, [hasAccountingConnections, policy?.taxRates?.taxes, selectedTaxesIDs, toggleTaxes, translate]);
 
     const headerButtons = !selectedTaxesIDs.length ? (
         <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
