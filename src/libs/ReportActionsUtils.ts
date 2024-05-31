@@ -419,9 +419,9 @@ function extractLinksFromMessageHtml(reportAction: OnyxEntry<ReportAction>): str
  * @param reportActions - all actions
  * @param actionIndex - index of the action
  */
-function findPreviousAction(reportActions: ReportAction[] | null, actionIndex: number): OnyxEntry<ReportAction> {
+function findPreviousAction(reportActions: ReportAction[] | undefined, actionIndex: number): OnyxEntry<ReportAction> {
     if (!reportActions) {
-        return null;
+        return undefined;
     }
 
     for (let i = actionIndex + 1; i < reportActions.length; i++) {
@@ -432,7 +432,7 @@ function findPreviousAction(reportActions: ReportAction[] | null, actionIndex: n
         }
     }
 
-    return null;
+    return undefined;
 }
 
 /**
@@ -441,7 +441,7 @@ function findPreviousAction(reportActions: ReportAction[] | null, actionIndex: n
  *
  * @param actionIndex - index of the comment item in state to check
  */
-function isConsecutiveActionMadeByPreviousActor(reportActions: ReportAction[] | null, actionIndex: number): boolean {
+function isConsecutiveActionMadeByPreviousActor(reportActions: ReportAction[] | undefined, actionIndex: number): boolean {
     const previousAction = findPreviousAction(reportActions, actionIndex);
     const currentAction = reportActions?.[actionIndex];
 
@@ -643,7 +643,7 @@ function getLastVisibleAction(reportID: string, actionsToMerge: OnyxCollection<R
     const visibleReportActions = Object.values(reportActions ?? {}).filter((action): action is ReportAction => shouldReportActionBeVisibleAsLastAction(action));
     const sortedReportActions = getSortedReportActions(visibleReportActions, true);
     if (sortedReportActions.length === 0) {
-        return null;
+        return undefined;
     }
     return sortedReportActions[0];
 }
@@ -717,12 +717,12 @@ function getSortedReportActionsForDisplay(reportActions: OnyxEntry<ReportActions
 function getLastClosedReportAction(reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> {
     // If closed report action is not present, return early
     if (!Object.values(reportActions ?? {}).some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED)) {
-        return null;
+        return undefined;
     }
 
     const filteredReportActions = filterOutDeprecatedReportActions(reportActions);
     const sortedReportActions = getSortedReportActions(filteredReportActions);
-    return lodashFindLast(sortedReportActions, (action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED) ?? null;
+    return lodashFindLast(sortedReportActions, (action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
 }
 
 /**
@@ -744,16 +744,16 @@ function getFirstVisibleReportActionID(sortedReportActions: ReportAction[] = [],
 /**
  * @returns The latest report action in the `onyxData` or `null` if one couldn't be found
  */
-function getLatestReportActionFromOnyxData(onyxData: OnyxUpdate[] | null): OnyxEntry<ReportAction> {
+function getLatestReportActionFromOnyxData(onyxData: OnyxUpdate[] | undefined): OnyxEntry<ReportAction> {
     const reportActionUpdate = onyxData?.find((onyxUpdate) => onyxUpdate.key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS));
 
     if (!reportActionUpdate) {
-        return null;
+        return undefined;
     }
 
     const reportActions = Object.values((reportActionUpdate.value as ReportActions) ?? {});
     const sortedReportActions = getSortedReportActions(reportActions);
-    return sortedReportActions.at(-1) ?? null;
+    return sortedReportActions.at(-1);
 }
 
 /**
@@ -767,8 +767,8 @@ function getLinkedTransactionID(reportActionOrID: string | OnyxEntry<ReportActio
     return reportAction.originalMessage?.IOUTransactionID ?? null;
 }
 
-function getReportAction(reportID: string, reportActionID: string): ReportAction | null {
-    return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]?.[reportActionID] ?? null;
+function getReportAction(reportID: string, reportActionID: string): ReportAction | undefined {
+    return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]?.[reportActionID];
 }
 
 function getMostRecentReportActionLastModified(): string {
@@ -814,10 +814,8 @@ function getMostRecentReportActionLastModified(): string {
  * @returns The report preview action or `null` if one couldn't be found
  */
 function getReportPreviewAction(chatReportID: string, iouReportID: string): OnyxEntry<ReportAction> {
-    return (
-        Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`] ?? {}).find(
-            (reportAction) => reportAction && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && reportAction.originalMessage.linkedReportID === iouReportID,
-        ) ?? null
+    return Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`] ?? {}).find(
+        (reportAction) => reportAction && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && reportAction.originalMessage.linkedReportID === iouReportID,
     );
 }
 

@@ -514,7 +514,7 @@ let currentUserPersonalDetails: OnyxEntry<PersonalDetails>;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
-        currentUserPersonalDetails = value?.[currentUserAccountID ?? -1] ?? null;
+        currentUserPersonalDetails = value?.[currentUserAccountID ?? -1] ?? undefined;
         allPersonalDetails = value ?? {};
         allPersonalDetailLogins = Object.values(allPersonalDetails).map((personalDetail) => personalDetail?.login ?? '');
     },
@@ -605,13 +605,13 @@ function getChatType(report: OnyxEntry<Report> | Participant | EmptyObject): Val
  */
 function getReport(reportID: string | undefined): OnyxEntry<Report> {
     if (!allReports && !allReportsDraft) {
-        return null;
+        return undefined;
     }
 
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const draftReport = allReportsDraft?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`];
 
-    return report ?? draftReport ?? null;
+    return report ?? draftReport;
 }
 
 /**
@@ -650,7 +650,7 @@ function getRootParentReport(report: OnyxEntry<Report> | undefined | EmptyObject
     const parentReport = getReport(report?.parentReportID);
 
     // Runs recursion to iterate a parent report
-    return getRootParentReport(!isEmptyObject(parentReport) ? parentReport : null);
+    return getRootParentReport(!isEmptyObject(parentReport) ? parentReport : undefined);
 }
 
 /**
@@ -674,7 +674,7 @@ function getPolicyType(report: OnyxEntry<Report>, policies: OnyxCollection<Polic
 /**
  * Get the policy name from a given report
  */
-function getPolicyName(report: OnyxEntry<Report> | undefined | EmptyObject, returnEmptyIfNotFound = false, policy: OnyxEntry<Policy> | undefined = undefined): string {
+function getPolicyName(report: OnyxEntry<Report> | undefined | EmptyObject, returnEmptyIfNotFound = false, policy: OnyxEntry<Policy> = undefined): string {
     const noPolicyFound = returnEmptyIfNotFound ? '' : Localize.translateLocal('workspace.common.unavailable');
     if (isEmptyObject(report)) {
         return noPolicyFound;
@@ -1014,7 +1014,7 @@ function isWorkspaceTaskReport(report: OnyxEntry<Report>): boolean {
     if (!isTaskReport(report)) {
         return false;
     }
-    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`] ?? null;
+    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
     return isPolicyExpenseChat(parentReport);
 }
 
@@ -1204,10 +1204,10 @@ function findLastAccessedReport(
             return sortedReports[0];
         }
 
-        return adminReport ?? sortedReports.find((report) => !isConciergeChatReport(report)) ?? null;
+        return adminReport ?? sortedReports.find((report) => !isConciergeChatReport(report));
     }
 
-    return adminReport ?? sortedReports.at(-1) ?? null;
+    return adminReport ?? sortedReports.at(-1);
 }
 
 /**
@@ -1363,7 +1363,7 @@ function isChildReport(report: OnyxEntry<Report>): boolean {
 function isExpenseRequest(report: OnyxEntry<Report>): boolean {
     if (isThread(report)) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-        const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`] ?? null;
+        const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
         return isExpenseReport(parentReport) && !isEmptyObject(parentReportAction) && ReportActionsUtils.isTransactionThread(parentReportAction);
     }
     return false;
@@ -1376,7 +1376,7 @@ function isExpenseRequest(report: OnyxEntry<Report>): boolean {
 function isIOURequest(report: OnyxEntry<Report>): boolean {
     if (isThread(report)) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-        const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`] ?? null;
+        const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
         return isIOUReport(parentReport) && !isEmptyObject(parentReportAction) && ReportActionsUtils.isTransactionThread(parentReportAction);
     }
     return false;
@@ -1398,7 +1398,7 @@ function isTrackExpenseReport(report: OnyxEntry<Report>): boolean {
  * Checks if a report is an IOU or expense request.
  */
 function isMoneyRequest(reportOrID: OnyxEntry<Report> | string): boolean {
-    const report = typeof reportOrID === 'string' ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] ?? null : reportOrID;
+    const report = typeof reportOrID === 'string' ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] ?? undefined : reportOrID;
     return isIOURequest(report) || isExpenseRequest(report);
 }
 
@@ -1406,7 +1406,7 @@ function isMoneyRequest(reportOrID: OnyxEntry<Report> | string): boolean {
  * Checks if a report is an IOU or expense report.
  */
 function isMoneyRequestReport(reportOrID: OnyxEntry<Report> | EmptyObject | string): boolean {
-    const report = typeof reportOrID === 'object' ? reportOrID : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] ?? null;
+    const report = typeof reportOrID === 'object' ? reportOrID : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] ?? undefined;
     return isIOUReport(report) || isExpenseReport(report);
 }
 
@@ -1615,7 +1615,7 @@ function getReportRecipientAccountIDs(report: OnyxEntry<Report>, currentLoginAcc
     // In 1:1 chat threads, the participants will be the same as parent report. If a report is specifically a 1:1 chat thread then we will
     // get parent report and use its participants array.
     if (isThread(report) && !(isTaskReport(report) || isMoneyRequestReport(report))) {
-        const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`] ?? null;
+        const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
         if (isOneOnOneChat(parentReport)) {
             finalReport = parentReport;
         }
@@ -1779,7 +1779,7 @@ function getIconsForParticipants(participants: number[], personalDetails: OnyxEn
 /**
  * Given a report, return the associated workspace icon.
  */
-function getWorkspaceIcon(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = null): Icon {
+function getWorkspaceIcon(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>): Icon {
     const workspaceName = getPolicyName(report, false, policy);
     const policyExpenseChatAvatarSource = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.avatarURL
         ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.avatarURL
@@ -1925,7 +1925,7 @@ function getIcons(
     defaultIcon: AvatarSource | null = null,
     defaultName = '',
     defaultAccountID = -1,
-    policy: OnyxEntry<Policy> = null,
+    policy: OnyxEntry<Policy> = undefined,
 ): Icon[] {
     if (isEmptyObject(report)) {
         const fallbackIcon: Icon = {
@@ -2321,7 +2321,7 @@ function hasNonReimbursableTransactions(iouReportID: string | undefined): boolea
     return transactions.filter((transaction) => transaction.reimbursable === false).length > 0;
 }
 
-function getMoneyRequestSpendBreakdown(report: OnyxEntry<Report>, allReportsDict: OnyxCollection<Report> = null): SpendBreakdown {
+function getMoneyRequestSpendBreakdown(report: OnyxEntry<Report>, allReportsDict?: OnyxCollection<Report>): SpendBreakdown {
     const allAvailableReports = allReportsDict ?? allReports;
     let moneyRequestReport;
     if (isMoneyRequestReport(report) || isInvoiceReport(report)) {
@@ -2822,7 +2822,7 @@ function getReportPreviewMessage(
     iouReportAction: OnyxEntry<ReportAction> | EmptyObject = {},
     shouldConsiderScanningReceiptOrPendingRoute = false,
     isPreviewMessageForParentChatReport = false,
-    policy: OnyxEntry<Policy> = null,
+    policy: OnyxEntry<Policy> = undefined,
     isForListPreview = false,
     originalReportAction: OnyxEntry<ReportAction> | EmptyObject = iouReportAction,
 ): string {
@@ -3153,7 +3153,7 @@ function getInvoicesChatName(report: OnyxEntry<Report>): string {
 /**
  * Get the title for a report.
  */
-function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = null): string {
+function getReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>): string {
     let formattedName: string | undefined;
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     if (isChatThread(report)) {
@@ -3169,7 +3169,7 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
             return Localize.translateLocal('parentReportAction.deletedMessage');
         }
 
-        const isAttachment = ReportActionsUtils.isReportActionAttachment(!isEmptyObject(parentReportAction) ? parentReportAction : null);
+        const isAttachment = ReportActionsUtils.isReportActionAttachment(!isEmptyObject(parentReportAction) ? parentReportAction : undefined);
         const parentReportActionMessage = getReportActionMessage(parentReportAction, report?.parentReportID).replace(/(\r\n|\n|\r)/gm, ' ');
         if (isAttachment && parentReportActionMessage) {
             return `[${Localize.translateLocal('common.attachment')}]`;
@@ -3859,12 +3859,12 @@ function getIOUReportActionMessage(iouReportID: string, type: string, total: num
     const report = getReport(iouReportID);
 
     if (type === CONST.REPORT.ACTIONS.TYPE.SUBMITTED) {
-        return getIOUSubmittedMessage(!isEmptyObject(report) ? report : null);
+        return getIOUSubmittedMessage(!isEmptyObject(report) ? report : undefined);
     }
 
     const amount =
         type === CONST.IOU.REPORT_ACTION_TYPE.PAY
-            ? CurrencyUtils.convertToDisplayString(getMoneyRequestSpendBreakdown(!isEmptyObject(report) ? report : null).totalDisplaySpend, currency)
+            ? CurrencyUtils.convertToDisplayString(getMoneyRequestSpendBreakdown(!isEmptyObject(report) ? report : undefined).totalDisplaySpend, currency)
             : CurrencyUtils.convertToDisplayString(total, currency);
 
     let paymentMethodMessage;
@@ -4126,7 +4126,7 @@ function buildOptimisticSubmittedReportAction(amount: number, currency: string, 
  * @param [comment] - User comment for the IOU.
  * @param [transaction] - optimistic first transaction of preview
  */
-function buildOptimisticReportPreview(chatReport: OnyxEntry<Report>, iouReport: Report, comment = '', transaction: OnyxEntry<Transaction> = null, childReportID?: string): ReportAction {
+function buildOptimisticReportPreview(chatReport: OnyxEntry<Report>, iouReport: Report, comment = '', transaction: OnyxEntry<Transaction> = undefined, childReportID?: string): ReportAction {
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const isReceiptBeingScanned = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
     const message = getReportPreviewMessage(iouReport);
@@ -4289,7 +4289,7 @@ function updateReportPreview(
     reportPreviewAction: ReportPreviewAction,
     isPayRequest = false,
     comment = '',
-    transaction: OnyxEntry<Transaction> = null,
+    transaction: OnyxEntry<Transaction> = undefined,
 ): ReportPreviewAction {
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const recentReceiptTransactions = reportPreviewAction?.childRecentReceiptTransactionIDs ?? {};
@@ -5037,7 +5037,7 @@ function isUnread(report: OnyxEntry<Report>): boolean {
     return lastReadTime < lastVisibleActionCreated || lastReadTime < lastMentionedTime;
 }
 
-function isIOUOwnedByCurrentUser(report: OnyxEntry<Report>, allReportsDict: OnyxCollection<Report> = null): boolean {
+function isIOUOwnedByCurrentUser(report: OnyxEntry<Report>, allReportsDict?: OnyxCollection<Report>): boolean {
     const allAvailableReports = allReportsDict ?? allReports;
     if (!report || !allAvailableReports) {
         return false;
@@ -5101,7 +5101,7 @@ function canAccessReport(report: OnyxEntry<Report>, policies: OnyxCollection<Pol
  */
 function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string): boolean {
     const currentReport = getReport(currentReportId);
-    const parentReport = getParentReport(!isEmptyObject(currentReport) ? currentReport : null);
+    const parentReport = getParentReport(!isEmptyObject(currentReport) ? currentReport : undefined);
     const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`] ?? {};
     const isChildReportHasComment = Object.values(reportActions ?? {})?.some((reportAction) => (reportAction?.childVisibleActionCount ?? 0) > 0);
     return parentReport?.reportID !== report?.reportID && !isChildReportHasComment;
@@ -5283,65 +5283,59 @@ function shouldReportBeInOptionList({
  */
 function getChatByParticipants(newParticipantList: number[], reports: OnyxCollection<Report> = allReports): OnyxEntry<Report> {
     const sortedNewParticipantList = newParticipantList.sort();
-    return (
-        Object.values(reports ?? {}).find((report) => {
-            const participantAccountIDs = Object.keys(report?.participants ?? {});
+    return Object.values(reports ?? {}).find((report) => {
+        const participantAccountIDs = Object.keys(report?.participants ?? {});
 
-            // If the report has been deleted, or there are no participants (like an empty #admins room) then skip it
-            if (
-                participantAccountIDs.length === 0 ||
-                isChatThread(report) ||
-                isTaskReport(report) ||
-                isMoneyRequestReport(report) ||
-                isChatRoom(report) ||
-                isPolicyExpenseChat(report) ||
-                isGroupChat(report)
-            ) {
-                return false;
-            }
+        // If the report has been deleted, or there are no participants (like an empty #admins room) then skip it
+        if (
+            participantAccountIDs.length === 0 ||
+            isChatThread(report) ||
+            isTaskReport(report) ||
+            isMoneyRequestReport(report) ||
+            isChatRoom(report) ||
+            isPolicyExpenseChat(report) ||
+            isGroupChat(report)
+        ) {
+            return false;
+        }
 
-            const sortedParticipantsAccountIDs = participantAccountIDs.map(Number).sort();
+        const sortedParticipantsAccountIDs = participantAccountIDs.map(Number).sort();
 
-            // Only return the chat if it has all the participants
-            return lodashIsEqual(sortedNewParticipantList, sortedParticipantsAccountIDs);
-        }) ?? null
-    );
+        // Only return the chat if it has all the participants
+        return lodashIsEqual(sortedNewParticipantList, sortedParticipantsAccountIDs);
+    });
 }
 
 /**
  * Attempts to find an invoice chat report in onyx with the provided policyID and receiverID.
  */
 function getInvoiceChatByParticipants(policyID: string, receiverID: string | number, reports: OnyxCollection<Report> = allReports): OnyxEntry<Report> {
-    return (
-        Object.values(reports ?? {}).find((report) => {
-            if (!report || !isInvoiceRoom(report)) {
-                return false;
-            }
+    return Object.values(reports ?? {}).find((report) => {
+        if (!report || !isInvoiceRoom(report)) {
+            return false;
+        }
 
-            const isSameReceiver =
-                report.invoiceReceiver &&
-                (('accountID' in report.invoiceReceiver && report.invoiceReceiver.accountID === receiverID) ||
-                    ('policyID' in report.invoiceReceiver && report.invoiceReceiver.policyID === receiverID));
+        const isSameReceiver =
+            report.invoiceReceiver &&
+            (('accountID' in report.invoiceReceiver && report.invoiceReceiver.accountID === receiverID) ||
+                ('policyID' in report.invoiceReceiver && report.invoiceReceiver.policyID === receiverID));
 
-            return report.policyID === policyID && isSameReceiver;
-        }) ?? null
-    );
+        return report.policyID === policyID && isSameReceiver;
+    });
 }
 
 /**
  * Attempts to find a policy expense report in onyx that is owned by ownerAccountID in a given policy
  */
 function getPolicyExpenseChat(ownerAccountID: number, policyID: string): OnyxEntry<Report> {
-    return (
-        Object.values(allReports ?? {}).find((report: OnyxEntry<Report>) => {
-            // If the report has been deleted, then skip it
-            if (!report) {
-                return false;
-            }
+    return Object.values(allReports ?? {}).find((report: OnyxEntry<Report>) => {
+        // If the report has been deleted, then skip it
+        if (!report) {
+            return false;
+        }
 
-            return report.policyID === policyID && isPolicyExpenseChat(report) && report.ownerAccountID === ownerAccountID;
-        }) ?? null
-    );
+        return report.policyID === policyID && isPolicyExpenseChat(report) && report.ownerAccountID === ownerAccountID;
+    });
 }
 
 function getAllPolicyReports(policyID: string): Array<OnyxEntry<Report>> {
@@ -6119,7 +6113,7 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
         return Localize.translateLocal(translationKey, {amount: formattedAmount, payer: ''});
     }
 
-    const transactionDetails = getTransactionDetails(!isEmptyObject(transaction) ? transaction : null);
+    const transactionDetails = getTransactionDetails(!isEmptyObject(transaction) ? transaction : undefined);
     const formattedAmount = CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency);
     const isRequestSettled = isSettled(originalMessage.IOUReportID);
     const isApproved = isReportApproved(iouReport);
@@ -6582,7 +6576,7 @@ function hasMissingPaymentMethod(userWallet: OnyxEntry<UserWallet>, iouReportID:
  * - we have one, but it's waiting on the payee adding a bank account
  * - we have one, but we can't add more transactions to it due to: report is approved or settled, or report is processing and policy isn't on Instant submit reporting frequency
  */
-function shouldCreateNewMoneyRequestReport(existingIOUReport: OnyxEntry<Report> | undefined | null, chatReport: OnyxEntry<Report> | null): boolean {
+function shouldCreateNewMoneyRequestReport(existingIOUReport: OnyxEntry<Report> | undefined, chatReport: OnyxEntry<Report>): boolean {
     return !existingIOUReport || hasIOUWaitingOnCurrentUserBankAccount(chatReport) || !canAddOrDeleteTransactions(existingIOUReport);
 }
 
