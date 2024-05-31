@@ -1660,7 +1660,11 @@ const styles = (theme: ThemeColors) =>
         },
 
         onlyEmojisTextLineHeight: {
-            lineHeight: variables.fontSizeOnlyEmojisHeight,
+            lineHeight: variables.lineHeightEmojisOnlyComposer,
+        },
+
+        emojisWithTextLineHeight: {
+            lineHeight: variables.lineHeightEmojisWithTextComposer,
         },
 
         emojisWithinText: {
