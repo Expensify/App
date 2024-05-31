@@ -42,6 +42,8 @@ import type {
     SetWorkspacePayerParams,
     SetWorkspaceReimbursementParams,
     UpdatePolicyDistanceRateValueParams,
+    UpdatePolicyDistanceTaxRateValueParams,
+    UpdatePolicyTaxClaimableValueParams,
     UpdateWorkspaceAvatarParams,
     UpdateWorkspaceCustomUnitAndRateParams,
     UpdateWorkspaceDescriptionParams,
@@ -3973,13 +3975,13 @@ function updateDistanceTaxClaimableValue(policyID: string, customUnit: CustomUni
         },
     ];
 
-    const params: UpdatePolicyDistanceRateValueParams = {
+    const params: UpdatePolicyTaxClaimableValueParams = {
         policyID,
         customUnitID: customUnit.customUnitID,
         customUnitRateArray: JSON.stringify(prepareCustomUnitRatesArray(customUnitRates)),
     };
 
-    API.write(WRITE_COMMANDS.UPDATE_POLICY_DISTANCE_RATE_VALUE, params, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.UPDATE_DISTANCE_TAX_CLAIMABLE_VALUE, params, {optimisticData, successData, failureData});
 }
 
 function updateDistanceTaxRate(policyID: string, customUnit: CustomUnit, customUnitRates: Rate[]) {
@@ -4044,13 +4046,13 @@ function updateDistanceTaxRate(policyID: string, customUnit: CustomUnit, customU
         },
     ];
 
-    const params: UpdatePolicyDistanceRateValueParams = {
+    const params: UpdatePolicyDistanceTaxRateValueParams = {
         policyID,
         customUnitID: customUnit.customUnitID,
         customUnitRateArray: JSON.stringify(prepareCustomUnitRatesArray(customUnitRates)),
     };
 
-    API.write(WRITE_COMMANDS.UPDATE_POLICY_DISTANCE_RATE_VALUE, params, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.UPDATE_POLICY_DISTANCE_TAX_RATE_VALUE, params, {optimisticData, successData, failureData});
 }
 
 function setPolicyDistanceRatesEnabled(policyID: string, customUnit: CustomUnit, customUnitRates: Rate[]) {

@@ -195,6 +195,8 @@ export type {default as CreatePolicyDistanceRateParams} from './CreatePolicyDist
 export type {default as SetPolicyDistanceRatesUnitParams} from './SetPolicyDistanceRatesUnitParams';
 export type {default as SetPolicyDistanceRatesDefaultCategoryParams} from './SetPolicyDistanceRatesDefaultCategoryParams';
 export type {default as UpdatePolicyDistanceRateValueParams} from './UpdatePolicyDistanceRateValueParams';
+export type {default as UpdatePolicyDistanceTaxRateValueParams} from './UpdatePolicyDistanceTaxRateValueParams';
+export type {default as UpdatePolicyTaxClaimableValueParams} from './UpdatePolicyTaxClaimableValueParams';
 export type {default as SetPolicyDistanceRatesEnabledParams} from './SetPolicyDistanceRatesEnabledParams';
 export type {default as DeletePolicyDistanceRatesParams} from './DeletePolicyDistanceRatesParams';
 export type {default as CreatePolicyTagsParams} from './CreatePolicyTagsParams';
