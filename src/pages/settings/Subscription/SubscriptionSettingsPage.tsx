@@ -3,13 +3,13 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Subscription from '@userActions/Subscription';
 import SubscriptionPlan from './SubscriptionPlan';
 
 function SubscriptionSettingsPage() {
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
 
     useEffect(() => {
@@ -21,7 +21,7 @@ function SubscriptionSettingsPage() {
             <HeaderWithBackButton
                 title={translate('workspace.common.subscription')}
                 onBackButtonPress={() => Navigation.goBack()}
-                shouldShowBackButton={isSmallScreenWidth}
+                shouldShowBackButton={shouldUseNarrowLayout}
                 icon={Illustrations.CreditCardsNew}
             />
             <SubscriptionPlan />
