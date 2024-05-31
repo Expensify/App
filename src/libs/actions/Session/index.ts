@@ -18,6 +18,7 @@ import type {
     SignInUserWithLinkParams,
     UnlinkLoginParams,
     ValidateTwoFactorAuthParams,
+    SignUpUserParams
 } from '@libs/API/parameters';
 import type SignInUserParams from '@libs/API/parameters/SignInUserParams';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -408,6 +409,48 @@ function beginSignIn(email: string) {
     const params: BeginSignInParams = {email, useNewBeginSignIn: true};
 
     API.read(READ_COMMANDS.BEGIN_SIGNIN, params, {optimisticData, successData, failureData});
+}
+
+/**
+ * Creates an account for the new user and signs them into the application with the newly created account.
+ *
+ * @param {String} [preferredLocale] Indicates which language to use when the user lands in the app
+ */
+function signUpUser(preferredLocale: string = CONST.LOCALES.DEFAULT) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                ...CONST.DEFAULT_ACCOUNT_DATA,
+                isLoading: true,
+            },
+        },
+    ];
+
+    const successData:OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    const failureData:OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    const params: SignUpUserParams = {email: credentials.login, preferredLocale};
+
+    API.write(WRITE_COMMANDS.SIGN_UP_USER, params, {optimisticData, successData, failureData});
 }
 
 /**
@@ -1004,4 +1047,5 @@ export {
     signInWithSupportAuthToken,
     isSupportAuthToken,
     hasStashedSession,
+    signUpUser,
 };
