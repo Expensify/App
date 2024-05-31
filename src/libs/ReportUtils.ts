@@ -6943,6 +6943,7 @@ export {
     isDM,
     isDefaultRoom,
     isDeprecatedGroupDM,
+    isEmptyReport,
     isRootGroupChat,
     isExpenseReport,
     isExpenseRequest,

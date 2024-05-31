@@ -81,6 +81,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const isMoneyRequestReport = useMemo(() => ReportUtils.isMoneyRequestReport(report), [report]);
     const isMoneyRequest = useMemo(() => ReportUtils.isMoneyRequest(report), [report]);
     const isInvoiceReport = useMemo(() => ReportUtils.isInvoiceReport(report), [report]);
+    const isTaskReport = useMemo(() => ReportUtils.isTaskReport(report), [report]);
     const canEditReportDescription = useMemo(() => ReportUtils.canEditReportDescription(report, policy), [report, policy]);
     const shouldShowReportDescription = isChatRoom && (canEditReportDescription || report.description !== '');
 
@@ -341,7 +342,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                             ) : (
                                 chatRoomSubtitleText
                             )}
-                            {!isEmptyObject(parentNavigationSubtitleData) && (isMoneyRequestReport || isInvoiceReport || isMoneyRequest) && (
+                            {!isEmptyObject(parentNavigationSubtitleData) && (isMoneyRequestReport || isInvoiceReport || isMoneyRequest || isTaskReport) && (
                                 <ParentNavigationSubtitle
                                     parentNavigationSubtitleData={parentNavigationSubtitleData}
                                     parentReportID={report?.parentReportID}
