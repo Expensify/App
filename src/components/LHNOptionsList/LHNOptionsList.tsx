@@ -108,7 +108,7 @@ function LHNOptionsList({
                 </Text>
             </View>
         ),
-        [styles.emptyLHNDetailsContainer, styles.mh1, styles.textAlignCenter, theme.icon, theme.placeholderText, translate],
+        [styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.flexWrap, styles.textAlignCenter, styles.mh1, theme.icon, theme.placeholderText, translate],
     );
 
     /**
