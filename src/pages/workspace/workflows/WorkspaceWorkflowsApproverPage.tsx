@@ -69,27 +69,8 @@ function WorkspaceWorkflowsApproverPage({policy, personalDetails, isLoadingRepor
                 return;
             }
             const searchValue = OptionsListUtils.getSearchValueForPhoneOrEmail(searchTerm);
-            if (searchValue.trim()) {
-                let memberDetails = '';
-                if (details.login) {
-                    memberDetails += ` ${details.login.toLowerCase()}`;
-                }
-                if (details.firstName) {
-                    memberDetails += ` ${details.firstName.toLowerCase()}`;
-                }
-                if (details.lastName) {
-                    memberDetails += ` ${details.lastName.toLowerCase()}`;
-                }
-                if (details.displayName) {
-                    memberDetails += ` ${PersonalDetailsUtils.getDisplayNameOrDefault(details).toLowerCase()}`;
-                }
-                if (details.phoneNumber) {
-                    memberDetails += ` ${details.phoneNumber.toLowerCase()}`;
-                }
-
-                if (!OptionsListUtils.isSearchStringMatch(searchValue.trim(), memberDetails)) {
-                    return;
-                }
+            if (searchValue.trim() && !OptionsListUtils.isUserMatchWithSearch(details, searchValue)) {
+                return;
             }
 
             const isOwner = policy?.owner === details.login;

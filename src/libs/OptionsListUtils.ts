@@ -582,6 +582,26 @@ function getAlternateText(option: ReportUtils.OptionData, {showChatPreviewLine =
         : LocalePhoneNumber.formatPhoneNumber(option.participantsList && option.participantsList.length > 0 ? option.participantsList[0].login ?? '' : '');
 }
 
+function isUserMatchWithSearch(personalDetail: PersonalDetails, searchValue: string) {
+    let memberDetails = '';
+    if (personalDetail.login) {
+        memberDetails += ` ${personalDetail.login.toLowerCase()}`;
+    }
+    if (personalDetail.firstName) {
+        memberDetails += ` ${personalDetail.firstName.toLowerCase()}`;
+    }
+    if (personalDetail.lastName) {
+        memberDetails += ` ${personalDetail.lastName.toLowerCase()}`;
+    }
+    if (personalDetail.displayName) {
+        memberDetails += ` ${PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail).toLowerCase()}`;
+    }
+    if (personalDetail.phoneNumber) {
+        memberDetails += ` ${personalDetail.phoneNumber.toLowerCase()}`;
+    }
+    return isSearchStringMatch(searchValue.trim(), memberDetails);
+}
+
 /**
  * Get the last message text from the report directly or from other sources for special cases.
  */
@@ -2436,6 +2456,7 @@ export {
     getPersonalDetailsForAccountIDs,
     getIOUConfirmationOptionsFromPayeePersonalDetail,
     getSearchText,
+    isUserMatchWithSearch,
     getAllReportErrors,
     getPolicyExpenseReportOption,
     getParticipantsOption,
