@@ -3,6 +3,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import * as Policy from 'src/libs/actions/Policy/Policy';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
@@ -21,12 +22,14 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import * as Tag from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -245,6 +248,17 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         shouldShowRightIcon
                     />
                 </OfflineWithFeedback>
+                <View style={[styles.pv4, styles.ph5]}>
+                    <ToggleSettingOptionRow
+                        title={translate('workspace.tags.requiresTag')}
+                        switchAccessibilityLabel={translate('workspace.tags.requiresTag')}
+                        isActive={Boolean(policyTagList?.required)}
+                        onToggle={(on) => Policy.setWorkspaceTagListRequired(policyID, route.params.orderWeight ?? 0, on)}
+                        pendingAction={currentPolicyTag.pendingFields?.required}
+                        errors={ErrorUtils.getLatestErrorField(policyTags, CONST.POLICY.TAG.required)}
+                        disabled={tagList.length === 0}
+                    />
+                </View>
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}

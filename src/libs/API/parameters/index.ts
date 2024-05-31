@@ -180,6 +180,7 @@ export type {default as EnablePolicyConnectionsParams} from './EnablePolicyConne
 export type {default as EnablePolicyDistanceRatesParams} from './EnablePolicyDistanceRatesParams';
 export type {default as EnablePolicyTagsParams} from './EnablePolicyTagsParams';
 export type {default as SetPolicyTagsEnabled} from './SetPolicyTagsEnabled';
+export type {default as SetPolicyTagsRequired} from './SetPolicyTagsRequired';
 export type {default as EnablePolicyWorkflowsParams} from './EnablePolicyWorkflowsParams';
 export type {default as EnablePolicyReportFieldsParams} from './EnablePolicyReportFieldsParams';
 export type {default as AcceptJoinRequestParams} from './AcceptJoinRequest';

@@ -1664,6 +1664,9 @@ const CONST = {
 
             // Often referred to as "collect" workspaces
             TEAM: 'team',
+            TAG: {
+                required: 'required',
+            },
         },
         ROLE: {
             ADMIN: 'admin',
