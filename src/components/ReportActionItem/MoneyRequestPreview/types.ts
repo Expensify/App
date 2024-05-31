@@ -2,6 +2,7 @@ import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import type * as OnyxTypes from '@src/types/onyx';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 type MoneyRequestPreviewOnyxProps = {
     /** All of the personal details for everyone */
@@ -53,7 +54,7 @@ type MoneyRequestPreviewProps = MoneyRequestPreviewOnyxProps & {
     /** Extra styles to pass to View wrapper */
     containerStyles?: StyleProp<ViewStyle>;
 
-    /** True if this is this IOU is a split instead of a 1:1 request */
+    /** True if this IOU has a type of split */
     isBillSplit: boolean;
 
     /** Whether this IOU is a track expense */
@@ -62,7 +63,7 @@ type MoneyRequestPreviewProps = MoneyRequestPreviewOnyxProps & {
     /** True if the IOU Preview card is hovered */
     isHovered?: boolean;
 
-    /** Whether or not an IOU report contains money requests in a different currency
+    /** Whether or not an IOU report contains expenses in a different currency
      * that are either created or cancelled offline, and thus haven't been converted to the report's currency yet
      */
     shouldShowPendingConversionMessage?: boolean;
@@ -71,4 +72,19 @@ type MoneyRequestPreviewProps = MoneyRequestPreviewOnyxProps & {
     isWhisper?: boolean;
 };
 
-export type {MoneyRequestPreviewProps, MoneyRequestPreviewOnyxProps};
+type NoPendingProps = {shouldShow: false};
+
+type PendingProps = {
+    /** Whether to show the pending message or not */
+    shouldShow: true;
+
+    /** The icon to be displayed if a request is pending */
+    messageIcon: IconAsset;
+
+    /** The description to be displayed if a request is pending */
+    messageDescription: string;
+};
+
+type PendingMessageProps = PendingProps | NoPendingProps;
+
+export type {MoneyRequestPreviewProps, MoneyRequestPreviewOnyxProps, PendingMessageProps};

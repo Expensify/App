@@ -2,10 +2,9 @@ import React, {memo} from 'react';
 import PDFView from '@components/PDFView';
 import type AttachmentViewPdfProps from './types';
 
-function AttachmentViewPdf({file, encryptedSourceUrl, isFocused, onPress, onToggleKeyboard, onLoadComplete, errorLabelStyles, style}: AttachmentViewPdfProps) {
+function AttachmentViewPdf({file, encryptedSourceUrl, isFocused, onPress, onToggleKeyboard, onLoadComplete, style, isUsedAsChatAttachment, onLoadError}: AttachmentViewPdfProps) {
     return (
         <PDFView
-            // @ts-expect-error waiting for https://github.com/Expensify/App/issues/16186 merge
             onPress={onPress}
             isFocused={isFocused}
             sourceURL={encryptedSourceUrl}
@@ -13,7 +12,8 @@ function AttachmentViewPdf({file, encryptedSourceUrl, isFocused, onPress, onTogg
             style={style}
             onToggleKeyboard={onToggleKeyboard}
             onLoadComplete={onLoadComplete}
-            errorLabelStyles={errorLabelStyles}
+            isUsedAsChatAttachment={isUsedAsChatAttachment}
+            onLoadError={onLoadError}
         />
     );
 }

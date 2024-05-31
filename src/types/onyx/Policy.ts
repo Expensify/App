@@ -1,9 +1,16 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
 import type * as OnyxTypes from '.';
 import type * as OnyxCommon from './OnyxCommon';
+import type {WorkspaceTravelSettings} from './TravelSettings';
 
 type Unit = 'mi' | 'km';
+
+type TaxRateAttributes = {
+    taxClaimablePercentage?: number;
+    taxRateExternalID?: string;
+};
 
 type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     name?: string;
@@ -13,10 +20,12 @@ type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     enabled?: boolean;
     errors?: OnyxCommon.Errors;
     errorFields?: OnyxCommon.ErrorFields;
+    attributes?: TaxRateAttributes;
 }>;
 
 type Attributes = {
     unit: Unit;
+    taxEnabled?: boolean;
 };
 
 type CustomUnit = OnyxCommon.OnyxValueWithOfflineFeedback<{
@@ -29,6 +38,14 @@ type CustomUnit = OnyxCommon.OnyxValueWithOfflineFeedback<{
     errors?: OnyxCommon.Errors;
     errorFields?: OnyxCommon.ErrorFields;
 }>;
+
+type CompanyAddress = {
+    addressStreet: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    country: Country | '';
+};
 
 type DisabledFields = {
     defaultBillable?: boolean;
@@ -50,6 +67,9 @@ type TaxRate = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Indicates if the tax rate is disabled. */
     isDisabled?: boolean;
+
+    /** Indicates if the tax rate is selected. */
+    isSelected?: boolean;
 
     /** An error message to display to the user */
     errors?: OnyxCommon.Errors;
@@ -133,7 +153,7 @@ type QBOConnectionData = {
     bankAccounts: Account[];
     creditCards: Account[];
     accountsReceivable: Account[];
-    accountsPayable: Account[];
+    accountPayable: Account[];
     otherCurrentAssetAccounts: Account[];
 
     taxCodes: TaxCode[];
@@ -141,12 +161,15 @@ type QBOConnectionData = {
     vendors: Vendor[];
 };
 
-type IntegrationEntityMap = 'NONE' | 'DEFAULT' | 'TAG' | 'REPORT_FIELD';
+type IntegrationEntityMap = (typeof CONST.INTEGRATION_ENTITY_MAP_TYPES)[keyof typeof CONST.INTEGRATION_ENTITY_MAP_TYPES];
+
+type QBONonReimbursableExportAccountType = (typeof CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE)[keyof typeof CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE];
+type QBOReimbursableExportAccountType = (typeof CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE)[keyof typeof CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE];
 
 /**
  * User configuration for the QuickBooks Online accounting integration.
  */
-type QBOConnectionConfig = {
+type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     realmId: string;
     companyName: string;
     autoSync: {
@@ -156,33 +179,115 @@ type QBOConnectionConfig = {
     syncPeople: boolean;
     syncItems: boolean;
     markChecksToBePrinted: boolean;
-    reimbursableExpensesExportDestination: IntegrationEntityMap;
-    nonReimbursableExpensesExportDestination: IntegrationEntityMap;
-
-    reimbursableExpensesAccount?: string;
-    nonReimbursableExpensesAccount?: string;
+    reimbursableExpensesExportDestination: QBOReimbursableExportAccountType;
+    nonReimbursableExpensesExportDestination: QBONonReimbursableExportAccountType;
+    nonReimbursableBillDefaultVendor: string;
+    collectionAccountID?: string;
+    reimbursementAccountID?: string;
+    reimbursableExpensesAccount?: Account;
+    nonReimbursableExpensesAccount?: Account;
+    receivableAccount?: Account;
     autoCreateVendor: boolean;
     hasChosenAutoSyncOption: boolean;
     syncClasses: IntegrationEntityMap;
     syncCustomers: IntegrationEntityMap;
     syncLocations: IntegrationEntityMap;
-    exportDate: string;
     lastConfigurationTime: number;
     syncTax: boolean;
     enableNewCategories: boolean;
+    errors?: OnyxCommon.Errors;
+    exportDate: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_DATE>;
     export: {
         exporter: string;
     };
+    errorFields?: OnyxCommon.ErrorFields;
+}>;
+
+type BillStatusValues = 'DRAFT' | 'AWT_APPROVAL' | 'AWT_PAYMENT';
+
+type ExpenseTypesValues = 'BILL' | 'BANK_TRANSACTION' | 'SALES_INVOICE' | 'NOTHING';
+
+type BillDateValues = 'REPORT_SUBMITTED' | 'REPORT_EXPORTED' | 'LAST_EXPENSE';
+
+type Tenant = {
+    id: string;
+    name: string;
+    value: string;
 };
+
+type XeroTrackingCategory = {
+    id: string;
+    name: string;
+};
+
+type XeroConnectionData = {
+    bankAccounts: Account[];
+    countryCode: string;
+    organisationID: string;
+    revenueAccounts: Array<{
+        id: string;
+        name: string;
+    }>;
+    tenants: Tenant[];
+    trackingCategories: XeroTrackingCategory[];
+};
+
+type XeroMappingType = {
+    customer: string;
+} & {
+    [key in `trackingCategory_${string}`]: string;
+};
+
+/**
+ * User configuration for the Xero accounting integration.
+ */
+type XeroConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    autoSync: {
+        enabled: boolean;
+        jobID: string;
+    };
+    enableNewCategories: boolean;
+    export: {
+        billDate: BillDateValues;
+        billStatus: {
+            purchase: BillStatusValues;
+            sales: BillStatusValues;
+        };
+        billable: ExpenseTypesValues;
+        exporter: string;
+        nonReimbursable: ExpenseTypesValues;
+        nonReimbursableAccount: string;
+        reimbursable: ExpenseTypesValues;
+    };
+    importCustomers: boolean;
+    importTaxRates: boolean;
+    importTrackingCategories: boolean;
+    isConfigured: boolean;
+    mappings: XeroMappingType;
+    sync: {
+        hasChosenAutoSyncOption: boolean;
+        hasChosenSyncReimbursedReportsOption: boolean;
+        invoiceCollectionsAccountID: string;
+        reimbursementAccountID: string;
+        syncReimbursedReports: boolean;
+    };
+    tenantID: string;
+    errors?: OnyxCommon.Errors;
+    errorFields?: OnyxCommon.ErrorFields;
+}>;
+
 type Connection<ConnectionData, ConnectionConfig> = {
     lastSync?: ConnectionLastSync;
-    data: ConnectionData;
+    data?: ConnectionData;
     config: ConnectionConfig;
 };
 
 type Connections = {
     quickbooksOnline: Connection<QBOConnectionData, QBOConnectionConfig>;
+    xero: Connection<XeroConnectionData, XeroConnectionConfig>;
 };
+
+type ConnectionName = keyof Connections;
 
 type ACHAccount = {
     bankAccountID: number;
@@ -190,6 +295,7 @@ type ACHAccount = {
     routingNumber: string;
     addressName: string;
     bankName: string;
+    reimburser: string;
 };
 
 type AutoReportingOffset = number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>;
@@ -283,8 +389,10 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The output currency for the policy */
         outputCurrency: string;
 
+        /** The address of the company */
+        address?: CompanyAddress;
+
         /** The URL for the policy avatar */
-        avatar?: string;
         avatarURL?: string;
 
         /** Error objects keyed by field name containing errors keyed by microtime */
@@ -316,9 +424,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
             enabled: boolean;
         };
 
-        /** @deprecated Whether the scheduled submit is enabled */
-        isPreventSelfApprovalEnabled?: boolean;
-
         /** Whether the self approval or submitting is enabled */
         preventSelfApproval?: boolean;
 
@@ -329,7 +434,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         submitsTo?: number;
 
         /** The employee list of the policy */
-        employeeList?: OnyxTypes.PolicyMembers | [];
+        employeeList?: OnyxTypes.PolicyEmployeeList;
 
         /** The reimbursement choice for policy */
         reimbursementChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
@@ -391,12 +496,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Collection of tax rates attached to a policy */
         taxRates?: TaxRatesWithDefault;
 
-        /** Email of the reimburser when reimbursement is set direct */
-        reimburserEmail?: string;
-
-        /** AccountID of the reimburser when reimbursement is set direct */
-        reimburserAccountID?: number;
-
         /** ReportID of the admins room for this workspace */
         chatReportIDAdmins?: number;
 
@@ -414,6 +513,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether the Tags feature is enabled */
         areTagsEnabled?: boolean;
+
+        /** Whether the Accounting feature is enabled */
+        areAccountingEnabled?: boolean;
 
         /** Whether the Distance Rates feature is enabled */
         areDistanceRatesEnabled?: boolean;
@@ -433,15 +535,53 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Indicates if the Policy is in loading state */
         isLoading?: boolean;
 
+        /** Indicates the Policy's SetWorkspaceReimbursement call loading state */
+        isLoadingWorkspaceReimbursement?: boolean;
+
         /** Indicates if the Policy ownership change is successful */
         isChangeOwnerSuccessful?: boolean;
 
         /** Indicates if the Policy ownership change is failed */
         isChangeOwnerFailed?: boolean;
+
+        /** Object containing all policy information necessary to connect with Spontana */
+        travelSettings?: WorkspaceTravelSettings;
     } & Partial<PendingJoinRequestPolicy>,
-    'generalSettings' | 'addWorkspaceRoom'
+    'generalSettings' | 'addWorkspaceRoom' | keyof ACHAccount
 >;
+
+type PolicyConnectionSyncStage = ValueOf<typeof CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME>;
+type PolicyConnectionName = ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
+type PolicyConnectionSyncProgress = {
+    stageInProgress: PolicyConnectionSyncStage;
+    connectionName: PolicyConnectionName;
+};
 
 export default Policy;
 
-export type {PolicyReportField, PolicyReportFieldType, Unit, CustomUnit, Attributes, Rate, TaxRate, TaxRates, TaxRatesWithDefault, PolicyFeatureName, PendingJoinRequestPolicy};
+export type {
+    PolicyReportField,
+    PolicyReportFieldType,
+    Unit,
+    CustomUnit,
+    Attributes,
+    Rate,
+    TaxRate,
+    TaxRates,
+    TaxRatesWithDefault,
+    CompanyAddress,
+    IntegrationEntityMap,
+    PolicyFeatureName,
+    PendingJoinRequestPolicy,
+    PolicyConnectionName,
+    PolicyConnectionSyncStage,
+    PolicyConnectionSyncProgress,
+    Connections,
+    ConnectionName,
+    Tenant,
+    Account,
+    QBONonReimbursableExportAccountType,
+    QBOReimbursableExportAccountType,
+    QBOConnectionConfig,
+    XeroTrackingCategory,
+};

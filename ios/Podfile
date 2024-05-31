@@ -2,6 +2,7 @@ require File.join(File.dirname(`node --print "require.resolve('expo/package.json
 # Set the type of Mapbox SDK to use
 # This value is used by $RNMapboxMaps
 $RNMapboxMapsImpl = 'mapbox'
+$VCDisableFrameProcessors = true
 
 def node_require(script)
   # Resolve script with node to allow for hoisting
@@ -16,7 +17,7 @@ node_require('react-native/scripts/react_native_pods.rb')
 node_require('react-native-permissions/scripts/setup.rb')
 
 # Our min supported iOS version is higher than the default (min_ios_version_supported) to support libraires such as Airship
-platform :ios, 13.4
+platform :ios, 14.0
 prepare_react_native_project!
 
 setup_permissions([
@@ -73,6 +74,12 @@ target 'NewExpensify' do
 
   config = use_native_modules!
 
+  # Flags change depending on the env values.
+  flags = get_default_flags()
+
+  # ENV Variable enables/disables TurboModules
+  ENV['RCT_NEW_ARCH_ENABLED'] = '1';
+
   use_react_native!(
     :path => config[:reactNativePath],
     # An absolute path to your application root.
@@ -110,3 +117,5 @@ end
 target 'NotificationServiceExtension' do
   pod 'AirshipServiceExtension'
 end
+
+pod 'FullStory', :http => 'https://ios-releases.fullstory.com/fullstory-1.48.0-xcframework.tar.gz'

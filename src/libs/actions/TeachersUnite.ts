@@ -96,17 +96,13 @@ function addSchoolPrincipal(firstName: string, partnerUserID: string, lastName: 
                 role: CONST.POLICY.ROLE.USER,
                 owner: sessionEmail,
                 outputCurrency: allPersonalDetails?.[sessionAccountID]?.localCurrencyCode ?? CONST.CURRENCY.USD,
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
-            value: {
-                [sessionAccountID]: {
-                    role: CONST.POLICY.ROLE.USER,
-                    errors: {},
+                employeeList: {
+                    [sessionEmail]: {
+                        role: CONST.POLICY.ROLE.USER,
+                        errors: {},
+                    },
                 },
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             },
         },
         {
@@ -155,9 +151,11 @@ function addSchoolPrincipal(firstName: string, partnerUserID: string, lastName: 
 
     const failureData: OnyxUpdate[] = [
         {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
-            value: null,
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                [sessionEmail]: null,
+            },
         },
         {
             onyxMethod: Onyx.METHOD.SET,

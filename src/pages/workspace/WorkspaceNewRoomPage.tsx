@@ -183,6 +183,14 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
                 ErrorUtils.addErrorMessage(errors, 'roomName', ['common.error.characterLimitExceedCounter', {length: values.roomName.length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
             }
 
+            const descriptionLength = ReportUtils.getCommentLength(values.reportDescription);
+            if (descriptionLength > CONST.REPORT_DESCRIPTION.MAX_LENGTH) {
+                ErrorUtils.addErrorMessage(errors, 'reportDescription', [
+                    'common.error.characterLimitExceedCounter',
+                    {length: descriptionLength, limit: CONST.REPORT_DESCRIPTION.MAX_LENGTH},
+                ]);
+            }
+
             if (!values.policyID) {
                 errors.policyID = 'newRoomPage.pleaseSelectWorkspace';
             }
@@ -283,9 +291,10 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
                                     accessibilityLabel={translate('reportDescriptionPage.roomDescriptionOptional')}
                                     role={CONST.ROLE.PRESENTATION}
                                     autoGrowHeight
+                                    maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                                     maxLength={CONST.REPORT_DESCRIPTION.MAX_LENGTH}
                                     autoCapitalize="none"
-                                    containerStyles={[styles.autoGrowHeightMultilineInput]}
+                                    shouldInterceptSwipe
                                 />
                             </View>
                             <View style={[styles.mhn5]}>
@@ -342,6 +351,7 @@ export default withOnyx<WorkspaceNewRoomPageProps, WorkspaceNewRoomPageOnyxProps
     },
     formState: {
         key: ONYXKEYS.FORMS.NEW_ROOM_FORM,
+        initWithStoredValues: false,
     },
     session: {
         key: ONYXKEYS.SESSION,

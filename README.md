@@ -11,7 +11,7 @@
 
 #### Table of Contents
 * [Local Development](#local-development)
-* [Testing on browsers on simulators and emulators](#testing-on-browsers-on-simulators-and-emulators)
+* [Testing on browsers in simulators and emulators](#testing-on-browsers-in-simulators-and-emulators)
 * [Running The Tests](#running-the-tests)
 * [Debugging](#debugging)
 * [App Structure and Conventions](#app-structure-and-conventions)
@@ -60,6 +60,7 @@ If you're using another operating system, you will need to ensure `mkcert` is in
 For an M1 Mac, read this [SO](https://stackoverflow.com/questions/64901180/how-to-run-cocoapods-on-apple-silicon-m1) for installing cocoapods.
 
 * If you haven't already, install Xcode tools and make sure to install the optional "iOS Platform" package as well. This installation may take awhile.
+    * After installation, check in System Settings that there's no update for Xcode. Otherwise, you may encounter issues later that don't explain that you solve them by updating Xcode.
 * Install project gems, including cocoapods, using bundler to ensure everyone uses the same versions. In the project root, run: `bundle install`
     * If you get the error `Could not find 'bundler'`, install the bundler gem first: `gem install bundler` and try again.
     * If you are using MacOS and get the error `Gem::FilePermissionError` when trying to install the bundler gem, you're likely using system Ruby, which requires administrator permission to modify. To get around this, install another version of Ruby with a version manager like [rbenv](https://github.com/rbenv/rbenv#installation).
@@ -81,6 +82,16 @@ If you want to run the app on an actual physical iOS device, please follow the i
 
 ## Running the MacOS desktop app 🖥
 * To run the **Development app**, run: `npm run desktop`, this will start a new Electron process running on your MacOS desktop in the `dist/Mac` folder.
+
+## Receiving Notifications
+To receive notifications on development build of the app while hitting the Staging or Production API, you need to use the production airship config.
+### Android
+1. Copy the [production config](https://github.com/Expensify/App/blob/d7c1256f952c0020344d809ee7299b49a4c70db2/android/app/src/main/assets/airshipconfig.properties#L1-L7) to the [development config](https://github.com/Expensify/App/blob/d7c1256f952c0020344d809ee7299b49a4c70db2/android/app/src/development/assets/airshipconfig.properties#L1-L8).
+2. Rebuild the app.
+
+### iOS
+1. Replace the [development key and secret](https://github.com/Expensify/App/blob/d7c1256f952c0020344d809ee7299b49a4c70db2/ios/AirshipConfig.plist#L7-L10) with the [production values](https://github.com/Expensify/App/blob/d7c1256f952c0020344d809ee7299b49a4c70db2/ios/AirshipConfig.plist#L11-L14).
+2. Rebuild the app.
 
 ## Troubleshooting
 1. If you are having issues with **_Getting Started_**, please reference [React Native's Documentation](https://reactnative.dev/docs/environment-setup)
@@ -652,7 +663,38 @@ Sometimes it might be beneficial to generate a local production version instead 
 In order to generate a production web build, run `npm run build`, this will generate a production javascript build in the `dist/` folder.
 
 #### Local production build of the MacOS desktop app
-In order to compile a production desktop build, run `npm run desktop-build`, this will generate a production app in the `dist/Mac` folder named `Chat.app`.
+The commands used to compile a production or staging desktop build are `npm run desktop-build` and `npm run desktop-build-staging`, respectively. These will product an app in the `dist/Mac` folder named NewExpensify.dmg that you can install like a normal app.
+
+HOWEVER, by default those commands will try to notarize the build (signing it as Expensify) and publish it to the S3 bucket where it's hosted for users. In most cases you won't actually need or want to do that for your local testing. To get around that and disable those behaviors for your local build, apply the following diff:
+
+```diff
+diff --git a/config/electronBuilder.config.js b/config/electronBuilder.config.js
+index e4ed685f65..4c7c1b3667 100644
+--- a/config/electronBuilder.config.js
++++ b/config/electronBuilder.config.js
+@@ -42,9 +42,6 @@ module.exports = {
+         entitlements: 'desktop/entitlements.mac.plist',
+         entitlementsInherit: 'desktop/entitlements.mac.plist',
+         type: 'distribution',
+-        notarize: {
+-            teamId: '368M544MTT',
+-        },
+     },
+     dmg: {
+         title: 'New Expensify',
+diff --git a/scripts/build-desktop.sh b/scripts/build-desktop.sh
+index 791f59d733..526306eec1 100755
+--- a/scripts/build-desktop.sh
++++ b/scripts/build-desktop.sh
+@@ -35,4 +35,4 @@ npx webpack --config config/webpack/webpack.desktop.ts --env file=$ENV_FILE
+ title "Building Desktop App Archive Using Electron"
+ info ""
+ shift 1
+-npx electron-builder --config config/electronBuilder.config.js --publish always "$@"
++npx electron-builder --config config/electronBuilder.config.js --publish never "$@"
+```
+
+There may be some cases where you need to test a signed and published build, such as when testing the update flows. Instructions on setting that up can be found in [Testing Electron Auto-Update](https://github.com/Expensify/App/blob/main/desktop/README.md#testing-electron-auto-update). Good luck 🙃
 
 #### Local production build the iOS app
 In order to compile a production iOS build, run `npm run ios-build`, this will generate a `Chat.ipa` in the root directory of this project.

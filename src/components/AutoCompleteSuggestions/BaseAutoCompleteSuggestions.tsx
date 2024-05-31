@@ -1,18 +1,13 @@
-import {FlashList} from '@shopify/flash-list';
-import type {ForwardedRef, ReactElement} from 'react';
-import React, {forwardRef, useCallback, useEffect, useMemo, useRef} from 'react';
-import type {View} from 'react-native';
-// We take ScrollView from this package to properly handle the scrolling of AutoCompleteSuggestions in chats since one scroll is nested inside another
-import {ScrollView} from 'react-native-gesture-handler';
+import type {ReactElement} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
+import {FlatList} from 'react-native-gesture-handler';
 import Animated, {Easing, FadeOutDown, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
-import variables from '@styles/variables';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
-import viewForwardedRef from '@src/types/utils/viewForwardedRef';
 import type {AutoCompleteSuggestionsProps, RenderSuggestionMenuItemProps} from './types';
 
 const measureHeightOfSuggestionRows = (numRows: number, isSuggestionPickerLarge: boolean): number => {
@@ -30,23 +25,26 @@ const measureHeightOfSuggestionRows = (numRows: number, isSuggestionPickerLarge:
     return numRows * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT;
 };
 
-function BaseAutoCompleteSuggestions<TSuggestion>(
-    {
-        highlightedSuggestionIndex,
-        onSelect,
-        accessibilityLabelExtractor,
-        renderSuggestionMenuItem,
-        suggestions,
-        isSuggestionPickerLarge,
-        keyExtractor,
-    }: AutoCompleteSuggestionsProps<TSuggestion>,
-    ref: ForwardedRef<View | HTMLDivElement>,
-) {
-    const {windowWidth, isLargeScreenWidth} = useWindowDimensions();
+/**
+ * On the mobile-web platform, when long-pressing on auto-complete suggestions,
+ * we need to prevent focus shifting to avoid blurring the main input (which makes the suggestions picker close and fires the onSelect callback).
+ * The desired pattern for all platforms is to do nothing on long-press.
+ * On the native platform, tapping on auto-complete suggestions will not blur the main input.
+ */
+
+function BaseAutoCompleteSuggestions<TSuggestion>({
+    highlightedSuggestionIndex,
+    onSelect,
+    accessibilityLabelExtractor,
+    renderSuggestionMenuItem,
+    suggestions,
+    isSuggestionPickerLarge,
+    keyExtractor,
+}: AutoCompleteSuggestionsProps<TSuggestion>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const rowHeight = useSharedValue(0);
-    const scrollRef = useRef<FlashList<TSuggestion>>(null);
+    const scrollRef = useRef<FlatList<TSuggestion>>(null);
     /**
      * Render a suggestion menu item component.
      */
@@ -69,13 +67,7 @@ function BaseAutoCompleteSuggestions<TSuggestion>(
 
     const innerHeight = CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT * suggestions.length;
     const animatedStyles = useAnimatedStyle(() => StyleUtils.getAutoCompleteSuggestionContainerStyle(rowHeight.value));
-    const estimatedListSize = useMemo(
-        () => ({
-            height: CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT * suggestions.length,
-            width: (isLargeScreenWidth ? windowWidth - variables.sideBarWidth : windowWidth) - CONST.CHAT_FOOTER_HORIZONTAL_PADDING,
-        }),
-        [isLargeScreenWidth, suggestions.length, windowWidth],
-    );
+
     useEffect(() => {
         rowHeight.value = withTiming(measureHeightOfSuggestionRows(suggestions.length, isSuggestionPickerLarge), {
             duration: 100,
@@ -92,19 +84,21 @@ function BaseAutoCompleteSuggestions<TSuggestion>(
 
     return (
         <Animated.View
-            ref={viewForwardedRef(ref)}
             style={[styles.autoCompleteSuggestionsContainer, animatedStyles]}
             exiting={FadeOutDown.duration(100).easing(Easing.inOut(Easing.ease))}
+            onPointerDown={(e) => {
+                if (DeviceCapabilities.hasHoverSupport()) {
+                    return;
+                }
+                e.preventDefault();
+            }}
         >
             <ColorSchemeWrapper>
-                <FlashList
-                    estimatedItemSize={CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT}
-                    estimatedListSize={estimatedListSize}
+                <FlatList
                     ref={scrollRef}
                     keyboardShouldPersistTaps="handled"
                     data={suggestions}
                     renderItem={renderItem}
-                    renderScrollComponent={ScrollView}
                     keyExtractor={keyExtractor}
                     removeClippedSubviews={false}
                     showsVerticalScrollIndicator={innerHeight > rowHeight.value}
@@ -117,4 +111,4 @@ function BaseAutoCompleteSuggestions<TSuggestion>(
 
 BaseAutoCompleteSuggestions.displayName = 'BaseAutoCompleteSuggestions';
 
-export default forwardRef(BaseAutoCompleteSuggestions);
+export default BaseAutoCompleteSuggestions;

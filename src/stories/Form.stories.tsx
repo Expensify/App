@@ -1,5 +1,6 @@
-import type {ComponentMeta, Story} from '@storybook/react';
+import type {Meta, StoryFn} from '@storybook/react';
 import React, {useState} from 'react';
+import type {ComponentType} from 'react';
 import {View} from 'react-native';
 import AddressSearch from '@components/AddressSearch';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
@@ -19,7 +20,7 @@ import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 import {defaultStyles} from '@src/styles';
 
-type FormStory = Story<FormProviderProps>;
+type FormStory = StoryFn<FormProviderProps>;
 
 type StorybookFormValues = {
     routingNumber?: string;
@@ -36,22 +37,17 @@ type StorybookFormErrors = Partial<Record<keyof StorybookFormValues, string>>;
 
 const STORYBOOK_FORM_ID = 'TestForm' as keyof OnyxFormValuesMapping;
 
-/**
- * We use the Component Story Format for writing stories. Follow the docs here:
- *
- * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
- */
-const story: ComponentMeta<typeof FormProvider> = {
+const story: Meta<typeof FormProvider> = {
     title: 'Components/Form',
     component: FormProvider,
     subcomponents: {
-        InputWrapper,
-        TextInput,
-        AddressSearch,
-        CheckboxWithLabel,
-        Picker,
-        StateSelector,
-        DatePicker,
+        InputWrapper: InputWrapper as ComponentType<unknown>,
+        TextInput: TextInput as ComponentType<unknown>,
+        AddressSearch: AddressSearch as ComponentType<unknown>,
+        CheckboxWithLabel: CheckboxWithLabel as ComponentType<unknown>,
+        Picker: Picker as ComponentType<unknown>,
+        StateSelector: StateSelector as ComponentType<unknown>,
+        DatePicker: DatePicker as ComponentType<unknown>,
     },
 };
 

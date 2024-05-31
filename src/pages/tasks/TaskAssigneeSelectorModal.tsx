@@ -1,13 +1,14 @@
 /* eslint-disable es/no-optional-chaining */
 import type {RouteProp} from '@react-navigation/native';
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {useBetas, usePersonalDetails, useSession} from '@components/OnyxProvider';
+import {useBetas, useSession} from '@components/OnyxProvider';
+import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/types';
@@ -20,6 +21,9 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as ReportActions from '@libs/actions/Report';
+import {READ_COMMANDS} from '@libs/API/types';
+import HttpUtils from '@libs/HttpUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -39,22 +43,18 @@ type TaskAssigneeSelectorModalOnyxProps = {
     task: OnyxEntry<Task>;
 };
 
-type UseOptions = {
-    reports: OnyxCollection<Report>;
-};
-
 type TaskAssigneeSelectorModalProps = TaskAssigneeSelectorModalOnyxProps & WithCurrentUserPersonalDetailsProps & WithNavigationTransitionEndProps;
 
-function useOptions({reports}: UseOptions) {
-    const allPersonalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
+function useOptions() {
     const betas = useBetas();
     const [isLoading, setIsLoading] = useState(true);
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
+    const {options: optionsList, areOptionsInitialized} = useOptionsList();
 
     const options = useMemo(() => {
         const {recentReports, personalDetails, userToInvite, currentUserOption} = OptionsListUtils.getFilteredOptions(
-            reports,
-            allPersonalDetails,
+            optionsList.reports,
+            optionsList.personalDetails,
             betas,
             debouncedSearchValue.trim(),
             [],
@@ -87,22 +87,19 @@ function useOptions({reports}: UseOptions) {
             currentUserOption,
             headerMessage,
         };
-    }, [debouncedSearchValue, allPersonalDetails, isLoading, betas, reports]);
+    }, [optionsList.reports, optionsList.personalDetails, betas, debouncedSearchValue, isLoading]);
 
-    return {...options, isLoading, searchValue, debouncedSearchValue, setSearchValue};
+    return {...options, searchValue, debouncedSearchValue, setSearchValue, areOptionsInitialized};
 }
 
-function TaskAssigneeSelectorModal({reports, task, didScreenTransitionEnd}: TaskAssigneeSelectorModalProps) {
+function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalProps) {
     const styles = useThemeStyles();
     const route = useRoute<RouteProp<TaskDetailsNavigatorParamList, typeof SCREENS.TASK.ASSIGNEE>>();
     const {translate} = useLocalize();
     const session = useSession();
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {userToInvite, recentReports, personalDetails, currentUserOption, isLoading, searchValue, setSearchValue, headerMessage} = useOptions({reports});
-
-    const onChangeText = (newSearchTerm = '') => {
-        setSearchValue(newSearchTerm);
-    };
+    const {userToInvite, recentReports, personalDetails, currentUserOption, searchValue, debouncedSearchValue, setSearchValue, headerMessage, areOptionsInitialized} = useOptions();
 
     const report: OnyxEntry<Report> = useMemo(() => {
         if (!route.params?.reportID) {
@@ -163,6 +160,7 @@ function TaskAssigneeSelectorModal({reports, task, didScreenTransitionEnd}: Task
 
     const selectReport = useCallback(
         (option: ListItem) => {
+            HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
             if (!option) {
                 return;
             }
@@ -174,7 +172,7 @@ function TaskAssigneeSelectorModal({reports, task, didScreenTransitionEnd}: Task
                         option?.login ?? '',
                         option?.accountID ?? -1,
                         report.reportID,
-                        report,
+                        null, // passing null as report because for editing task the report will be task details report page not the actual report where task was created
                         OptionsListUtils.isCurrentUser({...option, accountID: option?.accountID ?? -1, login: option?.login ?? ''}),
                     );
 
@@ -188,7 +186,7 @@ function TaskAssigneeSelectorModal({reports, task, didScreenTransitionEnd}: Task
                     option?.login ?? '',
                     option.accountID,
                     task?.shareDestination ?? '',
-                    report,
+                    null, // passing null as report is null in this condition
                     OptionsListUtils.isCurrentUser({...option, accountID: option?.accountID ?? -1, login: option?.login ?? undefined}),
                 );
                 Navigation.goBack(ROUTES.NEW_TASK);
@@ -203,6 +201,10 @@ function TaskAssigneeSelectorModal({reports, task, didScreenTransitionEnd}: Task
     const canModifyTask = TaskActions.canModifyTask(report, currentUserPersonalDetails.accountID);
     const isTaskNonEditable = ReportUtils.isTaskReport(report) && (!canModifyTask || !isOpen);
 
+    useEffect(() => {
+        ReportActions.searchInServer(debouncedSearchValue);
+    }, [debouncedSearchValue]);
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -215,14 +217,16 @@ function TaskAssigneeSelectorModal({reports, task, didScreenTransitionEnd}: Task
                 />
                 <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                     <SelectionList
-                        sections={didScreenTransitionEnd && !isLoading ? sections : []}
+                        sections={areOptionsInitialized ? sections : []}
                         ListItem={UserListItem}
                         onSelectRow={selectReport}
-                        onChangeText={onChangeText}
+                        shouldDebounceRowSelect
+                        onChangeText={setSearchValue}
                         textInputValue={searchValue}
                         headerMessage={headerMessage}
-                        textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
-                        showLoadingPlaceholder={isLoading || !didScreenTransitionEnd}
+                        textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
+                        showLoadingPlaceholder={!areOptionsInitialized}
+                        isLoadingNewOptions={!!isSearchingForReports}
                     />
                 </View>
             </FullPageNotFoundView>

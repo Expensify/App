@@ -14,8 +14,8 @@ import Popover from '@components/Popover';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -120,7 +120,7 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
     const popoverRef = useRef(null);
 
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     /**
      * A generic handling when we don't know the exact reason for an error
@@ -171,7 +171,7 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
      */
     const showDocumentPicker = useCallback(
         (): Promise<DocumentPickerResponse[] | void> =>
-            RNDocumentPicker.pick(getDocumentPickerOptions(type)).catch((error) => {
+            RNDocumentPicker.pick(getDocumentPickerOptions(type)).catch((error: Error) => {
                 if (RNDocumentPicker.isCancel(error)) {
                     return;
                 }
@@ -236,7 +236,10 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
 
     const validateAndCompleteAttachmentSelection = useCallback(
         (fileData: FileResponse) => {
-            if (fileData.width === -1 || fileData.height === -1) {
+            // Check if the file dimensions indicate corruption
+            // The width/height for a corrupted file is -1 on android native and 0 on ios native
+            // We must check only numeric values because the width/height can be undefined for non-image files
+            if ((typeof fileData.width === 'number' && fileData.width <= 0) || (typeof fileData.height === 'number' && fileData.height <= 0)) {
                 showImageCorruptionAlert();
                 return Promise.resolve();
             }
@@ -244,7 +247,7 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
                 .then((result) => {
                     completeAttachmentSelection.current(result);
                 })
-                .catch((error) => {
+                .catch((error: Error) => {
                     showGeneralAlert(error.message);
                     throw error;
                 });
@@ -282,16 +285,18 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
             };
             /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
             if (fileDataName && Str.isImage(fileDataName)) {
-                ImageSize.getSize(fileDataUri).then(({width, height}) => {
-                    fileDataObject.width = width;
-                    fileDataObject.height = height;
-                    validateAndCompleteAttachmentSelection(fileDataObject);
-                });
+                ImageSize.getSize(fileDataUri)
+                    .then(({width, height}) => {
+                        fileDataObject.width = width;
+                        fileDataObject.height = height;
+                        validateAndCompleteAttachmentSelection(fileDataObject);
+                    })
+                    .catch(() => showImageCorruptionAlert());
             } else {
                 return validateAndCompleteAttachmentSelection(fileDataObject);
             }
         },
-        [validateAndCompleteAttachmentSelection],
+        [validateAndCompleteAttachmentSelection, showImageCorruptionAlert],
     );
 
     /**
@@ -350,7 +355,7 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
                 anchorRef={popoverRef}
                 onModalHide={onModalHide.current}
             >
-                <View style={!isSmallScreenWidth && styles.createMenuContainer}>
+                <View style={!shouldUseNarrowLayout && styles.createMenuContainer}>
                     {menuItemData.map((item, menuIndex) => (
                         <MenuItem
                             key={item.textTranslationKey}

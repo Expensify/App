@@ -11,6 +11,7 @@ import ROUTES, {HYBRID_APP_ROUTES} from '@src/ROUTES';
 import {PROTECTED_SCREENS} from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
+import originalCloseRHPFlow from './closeRHPFlow';
 import originalDismissModal from './dismissModal';
 import originalDismissModalWithReport from './dismissModalWithReport';
 import originalGetTopmostReportActionId from './getTopmostReportActionID';
@@ -18,6 +19,7 @@ import originalGetTopmostReportId from './getTopmostReportId';
 import linkingConfig from './linkingConfig';
 import linkTo from './linkTo';
 import navigationRef from './navigationRef';
+import setNavigationActionToMicrotaskQueue from './setNavigationActionToMicrotaskQueue';
 import switchPolicyID from './switchPolicyID';
 import type {NavigationStateRoute, State, StateOrRoute, SwitchPolicyIDParams} from './types';
 
@@ -60,6 +62,8 @@ const dismissModal = (reportID?: string, ref = navigationRef) => {
     const report = getReport(reportID);
     originalDismissModalWithReport({reportID, ...report}, ref);
 };
+// Re-exporting the closeRHPFlow here to fill in default value for navigationRef. The closeRHPFlow isn't defined in this file to avoid cyclic dependencies.
+const closeRHPFlow = (ref = navigationRef) => originalCloseRHPFlow(ref);
 
 // Re-exporting the dismissModalWithReport here to fill in default value for navigationRef. The dismissModalWithReport isn't defined in this file to avoid cyclic dependencies.
 // This method is needed because it allows to dismiss the modal and then open the report. Within this method is checked whether the report belongs to a specific workspace. Sometimes the report we want to check, hasn't been added to the Onyx yet.
@@ -94,7 +98,8 @@ function getActiveRouteIndex(stateOrRoute: StateOrRoute, index?: number): number
 function parseHybridAppUrl(url: HybridAppRoute | Route): Route {
     switch (url) {
         case HYBRID_APP_ROUTES.MONEY_REQUEST_CREATE:
-            return ROUTES.MONEY_REQUEST_CREATE.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.REQUEST, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, ReportUtils.generateReportID());
+        case HYBRID_APP_ROUTES.MONEY_REQUEST_SUBMIT_CREATE:
+            return ROUTES.MONEY_REQUEST_CREATE.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, ReportUtils.generateReportID());
         default:
             return url;
     }
@@ -221,7 +226,7 @@ function goBack(fallbackRoute?: Route, shouldEnforceFallback = false, shouldPopT
 
     // Allow CentralPane to use UP with fallback route if the path is not found in root navigator.
     if (isCentralPaneFocused && fallbackRoute && distanceFromPathInRootNavigator === -1) {
-        navigate(fallbackRoute, CONST.NAVIGATION.TYPE.FORCED_UP);
+        navigate(fallbackRoute, CONST.NAVIGATION.TYPE.UP);
         return;
     }
 
@@ -379,6 +384,8 @@ export default {
     navigateWithSwitchPolicyID,
     resetToHome,
     isDisplayedInModal,
+    closeRHPFlow,
+    setNavigationActionToMicrotaskQueue,
 };
 
 export {navigationRef};

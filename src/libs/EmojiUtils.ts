@@ -10,10 +10,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {FrequentlyUsedEmoji, Locale} from '@src/types/onyx';
 import type {ReportActionReaction, UsersReactions} from '@src/types/onyx/ReportActionReactions';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type EmojiTrie from './EmojiTrie';
+import type {SupportedLanguage} from './EmojiTrie';
 
 type HeaderIndice = {code: string; index: number; icon: IconAsset};
 type EmojiSpacer = {code: string; spacer: boolean};
-type EmojiPickerList = Array<EmojiSpacer | Emoji | HeaderEmoji>;
+type EmojiPickerListItem = EmojiSpacer | Emoji | HeaderEmoji;
+type EmojiPickerList = EmojiPickerListItem[];
 type ReplacedEmoji = {text: string; emojis: Emoji[]; cursorPosition?: number};
 
 let frequentlyUsedEmojis: FrequentlyUsedEmoji[] = [];
@@ -155,7 +158,7 @@ function containsOnlyEmojis(message: string): boolean {
 /**
  * Get the header emojis with their code, icon and index
  */
-function getHeaderEmojis(emojis: PickerEmojis): HeaderIndice[] {
+function getHeaderEmojis(emojis: EmojiPickerList): HeaderIndice[] {
     const headerIndices: HeaderIndice[] = [];
     emojis.forEach((emoji, index) => {
         if (!('header' in emoji)) {
@@ -311,9 +314,9 @@ function getAddedEmojis(currentEmojis: Emoji[], formerEmojis: Emoji[]): Emoji[] 
  */
 function replaceEmojis(text: string, preferredSkinTone: OnyxEntry<number | string> = CONST.EMOJI_DEFAULT_SKIN_TONE, lang: Locale = CONST.LOCALES.DEFAULT): ReplacedEmoji {
     // emojisTrie is importing the emoji JSON file on the app starting and we want to avoid it
-    const emojisTrie = require('./EmojiTrie').default;
+    const emojisTrie: typeof EmojiTrie = require('./EmojiTrie').default;
 
-    const trie = emojisTrie[lang];
+    const trie = emojisTrie[lang as SupportedLanguage];
     if (!trie) {
         return {text, emojis: []};
     }
@@ -389,9 +392,9 @@ function replaceAndExtractEmojis(text: string, preferredSkinTone: OnyxEntry<numb
  */
 function suggestEmojis(text: string, lang: Locale, limit: number = CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS): Emoji[] | undefined {
     // emojisTrie is importing the emoji JSON file on the app starting and we want to avoid it
-    const emojisTrie = require('./EmojiTrie').default;
+    const emojisTrie: typeof EmojiTrie = require('./EmojiTrie').default;
 
-    const trie = emojisTrie[lang];
+    const trie = emojisTrie[lang as SupportedLanguage];
     if (!trie) {
         return [];
     }
@@ -554,7 +557,7 @@ const getEmojiReactionDetails = (emojiName: string, reaction: ReportActionReacti
 /**
  * Given an emoji code, returns an base emoji code without skin tone
  */
-const getRemovedSkinToneEmoji = (emoji: string) => emoji.replace(CONST.REGEX.EMOJI_SKIN_TONES, '');
+const getRemovedSkinToneEmoji = (emoji?: string) => emoji?.replace(CONST.REGEX.EMOJI_SKIN_TONES, '');
 
 function getSpacersIndexes(allEmojis: EmojiPickerList): number[] {
     const spacersIndexes: number[] = [];
@@ -567,6 +570,8 @@ function getSpacersIndexes(allEmojis: EmojiPickerList): number[] {
     });
     return spacersIndexes;
 }
+
+export type {HeaderIndice, EmojiPickerList, EmojiSpacer, EmojiPickerListItem};
 
 export {
     findEmojiByName,

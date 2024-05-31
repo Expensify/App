@@ -2,7 +2,7 @@ import throttle from 'lodash/throttle';
 import type {ChannelAuthorizationData} from 'pusher-js/types/src/core/auth/options';
 import type {ChannelAuthorizationCallback} from 'pusher-js/with-encryption';
 import {InteractionManager, Linking, NativeModules} from 'react-native';
-import type {OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as PersistedRequests from '@libs/actions/PersistedRequests';
@@ -23,6 +23,7 @@ import type SignInUserParams from '@libs/API/parameters/SignInUserParams';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as Authentication from '@libs/Authentication';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import Fullstory from '@libs/Fullstory';
 import HttpUtils from '@libs/HttpUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -62,6 +63,11 @@ Onyx.connect({
             authPromiseResolver = null;
         }
     },
+});
+
+Onyx.connect({
+    key: ONYXKEYS.USER_METADATA,
+    callback: Fullstory.consentAndIdentify,
 });
 
 let stashedSession: Session = {};
@@ -176,8 +182,8 @@ function signOut() {
 /**
  * Checks if the account is an anonymous account.
  */
-function isAnonymousUser(): boolean {
-    return session.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
+function isAnonymousUser(sessionParam?: OnyxEntry<Session>): boolean {
+    return (sessionParam?.authTokenType ?? session.authTokenType) === CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
 }
 
 function hasStashedSession(): boolean {
@@ -643,7 +649,7 @@ function resetHomeRouteParams() {
 function cleanupSession() {
     Pusher.disconnect();
     Timers.clearAll();
-    Welcome.resetReadyCheck();
+    Welcome.resetAllChecks();
     PriorityMode.resetHasReadRequiredDataFromStorage();
     MainQueue.clear();
     HttpUtils.cancelPendingRequests();

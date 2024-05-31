@@ -2,11 +2,11 @@ import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import useStyleUtils from '@hooks/useStyleUtils';
+import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import onyxSubscribe from '@libs/onyxSubscribe';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as Report from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -42,6 +42,12 @@ type ReportActionItemParentActionProps = {
 
     /** Whether we should display "Replies" divider */
     shouldDisplayReplyDivider: boolean;
+
+    /** If this is the first visible report action */
+    isFirstVisibleReportAction: boolean;
+
+    /** If the thread divider line will be used */
+    shouldUseThreadDividerLine?: boolean;
 };
 
 function ReportActionItemParentAction({
@@ -52,12 +58,13 @@ function ReportActionItemParentAction({
     index = 0,
     shouldHideThreadDividerLine = false,
     shouldDisplayReplyDivider,
+    isFirstVisibleReportAction = false,
+    shouldUseThreadDividerLine = false,
 }: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
-    const {isSmallScreenWidth} = useWindowDimensions();
     const ancestorIDs = useRef(ReportUtils.getAllAncestorReportActionIDs(report));
     const [allAncestors, setAllAncestors] = useState<ReportUtils.Ancestor[]>([]);
+    const {isOffline} = useNetwork();
 
     useEffect(() => {
         const unsubscribeReports: Array<() => void> = [];
@@ -89,9 +96,8 @@ function ReportActionItemParentAction({
     }, []);
 
     return (
-        <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth)]}>
+        <View style={[styles.pRelative]}>
             <AnimatedEmptyStateBackground />
-            <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]} />
             {allAncestors.map((ancestor) => (
                 <OfflineWithFeedback
                     key={ancestor.reportAction.reportActionID}
@@ -101,9 +107,24 @@ function ReportActionItemParentAction({
                     errorRowStyles={[styles.ml10, styles.mr2]}
                     onClose={() => Report.navigateToConciergeChatAndDeleteReport(ancestor.report.reportID)}
                 >
-                    <ThreadDivider ancestor={ancestor} />
+                    <ThreadDivider
+                        ancestor={ancestor}
+                        isLinkDisabled={!ReportUtils.canCurrentUserOpenReport(ReportUtils.getReport(ancestor?.report?.parentReportID))}
+                    />
                     <ReportActionItem
-                        onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.parentReportID ?? ''))}
+                        onPress={
+                            ReportUtils.canCurrentUserOpenReport(ReportUtils.getReport(ancestor?.report?.parentReportID))
+                                ? () => {
+                                      const isVisibleAction = ReportActionsUtils.shouldReportActionBeVisible(ancestor.reportAction, ancestor.reportAction.reportActionID ?? '');
+                                      // Pop the thread report screen before navigating to the chat report.
+                                      Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.parentReportID ?? ''));
+                                      if (isVisibleAction && !isOffline) {
+                                          // Pop the chat report screen before navigating to the linked report action.
+                                          Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.parentReportID ?? '', ancestor.reportAction.reportActionID));
+                                      }
+                                  }
+                                : undefined
+                        }
                         parentReportAction={parentReportAction}
                         report={ancestor.report}
                         reportActions={reportActions}
@@ -113,6 +134,8 @@ function ReportActionItemParentAction({
                         isMostRecentIOUReportAction={false}
                         shouldDisplayNewMarker={ancestor.shouldDisplayNewMarker}
                         index={index}
+                        isFirstVisibleReportAction={isFirstVisibleReportAction}
+                        shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                     />
                 </OfflineWithFeedback>
             ))}

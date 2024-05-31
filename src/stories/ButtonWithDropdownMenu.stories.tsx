@@ -1,10 +1,10 @@
-import type {ComponentStory} from '@storybook/react';
+import type {StoryFn} from '@storybook/react';
 import React from 'react';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {ButtonWithDropdownMenuProps} from '@components/ButtonWithDropdownMenu/types';
 import * as Expensicons from '@components/Icon/Expensicons';
 
-type ButtonWithDropdownMenuStory = ComponentStory<typeof ButtonWithDropdownMenu>;
+type ButtonWithDropdownMenuStory = StoryFn<typeof ButtonWithDropdownMenu>;
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -25,7 +25,7 @@ function Template(props: ButtonWithDropdownMenuProps<unknown>) {
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
 const Default: ButtonWithDropdownMenuStory = Template.bind({});
 Default.args = {
-    customText: 'Pay using Expensify',
+    customText: 'Pay with Expensify',
     onPress: (e, item) => {
         alert(`Button ${item as string} is pressed.`);
     },

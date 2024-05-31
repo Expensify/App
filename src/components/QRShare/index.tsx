@@ -16,7 +16,7 @@ function QRShare({url, title, subtitle, logo, logoRatio, logoMarginRatio}: QRSha
     const styles = useThemeStyles();
     const theme = useTheme();
 
-    const [qrCodeSize, setQrCodeSize] = useState(1);
+    const [qrCodeSize, setQrCodeSize] = useState<number | undefined>();
     const svgRef = useRef<Svg>();
 
     useImperativeHandle(

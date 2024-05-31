@@ -8,7 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as WorkspaceSettingsUtils from '@libs/WorkspacesSettingsUtils';
 import Navigation from '@navigation/Navigation';
-import * as PolicyActions from '@userActions/Policy';
+import * as PolicyActions from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -64,6 +64,7 @@ function WorkspaceOwnerChangeCheck({personalDetails, policy, accountID, error}: 
         if (error === CONST.POLICY.OWNERSHIP_ERRORS.HAS_FAILED_SETTLEMENTS || error === CONST.POLICY.OWNERSHIP_ERRORS.FAILED_TO_CLEAR_BALANCE) {
             // cannot transfer ownership if there are failed settlements, or we cannot clear the balance
             PolicyActions.clearWorkspaceOwnerChangeFlow(policyID);
+            Navigation.goBack();
             Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
             return;
         }
