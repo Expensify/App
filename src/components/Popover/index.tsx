@@ -3,7 +3,7 @@ import {createPortal} from 'react-dom';
 import Modal from '@components/Modal';
 import {PopoverContext} from '@components/PopoverProvider';
 import PopoverWithoutOverlay from '@components/PopoverWithoutOverlay';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import CONST from '@src/CONST';
 import type {PopoverProps} from './types';
 
@@ -28,7 +28,7 @@ function Popover(props: PopoverProps) {
         animationOut = 'fadeOut',
     } = props;
 
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const withoutOverlayRef = useRef(null);
     const {close, popover} = React.useContext(PopoverContext);
 
@@ -55,7 +55,7 @@ function Popover(props: PopoverProps) {
         onClose();
     };
 
-    if (!fullscreen && !isSmallScreenWidth) {
+    if (!fullscreen && !shouldUseNarrowLayout) {
         return createPortal(
             <Modal
                 // eslint-disable-next-line react/jsx-props-no-spreading
@@ -74,7 +74,7 @@ function Popover(props: PopoverProps) {
         );
     }
 
-    if (withoutOverlay && !isSmallScreenWidth) {
+    if (withoutOverlay && !shouldUseNarrowLayout) {
         return createPortal(
             <PopoverWithoutOverlay
                 // eslint-disable-next-line react/jsx-props-no-spreading
@@ -93,11 +93,11 @@ function Popover(props: PopoverProps) {
             {...props}
             onClose={onCloseWithPopoverContext}
             shouldHandleNavigationBack={props.shouldHandleNavigationBack}
-            type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.POPOVER}
-            popoverAnchorPosition={isSmallScreenWidth ? undefined : anchorPosition}
-            fullscreen={isSmallScreenWidth ? true : fullscreen}
-            animationInTiming={disableAnimation && !isSmallScreenWidth ? 1 : animationInTiming}
-            animationOutTiming={disableAnimation && !isSmallScreenWidth ? 1 : animationOutTiming}
+            type={shouldUseNarrowLayout ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.POPOVER}
+            popoverAnchorPosition={shouldUseNarrowLayout ? undefined : anchorPosition}
+            fullscreen={shouldUseNarrowLayout ? true : fullscreen}
+            animationInTiming={disableAnimation && !shouldUseNarrowLayout ? 1 : animationInTiming}
+            animationOutTiming={disableAnimation && !shouldUseNarrowLayout ? 1 : animationOutTiming}
             onLayout={onLayout}
             animationIn={animationIn}
             animationOut={animationOut}
