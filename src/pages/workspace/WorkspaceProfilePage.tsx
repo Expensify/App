@@ -35,12 +35,12 @@ import withPolicy from './withPolicy';
 import type {WithPolicyProps} from './withPolicy';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
 
-type WorkSpaceProfilePageOnyxProps = {
+type WorkspaceProfilePageOnyxProps = {
     /** Constant, list of available currencies */
     currencyList: OnyxEntry<OnyxTypes.CurrencyList>;
 };
 
-type WorkSpaceProfilePageProps = WithPolicyProps & WorkSpaceProfilePageOnyxProps;
+type WorkSpaceProfilePageProps = WithPolicyProps & WorkspaceProfilePageOnyxProps;
 
 const parser = new ExpensiMark();
 
@@ -274,7 +274,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
 WorkspaceProfilePage.displayName = 'WorkspaceProfilePage';
 
 export default withPolicy(
-    withOnyx<WorkSpaceProfilePageProps, WorkSpaceProfilePageOnyxProps>({
+    withOnyx<WorkSpaceProfilePageProps, WorkspaceProfilePageOnyxProps>({
         currencyList: {key: ONYXKEYS.CURRENCY_LIST},
     })(WorkspaceProfilePage),
 );
