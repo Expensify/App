@@ -625,7 +625,7 @@ function ReportScreen({
         const action = sortedAllReportActions.find((item) => item.reportActionID === reportActionIDFromRoute);
         return {
             isLinkedReportActionDeleted: action && !ReportActionsUtils.shouldReportActionBeVisible(action, action.reportActionID),
-            isInaccessibleWhisper: ReportActionsUtils.isWhisperAction(action) && !(action?.whisperedToAccountIDs ?? []).includes(currentUserAccountID),
+            isInaccessibleWhisper: action && ReportActionsUtils.isWhisperAction(action) && !(action?.whisperedToAccountIDs ?? []).includes(currentUserAccountID),
         };
     }, [reportActionIDFromRoute, sortedAllReportActions]);
 
