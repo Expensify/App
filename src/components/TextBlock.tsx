@@ -1,9 +1,10 @@
-import React from 'react';
-import type { StyleProp, TextStyle } from 'react-native';
-import { Text } from 'react-native';
-import useTheme from "@hooks/useTheme";
+import React, {memo, useMemo} from 'react';
+import type {StyleProp, TextStyle} from 'react-native';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+import Text from './Text';
 
-type TextWordProps = {
+type TextBlockProps = {
     /** The color of the text */
     color?: string;
 
@@ -14,19 +15,18 @@ type TextWordProps = {
     text: string;
 };
 
-function TextWord({ color, textStyles, text }: TextWordProps) {
+function TextBlock({color, textStyles, text}: TextBlockProps) {
     const theme = useTheme();
-    const words = text.split(' ');
+    const styles = useThemeStyles();
+
+    const words = useMemo(() => text.match(/(\S+\s*)/g) ?? [], [text]);
 
     return (
         <>
-            {words.map((word, index) => (
+            {words.map((word) => (
                 <Text
-                    style={[
-                        { color: color ?? theme.placeholderText },
-                        textStyles,
-                        { marginRight: index === words.length - 1 ? 0 : 4 } // Adding margin between words except for the last word
-                    ]}
+                    color={color ?? theme.placeholderText}
+                    style={textStyles ?? [styles.textAlignCenter, styles.textNormal]}
                 >
                     {word}
                 </Text>
@@ -35,6 +35,6 @@ function TextWord({ color, textStyles, text }: TextWordProps) {
     );
 }
 
-TextWord.displayName = 'TextWord';
+TextBlock.displayName = 'TextBlock';
 
-export default TextWord;
+export default memo(TextBlock);

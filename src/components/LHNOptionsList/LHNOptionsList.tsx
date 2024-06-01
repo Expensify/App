@@ -10,6 +10,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import LottieAnimations from '@components/LottieAnimations';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
+import TextBlock from '@components/TextBlock';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
@@ -21,7 +22,6 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import TextBlock from "@components/TextBlock";
 import OptionRowLHNData from './OptionRowLHNData';
 import type {LHNOptionsListOnyxProps, LHNOptionsListProps, RenderItemProps} from './types';
 
@@ -72,7 +72,6 @@ function LHNOptionsList({
             <View style={[styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.flexWrap, styles.textAlignCenter]}>
                 <TextBlock
                     color={theme.placeholderText}
-                    textStyles={[styles.textAlignCenter, styles.textNormal]}
                     text={translate('common.emptyLHN.subtitleText1')}
                 />
                 <Icon
@@ -85,7 +84,6 @@ function LHNOptionsList({
                 />
                 <TextBlock
                     color={theme.placeholderText}
-                    textStyles={[styles.textAlignCenter, styles.textNormal]}
                     text={translate('common.emptyLHN.subtitleText2')}
                 />
                 <Icon
@@ -98,7 +96,6 @@ function LHNOptionsList({
                 />
                 <TextBlock
                     color={theme.placeholderText}
-                    textStyles={[styles.textAlignCenter, styles.textNormal]}
                     text={translate('common.emptyLHN.subtitleText3')}
                 />
             </View>
