@@ -2777,7 +2777,7 @@ function shouldShowRBRForMissingSmartscanFields(iouReportID: string): boolean {
         if (isEmptyObject(transaction)) {
             return false;
         }
-        if (!ReportActionsUtils.isRequestor(action)) {
+        if (!ReportActionsUtils.wasActionTakenByCurrentUser(action)) {
             return false;
         }
         return TransactionUtils.hasMissingSmartscanFields(transaction);
