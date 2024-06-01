@@ -19,6 +19,7 @@ import originalGetTopmostReportId from './getTopmostReportId';
 import linkingConfig from './linkingConfig';
 import linkTo from './linkTo';
 import navigationRef from './navigationRef';
+import setNavigationActionToMicrotaskQueue from './setNavigationActionToMicrotaskQueue';
 import switchPolicyID from './switchPolicyID';
 import type {NavigationStateRoute, State, StateOrRoute, SwitchPolicyIDParams} from './types';
 
@@ -225,7 +226,7 @@ function goBack(fallbackRoute?: Route, shouldEnforceFallback = false, shouldPopT
 
     // Allow CentralPane to use UP with fallback route if the path is not found in root navigator.
     if (isCentralPaneFocused && fallbackRoute && distanceFromPathInRootNavigator === -1) {
-        navigate(fallbackRoute, CONST.NAVIGATION.TYPE.FORCED_UP);
+        navigate(fallbackRoute, CONST.NAVIGATION.TYPE.UP);
         return;
     }
 
@@ -384,6 +385,7 @@ export default {
     resetToHome,
     isDisplayedInModal,
     closeRHPFlow,
+    setNavigationActionToMicrotaskQueue,
 };
 
 export {navigationRef};

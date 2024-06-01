@@ -5,7 +5,7 @@ import type {OptimisticChatReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import * as IOU from '@src/libs/actions/IOU';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
-import * as PolicyActions from '@src/libs/actions/Policy';
+import * as PolicyActions from '@src/libs/actions/Policy/Policy';
 import * as Report from '@src/libs/actions/Report';
 import * as ReportActions from '@src/libs/actions/ReportActions';
 import * as User from '@src/libs/actions/User';
