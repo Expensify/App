@@ -23,25 +23,7 @@ import CONST from '@src/CONST';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 import CurrentLocationButton from './CurrentLocationButton';
 import isCurrentTargetInsideContainer from './isCurrentTargetInsideContainer';
-import listViewOverflow from './listViewOverflow';
-import type {AddressSearchProps, PredefinedPlace} from './types';
-
-/**
- * Check if the place matches the search by the place name or description.
- * @param search The search string for a place
- * @param place The place to check for a match on the search
- * @returns true if search is related to place, otherwise it returns false.
- */
-function isPlaceMatchForSearch(search: string, place: PredefinedPlace): boolean {
-    if (!search) {
-        return true;
-    }
-    if (!place) {
-        return false;
-    }
-    const fullSearchSentence = `${place.name ?? ''} ${place.description}`;
-    return search.split(' ').every((searchTerm) => !searchTerm || (searchTerm && fullSearchSentence.toLocaleLowerCase().includes(searchTerm.toLocaleLowerCase())));
-}
+import type {AddressSearchProps} from './types';
 
 // The error that's being thrown below will be ignored until we fork the
 // react-native-google-places-autocomplete repo and replace the
@@ -59,7 +41,6 @@ function AddressSearch(
         isLimitedToUSA = false,
         label,
         maxInputLength,
-        onFocus,
         onBlur,
         onInputChange,
         onPress,
@@ -317,16 +298,10 @@ function AddressSearch(
         };
     }, []);
 
-    const filteredPredefinedPlaces = useMemo(() => {
-        if (!isOffline || !searchValue) {
-            return predefinedPlaces ?? [];
-        }
-        return predefinedPlaces?.filter((predefinedPlace) => isPlaceMatchForSearch(searchValue, predefinedPlace)) ?? [];
-    }, [isOffline, predefinedPlaces, searchValue]);
-
     const listEmptyComponent = useCallback(
-        () => (!isTyping ? null : <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{translate('common.noResultsFound')}</Text>),
-        [isTyping, styles, translate],
+        () =>
+            !!isOffline || !isTyping ? null : <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{translate('common.noResultsFound')}</Text>,
+        [isOffline, isTyping, styles, translate],
     );
 
     const listLoader = useCallback(
@@ -363,10 +338,11 @@ function AddressSearch(
                     ref={containerRef}
                 >
                     <GooglePlacesAutocomplete
+                        disableScroll
                         fetchDetails
                         suppressDefaultStyles
                         enablePoweredByContainer={false}
-                        predefinedPlaces={filteredPredefinedPlaces}
+                        predefinedPlaces={predefinedPlaces ?? undefined}
                         listEmptyComponent={listEmptyComponent}
                         listLoaderComponent={listLoader}
                         renderHeaderComponent={renderHeaderComponent}
@@ -375,7 +351,7 @@ function AddressSearch(
                             const subtitle = data.isPredefinedPlace ? data.description : data.structured_formatting.secondary_text;
                             return (
                                 <View>
-                                    {!!title && <Text style={styles.googleSearchText}>{title}</Text>}
+                                    {!!title && <Text style={[styles.googleSearchText]}>{title}</Text>}
                                     <Text style={[title ? styles.textLabelSupporting : styles.googleSearchText]}>{subtitle}</Text>
                                 </View>
                             );
@@ -409,7 +385,6 @@ function AddressSearch(
                             shouldSaveDraft,
                             onFocus: () => {
                                 setIsFocused(true);
-                                onFocus?.();
                             },
                             onBlur: (event) => {
                                 if (!isCurrentTargetInsideContainer(event, containerRef)) {
@@ -439,18 +414,10 @@ function AddressSearch(
                         }}
                         styles={{
                             textInputContainer: [styles.flexColumn],
-                            listView: [
-                                StyleUtils.getGoogleListViewStyle(displayListViewBorder),
-                                listViewOverflow,
-                                styles.borderLeft,
-                                styles.borderRight,
-                                styles.flexGrow0,
-                                !isFocused && styles.h0,
-                            ],
+                            listView: [StyleUtils.getGoogleListViewStyle(displayListViewBorder), styles.overflowAuto, styles.borderLeft, styles.borderRight, !isFocused && {height: 0}],
                             row: [styles.pv4, styles.ph3, styles.overflowAuto],
                             description: [styles.googleSearchText],
                             separator: [styles.googleSearchSeparator],
-                            container: [styles.mh100],
                         }}
                         numberOfLines={2}
                         isRowScrollable={false}
@@ -474,13 +441,11 @@ function AddressSearch(
                             )
                         }
                         placeholder=""
-                        listViewDisplayed
-                    >
-                        <LocationErrorMessage
-                            onClose={() => setLocationErrorCode(null)}
-                            locationErrorCode={locationErrorCode}
-                        />
-                    </GooglePlacesAutocomplete>
+                    />
+                    <LocationErrorMessage
+                        onClose={() => setLocationErrorCode(null)}
+                        locationErrorCode={locationErrorCode}
+                    />
                 </View>
             </ScrollView>
             {isFetchingCurrentLocation && <FullScreenLoadingIndicator />}
