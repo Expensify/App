@@ -135,6 +135,10 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
         // We want to clean saved scroll offsets for screens that aren't anymore in the state.
         cleanStaleScrollOffsets(state);
+
+        // clear all window selection on navigation
+        // this is to prevent the selection from persisting when navigating to a new page in web
+        window?.getSelection()?.removeAllRanges();
     };
 
     return (
