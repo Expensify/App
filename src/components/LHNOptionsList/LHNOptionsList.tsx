@@ -21,9 +21,9 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import TextBlock from "@components/TextBlock";
 import OptionRowLHNData from './OptionRowLHNData';
 import type {LHNOptionsListOnyxProps, LHNOptionsListProps, RenderItemProps} from './types';
-import TextBlock from "@components/TextBlock";
 
 const keyExtractor = (item: string) => `report_${item}`;
 
