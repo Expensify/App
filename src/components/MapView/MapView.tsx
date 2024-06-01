@@ -1,7 +1,7 @@
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import type {MapState} from '@rnmapbox/maps';
 import Mapbox, {MarkerView, setAccessToken} from '@rnmapbox/maps';
-import {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -30,7 +30,8 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
 
         const cameraRef = useRef<Mapbox.Camera>(null);
         const [isIdle, setIsIdle] = useState(false);
-        const [currentPosition, setCurrentPosition] = useState(cachedUserLocation);
+        const initialLocation = useMemo(() => initialState && {longitude: initialState.location[0], latitude: initialState.location[1]}, [initialState]);
+        const [currentPosition, setCurrentPosition] = useState(cachedUserLocation ?? initialLocation);
         const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
         const shouldInitializeCurrentPosition = useRef(true);
 
@@ -42,13 +43,13 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
 
         const setCurrentPositionToInitialState: GeolocationErrorCallback = useCallback(
             (error) => {
-                if (error?.code !== GeolocationErrorCode.PERMISSION_DENIED || !initialState) {
+                if (error?.code !== GeolocationErrorCode.PERMISSION_DENIED || !initialLocation) {
                     return;
                 }
                 UserLocation.clearUserLocation();
-                setCurrentPosition({longitude: initialState.location[0], latitude: initialState.location[1]});
+                setCurrentPosition(initialLocation);
             },
-            [initialState],
+            [initialLocation],
         );
 
         useFocusEffect(

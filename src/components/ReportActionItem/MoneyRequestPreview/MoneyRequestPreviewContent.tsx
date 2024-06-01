@@ -15,6 +15,7 @@ import ReportActionItemImages from '@components/ReportActionItem/ReportActionIte
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -71,6 +72,7 @@ function MoneyRequestPreviewContent({
     const managerID = iouReport?.managerID ?? -1;
     const ownerAccountID = iouReport?.ownerAccountID ?? -1;
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
+    const {canUseViolations} = usePermissions();
 
     const participantAccountIDs = action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && isBillSplit ? action.originalMessage.participantAccountIDs ?? [] : [managerID, ownerAccountID];
     const participantAvatars = OptionsListUtils.getAvatarsForAccountIDs(participantAccountIDs, personalDetails ?? {});
@@ -91,7 +93,9 @@ function MoneyRequestPreviewContent({
     const isSettlementOrApprovalPartial = Boolean(iouReport?.pendingFields?.partial);
     const isPartialHold = isSettlementOrApprovalPartial && isOnHold;
     const hasViolations = TransactionUtils.hasViolation(transaction?.transactionID ?? '', transactionViolations);
-    const hasNoticeTypeViolations = TransactionUtils.hasNoticeTypeViolation(transaction?.transactionID ?? '', transactionViolations);
+    const hasNoticeTypeViolations = Boolean(
+        TransactionUtils.hasNoticeTypeViolation(transaction?.transactionID ?? '', transactionViolations) && ReportUtils.isPaidGroupPolicy(iouReport) && canUseViolations,
+    );
     const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(transaction);
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
     const isFetchingWaypointsFromServer = TransactionUtils.isFetchingWaypointsFromServer(transaction);

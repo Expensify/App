@@ -114,10 +114,13 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.TROUBLESHOOT]: undefined;
     [SCREENS.SETTINGS.APP_DOWNLOAD_LINKS]: undefined;
     [SCREENS.SETTINGS.TROUBLESHOOT]: undefined;
-    [SCREENS.SETTINGS.CONSOLE]: undefined;
+    [SCREENS.SETTINGS.CONSOLE]: {
+        backTo: Routes;
+    };
     [SCREENS.SETTINGS.SHARE_LOG]: {
         /** URL of the generated file to share logs in a report */
         source: string;
+        backTo: Routes;
     };
     [SCREENS.SETTINGS.WALLET.ROOT]: undefined;
     [SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: undefined;
@@ -218,6 +221,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.TAG_SETTINGS]: {
         policyID: string;
+        orderWeight: number;
         tagName: string;
     };
     [SCREENS.WORKSPACE.TAG_LIST_VIEW]: {
@@ -230,6 +234,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.TAG_EDIT]: {
         policyID: string;
+        orderWeight: number;
         tagName: string;
     };
     [SCREENS.WORKSPACE.TAXES_SETTINGS]: {
@@ -337,11 +342,10 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_TRACKING_CATEGORIES]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.XERO_MAP_COST_CENTERS]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.XERO_MAP_TRACKING_CATEGORY]: {
         policyID: string;
-    };
-    [SCREENS.WORKSPACE.ACCOUNTING.XERO_MAP_REGION]: {
-        policyID: string;
+        categoryId: string;
+        categoryName: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_EXPORT]: {
         policyID: string;
@@ -350,6 +354,9 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_ADVANCED]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.XERO_BILL_STATUS_SELECTOR]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_INVOICE_ACCOUNT_SELECTOR]: {
@@ -397,9 +404,7 @@ type SettingsNavigatorParamList = {
 
 type NewChatNavigatorParamList = {
     [SCREENS.NEW_CHAT.ROOT]: undefined;
-    [SCREENS.NEW_CHAT.NEW_CHAT_EDIT_NAME]: {
-        reportID?: string;
-    };
+    [SCREENS.NEW_CHAT.NEW_CHAT_EDIT_NAME]: undefined;
 };
 
 type DetailsNavigatorParamList = {
@@ -425,11 +430,10 @@ type ReportDetailsNavigatorParamList = {
 };
 
 type ReportSettingsNavigatorParamList = {
-    [SCREENS.REPORT_SETTINGS.ROOT]: undefined;
-    [SCREENS.REPORT_SETTINGS.ROOM_NAME]: undefined;
-    [SCREENS.REPORT_SETTINGS.GROUP_NAME]: undefined;
-    [SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES]: undefined;
-    [SCREENS.REPORT_SETTINGS.WRITE_CAPABILITY]: undefined;
+    [SCREENS.REPORT_SETTINGS.ROOT]: {reportID: string};
+    [SCREENS.REPORT_SETTINGS.NAME]: {reportID: string};
+    [SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES]: {reportID: string};
+    [SCREENS.REPORT_SETTINGS.WRITE_CAPABILITY]: {reportID: string};
     [SCREENS.REPORT_SETTINGS.VISIBILITY]: {
         reportID: string;
     };
@@ -798,7 +802,6 @@ type FullScreenNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.TAGS]: {
         policyID: string;
-        tagName: string;
     };
     [SCREENS.WORKSPACE.TAXES]: {
         policyID: string;
@@ -872,9 +875,11 @@ type PublicScreensParamList = SharedScreensParamList & {
 type AuthScreensParamList = SharedScreensParamList & {
     [NAVIGATORS.CENTRAL_PANE_NAVIGATOR]: NavigatorScreenParams<CentralPaneNavigatorParamList>;
     [SCREENS.CONCIERGE]: undefined;
-    [SCREENS.REPORT_ATTACHMENTS]: {
+    [SCREENS.ATTACHMENTS]: {
         reportID: string;
         source: string;
+        type: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
+        accountID: string;
     };
     [SCREENS.PROFILE_AVATAR]: {
         accountID: string;
