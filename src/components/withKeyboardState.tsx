@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import type {ComponentType, ForwardedRef, ReactElement, RefAttributes} from 'react';
 import React, {createContext, forwardRef, useEffect, useMemo, useState} from 'react';
 import {Keyboard} from 'react-native';
@@ -11,15 +10,6 @@ type KeyboardStateContextValue = {
 
     /** Height of the keyboard in pixels */
     keyboardHeight: number;
-};
-
-// TODO: Remove - left for backwards compatibility with existing components (https://github.com/Expensify/App/issues/25151)
-const keyboardStatePropTypes = {
-    /** Whether the keyboard is open */
-    isKeyboardShown: PropTypes.bool.isRequired,
-
-    /** Height of the keyboard in pixels */
-    keyboardHeight: PropTypes.number.isRequired,
 };
 
 const KeyboardStateContext = createContext<KeyboardStateContextValue>({
@@ -76,4 +66,5 @@ export default function withKeyboardState<TProps extends KeyboardStateContextVal
     return forwardRef(WithKeyboardState);
 }
 
-export {KeyboardStateProvider, keyboardStatePropTypes, type KeyboardStateContextValue, KeyboardStateContext};
+export type {KeyboardStateContextValue};
+export {KeyboardStateProvider, KeyboardStateContext};
