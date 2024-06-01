@@ -10,7 +10,6 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import LottieAnimations from '@components/LottieAnimations';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
-import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
@@ -24,6 +23,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import OptionRowLHNData from './OptionRowLHNData';
 import type {LHNOptionsListOnyxProps, LHNOptionsListProps, RenderItemProps} from './types';
+import TextBlock from "@components/TextBlock";
 
 const keyExtractor = (item: string) => `report_${item}`;
 
@@ -70,42 +70,37 @@ function LHNOptionsList({
     const emptyLHNSubtitle = useMemo(
         () => (
             <View style={[styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.flexWrap, styles.textAlignCenter]}>
-                <Text
+                <TextBlock
                     color={theme.placeholderText}
-                    style={[styles.textAlignCenter]}
-                >
-                    {translate('common.emptyLHN.subtitleText1')}
-                </Text>
+                    textStyles={[styles.textAlignCenter, styles.textNormal]}
+                    text={translate('common.emptyLHN.subtitleText1')}
+                />
                 <Icon
                     src={Expensicons.MagnifyingGlass}
                     width={variables.emptyLHNIconWidth}
                     height={variables.emptyLHNIconHeight}
                     fill={theme.icon}
                     small
-                    inline
                     additionalStyles={styles.mh1}
                 />
-                <Text
+                <TextBlock
                     color={theme.placeholderText}
-                    style={[styles.textAlignCenter]}
-                >
-                    {translate('common.emptyLHN.subtitleText2')}
-                </Text>
+                    textStyles={[styles.textAlignCenter, styles.textNormal]}
+                    text={translate('common.emptyLHN.subtitleText2')}
+                />
                 <Icon
                     src={Expensicons.Plus}
                     width={variables.emptyLHNIconWidth}
                     height={variables.emptyLHNIconHeight}
                     fill={theme.icon}
                     small
-                    inline
                     additionalStyles={styles.mh1}
                 />
-                <Text
+                <TextBlock
                     color={theme.placeholderText}
-                    style={[styles.textAlignCenter]}
-                >
-                    {translate('common.emptyLHN.subtitleText3')}
-                </Text>
+                    textStyles={[styles.textAlignCenter, styles.textNormal]}
+                    text={translate('common.emptyLHN.subtitleText3')}
+                />
             </View>
         ),
         [styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.flexWrap, styles.textAlignCenter, styles.mh1, theme.icon, theme.placeholderText, translate],
