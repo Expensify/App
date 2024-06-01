@@ -6,7 +6,7 @@ import type ONYXKEYS from '@src/ONYXKEYS';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import type * as OnyxCommon from './OnyxCommon';
-import type {Decision, OriginalMessageModifiedExpense, OriginalMessageReportPreview, Reaction} from './OriginalMessage';
+import type {Decision, OriginalMessageModifiedExpense, OriginalMessageReportPreview} from './OriginalMessage';
 import type OriginalMessage from './OriginalMessage';
 import type {NotificationPreference} from './Report';
 import type {Receipt} from './Transaction';
@@ -57,11 +57,8 @@ type Message = {
     /** Whether the pending transaction was reversed and didn't post to the card */
     isReversedTransaction?: boolean;
 
-    /** TODO: Only used in tests */
+    /** Collection of accountIDs of users mentioned in message */
     whisperedTo?: number[];
-
-    /** TODO: Only used in tests */
-    reactions?: Reaction[];
 
     /** In situations where moderation is required, this is the moderator decision data */
     moderationDecision?: Decision;
@@ -174,10 +171,10 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Avatar data to display on the report action */
     avatar?: AvatarSource;
 
-    /** TODO: not enough context, seems to be used in tests only */
+    /** TODO: not enough context */
     automatic?: boolean;
 
-    /** TODO: Not enough context, seems to be used in tests only */
+    /** TODO: Not enough context */
     shouldShow?: boolean;
 
     /** The ID of childReport */
@@ -192,13 +189,10 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** The user's ID */
     accountID?: number;
 
-    /** TODO: Doesn't exist in the app */
-    childOldestFourEmails?: string;
-
     /** Account IDs of the oldest four participants, useful to determine which avatars to display in threads */
     childOldestFourAccountIDs?: string;
 
-    /** TODO: Not enough context, but I think this represents how many participants are in the thread */
+    /** How many participants commented in the report */
     childCommenterCount?: number;
 
     /** Timestamp of the most recent reply */
@@ -219,25 +213,15 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Report action child status name */
     childStateNum?: ValueOf<typeof CONST.REPORT.STATE_NUM>;
 
-    /** TODO: Doesn't exist in the app */
-    childLastReceiptTransactionIDs?: string;
-
     /** Content of the last money request comment, used in report preview */
     childLastMoneyRequestComment?: string;
 
     /** Account ID of the last actor */
     childLastActorAccountID?: number;
 
-    /** TODO: Only used in tests */
-    timestamp?: number;
-
-    /** TODO: Only used in tests */
-    reportActionTimestamp?: number;
-
     /** Amount of money requests */
     childMoneyRequestCount?: number;
 
-    /** TODO: Seems to be used only on tests */
     isFirstItem?: boolean;
 
     /** Informations about attachments of report action */

@@ -8,8 +8,12 @@ import type {WorkspaceTravelSettings} from './TravelSettings';
 /** Distance units */
 type Unit = 'mi' | 'km';
 
+/** TODO: Not enough context */
 type TaxRateAttributes = {
+    /** TODO: Not enough context */
     taxClaimablePercentage?: number;
+
+    /** TODO: Not enough context */
     taxRateExternalID?: string;
 };
 
@@ -35,6 +39,8 @@ type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Form fields that triggered the errors */
     errorFields?: OnyxCommon.ErrorFields;
+
+    /** TODO: Not enough context */
     attributes?: TaxRateAttributes;
 }>;
 
@@ -42,6 +48,8 @@ type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<{
 type Attributes = {
     /** Distance unit name */
     unit: Unit;
+
+    /** TODO: Not enough context */
     taxEnabled?: boolean;
 };
 
@@ -239,9 +247,8 @@ type TaxCode = {
  * Data imported from QuickBooks Online.
  */
 type QBOConnectionData = {
-    /** TODO: I think this value can be changed to `ValueOf<CONST.COUNTRY>` */
     /** Country code */
-    country: string;
+    country: ValueOf<typeof CONST.COUNTRY>;
 
     /** TODO: Doesn't exist in the app */
     edition: string;
@@ -373,7 +380,7 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** TODO: Doesn't exist in the app */
     errors?: OnyxCommon.Errors;
 
-    /** TODO: Doesn't exist in the app */
+    /** TODO: Not enough context */
     exportDate: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_DATE>;
 
     /** Configuration of the export */
@@ -407,8 +414,12 @@ type Tenant = {
     value: string;
 };
 
+/** TODO: Not enough context */
 type XeroTrackingCategory = {
+    /** TODO: Not enough context */
     id: string;
+
+    /** TODO: Not enough context */
     name: string;
 };
 
@@ -427,12 +438,17 @@ type XeroConnectionData = {
 
     /** TODO: Doesn't exist in the app */
     revenueAccounts: Array<{
+        /** TODO: Not enough context */
         id: string;
+
+        /** TODO: Not enough context */
         name: string;
     }>;
 
     /** Collection of organizations */
     tenants: Tenant[];
+
+    /** TODO: Not enough context */
     trackingCategories: XeroTrackingCategory[];
 };
 
@@ -455,7 +471,7 @@ type XeroConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
         jobID: string;
     };
 
-    /** TODO: Doesn't exist in the app */
+    /** TODO: Not enough context */
     enableNewCategories: boolean;
 
     /** Xero export configs */
@@ -480,7 +496,7 @@ type XeroConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** TODO: Doesn't exist in the app */
         nonReimbursable: ExpenseTypesValues;
 
-        /** TODO: Doesn't exist in the app */
+        /** TODO: Not enough context */
         nonReimbursableAccount: string;
 
         /** TODO: Doesn't exist in the app */
@@ -498,7 +514,10 @@ type XeroConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** TODO: Doesn't exist in the app */
     isConfigured: boolean;
+
+    /** TODO: Not enough context */
     mappings: XeroMappingType;
+
     sync: {
         /** TODO: Doesn't exist in the app */
         hasChosenAutoSyncOption: boolean;
@@ -509,10 +528,10 @@ type XeroConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** ID of the bank account for Xero invoice collections */
         invoiceCollectionsAccountID: string;
 
-        /** TODO: Doesn't exist in the app */
+        /** ID of the bank account for Xero bill payment account */
         reimbursementAccountID: string;
 
-        /** TODO: Doesn't exist in the app */
+        /** Whether the reimbursed reports should be synched */
         syncReimbursedReports: boolean;
     };
 
@@ -528,7 +547,6 @@ type XeroConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
 /** State of integration connection */
 type Connection<ConnectionData, ConnectionConfig> = {
-    /** TODO: Doesn't exist in the app */
     /** State of the last synchronization */
     lastSync?: ConnectionLastSync;
 
@@ -603,9 +621,6 @@ type PolicyReportField = {
 
     /** Options to select from if field is of type dropdown */
     values: string[];
-
-    /** TODO: Doesn't seem to be used in app */
-    target: string;
 
     /** Tax UDFs have keys holding the names of taxes (eg, VAT), values holding percentages (eg, 15%) and a value indicating the currently selected tax value (eg, 15%). */
     keys: string[];

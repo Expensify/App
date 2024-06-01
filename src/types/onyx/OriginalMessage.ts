@@ -36,9 +36,16 @@ type OriginalMessageActionName =
 /** Model of `approved` report action */
 type OriginalMessageApproved = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.APPROVED;
+    originalMessage: {
+        /** Approved expense amount */
+        amount: number;
 
-    /** TODO: I think the type should match the scructure of `originalMessage` in `buildOptimisticApprovedReportAction` */
-    originalMessage: unknown;
+        /** Currency of the approved expense amount */
+        currency: string;
+
+        /** Report ID of the expense */
+        expenseReportID: string;
+    };
 };
 
 /** Types of sources of original message */
@@ -121,9 +128,8 @@ type IOUMessage = {
 
 /** Model of original message of `reimbursed dequeued` report action */
 type ReimbursementDeQueuedMessage = {
-    /** TODO: I'd replace this type with `ValueOf<typeof CONST.REPORT.CANCEL_PAYMENT_REASONS>` */
     /** Why the reimbursement was cancelled */
-    cancellationReason: string;
+    cancellationReason: ValueOf<typeof CONST.REPORT.CANCEL_PAYMENT_REASONS>;
 
     /** ID of the `expense` report */
     expenseReportID?: string;
@@ -139,23 +145,6 @@ type ReimbursementDeQueuedMessage = {
 type OriginalMessageIOU = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.IOU;
     originalMessage: IOUMessage;
-};
-
-/** Names of severity flags */
-type FlagSeverityName = ValueOf<
-    Pick<
-        typeof CONST.MODERATION,
-        'FLAG_SEVERITY_SPAM' | 'FLAG_SEVERITY_INCONSIDERATE' | 'FLAG_SEVERITY_INTIMIDATION' | 'FLAG_SEVERITY_BULLYING' | 'FLAG_SEVERITY_HARASSMENT' | 'FLAG_SEVERITY_ASSAULT'
-    >
->;
-
-/** Model of severity flag */
-type FlagSeverity = {
-    /** Account ID of the user that flagged the comment */
-    accountID: number;
-
-    /** When was the comment flagged */
-    timestamp: string;
 };
 
 /** Names of moderation decisions */
@@ -227,26 +216,8 @@ type OriginalMessageAddComment = {
         /** ID of the task report */
         taskReportID?: string;
 
-        /** TODO: Doesn't exist in the app */
-        edits?: string[];
-
-        /** TODO: Doesn't exist in the app */
-        childReportID?: string;
-
-        /** TODO: Doesn't exist in the app */
-        isDeletedParentAction?: boolean;
-
-        /** TODO: Doesn't exist in the app */
-        flags?: Record<FlagSeverityName, FlagSeverity[]>;
-
-        /** TODO: Doesn't exist in the app */
-        moderationDecisions?: Decision[];
-
-        /** TODO: Only used in tests  */
+        /** Collection of accountIDs of users mentioned in message */
         whisperedTo: number[];
-
-        /** TODO: Doesn't exist in the app */
-        reactions?: Reaction[];
     };
 };
 
@@ -257,19 +228,10 @@ type OriginalMessageActionableMentionWhisper = {
         /** Account IDs of users that aren't members of the room  */
         inviteeAccountIDs: number[];
 
-        /** TODO: Doesn't exist in the app */
-        inviteeEmails: string;
-
-        /** TODO: Only used in tests */
-        lastModified: string;
-
-        /** TODO: Doesn't exist in the app */
-        reportID: number;
-
         /** Decision on whether to invite users that were mentioned but aren't members or do nothing */
         resolution?: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION> | null;
 
-        /** TODO: Doesn't exist in the app */
+        /** Collection of accountIDs of users mentioned in message */
         whisperedTo?: number[];
     };
 };
@@ -278,25 +240,10 @@ type OriginalMessageActionableMentionWhisper = {
 type OriginalMessageActionableReportMentionWhisper = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER;
     originalMessage: {
-        /** TODO: Doesn't exist in the app */
-        reportNames: string[];
-
-        /** TODO: Doesn't exist in the app */
-        mentionedAccountIDs: number[];
-
-        /** TODO: Doesn't exist in the app */
-        reportActionID: number;
-
-        /** TODO: Doesn't exist in the app */
-        reportID: number;
-
-        /** TODO: Only used in tests */
-        lastModified: string;
-
         /** Decision on whether to create a report that were mentioned but doesn't exist or do nothing */
         resolution?: ValueOf<typeof CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION> | null;
 
-        /** TODO: Doesn't exist in the app */
+        /** Collection of accountIDs of users mentioned in message */
         whisperedTo?: number[];
     };
 };
@@ -304,9 +251,16 @@ type OriginalMessageActionableReportMentionWhisper = {
 /** Model of `submitted` report action */
 type OriginalMessageSubmitted = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED;
+    originalMessage: {
+        /** Approved expense amount */
+        amount: number;
 
-    /** TODO: I think the type should match the scructure of `originalMessage` in `buildOptimisticSubmittedReportAction` */
-    originalMessage: unknown;
+        /** Currency of the approved expense amount */
+        currency: string;
+
+        /** Report ID of the expense */
+        expenseReportID: string;
+    };
 };
 
 /** Model of `closed` report action */
@@ -349,14 +303,6 @@ type OriginalMessageRenamed = {
 type ChronosOOOTimestamp = {
     /** Date timestamp */
     date: string;
-
-    /** TODO: Doesn't exist in the app */
-    /** Timezone code */
-    timezone: string;
-
-    /** TODO: Doesn't exist in the app */
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    timezone_type: number;
 };
 
 /** Model of change log */
@@ -412,23 +358,15 @@ type ModifiedExpense = {
     taxAmount?: number;
     taxRate?: string;
     oldTaxRate?: string;
+    whisperedTo?: number[];
 };
 
 /** Model of `Chronos OOO List` report action */
 type OriginalMessageChronosOOOList = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.CHRONOS_OOO_LIST;
     originalMessage: {
-        /** TODO: Doesn't exist in the app */
-        edits: string[];
-
         /** Collection of OOO events to show in report action */
         events: ChronosOOOEvent[];
-
-        /** TODO: Only used in tests */
-        html: string;
-
-        /** TODO: Only used in tests */
-        lastModified: string;
     };
 };
 
@@ -438,9 +376,6 @@ type OriginalMessageReportPreview = {
     originalMessage: {
         /** ID of the report to be previewed */
         linkedReportID: string;
-
-        /** TODO: Only used in tests */
-        lastModified?: string;
 
         /** Collection of accountIDs of users mentioned in report */
         whisperedTo?: number[];
@@ -457,20 +392,10 @@ type OriginalMessagePolicyChangeLog = {
 type OriginalMessageJoinPolicyChangeLog = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST;
     originalMessage: {
-        /** TODO: I think this type could be changed to `ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION>` */
         /** What was the invited user decision */
-        choice: string;
+        choice: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION>;
 
-        /** TODO: Doesn't exist in the app */
-        email: string;
-
-        /** TODO: Doesn't exist in the app */
-        inviterEmail: string;
-
-        /** TODO: Only used in tests */
-        lastModified: string;
-
-        /** TODO: Doesn't exist in the app */
+        /** ID of the affected policy */
         policyID: string;
     };
 };
@@ -514,7 +439,7 @@ type OriginalMessageActionableTrackedExpenseWhisper = {
         /** ID of the transaction */
         transactionID: string;
 
-        /** TODO: Only used in tests */
+        /** When was the tracked expense whisper last modified */
         lastModified: string;
 
         /** What was the decision of the user */
@@ -525,12 +450,7 @@ type OriginalMessageActionableTrackedExpenseWhisper = {
 /** Model of `reimbursement dequeued` report action */
 type OriginalMessageReimbursementDequeued = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED;
-
-    /** TODO: I think this type should be `ReimbursementDeQueuedMessage` */
-    originalMessage: {
-        /** ID of the expense report */
-        expenseReportID: string;
-    };
+    originalMessage: ReimbursementDeQueuedMessage;
 };
 
 /** Model of `moved` report action */
@@ -610,6 +530,8 @@ export type {
     OriginalMessageActionName,
     ChangeLog,
     ModifiedExpense,
+    OriginalMessageApproved,
+    OriginalMessageSubmitted,
     OriginalMessageIOU,
     OriginalMessageCreated,
     OriginalMessageRenamed,

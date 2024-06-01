@@ -1,5 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+import type {IOUType} from '@src/CONST';
 import type {Icon} from './OnyxCommon';
 
 /** Model of IOU participant */
@@ -67,9 +68,11 @@ type Participant = {
     /** Whether the IOU participant is an invoice sender */
     isSender?: boolean;
 
-    /** TODO: I think this type could be changes to `IOUType` */
     /** The type of IOU report, i.e. split, request, send, track */
-    iouType?: string;
+    iouType?: IOUType;
+
+    /** When the participant is associated with a policy expense chat, this is the account ID of the policy owner */
+    ownerAccountID?: number;
 };
 
 /** Model of IOU split */

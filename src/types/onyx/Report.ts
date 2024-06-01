@@ -216,12 +216,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Collection of errors to be shown to the user */
         errors?: OnyxCommon.Errors;
 
-        /** TODO: Doesn't exist in the app */
-        managerEmail?: string;
-
-        /** TODO: Doesn't exist in the app */
-        parentReportActionIDs?: number[];
-
         /** Collection of errors that exist in report fields */
         errorFields?: OnyxCommon.ErrorFields;
 
@@ -257,9 +251,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Text to be displayed in options list, which matches reportName by default */
         text?: string;
-
-        /** TODO: Doesn't exist in the app */
-        updateReportInLHN?: boolean;
 
         /** Collection of participant private notes, indexed by their accountID */
         privateNotes?: Record<number, Note>;

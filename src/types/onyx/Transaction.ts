@@ -115,13 +115,7 @@ type ReceiptSource = string;
 
 /** Model of receipt */
 type Receipt = {
-    /** TODO: This doesn't exist in the app */
-    receiptID?: number;
-
-    /** TODO: This doesn't exist in the app */
-    path?: string;
-
-    /** TODO: This doesn't exist in the app */
+    /** Name of receipt file */
     name?: string;
 
     /** Path of the receipt file */
@@ -151,9 +145,6 @@ type Routes = Record<string, Route>;
 
 /** Model of receipt error */
 type ReceiptError = {
-    /** TODO: This doesn't exist in the app */
-    error?: string;
-
     /** Path of the receipt file */
     source: string;
 
@@ -166,9 +157,6 @@ type ReceiptErrors = Record<string, ReceiptError>;
 
 /** Tax rate data */
 type TaxRateData = {
-    /** TODO: This doesn't exist in the app */
-    name: string;
-
     /** Tax rate percentage */
     value: string;
 
@@ -183,15 +171,6 @@ type TaxRate = {
 
     /** Key of the tax rate to index it on options list */
     keyForList: string;
-
-    /** TODO: This doesn't exist in the app */
-    searchText: string;
-
-    /** TODO: This doesn't exist in the app */
-    tooltipText: string;
-
-    /** TODO: This doesn't exist in the app */
-    isDisabled?: boolean;
 
     /** Data of the tax rate */
     data?: TaxRateData;

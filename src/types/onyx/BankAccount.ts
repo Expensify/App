@@ -1,5 +1,6 @@
 import type CONST from '@src/CONST';
 import type AccountData from './AccountData';
+import type {BankName} from './Bank';
 import type * as OnyxCommon from './OnyxCommon';
 
 /** Model of additional bank account data */
@@ -14,7 +15,7 @@ type BankAccountAdditionalData = {
     currency?: string;
 
     /** In which bank is the bank account */
-    bankName?: string;
+    bankName?: BankName;
 
     /** Whether the bank account details were obtained for local transfer or international wire */
     fieldsType?: string;
