@@ -280,13 +280,9 @@ const ROUTES = {
         route: 'r/:reportID/settings',
         getRoute: (reportID: string) => `r/${reportID}/settings` as const,
     },
-    REPORT_SETTINGS_ROOM_NAME: {
-        route: 'r/:reportID/settings/room-name',
-        getRoute: (reportID: string) => `r/${reportID}/settings/room-name` as const,
-    },
-    REPORT_SETTINGS_GROUP_NAME: {
-        route: 'r/:reportID/settings/group-name',
-        getRoute: (reportID: string) => `r/${reportID}/settings/group-name` as const,
+    REPORT_SETTINGS_NAME: {
+        route: 'r/:reportID/settings/name',
+        getRoute: (reportID: string) => `r/${reportID}/settings/name` as const,
     },
     REPORT_SETTINGS_NOTIFICATION_PREFERENCES: {
         route: 'r/:reportID/settings/notification-preferences',
