@@ -41,7 +41,7 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
     const isInvoiceRoom = ReportUtils.isInvoiceRoom(report);
     const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
     const isSystemChat = ReportUtils.isSystemChat(report);
-    const isDefault = !(isChatRoom || isPolicyExpenseChat || isSelfDM || isInvoiceRoom);
+    const isDefault = !(isChatRoom || isPolicyExpenseChat || isSelfDM || isInvoiceRoom || isSystemChat);
     const participantAccountIDs = Object.keys(report?.participants ?? {})
         .map(Number)
         .filter((accountID) => accountID !== session?.accountID || (!isOneOnOneChat && !isSystemChat));
