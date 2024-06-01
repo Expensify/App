@@ -15,7 +15,6 @@ import * as TestHelper from '../utils/TestHelper';
 import {navigateToSidebarOption} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
-import Animated from "react-native-reanimated";
 
 // We need a large timeout here as we are lazy loading React Navigation screens and this test is running against the entire mounted App
 jest.setTimeout(50000);
@@ -30,12 +29,6 @@ jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
         ignoreLogs: jest.fn(),
         ignoreAllLogs: jest.fn(),
     },
-}));
-
-jest.mock('react-native-reanimated', () => ({
-    ...jest.requireActual<typeof Animated>('react-native-reanimated/mock'),
-    createAnimatedPropAdapter: jest.fn,
-    useReducedMotion: jest.fn,
 }));
 
 /**
