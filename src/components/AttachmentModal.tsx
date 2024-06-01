@@ -462,7 +462,7 @@ function AttachmentModal({
     let shouldShowThreeDotsButton = false;
     if (!isEmptyObject(report)) {
         headerTitleNew = translate(isReceiptAttachment ? 'common.receipt' : 'common.attachment');
-        shouldShowDownloadButton = allowDownload && isDownloadButtonReadyToBeShown && !isReceiptAttachment && !isOffline;
+        shouldShowDownloadButton = allowDownload && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isReceiptAttachment && !isOffline;
         shouldShowThreeDotsButton = isReceiptAttachment && isModalOpen && threeDotsMenuItems.length !== 0;
     }
     const context = useMemo(
@@ -526,37 +526,37 @@ function AttachmentModal({
                                 onLinkPress={() => Navigation.dismissModal()}
                             />
                         )}
-                        {!isEmptyObject(report) && !isReceiptAttachment ? (
-                            <AttachmentCarousel
-                                accountID={accountID}
-                                type={type}
-                                report={report}
-                                onNavigate={onNavigate}
-                                onClose={closeModal}
-                                source={source}
-                                setDownloadButtonVisibility={setDownloadButtonVisibility}
-                            />
-                        ) : (
-                            !!sourceForAttachmentView &&
-                            shouldLoadAttachment &&
-                            !isLoading &&
-                            !shouldShowNotFoundPage && (
-                                <AttachmentCarouselPagerContext.Provider value={context}>
-                                    <AttachmentView
-                                        containerStyles={[styles.mh5]}
-                                        source={sourceForAttachmentView}
-                                        isAuthTokenRequired={isAuthTokenRequiredState}
-                                        file={file}
-                                        onToggleKeyboard={updateConfirmButtonVisibility}
-                                        isWorkspaceAvatar={isWorkspaceAvatar}
-                                        maybeIcon={maybeIcon}
-                                        fallbackSource={fallbackSource}
-                                        isUsedInAttachmentModal
-                                        transactionID={transaction?.transactionID}
-                                    />
-                                </AttachmentCarouselPagerContext.Provider>
-                            )
-                        )}
+                        {!shouldShowNotFoundPage &&
+                            (!isEmptyObject(report) && !isReceiptAttachment ? (
+                                <AttachmentCarousel
+                                    accountID={accountID}
+                                    type={type}
+                                    report={report}
+                                    onNavigate={onNavigate}
+                                    onClose={closeModal}
+                                    source={source}
+                                    setDownloadButtonVisibility={setDownloadButtonVisibility}
+                                />
+                            ) : (
+                                !!sourceForAttachmentView &&
+                                shouldLoadAttachment &&
+                                !isLoading && (
+                                    <AttachmentCarouselPagerContext.Provider value={context}>
+                                        <AttachmentView
+                                            containerStyles={[styles.mh5]}
+                                            source={sourceForAttachmentView}
+                                            isAuthTokenRequired={isAuthTokenRequiredState}
+                                            file={file}
+                                            onToggleKeyboard={updateConfirmButtonVisibility}
+                                            isWorkspaceAvatar={isWorkspaceAvatar}
+                                            maybeIcon={maybeIcon}
+                                            fallbackSource={fallbackSource}
+                                            isUsedInAttachmentModal
+                                            transactionID={transaction?.transactionID}
+                                        />
+                                    </AttachmentCarouselPagerContext.Provider>
+                                )
+                            ))}
                     </View>
                     {/* If we have an onConfirm method show a confirmation button */}
                     {!!onConfirm && (
