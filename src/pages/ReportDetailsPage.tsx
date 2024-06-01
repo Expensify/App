@@ -225,6 +225,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         return items;
     }, [
         isSelfDM,
+        isSystemChat,
         isArchivedRoom,
         isGroupChat,
         isDefaultRoom,
