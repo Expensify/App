@@ -2,6 +2,8 @@ import type {ValueOf} from 'type-fest';
 import type CONST from './CONST';
 import type {IOUAction, IOUType} from './CONST';
 import type {IOURequestType} from './libs/actions/IOU';
+import type {CentralPaneNavigatorParamList} from './libs/Navigation/types';
+import type {SearchQuery} from './types/onyx/SearchResults';
 import type AssertTypesNotEqual from './types/utils/AssertTypesNotEqual';
 
 // This is a file containing constants for all the routes we want to be able to go to
@@ -35,7 +37,15 @@ const ROUTES = {
 
     SEARCH: {
         route: '/search/:query',
-        getRoute: (query: string) => `search/${query}` as const,
+        getRoute: (searchQuery: SearchQuery, queryParams?: CentralPaneNavigatorParamList['Search_Central_Pane']) => {
+            const {sortBy, sortOrder} = queryParams ?? {};
+
+            if (!sortBy && !sortOrder) {
+                return `search/${searchQuery}` as const;
+            }
+
+            return `search/${searchQuery}?sortBy=${sortBy}&sortOrder=${sortOrder}` as const;
+        },
     },
 
     SEARCH_REPORT: {
@@ -186,7 +196,10 @@ const ROUTES = {
     SETTINGS_STATUS_CLEAR_AFTER_DATE: 'settings/profile/status/clear-after/date',
     SETTINGS_STATUS_CLEAR_AFTER_TIME: 'settings/profile/status/clear-after/time',
     SETTINGS_TROUBLESHOOT: 'settings/troubleshoot',
-    SETTINGS_CONSOLE: 'settings/troubleshoot/console',
+    SETTINGS_CONSOLE: {
+        route: 'settings/troubleshoot/console',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`settings/troubleshoot/console`, backTo),
+    },
     SETTINGS_SHARE_LOG: {
         route: 'settings/troubleshoot/console/share-log',
         getRoute: (source: string) => `settings/troubleshoot/console/share-log?source=${encodeURI(source)}` as const,
@@ -238,9 +251,10 @@ const ROUTES = {
         route: 'r/:reportID/details/shareCode',
         getRoute: (reportID: string) => `r/${reportID}/details/shareCode` as const,
     },
-    REPORT_ATTACHMENTS: {
-        route: 'r/:reportID/attachment',
-        getRoute: (reportID: string, source: string) => `r/${reportID}/attachment?source=${encodeURIComponent(source)}` as const,
+    ATTACHMENTS: {
+        route: 'attachment',
+        getRoute: (reportID: string, type: ValueOf<typeof CONST.ATTACHMENT_TYPE>, url: string, accountID?: number) =>
+            `attachment?source=${encodeURIComponent(url)}&type=${type}${reportID ? `&reportID=${reportID}` : ''}${accountID ? `&accountID=${accountID}` : ''}` as const,
     },
     REPORT_PARTICIPANTS: {
         route: 'r/:reportID/participants',
@@ -266,13 +280,9 @@ const ROUTES = {
         route: 'r/:reportID/settings',
         getRoute: (reportID: string) => `r/${reportID}/settings` as const,
     },
-    REPORT_SETTINGS_ROOM_NAME: {
-        route: 'r/:reportID/settings/room-name',
-        getRoute: (reportID: string) => `r/${reportID}/settings/room-name` as const,
-    },
-    REPORT_SETTINGS_GROUP_NAME: {
-        route: 'r/:reportID/settings/group-name',
-        getRoute: (reportID: string) => `r/${reportID}/settings/group-name` as const,
+    REPORT_SETTINGS_NAME: {
+        route: 'r/:reportID/settings/name',
+        getRoute: (reportID: string) => `r/${reportID}/settings/name` as const,
     },
     REPORT_SETTINGS_NOTIFICATION_PREFERENCES: {
         route: 'r/:reportID/settings/notification-preferences',
@@ -676,12 +686,12 @@ const ROUTES = {
         getRoute: (policyID: string, orderWeight: number) => `settings/workspaces/${policyID}/tags/${orderWeight}/edit` as const,
     },
     WORKSPACE_TAG_EDIT: {
-        route: 'settings/workspace/:policyID/tag/:tagName/edit',
-        getRoute: (policyID: string, tagName: string) => `settings/workspace/${policyID}/tag/${encodeURIComponent(tagName)}/edit` as const,
+        route: 'settings/workspaces/:policyID/tag/:orderWeight/:tagName/edit',
+        getRoute: (policyID: string, orderWeight: number, tagName: string) => `settings/workspaces/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}/edit` as const,
     },
     WORKSPACE_TAG_SETTINGS: {
-        route: 'settings/workspaces/:policyID/tag/:tagName',
-        getRoute: (policyID: string, tagName: string) => `settings/workspaces/${policyID}/tag/${encodeURIComponent(tagName)}` as const,
+        route: 'settings/workspaces/:policyID/tag/:orderWeight/:tagName',
+        getRoute: (policyID: string, orderWeight: number, tagName: string) => `settings/workspaces/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}` as const,
     },
     WORKSPACE_TAG_LIST_VIEW: {
         route: 'settings/workspaces/:policyID/tag-list/:orderWeight',
@@ -799,17 +809,14 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/xero/import/tracking-categories',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/import/tracking-categories` as const,
     },
-    POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES_MAP_COST_CENTERS: {
-        route: 'settings/workspaces/:policyID/accounting/xero/import/tracking-categories/cost-centers',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/import/tracking-categories/cost-centers` as const,
-    },
-    POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES_MAP_REGION: {
-        route: 'settings/workspaces/:policyID/accounting/xero/import/tracking-categories/region',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/import/tracking-categories/region` as const,
+    POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES_MAP: {
+        route: 'settings/workspaces/:policyID/accounting/xero/import/tracking-categories/mapping/:categoryId/:categoryName',
+        getRoute: (policyID: string, categoryId: string, categoryName: string) =>
+            `settings/workspaces/${policyID}/accounting/xero/import/tracking-categories/mapping/${categoryId}/${encodeURIComponent(categoryName)}` as const,
     },
     POLICY_ACCOUNTING_XERO_CUSTOMER: {
-        route: '/settings/workspaces/:policyID/accounting/xero/import/customers',
-        getRoute: (policyID: string) => `/settings/workspaces/${policyID}/accounting/xero/import/customers` as const,
+        route: 'settings/workspaces/:policyID/accounting/xero/import/customers',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/import/customers` as const,
     },
     POLICY_ACCOUNTING_XERO_TAXES: {
         route: 'settings/workspaces/:policyID/accounting/xero/import/taxes',
@@ -820,8 +827,8 @@ const ROUTES = {
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/export` as const,
     },
     POLICY_ACCOUNTING_XERO_PREFERRED_EXPORTER_SELECT: {
-        route: '/settings/workspaces/:policyID/connections/xero/export/preferred-exporter/select',
-        getRoute: (policyID: string) => `/settings/workspaces/${policyID}/connections/xero/export/preferred-exporter/select` as const,
+        route: 'settings/workspaces/:policyID/connections/xero/export/preferred-exporter/select',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/xero/export/preferred-exporter/select` as const,
     },
     POLICY_ACCOUNTING_XERO_EXPORT_PURCHASE_BILL_DATE_SELECT: {
         route: 'settings/workspaces/:policyID/accounting/xero/export/purchase-bill-date-select',
@@ -834,6 +841,10 @@ const ROUTES = {
     POLICY_ACCOUNTING_XERO_ADVANCED: {
         route: 'settings/workspaces/:policyID/accounting/xero/advanced',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/advanced` as const,
+    },
+    POLICY_ACCOUNTING_XERO_BILL_STATUS_SELECTOR: {
+        route: 'settings/workspaces/:policyID/accounting/xero/export/purchase-bill-status-selector',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/export/purchase-bill-status-selector` as const,
     },
     POLICY_ACCOUNTING_XERO_INVOICE_SELECTOR: {
         route: 'settings/workspaces/:policyID/accounting/xero/advanced/invoice-account-selector',
