@@ -19,7 +19,7 @@ then
     hasRenamedOrDeletedArticle=true
 fi
 
-if git log origin/main..HEAD --name-status --pretty=format: $REDIRECTS_FILE | grep -E "^(M)"
+if git log origin/main..HEAD --name-status --pretty=format: $REDIRECTS_FILE | grep -q -E "^(M)"
 then
     echo "Redirects.csv has been modified"
     hasModifiedRedirect=true
