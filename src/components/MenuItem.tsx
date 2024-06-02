@@ -570,7 +570,7 @@ function MenuItem(
                                                     style={[
                                                         styles.popoverMenuIcon,
                                                         iconStyles,
-                                                        isSecondaryIconHoverable && StyleUtils.getBackgroundAndBorderStyle(focused || isHovered ? theme.hoverComponentBG : theme.overlay),
+                                                        isSecondaryIconHoverable && StyleUtils.getBackgroundAndBorderStyle(theme.border),
                                                     ]}
                                                 >
                                                     <Icon
