@@ -2,7 +2,7 @@ import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {Keyboard, View} from 'react-native';
+import {InteractionManager, Keyboard, View} from 'react-native';
 import type {NativeSyntheticEvent, TextInput, TextInputFocusEventData, TextInputKeyPressEventData} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
@@ -406,6 +406,11 @@ function ReportActionItemMessageEdit(
                             style={[styles.textInputCompose, styles.flex1, styles.bgTransparent]}
                             onFocus={() => {
                                 setIsFocused(true);
+                                InteractionManager.runAfterInteractions(() => {
+                                    requestAnimationFrame(() => {
+                                        reportScrollManager.scrollToIndex(index, true);
+                                    });
+                                });
                                 reportScrollManager.scrollToIndex(index, true);
                                 setShouldShowComposeInputKeyboardAware(false);
 
