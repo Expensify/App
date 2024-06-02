@@ -3206,8 +3206,7 @@ function completeOnboarding(
     }));
 
     const tasksForOptimisticData = tasksData.reduce<OnyxUpdate[]>((acc, {currentTask, taskCreatedAction, taskReportAction, taskDescription, completedTaskReportAction}) => {
-        const tasksForOptimisticDataAcc: OnyxUpdate[] = [
-            ...acc,
+        acc.push(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
@@ -3237,10 +3236,10 @@ function completeOnboarding(
                     [taskCreatedAction.reportActionID]: taskCreatedAction as ReportAction,
                 },
             },
-        ];
+        );
 
         if (completedTaskReportAction) {
-            tasksForOptimisticDataAcc.push({
+            acc.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentTask.reportID}`,
                 value: {
@@ -3248,7 +3247,7 @@ function completeOnboarding(
                 },
             });
 
-            tasksForOptimisticDataAcc.push({
+            acc.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${currentTask.reportID}`,
                 value: {
@@ -3258,12 +3257,11 @@ function completeOnboarding(
             });
         }
 
-        return tasksForOptimisticDataAcc;
+        return acc;
     }, []);
 
     const tasksForFailureData = tasksData.reduce<OnyxUpdate[]>((acc, {currentTask, taskReportAction}) => {
-        const tasksForFailureDataAcc: OnyxUpdate[] = [
-            ...acc,
+        acc.push(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
@@ -3283,9 +3281,9 @@ function completeOnboarding(
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentTask.reportID}`,
                 value: null,
             },
-        ];
+        );
 
-        return tasksForFailureDataAcc;
+        return acc;
     }, []);
 
     const optimisticData: OnyxUpdate[] = [
