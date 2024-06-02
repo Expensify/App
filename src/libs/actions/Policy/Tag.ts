@@ -1,6 +1,5 @@
 import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import {tag} from 'type-fest/source/opaque';
 import * as API from '@libs/API';
 import type {EnablePolicyTagsParams, OpenPolicyTagsPageParams, SetPolicyTagsEnabled} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
