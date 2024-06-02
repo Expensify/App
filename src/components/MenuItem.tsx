@@ -597,7 +597,8 @@ function MenuItem(
             }
 
             truncatedContent += selfClose ? selfClose[0] : endResult;
-            alteredHtmlString = htmlString.substring(index + endResult.length);
+            // eslint-disable-next-line no-param-reassign
+            htmlString = htmlString.substring(index + endResult.length); // Update htmlString
         }
 
         if (htmlString.length > maxLength - totalLength && opts.ellipsis) {
