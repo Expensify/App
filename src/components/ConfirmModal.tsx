@@ -148,7 +148,7 @@ function ConfirmModal({
                 shouldShowCancelButton={shouldShowCancelButton}
                 shouldCenterContent={shouldCenterContent}
                 iconSource={iconSource}
-                contentStyles={isSmallScreenWidth && shouldShowDismissIcon ? styles.mt2 : undefined}
+                contentStyles={shouldUseNarrowLayout && shouldShowDismissIcon ? styles.mt2 : undefined}
                 iconFill={iconFill}
                 iconHeight={iconHeight}
                 iconWidth={iconWidth}
