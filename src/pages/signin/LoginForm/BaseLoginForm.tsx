@@ -31,7 +31,6 @@ import * as CloseAccount from '@userActions/CloseAccount';
 import * as Session from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CloseAccountForm} from '@src/types/form';
 import type {Account, Credentials} from '@src/types/onyx';
@@ -59,7 +58,7 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
     const {translate} = useLocalize();
     const input = useRef<BaseTextInputRef | null>(null);
     const [login, setLogin] = useState(() => Str.removeSMSDomain(credentials?.login ?? ''));
-    const [formError, setFormError] = useState<TranslationPaths | undefined>();
+    const [formError, setFormError] = useState<string | undefined>();
     const prevIsVisible = usePrevious(isVisible);
     const firstBlurred = useRef(false);
     const isFocused = useIsFocused();
@@ -73,7 +72,7 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
         (value: string) => {
             const loginTrim = value.trim();
             if (!loginTrim) {
-                setFormError('common.pleaseEnterEmailOrPhoneNumber');
+                setFormError(translate('common.pleaseEnterEmailOrPhoneNumber'));
                 return false;
             }
 
@@ -82,9 +81,9 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
 
             if (!Str.isValidEmail(loginTrim) && !parsedPhoneNumber.possible) {
                 if (ValidationUtils.isNumericWithSpecialChars(loginTrim)) {
-                    setFormError('common.error.phoneNumber');
+                    setFormError(translate('common.error.phoneNumber'));
                 } else {
-                    setFormError('loginForm.error.invalidFormatEmailLogin');
+                    setFormError(translate('loginForm.error.invalidFormatEmailLogin'));
                 }
                 return false;
             }
@@ -92,7 +91,7 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
             setFormError(undefined);
             return true;
         },
-        [setFormError],
+        [setFormError, translate],
     );
 
     /**

@@ -52,7 +52,7 @@ function AddressFormFields({shouldSaveDraft = false, defaultValues, values, erro
                     value={values?.street}
                     defaultValue={defaultValues?.street}
                     onInputChange={onFieldChange}
-                    errorText={errors?.street ? 'bankAccount.error.addressStreet' : ''}
+                    errorText={errors?.street ? translate('bankAccount.error.addressStreet') : ''}
                     renamedInputKeys={inputKeys}
                     maxInputLength={CONST.FORM_CHARACTER_LIMIT}
                     isLimitedToUSA
@@ -68,7 +68,7 @@ function AddressFormFields({shouldSaveDraft = false, defaultValues, values, erro
                 value={values?.city}
                 defaultValue={defaultValues?.city}
                 onChangeText={(value) => onFieldChange?.({city: value})}
-                errorText={errors?.city ? 'bankAccount.error.addressCity' : ''}
+                errorText={errors?.city ? translate('bankAccount.error.addressCity') : ''}
                 containerStyles={styles.mt6}
             />
 
@@ -94,7 +94,7 @@ function AddressFormFields({shouldSaveDraft = false, defaultValues, values, erro
                 value={values?.zipCode}
                 defaultValue={defaultValues?.zipCode}
                 onChangeText={(value) => onFieldChange?.({zipCode: value})}
-                errorText={errors?.zipCode ? 'bankAccount.error.zipCode' : ''}
+                errorText={errors?.zipCode ? translate('bankAccount.error.zipCode') : ''}
                 maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
                 hint={['common.zipCodeExampleFormat', {zipSampleFormat: CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}]}
                 containerStyles={styles.mt3}

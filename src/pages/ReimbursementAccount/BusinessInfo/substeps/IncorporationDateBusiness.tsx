@@ -29,21 +29,21 @@ type IncorporationDateBusinessProps = IncorporationDateBusinessOnyxProps & SubSt
 const COMPANY_INCORPORATION_DATE_KEY = INPUT_IDS.BUSINESS_INFO_STEP.INCORPORATION_DATE;
 const STEP_FIELDS = [COMPANY_INCORPORATION_DATE_KEY];
 
-const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-    const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
-
-    if (values.incorporationDate && !ValidationUtils.isValidDate(values.incorporationDate)) {
-        errors.incorporationDate = 'common.error.dateInvalid';
-    } else if (values.incorporationDate && !ValidationUtils.isValidPastDate(values.incorporationDate)) {
-        errors.incorporationDate = 'bankAccount.error.incorporationDateFuture';
-    }
-
-    return errors;
-};
-
 function IncorporationDateBusiness({reimbursementAccount, reimbursementAccountDraft, onNext, isEditing}: IncorporationDateBusinessProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+        const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+    
+        if (values.incorporationDate && !ValidationUtils.isValidDate(values.incorporationDate)) {
+            errors.incorporationDate = translate('common.error.dateInvalid');
+        } else if (values.incorporationDate && !ValidationUtils.isValidPastDate(values.incorporationDate)) {
+            errors.incorporationDate = translate('bankAccount.error.incorporationDateFuture');
+        }
+    
+        return errors;
+    };
 
     const defaultCompanyIncorporationDate = reimbursementAccount?.achData?.incorporationDate ?? reimbursementAccountDraft?.incorporationDate ?? '';
 

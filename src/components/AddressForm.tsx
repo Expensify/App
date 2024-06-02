@@ -96,7 +96,7 @@ function AddressForm({
 
         // Check "State" dropdown is a valid state if selected Country is USA
         if (values.country === CONST.COUNTRY.US && !values.state) {
-            errors.state = 'common.error.fieldRequired';
+            errors.state = translate('common.error.fieldRequired');
         }
 
         // Add "Field required" errors if any required field is empty
@@ -106,7 +106,7 @@ function AddressForm({
                 return;
             }
 
-            errors[fieldKey] = 'common.error.fieldRequired';
+            errors[fieldKey] = translate('common.error.fieldRequired');
         });
 
         // If no country is selected, default value is an empty string and there's no related regex data so we default to an empty object
@@ -131,7 +131,7 @@ function AddressForm({
         }
 
         return errors;
-    }, []);
+    }, [translate]);
 
     return (
         <FormProvider

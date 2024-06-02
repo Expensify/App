@@ -347,11 +347,11 @@ function MoneyRequestConfirmationList({
 
     useEffect(() => {
         if (shouldDisplayFieldError && hasSmartScanFailed) {
-            setFormError('iou.receiptScanningFailed');
+            setFormError(translate('iou.receiptScanningFailed'));
             return;
         }
         if (shouldDisplayFieldError && didConfirmSplit) {
-            setFormError('iou.error.genericSmartscanFailureMessage');
+            setFormError(translate('iou.error.genericSmartscanFailureMessage'));
             return;
         }
         // reset the form error whenever the screen gains or loses focus
@@ -431,7 +431,7 @@ function MoneyRequestConfirmationList({
         const shares: number[] = Object.values(splitSharesMap).map((splitShare) => splitShare?.amount ?? 0);
         const sumOfShares = shares?.reduce((prev, current): number => prev + current, 0);
         if (sumOfShares !== iouAmount) {
-            setFormError('iou.error.invalidSplit');
+            setFormError(translate('iou.error.invalidSplit'));
             return;
         }
 
@@ -441,7 +441,7 @@ function MoneyRequestConfirmationList({
 
         // A split must have at least two participants with amounts bigger than 0
         if (participantsWithAmount.length === 1) {
-            setFormError('iou.error.invalidSplitParticipants');
+            setFormError(translate('iou.error.invalidSplitParticipants'));
             return;
         }
 
@@ -698,11 +698,11 @@ function MoneyRequestConfirmationList({
                 return;
             }
             if (!isEditingSplitBill && isMerchantRequired && (isMerchantEmpty || (shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction ?? null)))) {
-                setFormError('iou.error.invalidMerchant');
+                setFormError(translate('iou.error.invalidMerchant'));
                 return;
             }
             if (iouCategory.length > CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH) {
-                setFormError('iou.error.invalidCategoryLength');
+                setFormError(translate('iou.error.invalidCategoryLength'));
                 return;
             }
 
@@ -738,24 +738,7 @@ function MoneyRequestConfirmationList({
                 onConfirm?.(selectedParticipants);
             }
         },
-        [
-            selectedParticipants,
-            isMerchantRequired,
-            isMerchantEmpty,
-            shouldDisplayFieldError,
-            transaction,
-            iouType,
-            onSendMoney,
-            iouCurrencyCode,
-            isDistanceRequest,
-            iouCategory,
-            isDistanceRequestWithPendingRoute,
-            iouAmount,
-            isEditingSplitBill,
-            formError,
-            setFormError,
-            onConfirm,
-        ],
+        [selectedParticipants, isEditingSplitBill, isMerchantRequired, isMerchantEmpty, shouldDisplayFieldError, transaction, iouCategory.length, formError, iouType, setFormError, translate, onSendMoney, iouCurrencyCode, isDistanceRequest, isDistanceRequestWithPendingRoute, iouAmount, onConfirm],
     );
 
     const footerContent = useMemo(() => {

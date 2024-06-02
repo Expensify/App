@@ -1,11 +1,11 @@
 import mapValues from 'lodash/mapValues';
 import CONST from '@src/CONST';
-import type {TranslationFlatObject, TranslationPaths} from '@src/languages/types';
+import type {TranslationFlatObject} from '@src/languages/types';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type Response from '@src/types/onyx/Response';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 import DateUtils from './DateUtils';
-import * as Localize from './Localize';
+import type * as Localize from './Localize';
 
 function getAuthenticateErrorMessage(response: Response): keyof TranslationFlatObject {
     switch (response.jsonCode) {
@@ -53,15 +53,15 @@ function getMicroSecondOnyxErrorObject(error: Errors, errorKey?: number): ErrorF
 }
 
 // We can assume that if error is a string, it has already been translated because it is server error
-function getErrorMessageWithTranslationData(error: Localize.MaybePhraseKey): Localize.MaybePhraseKey {
-    return typeof error === 'string' ? [error, {isTranslated: true}] : error;
+function getErrorMessageWithTranslationData(error: string): string {
+    return error;
 }
 
 type OnyxDataWithErrors = {
     errors?: Errors | null;
 };
 
-function getLatestErrorMessage<TOnyxData extends OnyxDataWithErrors>(onyxData: TOnyxData | null): Localize.MaybePhraseKey {
+function getLatestErrorMessage<TOnyxData extends OnyxDataWithErrors>(onyxData: TOnyxData | null): string {
     const errors = onyxData?.errors ?? {};
 
     if (Object.keys(errors).length === 0) {
@@ -69,7 +69,7 @@ function getLatestErrorMessage<TOnyxData extends OnyxDataWithErrors>(onyxData: T
     }
 
     const key = Object.keys(errors).sort().reverse()[0];
-    return getErrorMessageWithTranslationData(errors[key]);
+    return getErrorMessageWithTranslationData(errors[key] ?? '');
 }
 
 function getLatestErrorMessageField<TOnyxData extends OnyxDataWithErrors>(onyxData: TOnyxData): Errors {
@@ -148,21 +148,20 @@ function getErrorsWithTranslationData(errors: Localize.MaybePhraseKey | Errors):
  * @param errors - An object containing current errors in the form
  * @param message - Message to assign to the inputID errors
  */
-function addErrorMessage<TKey extends TranslationPaths>(errors: Errors, inputID?: string | null, message?: TKey | Localize.MaybePhraseKey) {
+function addErrorMessage(errors: Errors, inputID?: string | null, message?: string) {
     if (!message || !inputID) {
         return;
     }
 
     const errorList = errors;
     const error = errorList[inputID];
-    const translatedMessage = Localize.translateIfPhraseKey(message);
 
     if (!error) {
-        errorList[inputID] = [translatedMessage, {isTranslated: true}];
+        errorList[inputID] = [message];
     } else if (typeof error === 'string') {
-        errorList[inputID] = [`${error}\n${translatedMessage}`, {isTranslated: true}];
+        errorList[inputID] = [`${error}\n${message}`];
     } else if (Array.isArray(error)) {
-        error[0] = `${error[0]}\n${translatedMessage}`;
+        error[0] = `${error[0]}\n${message}`;
     }
 }
 

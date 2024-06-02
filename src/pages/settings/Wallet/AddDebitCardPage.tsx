@@ -89,31 +89,31 @@ function DebitCardPage({formData}: DebitCardPageProps) {
         const errors = ValidationUtils.getFieldRequiredErrors(values, REQUIRED_FIELDS);
 
         if (values.nameOnCard && !ValidationUtils.isValidLegalName(values.nameOnCard)) {
-            errors.nameOnCard = 'addDebitCardPage.error.invalidName';
+            errors.nameOnCard = translate('addDebitCardPage.error.invalidName');
         }
 
         if (values.cardNumber && !ValidationUtils.isValidDebitCard(values.cardNumber.replace(/ /g, ''))) {
-            errors.cardNumber = 'addDebitCardPage.error.debitCardNumber';
+            errors.cardNumber = translate('addDebitCardPage.error.debitCardNumber');
         }
 
         if (values.expirationDate && !ValidationUtils.isValidExpirationDate(values.expirationDate)) {
-            errors.expirationDate = 'addDebitCardPage.error.expirationDate';
+            errors.expirationDate = translate('addDebitCardPage.error.expirationDate');
         }
 
         if (values.securityCode && !ValidationUtils.isValidSecurityCode(values.securityCode)) {
-            errors.securityCode = 'addDebitCardPage.error.securityCode';
+            errors.securityCode = translate('addDebitCardPage.error.securityCode');
         }
 
         if (values.addressStreet && !ValidationUtils.isValidAddress(values.addressStreet)) {
-            errors.addressStreet = 'addDebitCardPage.error.addressStreet';
+            errors.addressStreet = translate('addDebitCardPage.error.addressStreet');
         }
 
         if (values.addressZipCode && !ValidationUtils.isValidZipCode(values.addressZipCode)) {
-            errors.addressZipCode = 'addDebitCardPage.error.addressZipCode';
+            errors.addressZipCode = translate('addDebitCardPage.error.addressZipCode');
         }
 
         if (!values.acceptTerms) {
-            errors.acceptTerms = 'common.error.acceptTerms';
+            errors.acceptTerms = translate('common.error.acceptTerms');
         }
 
         return errors;

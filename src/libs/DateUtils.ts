@@ -648,7 +648,7 @@ const getDayValidationErrorKey = (inputDate: Date): string => {
     }
 
     if (isAfter(startOfDay(new Date()), startOfDay(inputDate))) {
-        return 'common.error.invalidDateShouldBeFuture';
+        return Localize.translateLocal('common.error.invalidDateShouldBeFuture');
     }
     return '';
 };
@@ -662,7 +662,7 @@ const getDayValidationErrorKey = (inputDate: Date): string => {
 const getTimeValidationErrorKey = (inputTime: Date): string => {
     const timeNowPlusOneMinute = addMinutes(new Date(), 1);
     if (isBefore(inputTime, timeNowPlusOneMinute)) {
-        return 'common.error.invalidTimeShouldBeFuture';
+        return Localize.translateLocal('common.error.invalidTimeShouldBeFuture');
     }
     return '';
 };

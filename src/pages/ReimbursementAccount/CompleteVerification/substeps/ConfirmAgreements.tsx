@@ -30,24 +30,6 @@ const STEP_FIELDS = [
     INPUT_IDS.COMPLETE_VERIFICATION.CERTIFY_TRUE_INFORMATION,
 ];
 
-const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-    const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
-
-    if (!ValidationUtils.isRequiredFulfilled(values.acceptTermsAndConditions)) {
-        errors.acceptTermsAndConditions = 'common.error.acceptTerms';
-    }
-
-    if (!ValidationUtils.isRequiredFulfilled(values.certifyTrueInformation)) {
-        errors.certifyTrueInformation = 'completeVerificationStep.certifyTrueAndAccurateError';
-    }
-
-    if (!ValidationUtils.isRequiredFulfilled(values.isAuthorizedToUseBankAccount)) {
-        errors.isAuthorizedToUseBankAccount = 'completeVerificationStep.isAuthorizedToUseBankAccountError';
-    }
-
-    return errors;
-};
-
 function IsAuthorizedToUseBankAccountLabel() {
     const {translate} = useLocalize();
     return <Text>{translate('completeVerificationStep.isAuthorizedToUseBankAccount')}</Text>;
@@ -75,6 +57,23 @@ function ConfirmAgreements({onNext, reimbursementAccount}: ConfirmAgreementsProp
         isAuthorizedToUseBankAccount: reimbursementAccount?.achData?.isAuthorizedToUseBankAccount ?? false,
         certifyTrueInformation: reimbursementAccount?.achData?.certifyTrueInformation ?? false,
         acceptTermsAndConditions: reimbursementAccount?.achData?.acceptTermsAndConditions ?? false,
+    };
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+        const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+    
+        if (!ValidationUtils.isRequiredFulfilled(values.acceptTermsAndConditions)) {
+            errors.acceptTermsAndConditions = translate('common.error.acceptTerms');
+        }
+    
+        if (!ValidationUtils.isRequiredFulfilled(values.certifyTrueInformation)) {
+            errors.certifyTrueInformation = translate('completeVerificationStep.certifyTrueAndAccurateError');
+        }
+    
+        if (!ValidationUtils.isRequiredFulfilled(values.isAuthorizedToUseBankAccount)) {
+            errors.isAuthorizedToUseBankAccount = translate('completeVerificationStep.isAuthorizedToUseBankAccountError');
+        }
+    
+        return errors;
     };
 
     return (

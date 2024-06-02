@@ -16,7 +16,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import type {MaybePhraseKey} from '@libs/Localize';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {BaseTextInputRef} from '@src/components/TextInput/BaseTextInput/types';
@@ -98,7 +97,7 @@ function MoneyRequestAmountForm(
     const textInput = useRef<BaseTextInputRef | null>(null);
     const moneyRequestAmountInput = useRef<MoneyRequestAmountInputRef | null>(null);
 
-    const [formError, setFormError] = useState<MaybePhraseKey>('');
+    const [formError, setFormError] = useState<string>('');
     const [shouldUpdateSelection, setShouldUpdateSelection] = useState(true);
 
     const isFocused = useIsFocused();
@@ -209,12 +208,12 @@ function MoneyRequestAmountForm(
             // Skip the check for tax amount form as 0 is a valid input
             const currentAmount = moneyRequestAmountInput.current?.getAmount() ?? '';
             if (!currentAmount.length || (!isTaxAmountForm && isAmountInvalid(currentAmount))) {
-                setFormError('iou.error.invalidAmount');
+                setFormError(translate('iou.error.invalidAmount'));
                 return;
             }
 
             if (isTaxAmountInvalid(currentAmount, taxAmount, isTaxAmountForm)) {
-                setFormError(['iou.error.invalidTaxAmount', {amount: formattedTaxAmount}]);
+                setFormError([translate('iou.error.invalidTaxAmount'), {amount: formattedTaxAmount}]);
                 return;
             }
 
@@ -225,7 +224,7 @@ function MoneyRequestAmountForm(
 
             onSubmitButtonPress({amount: currentAmount, currency, paymentMethod: iouPaymentType});
         },
-        [taxAmount, onSubmitButtonPress, currency, formattedTaxAmount, initializeAmount],
+        [taxAmount, initializeAmount, onSubmitButtonPress, currency, translate, formattedTaxAmount],
     );
 
     const buttonText: string = useMemo(() => {

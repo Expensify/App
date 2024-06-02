@@ -19,26 +19,26 @@ import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
 const PERSONAL_INFO_DOB_KEY = INPUT_IDS.PERSONAL_INFO_STEP.DOB;
 const STEP_FIELDS = [PERSONAL_INFO_DOB_KEY];
 
-const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>): FormInputErrors<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS> => {
-    const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
-
-    if (values.dob) {
-        if (!ValidationUtils.isValidPastDate(values.dob) || !ValidationUtils.meetsMaximumAgeRequirement(values.dob)) {
-            errors.dob = 'bankAccount.error.dob';
-        } else if (!ValidationUtils.meetsMinimumAgeRequirement(values.dob)) {
-            errors.dob = 'bankAccount.error.age';
-        }
-    }
-
-    return errors;
-};
-
 const minDate = subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE);
 const maxDate = subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT);
 
 function DateOfBirthStep({onNext, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>): FormInputErrors<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS> => {
+        const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+    
+        if (values.dob) {
+            if (!ValidationUtils.isValidPastDate(values.dob) || !ValidationUtils.meetsMaximumAgeRequirement(values.dob)) {
+                errors.dob = translate('bankAccount.error.dob');
+            } else if (!ValidationUtils.meetsMinimumAgeRequirement(values.dob)) {
+                errors.dob = translate('bankAccount.error.age');
+            }
+        }
+    
+        return errors;
+    };
 
     const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
 

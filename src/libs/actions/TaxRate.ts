@@ -12,6 +12,7 @@ import INPUT_IDS from '@src/types/form/WorkspaceNewTaxForm';
 import type {Policy, TaxRate, TaxRates} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {OnyxData} from '@src/types/onyx/Request';
+import { translateLocal } from '@libs/Localize';
 
 let allPolicies: OnyxCollection<Policy>;
 Onyx.connect({
@@ -39,7 +40,7 @@ const validateTaxName = (policy: Policy, values: FormOnyxValues<typeof ONYXKEYS.
 
     const name = values[INPUT_IDS.NAME];
     if (policy?.taxRates?.taxes && ValidationUtils.isExistingTaxName(name, policy.taxRates.taxes)) {
-        errors[INPUT_IDS.NAME] = 'workspace.taxes.error.taxRateAlreadyExists';
+        errors[INPUT_IDS.NAME] = translateLocal('workspace.taxes.error.taxRateAlreadyExists');
     }
 
     return errors;
@@ -53,7 +54,7 @@ const validateTaxValue = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE
 
     const value = values[INPUT_IDS.VALUE];
     if (!ValidationUtils.isValidPercentage(value)) {
-        errors[INPUT_IDS.VALUE] = 'workspace.taxes.error.valuePercentageRange';
+        errors[INPUT_IDS.VALUE] = translateLocal('workspace.taxes.error.valuePercentageRange');
     }
 
     return errors;

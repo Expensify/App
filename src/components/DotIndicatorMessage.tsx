@@ -23,7 +23,7 @@ type DotIndicatorMessageProps = {
      *      timestamp: 'message',
      *  }
      */
-    messages: Record<string, Localize.MaybePhraseKey | ReceiptError>;
+    messages: Record<string, string>;
 
     /** The type of message, 'error' shows a red dot, 'success' shows a green dot */
     type: 'error' | 'success';

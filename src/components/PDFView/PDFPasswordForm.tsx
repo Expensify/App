@@ -47,7 +47,7 @@ function PDFPasswordForm({isFocused, isPasswordInvalid = false, shouldShowLoadin
 
     const errorText = useMemo(() => {
         if (isPasswordInvalid) {
-            return 'attachmentView.passwordIncorrect';
+            return translate('attachmentView.passwordIncorrect');
         }
         if (validationErrorText) {
             return validationErrorText;
