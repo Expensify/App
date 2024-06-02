@@ -236,17 +236,6 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                     cancelText={translate('common.cancel')}
                     danger
                 />
-                <OfflineWithFeedback
-                    errors={currentPolicyTag.errors}
-                    pendingAction={currentPolicyTag.pendingAction}
-                >
-                    <MenuItemWithTopDescription
-                        title={PolicyUtils.getCleanedTagName(currentPolicyTag.name)}
-                        description={translate(`workspace.tags.customTagName`)}
-                        onPress={navigateToEditTag}
-                        shouldShowRightIcon
-                    />
-                </OfflineWithFeedback>
                 <View style={[styles.pv4, styles.ph5]}>
                     <ToggleSettingOptionRow
                         title={translate('common.required')}
@@ -258,6 +247,17 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         disabled={!Object.values(currentPolicyTag?.tags ?? {}).some((tag) => tag.enabled)}
                     />
                 </View>
+                <OfflineWithFeedback
+                    errors={currentPolicyTag.errors}
+                    pendingAction={currentPolicyTag.pendingAction}
+                >
+                    <MenuItemWithTopDescription
+                        title={PolicyUtils.getCleanedTagName(currentPolicyTag.name)}
+                        description={translate(`workspace.tags.customTagName`)}
+                        onPress={navigateToEditTag}
+                        shouldShowRightIcon
+                    />
+                </OfflineWithFeedback>
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
