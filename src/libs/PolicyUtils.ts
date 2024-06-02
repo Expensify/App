@@ -17,6 +17,11 @@ import {getAccountIDsByLogins, getLoginsByAccountIDs, getPersonalDetailByEmail} 
 
 type MemberEmailsToAccountIDs = Record<string, number>;
 
+type WorkspaceDetails = {
+    policyID: string | undefined;
+    name: string;
+};
+
 let allPolicies: OnyxCollection<Policy>;
 
 Onyx.connect({
@@ -130,7 +135,8 @@ function isExpensifyTeam(email: string | undefined): boolean {
 /**
  * Checks if the current user is an admin of the policy.
  */
-const isPolicyAdmin = (policy: OnyxEntry<Policy> | EmptyObject): boolean => policy?.role === CONST.POLICY.ROLE.ADMIN;
+const isPolicyAdmin = (policy: OnyxEntry<Policy> | EmptyObject, currentUserLogin?: string): boolean =>
+    (policy?.role ?? (currentUserLogin && policy?.employeeList?.[currentUserLogin]?.role)) === CONST.POLICY.ROLE.ADMIN;
 
 /**
  * Checks if the policy is a free group policy.
@@ -142,7 +148,7 @@ const isPolicyEmployee = (policyID: string, policies: OnyxCollection<Policy>): b
 /**
  * Checks if the current user is an owner (creator) of the policy.
  */
-const isPolicyOwner = (policy: OnyxEntry<Policy>, currentUserAccountID: number): boolean => policy?.ownerAccountID === currentUserAccountID;
+const isPolicyOwner = (policy: OnyxEntry<Policy> | EmptyObject, currentUserAccountID: number): boolean => policy?.ownerAccountID === currentUserAccountID;
 
 /**
  * Create an object mapping member emails to their accountIDs. Filter for members without errors if includeMemberWithErrors is false, and get the login email from the personalDetail object using the accountID.
@@ -303,7 +309,7 @@ function extractPolicyIDFromPath(path: string) {
  * Whether the policy has active accounting integration connections
  */
 function hasAccountingConnections(policy: OnyxEntry<Policy>) {
-    return Boolean(policy?.connections);
+    return !isEmptyObject(policy?.connections);
 }
 
 function getPathWithoutPolicyID(path: string) {
@@ -433,6 +439,22 @@ function getXeroBankAccountsWithDefaultSelect(policy: Policy | undefined, select
     }));
 }
 
+/**
+ * Sort the workspaces by their name, while keeping the selected one at the beginning.
+ * @param workspace1 Details of the first workspace to be compared.
+ * @param workspace2 Details of the second workspace to be compared.
+ * @param selectedWorkspaceID ID of the selected workspace which needs to be at the beginning.
+ */
+const sortWorkspacesBySelected = (workspace1: WorkspaceDetails, workspace2: WorkspaceDetails, selectedWorkspaceID: string | undefined): number => {
+    if (workspace1.policyID === selectedWorkspaceID) {
+        return -1;
+    }
+    if (workspace2.policyID === selectedWorkspaceID) {
+        return 1;
+    }
+    return workspace1.name?.toLowerCase().localeCompare(workspace2.name?.toLowerCase() ?? '') ?? 0;
+};
+
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -483,6 +505,7 @@ export {
     findCurrentXeroOrganization,
     getCurrentXeroOrganizationName,
     getXeroBankAccountsWithDefaultSelect,
+    sortWorkspacesBySelected,
 };
 
 export type {MemberEmailsToAccountIDs};

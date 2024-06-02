@@ -8,6 +8,7 @@ import UserListItem from '@components/SelectionList/UserListItem';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import {sortWorkspacesBySelected} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -41,21 +42,24 @@ function IOURequestStepSendFrom({route, transaction, allPolicies}: IOURequestSte
 
     const workspaceOptions: WorkspaceListItem[] = useMemo(() => {
         const activeAdminWorkspaces = PolicyUtils.getActiveAdminWorkspaces(allPolicies);
-        return activeAdminWorkspaces.map((policy) => ({
-            text: policy.name,
-            value: policy.id,
-            keyForList: policy.id,
-            icons: [
-                {
-                    id: policy.id,
-                    source: policy?.avatarURL ? policy.avatarURL : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
-                    fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
-                    name: policy.name,
-                    type: CONST.ICON_TYPE_WORKSPACE,
-                },
-            ],
-            isSelected: selectedWorkspace?.policyID === policy.id,
-        }));
+
+        return activeAdminWorkspaces
+            .sort((policy1, policy2) => sortWorkspacesBySelected({policyID: policy1.id, name: policy1.name}, {policyID: policy2.id, name: policy2.name}, selectedWorkspace?.policyID))
+            .map((policy) => ({
+                text: policy.name,
+                value: policy.id,
+                keyForList: policy.id,
+                icons: [
+                    {
+                        id: policy.id,
+                        source: policy?.avatarURL ? policy.avatarURL : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
+                        fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
+                        name: policy.name,
+                        type: CONST.ICON_TYPE_WORKSPACE,
+                    },
+                ],
+                isSelected: selectedWorkspace?.policyID === policy.id,
+            }));
     }, [allPolicies, selectedWorkspace]);
 
     const navigateBack = () => {
