@@ -477,7 +477,6 @@ function MenuItem(
         const URL_REGEX = /(((ftp|https?):\/\/)[\\-\w@:%_\\+.~#?,&\\/\\/=]+)|((mailto:)?[_.\w\\-]+@([\w][\w\\-]+\.)+[a-zA-Z]{2,3})/g;
         const IMAGE_TAG_REGEX = new RegExp(`<img\\s*${KEY_VALUE_REGEX}${CLOSE_REGEX}>`);
         let truncatedContent = EMPTY_STRING;
-        let alteredHtmlString = htmlString;
 
         let totalLength = 0;
 
@@ -567,8 +566,9 @@ function MenuItem(
                     if (endResult !== null) {
                         index = matches.index;
                         truncatedContent += htmlString.substring(0, index + endResult.length - totalLength);
-                        alteredHtmlString = htmlString.substring(index + endResult.length);
-                        matches = URL_REGEX.exec(alteredHtmlString);
+                        // eslint-disable-next-line no-param-reassign
+                        htmlString = htmlString.substring(index + endResult.length);
+                        matches = URL_REGEX.exec(htmlString);
                     }
                 }
                 break;
