@@ -480,7 +480,7 @@ function MenuItem(
             SELF_CLOSE_REGEX = new RegExp('<\\/?(\\w+)((?:\\s+(?:\\w+|-)+(?:\\s*=\\s*(?:"(?:\\\\.|[^"\\\\])*"|\'(?:\\\\.|[^\'\\\\])*\'|[^\'">\\s]+))?)*)\\s*\\/?>'),
             HTML_TAG_REGEX = new RegExp('<\\/?(\\w+)((?:\\s+(?:\\w+|-)+(?:\\s*=\\s*(?:"(?:\\\\.|[^"\\\\])*"|\'(?:\\\\.|[^\'\\\\])*\'|[^\'">\\s]+))?)*)\\s*\\/?>'),
             URL_REGEX = /(((ftp|https?):\/\/)[\-\w@:%_\+.~#?,&\/\/=]+)|((mailto:)?[_.\w\-]+@([\w][\w\-]+\.)+[a-zA-Z]{2,3})/g, // Simple regexp
-            IMAGE_TAG_REGEX = new RegExp('<img\\s*' + KEY_VALUE_REGEX + IS_CLOSE_REGEX + '>'),
+            IMAGE_TAG_REGEX = new RegExp('<img\\s*' + KEY_VALUE_REGEX + CLOSE_REGEX + '>'),
             WORD_BREAK_REGEX = new RegExp('\\W+', 'g');
         let matches: RegExpExecArray | null = HTML_TAG_REGEX.exec(string);
         let result,
