@@ -633,7 +633,9 @@ function ReportScreen({
         if (!isInaccessibleWhisper) {
             return;
         }
-        Navigation.setParams({reportActionID: ''});
+        Navigation.isNavigationReady().then(() => {
+            Navigation.setParams({reportActionID: ''});
+        });
     }, [isInaccessibleWhisper]);
 
     if ((!isInaccessibleWhisper && isLinkedReportActionDeleted) ?? (!shouldShowSkeleton && reportActionIDFromRoute && reportActions?.length === 0 && !isLinkingToMessage)) {
