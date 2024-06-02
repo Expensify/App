@@ -240,7 +240,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         title={translate('common.required')}
                         switchAccessibilityLabel={translate('common.required')}
                         isActive={Boolean(policyTagList?.required)}
-                        onToggle={(on) => Tag.setPolicyRequiresTag(policyID, on, route.params.orderWeight ?? 0)}
+                        onToggle={(on) => Tag.setPolicyTagsRequired(policyID, on, route.params.orderWeight ?? 0)}
                         pendingAction={currentPolicyTag.pendingFields?.required}
                         errors={currentPolicyTag.errors}
                         disabled={!Object.values(currentPolicyTag?.tags ?? {}).some((tag) => tag.enabled)}
