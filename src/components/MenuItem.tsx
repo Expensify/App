@@ -459,7 +459,7 @@ function MenuItem(
      * Truncate HTML string and keep tag safe.
      * pulled from https://github.com/huang47/nodejs-html-truncate/blob/master/lib/truncate.js
      *
-     * @param string - The string that needs to be truncated
+     * @param htmlString - The string that needs to be truncated
      * @param maxLength - Length of truncated string
      * @param options - Optional configuration options
      * @returns The truncated string
@@ -476,12 +476,12 @@ function MenuItem(
         const HTML_TAG_REGEX = new RegExp(`<\\/?(\\w+)${KEY_VALUE_REGEX}${IS_CLOSE_REGEX}>`);
         const URL_REGEX = /(((ftp|https?):\/\/)[\\-\w@:%_\\+.~#?,&\\/\\/=]+)|((mailto:)?[_.\w\\-]+@([\w][\w\\-]+\.)+[a-zA-Z]{2,3})/g;
         const IMAGE_TAG_REGEX = new RegExp(`<img\\s*${KEY_VALUE_REGEX}${CLOSE_REGEX}>`);
+        const WORD_BREAK_REGEX = new RegExp('\\W+', 'g');
         let truncatedContent = EMPTY_STRING;
 
         let totalLength = 0;
 
         let matches: RegExpExecArray | null = HTML_TAG_REGEX.exec(htmlString);
-        let result: RegExpExecArray | null;
         let endResult: string | number | null;
         let index;
         let tag;
@@ -520,22 +520,23 @@ function MenuItem(
             const isShort = defaultPos < slop;
             const slopPos = isShort ? defaultPos : slop - 1;
             const substr = content.slice(isShort ? 0 : defaultPos - slop, tailPos ?? defaultPos + slop);
+            const wordBreakMatch = WORD_BREAK_REGEX.exec(substr);
 
             if (!opts.truncateLastWord) {
                 if (tailPos && substr.length <= tailPos) {
                     position = substr.length;
                 } else {
-                    while (result !== null) {
-                        if (result.index < slopPos) {
-                            position = defaultPos - (slopPos - result.index);
-                            if (result.index === 0 && defaultPos <= 1) {
+                    while (wordBreakMatch !== null) {
+                        if (wordBreakMatch.index < slopPos) {
+                            position = defaultPos - (slopPos - wordBreakMatch.index);
+                            if (wordBreakMatch.index === 0 && defaultPos <= 1) {
                                 break;
                             }
-                        } else if (result.index === slopPos) {
+                        } else if (wordBreakMatch.index === slopPos) {
                             position = defaultPos;
                             break;
                         } else {
-                            position = defaultPos + (result.index - slopPos);
+                            position = defaultPos + (wordBreakMatch.index - slopPos);
                             break;
                         }
                     }
@@ -589,7 +590,7 @@ function MenuItem(
                 tagsStack.pop();
                 selfClose = null;
             } else {
-                selfClose = SELF_CLOSE_REGEX.exec(endResult);
+                selfClose = SELF_CLOSE_REGEX.exec(endResult[0]);
                 if (!selfClose) {
                     tag = matches[1];
                     tagsStack.push(tag);
