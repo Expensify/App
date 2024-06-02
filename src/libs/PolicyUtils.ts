@@ -2,6 +2,7 @@ import Str from 'expensify-common/lib/str';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {SelectorType} from '@components/SelectionScreen';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -420,6 +421,18 @@ function getCurrentXeroOrganizationName(policy: Policy | undefined): string | un
     return findCurrentXeroOrganization(getXeroTenants(policy), policy?.connections?.xero?.config?.tenantID)?.name;
 }
 
+function getXeroBankAccountsWithDefaultSelect(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
+    const bankAccounts = policy?.connections?.xero?.data?.bankAccounts ?? [];
+    const isMatchFound = bankAccounts?.some(({id}) => id === selectedBankAccountId);
+
+    return (bankAccounts ?? []).map(({id, name}, index) => ({
+        value: id,
+        text: name,
+        keyForList: id,
+        isSelected: isMatchFound ? selectedBankAccountId === id : index === 0,
+    }));
+}
+
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -469,6 +482,7 @@ export {
     getXeroTenants,
     findCurrentXeroOrganization,
     getCurrentXeroOrganizationName,
+    getXeroBankAccountsWithDefaultSelect,
 };
 
 export type {MemberEmailsToAccountIDs};

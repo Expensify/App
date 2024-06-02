@@ -307,7 +307,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         getComponent={loadConciergePage}
                     />
                     <RootStack.Screen
-                        name={SCREENS.REPORT_ATTACHMENTS}
+                        name={SCREENS.ATTACHMENTS}
                         options={{
                             headerShown: false,
                             presentation: 'transparentModal',

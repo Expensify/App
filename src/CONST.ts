@@ -662,9 +662,9 @@ const CONST = {
                 DELETED_ACCOUNT: 'DELETEDACCOUNT', // OldDot Action
                 DISMISSED_VIOLATION: 'DISMISSEDVIOLATION',
                 DONATION: 'DONATION', // OldDot Action
-                EXPORTED_TO_CSV: 'EXPORTEDTOCSV', // OldDot Action
-                EXPORTED_TO_INTEGRATION: 'EXPORTEDTOINTEGRATION', // OldDot Action
-                EXPORTED_TO_QUICK_BOOKS: 'EXPORTEDTOQUICKBOOKS', // OldDot Action
+                EXPORTED_TO_CSV: 'EXPORTCSV', // OldDot Action
+                EXPORTED_TO_INTEGRATION: 'EXPORTINTEGRATION', // OldDot Action
+                EXPORTED_TO_QUICK_BOOKS: 'EXPORTED', // OldDot Action
                 FORWARDED: 'FORWARDED', // OldDot Action
                 HOLD: 'HOLD',
                 HOLD_COMMENT: 'HOLDCOMMENT',
@@ -1188,6 +1188,10 @@ const CONST = {
         WEBP: 'image/webp',
         JPEG: 'image/jpeg',
     },
+    ATTACHMENT_TYPE: {
+        REPORT: 'r',
+        NOTE: 'n',
+    },
 
     IMAGE_OBJECT_POSITION: {
         TOP: 'top',
@@ -1307,12 +1311,13 @@ const CONST = {
         SYNC: 'sync',
         ENABLE_NEW_CATEGORIES: 'enableNewCategories',
         EXPORT: 'export',
+        TENANT_ID: 'tenantID',
         IMPORT_CUSTOMERS: 'importCustomers',
         IMPORT_TAX_RATES: 'importTaxRates',
         INVOICE_STATUS: {
-            AWAITING_PAYMENT: 'AWT_PAYMENT',
             DRAFT: 'DRAFT',
             AWAITING_APPROVAL: 'AWT_APPROVAL',
+            AWAITING_PAYMENT: 'AWT_PAYMENT',
         },
         IMPORT_TRACKING_CATEGORIES: 'importTrackingCategories',
         MAPPINGS: 'mappings',
@@ -1597,6 +1602,9 @@ const CONST = {
                 ACCOUNTANT: 'accountant',
             },
         },
+        ACCESS_VARIANTS: {
+            CREATE: 'create',
+        },
     },
 
     GROWL: {
@@ -1777,7 +1785,8 @@ const CONST = {
                 XERO: 'xero',
             },
             SYNC_STAGE_NAME: {
-                STARTING_IMPORT: 'startingImport',
+                STARTING_IMPORT_QBO: 'startingImportQBO',
+                STARTING_IMPORT_XERO: 'startingImportXero',
                 QBO_IMPORT_MAIN: 'quickbooksOnlineImportMain',
                 QBO_IMPORT_CUSTOMERS: 'quickbooksOnlineImportCustomers',
                 QBO_IMPORT_EMPLOYEES: 'quickbooksOnlineImportEmployees',

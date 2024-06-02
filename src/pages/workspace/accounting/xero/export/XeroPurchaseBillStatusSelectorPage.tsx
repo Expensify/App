@@ -1,3 +1,4 @@
+import {isEmpty} from 'lodash';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -16,49 +17,53 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 type MenuListItem = ListItem & {
-    value: ValueOf<typeof CONST.XERO_EXPORT_DATE>;
+    value: ValueOf<typeof CONST.XERO_CONFIG.INVOICE_STATUS>;
 };
 
-function XeroPurchaseBillDateSelectPage({policy}: WithPolicyConnectionsProps) {
+function XeroPurchaseBillStatusSelectorPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const policyID = policy?.id ?? '';
     const styles = useThemeStyles();
-    const {billDate} = policy?.connections?.xero?.config?.export ?? {};
-    const data: MenuListItem[] = Object.values(CONST.XERO_EXPORT_DATE).map((dateType) => ({
-        value: dateType,
-        text: translate(`workspace.xero.exportDate.values.${dateType}.label`),
-        alternateText: translate(`workspace.xero.exportDate.values.${dateType}.description`),
-        keyForList: dateType,
-        isSelected: billDate === dateType,
+    const {billStatus} = policy?.connections?.xero?.config?.export ?? {};
+    const invoiceStatus = billStatus?.purchase;
+
+    const data: MenuListItem[] = Object.values(CONST.XERO_CONFIG.INVOICE_STATUS).map((status) => ({
+        value: status,
+        text: translate(`workspace.xero.invoiceStatus.values.${status}`),
+        keyForList: status,
+        isSelected: invoiceStatus === status,
     }));
 
     const headerContent = useMemo(
         () => (
             <View>
-                <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.xero.exportDate.description')}</Text>
+                <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.xero.invoiceStatus.description')}</Text>
             </View>
         ),
         [translate, styles.pb5, styles.ph5],
     );
 
-    const selectExportDate = useCallback(
+    const selectPurchaseBillStatus = useCallback(
         (row: MenuListItem) => {
-            if (row.value !== billDate) {
-                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.EXPORT, {billDate: row.value});
+            if (isEmpty(billStatus)) {
+                return;
             }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT_PURCHASE_BILL_DATE_SELECT.getRoute(policyID));
+            if (row.value !== invoiceStatus) {
+                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.EXPORT, {billStatus: {...billStatus, purchase: row.value}});
+            }
+            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_BILL_STATUS_SELECTOR.getRoute(policyID));
         },
-        [billDate, policyID],
+        [billStatus, invoiceStatus, policyID],
     );
 
     return (
         <SelectionScreen
-            displayName={XeroPurchaseBillDateSelectPage.displayName}
-            title="workspace.xero.exportDate.label"
+            displayName={XeroPurchaseBillStatusSelectorPage.displayName}
+            title="workspace.xero.invoiceStatus.label"
             headerContent={headerContent}
             sections={[{data}]}
             listItem={RadioListItem}
-            onSelectRow={(selection: SelectorType) => selectExportDate(selection as MenuListItem)}
+            onSelectRow={(selection: SelectorType) => selectPurchaseBillStatus(selection as MenuListItem)}
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
@@ -69,6 +74,6 @@ function XeroPurchaseBillDateSelectPage({policy}: WithPolicyConnectionsProps) {
     );
 }
 
-XeroPurchaseBillDateSelectPage.displayName = 'XeroPurchaseBillDateSelectPage';
+XeroPurchaseBillStatusSelectorPage.displayName = 'XeroPurchaseBillStatusSelectorPage';
 
-export default withPolicyConnections(XeroPurchaseBillDateSelectPage);
+export default withPolicyConnections(XeroPurchaseBillStatusSelectorPage);
