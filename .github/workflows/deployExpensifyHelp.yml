@@ -32,6 +32,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup NodeJS
         uses: ./.github/actions/composite/setupNode
@@ -41,7 +43,6 @@ jobs:
 
       - name: Check for duplicates and cycles in redirects.csv
         run: ./.github/scripts/verifyRedirect.sh
-        fetch-depth: 0
 
       - name: Enforce that a redirect link has been created
         if: success() || failure()
