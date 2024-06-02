@@ -475,7 +475,7 @@ function MenuItem(
             DEFAULT_TRUNCATE_SYMBOL = '...',
             DEFAULT_SLOP = 10 > maxLength ? maxLength : 10,
             items: string[] = [], // stack for saving tags
-            KEY_VALUE_REGEX = '([\\w|-]+\\s*=\\s*"[^"]*"\\s*)*',
+            KEY_VALUE_REGEX = '((?:\\s+(?:\\w+|-)+(?:\\s*=\\s*(?:"(?:\\\\.|[^"\\\\])*"|\'(?:\\\\.|[^\'\\\\])*\'|[^\'">\\s]+))?)*)',
             IS_CLOSE_REGEX = '\\s*\\/?\\s*',
             SELF_CLOSE_REGEX = new RegExp('<\\/?(\\w+)((?:\\s+(?:\\w+|-)+(?:\\s*=\\s*(?:"(?:\\\\.|[^"\\\\])*"|\'(?:\\\\.|[^\'\\\\])*\'|[^\'">\\s]+))?)*)\\s*\\/?>'),
             HTML_TAG_REGEX = new RegExp('<\\/?(\\w+)((?:\\s+(?:\\w+|-)+(?:\\s*=\\s*(?:"(?:\\\\.|[^"\\\\])*"|\'(?:\\\\.|[^\'\\\\])*\'|[^\'">\\s]+))?)*)\\s*\\/?>'),
