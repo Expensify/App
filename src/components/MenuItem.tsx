@@ -518,21 +518,6 @@ function MenuItem(
             return html;
         }
 
-        function _getTag(string: string): string {
-            let tail = string.indexOf(' ');
-
-            // TODO:
-            // we have to figure out how to handle non-well-formatted HTML case
-            if (tail === -1) {
-                tail = string.indexOf('>');
-                if (tail === -1) {
-                    throw new Error('HTML tag is not well-formed : ' + string);
-                }
-            }
-
-            return string.substring(1, tail);
-        }
-
         function _getEndPosition(string: string, tailPos?: number): number {
             const defaultPos = maxLength - total;
             const slop = opts.slop || DEFAULT_SLOP;
