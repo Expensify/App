@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection} from 'react-native-onyx';
 import Log from '@libs/Log';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -24,7 +24,7 @@ export default function () {
                     return resolve();
                 }
 
-                const transactionsWithReceipt: Array<OnyxEntry<OldTransaction>> = Object.values(transactions).filter((transaction) => transaction?.receiptFilename);
+                const transactionsWithReceipt: Array<OldTransaction | null> = Object.values(transactions).filter((transaction) => transaction?.receiptFilename);
                 if (!transactionsWithReceipt?.length) {
                     Log.info('[Migrate Onyx] Skipped migration RenameReceiptFilename because there were no transactions with the receiptFilename property');
                     return resolve();
