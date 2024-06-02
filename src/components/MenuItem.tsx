@@ -599,7 +599,7 @@ function MenuItem(
             } else {
                 selfClose = SELF_CLOSE_REGEX.exec(result);
                 if (!selfClose) {
-                    tag = _getTag(result);
+                    tag = matches[1];
                     items.push(tag);
                 }
             }
