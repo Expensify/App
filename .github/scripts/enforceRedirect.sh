@@ -25,7 +25,7 @@ then
     hasModifiedRedirect=true
 fi
 
-if [[ $hasRenamedOrDeletedArticle  && -n $hasModifiedRedirect ]]
+if [[ $hasRenamedOrDeletedArticle == true  && $hasModifiedRedirect == false ]]
 then
     echo -e "${RED}Articles have been renamed or deleted. Please add a redirect link for the old article links in redirects.csv${NC}"
     exit 1
