@@ -36,9 +36,9 @@ function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPag
     const hasEnabledOptions = OptionsListUtils.hasEnabledOptions(Object.values(policyTags ?? {}).flatMap(({tags}) => Object.values(tags)));
     const updateWorkspaceRequiresTag = useCallback(
         (value: boolean) => {
-            Tag.setPolicyRequiresTag(route.params.policyID, value, policyTagLists[0].orderWeight);
+            Tag.setPolicyRequiresTag(route.params.policyID, value);
         },
-        [route.params.policyID, policyTagLists],
+        [route.params.policyID],
     );
 
     return (
