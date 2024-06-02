@@ -21,12 +21,14 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import * as Tag from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -245,6 +247,17 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         shouldShowRightIcon
                     />
                 </OfflineWithFeedback>
+                <View style={[styles.pv4, styles.ph5]}>
+                    <ToggleSettingOptionRow
+                        title={translate('workspace.tags.requiresTag')}
+                        switchAccessibilityLabel={translate('workspace.tags.requiresTag')}
+                        isActive={Boolean(policyTagList?.required)}
+                        onToggle={(on) => Tag.setPolicyRequiresTag(policyID, on, route.params.orderWeight ?? 0)}
+                        pendingAction={currentPolicyTag.pendingFields?.required}
+                        errors={ErrorUtils.getLatestErrorField(policyTags, CONST.POLICY.TAG.REQUIRED)}
+                        disabled={tagList.length === 0}
+                    />
+                </View>
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
