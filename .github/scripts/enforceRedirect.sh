@@ -7,8 +7,8 @@ declare -r RED='\033[0;31m'
 declare -r GREEN='\033[0;32m'
 declare -r NC='\033[0m'
 
-declare -r REDIRECTS_FILE="docs/redirects.csv"
 declare -r ARTICLES_DIRECTORY="docs/articles"
+declare -r REDIRECTS_FILE="docs/redirects.csv"
 
 hasRenamedOrDeletedArticle=false
 hasModifiedRedirect=false
@@ -24,6 +24,8 @@ then
     echo "Redirects.csv has been modified"
     hasModifiedRedirect=true
 fi
+
+echo "$hasModifiedRedirect"
 
 if [ "$hasRenamedOrDeletedArticle" ] && ! [ "$hasModifiedRedirect" ]
 then
