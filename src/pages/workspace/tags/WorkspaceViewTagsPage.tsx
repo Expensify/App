@@ -249,12 +249,12 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 </OfflineWithFeedback>
                 <View style={[styles.pv4, styles.ph5]}>
                     <ToggleSettingOptionRow
-                        title={translate('workspace.tags.requiresTag')}
-                        switchAccessibilityLabel={translate('workspace.tags.requiresTag')}
+                        title={translate('common.required')}
+                        switchAccessibilityLabel={translate('common.required')}
                         isActive={Boolean(policyTagList?.required)}
                         onToggle={(on) => Tag.setPolicyRequiresTag(policyID, on, route.params.orderWeight ?? 0)}
                         pendingAction={currentPolicyTag.pendingFields?.required}
-                        errors={ErrorUtils.getLatestErrorField(policyTags, CONST.POLICY.TAG.REQUIRED)}
+                        errors={currentPolicyTag.errors}
                         disabled={!Object.values(currentPolicyTag?.tags ?? {}).some((tag) => tag.enabled)}
                     />
                 </View>
