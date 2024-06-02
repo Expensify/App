@@ -13,12 +13,12 @@ declare -r ARTICLES_DIRECTORY="docs/articles"
 hasRenamedOrDeletedArticle=false
 hasModifiedRedirect=false
 
-if git log origin/main.."$BRANCH" --name-status --pretty=format: $ARTICLES_DIRECTORY | grep -q -E "^(R|D)"
+if git log origin/main..HEAD --name-status --pretty=format: $ARTICLES_DIRECTORY | grep -q -E "^(R|D)"
 then
     hasRenamedOrDeletedArticle=true
 fi
 
-if git log origin/main.."$BRANCH" --name-status --pretty=format: $REDIRECTS_FILE | grep -E "^(M)"
+if git log origin/main..HEAD --name-status --pretty=format: $REDIRECTS_FILE | grep -E "^(M)"
 then
     hasModifiedRedirect=true
 fi
