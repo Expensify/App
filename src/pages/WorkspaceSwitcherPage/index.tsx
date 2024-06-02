@@ -194,7 +194,7 @@ function WorkspaceSwitcherPage() {
                         listFooterContent={shouldShowCreateWorkspace ? WorkspaceCardCreateAWorkspaceInstance : null}
                         initiallyFocusedOptionKey={activeWorkspaceID ?? CONST.WORKSPACE_SWITCHER.NAME}
                         showLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
-                    />{' '}
+                    />
                 </>
             )}
         </ScreenWrapper>
