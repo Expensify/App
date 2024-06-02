@@ -1,5 +1,6 @@
 import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import {tag} from 'type-fest/source/opaque';
 import * as API from '@libs/API';
 import type {EnablePolicyTagsParams, OpenPolicyTagsPageParams, SetPolicyTagsEnabled} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -531,7 +532,7 @@ function renamePolicyTaglist(policyID: string, policyTagListName: {oldName: stri
     API.write(WRITE_COMMANDS.RENAME_POLICY_TAG_LIST, parameters, onyxData);
 }
 
-function setPolicyRequiresTag(policyID: string, requiresTag: boolean) {
+function setPolicyRequiresTag(policyID: string, requiresTag: boolean, tagListIndex: number) {
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -577,6 +578,7 @@ function setPolicyRequiresTag(policyID: string, requiresTag: boolean) {
 
     const parameters = {
         policyID,
+        tagListIndex,
         requiresTag,
     };
 
