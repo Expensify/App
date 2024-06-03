@@ -30,32 +30,30 @@ function CardSection() {
             subtitleMuted
         >
             <View style={styles.mt5}>
-                <View style={[styles.flexRow, styles.flex1]}>
-                    {!isEmptyObject(defaultCard?.accountData) && (
-                        <>
-                            <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
-                                <Icon
-                                    src={Expensicons.CreditCard}
-                                    additionalStyles={styles.subscriptionCardIcon}
-                                    fill={theme.text}
-                                    large
-                                />
-                                <View>
-                                    <Text>{translate('subscription.cardSection.cardEnding', {cardNumber: defaultCard?.accountData?.cardNumber})}</Text>
-                                    <Text style={styles.mutedNormalTextLabel}>
-                                        {translate('subscription.cardSection.cardInfo', {
-                                            name: defaultCard?.accountData?.addressName,
-                                            expiration: `${defaultCard?.accountData?.cardMonth}/${defaultCard?.accountData?.cardYear}`,
-                                            currency: defaultCard?.accountData?.currency,
-                                        })}
-                                    </Text>
-                                </View>
+                {!isEmptyObject(defaultCard?.accountData) && (
+                    <>
+                        <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
+                            <Icon
+                                src={Expensicons.CreditCard}
+                                additionalStyles={styles.subscriptionCardIcon}
+                                fill={theme.text}
+                                large
+                            />
+                            <View>
+                                <Text>{translate('subscription.cardSection.cardEnding', {cardNumber: defaultCard?.accountData?.cardNumber})}</Text>
+                                <Text style={styles.mutedNormalTextLabel}>
+                                    {translate('subscription.cardSection.cardInfo', {
+                                        name: defaultCard?.accountData?.addressName,
+                                        expiration: `${defaultCard?.accountData?.cardMonth}/${defaultCard?.accountData?.cardYear}`,
+                                        currency: defaultCard?.accountData?.currency,
+                                    })}
+                                </Text>
                             </View>
-                            <CardSectionActions />
-                        </>
-                    )}
-                    {isEmptyObject(defaultCard?.accountData) && <CardSectionDataEmpty />}
-                </View>
+                        </View>
+                        <CardSectionActions />
+                    </>
+                )}
+                {isEmptyObject(defaultCard?.accountData) && <CardSectionDataEmpty />}
             </View>
         </Section>
     );
