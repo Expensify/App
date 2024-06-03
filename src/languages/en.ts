@@ -335,6 +335,9 @@ export default {
         action: 'Action',
         expenses: 'Expenses',
         tax: 'Tax',
+        shared: 'Shared',
+        drafts: 'Drafts',
+        finished: 'Finished',
     },
     location: {
         useCurrent: 'Use current location',
@@ -1868,6 +1871,7 @@ export default {
             alerts: 'Get realtime updates and alerts',
         },
         bookTravel: 'Book travel',
+        bookDemo: 'Book demo',
         termsAndConditions: {
             header: 'Before we continue...',
             title: 'Please read the Terms & Conditions for travel',

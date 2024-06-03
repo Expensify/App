@@ -325,6 +325,9 @@ export default {
         action: 'Acción',
         expenses: 'Gastos',
         tax: 'Impuesto',
+        shared: 'Compartido',
+        drafts: 'Borradores',
+        finished: 'Finalizado',
     },
     connectionComplete: {
         title: 'Conexión Completa',
@@ -1892,6 +1895,7 @@ export default {
             alerts: 'Obtén actualizaciones y alertas en tiempo real',
         },
         bookTravel: 'Reservar viajes',
+        bookDemo: 'Pedir demostración',
         termsAndConditions: {
             header: 'Antes de continuar...',
             title: 'Por favor, lee los Términos y condiciones para reservar viajes',
