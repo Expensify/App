@@ -7,6 +7,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithFeedback} from '@components/Pressable';
 import Tooltip from '@components/Tooltip';
+import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -23,7 +24,8 @@ import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {Route} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 type PurposeForUsingExpensifyModalOnyxProps = {
@@ -36,7 +38,8 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const navigation = useNavigation();
-    const activeWorkspaceID = sessionStorage.getItem(CONST.SESSION_STORAGE_KEYS.ACTIVE_WORKSPACE_ID);
+    const {activeWorkspaceID: contextActiveWorkspaceID} = useActiveWorkspace();
+    const activeWorkspaceID = sessionStorage ? sessionStorage.getItem(CONST.SESSION_STORAGE_KEYS.ACTIVE_WORKSPACE_ID) : contextActiveWorkspaceID;
 
     useEffect(() => {
         const navigationState = navigation.getState() as State<RootStackParamList> | undefined;

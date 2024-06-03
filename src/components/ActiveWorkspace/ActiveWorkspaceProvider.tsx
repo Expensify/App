@@ -8,10 +8,10 @@ function ActiveWorkspaceContextProvider({children}: ChildrenProps) {
 
     const setActiveWorkspaceID = useCallback((workspaceID: string | undefined) => {
         updateActiveWorkspaceID(workspaceID);
-        if (workspaceID) {
-            sessionStorage.setItem(CONST.SESSION_STORAGE_KEYS.ACTIVE_WORKSPACE_ID, workspaceID);
+        if (workspaceID && sessionStorage) {
+            sessionStorage?.setItem(CONST.SESSION_STORAGE_KEYS.ACTIVE_WORKSPACE_ID, workspaceID);
         } else {
-            sessionStorage.removeItem(CONST.SESSION_STORAGE_KEYS.ACTIVE_WORKSPACE_ID);
+            sessionStorage?.removeItem(CONST.SESSION_STORAGE_KEYS.ACTIVE_WORKSPACE_ID);
         }
     }, []);
 
