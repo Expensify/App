@@ -2192,7 +2192,6 @@ export default {
             delete: 'Delete field',
             deleteConfirmation: 'Are you sure that you want to delete this field?',
         },
-
         tags: {
             tagName: 'Tag name',
             requiresTag: 'Members must tag all expenses',
