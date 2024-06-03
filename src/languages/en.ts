@@ -125,6 +125,7 @@ export default {
         buttonConfirm: 'Got it',
         name: 'Name',
         attachment: 'Attachment',
+        center: 'Center',
         from: 'From',
         to: 'To',
         optional: 'Optional',

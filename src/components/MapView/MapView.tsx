@@ -241,7 +241,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                     <PressableWithoutFeedback
                         accessibilityRole={CONST.ROLE.BUTTON}
                         onPress={centerMap}
-                        accessibilityLabel="Center"
+                        accessibilityLabel={translate('common.center')}
                     >
                         <View style={styles.primaryMediumIcon}>
                             <Icon
