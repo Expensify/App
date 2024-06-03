@@ -11,7 +11,7 @@ import Log from '@libs/Log';
 import * as SearchUtils from '@libs/SearchUtils';
 import type {SearchColumnType, SortOrder} from '@libs/SearchUtils';
 import Navigation from '@navigation/Navigation';
-import type {CentralPaneNavigatorParamList} from '@navigation/types';
+import type {AuthScreensParamList} from '@navigation/types';
 import EmptySearchView from '@pages/Search/EmptySearchView';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -40,7 +40,7 @@ function isReportListItemType(item: TransactionListItemType | ReportListItemType
 function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
-    const navigation = useNavigation<StackNavigationProp<CentralPaneNavigatorParamList>>();
+    const navigation = useNavigation<StackNavigationProp<AuthScreensParamList>>();
     const lastSearchResultsRef = useRef<OnyxEntry<SearchResults>>();
 
     const hash = SearchUtils.getQueryHash(query, policyIDs, sortBy, sortOrder);

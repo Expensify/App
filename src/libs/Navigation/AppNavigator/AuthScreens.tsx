@@ -431,7 +431,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         <RootStack.Screen
                             key={screenName}
                             name={screenName as CentralPaneName}
-                            initialParams={() => getCentralPaneScreenInitialParams(screenName as CentralPaneName)}
+                            initialParams={getCentralPaneScreenInitialParams(screenName as CentralPaneName)}
                             getComponent={() => withPrepareCentralPaneScreen(componentGetter())}
                             options={CentralPaneNameOptions}
                         />

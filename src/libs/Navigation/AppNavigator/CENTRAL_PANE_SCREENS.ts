@@ -24,7 +24,7 @@ const CENTRAL_PANE_SCREEN_NAMES = Object.keys(CENTRAL_PANE_SCREENS);
 
 type CentralPaneName = keyof typeof CENTRAL_PANE_SCREENS;
 
-const getCentralPaneScreenInitialParams = (screenName: CentralPaneName): Partial<ValueOf<CentralPaneScreensParamList>> => {
+function getCentralPaneScreenInitialParams(screenName: CentralPaneName): Partial<ValueOf<CentralPaneScreensParamList>> {
     const url = getCurrentUrl();
     const openOnAdminRoom = url ? new URL(url).searchParams.get('openOnAdminRoom') : undefined;
 
@@ -37,7 +37,7 @@ const getCentralPaneScreenInitialParams = (screenName: CentralPaneName): Partial
     }
 
     return undefined;
-};
+}
 
 export type {CentralPaneName};
 
