@@ -55,6 +55,7 @@ function WorkspaceTaxesPage({
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
     const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
     const isFocused = useIsFocused();
+    const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
 
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
     const isConnectedToQbo = Boolean(policy?.connections?.quickbooksOnline);
@@ -178,7 +179,7 @@ function WorkspaceTaxesPage({
     const dropdownMenuOptions = useMemo(() => {
         const isMultiple = selectedTaxesIDs.length > 1;
         const options: Array<DropdownOption<WorkspaceTaxRatesBulkActionType>> = [];
-        if (!PolicyUtils.hasAccountingConnections(policy)) {
+        if (!hasAccountingConnections) {
             options.push({
                 icon: Expensicons.Trashcan,
                 text: isMultiple ? translate('workspace.taxes.actions.deleteMultiple') : translate('workspace.taxes.actions.delete'),
@@ -207,11 +208,11 @@ function WorkspaceTaxesPage({
             });
         }
         return options;
-    }, [policy, selectedTaxesIDs, toggleTaxes, translate]);
+    }, [hasAccountingConnections, policy?.taxRates?.taxes, selectedTaxesIDs, toggleTaxes, translate]);
 
     const headerButtons = !selectedTaxesIDs.length ? (
         <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
-            {!PolicyUtils.hasAccountingConnections(policy) && (
+            {!hasAccountingConnections && (
                 <Button
                     medium
                     success
