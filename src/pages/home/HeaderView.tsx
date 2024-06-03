@@ -156,9 +156,7 @@ function HeaderView({
         }
     }
 
-    const join = Session.checkIfActionIsAllowed(() =>
-        Report.updateNotificationPreference(reportID, report.notificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, false, report.parentReportID, report.parentReportActionID),
-    );
+    const join = Session.checkIfActionIsAllowed(() => Report.joinRoom(report));
 
     const canJoin = ReportUtils.canJoinChat(report, parentReportAction, policy);
     if (canJoin) {
