@@ -4931,10 +4931,10 @@ const styles = (theme: ThemeColors) =>
         },
 
         tripReservationIconContainer: {
-            width: 32,
-            height: 32,
-            backgroundColor: theme.overlay,
-            borderRadius: 32,
+            backgroundColor: theme.border,
+            width: variables.avatarSizeSmallNormal,
+            height: variables.avatarSizeSmallNormal,
+            borderRadius: variables.avatarSizeSmallNormal,
             alignItems: 'center',
             justifyContent: 'center',
         },
