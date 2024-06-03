@@ -3487,6 +3487,9 @@ const CONST = {
     },
     TAB_SEARCH: {
         ALL: 'all',
+        SHARED: 'shared',
+        DRAFTS: 'drafts',
+        FINISHED: 'finished',
     },
     STATUS_TEXT_MAX_LENGTH: 100,
 
