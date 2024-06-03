@@ -5,6 +5,7 @@ import {InteractionManager, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
+import {AttachmentContext} from '@components/AttachmentContext';
 import Button from '@components/Button';
 import DisplayNames from '@components/DisplayNames';
 import Hoverable from '@components/Hoverable';
@@ -389,6 +390,8 @@ function ReportActionItem({
         [report, action, toggleContextMenuFromActiveReportAction, transactionThreadReport],
     );
 
+    const attachmentContextValue = useMemo(() => ({reportID: report.reportID, type: CONST.ATTACHMENT_TYPE.REPORT}), [report.reportID]);
+
     const actionableItemButtons: ActionableItem[] = useMemo(() => {
         if (!isActionableWhisper && (!ReportActionsUtils.isActionableJoinRequest(action) || action.originalMessage.choice !== '')) {
             return [];
@@ -632,50 +635,54 @@ function ReportActionItem({
                 !ReportActionsUtils.isPendingRemove(action);
             children = (
                 <ShowContextMenuContext.Provider value={contextValue}>
-                    {draftMessage === undefined ? (
-                        <View style={displayAsGroup && hasBeenFlagged ? styles.blockquote : {}}>
-                            <ReportActionItemMessage
-                                reportID={report.reportID}
-                                action={action}
-                                displayAsGroup={displayAsGroup}
-                                isHidden={isHidden}
-                            />
-                            {hasBeenFlagged && (
-                                <Button
-                                    small
-                                    style={[styles.mt2, styles.alignSelfStart]}
-                                    onPress={() => updateHiddenState(!isHidden)}
-                                >
-                                    <Text
-                                        style={[styles.buttonSmallText, styles.userSelectNone]}
-                                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                    <AttachmentContext.Provider value={attachmentContextValue}>
+                        {draftMessage === undefined ? (
+                            <View style={displayAsGroup && hasBeenFlagged ? styles.blockquote : {}}>
+                                <ReportActionItemMessage
+                                    reportID={report.reportID}
+                                    action={action}
+                                    displayAsGroup={displayAsGroup}
+                                    isHidden={isHidden}
+                                />
+                                {hasBeenFlagged && (
+                                    <Button
+                                        small
+                                        style={[styles.mt2, styles.alignSelfStart]}
+                                        onPress={() => updateHiddenState(!isHidden)}
                                     >
-                                        {isHidden ? translate('moderation.revealMessage') : translate('moderation.hideMessage')}
-                                    </Text>
-                                </Button>
-                            )}
-                            {/**
+                                        <Text
+                                            style={[styles.buttonSmallText, styles.userSelectNone]}
+                                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                                        >
+                                            {isHidden ? translate('moderation.revealMessage') : translate('moderation.hideMessage')}
+                                        </Text>
+                                    </Button>
+                                )}
+                                {/**
                                 These are the actionable buttons that appear at the bottom of a Concierge message
                                 for example: Invite a user mentioned but not a member of the room
                                 https://github.com/Expensify/App/issues/32741
                             */}
-                            {actionableItemButtons.length > 0 && (
-                                <ActionableItemButtons
-                                    items={actionableItemButtons}
-                                    layout={ReportActionsUtils.isActionableTrackExpense(action) ? 'vertical' : 'horizontal'}
-                                />
-                            )}
-                        </View>
-                    ) : (
-                        <ReportActionItemMessageEdit
-                            action={action}
-                            draftMessage={draftMessage}
-                            reportID={report.reportID}
-                            index={index}
-                            ref={textInputRef}
-                            shouldDisableEmojiPicker={(ReportUtils.chatIncludesConcierge(report) && User.isBlockedFromConcierge(blockedFromConcierge)) || ReportUtils.isArchivedRoom(report)}
-                        />
-                    )}
+                                {actionableItemButtons.length > 0 && (
+                                    <ActionableItemButtons
+                                        items={actionableItemButtons}
+                                        layout={ReportActionsUtils.isActionableTrackExpense(action) ? 'vertical' : 'horizontal'}
+                                    />
+                                )}
+                            </View>
+                        ) : (
+                            <ReportActionItemMessageEdit
+                                action={action}
+                                draftMessage={draftMessage}
+                                reportID={report.reportID}
+                                index={index}
+                                ref={textInputRef}
+                                shouldDisableEmojiPicker={
+                                    (ReportUtils.chatIncludesConcierge(report) && User.isBlockedFromConcierge(blockedFromConcierge)) || ReportUtils.isArchivedRoom(report)
+                                }
+                            />
+                        )}
+                    </AttachmentContext.Provider>
                 </ShowContextMenuContext.Provider>
             );
         }
