@@ -18,6 +18,22 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Account, QBOReimbursableExportAccountType} from '@src/types/onyx/Policy';
 
+function Footer({isTaxEnabled, isLocationsEnabled}: {isTaxEnabled: boolean; isLocationsEnabled: boolean}) {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+
+    if (!isTaxEnabled && !isLocationsEnabled) {
+        return null;
+    }
+
+    return (
+        <View style={[styles.gap2, styles.mt2]}>
+            {isTaxEnabled && <Text style={styles.mutedNormalTextLabel}>{translate('workspace.qbo.outOfPocketTaxEnabledDescription')}</Text>}
+            {isLocationsEnabled && <Text style={styles.mutedNormalTextLabel}>{translate('workspace.qbo.outOfPocketLocationEnabledDescription')}</Text>}
+        </View>
+    );
+}
+
 type CardListItem = ListItem & {
     value: QBOReimbursableExportAccountType;
     isShown: boolean;
@@ -107,7 +123,12 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
                         onSelectRow={selectExportEntity}
                         shouldDebounceRowSelect
                         initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
-                        footerContent={isTaxesEnabled && <Text style={[styles.mutedNormalTextLabel, styles.pt2]}>{translate('workspace.qbo.outOfPocketTaxEnabledDescription')}</Text>}
+                        footerContent={
+                            <Footer
+                                isTaxEnabled={isTaxesEnabled}
+                                isLocationsEnabled={isLocationsEnabled}
+                            />
+                        }
                     />
                 </View>
             </ScreenWrapper>

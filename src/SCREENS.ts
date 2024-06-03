@@ -142,6 +142,7 @@ const SCREENS = {
         PROCESS_MONEY_REQUEST_HOLD: 'ProcessMoneyRequestHold',
         TRAVEL: 'Travel',
         SEARCH_REPORT: 'SearchReport',
+        SETTINGS_CATEGORIES: 'SettingsCategories',
     },
     ONBOARDING_MODAL: {
         ONBOARDING: 'Onboarding',
@@ -186,10 +187,17 @@ const SCREENS = {
         ENABLE_PAYMENTS: 'IOU_Send_Enable_Payments',
     },
 
+    SETTINGS_CATEGORIES: {
+        SETTINGS_CATEGORY_SETTINGS: 'Settings_Category_Settings',
+        SETTINGS_CATEGORIES_SETTINGS: 'Settings_Categories_Settings',
+        SETTINGS_CATEGORY_CREATE: 'Settings_Category_Create',
+        SETTINGS_CATEGORY_EDIT: 'Settings_Category_Edit',
+        SETTINGS_CATEGORIES_ROOT: 'Settings_Categories',
+    },
+
     REPORT_SETTINGS: {
         ROOT: 'Report_Settings_Root',
-        ROOM_NAME: 'Report_Settings_Room_Name',
-        GROUP_NAME: 'Report_Settings_Group_Name',
+        NAME: 'Report_Settings_Name',
         NOTIFICATION_PREFERENCES: 'Report_Settings_Notification_Preferences',
         WRITE_CAPABILITY: 'Report_Settings_Write_Capability',
         VISIBILITY: 'Report_Settings_Visibility',
