@@ -52,6 +52,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${(parentReportAction as ReportAction & OriginalMessageIOU)?.originalMessage?.IOUTransactionID ?? 0}`);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.DISMISSED_HOLD_USE_EXPLANATION);
 
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -170,8 +171,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
     }
 
     useEffect(() => {
-        setShouldShowHoldMenu(isOnHold);
-    }, [isOnHold]);
+        setShouldShowHoldMenu(isOnHold && !dismissedHoldUseExplanation);
+    }, [dismissedHoldUseExplanation, isOnHold]);
 
     useEffect(() => {
         if (!shouldShowHoldMenu) {
