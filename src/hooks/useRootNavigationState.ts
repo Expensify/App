@@ -11,7 +11,7 @@ import {navigationRef} from '@libs/Navigation/Navigation';
  * Use with caution, because re-rendering any component every time the root navigation state changes can be very costly for performance.
  * That's why the selector is mandatory.
  */
-function useRootNavigationState(selector: (state: NavigationState) => unknown) {
+function useRootNavigationState<T>(selector: (state: NavigationState) => T): T | undefined {
     const getSnapshot = useCallback(() => {
         if (!navigationRef.current) {
             return;
