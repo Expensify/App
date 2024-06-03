@@ -1,8 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
+import ConnectionLayout from '@components/ConnectionLayout';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
@@ -10,12 +9,13 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updatePolicyConnectionConfig} from '@libs/actions/connections';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {findCurrentXeroOrganization, getXeroTenants} from '@libs/PolicyUtils';
-import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -30,12 +30,13 @@ function XeroOrganizationConfigurationPage({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const tenants = useMemo(() => getXeroTenants(policy ?? undefined), [policy]);
-    const currentXeroOrganization = findCurrentXeroOrganization(tenants, policy?.connections?.xero?.config?.tenantID);
+    const xeroConfig = policy?.connections?.xero?.config;
+    const currentXeroOrganization = findCurrentXeroOrganization(tenants, xeroConfig?.tenantID);
 
     const policyID = policy?.id ?? '';
 
     const sections =
-        policy?.connections?.xero.data.tenants.map((tenant) => ({
+        policy?.connections?.xero?.data?.tenants.map((tenant) => ({
             text: tenant.name,
             keyForList: tenant.id,
             isSelected: tenant.id === organizationID,
@@ -46,33 +47,36 @@ function XeroOrganizationConfigurationPage({
             return;
         }
 
-        updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, 'tenantID', keyForList);
+        updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.TENANT_ID, keyForList);
         Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID));
     };
 
     return (
-        <AccessOrNotFoundWrapper
+        <ConnectionLayout
+            displayName={XeroOrganizationConfigurationPage.displayName}
+            headerTitle="workspace.xero.organization"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+            shouldIncludeSafeAreaPaddingBottom
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
         >
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
-                shouldEnableMaxHeight
-                testID={XeroOrganizationConfigurationPage.displayName}
+            <OfflineWithFeedback
+                errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.TENANT_ID)}
+                errorRowStyles={[styles.ph5, styles.mt2]}
+                onClose={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.TENANT_ID)}
             >
-                <HeaderWithBackButton title={translate('workspace.xero.organization')} />
-                <ScrollView contentContainerStyle={styles.pb2}>
-                    <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.xero.organizationDescription')}</Text>
-                    <SelectionList
-                        ListItem={RadioListItem}
-                        onSelectRow={saveSelection}
-                        sections={[{data: sections}]}
-                        initiallyFocusedOptionKey={currentXeroOrganization?.id}
-                    />
-                </ScrollView>
-            </ScreenWrapper>
-        </AccessOrNotFoundWrapper>
+                <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.xero.organizationDescription')}</Text>
+                <SelectionList
+                    containerStyle={styles.pb0}
+                    ListItem={RadioListItem}
+                    onSelectRow={saveSelection}
+                    shouldDebounceRowSelect
+                    sections={[{data: sections}]}
+                    initiallyFocusedOptionKey={currentXeroOrganization?.id}
+                />
+            </OfflineWithFeedback>
+        </ConnectionLayout>
     );
 }
 

@@ -1,11 +1,12 @@
-import {truncate} from 'lodash';
 import lodashSortBy from 'lodash/sortBy';
+import truncate from 'lodash/truncate';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
 import ConfirmedRoute from '@components/ConfirmedRoute';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {ReceiptScan} from '@components/Icon/Expensicons';
 import MoneyRequestSkeletonView from '@components/MoneyRequestSkeletonView';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -14,6 +15,8 @@ import ReportActionItemImages from '@components/ReportActionItem/ReportActionIte
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -26,15 +29,17 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import StringUtils from '@libs/StringUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
+import variables from '@styles/variables';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {IOUMessage} from '@src/types/onyx/OriginalMessage';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {MoneyRequestPreviewProps} from './types';
+import type {MoneyRequestPreviewProps, PendingMessageProps} from './types';
 
 function MoneyRequestPreviewContent({
     iouReport,
@@ -60,12 +65,14 @@ function MoneyRequestPreviewContent({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
+    const {windowWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const sessionAccountID = session?.accountID;
     const managerID = iouReport?.managerID ?? -1;
     const ownerAccountID = iouReport?.ownerAccountID ?? -1;
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
+    const {canUseViolations} = usePermissions();
 
     const participantAccountIDs = action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && isBillSplit ? action.originalMessage.participantAccountIDs ?? [] : [managerID, ownerAccountID];
     const participantAvatars = OptionsListUtils.getAvatarsForAccountIDs(participantAccountIDs, personalDetails ?? {});
@@ -78,7 +85,7 @@ function MoneyRequestPreviewContent({
     const isCurrentUserManager = managerID === sessionAccountID;
 
     const {amount: requestAmount, currency: requestCurrency, comment: requestComment, merchant} = ReportUtils.getTransactionDetails(transaction) ?? {};
-    const description = truncate(requestComment, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
+    const description = truncate(StringUtils.lineBreaksToSpaces(requestComment), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
@@ -86,7 +93,9 @@ function MoneyRequestPreviewContent({
     const isSettlementOrApprovalPartial = Boolean(iouReport?.pendingFields?.partial);
     const isPartialHold = isSettlementOrApprovalPartial && isOnHold;
     const hasViolations = TransactionUtils.hasViolation(transaction?.transactionID ?? '', transactionViolations);
-    const hasNoticeTypeViolations = TransactionUtils.hasNoticeTypeViolation(transaction?.transactionID ?? '', transactionViolations);
+    const hasNoticeTypeViolations = Boolean(
+        TransactionUtils.hasNoticeTypeViolation(transaction?.transactionID ?? '', transactionViolations) && ReportUtils.isPaidGroupPolicy(iouReport) && canUseViolations,
+    );
     const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(transaction);
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
     const isFetchingWaypointsFromServer = TransactionUtils.isFetchingWaypointsFromServer(transaction);
@@ -142,14 +151,6 @@ function MoneyRequestPreviewContent({
             message = translate('iou.split');
         }
 
-        if (isCardTransaction) {
-            message = translate('iou.card');
-            if (TransactionUtils.isPending(transaction)) {
-                message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.pending')}`;
-                return message;
-            }
-        }
-
         if (isSettled && !iouReport?.isCancelledIOU && !isPartialHold) {
             message += ` ${CONST.DOT_SEPARATOR} ${getSettledMessage()}`;
             return message;
@@ -181,8 +182,6 @@ function MoneyRequestPreviewContent({
             message += ` • ${translate('violations.reviewRequired')}`;
         } else if (ReportUtils.isPaidGroupPolicyExpenseReport(iouReport) && ReportUtils.isReportApproved(iouReport) && !ReportUtils.isSettled(iouReport?.reportID) && !isPartialHold) {
             message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.approved')}`;
-        } else if (iouReport?.isWaitingOnBankAccount) {
-            message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.pending')}`;
         } else if (iouReport?.isCancelledIOU) {
             message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
         } else if (!(isSettled && !isSettlementOrApprovalPartial) && isOnHold) {
@@ -190,6 +189,21 @@ function MoneyRequestPreviewContent({
         }
         return message;
     };
+
+    const getPendingMessageProps: () => PendingMessageProps = () => {
+        if (isScanning) {
+            return {shouldShow: true, messageIcon: ReceiptScan, messageDescription: translate('iou.receiptScanInProgress')};
+        }
+        if (TransactionUtils.isPending(transaction)) {
+            return {shouldShow: true, messageIcon: Expensicons.CreditCardHourglass, messageDescription: translate('iou.transactionPending')};
+        }
+        if (TransactionUtils.hasPendingUI(transaction, TransactionUtils.getTransactionViolations(transaction?.transactionID ?? '', transactionViolations))) {
+            return {shouldShow: true, messageIcon: Expensicons.Hourglass, messageDescription: translate('iou.pendingMatchWithCreditCard')};
+        }
+        return {shouldShow: false};
+    };
+
+    const pendingMessageProps = getPendingMessageProps();
 
     const getDisplayAmountText = (): string => {
         if (isScanning) {
@@ -277,7 +291,12 @@ function MoneyRequestPreviewContent({
                                                     style={[
                                                         styles.textHeadlineH1,
                                                         isBillSplit &&
-                                                            StyleUtils.getAmountFontSizeAndLineHeight(isSmallScreenWidth, windowWidth, displayAmount.length, sortedParticipantAvatars.length),
+                                                            StyleUtils.getAmountFontSizeAndLineHeight(
+                                                                shouldUseNarrowLayout,
+                                                                windowWidth,
+                                                                displayAmount.length,
+                                                                sortedParticipantAvatars.length,
+                                                            ),
                                                         isDeleted && styles.lineThrough,
                                                     ]}
                                                     numberOfLines={1}
@@ -319,6 +338,17 @@ function MoneyRequestPreviewContent({
                                                 </Text>
                                             )}
                                         </View>
+                                        {pendingMessageProps.shouldShow && (
+                                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
+                                                <Icon
+                                                    src={pendingMessageProps.messageIcon}
+                                                    height={variables.iconSizeExtraSmall}
+                                                    width={variables.iconSizeExtraSmall}
+                                                    fill={theme.icon}
+                                                />
+                                                <Text style={[styles.textMicroSupporting, styles.ml1, styles.amountSplitPadding]}>{pendingMessageProps.messageDescription}</Text>
+                                            </View>
+                                        )}
                                     </View>
                                 </View>
                             </View>

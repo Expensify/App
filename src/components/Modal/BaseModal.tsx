@@ -4,6 +4,7 @@ import ReactNativeModal from 'react-native-modal';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import useKeyboardState from '@hooks/useKeyboardState';
 import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -44,6 +45,7 @@ function BaseModal(
         children,
         shouldUseCustomBackdrop = false,
         onBackdropPress,
+        modalId,
         shouldEnableNewFocusManagement = false,
         restoreFocusType,
         shouldUseModalPaddingStyle = true,
@@ -53,7 +55,8 @@ function BaseModal(
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {windowWidth, windowHeight, isSmallScreenWidth} = useWindowDimensions();
+    const {windowWidth, windowHeight} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const keyboardStateContextValue = useKeyboardState();
 
     const safeAreaInsets = useSafeAreaInsets();
@@ -61,13 +64,13 @@ function BaseModal(
     const isVisibleRef = useRef(isVisible);
     const wasVisible = usePrevious(isVisible);
 
-    const modalId = useMemo(() => ComposerFocusManager.getId(), []);
-    const saveFocusState = () => {
+    const uniqueModalId = useMemo(() => modalId ?? ComposerFocusManager.getId(), [modalId]);
+    const saveFocusState = useCallback(() => {
         if (shouldEnableNewFocusManagement) {
-            ComposerFocusManager.saveFocusState(modalId);
+            ComposerFocusManager.saveFocusState(uniqueModalId);
         }
-        ComposerFocusManager.resetReadyToFocus(modalId);
-    };
+        ComposerFocusManager.resetReadyToFocus(uniqueModalId);
+    }, [shouldEnableNewFocusManagement, uniqueModalId]);
 
     /**
      * Hides modal
@@ -75,17 +78,19 @@ function BaseModal(
      */
     const hideModal = useCallback(
         (callHideCallback = true) => {
-            Modal.willAlertModalBecomeVisible(false);
-            if (shouldSetModalVisibility) {
-                Modal.setModalVisibility(false);
+            if (Modal.areAllModalsHidden()) {
+                Modal.willAlertModalBecomeVisible(false);
+                if (shouldSetModalVisibility) {
+                    Modal.setModalVisibility(false);
+                }
             }
             if (callHideCallback) {
                 onModalHide();
             }
             Modal.onModalDidClose();
-            ComposerFocusManager.refocusAfterModalFullyClosed(modalId, restoreFocusType);
+            ComposerFocusManager.refocusAfterModalFullyClosed(uniqueModalId, restoreFocusType);
         },
-        [shouldSetModalVisibility, onModalHide, restoreFocusType, modalId],
+        [shouldSetModalVisibility, onModalHide, restoreFocusType, uniqueModalId],
     );
 
     useEffect(() => {
@@ -137,7 +142,7 @@ function BaseModal(
     };
 
     const handleDismissModal = () => {
-        ComposerFocusManager.setReadyToFocus(modalId);
+        ComposerFocusManager.setReadyToFocus(uniqueModalId);
     };
 
     const {
@@ -158,13 +163,13 @@ function BaseModal(
                 {
                     windowWidth,
                     windowHeight,
-                    isSmallScreenWidth,
+                    isSmallScreenWidth: shouldUseNarrowLayout,
                 },
                 popoverAnchorPosition,
                 innerContainerStyle,
                 outerStyle,
             ),
-        [StyleUtils, type, windowWidth, windowHeight, isSmallScreenWidth, popoverAnchorPosition, innerContainerStyle, outerStyle],
+        [StyleUtils, type, windowWidth, windowHeight, shouldUseNarrowLayout, popoverAnchorPosition, innerContainerStyle, outerStyle],
     );
 
     const {

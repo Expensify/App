@@ -6,8 +6,8 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputProps, BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
@@ -70,7 +70,7 @@ function DatePicker(
     const {translate} = useLocalize();
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [selectedDate, setSelectedDate] = useState(value || defaultValue || undefined);
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const onSelected = (newValue: string) => {
         onTouched?.();
@@ -93,7 +93,7 @@ function DatePicker(
 
     return (
         <View style={styles.datePickerRoot}>
-            <View style={[isSmallScreenWidth ? styles.flex2 : {}, styles.pointerEventsNone]}>
+            <View style={[shouldUseNarrowLayout ? styles.flex2 : {}, styles.pointerEventsNone]}>
                 <TextInput
                     ref={ref}
                     inputID={inputID}

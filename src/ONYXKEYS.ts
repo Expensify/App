@@ -121,6 +121,9 @@ const ONYXKEYS = {
     /** Contains the users's block expiration (if they have one) */
     NVP_BLOCKED_FROM_CONCIERGE: 'nvp_private_blockedFromConcierge',
 
+    /** Whether the user is blocked from chat */
+    NVP_BLOCKED_FROM_CHAT: 'nvp_private_blockedFromChat',
+
     /** A unique identifier that each user has that's used to send notifications */
     NVP_PRIVATE_PUSH_NOTIFICATION_ID: 'nvp_private_pushNotificationID',
 
@@ -129,9 +132,6 @@ const ONYXKEYS = {
 
     /** This NVP holds to most recent waypoints that a person has used when creating a distance expense */
     NVP_RECENT_WAYPOINTS: 'expensify_recentWaypoints',
-
-    /** This NVP will be `true` if the user has ever dismissed the engagement modal on either OldDot or NewDot. If it becomes true it should stay true forever. */
-    NVP_HAS_DISMISSED_IDLE_PANEL: 'nvp_hasDismissedIdlePanel',
 
     /** This NVP contains the choice that the user made on the engagement modal */
     NVP_INTRO_SELECTED: 'nvp_introSelected',
@@ -187,6 +187,9 @@ const ONYXKEYS = {
 
     /** User's Expensify Wallet */
     USER_WALLET: 'userWallet',
+
+    /** User's metadata that will be used to segmentation */
+    USER_METADATA: 'userMetadata',
 
     /** Object containing Onfido SDK Token + applicantID */
     WALLET_ONFIDO: 'walletOnfido',
@@ -282,6 +285,9 @@ const ONYXKEYS = {
     /** Onboarding Purpose selected by the user during Onboarding flow */
     ONBOARDING_PURPOSE_SELECTED: 'onboardingPurposeSelected',
 
+    /** Onboarding policyID selected by the user during Onboarding flow */
+    ONBOARDING_POLICY_ID: 'onboardingPolicyID',
+
     /** Onboarding Purpose selected by the user during Onboarding flow */
     ONBOARDING_ADMINS_CHAT_REPORT_ID: 'onboardingAdminsChatReportID',
 
@@ -336,6 +342,7 @@ const ONYXKEYS = {
         WORKSPACE_INVITE_MEMBERS_DRAFT: 'workspaceInviteMembersDraft_',
         WORKSPACE_INVITE_MESSAGE_DRAFT: 'workspaceInviteMessageDraft_',
         REPORT: 'report_',
+        REPORT_NAME_VALUE_PAIRS: 'reportNameValuePairs_',
         REPORT_DRAFT: 'reportDraft_',
         // REPORT_METADATA is a perf optimization used to hold loading states (isLoadingInitialReportActions, isLoadingOlderReportActions, isLoadingNewerReportActions).
         // A lot of components are connected to the Report entity and do not care about the actions. Setting the loading state
@@ -548,6 +555,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT]: OnyxTypes.InvitedEmailsToAccountIDs;
     [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT]: string;
     [ONYXKEYS.COLLECTION.REPORT]: OnyxTypes.Report;
+    [ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS]: OnyxTypes.ReportNameValuePairs;
     [ONYXKEYS.COLLECTION.REPORT_DRAFT]: OnyxTypes.Report;
     [ONYXKEYS.COLLECTION.REPORT_METADATA]: OnyxTypes.ReportMetadata;
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS]: OnyxTypes.ReportActions;
@@ -578,7 +586,10 @@ type OnyxValuesMapping = {
     [ONYXKEYS.ACCOUNT]: OnyxTypes.Account;
     [ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID]: string;
     [ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER]: boolean;
+
+    // NVP_ONBOARDING is an array for old users.
     [ONYXKEYS.NVP_ONBOARDING]: Onboarding | [];
+
     [ONYXKEYS.ACTIVE_CLIENTS]: string[];
     [ONYXKEYS.DEVICE_ID]: string;
     [ONYXKEYS.IS_SIDEBAR_LOADED]: boolean;
@@ -605,17 +616,18 @@ type OnyxValuesMapping = {
     [ONYXKEYS.USER_LOCATION]: OnyxTypes.UserLocation;
     [ONYXKEYS.LOGIN_LIST]: OnyxTypes.LoginList;
     [ONYXKEYS.SESSION]: OnyxTypes.Session;
+    [ONYXKEYS.USER_METADATA]: OnyxTypes.UserMetadata;
     [ONYXKEYS.STASHED_SESSION]: OnyxTypes.Session;
     [ONYXKEYS.BETAS]: OnyxTypes.Beta[];
     [ONYXKEYS.NVP_PRIORITY_MODE]: ValueOf<typeof CONST.PRIORITY_MODE>;
     [ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE]: OnyxTypes.BlockedFromConcierge;
+    [ONYXKEYS.NVP_BLOCKED_FROM_CHAT]: string;
     [ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID]: string;
     [ONYXKEYS.NVP_TRY_FOCUS_MODE]: boolean;
     [ONYXKEYS.DISMISSED_HOLD_USE_EXPLANATION]: boolean;
     [ONYXKEYS.FOCUS_MODE_NOTIFICATION]: boolean;
     [ONYXKEYS.NVP_LAST_PAYMENT_METHOD]: OnyxTypes.LastPaymentMethod;
     [ONYXKEYS.NVP_RECENT_WAYPOINTS]: OnyxTypes.RecentWaypoint[];
-    [ONYXKEYS.NVP_HAS_DISMISSED_IDLE_PANEL]: boolean;
     [ONYXKEYS.NVP_INTRO_SELECTED]: OnyxTypes.IntroSelected;
     [ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES]: OnyxTypes.LastSelectedDistanceRates;
     [ONYXKEYS.PUSH_NOTIFICATIONS_ENABLED]: boolean;
@@ -662,6 +674,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.MAX_CANVAS_HEIGHT]: number;
     [ONYXKEYS.MAX_CANVAS_WIDTH]: number;
     [ONYXKEYS.ONBOARDING_PURPOSE_SELECTED]: string;
+    [ONYXKEYS.ONBOARDING_POLICY_ID]: string;
     [ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID]: string;
     [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: boolean;
     [ONYXKEYS.LAST_VISITED_PATH]: string | undefined;

@@ -9,7 +9,6 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -58,9 +57,8 @@ function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit}: 
 
     const submit = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
-            onSubmit(values);
             Keyboard.dismiss();
-            Navigation.dismissModal();
+            onSubmit(values);
         },
         [onSubmit],
     );

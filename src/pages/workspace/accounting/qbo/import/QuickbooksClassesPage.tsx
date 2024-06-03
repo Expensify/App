@@ -64,7 +64,7 @@ function QuickbooksClassesPage({policy}: WithPolicyProps) {
                             <MenuItemWithTopDescription
                                 interactive={false}
                                 title={isReportFieldsSelected ? translate('workspace.common.reportFields') : translate('workspace.common.tags')}
-                                description={translate('workspace.qbo.displayedAs')}
+                                description={translate('workspace.common.displayedAs')}
                                 wrapperStyle={styles.sectionMenuItemTopDescription}
                             />
                         </OfflineWithFeedback>

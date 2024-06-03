@@ -5,8 +5,10 @@ import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useSharedValue} from 'react-native-reanimated';
+import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -51,15 +53,6 @@ import SafeAreaConsumer from './SafeAreaConsumer';
 type AttachmentModalOnyxProps = {
     /** The transaction associated with the receipt attachment, if any */
     transaction: OnyxEntry<OnyxTypes.Transaction>;
-
-    /** The report associated with the receipt attachment, if any */
-    parentReport: OnyxEntry<OnyxTypes.Report>;
-
-    /** The policy associated with the receipt attachment, if any */
-    policy: OnyxEntry<OnyxTypes.Policy>;
-
-    /** The list of report actions associated with the receipt attachment, if any */
-    parentReportActions: OnyxEntry<OnyxTypes.ReportActions>;
 };
 
 type ImagePickerResponse = {
@@ -109,6 +102,12 @@ type AttachmentModalProps = AttachmentModalOnyxProps & {
     /** The report that has this attachment */
     report?: OnyxEntry<OnyxTypes.Report> | EmptyObject;
 
+    /** The type of the attachment */
+    type?: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
+
+    /** If the attachment originates from a note, the accountID will represent the author of that note. */
+    accountID?: number;
+
     /** Optional callback to fire when we want to do something after modal show. */
     onModalShow?: () => void;
 
@@ -157,16 +156,15 @@ function AttachmentModal({
     isWorkspaceAvatar = false,
     maybeIcon = false,
     transaction,
-    parentReport,
-    parentReportActions,
     headerTitle,
-    policy,
     children,
     fallbackSource,
     canEditReceipt = false,
     onModalClose = () => {},
     isLoading = false,
     shouldShowNotFoundPage = false,
+    type = undefined,
+    accountID = undefined,
 }: AttachmentModalProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -182,8 +180,9 @@ function AttachmentModal({
     const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
     const [confirmButtonFadeAnimation] = useState(() => new Animated.Value(1));
     const [isDownloadButtonReadyToBeShown, setIsDownloadButtonReadyToBeShown] = React.useState(true);
+    const {windowWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const nope = useSharedValue(false);
-    const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
     const isOverlayModalVisible = (isReceiptAttachment && isDeleteReceiptConfirmModalVisible) || (!isReceiptAttachment && isAttachmentInvalid);
     const iouType = useMemo(() => (isTrackExpenseAction ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT), [isTrackExpenseAction]);
 
@@ -413,7 +412,7 @@ function AttachmentModal({
     const sourceForAttachmentView = sourceState || source;
 
     const threeDotsMenuItems = useMemo(() => {
-        if (!isReceiptAttachment || !parentReport || !parentReportActions) {
+        if (!isReceiptAttachment) {
             return [];
         }
 
@@ -454,7 +453,7 @@ function AttachmentModal({
         }
         return menuItems;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isReceiptAttachment, parentReport, parentReportActions, policy, transaction, file, sourceState, iouType]);
+    }, [isReceiptAttachment, transaction, file, sourceState, iouType]);
 
     // There are a few things that shouldn't be set until we absolutely know if the file is a receipt or an attachment.
     // props.isReceiptAttachment will be null until its certain what the file is, in which case it will then be true|false.
@@ -463,12 +462,12 @@ function AttachmentModal({
     let shouldShowThreeDotsButton = false;
     if (!isEmptyObject(report)) {
         headerTitleNew = translate(isReceiptAttachment ? 'common.receipt' : 'common.attachment');
-        shouldShowDownloadButton = allowDownload && isDownloadButtonReadyToBeShown && !isReceiptAttachment && !isOffline;
+        shouldShowDownloadButton = allowDownload && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isReceiptAttachment && !isOffline;
         shouldShowThreeDotsButton = isReceiptAttachment && isModalOpen && threeDotsMenuItems.length !== 0;
     }
     const context = useMemo(
         () => ({
-            pagerItems: [],
+            pagerItems: [{source: sourceForAttachmentView, index: 0, isActive: true}],
             activePage: 0,
             pagerRef: undefined,
             isPagerScrolling: nope,
@@ -477,7 +476,7 @@ function AttachmentModal({
             onScaleChanged: () => {},
             onSwipeDown: closeModal,
         }),
-        [closeModal, nope],
+        [closeModal, nope, sourceForAttachmentView],
     );
 
     return (
@@ -498,14 +497,14 @@ function AttachmentModal({
                 propagateSwipe
             >
                 <GestureHandlerRootView style={styles.flex1}>
-                    {isSmallScreenWidth && <HeaderGap />}
+                    {shouldUseNarrowLayout && <HeaderGap />}
                     <HeaderWithBackButton
                         title={headerTitleNew}
                         shouldShowBorderBottom
                         shouldShowDownloadButton={shouldShowDownloadButton}
                         onDownloadButtonPress={() => downloadAttachment()}
-                        shouldShowCloseButton={!isSmallScreenWidth}
-                        shouldShowBackButton={isSmallScreenWidth}
+                        shouldShowCloseButton={!shouldUseNarrowLayout}
+                        shouldShowBackButton={shouldUseNarrowLayout}
                         onBackButtonPress={closeModal}
                         onCloseButtonPress={closeModal}
                         shouldShowThreeDotsButton={shouldShowThreeDotsButton}
@@ -527,35 +526,37 @@ function AttachmentModal({
                                 onLinkPress={() => Navigation.dismissModal()}
                             />
                         )}
-                        {!isEmptyObject(report) && !isReceiptAttachment ? (
-                            <AttachmentCarousel
-                                report={report}
-                                onNavigate={onNavigate}
-                                onClose={closeModal}
-                                source={source}
-                                setDownloadButtonVisibility={setDownloadButtonVisibility}
-                            />
-                        ) : (
-                            !!sourceForAttachmentView &&
-                            shouldLoadAttachment &&
-                            !isLoading &&
-                            !shouldShowNotFoundPage && (
-                                <AttachmentCarouselPagerContext.Provider value={context}>
-                                    <AttachmentView
-                                        containerStyles={[styles.mh5]}
-                                        source={sourceForAttachmentView}
-                                        isAuthTokenRequired={isAuthTokenRequiredState}
-                                        file={file}
-                                        onToggleKeyboard={updateConfirmButtonVisibility}
-                                        isWorkspaceAvatar={isWorkspaceAvatar}
-                                        maybeIcon={maybeIcon}
-                                        fallbackSource={fallbackSource}
-                                        isUsedInAttachmentModal
-                                        transactionID={transaction?.transactionID}
-                                    />
-                                </AttachmentCarouselPagerContext.Provider>
-                            )
-                        )}
+                        {!shouldShowNotFoundPage &&
+                            (!isEmptyObject(report) && !isReceiptAttachment ? (
+                                <AttachmentCarousel
+                                    accountID={accountID}
+                                    type={type}
+                                    report={report}
+                                    onNavigate={onNavigate}
+                                    onClose={closeModal}
+                                    source={source}
+                                    setDownloadButtonVisibility={setDownloadButtonVisibility}
+                                />
+                            ) : (
+                                !!sourceForAttachmentView &&
+                                shouldLoadAttachment &&
+                                !isLoading && (
+                                    <AttachmentCarouselPagerContext.Provider value={context}>
+                                        <AttachmentView
+                                            containerStyles={[styles.mh5]}
+                                            source={sourceForAttachmentView}
+                                            isAuthTokenRequired={isAuthTokenRequiredState}
+                                            file={file}
+                                            onToggleKeyboard={updateConfirmButtonVisibility}
+                                            isWorkspaceAvatar={isWorkspaceAvatar}
+                                            maybeIcon={maybeIcon}
+                                            fallbackSource={fallbackSource}
+                                            isUsedInAttachmentModal
+                                            transactionID={transaction?.transactionID}
+                                        />
+                                    </AttachmentCarouselPagerContext.Provider>
+                                )
+                            ))}
                     </View>
                     {/* If we have an onConfirm method show a confirmation button */}
                     {!!onConfirm && (
@@ -565,7 +566,7 @@ function AttachmentModal({
                                     <Button
                                         success
                                         large
-                                        style={[styles.buttonConfirm, isSmallScreenWidth ? {} : styles.attachmentButtonBigScreen]}
+                                        style={[styles.buttonConfirm, shouldUseNarrowLayout ? {} : styles.attachmentButtonBigScreen]}
                                         textStyles={[styles.buttonConfirmText]}
                                         text={translate('common.send')}
                                         onPress={submitAndClose}
@@ -620,16 +621,6 @@ export default withOnyx<AttachmentModalProps, AttachmentModalOnyxProps>({
             return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
         },
         initWithStoredValues: false,
-    },
-    parentReport: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report ? report.parentReportID : '0'}`,
-    },
-    policy: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
-    },
-    parentReportActions: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
-        canEvict: false,
     },
 })(memo(AttachmentModal));
 

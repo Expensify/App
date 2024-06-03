@@ -103,11 +103,11 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
                             title={translate('iou.receiptStatusTitle')}
                             description={translate('iou.receiptStatusText')}
                             shouldShowBorderBottom
+                            shouldStyleFlexGrow={false}
                         />
                     )}
                     {!!participants.length && (
                         <MoneyRequestConfirmationList
-                            hasMultipleParticipants
                             payeePersonalDetails={payeePersonalDetails}
                             selectedParticipants={participantsExcludingPayee}
                             iouAmount={splitAmount ?? 0}
