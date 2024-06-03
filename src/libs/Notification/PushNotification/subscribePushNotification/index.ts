@@ -86,36 +86,37 @@ function navigateToReport({reportID, reportActionID}: ReportActionPushNotificati
     // Onyx data from push notifications might not have been applied when they were received in the background
     // due to OS limitations. So we'll also attempt to apply them here so they can display immediately. Reliable
     // updates will prevent any old updates from being duplicated and any gaps in them will be handled
-    Airship.push.getActiveNotifications().then((notifications) => {
-        const onyxUpdates = notifications.reduce<DeferredUpdatesDictionary>((updates, notification) => {
-            const pushNotificationData = getPushNotificationData(notification);
-            const lastUpdateID = pushNotificationData.lastUpdateID;
-            const previousUpdateID = pushNotificationData.previousUpdateID;
+    Airship.push
+        .getActiveNotifications()
+        .then((notifications) => {
+            const onyxUpdates = notifications.reduce<DeferredUpdatesDictionary>((updates, notification) => {
+                const pushNotificationData = getPushNotificationData(notification);
+                const lastUpdateID = pushNotificationData.lastUpdateID;
+                const previousUpdateID = pushNotificationData.previousUpdateID;
 
-            if (pushNotificationData.onyxData == null || lastUpdateID == null || previousUpdateID == null) {
+                if (pushNotificationData.onyxData == null || lastUpdateID == null || previousUpdateID == null) {
+                    return updates;
+                }
+
+                const newUpdates = buildOnyxUpdatesFromServer({onyxData: pushNotificationData.onyxData, lastUpdateID, previousUpdateID});
+
+                // eslint-disable-next-line no-param-reassign
+                updates[lastUpdateID] = newUpdates;
                 return updates;
-            }
+            }, {});
 
-            const newUpdates = buildOnyxUpdatesFromServer({onyxData: pushNotificationData.onyxData, lastUpdateID, previousUpdateID});
+            DeferredOnyxUpdates.enqueueAndProcess(onyxUpdates);
 
-            // eslint-disable-next-line no-param-reassign
-            updates[lastUpdateID] = newUpdates;
-            return updates;
-        }, {});
-
-        return DeferredOnyxUpdates.enqueueAndProcess(onyxUpdates);
-    });
-
-    Log.info('[PushNotification] Navigating to report', false, {reportID, reportActionID});
-
-    const policyID = lastVisitedPath && extractPolicyIDFromPath(lastVisitedPath);
-    const report = getReport(reportID.toString());
-    const policyEmployeeAccountIDs = policyID ? getPolicyEmployeeAccountIDs(policyID) : [];
-    const reportBelongsToWorkspace = policyID && !isEmptyObject(report) && doesReportBelongToWorkspace(report, policyEmployeeAccountIDs, policyID);
-
-    Navigation.isNavigationReady()
+            Log.info('[PushNotification] Navigating to report', false, {reportID, reportActionID});
+        })
+        .then(Navigation.isNavigationReady)
         .then(Navigation.waitForProtectedRoutes)
         .then(() => {
+            const policyID = lastVisitedPath && extractPolicyIDFromPath(lastVisitedPath);
+            const report = getReport(reportID.toString());
+            const policyEmployeeAccountIDs = policyID ? getPolicyEmployeeAccountIDs(policyID) : [];
+            const reportBelongsToWorkspace = policyID && !isEmptyObject(report) && doesReportBelongToWorkspace(report, policyEmployeeAccountIDs, policyID);
+
             // The attachment modal remains open when navigating to the report so we need to close it
             Modal.close(() => {
                 try {
