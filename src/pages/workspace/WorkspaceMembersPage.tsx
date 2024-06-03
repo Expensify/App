@@ -98,16 +98,13 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
      * Get filtered personalDetails list with current employeeList
      */
     const filterPersonalDetails = (members: OnyxEntry<PolicyEmployeeList>, details: OnyxEntry<PersonalDetailsList>): PersonalDetailsList =>
-        Object.keys(members ?? {}).reduce((result, key) => {
+        Object.keys(members ?? {}).reduce((acc, key) => {
             const memberAccountIdKey = policyMemberEmailsToAccountIDs[key] ?? '';
             if (details?.[memberAccountIdKey]) {
-                return {
-                    ...result,
-                    [memberAccountIdKey]: details[memberAccountIdKey],
-                };
+                acc[memberAccountIdKey] = details[memberAccountIdKey];
             }
-            return result;
-        }, {});
+            return acc;
+        }, {} as PersonalDetailsList);
     /**
      * Get members for the current workspace
      */
@@ -573,6 +570,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                         headerMessage={getHeaderMessage()}
                         headerContent={!isSmallScreenWidth && getHeaderContent()}
                         onSelectRow={openMemberDetails}
+                        shouldDebounceRowSelect={!isPolicyAdmin}
                         onCheckboxPress={(item) => toggleUser(item.accountID)}
                         onSelectAll={() => toggleAllUsers(data)}
                         onDismissError={dismissError}

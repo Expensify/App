@@ -414,7 +414,7 @@ function suggestEmojis(text: string, lang: Locale, limit: number = CONST.AUTO_CO
 /**
  * Retrieve preferredSkinTone as Number to prevent legacy 'default' String value
  */
-const getPreferredSkinToneIndex = (value: OnyxEntry<string | number>): number => {
+const getPreferredSkinToneIndex = (value: string | number | null): number => {
     if (value !== null && Number.isInteger(Number(value))) {
         return Number(value);
     }
