@@ -382,6 +382,7 @@ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName:
                                     name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                 },
                                 previousTagName: oldTagName,
+                                errors: null,
                             },
                         },
                     },
@@ -396,7 +397,6 @@ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName:
                     [tagList.name]: {
                         tags: {
                             [newTagName]: {
-                                errors: null,
                                 pendingAction: null,
                                 pendingFields: {
                                     name: null,
@@ -417,6 +417,8 @@ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName:
                             [newTagName]: null,
                             [oldTagName]: {
                                 ...tag,
+                                pendingAction: null,
+                                pendingFields: null,
                                 errors: ErrorUtils.getMicroSecondOnyxError('workspace.tags.genericFailureMessage'),
                             },
                         },
