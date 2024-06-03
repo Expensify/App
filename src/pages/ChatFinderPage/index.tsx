@@ -59,7 +59,7 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
         shouldInitialize: isScreenTransitionEnd,
     });
 
-    const offlineMessage: MaybePhraseKey = isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : '';
+    const offlineMessage: MaybePhraseKey = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const [, debouncedSearchValueInServer, setSearchValueInServer] = useDebouncedState('', 500);

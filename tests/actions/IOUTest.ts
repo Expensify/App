@@ -1862,7 +1862,7 @@ describe('actions/IOU', () => {
                                     Onyx.disconnect(connectionID);
                                     const updatedAction = Object.values(allActions ?? {}).find((reportAction) => !isEmptyObject(reportAction));
                                     expect(updatedAction?.actionName).toEqual('MODIFIEDEXPENSE');
-                                    expect(Object.values(updatedAction?.errors ?? {})).toEqual(expect.arrayContaining([['iou.error.genericEditFailureMessage', {isTranslated: false}]]));
+                                    expect(Object.values(updatedAction?.errors ?? {})).toEqual(Localize.translateLocal('iou.error.genericEditFailureMessage'));
                                     resolve();
                                 },
                             });
@@ -2084,7 +2084,7 @@ describe('actions/IOU', () => {
                                 callback: (allActions) => {
                                     Onyx.disconnect(connectionID);
                                     const erroredAction = Object.values(allActions ?? {}).find((action) => !isEmptyObject(action?.errors));
-                                    expect(Object.values(erroredAction?.errors ?? {})).toEqual(expect.arrayContaining([['iou.error.other', {isTranslated: false}]]));
+                                    expect(Object.values(erroredAction?.errors ?? {})).toEqual(Localize.translateLocal('iou.error.other'));
                                     resolve();
                                 },
                             });

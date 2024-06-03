@@ -126,9 +126,9 @@ function getLatestErrorFieldForAnyField<TOnyxData extends OnyxDataWithErrorField
 }
 
 /**
- * Method used to attach already translated message with isTranslated property
+ * Method used to attach already translated message
  * @param errors - An object containing current errors in the form
- * @returns Errors in the form of {timestamp: [message, {isTranslated}]}
+ * @returns Errors in the form of {timestamp: message}
  */
 function getErrorsWithTranslationData(errors: Errors): Errors {
     if (!errors) {
