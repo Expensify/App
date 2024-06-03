@@ -16,7 +16,7 @@ type IconSectionProps = {
     height?: number;
 };
 
-function IconSection({icon, iconContainerStyles, width = variables.menuIconSize, height = variables.menuIconSize}: IconSectionProps) {
+function IconSection({icon, iconContainerStyles, width = variables.iconSection, height = variables.iconSection}: IconSectionProps) {
     const styles = useThemeStyles();
 
     return (
