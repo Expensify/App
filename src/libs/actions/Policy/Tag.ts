@@ -595,6 +595,7 @@ function setPolicyTagsRequired(policyID: string, requiresTag: boolean, tagListIn
                     [policyTag.name]: {
                         required: requiresTag,
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                        errors: null,
                     },
                 },
             },
@@ -605,7 +606,6 @@ function setPolicyTagsRequired(policyID: string, requiresTag: boolean, tagListIn
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
                     [policyTag.name]: {
-                        errors: null,
                         pendingAction: null,
                     },
                 },
