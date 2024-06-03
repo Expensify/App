@@ -1186,6 +1186,10 @@ const CONST = {
         WEBP: 'image/webp',
         JPEG: 'image/jpeg',
     },
+    ATTACHMENT_TYPE: {
+        REPORT: 'r',
+        NOTE: 'n',
+    },
 
     IMAGE_OBJECT_POSITION: {
         TOP: 'top',
@@ -1926,8 +1930,8 @@ const CONST = {
         // Extract attachment's source from the data's html string
         ATTACHMENT_DATA: /(data-expensify-source|data-name)="([^"]+)"/g,
 
-        EMOJI_NAME: /:[\w+-]+:/g,
-        EMOJI_SUGGESTIONS: /:[a-zA-Z0-9_+-]{1,40}$/,
+        EMOJI_NAME: /:[\p{L}0-9_+-]+:/gu,
+        EMOJI_SUGGESTIONS: /:[\p{L}0-9_+-]{1,40}$/u,
         AFTER_FIRST_LINE_BREAK: /\n.*/g,
         LINE_BREAK: /\r\n|\r|\n/g,
         CODE_2FA: /^\d{6}$/,
@@ -2090,7 +2094,6 @@ const CONST = {
         INFO: 'info',
     },
     REPORT_DETAILS_MENU_ITEM: {
-        SHARE_CODE: 'shareCode',
         MEMBERS: 'member',
         INVITE: 'invite',
         SETTINGS: 'settings',
