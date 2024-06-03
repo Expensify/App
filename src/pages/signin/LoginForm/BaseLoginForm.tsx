@@ -3,6 +3,7 @@ import Str from 'expensify-common/lib/str';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
+import * as Browser from '@libs/Browser';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
@@ -220,6 +221,9 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
 
     const submitContainerRef = useRef<View | HTMLDivElement>(null);
     const handleFocus = useCallback(() => {
+        if (!Browser.isMobileWebKit()) {
+            return;
+        }
         InteractionManager.runAfterInteractions(() => {
             htmlDivElementRef(submitContainerRef).current?.scrollIntoView?.({behavior: 'smooth', block: 'end'});
         });
