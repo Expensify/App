@@ -70,6 +70,7 @@ import type {
     InvitedEmailsToAccountIDs,
     PersonalDetailsList,
     Policy,
+    PolicyCategory,
     PolicyEmployee,
     PolicyOwnershipChangeChecks,
     ReimbursementAccount,
@@ -80,7 +81,7 @@ import type {
 } from '@src/types/onyx';
 import type {ErrorFields, Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {OriginalMessageJoinPolicyChangeLog} from '@src/types/onyx/OriginalMessage';
-import type {Attributes, CompanyAddress, CustomUnit, Rate, Unit} from '@src/types/onyx/Policy';
+import type {Attributes, CompanyAddress, CustomUnit, Rate, TaxRate, Unit} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -2068,40 +2069,31 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
 }
 
 function buildOptimisticPolicyCategories(policyID: string, categories: readonly string[]) {
-    const optimisticCategoryMap = categories.reduce(
-        (acc, category) => ({
-            ...acc,
-            [category]: {
-                name: category,
-                enabled: true,
-                errors: null,
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            },
-        }),
-        {},
-    );
+    const optimisticCategoryMap = categories.reduce<Record<string, Partial<PolicyCategory>>>((acc, category) => {
+        acc[category] = {
+            name: category,
+            enabled: true,
+            errors: null,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        };
+        return acc;
+    }, {});
 
-    const successCategoryMap = categories.reduce(
-        (acc, category) => ({
-            ...acc,
-            [category]: {
-                errors: null,
-                pendingAction: null,
-            },
-        }),
-        {},
-    );
+    const successCategoryMap = categories.reduce<Record<string, Partial<PolicyCategory>>>((acc, category) => {
+        acc[category] = {
+            errors: null,
+            pendingAction: null,
+        };
+        return acc;
+    }, {});
 
-    const failureCategoryMap = categories.reduce(
-        (acc, category) => ({
-            ...acc,
-            [category]: {
-                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.categories.createFailureMessage'),
-                pendingAction: null,
-            },
-        }),
-        {},
-    );
+    const failureCategoryMap = categories.reduce<Record<string, Partial<PolicyCategory>>>((acc, category) => {
+        acc[category] = {
+            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.categories.createFailureMessage'),
+            pendingAction: null,
+        };
+        return acc;
+    }, {});
 
     const onyxData: OnyxData = {
         optimisticData: [
@@ -2472,17 +2464,14 @@ function createDraftWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policy
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`,
-            value: CONST.POLICY.DEFAULT_CATEGORIES.reduce(
-                (acc, category) => ({
-                    ...acc,
-                    [category]: {
-                        name: category,
-                        enabled: true,
-                        errors: null,
-                    },
-                }),
-                {},
-            ),
+            value: CONST.POLICY.DEFAULT_CATEGORIES.reduce<Record<string, PolicyCategory>>((acc, category) => {
+                acc[category] = {
+                    name: category,
+                    enabled: true,
+                    errors: null,
+                };
+                return acc;
+            }, {}),
         },
     ];
 
@@ -3389,16 +3378,13 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
                     taxRates: {
                         ...defaultTaxRates,
                         taxes: {
-                            ...Object.keys(defaultTaxRates.taxes).reduce(
-                                (prevTaxesData, taxKey) => ({
-                                    ...prevTaxesData,
-                                    [taxKey]: {
-                                        ...defaultTaxRates.taxes[taxKey],
-                                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                                    },
-                                }),
-                                {},
-                            ),
+                            ...Object.keys(defaultTaxRates.taxes).reduce((acc, taxKey) => {
+                                acc[taxKey] = {
+                                    ...defaultTaxRates.taxes[taxKey],
+                                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                                };
+                                return acc;
+                            }, {} as Record<string, TaxRate & {pendingAction: typeof CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}>),
                         },
                     },
                 },
@@ -3411,13 +3397,10 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
                 value: {
                     taxRates: {
                         taxes: {
-                            ...Object.keys(defaultTaxRates.taxes).reduce(
-                                (prevTaxesData, taxKey) => ({
-                                    ...prevTaxesData,
-                                    [taxKey]: {pendingAction: null},
-                                }),
-                                {},
-                            ),
+                            ...Object.keys(defaultTaxRates.taxes).reduce((acc, taxKey) => {
+                                acc[taxKey] = {pendingAction: null};
+                                return acc;
+                            }, {} as Record<string, {pendingAction: null}>),
                         },
                     },
                 },

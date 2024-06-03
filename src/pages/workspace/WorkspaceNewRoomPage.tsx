@@ -228,8 +228,8 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
         <>
             <BlockingView
                 icon={Illustrations.TeleScope}
-                iconWidth={variables.emptyWorkspaceIconWidth}
-                iconHeight={variables.emptyWorkspaceIconHeight}
+                iconWidth={variables.emptyListIconWidth}
+                iconHeight={variables.emptyListIconHeight}
                 title={translate('workspace.emptyWorkspace.notFound')}
                 subtitle={translate('workspace.emptyWorkspace.description')}
                 shouldShowLink={false}

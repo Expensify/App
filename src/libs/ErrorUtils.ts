@@ -126,7 +126,7 @@ function getLatestErrorFieldForAnyField<TOnyxData extends OnyxDataWithErrorField
 
     const fieldNames = Object.keys(errorFields);
     const latestErrorFields = fieldNames.map((fieldName) => getLatestErrorField(onyxData, fieldName));
-    return latestErrorFields.reduce((acc, error) => ({...acc, ...error}), {});
+    return latestErrorFields.reduce((acc, error) => Object.assign(acc, error), {});
 }
 
 /**
