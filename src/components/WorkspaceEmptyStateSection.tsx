@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Icon from './Icon';
 import Text from './Text';
@@ -19,10 +19,10 @@ type WorkspaceEmptyStateSectionProps = {
 
 function WorkspaceEmptyStateSection({icon, subtitle, title}: WorkspaceEmptyStateSectionProps) {
     const styles = useThemeStyles();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
-        <View style={[styles.pageWrapper, styles.cardSectionContainer, styles.workspaceSection, styles.ph8, isSmallScreenWidth ? styles.pv10 : styles.pv12]}>
+        <View style={[styles.pageWrapper, styles.cardSectionContainer, styles.workspaceSection, styles.ph8, shouldUseNarrowLayout ? styles.pv10 : styles.pv12]}>
             <Icon
                 src={icon}
                 width={184}

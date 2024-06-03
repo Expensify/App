@@ -12,7 +12,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {openDraftWorkspaceRequest} from '@libs/actions/Policy';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import * as IOUUtils from '@libs/IOUUtils';
@@ -22,6 +21,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as IOU from '@userActions/IOU';
+import {openDraftWorkspaceRequest} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -325,9 +325,7 @@ function IOURequestStepConfirmation({
                 const participantsWithAmount = Object.keys(transaction.splitShares ?? {})
                     .filter((accountID: string): boolean => (transaction?.splitShares?.[Number(accountID)]?.amount ?? 0) > 0)
                     .map((accountID) => Number(accountID));
-                splitParticipants = selectedParticipants.filter((participant) =>
-                    participantsWithAmount.includes(participant.isPolicyExpenseChat ? participant?.ownerAccountID ?? -1 : participant.accountID ?? -1),
-                );
+                splitParticipants = selectedParticipants.filter((participant) => participantsWithAmount.includes(participant.accountID ?? -1));
             }
             const trimmedComment = (transaction?.comment.comment ?? '').trim();
 
@@ -377,8 +375,6 @@ function IOURequestStepConfirmation({
                         iouRequestType: transaction.iouRequestType,
                         splitShares: transaction.splitShares,
                         splitPayerAccountIDs: transaction.splitPayerAccountIDs ?? [],
-                        taxCode: transactionTaxCode,
-                        taxAmount: transactionTaxAmount,
                     });
                 }
                 return;
@@ -402,8 +398,6 @@ function IOURequestStepConfirmation({
                         iouRequestType: transaction.iouRequestType,
                         splitShares: transaction.splitShares,
                         splitPayerAccountIDs: transaction.splitPayerAccountIDs,
-                        taxCode: transactionTaxCode,
-                        taxAmount: transactionTaxAmount,
                     });
                 }
                 return;
@@ -499,8 +493,6 @@ function IOURequestStepConfirmation({
             policy,
             policyTags,
             policyCategories,
-            transactionTaxAmount,
-            transactionTaxCode,
         ],
     );
 
