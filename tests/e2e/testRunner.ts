@@ -181,8 +181,10 @@ const runTests = async (): Promise<void> => {
 
         const warmupText = `Warmup for test '${test.name}' [${testIndex + 1}/${tests.length}]`;
 
-        const requiresDoubleWarmup = test.requiresDoubleWarmup ?? false;
-        const iterations = requiresDoubleWarmup ? 2 : 1;
+        // by default we do 2 warmups:
+        // - first warmup to pass a login flow
+        // - second warmup to pass an actual flow and cache network requests
+        const iterations = test.warmupRuns ?? 2;
         for (let i = 0; i < iterations; i++) {
             // Warmup the main app:
             await runTestIteration(config.MAIN_APP_PACKAGE, `[MAIN] ${warmupText}. Iteration ${i + 1}/${iterations}`);
