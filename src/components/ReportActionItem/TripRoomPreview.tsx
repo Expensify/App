@@ -93,7 +93,7 @@ function ReservationRow({reservation}: ReservationRowProps) {
     return (
         <MenuItemWithTopDescription
             description={translate(`travel.${reservation.type}`)}
-            descriptionTextStyle={[styles.textSupportingSmallSize, styles.lh14]}
+            descriptionTextStyle={styles.textMicro}
             titleComponent={titleComponent}
             titleContainerStyle={styles.tripReservationTitleGap}
             secondaryIcon={reservationIcon}
