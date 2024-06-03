@@ -618,6 +618,7 @@ function setPolicyTagsRequired(policyID: string, requiresTag: boolean, tagListIn
                 value: {
                     [policyTag.name]: {
                         required: policyTag.required,
+                        errors: ErrorUtils.getMicroSecondOnyxError('workspace.tags.genericFailureMessage'),
                     },
                 },
             },
