@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -59,6 +60,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const styles = useThemeStyles();
     const theme = useTheme();
+    const {isOffline} = useNetwork();
     const [isDeleteRequestModalVisible, setIsDeleteRequestModalVisible] = useState(false);
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
@@ -228,7 +230,8 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                             shouldDisableApproveButton={shouldDisableApproveButton}
                             style={[styles.pv2]}
                             formattedAmount={!ReportUtils.hasOnlyHeldExpenses(moneyRequestReport.reportID) ? displayedAmount : ''}
-                            isDisabled={!canAllowSettlement}
+                            isDisabled={isOffline && !canAllowSettlement}
+                            isLoading={!isOffline && !canAllowSettlement}
                         />
                     </View>
                 )}
