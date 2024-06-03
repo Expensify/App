@@ -56,6 +56,7 @@ function BaseSelectionList<TItem extends ListItem>(
         headerContent,
         footerContent,
         listFooterContent,
+        listEmptyContent,
         showScrollIndicator = true,
         showLoadingPlaceholder = false,
         showConfirmButton = false,
@@ -103,6 +104,7 @@ function BaseSelectionList<TItem extends ListItem>(
     const itemFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
     const isTextInputFocusedRef = useRef<boolean>(false);
+    const isEmptyList = sections.length === 0;
 
     const incrementPage = () => setCurrentPage((prev) => prev + 1);
 
@@ -694,8 +696,11 @@ function BaseSelectionList<TItem extends ListItem>(
                                 testID="selection-list"
                                 onLayout={onSectionListLayout}
                                 style={(!maxToRenderPerBatch || (shouldHideListOnInitialRender && isInitialSectionListRender)) && styles.opacity0}
+                                ListHeaderComponent={listHeaderContent}
                                 ListFooterComponent={listFooterContent ?? ShowMoreButtonInstance}
-                                ListHeaderComponent={listHeaderContent && listHeaderContent}
+                                ListEmptyComponent={listEmptyContent}
+                                contentContainerStyle={isEmptyList && listEmptyContent ? styles.flexGrow1 : undefined}
+                                scrollEnabled={!isEmptyList || !listEmptyContent}
                                 onEndReached={onEndReached}
                                 onEndReachedThreshold={onEndReachedThreshold}
                             />
