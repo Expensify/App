@@ -19,12 +19,12 @@ function CardSectionActions() {
             {
                 icon: Expensicons.CreditCard,
                 text: translate('subscription.cardSection.changeCard'),
-                onSelected: () => {}, // TODO: update with navigation to add card screen
+                onSelected: () => {}, // TODO: update with navigation to "add card" screen (https://github.com/Expensify/App/issues/38621)
             },
             {
                 icon: Expensicons.MoneyCircle,
                 text: translate('subscription.cardSection.changeCurrency'),
-                onSelected: () => {}, // TODO: update with navigation to change currency screen
+                onSelected: () => {}, // TODO: update with navigation to "change currency" screen (https://github.com/Expensify/App/issues/38621)
             },
         ],
         [translate],
