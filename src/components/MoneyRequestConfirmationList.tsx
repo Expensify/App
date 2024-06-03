@@ -186,7 +186,7 @@ const setTaxAmountInDraft = (transaction: OnyxEntry<OnyxTypes.Transaction>, poli
     const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, transaction?.taxCode ?? defaultTaxCode) ?? '';
     const taxAmount = TransactionUtils.calculateTaxAmount(taxPercentage, transaction?.amount ?? 0);
     const taxAmountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount.toString()));
-    IOU.setMoneyRequestTaxAmount(transaction?.transactionID ?? '', taxAmountInSmallestCurrencyUnits, true);
+    IOU.setMoneyRequestTaxAmount(transaction?.transactionID ?? '', taxAmountInSmallestCurrencyUnits);
 };
 
 function MoneyRequestConfirmationList({
@@ -308,7 +308,6 @@ function MoneyRequestConfirmationList({
           );
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transaction?.taxAmount, iouCurrencyCode);
     const taxRateTitle = TransactionUtils.getTaxName(policy, transaction);
-    const prevTaxAmount = usePrevious(transaction?.taxAmount);
     const prevAmount = usePrevious(transaction?.amount);
     const prevCurrency = usePrevious(transaction?.currency);
 
@@ -344,7 +343,7 @@ function MoneyRequestConfirmationList({
             return;
         }
         setTaxAmountInDraft(transaction, policy);
-    }, [policy, shouldShowTax, prevTaxAmount, prevAmount, prevCurrency, transaction]);
+    }, [policy, shouldShowTax, prevAmount, prevCurrency, transaction]);
 
     useEffect(() => {
         if (customUnitRateID || !canUseP2PDistanceRequests) {

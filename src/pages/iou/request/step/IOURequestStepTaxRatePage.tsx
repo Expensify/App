@@ -108,7 +108,7 @@ function IOURequestStepTaxRatePage({
         }
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(taxAmount);
         IOU.setMoneyRequestTaxRate(currentTransaction?.transactionID, taxes?.code ?? '');
-        IOU.setMoneyRequestTaxAmount(currentTransaction.transactionID, amountInSmallestCurrencyUnits, true);
+        IOU.setMoneyRequestTaxAmount(currentTransaction.transactionID, amountInSmallestCurrencyUnits);
 
         navigateBack();
     };

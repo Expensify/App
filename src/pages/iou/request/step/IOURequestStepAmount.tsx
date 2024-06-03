@@ -166,9 +166,9 @@ function IOURequestStepAmount({
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         IOU.setMoneyRequestAmount(transactionID, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD);
 
-        // Initially when we're creating money request, we donot know the participant and hence if the request is with workspace with tax tracking enabled
-        // So, we reset the taxAmount here and calculate it in the MoneyRequestConfirmationList
-        IOU.setMoneyRequestTaxAmount(transactionID, null, true);
+        // Initially when we're creating money request, we do not know the participant and hence if the request is with workspace with tax tracking enabled
+        // So, we reset the taxAmount here and calculate it in the hook in MoneyRequestConfirmationList component
+        IOU.setMoneyRequestTaxAmount(transactionID, null);
 
         if (backTo) {
             Navigation.goBack(backTo);
