@@ -361,6 +361,7 @@ function clearPolicyTagErrors(policyID: string, tagName: string) {
 
 function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName: string}, tagListIndex: number) {
     const tagList = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.[tagListIndex] ?? {};
+    const tag = tagList.tags?.[policyTag.oldName];
 
     const oldTagName = policyTag.oldName;
     const newTagName = PolicyUtils.escapeTagName(policyTag.newName);
@@ -374,7 +375,7 @@ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName:
                         tags: {
                             [oldTagName]: null,
                             [newTagName]: {
-                                ...tagList,
+                                ...tag,
                                 name: newTagName,
                                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                 pendingFields: {
@@ -415,7 +416,7 @@ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName:
                         tags: {
                             [newTagName]: null,
                             [oldTagName]: {
-                                ...tagList,
+                                ...tag,
                                 errors: ErrorUtils.getMicroSecondOnyxError('workspace.tags.genericFailureMessage'),
                             },
                         },
