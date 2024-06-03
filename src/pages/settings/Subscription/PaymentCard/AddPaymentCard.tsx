@@ -66,8 +66,6 @@ function AddPaymentCard() {
                                 icon={Illustrations.ShieldYellow}
                                 cardLayout={CARD_LAYOUT.ICON_ON_LEFT}
                                 iconContainerStyles={styles.mr4}
-                                iconWidth={variables.menuIconSize}
-                                iconHeight={variables.menuIconSize}
                                 containerStyles={[styles.mh0, styles.mt5]}
                                 renderTitle={() => (
                                     <Text style={[styles.mutedTextLabel]}>
