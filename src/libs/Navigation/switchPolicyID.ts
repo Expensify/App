@@ -19,7 +19,7 @@ type ActionPayloadParams = {
     path?: string;
 };
 
-type CentralPaneRouteParams = Record<string, string> & {policyID?: string; reportID?: string};
+type CentralPaneRouteParams = Record<string, string> & {policyID?: string; policyIDs?: string; reportID?: string};
 
 function checkIfActionPayloadNameIsEqual(action: Writable<NavigationAction>, screenName: string) {
     return action?.payload && 'name' in action.payload && action?.payload?.name === screenName;
@@ -70,11 +70,12 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
     }
 
     const rootState = navigation.getRootState() as NavigationState<RootStackParamList>;
+    const topmostCentralPaneRoute = getTopmostCentralPaneRoute(rootState);
     let newPath = route ?? getPathFromState({routes: rootState.routes} as State, linkingConfig.config);
 
     // Currently, the search page displayed in the bottom tab has the same URL as the page in the central pane, so we need to redirect to the correct search route.
     // Here's the configuration: src/libs/Navigation/AppNavigator/createCustomStackNavigator/index.tsx
-    const isOpeningSearchFromBottomTab = newPath.startsWith(CONST.SEARCH_BOTTOM_TAB_URL);
+    const isOpeningSearchFromBottomTab = topmostCentralPaneRoute?.name === SCREENS.SEARCH.CENTRAL_PANE;
     if (isOpeningSearchFromBottomTab) {
         newPath = ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.ALL);
     }
@@ -99,9 +100,16 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
 
     // If the layout is wide we need to push matching central pane route to the stack.
     if (shouldAddToCentralPane) {
-        const topmostCentralPaneRoute = getTopmostCentralPaneRoute(rootState);
         const screen = topmostCentralPaneRoute?.name;
         const params: CentralPaneRouteParams = {...topmostCentralPaneRoute?.params};
+
+        if (isOpeningSearchFromBottomTab) {
+            if (policyID) {
+                params.policyIDs = policyID;
+            } else {
+                delete params.policyIDs;
+            }
+        }
 
         // If the user is on the home page and changes the current workspace, then should be displayed a report from the selected workspace.
         // To achieve that, it's necessary to navigate without the reportID param.

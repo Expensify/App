@@ -12,6 +12,7 @@ import type {
 } from '@react-navigation/native';
 import type {ValueOf} from 'type-fest';
 import type {IOURequestType} from '@libs/actions/IOU';
+import type {SearchColumnType, SortOrder} from '@libs/SearchUtils';
 import type CONST from '@src/CONST';
 import type {Country, IOUAction, IOUType} from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
@@ -64,8 +65,13 @@ type CentralPaneNavigatorParamList = {
     [SCREENS.SETTINGS.WORKSPACES]: undefined;
     [SCREENS.SEARCH.CENTRAL_PANE]: {
         query: string;
+        policyIDs?: string;
+        offset?: number;
+        sortBy?: SearchColumnType;
+        sortOrder?: SortOrder;
     };
     [SCREENS.SETTINGS.SAVE_THE_WORLD]: undefined;
+    [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: undefined;
 };
 
 type BackToParams = {
@@ -98,6 +104,7 @@ type SettingsNavigatorParamList = {
         backTo: Routes;
     };
     [SCREENS.SETTINGS.PREFERENCES.ROOT]: undefined;
+    [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.LANGUAGE]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.THEME]: undefined;
@@ -107,10 +114,13 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.TROUBLESHOOT]: undefined;
     [SCREENS.SETTINGS.APP_DOWNLOAD_LINKS]: undefined;
     [SCREENS.SETTINGS.TROUBLESHOOT]: undefined;
-    [SCREENS.SETTINGS.CONSOLE]: undefined;
+    [SCREENS.SETTINGS.CONSOLE]: {
+        backTo: Routes;
+    };
     [SCREENS.SETTINGS.SHARE_LOG]: {
         /** URL of the generated file to share logs in a report */
         source: string;
+        backTo: Routes;
     };
     [SCREENS.SETTINGS.WALLET.ROOT]: undefined;
     [SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: undefined;
@@ -183,17 +193,21 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.CATEGORY_CREATE]: {
         policyID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.CATEGORY_EDIT]: {
         policyID: string;
         categoryName: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.CATEGORY_SETTINGS]: {
         policyID: string;
         categoryName: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.CATEGORIES_SETTINGS]: {
         policyID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.TAG_CREATE]: {
         policyID: string;
@@ -211,6 +225,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.TAG_SETTINGS]: {
         policyID: string;
+        orderWeight: number;
         tagName: string;
     };
     [SCREENS.WORKSPACE.TAG_LIST_VIEW]: {
@@ -223,6 +238,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.TAG_EDIT]: {
         policyID: string;
+        orderWeight: number;
         tagName: string;
     };
     [SCREENS.WORKSPACE.TAXES_SETTINGS]: {
@@ -330,11 +346,10 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_TRACKING_CATEGORIES]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.XERO_MAP_COST_CENTERS]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.XERO_MAP_TRACKING_CATEGORY]: {
         policyID: string;
-    };
-    [SCREENS.WORKSPACE.ACCOUNTING.XERO_MAP_REGION]: {
-        policyID: string;
+        categoryId: string;
+        categoryName: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_EXPORT]: {
         policyID: string;
@@ -343,6 +358,9 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_ADVANCED]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.XERO_BILL_STATUS_SELECTOR]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_INVOICE_ACCOUNT_SELECTOR]: {
@@ -390,9 +408,7 @@ type SettingsNavigatorParamList = {
 
 type NewChatNavigatorParamList = {
     [SCREENS.NEW_CHAT.ROOT]: undefined;
-    [SCREENS.NEW_CHAT.NEW_CHAT_EDIT_NAME]: {
-        reportID?: string;
-    };
+    [SCREENS.NEW_CHAT.NEW_CHAT_EDIT_NAME]: undefined;
 };
 
 type DetailsNavigatorParamList = {
@@ -418,11 +434,10 @@ type ReportDetailsNavigatorParamList = {
 };
 
 type ReportSettingsNavigatorParamList = {
-    [SCREENS.REPORT_SETTINGS.ROOT]: undefined;
-    [SCREENS.REPORT_SETTINGS.ROOM_NAME]: undefined;
-    [SCREENS.REPORT_SETTINGS.GROUP_NAME]: undefined;
-    [SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES]: undefined;
-    [SCREENS.REPORT_SETTINGS.WRITE_CAPABILITY]: undefined;
+    [SCREENS.REPORT_SETTINGS.ROOT]: {reportID: string};
+    [SCREENS.REPORT_SETTINGS.NAME]: {reportID: string};
+    [SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES]: {reportID: string};
+    [SCREENS.REPORT_SETTINGS.WRITE_CAPABILITY]: {reportID: string};
     [SCREENS.REPORT_SETTINGS.VISIBILITY]: {
         reportID: string;
     };
@@ -719,6 +734,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.SETTINGS.SHARE_CODE]: undefined;
     [SCREENS.RIGHT_MODAL.REPORT_DETAILS]: NavigatorScreenParams<ReportDetailsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.REPORT_SETTINGS]: NavigatorScreenParams<ReportSettingsNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.SETTINGS_CATEGORIES]: NavigatorScreenParams<SettingsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.REPORT_DESCRIPTION]: NavigatorScreenParams<ReportDescriptionNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.PARTICIPANTS]: NavigatorScreenParams<ParticipantsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.ROOM_MEMBERS]: NavigatorScreenParams<RoomMembersNavigatorParamList>;
@@ -785,13 +801,13 @@ type FullScreenNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.CATEGORIES]: {
         policyID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.MORE_FEATURES]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.TAGS]: {
         policyID: string;
-        tagName: string;
     };
     [SCREENS.WORKSPACE.TAXES]: {
         policyID: string;
@@ -865,9 +881,11 @@ type PublicScreensParamList = SharedScreensParamList & {
 type AuthScreensParamList = SharedScreensParamList & {
     [NAVIGATORS.CENTRAL_PANE_NAVIGATOR]: NavigatorScreenParams<CentralPaneNavigatorParamList>;
     [SCREENS.CONCIERGE]: undefined;
-    [SCREENS.REPORT_ATTACHMENTS]: {
+    [SCREENS.ATTACHMENTS]: {
         reportID: string;
         source: string;
+        type: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
+        accountID: string;
     };
     [SCREENS.PROFILE_AVATAR]: {
         accountID: string;

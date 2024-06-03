@@ -36,8 +36,7 @@ import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import * as UserUtils from '@libs/UserUtils';
-import * as Policy from '@userActions/Policy';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -99,16 +98,13 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
      * Get filtered personalDetails list with current employeeList
      */
     const filterPersonalDetails = (members: OnyxEntry<PolicyEmployeeList>, details: OnyxEntry<PersonalDetailsList>): PersonalDetailsList =>
-        Object.keys(members ?? {}).reduce((result, key) => {
+        Object.keys(members ?? {}).reduce((acc, key) => {
             const memberAccountIdKey = policyMemberEmailsToAccountIDs[key] ?? '';
             if (details?.[memberAccountIdKey]) {
-                return {
-                    ...result,
-                    [memberAccountIdKey]: details[memberAccountIdKey],
-                };
+                acc[memberAccountIdKey] = details[memberAccountIdKey];
             }
-            return result;
-        }, {});
+            return acc;
+        }, {} as PersonalDetailsList);
     /**
      * Get members for the current workspace
      */
@@ -352,7 +348,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                 rightElement: roleBadge,
                 icons: [
                     {
-                        source: UserUtils.getAvatar(details.avatar, accountID),
+                        source: details.avatar ?? Expensicons.FallbackAvatar,
                         name: formatPhoneNumber(details?.login ?? ''),
                         type: CONST.ICON_TYPE_AVATAR,
                         id: accountID,
@@ -574,6 +570,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                         headerMessage={getHeaderMessage()}
                         headerContent={!isSmallScreenWidth && getHeaderContent()}
                         onSelectRow={openMemberDetails}
+                        shouldDebounceRowSelect={!isPolicyAdmin}
                         onCheckboxPress={(item) => toggleUser(item.accountID)}
                         onSelectAll={() => toggleAllUsers(data)}
                         onDismissError={dismissError}

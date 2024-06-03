@@ -130,7 +130,7 @@ function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) 
                     fieldName={Str.UCFirst(reportField.name)}
                     fieldKey={fieldKey}
                     fieldValue={fieldValue}
-                    isRequired={!reportField.deletable}
+                    isRequired={!isReportFieldDeletable}
                     onSubmit={handleReportFieldChange}
                 />
             )}
