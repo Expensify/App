@@ -145,6 +145,8 @@ function MoneyRequestPreviewContent({
             message = translate('common.receipt');
         } else if (isBillSplit) {
             message = translate('iou.split');
+        } else if (isCardTransaction) {
+            message = translate('iou.card');
         }
 
         if (isSettled && !iouReport?.isCancelledIOU && !isPartialHold) {
