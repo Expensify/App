@@ -1868,6 +1868,7 @@ export default {
             alerts: 'Get realtime updates and alerts',
         },
         bookTravel: 'Book travel',
+        bookDemo: 'Book demo',
         termsAndConditions: {
             header: 'Before we continue...',
             title: 'Please read the Terms & Conditions for travel',
