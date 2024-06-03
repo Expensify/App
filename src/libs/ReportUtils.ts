@@ -1200,11 +1200,20 @@ function findLastAccessedReport(
     }
 
     if (isFirstTimeNewExpensifyUser) {
+        // Filter out the systemChat report from the reports list, as we don't want to drop the user into that report over Concierge when they first log in
+        sortedReports = sortedReports.filter((report) => !isSystemChat(report)) ?? [];
         if (sortedReports.length === 1) {
             return sortedReports[0];
         }
 
         return adminReport ?? sortedReports.find((report) => !isConciergeChatReport(report)) ?? null;
+    }
+
+    // If we only have two reports and one of them is the system chat, filter it out so we don't
+    // overwrite showing the concierge chat
+    const hasSystemChat = sortedReports.find((report) => isSystemChat(report)) ?? false;
+    if (sortedReports.length === 2 && hasSystemChat) {
+        sortedReports = sortedReports.filter((report) => !isSystemChat(report)) ?? [];
     }
 
     return adminReport ?? sortedReports.at(-1) ?? null;
@@ -2050,6 +2059,10 @@ function getIcons(
 
     if (isSelfDM(report)) {
         return getIconsForParticipants([currentUserAccountID ?? 0], personalDetails);
+    }
+
+    if (isSystemChat(report)) {
+        return getIconsForParticipants([CONST.ACCOUNT_ID.NOTIFICATIONS ?? 0], personalDetails);
     }
 
     if (isGroupChat(report)) {
@@ -3227,6 +3240,10 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
 
     if (isSelfDM(report)) {
         formattedName = getDisplayNameForParticipant(currentUserAccountID, undefined, undefined, true);
+    }
+
+    if (isInvoiceRoom(report)) {
+        formattedName = getInvoicesChatName(report);
     }
 
     if (formattedName) {
@@ -5200,11 +5217,13 @@ function shouldReportBeInOptionList({
             !isMoneyRequestReport(report) &&
             !isTaskReport(report) &&
             !isSelfDM(report) &&
+            !isSystemChat(report) &&
             !isGroupChat(report) &&
             !isInvoiceRoom(report))
     ) {
         return false;
     }
+
     if (!canAccessReport(report, policies, betas)) {
         return false;
     }
@@ -5267,7 +5286,7 @@ function shouldReportBeInOptionList({
     }
 
     // Hide chats between two users that haven't been commented on from the LNH
-    if (excludeEmptyChats && isEmptyChat && isChatReport(report) && !isChatRoom(report) && !isPolicyExpenseChat(report) && !isGroupChat(report) && canHideReport) {
+    if (excludeEmptyChats && isEmptyChat && isChatReport(report) && !isChatRoom(report) && !isPolicyExpenseChat(report) && !isSystemChat(report) && !isGroupChat(report) && canHideReport) {
         return false;
     }
 
@@ -5599,7 +5618,7 @@ function isGroupChatAdmin(report: OnyxEntry<Report>, accountID: number) {
  */
 function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, reportParticipants: number[], filterDeprecatedTypes = false): IOUType[] {
     // In any thread or task report, we do not allow any new expenses yet
-    if (isChatThread(report) || isTaskReport(report) || isInvoiceReport(report)) {
+    if (isChatThread(report) || isTaskReport(report) || isInvoiceReport(report) || isSystemChat(report)) {
         return [];
     }
 
@@ -6614,7 +6633,7 @@ function canJoinChat(report: OnyxEntry<Report>, parentReportAction: OnyxEntry<Re
     }
 
     // Anyone viewing these chat types is already a participant and therefore cannot join
-    if (isRootGroupChat(report) || isSelfDM(report) || isInvoiceRoom(report)) {
+    if (isRootGroupChat(report) || isSelfDM(report) || isInvoiceRoom(report) || isSystemChat(report)) {
         return false;
     }
 
@@ -6943,6 +6962,7 @@ export {
     isDM,
     isDefaultRoom,
     isDeprecatedGroupDM,
+    isEmptyReport,
     isRootGroupChat,
     isExpenseReport,
     isExpenseRequest,
