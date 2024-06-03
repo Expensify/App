@@ -36,13 +36,13 @@ type ConfirmedRouteProps = ConfirmedRoutePropsOnyxProps & {
 
     /** Whether it should display the Mapbox map only when the route/coordinates exist otherwise
      * it will display pending map icon */
-    shouldDisplayMapOnlyIfCoordinatesExist?: boolean;
+    requireRouteToDisplayMap?: boolean;
 
     /** Whether the map is interactable or not */
     interactive?: boolean;
 };
 
-function ConfirmedRoute({mapboxAccessToken, transaction, isSmallerIcon, shouldHaveBorderRadius = true, shouldDisplayMapOnlyIfCoordinatesExist = false, interactive}: ConfirmedRouteProps) {
+function ConfirmedRoute({mapboxAccessToken, transaction, isSmallerIcon, shouldHaveBorderRadius = true, requireRouteToDisplayMap = false, interactive}: ConfirmedRouteProps) {
     const {isOffline} = useNetwork();
     const {route0: route} = transaction?.routes ?? {};
     const waypoints = transaction?.comment?.waypoints ?? {};
@@ -102,7 +102,7 @@ function ConfirmedRoute({mapboxAccessToken, transaction, isSmallerIcon, shouldHa
         return MapboxToken.stop;
     }, []);
 
-    const shouldDisplayMap = !shouldDisplayMapOnlyIfCoordinatesExist || (shouldDisplayMapOnlyIfCoordinatesExist && !!coordinates.length);
+    const shouldDisplayMap = !requireRouteToDisplayMap || !!coordinates.length;
 
     return !isOffline && Boolean(mapboxAccessToken?.token) && shouldDisplayMap ? (
         <DistanceMapView

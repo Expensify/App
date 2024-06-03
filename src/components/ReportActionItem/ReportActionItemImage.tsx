@@ -85,7 +85,7 @@ function ReportActionItemImage({
                     isSmallerIcon={!isSingleImage}
                     shouldHaveBorderRadius={shouldMapHaveBorderRadius}
                     interactive={false}
-                    shouldDisplayMapOnlyIfCoordinatesExist
+                    requireRouteToDisplayMap
                 />
             </View>
         );
