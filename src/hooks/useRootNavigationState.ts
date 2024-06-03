@@ -13,7 +13,7 @@ import {navigationRef} from '@libs/Navigation/Navigation';
  */
 function useRootNavigationState<T>(selector: (state: NavigationState) => T): T | undefined {
     const getSnapshot = useCallback(() => {
-        if (!navigationRef.current) {
+        if (!navigationRef?.current) {
             return;
         }
         return selector(navigationRef.current.getRootState());
