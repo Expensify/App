@@ -108,7 +108,7 @@ function FormWrapper({
                 ref={formContentRef}
                 style={[style, safeAreaPaddingBottomStyle.paddingBottom ? safeAreaPaddingBottomStyle : styles.pb5]}
             >
-                <View style={styles.flex1}>{children}</View>
+                {shouldContainerGrow ? children : <View style={styles.flex1}>{children}</View>}
                 {isSubmitButtonVisible && (
                     <FormAlertWithSubmitButton
                         buttonText={submitButtonText}
@@ -131,9 +131,10 @@ function FormWrapper({
             formID,
             style,
             styles.pb5,
+            styles.flex1,
             styles.mh0,
             styles.mt5,
-            styles.flex1,
+            shouldContainerGrow,
             children,
             isSubmitButtonVisible,
             submitButtonText,
