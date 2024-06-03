@@ -81,7 +81,8 @@ import * as ReportActionsUtils from './ReportActionsUtils';
 import StringUtils from './StringUtils';
 import * as TransactionUtils from './TransactionUtils';
 import * as Url from './Url';
-import type * as UserUtils from './UserUtils';
+import type {AvatarSource} from './UserUtils';
+import * as UserUtils from './UserUtils';
 
 type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18;
 
@@ -117,7 +118,7 @@ type SpendBreakdown = {
     totalDisplaySpend: number;
 };
 
-type ParticipantDetails = [number, string, UserUtils.AvatarSource, UserUtils.AvatarSource];
+type ParticipantDetails = [number, string, AvatarSource, AvatarSource];
 
 type OptimisticAddCommentReportAction = Pick<
     ReportAction,
@@ -507,7 +508,7 @@ Onyx.connect({
     },
 });
 
-let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
+let allPersonalDetails: OnyxCollection<PersonalDetails>;
 let allPersonalDetailLogins: string[];
 let currentUserPersonalDetails: OnyxEntry<PersonalDetails>;
 Onyx.connect({
@@ -587,7 +588,7 @@ function getLastUpdatedReport(): OnyxEntry<Report> {
     return lastUpdatedReport;
 }
 
-function getCurrentUserAvatar(): UserUtils.AvatarSource | undefined {
+function getCurrentUserAvatar(): AvatarSource | undefined {
     return currentUserPersonalDetails?.avatar;
 }
 
@@ -1651,7 +1652,7 @@ function getReportRecipientAccountIDs(report: OnyxEntry<Report>, currentLoginAcc
 /**
  * Whether the time row should be shown for a report.
  */
-function canShowReportRecipientLocalTime(personalDetails: OnyxEntry<PersonalDetailsList>, report: OnyxEntry<Report>, accountID: number): boolean {
+function canShowReportRecipientLocalTime(personalDetails: OnyxCollection<PersonalDetails>, report: OnyxEntry<Report>, accountID: number): boolean {
     const reportRecipientAccountIDs = getReportRecipientAccountIDs(report, accountID);
     const hasMultipleParticipants = reportRecipientAccountIDs.length > 1;
     const reportRecipient = personalDetails?.[reportRecipientAccountIDs[0]];
@@ -1714,7 +1715,7 @@ function getDefaultWorkspaceAvatarTestID(workspaceName: string): string {
     return !alphaNumeric ? defaultAvatarBuildingIconTestID : `SvgDefaultAvatar_${alphaNumeric[0]} Icon`;
 }
 
-function getWorkspaceAvatar(report: OnyxEntry<Report>): UserUtils.AvatarSource {
+function getWorkspaceAvatar(report: OnyxEntry<Report>): AvatarSource {
     const workspaceName = getPolicyName(report, false, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]);
     const avatar = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.avatarURL ?? '';
     return !isEmpty(avatar) ? avatar : getDefaultWorkspaceAvatar(workspaceName);
@@ -1735,7 +1736,7 @@ function getDefaultGroupAvatar(reportID?: string): IconAsset {
  * Returns the appropriate icons for the given chat report using the stored personalDetails.
  * The Avatar sources can be URLs or Icon components according to the chat type.
  */
-function getIconsForParticipants(participants: number[], personalDetails: OnyxEntry<PersonalDetailsList>): Icon[] {
+function getIconsForParticipants(participants: number[], personalDetails: OnyxCollection<PersonalDetails>): Icon[] {
     const participantDetails: ParticipantDetails[] = [];
     const participantsList = participants || [];
 
@@ -1920,8 +1921,8 @@ function getParticipants(reportID: string) {
  */
 function getIcons(
     report: OnyxEntry<Report>,
-    personalDetails: OnyxEntry<PersonalDetailsList>,
-    defaultIcon: UserUtils.AvatarSource | null = null,
+    personalDetails: OnyxCollection<PersonalDetails>,
+    defaultIcon: AvatarSource | null = null,
     defaultName = '',
     defaultAccountID = -1,
     policy: OnyxEntry<Policy> = null,
@@ -3216,16 +3217,16 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
         formattedName = getMoneyRequestReportName(report, policy);
     }
 
+    if (isInvoiceRoom(report)) {
+        formattedName = getInvoicesChatName(report);
+    }
+
     if (isArchivedRoom(report)) {
         formattedName += ` (${Localize.translateLocal('common.archived')})`;
     }
 
     if (isSelfDM(report)) {
         formattedName = getDisplayNameForParticipant(currentUserAccountID, undefined, undefined, true);
-    }
-
-    if (isInvoiceRoom(report)) {
-        formattedName = getInvoicesChatName(report);
     }
 
     if (formattedName) {
@@ -3306,7 +3307,15 @@ function getParentNavigationSubtitle(report: OnyxEntry<Report>): ParentNavigatio
     }
 
     if (isInvoiceReport(report) || isInvoiceRoom(parentReport)) {
-        return {reportName: `${getPolicyName(parentReport)} & ${getInvoicePayerName(parentReport)}`};
+        let reportName = `${getPolicyName(parentReport)} & ${getInvoicePayerName(parentReport)}`;
+
+        if (isArchivedRoom(parentReport)) {
+            reportName += ` (${Localize.translateLocal('common.archived')})`;
+        }
+
+        return {
+            reportName,
+        };
     }
 
     return {
@@ -4147,6 +4156,45 @@ function buildOptimisticReportPreview(chatReport: OnyxEntry<Report>, iouReport: 
         childMoneyRequestCount: 1,
         childLastMoneyRequestComment: comment,
         childRecentReceiptTransactionIDs: hasReceipt && !isEmptyObject(transaction) ? {[transaction?.transactionID ?? '']: created} : undefined,
+    };
+}
+
+/**
+ * Builds an optimistic ACTIONABLETRACKEXPENSEWHISPER action with a randomly generated reportActionID.
+ */
+function buildOptimisticActionableTrackExpenseWhisper(iouAction: OptimisticIOUReportAction, transactionID: string): ReportAction {
+    const currentTime = DateUtils.getDBTime();
+    const targetEmail = CONST.EMAIL.CONCIERGE;
+    const actorAccountID = PersonalDetailsUtils.getAccountIDsByLogins([targetEmail])[0];
+    const reportActionID = NumberUtils.rand64();
+    return {
+        actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER,
+        actorAccountID,
+        avatar: UserUtils.getDefaultAvatarURL(actorAccountID),
+        created: DateUtils.addMillisecondsFromDateTime(currentTime, 1),
+        lastModified: DateUtils.addMillisecondsFromDateTime(currentTime, 1),
+        message: [
+            {
+                html: CONST.ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE,
+                text: CONST.ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE,
+                whisperedTo: [],
+                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+            },
+        ],
+        originalMessage: {
+            lastModified: DateUtils.addMillisecondsFromDateTime(currentTime, 1),
+            transactionID,
+        },
+        person: [
+            {
+                text: CONST.DISPLAY_NAME.EXPENSIFY_CONCIERGE,
+                type: 'TEXT',
+            },
+        ],
+        previousReportActionID: iouAction?.reportActionID,
+        reportActionID,
+        shouldShow: true,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
     };
 }
 
@@ -5630,28 +5678,25 @@ function temporary_getMoneyRequestOptions(
  * Invoice sender, invoice receiver and auto-invited admins cannot leave
  */
 function canLeaveInvoiceRoom(report: OnyxEntry<Report>): boolean {
-    if (!isInvoiceRoom(report)) {
+    if (!report || !report?.invoiceReceiver) {
         return false;
     }
 
-    const invoiceReport = getReport(report?.iouReportID ?? '');
-
-    if (invoiceReport?.ownerAccountID === currentUserAccountID) {
+    if (report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED) {
         return false;
     }
 
-    if (invoiceReport?.managerID === currentUserAccountID) {
-        return false;
-    }
-
-    const isSenderPolicyAdmin = getPolicy(report?.policyID)?.role === CONST.POLICY.ROLE.ADMIN;
+    const isSenderPolicyAdmin = getPolicy(report.policyID)?.role === CONST.POLICY.ROLE.ADMIN;
 
     if (isSenderPolicyAdmin) {
         return false;
     }
 
-    const isReceiverPolicyAdmin =
-        report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS ? getPolicy(report?.invoiceReceiver?.policyID)?.role === CONST.POLICY.ROLE.ADMIN : false;
+    if (report.invoiceReceiver.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
+        return report?.invoiceReceiver?.accountID !== currentUserAccountID;
+    }
+
+    const isReceiverPolicyAdmin = getPolicy(report.invoiceReceiver.policyID)?.role === CONST.POLICY.ROLE.ADMIN;
 
     if (isReceiverPolicyAdmin) {
         return false;
@@ -5675,6 +5720,10 @@ function canLeaveInvoiceRoom(report: OnyxEntry<Report>): boolean {
  */
 function canLeaveRoom(report: OnyxEntry<Report>, isPolicyEmployee: boolean): boolean {
     if (isInvoiceRoom(report)) {
+        if (isArchivedRoom(report)) {
+            return false;
+        }
+
         const invoiceReport = getReport(report?.iouReportID ?? '');
 
         if (invoiceReport?.ownerAccountID === currentUserAccountID) {
@@ -6595,8 +6644,8 @@ function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boo
         return false;
     }
 
-    if (canLeaveInvoiceRoom(report)) {
-        return true;
+    if (isInvoiceRoom(report)) {
+        return canLeaveInvoiceRoom(report);
     }
 
     return (isChatThread(report) && !!report?.notificationPreference?.length) || isUserCreatedPolicyRoom(report) || isNonAdminOrOwnerOfPolicyExpenseChat(report, policy);
@@ -6738,6 +6787,7 @@ export {
     buildOptimisticMovedTrackedExpenseModifiedReportAction,
     buildOptimisticRenamedRoomReportAction,
     buildOptimisticReportPreview,
+    buildOptimisticActionableTrackExpenseWhisper,
     buildOptimisticSubmittedReportAction,
     buildOptimisticTaskCommentReportAction,
     buildOptimisticTaskReport,
@@ -6893,6 +6943,7 @@ export {
     isDM,
     isDefaultRoom,
     isDeprecatedGroupDM,
+    isEmptyReport,
     isRootGroupChat,
     isExpenseReport,
     isExpenseRequest,

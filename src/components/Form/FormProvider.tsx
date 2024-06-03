@@ -74,9 +74,6 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProvider
 
         /** Whether to apply flex to the submit button */
         submitFlexEnabled?: boolean;
-
-        /** Whether the form container should grow or adapt to the viewable available space */
-        shouldContainerGrow?: boolean;
     };
 
 function FormProvider(
