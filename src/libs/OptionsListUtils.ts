@@ -521,10 +521,13 @@ function getSearchText(
 function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): OnyxCommon.Errors {
     const reportErrors = report?.errors ?? {};
     const reportErrorFields = report?.errorFields ?? {};
-    const reportActionErrors: OnyxCommon.ErrorFields = Object.values(reportActions ?? {}).reduce(
-        (prevReportActionErrors, action) => (!action || isEmptyObject(action.errors) ? prevReportActionErrors : {...prevReportActionErrors, ...action.errors}),
-        {},
-    );
+    const reportActionErrors: OnyxCommon.ErrorFields = Object.values(reportActions ?? {}).reduce((prevReportActionErrors, action) => {
+        if (!action || isEmptyObject(action.errors)) {
+            return prevReportActionErrors;
+        }
+
+        return Object.assign(prevReportActionErrors, action.errors);
+    }, {});
     const parentReportAction: OnyxEntry<ReportAction> =
         !report?.parentReportID || !report?.parentReportActionID ? undefined : allReportActions?.[report.parentReportID ?? '']?.[report.parentReportActionID ?? ''];
 
@@ -548,7 +551,13 @@ function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<
         ...reportActionErrors,
     };
     // Combine all error messages keyed by microtime into one object
-    const allReportErrors = Object.values(errorSources)?.reduce((prevReportErrors, errors) => (isEmptyObject(errors) ? prevReportErrors : {...prevReportErrors, ...errors}), {});
+    const allReportErrors = Object.values(errorSources)?.reduce((prevReportErrors, errors) => {
+        if (isEmptyObject(errors)) {
+            return prevReportErrors;
+        }
+
+        return Object.assign(prevReportErrors, errors);
+    }, {});
 
     return allReportErrors;
 }
