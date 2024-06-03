@@ -44,7 +44,6 @@ import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutsi
 import type {ComposerRef, SuggestionsRef} from '@pages/home/report/ReportActionCompose/ReportActionCompose';
 import SilentCommentUpdater from '@pages/home/report/ReportActionCompose/SilentCommentUpdater';
 import Suggestions from '@pages/home/report/ReportActionCompose/Suggestions';
-import variables from '@styles/variables';
 import * as EmojiPickerActions from '@userActions/EmojiPickerAction';
 import * as InputFocus from '@userActions/InputFocus';
 import * as Report from '@userActions/Report';
@@ -504,7 +503,9 @@ function ComposerWithSuggestions(
      */
     const replaceSelectionWithText = useCallback(
         (text: string) => {
-            updateComment(ComposerUtils.insertText(commentRef.current, selection, text));
+            // selection replacement should be debounced to avoid conflicts with text typing
+            // (f.e. when emoji is being picked and 1 second still did not pass after user finished typing)
+            updateComment(ComposerUtils.insertText(commentRef.current, selection, text), true);
         },
         [selection, updateComment],
     );
@@ -732,11 +733,6 @@ function ComposerWithSuggestions(
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const isOnlyEmojiLineHeight = useMemo(() => {
-        const isOnlyEmoji = EmojiUtils.containsOnlyEmojis(value);
-        return isOnlyEmoji ? {lineHeight: variables.fontSizeOnlyEmojisHeight} : {};
-    }, [value]);
-
     return (
         <>
             <View style={[StyleUtils.getContainerComposeStyles(), styles.textInputComposeBorder]}>
@@ -750,7 +746,7 @@ function ComposerWithSuggestions(
                     onChangeText={onChangeText}
                     onKeyPress={triggerHotkeyActions}
                     textAlignVertical="top"
-                    style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.textInputCollapseCompose, isOnlyEmojiLineHeight]}
+                    style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.textInputCollapseCompose]}
                     maxLines={maxComposerLines}
                     onFocus={onFocus}
                     onBlur={onBlur}

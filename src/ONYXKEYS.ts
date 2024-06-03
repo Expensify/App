@@ -133,9 +133,6 @@ const ONYXKEYS = {
     /** This NVP holds to most recent waypoints that a person has used when creating a distance expense */
     NVP_RECENT_WAYPOINTS: 'expensify_recentWaypoints',
 
-    /** This NVP will be `true` if the user has ever dismissed the engagement modal on either OldDot or NewDot. If it becomes true it should stay true forever. */
-    NVP_HAS_DISMISSED_IDLE_PANEL: 'nvp_hasDismissedIdlePanel',
-
     /** This NVP contains the choice that the user made on the engagement modal */
     NVP_INTRO_SELECTED: 'nvp_introSelected',
 
@@ -589,7 +586,10 @@ type OnyxValuesMapping = {
     [ONYXKEYS.ACCOUNT]: OnyxTypes.Account;
     [ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID]: string;
     [ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER]: boolean;
+
+    // NVP_ONBOARDING is an array for old users.
     [ONYXKEYS.NVP_ONBOARDING]: Onboarding | [];
+
     [ONYXKEYS.ACTIVE_CLIENTS]: string[];
     [ONYXKEYS.DEVICE_ID]: string;
     [ONYXKEYS.IS_SIDEBAR_LOADED]: boolean;
@@ -628,7 +628,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.FOCUS_MODE_NOTIFICATION]: boolean;
     [ONYXKEYS.NVP_LAST_PAYMENT_METHOD]: OnyxTypes.LastPaymentMethod;
     [ONYXKEYS.NVP_RECENT_WAYPOINTS]: OnyxTypes.RecentWaypoint[];
-    [ONYXKEYS.NVP_HAS_DISMISSED_IDLE_PANEL]: boolean;
     [ONYXKEYS.NVP_INTRO_SELECTED]: OnyxTypes.IntroSelected;
     [ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES]: OnyxTypes.LastSelectedDistanceRates;
     [ONYXKEYS.PUSH_NOTIFICATIONS_ENABLED]: boolean;

@@ -63,6 +63,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CachedPDFPaths from './CachedPDFPaths';
 import * as Category from './Policy/Category';
 import * as Policy from './Policy/Policy';
+import * as Tag from './Policy/Tag';
 import * as Report from './Report';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
@@ -95,6 +96,7 @@ type TrackExpenseInformation = {
     reportPreviewAction?: OnyxTypes.ReportAction;
     transactionThreadReportID: string;
     createdReportActionIDForThread: string;
+    actionableWhisperReportActionIDParam?: string;
     onyxData: OnyxData;
 };
 
@@ -1166,6 +1168,7 @@ function buildOnyxDataForTrackExpense(
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
     existingTransactionThreadReportID?: string,
+    actionableTrackExpenseWhisper?: OnyxEntry<OnyxTypes.ReportAction>,
 ): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
     const isScanRequest = TransactionUtils.isScanRequest(transaction);
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
@@ -1205,6 +1208,36 @@ function buildOnyxDataForTrackExpense(
                 },
             },
         );
+
+        if (actionableTrackExpenseWhisper && !iouReport) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
+                value: {
+                    [actionableTrackExpenseWhisper.reportActionID]: actionableTrackExpenseWhisper,
+                },
+            });
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+                value: {
+                    lastVisibleActionCreated: actionableTrackExpenseWhisper.created,
+                    lastMessageText: CONST.ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE,
+                },
+            });
+            successData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
+                value: {
+                    [actionableTrackExpenseWhisper.reportActionID]: {pendingAction: null, errors: null},
+                },
+            });
+            failureData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
+                value: {[actionableTrackExpenseWhisper.reportActionID]: {} as ReportAction},
+            });
+        }
     }
 
     if (iouReport) {
@@ -1372,7 +1405,7 @@ function buildOnyxDataForTrackExpense(
     failureData.push({
         onyxMethod: Onyx.METHOD.SET,
         key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
-        value: quickAction ?? null,
+        value: quickAction,
     });
 
     if (iouReport) {
@@ -1609,7 +1642,7 @@ function getDeleteTrackExpenseInformation(
         failureData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: transaction ?? null,
+            value: transaction,
         });
     }
 
@@ -1617,7 +1650,7 @@ function getDeleteTrackExpenseInformation(
         failureData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-            value: transactionViolations ?? null,
+            value: transactionViolations,
         });
     }
 
@@ -1692,7 +1725,7 @@ function getSendInvoiceInformation(
     let chatReport = !isEmptyObject(invoiceChatReport) && invoiceChatReport?.reportID ? invoiceChatReport : null;
 
     if (!chatReport) {
-        chatReport = ReportUtils.getInvoiceChatByParticipants(senderWorkspaceID, receiverAccountID) ?? null;
+        chatReport = ReportUtils.getInvoiceChatByParticipants(senderWorkspaceID, receiverAccountID);
     }
 
     if (!chatReport) {
@@ -1731,7 +1764,7 @@ function getSendInvoiceInformation(
     );
 
     const optimisticPolicyRecentlyUsedCategories = Category.buildOptimisticPolicyRecentlyUsedCategories(optimisticInvoiceReport.policyID, category);
-    const optimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(optimisticInvoiceReport.policyID, tag);
+    const optimisticPolicyRecentlyUsedTags = Tag.buildOptimisticPolicyRecentlyUsedTags(optimisticInvoiceReport.policyID, tag);
 
     // STEP 4: Add optimistic personal details for participant
     const shouldCreateOptimisticPersonalDetails = isNewChatReport && !allPersonalDetails[receiverAccountID];
@@ -1845,7 +1878,7 @@ function getMoneyRequestInformation(
     }
 
     if (!chatReport) {
-        chatReport = ReportUtils.getChatByParticipants([payerAccountID, payeeAccountID]) ?? null;
+        chatReport = ReportUtils.getChatByParticipants([payerAccountID, payeeAccountID]);
     }
 
     // If we still don't have a report, it likely doens't exist and we need to build an optimistic one
@@ -1909,7 +1942,7 @@ function getMoneyRequestInformation(
     );
 
     const optimisticPolicyRecentlyUsedCategories = Category.buildOptimisticPolicyRecentlyUsedCategories(iouReport.policyID, category);
-    const optimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(iouReport.policyID, tag);
+    const optimisticPolicyRecentlyUsedTags = Tag.buildOptimisticPolicyRecentlyUsedTags(iouReport.policyID, tag);
 
     // If there is an existing transaction (which is the case for distance requests), then the data from the existing transaction
     // needs to be manually merged into the optimistic transaction. This is because buildOnyxDataForMoneyRequest() uses `Onyx.set()` for the transaction
@@ -2186,6 +2219,11 @@ function getTrackExpenseInformation(
         }
     }
 
+    let actionableTrackExpenseWhisper: OnyxEntry<OnyxTypes.ReportAction> = null;
+    if (!isPolicyExpenseChat) {
+        actionableTrackExpenseWhisper = ReportUtils.buildOptimisticActionableTrackExpenseWhisper(iouAction, optimisticTransaction.transactionID);
+    }
+
     // STEP 5: Build Onyx Data
     const trackExpenseOnyxData = buildOnyxDataForTrackExpense(
         chatReport,
@@ -2200,6 +2238,8 @@ function getTrackExpenseInformation(
         policy,
         policyTagList,
         policyCategories,
+        undefined,
+        actionableTrackExpenseWhisper,
     );
 
     return {
@@ -2213,6 +2253,7 @@ function getTrackExpenseInformation(
         reportPreviewAction: reportPreviewAction ?? undefined,
         transactionThreadReportID: optimisticTransactionThread.reportID,
         createdReportActionIDForThread: optimisticCreatedActionForTransactionThread.reportActionID,
+        actionableWhisperReportActionIDParam: actionableTrackExpenseWhisper?.reportActionID ?? '',
         onyxData: {
             optimisticData: [...optimisticData, ...trackExpenseOnyxData[0]],
             successData: [...successData, ...trackExpenseOnyxData[1]],
@@ -2586,7 +2627,7 @@ function getUpdateMoneyRequestParams(
 
     // Update recently used categories if the tag is changed
     if ('tag' in transactionChanges) {
-        const optimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(iouReport?.policyID, transactionChanges.tag);
+        const optimisticPolicyRecentlyUsedTags = Tag.buildOptimisticPolicyRecentlyUsedTags(iouReport?.policyID, transactionChanges.tag);
         if (!isEmptyObject(optimisticPolicyRecentlyUsedTags)) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -3556,6 +3597,7 @@ function trackExpense(
         reportPreviewAction,
         transactionThreadReportID,
         createdReportActionIDForThread,
+        actionableWhisperReportActionIDParam,
         onyxData,
     } = getTrackExpenseInformation(
         currentChatReport,
@@ -3672,7 +3714,9 @@ function trackExpense(
                 createdReportActionIDForThread,
                 waypoints: validWaypoints ? JSON.stringify(validWaypoints) : undefined,
             };
-
+            if (actionableWhisperReportActionIDParam) {
+                parameters.actionableWhisperReportActionID = actionableWhisperReportActionIDParam;
+            }
             API.write(WRITE_COMMANDS.TRACK_EXPENSE, parameters, onyxData);
         }
     }
@@ -4063,7 +4107,7 @@ function createSplitsAndOnyxData(
         const optimisticPolicyRecentlyUsedCategories = isPolicyExpenseChat ? Category.buildOptimisticPolicyRecentlyUsedCategories(participant.policyID, category) : [];
 
         // Add tag to optimistic policy recently used tags when a participant is a workspace
-        const optimisticPolicyRecentlyUsedTags = isPolicyExpenseChat ? Policy.buildOptimisticPolicyRecentlyUsedTags(participant.policyID, tag) : {};
+        const optimisticPolicyRecentlyUsedTags = isPolicyExpenseChat ? Tag.buildOptimisticPolicyRecentlyUsedTags(participant.policyID, tag) : {};
 
         // STEP 5: Build Onyx Data
         const [oneOnOneOptimisticData, oneOnOneSuccessData, oneOnOneFailureData] = buildOnyxDataForMoneyRequest(
@@ -4535,7 +4579,7 @@ function startSplitBill({
         }
 
         const optimisticPolicyRecentlyUsedCategories = Category.buildOptimisticPolicyRecentlyUsedCategories(participant.policyID, category);
-        const optimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(participant.policyID, tag);
+        const optimisticPolicyRecentlyUsedTags = Tag.buildOptimisticPolicyRecentlyUsedTags(participant.policyID, tag);
 
         if (optimisticPolicyRecentlyUsedCategories.length > 0) {
             optimisticData.push({
@@ -4972,7 +5016,7 @@ function editRegularMoneyRequest(
 
     // Update recently used categories if the tag is changed
     if ('tag' in transactionChanges) {
-        const optimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(iouReport?.policyID, transactionChanges.tag);
+        const optimisticPolicyRecentlyUsedTags = Tag.buildOptimisticPolicyRecentlyUsedTags(iouReport?.policyID, transactionChanges.tag);
         if (!isEmptyObject(optimisticPolicyRecentlyUsedTags)) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -5357,7 +5401,7 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: transaction ?? null,
+            value: transaction,
         },
     ];
 
@@ -5365,7 +5409,7 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
         failureData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-            value: transactionViolations ?? null,
+            value: transactionViolations,
         });
     }
 
@@ -6463,7 +6507,7 @@ function detachReceipt(transactionID: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
-                ...(transaction ?? null),
+                ...transaction,
                 errors: ErrorUtils.getMicroSecondOnyxError('iou.error.receiptDeleteFailureError'),
             },
         },
@@ -6574,28 +6618,24 @@ function setSplitShares(transaction: OnyxEntry<OnyxTypes.Transaction>, amount: n
     // If this is called from an existing group chat, it'll be included. So we manually add them to account for both cases.
     const accountIDs = [...new Set<number>([userAccountID, ...newAccountIDs, ...oldAccountIDs])];
 
-    const splitShares: SplitShares = accountIDs.reduce((result: SplitShares, accountID): SplitShares => {
+    const splitShares: SplitShares = accountIDs.reduce((acc: SplitShares, accountID): SplitShares => {
         // We want to replace the contents of splitShares to contain only `newAccountIDs` entries
         // In the case of going back to the participants page and removing a participant
         // a simple merge will have the previous participant still present in the splitshares object
         // So we manually set their entry to null
         if (!newAccountIDs.includes(accountID) && accountID !== userAccountID) {
-            return {
-                ...result,
-                [accountID]: null,
-            };
+            acc[accountID] = null;
+            return acc;
         }
 
         const isPayer = accountID === userAccountID;
         const participantsLength = newAccountIDs.includes(userAccountID) ? newAccountIDs.length - 1 : newAccountIDs.length;
         const splitAmount = IOUUtils.calculateAmount(participantsLength, amount, currency, isPayer);
-        return {
-            ...result,
-            [accountID]: {
-                amount: splitAmount,
-                isModified: false,
-            },
+        acc[accountID] = {
+            amount: splitAmount,
+            isModified: false,
         };
+        return acc;
     }, {});
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, {splitShares});
@@ -6647,14 +6687,12 @@ function adjustRemainingSplitShares(transaction: NonNullable<OnyxTypes.Transacti
         return;
     }
 
-    const splitShares: SplitShares = unmodifiedSharesAccountIDs.reduce((result: SplitShares, accountID: number, index: number): SplitShares => {
+    const splitShares: SplitShares = unmodifiedSharesAccountIDs.reduce((acc: SplitShares, accountID: number, index: number): SplitShares => {
         const splitAmount = IOUUtils.calculateAmount(unmodifiedSharesAccountIDs.length - 1, remainingTotal, transaction.currency, index === 0);
-        return {
-            ...result,
-            [accountID]: {
-                amount: splitAmount,
-            },
+        acc[accountID] = {
+            amount: splitAmount,
         };
+        return acc;
     }, {});
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, {splitShares});
