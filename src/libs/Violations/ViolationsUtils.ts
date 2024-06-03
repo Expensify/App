@@ -7,7 +7,7 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyCategories, PolicyTagList, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {PolicyCategories, PolicyTagList, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
 
 /**
  * Calculates tag out of policy and missing tag violations for the given transaction
@@ -52,15 +52,29 @@ function getTagViolationsForSingleLevelTags(
  * Calculates missing tag violations for policies with dependent tags,
  * by returning one per tag with its corresponding tagName in the data
  */
-function getTagViolationsForDependentTags(policyTagList: PolicyTagList, transactionViolations: TransactionViolation[]) {
-    return [
-        ...transactionViolations,
-        ...Object.values(policyTagList).map((tagList) => ({
-            name: CONST.VIOLATIONS.MISSING_TAG,
-            type: CONST.VIOLATION_TYPES.VIOLATION,
-            data: {tagName: tagList.name},
-        })),
-    ];
+function getTagViolationsForDependentTags(policyTagList: PolicyTagList, transactionViolations: TransactionViolation[], tagName: string | undefined) {
+    const tagViolations = [...transactionViolations];
+
+    if (!tagName) {
+        Object.values(policyTagList).forEach((tagList) =>
+            tagViolations.push({
+                name: CONST.VIOLATIONS.MISSING_TAG,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                data: {tagName: tagList.name},
+            }),
+        );
+    } else {
+        const tags = TransactionUtils.getTagArrayFromName(tagName);
+        if (Object.keys(policyTagList).length !== tags.length || tags.includes('')) {
+            tagViolations.push({
+                name: CONST.VIOLATIONS.ALL_TAG_LEVELS_REQUIRED,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                data: undefined,
+            });
+        }
+    }
+
+    return tagViolations;
 }
 
 /**
@@ -135,11 +149,13 @@ function getTagViolationsForMultiLevelTags(
 ): TransactionViolation[] {
     const filteredTransactionViolations = transactionViolations.filter(
         (violation) =>
-            violation.name !== CONST.VIOLATIONS.SOME_TAG_LEVELS_REQUIRED && violation.name !== CONST.VIOLATIONS.TAG_OUT_OF_POLICY && violation.name !== CONST.VIOLATIONS.MISSING_TAG,
+            !(
+                [CONST.VIOLATIONS.SOME_TAG_LEVELS_REQUIRED, CONST.VIOLATIONS.TAG_OUT_OF_POLICY, CONST.VIOLATIONS.MISSING_TAG, CONST.VIOLATIONS.ALL_TAG_LEVELS_REQUIRED] as ViolationName[]
+            ).includes(violation.name),
     );
 
-    if (hasDependentTags && !updatedTransaction.tag) {
-        return getTagViolationsForDependentTags(policyTagList, filteredTransactionViolations);
+    if (hasDependentTags) {
+        return getTagViolationsForDependentTags(policyTagList, filteredTransactionViolations, updatedTransaction.tag);
     }
 
     return getTagViolationForIndependentTags(policyTagList, filteredTransactionViolations, updatedTransaction);
