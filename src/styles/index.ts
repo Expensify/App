@@ -3481,6 +3481,7 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeNormal,
             lineHeight: variables.fontSizeNormalHeight,
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
+            flex: 1,
         },
 
         searchPressable: {
@@ -3506,6 +3507,10 @@ const styles = (theme: ThemeColors) =>
             color: theme.textSupporting,
             fontSize: 13,
             lineHeight: 16,
+        },
+
+        searchTableHeaderActive: {
+            fontWeight: 'bold',
         },
 
         threeDotsPopoverOffset: (windowWidth: number) =>
@@ -4417,6 +4422,7 @@ const styles = (theme: ThemeColors) =>
             borderWidth: variables.componentBorderWidth,
             borderColor: theme.appBG,
         },
+        currentPositionDot: {backgroundColor: colors.blue400, width: 16, height: 16, borderRadius: 16},
 
         mapViewOverlay: {
             flex: 1,

@@ -119,6 +119,7 @@ export default {
         to: 'A',
         optional: 'Opcional',
         new: 'Nuevo',
+        center: 'Centrar',
         search: 'Buscar',
         find: 'Encontrar',
         searchWithThreeDots: 'Buscar...',
@@ -400,7 +401,6 @@ export default {
     },
     moneyRequestConfirmationList: {
         paidBy: 'Pagado por',
-        splitAmounts: 'Importes a dividir',
         whatsItFor: '¿Para qué es?',
     },
     selectionList: {
@@ -513,6 +513,7 @@ export default {
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' y ',
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' empieza aquí! 🎉 Este es el lugar donde chatear y presentar o pagar gastos.',
         beginningOfChatHistorySelfDM: 'Este es tu espacio personal. Úsalo para notas, tareas, borradores y recordatorios.',
+        beginningOfChatHistorySystemDM: '¡Bienvenido! Vamos a configurar tu cuenta.',
         chatWithAccountManager: 'Chatea con tu gestor de cuenta aquí',
         sayHello: '¡Saluda!',
         yourSpace: 'Tu espacio',
@@ -942,6 +943,7 @@ export default {
             noLogsAvailable: 'No hay registros disponibles',
             logSizeTooLarge: ({size}: LogSizeParams) => `El tamaño del registro excede el límite de ${size} MB. Utilice "Guardar registro" para descargar el archivo de registro.`,
             logs: 'Logs',
+            viewConsole: 'Ver consola',
         },
         security: 'Seguridad',
         restoreStashed: 'Restablecer login guardado',
@@ -1948,6 +1950,7 @@ export default {
             distanceRates: 'Tasas de distancia',
             welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
                 `¡Has sido invitado a ${workspaceName}! Descargue la aplicación móvil Expensify en use.expensify.com/download para comenzar a rastrear sus gastos.`,
+            subscription: 'Suscripción',
         },
         qbo: {
             importDescription: 'Elige que configuraciónes de codificación son importadas desde QuickBooks Online a Expensify.',
@@ -1964,7 +1967,7 @@ export default {
             taxesJournalEntrySwitchNote:
                 'Nota: QuickBooks Online no admite un campo para impuestos al exportar entradas en el libro diario. Cambia tu preferencia de exportación a Factura de Proveedor o Cheque para importar impuestos.',
             locationsAdditionalDescription:
-                'Los lugares son importados como Etiquegas. Esto limita a exportar los informes de gastos como Factura del Proveedor o Cheques a Quicbooks Online. Para desbloquear estas opciones de exportación desactiva la importación de Lugares o cambia al Plan Control para exportar Lugares como Campos de Informes.',
+                'QuickBooks Online no permite añadir una ubicación a las facturas de proveedores o a los cheques. Actualice su preferencia de exportación a asiento contable si desea importar ubicaciones como etiquetas.',
             export: 'Exportar',
             exportAs: 'Exportar cómo',
             exportExpenses: 'Exportar gastos de bolsillo como',
@@ -1999,11 +2002,14 @@ export default {
             exportInvoicesDescription: 'Las facturas se exportarán a esta cuenta en QuickBooks Online.',
             exportCompanyCardsDescription: 'Establece cómo se exportan las compras con tarjeta de empresa a QuickBooks Online.',
             account: 'Cuenta',
+            accountDescription: 'Esta es la cuenta elegida para contabilizar la compensación de la entrada de diario de cada informe.',
             vendor: 'Proveedor',
             defaultVendor: 'Proveedor predeterminado',
             defaultVendorDescription: 'Establece un proveedor predeterminado que se aplicará a todas las transacciones con tarjeta de crédito al momento de exportarlas.',
             accountsPayable: 'Cuentas por pagar',
             accountsPayableDescription: 'Esta es la cuenta de cuentas por pagar elegida, contra la cual se crean las facturas de proveedores para cada informe.',
+            bankAccount: 'Cuenta bancaria',
+            bankAccountDescription: 'Esta es la cuenta bancaria elegida para emitir cheques.',
             optionBelow: 'Elija una opción a continuación:',
             companyCardsLocationEnabledDescription:
                 'Nota: QuickBooks Online no admite un campo para Ubicaciones como etiquetas en las exportaciones de facturas de proveedores. A medida que importa ubicaciones, esta opción de exportación no está disponible.',
@@ -2011,6 +2017,9 @@ export default {
                 'Puede ser cualquier administrador del espacio de trabajo, pero debe ser un administrador de dominio si configura diferentes cuentas de exportación para tarjetas de empresa individuales en la configuración del dominio.',
             exportPreferredExporterSubNote: 'Una vez configurado, el exportador preferido verá los informes para exportar en tu cuenta.',
             exportOutOfPocketExpensesDescription: 'Establezca cómo se exportan los gastos de bolsillo a QuickBooks Online.',
+            exportCheckDescription: 'Crearemos un único cheque desglosado para cada informe de Expensify. Puedes emitir el cheque desde la cuenta bancaria que elijas (más abajo).',
+            exportJournalEntryDescription:
+                'Crearemos una única entrada de diario desglosada para cada informe de Expensify. Puedes enviar la compensación de la entrada de diario a la cuenta que elijas (más abajo).',
             exportVendorBillDescription:
                 'Crearemos una única factura de proveedor detallada para cada informe de Expensify. Si el período de la factura está cerrado, lo publicaremos en el día 1 del siguiente período abierto. Puede agregar la factura del proveedor a la cuenta A/P de tu elección (a continuación).',
             outOfPocketTaxEnabledDescription:
@@ -2018,7 +2027,7 @@ export default {
             outOfPocketTaxEnabledError: 'La Anotacion en el diario no está disponible cuando los impuestos están activados. Por favor, selecciona una opción de exportación diferente.',
             outOfPocketLocationEnabledError: 'Las facturas de proveedores no están disponibles cuando las ubicaciones están activadas. Seleccione otra opción de exportación.',
             outOfPocketLocationEnabledDescription:
-                'Nota: QuickBooks Online no admite un campo para Ubicaciones como Etiquetas en las exportaciones de Facturas de Proveedor. Al importar Ubicaciones como Etiquetas, esta opción de exportación no está disponible.',
+                'Nota: QuickBooks Online no permite añadir una ubicación a las facturas de proveedores o a los cheques. Al importar ubicaciones como etiquetas, esta opción de exportación no está disponible.',
 
             advancedConfig: {
                 advanced: 'Avanzado',
@@ -2066,6 +2075,8 @@ export default {
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY}Error`]:
                     'El asiento de diario no está disponible cuando los impuestos están habilitados. seleccione una opción de exportación diferente.',
             },
+            noAccountsFound: 'No se ha encontrado ninguna cuenta',
+            noAccountsFoundDescription: 'Añade la cuenta en Quickbooks Online y sincroniza de nuevo la conexión',
         },
         xero: {
             organization: 'Organización Xero',
@@ -2076,10 +2087,8 @@ export default {
             accountsSwitchDescription: 'Las categorías activas estarán disponibles para ser escogidas cuando se crea un gasto.',
             trackingCategories: 'Categorías de seguimiento',
             trackingCategoriesDescription: 'Elige si deseas importar categorías de seguimiento y ver dónde se muestran.',
-            mapXeroCostCentersTo: 'Asignar centros de coste de Xero a',
-            mapXeroRegionsTo: 'Asignar regiones de Xero a',
-            mapXeroCostCentersToDescription: 'Elige dónde mapear los centros de coste al exportar a Xero.',
-            mapXeroRegionsToDescription: 'Elige dónde asignar las regiones de los empleados al exportar informes de gastos a Xero.',
+            mapTrackingCategoryTo: ({categoryName}) => `Asignar ${categoryName} de Xero a`,
+            mapTrackingCategoryToDescription: ({categoryName}) => `Elige dónde mapear ${categoryName} al exportar a Xero.`,
             customers: 'Volver a facturar a los clientes',
             customersDescription:
                 'Importar contactos de clientes. Los gastos facturables necesitan etiquetas para la exportación. Los gastos llevarán la información del cliente a Xero para las facturas de ventas.',
@@ -2139,15 +2148,19 @@ export default {
                 },
             },
             invoiceStatus: {
+                label: 'Estado de la factura de compra',
+                description: 'Qué estado deben tener las facturas de compra cuando se exportan a Xero.',
                 values: {
-                    [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_PAYMENT]: 'Autorizado',
                     [CONST.XERO_CONFIG.INVOICE_STATUS.DRAFT]: 'Borrador',
-                    [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_APPROVAL]: 'Enviado',
+                    [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_APPROVAL]: 'Pendiente de aprobación',
+                    [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_PAYMENT]: 'Pendiente de pago',
                 },
             },
             exportPreferredExporterNote:
                 'Puede ser cualquier administrador del espacio de trabajo, pero debe ser un administrador de dominio si configura diferentes cuentas de exportación para tarjetas de empresa individuales en la configuración del dominio.',
             exportPreferredExporterSubNote: 'Una vez configurado, el exportador preferido verá los informes para exportar en su cuenta.',
+            noAccountsFound: 'No se ha encontrado ninguna cuenta',
+            noAccountsFoundDescription: 'Añade la cuenta en Xero y sincroniza de nuevo la conexión',
         },
         type: {
             free: 'Gratis',
@@ -2176,6 +2189,7 @@ export default {
             createFailureMessage: 'Se ha producido un error al intentar crear la categoría. Por favor, inténtalo más tarde.',
             addCategory: 'Añadir categoría',
             editCategory: 'Editar categoría',
+            editCategories: 'Editar categorías',
             categoryRequiredError: 'Lo nombre de la categoría es obligatorio.',
             existingCategoryError: 'Ya existe una categoría con este nombre.',
             invalidCategoryName: 'Lo nombre de la categoría es invalido.',
@@ -2221,6 +2235,12 @@ export default {
             connections: {
                 title: 'Contabilidad',
                 subtitle: 'Sincroniza tu plan de cuentas y otras opciones.',
+            },
+            connectionsWarningModal: {
+                featureEnabledTitle: 'No tan rápido...',
+                featureEnabledText: 'Para activar o desactivar esta función, cambia la configuración de importación contable.',
+                disconnectText: 'Desconecta tu conexión contable del espacio de trabajo si deseas desactivar la Contabilidad.',
+                manageSettings: 'Gestionar la configuración',
             },
         },
         reportFields: {
@@ -2277,6 +2297,7 @@ export default {
                 enable: 'Activar tasa',
                 enableMultiple: 'Activar tasas',
             },
+            importedFromAccountingSoftware: 'Impuestos importadas desde',
         },
         emptyWorkspace: {
             title: 'Crea un espacio de trabajo',
@@ -2345,6 +2366,17 @@ export default {
                     }
                 }
             },
+            syncError: (integration?: ConnectionName): string => {
+                switch (integration) {
+                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
+                        return 'No se puede conectar a QuickBooks Online.';
+                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
+                        return 'No se puede conectar a Xero';
+                    default: {
+                        return 'No se ha podido conectar a la integración.';
+                    }
+                }
+            },
             accounts: 'Plan de cuentas',
             taxes: 'Impuestos',
             imported: 'Importado',
@@ -2401,7 +2433,9 @@ export default {
                             return 'Revisando conexión a QuickBooks Online';
                         case 'quickbooksOnlineImportMain':
                             return 'Importando datos desde QuickBooks Online';
-                        case 'startingImport':
+                        case 'startingImportXero':
+                            return 'Importando datos desde Xero';
+                        case 'startingImportQBO':
                             return 'Importando datos desde QuickBooks Online';
                         case 'quickbooksOnlineSyncTitle':
                             return 'Sincronizando datos desde QuickBooks Online';
@@ -3616,5 +3650,24 @@ export default {
     },
     systemMessage: {
         mergedWithCashTransaction: 'encontró un recibo para esta transacción.',
+    },
+    subscription: {
+        subscriptionSize: {
+            title: 'Tamaño de suscripción',
+            yourSize: 'El tamaño de tu suscripción es el número de plazas abiertas que puede ocupar cualquier miembro activo en un mes determinado.',
+            eachMonth:
+                'Cada mes, tu suscripción cubre hasta el número de miembros activos establecido anteriormente. Cada vez que aumentes el tamaño de tu suscripción, iniciarás una nueva suscripción de 12 meses con ese nuevo tamaño.',
+            note: 'Nota: Un miembro activo es cualquiera que haya creado, editado, enviado, aprobado, reembolsado, o exportado datos de gastos vinculados al espacio de trabajo de tu empresa.',
+            confirmDetails: 'Confirma los datos de tu nueva suscripción anual',
+            subscriptionSize: 'Tamaño de suscripción',
+            activeMembers: ({size}) => `${size} miembros activos/mes`,
+            subscriptionRenews: 'Renovación de la suscripción',
+            youCantDowngrade: 'No puedes bajar de categoría durante tu suscripción anual',
+            youAlreadyCommitted: ({size, date}) =>
+                `Ya se ha comprometido a un tamaño de suscripción anual de ${size} miembros activos al mes hasta el ${date}. Puede cambiar a una suscripción de pago por uso en ${date} desactivando la auto-renovación.`,
+            error: {
+                size: 'Por favor ingrese un tamaño de suscripción valido.',
+            },
+        },
     },
 } satisfies EnglishTranslation;
