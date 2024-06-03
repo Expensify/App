@@ -20,7 +20,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Policy from '@userActions/Policy';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -108,7 +108,6 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
                 testID={PolicyDistanceRateDetailsPage.displayName}
                 includeSafeAreaPaddingBottom={false}
                 style={[styles.defaultModalContainer]}
-                shouldShowOfflineIndicatorInWideScreen
             >
                 <HeaderWithBackButton
                     title={`${rateValueToDisplay} / ${translate(`common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`)}`}

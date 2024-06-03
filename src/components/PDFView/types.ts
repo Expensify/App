@@ -1,4 +1,4 @@
-import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 type PDFViewBaseProps = {
@@ -26,8 +26,11 @@ type PDFViewBaseProps = {
     /** Should focus to the password input  */
     isFocused?: boolean;
 
-    /** Styles for the error label */
-    errorLabelStyles?: StyleProp<TextStyle>;
+    /** Callback to call when the PDF fails to load */
+    onLoadError?: () => void;
+
+    /** Whether the PDF is used as a chat attachment */
+    isUsedAsChatAttachment?: boolean;
 };
 
 type PDFViewOnyxProps = {
