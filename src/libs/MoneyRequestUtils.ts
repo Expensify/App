@@ -45,31 +45,15 @@ function addLeadingZero(amount: string): string {
 }
 
 /**
- * Calculate the length of the amount with leading zeroes
- */
-function calculateAmountLength(amount: string): number {
-    const leadingZeroes = amount.match(/^0+/);
-    const leadingZeroesLength = leadingZeroes?.[0]?.length ?? 0;
-    const absAmount = parseFloat((Number(stripCommaFromAmount(amount)) * 100).toFixed(2)).toString();
-
-    // Don't allow the amount if the parsing to number results in NaN, Infinity, or with a scientific notation (e.g., 1e+26)
-    if (/NaN|Infinity|e\+/.test(absAmount)) {
-        return CONST.IOU.AMOUNT_MAX_LENGTH + 1;
-    }
-
-    return leadingZeroesLength + (absAmount === '0' ? 2 : stripDotFromAmount(absAmount).length);
-}
-
-/**
  * Check if amount is a decimal up to 3 digits
  */
 function validateAmount(amount: string, decimals: number, amountMaxLength: number = CONST.IOU.AMOUNT_MAX_LENGTH): boolean {
     const regexString =
         decimals === 0
-            ? `^\\d+(,\\d*)*$` // Don't allow decimal point if decimals === 0
-            : `^\\d+(,\\d*)*(\\.\\d{0,${decimals}})?$`; // Allow the decimal point and the desired number of digits after the point
+            ? `^\\d{1,${amountMaxLength}}$` // Don't allow decimal point if decimals === 0
+            : `^\\d{1,${amountMaxLength}}(\\.\\d{0,${decimals}})?$`; // Allow the decimal point and the desired number of digits after the point
     const decimalNumberRegex = new RegExp(regexString, 'i');
-    return amount === '' || (decimalNumberRegex.test(amount) && calculateAmountLength(amount) <= amountMaxLength);
+    return amount === '' || decimalNumberRegex.test(amount);
 }
 
 /**
