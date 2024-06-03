@@ -74,7 +74,6 @@ function PolicyDistanceRateTaxReclaimableOnEditPage({policy, route}: PolicyDista
                 <HeaderWithBackButton
                     title={translate('workspace.taxes.taxReclaimableOn')}
                     shouldShowBackButton
-                    onBackButtonPress={() => Navigation.goBack()}
                 />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT_FORM}
