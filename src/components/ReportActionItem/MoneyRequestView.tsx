@@ -343,36 +343,35 @@ function MoneyRequestView({
                         shouldShowAuditMessage={Boolean(shouldShowNotesViolations && didRceiptScanSucceed)}
                     />
                 )}
-                {hasReceipt ||
-                    (errors && (
-                        <OfflineWithFeedback
-                            pendingAction={pendingAction}
-                            errors={errors}
-                            errorRowStyles={[styles.mh4]}
-                            onClose={() => {
-                                if (!transaction?.transactionID) {
-                                    return;
-                                }
-                                Transaction.clearError(transaction.transactionID);
-                                ReportActions.clearAllRelatedReportActionErrors(report.reportID, parentReportAction);
-                            }}
-                        >
-                            {hasReceipt && (
-                                <View style={styles.moneyRequestViewImage}>
-                                    <ReportActionItemImage
-                                        thumbnail={receiptURIs?.thumbnail}
-                                        fileExtension={receiptURIs?.fileExtension}
-                                        isThumbnail={receiptURIs?.isThumbnail}
-                                        image={receiptURIs?.image}
-                                        isLocalFile={receiptURIs?.isLocalFile}
-                                        filename={receiptURIs?.filename}
-                                        transaction={transaction}
-                                        enablePreviewModal
-                                    />
-                                </View>
-                            )}
-                        </OfflineWithFeedback>
-                    ))}
+                {(hasReceipt || errors) && (
+                    <OfflineWithFeedback
+                        pendingAction={pendingAction}
+                        errors={errors}
+                        errorRowStyles={[styles.mh4]}
+                        onClose={() => {
+                            if (!transaction?.transactionID) {
+                                return;
+                            }
+                            Transaction.clearError(transaction.transactionID);
+                            ReportActions.clearAllRelatedReportActionErrors(report.reportID, parentReportAction);
+                        }}
+                    >
+                        {hasReceipt && (
+                            <View style={styles.moneyRequestViewImage}>
+                                <ReportActionItemImage
+                                    thumbnail={receiptURIs?.thumbnail}
+                                    fileExtension={receiptURIs?.fileExtension}
+                                    isThumbnail={receiptURIs?.isThumbnail}
+                                    image={receiptURIs?.image}
+                                    isLocalFile={receiptURIs?.isLocalFile}
+                                    filename={receiptURIs?.filename}
+                                    transaction={transaction}
+                                    enablePreviewModal
+                                />
+                            </View>
+                        )}
+                    </OfflineWithFeedback>
+                )}
                 {shouldShowReceiptEmptyState && (
                     <ReceiptEmptyState
                         hasError={hasErrors}
