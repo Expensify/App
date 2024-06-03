@@ -340,15 +340,7 @@ function MoneyRequestConfirmationList({
     const isCategoryRequired = !!policy?.requiresCategory;
 
     useEffect(() => {
-        if (!shouldShowTax) {
-            return;
-        }
-        setTaxAmountInDraft(transaction, policy);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we want to call this function when component is mounted
-    }, []);
-
-    useEffect(() => {
-        if (!shouldShowTax || prevTaxAmount !== transaction?.taxAmount || (prevAmount === transaction?.amount && prevCurrency === transaction?.currency)) {
+        if (!shouldShowTax || (transaction?.taxAmount !== undefined && prevAmount === transaction?.amount && prevCurrency === transaction?.currency)) {
             return;
         }
         setTaxAmountInDraft(transaction, policy);
