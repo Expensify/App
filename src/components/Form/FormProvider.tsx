@@ -253,10 +253,10 @@ function FormProvider(
 
             const errorFields = formState?.errorFields?.[inputID] ?? {};
             const fieldErrorMessage =
-                (Object.keys(errorFields)
+                Object.keys(errorFields)
                     .sort()
                     .map((key) => errorFields[key])
-                    .at(-1)) ?? '';
+                    .at(-1) ?? '';
 
             const inputRef = inputProps.ref;
 
