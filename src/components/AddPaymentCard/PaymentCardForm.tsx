@@ -226,7 +226,7 @@ function PaymentCardForm({
                     spellCheck={false}
                 />
                 <View style={[styles.flexRow, styles.mt5]}>
-                    <View style={[styles.flex1, styles.mr2]}>
+                    <View style={styles.mr2}>
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.EXPIRATION_DATE}
