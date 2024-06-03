@@ -3119,6 +3119,7 @@ export default {
                 benefit4: 'Expense approvals',
                 benefit5: 'ACH reimbursement',
                 benefit6: 'QuickBooks and Xero integrations',
+                benefit7: 'Custom insights and reporting',
             },
             control: {
                 title: 'Control',
@@ -3129,8 +3130,7 @@ export default {
                 benefit3: 'Certinia and Workday sync',
                 benefit4: 'Multiple expense approvers',
                 benefit5: 'SAML/SSO',
-                benefit6: 'Custom insights and reporting',
-                benefit7: 'Budgeting',
+                benefit6: 'Budgeting',
             },
             saveWithExpensifyTitle: 'Save with the Expensify Card',
             saveWithExpensifyDescription: 'Use our savings calculator to see how cash back from the Expensify Card can reduce your Expensify bill.',

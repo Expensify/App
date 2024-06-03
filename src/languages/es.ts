@@ -3623,6 +3623,7 @@ export default {
                 benefit4: 'Aprobación de gastos',
                 benefit5: 'Reembolso ACH',
                 benefit6: 'Integraciones con QuickBooks y Xero',
+                benefit7: 'Reportes e informes personalizados',
             },
             control: {
                 title: 'Control',
@@ -3633,8 +3634,7 @@ export default {
                 benefit3: 'Sincronización de Certinia y Workday',
                 benefit4: 'Varios aprobadores de gastos',
                 benefit5: 'SAML/SSO',
-                benefit6: 'Reportes e informes personalizados',
-                benefit7: 'Presupuestos',
+                benefit6: 'Presupuestos',
             },
             saveWithExpensifyTitle: 'Ahorra con la Tarjeta Expensify',
             saveWithExpensifyDescription: 'Utiliza nuestra calculadora de ahorro para ver cómo el reembolso en efectivo de la Tarjeta Expensify puede reducir tu factura de Expensify',
