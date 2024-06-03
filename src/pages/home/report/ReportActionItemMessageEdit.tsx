@@ -411,7 +411,6 @@ function ReportActionItemMessageEdit(
                                         reportScrollManager.scrollToIndex(index, true);
                                     });
                                 });
-                                reportScrollManager.scrollToIndex(index, true);
                                 setShouldShowComposeInputKeyboardAware(false);
 
                                 // Clear active report action when another action gets focused
