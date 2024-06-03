@@ -45,6 +45,7 @@ function BaseModal(
         children,
         shouldUseCustomBackdrop = false,
         onBackdropPress,
+        modalId,
         shouldEnableNewFocusManagement = false,
         restoreFocusType,
         shouldUseModalPaddingStyle = true,
@@ -63,13 +64,13 @@ function BaseModal(
     const isVisibleRef = useRef(isVisible);
     const wasVisible = usePrevious(isVisible);
 
-    const modalId = useMemo(() => ComposerFocusManager.getId(), []);
-    const saveFocusState = () => {
+    const uniqueModalId = useMemo(() => modalId ?? ComposerFocusManager.getId(), [modalId]);
+    const saveFocusState = useCallback(() => {
         if (shouldEnableNewFocusManagement) {
-            ComposerFocusManager.saveFocusState(modalId);
+            ComposerFocusManager.saveFocusState(uniqueModalId);
         }
-        ComposerFocusManager.resetReadyToFocus(modalId);
-    };
+        ComposerFocusManager.resetReadyToFocus(uniqueModalId);
+    }, [shouldEnableNewFocusManagement, uniqueModalId]);
 
     /**
      * Hides modal
@@ -87,9 +88,9 @@ function BaseModal(
                 onModalHide();
             }
             Modal.onModalDidClose();
-            ComposerFocusManager.refocusAfterModalFullyClosed(modalId, restoreFocusType);
+            ComposerFocusManager.refocusAfterModalFullyClosed(uniqueModalId, restoreFocusType);
         },
-        [shouldSetModalVisibility, onModalHide, restoreFocusType, modalId],
+        [shouldSetModalVisibility, onModalHide, restoreFocusType, uniqueModalId],
     );
 
     useEffect(() => {
@@ -141,7 +142,7 @@ function BaseModal(
     };
 
     const handleDismissModal = () => {
-        ComposerFocusManager.setReadyToFocus(modalId);
+        ComposerFocusManager.setReadyToFocus(uniqueModalId);
     };
 
     const {
