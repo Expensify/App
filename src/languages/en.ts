@@ -3144,4 +3144,23 @@ export default {
     systemMessage: {
         mergedWithCashTransaction: 'matched a receipt to this transaction.',
     },
+    subscription: {
+        subscriptionSize: {
+            title: 'Subscription size',
+            yourSize: 'Your subscription size is the number of open seats that can be filled by any active member in a given month.',
+            eachMonth:
+                'Each month, your subscription covers up to the number of active members set above. Any time you increase your subscription size, you’ll start a new 12-month subscription at that new size.',
+            note: 'Note: An active member is anyone who has created, edited, submitted, approved, reimbursed, or exported expense data tied to your company workspace.',
+            confirmDetails: 'Confirm your new annual subscription details',
+            subscriptionSize: 'Subscription size',
+            activeMembers: ({size}) => `${size} active members/month`,
+            subscriptionRenews: 'Subscription renews',
+            youCantDowngrade: 'You can’t downgrade during your annual subscription',
+            youAlreadyCommitted: ({size, date}) =>
+                `You already committed to an annual subscription size of ${size} active members per month until ${date}. You can switch to a pay-per-use subscription on ${date} by disabling auto-renew.`,
+            error: {
+                size: 'Please enter a valid subscription size.',
+            },
+        },
+    },
 } satisfies TranslationBase;

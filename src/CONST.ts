@@ -4791,6 +4791,8 @@ const CONST = {
         ASC: 'asc',
         DESC: 'desc',
     },
+
+    SUBSCRIPTION_SIZE_LIMIT: 20000,
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
