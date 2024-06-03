@@ -1,8 +1,12 @@
+import Airship from '@ua/react-native-airship';
 import Onyx from 'react-native-onyx';
 import applyOnyxUpdatesReliably from '@libs/actions/applyOnyxUpdatesReliably';
+import type {DeferredUpdatesDictionary} from '@libs/actions/OnyxUpdateManager/types';
+import * as DeferredOnyxUpdates from '@libs/actions/OnyxUpdateManager/utils/DeferredOnyxUpdates';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import getPushNotificationData from '@libs/Notification/PushNotification/getPushNotificationData';
 import type {ReportActionPushNotificationData} from '@libs/Notification/PushNotification/NotificationType';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
 import {extractPolicyIDFromPath} from '@libs/PolicyUtils';
@@ -13,6 +17,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
+import type {OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import PushNotification from '..';
 
@@ -26,6 +31,20 @@ Onyx.connect({
         lastVisitedPath = value;
     },
 });
+
+function buildOnyxUpdatesFromServer({onyxData, lastUpdateID, previousUpdateID}: {onyxData: OnyxServerUpdate[]; lastUpdateID: number; previousUpdateID: number}) {
+    return {
+        type: CONST.ONYX_UPDATE_TYPES.AIRSHIP,
+        lastUpdateID,
+        previousUpdateID,
+        updates: [
+            {
+                eventType: 'eventType',
+                data: onyxData,
+            },
+        ],
+    } as OnyxUpdatesFromServer;
+}
 
 function getLastUpdateIDAppliedToClient(): Promise<number> {
     return new Promise((resolve) => {
@@ -50,17 +69,8 @@ function applyOnyxData({reportID, reportActionID, onyxData, lastUpdateID, previo
     }
 
     Log.info('[PushNotification] reliable onyx update received', false, {lastUpdateID, previousUpdateID, onyxDataCount: onyxData?.length ?? 0});
-    const updates: OnyxUpdatesFromServer = {
-        type: CONST.ONYX_UPDATE_TYPES.AIRSHIP,
-        lastUpdateID,
-        previousUpdateID,
-        updates: [
-            {
-                eventType: 'eventType',
-                data: onyxData,
-            },
-        ],
-    };
+
+    const updates = buildOnyxUpdatesFromServer({onyxData, lastUpdateID, previousUpdateID});
 
     /**
      * When this callback runs in the background on Android (via Headless JS), no other Onyx.connect callbacks will run. This means that
@@ -71,16 +81,51 @@ function applyOnyxData({reportID, reportActionID, onyxData, lastUpdateID, previo
 }
 
 function navigateToReport({reportID, reportActionID}: ReportActionPushNotificationData): Promise<void> {
-    Log.info('[PushNotification] Navigating to report', false, {reportID, reportActionID});
+    Log.info('[PushNotification] Adding push notification updates to deferred updates queue', false, {reportID, reportActionID});
 
-    const policyID = lastVisitedPath && extractPolicyIDFromPath(lastVisitedPath);
-    const report = getReport(reportID.toString());
-    const policyEmployeeAccountIDs = policyID ? getPolicyEmployeeAccountIDs(policyID) : [];
-    const reportBelongsToWorkspace = policyID && !isEmptyObject(report) && doesReportBelongToWorkspace(report, policyEmployeeAccountIDs, policyID);
+    // Onyx data from push notifications might not have been applied when they were received in the background
+    // due to OS limitations. So we'll also attempt to apply them here so they can display immediately. Reliable
+    // updates will prevent any old updates from being duplicated and any gaps in them will be handled
+    Airship.push
+        .getActiveNotifications()
+        .then((notifications) => {
 
-    Navigation.isNavigationReady()
+            if (notifications.length === 0) {
+                return;
+            }
+
+            const onyxUpdates = notifications.reduce<DeferredUpdatesDictionary>((updates, notification) => {
+                const pushNotificationData = getPushNotificationData(notification);
+                const lastUpdateID = pushNotificationData.lastUpdateID;
+                const previousUpdateID = pushNotificationData.previousUpdateID;
+
+                if (pushNotificationData.onyxData == null || lastUpdateID == null || previousUpdateID == null) {
+                    return updates;
+                }
+
+                const newUpdates = buildOnyxUpdatesFromServer({onyxData: pushNotificationData.onyxData, lastUpdateID, previousUpdateID});
+
+                // eslint-disable-next-line no-param-reassign
+                updates[lastUpdateID] = newUpdates;
+                return updates;
+            }, {});
+
+            if (Object.keys(onyxUpdates).length === 0) {
+                return;
+            }
+
+            DeferredOnyxUpdates.enqueueAndProcess(onyxUpdates);
+        })
+        .then(Navigation.isNavigationReady)
         .then(Navigation.waitForProtectedRoutes)
         .then(() => {
+            Log.info('[PushNotification] Navigating to report', false, {reportID, reportActionID});
+
+            const policyID = lastVisitedPath && extractPolicyIDFromPath(lastVisitedPath);
+            const report = getReport(reportID.toString());
+            const policyEmployeeAccountIDs = policyID ? getPolicyEmployeeAccountIDs(policyID) : [];
+            const reportBelongsToWorkspace = policyID && !isEmptyObject(report) && doesReportBelongToWorkspace(report, policyEmployeeAccountIDs, policyID);
+
             // The attachment modal remains open when navigating to the report so we need to close it
             Modal.close(() => {
                 try {
