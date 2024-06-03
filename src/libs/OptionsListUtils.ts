@@ -787,7 +787,7 @@ function createOption(
     result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result);
     result.iouReportAmount = ReportUtils.getMoneyRequestSpendBreakdown(result).totalDisplaySpend;
 
-    if (!hasMultipleParticipants) {
+    if (!hasMultipleParticipants  && !ReportUtils.isGroupChat(report)) {
         result.login = personalDetail?.login;
         result.accountID = Number(personalDetail?.accountID);
         result.phoneNumber = personalDetail?.phoneNumber;
