@@ -226,8 +226,8 @@ const IOURequestStepDescriptionWithOnyx = withOnyx<IOURequestStepDescriptionProp
 })(IOURequestStepDescription);
 
 // eslint-disable-next-line rulesdir/no-negated-variables
-const IOURequestStepDescriptionWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDescriptionWithOnyx);
+const IOURequestStepDescriptionWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDescriptionWithOnyx);
 // eslint-disable-next-line rulesdir/no-negated-variables
-const IOURequestStepDescriptionWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDescriptionWithWritableReportOrNotFound);
+const IOURequestStepDescriptionWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDescriptionWithFullTransactionOrNotFound);
 
-export default IOURequestStepDescriptionWithFullTransactionOrNotFound;
+export default IOURequestStepDescriptionWithWritableReportOrNotFound;

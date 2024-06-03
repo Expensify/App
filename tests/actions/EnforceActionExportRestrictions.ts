@@ -1,6 +1,6 @@
 import * as IOU from '@libs/actions/IOU';
-import * as Policy from '@libs/actions/Policy';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as Policy from '@userActions/Policy/Policy';
 import * as Task from '@userActions/Task';
 
 // There are some methods that are OK to use inside an action file, but should not be exported. These are typically methods that look up and return Onyx data.
