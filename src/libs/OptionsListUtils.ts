@@ -521,21 +521,24 @@ function getSearchText(
 function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): OnyxCommon.Errors {
     const reportErrors = report?.errors ?? {};
     const reportErrorFields = report?.errorFields ?? {};
-    const reportActionErrors: OnyxCommon.ErrorFields = Object.values(reportActions ?? {}).reduce(
-        (prevReportActionErrors, action) => (!action || isEmptyObject(action.errors) ? prevReportActionErrors : {...prevReportActionErrors, ...action.errors}),
-        {},
-    );
+    const reportActionErrors: OnyxCommon.ErrorFields = Object.values(reportActions ?? {}).reduce((prevReportActionErrors, action) => {
+        if (!action || isEmptyObject(action.errors)) {
+            return prevReportActionErrors;
+        }
+
+        return Object.assign(prevReportActionErrors, action.errors);
+    }, {});
     const parentReportAction: OnyxEntry<ReportAction> =
         !report?.parentReportID || !report?.parentReportActionID ? null : allReportActions?.[report.parentReportID ?? '']?.[report.parentReportActionID ?? ''] ?? null;
 
-    if (parentReportAction?.actorAccountID === currentUserAccountID && ReportActionUtils.isTransactionThread(parentReportAction)) {
+    if (ReportActionUtils.wasActionTakenByCurrentUser(parentReportAction) && ReportActionUtils.isTransactionThread(parentReportAction)) {
         const transactionID = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction?.originalMessage?.IOUTransactionID : null;
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         if (TransactionUtils.hasMissingSmartscanFields(transaction ?? null) && !ReportUtils.isSettled(transaction?.reportID)) {
             reportActionErrors.smartscan = ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage');
         }
     } else if ((ReportUtils.isIOUReport(report) || ReportUtils.isExpenseReport(report)) && report?.ownerAccountID === currentUserAccountID) {
-        if (ReportUtils.hasMissingSmartscanFields(report?.reportID ?? '') && !ReportUtils.isSettled(report?.reportID)) {
+        if (ReportUtils.shouldShowRBRForMissingSmartscanFields(report?.reportID ?? '') && !ReportUtils.isSettled(report?.reportID)) {
             reportActionErrors.smartscan = ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage');
         }
     } else if (ReportUtils.hasSmartscanError(Object.values(reportActions ?? {}))) {
@@ -548,7 +551,13 @@ function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<
         ...reportActionErrors,
     };
     // Combine all error messages keyed by microtime into one object
-    const allReportErrors = Object.values(errorSources)?.reduce((prevReportErrors, errors) => (isEmptyObject(errors) ? prevReportErrors : {...prevReportErrors, ...errors}), {});
+    const allReportErrors = Object.values(errorSources)?.reduce((prevReportErrors, errors) => {
+        if (isEmptyObject(errors)) {
+            return prevReportErrors;
+        }
+
+        return Object.assign(prevReportErrors, errors);
+    }, {});
 
     return allReportErrors;
 }
@@ -1520,7 +1529,8 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
                 .map(Number)
                 .filter((accountID) => accountID !== currentUserAccountID || !isOneOnOneChat);
 
-            if (!accountIDs || accountIDs.length === 0) {
+            const isChatRoom = ReportUtils.isChatRoom(report);
+            if ((!accountIDs || accountIDs.length === 0) && !isChatRoom) {
                 return;
             }
 
@@ -1816,6 +1826,7 @@ function getOptions(
         const isMoneyRequestReport = option.isMoneyRequestReport;
         const isSelfDM = option.isSelfDM;
         const isOneOnOneChat = option.isOneOnOneChat;
+        const isChatRoom = option.isChatRoom;
 
         // For 1:1 chat, we don't want to include currentUser as participants in order to not mark 1:1 chats as having multiple participants
         const accountIDs = Object.keys(report.participants ?? {})
@@ -1852,7 +1863,7 @@ function getOptions(
             return;
         }
 
-        if (!accountIDs || accountIDs.length === 0) {
+        if ((!accountIDs || accountIDs.length === 0) && !isChatRoom) {
             return;
         }
 
@@ -1867,7 +1878,7 @@ function getOptions(
         allPersonalDetailsOptions = lodashOrderBy(allPersonalDetailsOptions, [(personalDetail) => personalDetail.text?.toLowerCase()], 'asc');
     }
 
-    const optionsToExclude: Option[] = [{login: CONST.EMAIL.NOTIFICATIONS}];
+    const optionsToExclude: Option[] = [];
 
     // If we're including selected options from the search results, we only want to exclude them if the search input is empty
     // This is because on certain pages, we show the selected options at the top when the search input is empty

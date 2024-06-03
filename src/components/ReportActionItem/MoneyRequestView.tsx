@@ -36,6 +36,7 @@ import * as IOU from '@userActions/IOU';
 import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import * as ReportActions from '@src/libs/actions/ReportActions';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -228,7 +229,7 @@ function MoneyRequestView({
     }
 
     let receiptURIs;
-    const hasErrors = canEdit && TransactionUtils.hasMissingSmartscanFields(transaction);
+    const hasErrors = TransactionUtils.hasMissingSmartscanFields(transaction);
     if (hasReceipt) {
         receiptURIs = ReceiptUtils.getThumbnailAndImageURIs(transaction);
     }
@@ -327,6 +328,11 @@ function MoneyRequestView({
     const shouldShowNotesViolations = !isReceiptBeingScanned && canUseViolations && ReportUtils.isPaidGroupPolicy(report);
     const shouldShowReceiptHeader = isReceiptAllowed && (shouldShowReceiptEmptyState || hasReceipt) && canUseViolations && ReportUtils.isPaidGroupPolicy(report);
 
+    const errors = {
+        ...(transaction?.errorFields?.route ?? transaction?.errors),
+        ...parentReportAction?.errors,
+    };
+
     return (
         <View style={styles.pRelative}>
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
@@ -337,32 +343,36 @@ function MoneyRequestView({
                         shouldShowAuditMessage={Boolean(shouldShowNotesViolations && didRceiptScanSucceed)}
                     />
                 )}
-                {hasReceipt && (
-                    <OfflineWithFeedback
-                        pendingAction={pendingAction}
-                        errors={transaction?.errorFields?.route ?? transaction?.errors}
-                        errorRowStyles={[styles.mh4]}
-                        onClose={() => {
-                            if (!transaction?.transactionID) {
-                                return;
-                            }
-                            Transaction.clearError(transaction.transactionID);
-                        }}
-                    >
-                        <View style={styles.moneyRequestViewImage}>
-                            <ReportActionItemImage
-                                thumbnail={receiptURIs?.thumbnail}
-                                fileExtension={receiptURIs?.fileExtension}
-                                isThumbnail={receiptURIs?.isThumbnail}
-                                image={receiptURIs?.image}
-                                isLocalFile={receiptURIs?.isLocalFile}
-                                filename={receiptURIs?.filename}
-                                transaction={transaction}
-                                enablePreviewModal
-                            />
-                        </View>
-                    </OfflineWithFeedback>
-                )}
+                {hasReceipt ||
+                    (errors && (
+                        <OfflineWithFeedback
+                            pendingAction={pendingAction}
+                            errors={errors}
+                            errorRowStyles={[styles.mh4]}
+                            onClose={() => {
+                                if (!transaction?.transactionID) {
+                                    return;
+                                }
+                                Transaction.clearError(transaction.transactionID);
+                                ReportActions.clearAllRelatedReportActionErrors(report.reportID, parentReportAction);
+                            }}
+                        >
+                            {hasReceipt && (
+                                <View style={styles.moneyRequestViewImage}>
+                                    <ReportActionItemImage
+                                        thumbnail={receiptURIs?.thumbnail}
+                                        fileExtension={receiptURIs?.fileExtension}
+                                        isThumbnail={receiptURIs?.isThumbnail}
+                                        image={receiptURIs?.image}
+                                        isLocalFile={receiptURIs?.isLocalFile}
+                                        filename={receiptURIs?.filename}
+                                        transaction={transaction}
+                                        enablePreviewModal
+                                    />
+                                </View>
+                            )}
+                        </OfflineWithFeedback>
+                    ))}
                 {shouldShowReceiptEmptyState && (
                     <ReceiptEmptyState
                         hasError={hasErrors}

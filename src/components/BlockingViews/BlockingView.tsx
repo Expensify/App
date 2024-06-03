@@ -1,3 +1,4 @@
+import type {ImageContentFit} from 'expo-image';
 import React, {useMemo} from 'react';
 import type {ImageSourcePropType, StyleProp, TextStyle, ViewStyle, WebStyle} from 'react-native';
 import {View} from 'react-native';
@@ -39,6 +40,12 @@ type BaseBlockingViewProps = {
 
     /** Render custom subtitle */
     CustomSubtitle?: React.ReactElement;
+
+    /** Determines how the image should be resized to fit its container */
+    contentFitImage?: ImageContentFit;
+
+    /** Additional styles to apply to the container */
+    containerStyle?: StyleProp<ViewStyle>;
 };
 
 type BlockingViewIconProps = {
@@ -85,6 +92,8 @@ function BlockingView({
     animationStyles = [],
     animationWebStyle = {},
     CustomSubtitle,
+    contentFitImage,
+    containerStyle,
 }: BlockingViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -121,7 +130,7 @@ function BlockingView({
     }, [styles, subtitleText, shouldEmbedLinkWithSubtitle, CustomSubtitle]);
 
     return (
-        <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10]}>
+        <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10, containerStyle]}>
             {animation && (
                 <Lottie
                     source={animation}
@@ -137,6 +146,7 @@ function BlockingView({
                     fill={iconColor}
                     width={iconWidth}
                     height={iconHeight}
+                    contentFit={contentFitImage}
                 />
             )}
             <View>

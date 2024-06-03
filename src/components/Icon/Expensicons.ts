@@ -49,6 +49,7 @@ import ConnectionComplete from '@assets/images/connection-complete.svg';
 import Copy from '@assets/images/copy.svg';
 import CreditCardHourglass from '@assets/images/credit-card-hourglass.svg';
 import CreditCard from '@assets/images/creditcard.svg';
+import Crosshair from '@assets/images/crosshair.svg';
 import DocumentPlus from '@assets/images/document-plus.svg';
 import DocumentSlash from '@assets/images/document-slash.svg';
 import Document from '@assets/images/document.svg';
@@ -212,6 +213,7 @@ export {
     Concierge,
     ConciergeAvatar,
     Connect,
+    Crosshair,
     ConnectionComplete,
     Copy,
     CreditCard,

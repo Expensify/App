@@ -40,10 +40,11 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
     const isSelfDM = ReportUtils.isSelfDM(report);
     const isInvoiceRoom = ReportUtils.isInvoiceRoom(report);
     const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
-    const isDefault = !(isChatRoom || isPolicyExpenseChat || isSelfDM || isInvoiceRoom);
+    const isSystemChat = ReportUtils.isSystemChat(report);
+    const isDefault = !(isChatRoom || isPolicyExpenseChat || isSelfDM || isInvoiceRoom || isSystemChat);
     const participantAccountIDs = Object.keys(report?.participants ?? {})
         .map(Number)
-        .filter((accountID) => accountID !== session?.accountID || !isOneOnOneChat);
+        .filter((accountID) => accountID !== session?.accountID || (!isOneOnOneChat && !isSystemChat));
     const isMultipleParticipant = participantAccountIDs.length > 1;
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails), isMultipleParticipant);
     const isUserPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
@@ -77,8 +78,12 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
             return translate('reportActionsView.yourSpace');
         }
 
+        if (isSystemChat) {
+            return reportName;
+        }
+
         return translate('reportActionsView.sayHello');
-    }, [isChatRoom, isInvoiceRoom, isSelfDM, translate, reportName]);
+    }, [isChatRoom, isInvoiceRoom, isSelfDM, isSystemChat, translate, reportName]);
 
     return (
         <>
@@ -142,6 +147,11 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                 {isSelfDM && (
                     <Text>
                         <Text>{translate('reportActionsView.beginningOfChatHistorySelfDM')}</Text>
+                    </Text>
+                )}
+                {isSystemChat && (
+                    <Text>
+                        <Text>{translate('reportActionsView.beginningOfChatHistorySystemDM')}</Text>
                     </Text>
                 )}
                 {isDefault && (
