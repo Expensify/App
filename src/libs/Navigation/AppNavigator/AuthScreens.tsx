@@ -8,6 +8,8 @@ import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {READ_COMMANDS} from '@libs/API/types';
+import HttpUtils from '@libs/HttpUtils';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
@@ -40,7 +42,7 @@ import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import type {CentralPaneName} from './CENTRAL_PANE_SCREENS';
-import {CENTRAL_PANE_SCREENS} from './CENTRAL_PANE_SCREENS';
+import {CENTRAL_PANE_SCREENS, getCentralPaneScreenInitialParams} from './CENTRAL_PANE_SCREENS';
 import createCustomStackNavigator from './createCustomStackNavigator';
 import defaultScreenOptions from './defaultScreenOptions';
 import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
@@ -159,8 +161,14 @@ const modalScreenListeners = {
     },
 };
 
-const url = getCurrentUrl();
-const openOnAdminRoom = url ? new URL(url).searchParams.get('openOnAdminRoom') : undefined;
+// Extended modal screen listeners with additional cancellation of pending requests
+const modalScreenListenersWithCancelSearch = {
+    ...modalScreenListeners,
+    beforeRemove: () => {
+        modalScreenListeners.beforeRemove();
+        HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
+    },
+};
 
 function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDAppliedToClient}: AuthScreensProps) {
     const styles = useThemeStyles();
@@ -318,7 +326,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         getComponent={loadConciergePage}
                     />
                     <RootStack.Screen
-                        name={SCREENS.REPORT_ATTACHMENTS}
+                        name={SCREENS.ATTACHMENTS}
                         options={{
                             headerShown: false,
                             presentation: 'transparentModal',
@@ -362,7 +370,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         name={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
                         options={screenOptions.rightModalNavigator}
                         component={RightModalNavigator}
-                        listeners={modalScreenListeners}
+                        listeners={modalScreenListenersWithCancelSearch}
                     />
                     <RootStack.Screen
                         name={NAVIGATORS.FULL_SCREEN_NAVIGATOR}
@@ -423,7 +431,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         <RootStack.Screen
                             key={screenName}
                             name={screenName as CentralPaneName}
-                            initialParams={{openOnAdminRoom: (screenName === SCREENS.REPORT && openOnAdminRoom === 'true') || undefined}}
+                            initialParams={() => getCentralPaneScreenInitialParams(screenName as CentralPaneName)}
                             getComponent={() => withPrepareCentralPaneScreen(componentGetter())}
                             options={CentralPaneNameOptions}
                         />
