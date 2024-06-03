@@ -152,7 +152,7 @@ const ONYXKEYS = {
     NVP_TRY_FOCUS_MODE: 'nvp_tryFocusMode',
 
     /** Whether the user has dismissed the hold educational interstitial */
-    DISMISSED_HOLD_USE_EXPLANATION: 'dismissedholdUseExplanation',
+    DISMISSED_HOLD_USE_EXPLANATION: 'nvp_dismissedHoldUseExplanation',
 
     /** Store preferred skintone for emoji */
     PREFERRED_EMOJI_SKIN_TONE: 'nvp_expensify_preferredEmojiSkinTone',
