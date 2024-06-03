@@ -54,7 +54,7 @@ function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, 
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
         const errors = ValidationUtils.getFieldRequiredErrors(values, [BUSINESS_INFO_STEP_KEYS.HAS_NO_CONNECTION_TO_CANNABIS]);
-    
+
         if (!values.hasNoConnectionToCannabis) {
             errors.hasNoConnectionToCannabis = translate('bankAccount.error.restrictedBusiness');
         }

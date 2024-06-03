@@ -5,6 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import type {ReceiptError} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import Icon from './Icon';
@@ -14,7 +15,7 @@ import Tooltip from './Tooltip';
 
 type MessagesRowProps = {
     /** The messages to display */
-    messages: Record<string, string>;
+    messages: Record<string, string | ReceiptError>;
 
     /** The type of message, 'error' shows a red dot, 'success' shows a green dot */
     type: 'error' | 'success';

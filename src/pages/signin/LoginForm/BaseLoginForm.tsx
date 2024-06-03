@@ -265,7 +265,7 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
                     style={[styles.mv2]}
                     type="success"
                     // eslint-disable-next-line @typescript-eslint/naming-convention,@typescript-eslint/prefer-nullish-coalescing
-                    messages={{0: closeAccount?.success ? [closeAccount.success, {isTranslated: true}] : account?.message || ''}}
+                    messages={{0: closeAccount?.success ? closeAccount.success : account?.message || ''}}
                 />
             )}
             {

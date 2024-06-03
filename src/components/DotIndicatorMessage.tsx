@@ -7,7 +7,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isReceiptError} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
-import type {MaybePhraseKey} from '@libs/Localize';
 import * as Localize from '@libs/Localize';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 import Icon from './Icon';
@@ -23,7 +22,7 @@ type DotIndicatorMessageProps = {
      *      timestamp: 'message',
      *  }
      */
-    messages: Record<string, string>;
+    messages: Record<string, string | ReceiptError | null>;
 
     /** The type of message, 'error' shows a red dot, 'success' shows a green dot */
     type: 'error' | 'success';
@@ -45,12 +44,12 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles}: DotIndica
     }
 
     // Fetch the keys, sort them, and map through each key to get the corresponding message
-    const sortedMessages: Array<MaybePhraseKey | ReceiptError> = Object.keys(messages)
+    const sortedMessages: Array<string | ReceiptError> = Object.keys(messages)
         .sort()
-        .map((key) => messages[key]);
-
+        .map((key) => messages[key])
+        .filter((message): message is string | ReceiptError => message !== null);
     // Removing duplicates using Set and transforming the result into an array
-    const uniqueMessages: Array<ReceiptError | string> = [...new Set(sortedMessages)].map((message) => (isReceiptError(message) ? message : Localize.translateIfPhraseKey(message)));
+    const uniqueMessages: Array<ReceiptError | string> = [...new Set(sortedMessages)].map((message) => message);
 
     const isErrorMessage = type === 'error';
 

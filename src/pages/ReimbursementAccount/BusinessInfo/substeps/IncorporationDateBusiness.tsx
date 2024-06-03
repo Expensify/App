@@ -35,13 +35,13 @@ function IncorporationDateBusiness({reimbursementAccount, reimbursementAccountDr
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
         const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
-    
+
         if (values.incorporationDate && !ValidationUtils.isValidDate(values.incorporationDate)) {
             errors.incorporationDate = translate('common.error.dateInvalid');
         } else if (values.incorporationDate && !ValidationUtils.isValidPastDate(values.incorporationDate)) {
             errors.incorporationDate = translate('bankAccount.error.incorporationDateFuture');
         }
-    
+
         return errors;
     };
 

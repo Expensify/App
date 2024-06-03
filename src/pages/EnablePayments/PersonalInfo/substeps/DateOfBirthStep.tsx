@@ -28,7 +28,7 @@ function DateOfBirthStep({onNext, isEditing}: SubStepProps) {
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>): FormInputErrors<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS> => {
         const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
-    
+
         if (values.dob) {
             if (!ValidationUtils.isValidPastDate(values.dob) || !ValidationUtils.meetsMaximumAgeRequirement(values.dob)) {
                 errors.dob = translate('bankAccount.error.dob');
@@ -36,7 +36,7 @@ function DateOfBirthStep({onNext, isEditing}: SubStepProps) {
                 errors.dob = translate('bankAccount.error.age');
             }
         }
-    
+
         return errors;
     };
 

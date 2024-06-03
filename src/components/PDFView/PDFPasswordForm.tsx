@@ -53,7 +53,7 @@ function PDFPasswordForm({isFocused, isPasswordInvalid = false, shouldShowLoadin
             return validationErrorText;
         }
         return '';
-    }, [isPasswordInvalid, validationErrorText]);
+    }, [isPasswordInvalid, validationErrorText, translate]);
 
     useEffect(() => {
         if (!isFocused) {

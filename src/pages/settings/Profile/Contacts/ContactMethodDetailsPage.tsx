@@ -231,7 +231,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                             type="success"
                             style={[themeStyles.mb3]}
                             // eslint-disable-next-line @typescript-eslint/naming-convention
-                            messages={{0: ['contacts.enterMagicCode', {contactMethod: formattedContactMethod}]}}
+                            messages={{0: translate('contacts.enterMagicCode', {contactMethod: formattedContactMethod})}}
                         />
 
                         <ValidateCodeForm

@@ -738,7 +738,25 @@ function MoneyRequestConfirmationList({
                 onConfirm?.(selectedParticipants);
             }
         },
-        [selectedParticipants, isEditingSplitBill, isMerchantRequired, isMerchantEmpty, shouldDisplayFieldError, transaction, iouCategory.length, formError, iouType, setFormError, translate, onSendMoney, iouCurrencyCode, isDistanceRequest, isDistanceRequestWithPendingRoute, iouAmount, onConfirm],
+        [
+            selectedParticipants,
+            isEditingSplitBill,
+            isMerchantRequired,
+            isMerchantEmpty,
+            shouldDisplayFieldError,
+            transaction,
+            iouCategory.length,
+            formError,
+            iouType,
+            setFormError,
+            translate,
+            onSendMoney,
+            iouCurrencyCode,
+            isDistanceRequest,
+            isDistanceRequestWithPendingRoute,
+            iouAmount,
+            onConfirm,
+        ],
     );
 
     const footerContent = useMemo(() => {

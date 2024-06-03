@@ -1,11 +1,11 @@
 import mapValues from 'lodash/mapValues';
 import CONST from '@src/CONST';
-import type {TranslationFlatObject} from '@src/languages/types';
+import type {TranslationFlatObject, TranslationPaths} from '@src/languages/types';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type Response from '@src/types/onyx/Response';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 import DateUtils from './DateUtils';
-import type * as Localize from './Localize';
+import * as Localize from './Localize';
 
 function getAuthenticateErrorMessage(response: Response): keyof TranslationFlatObject {
     switch (response.jsonCode) {
@@ -40,8 +40,8 @@ function getAuthenticateErrorMessage(response: Response): keyof TranslationFlatO
  * Method used to get an error object with microsecond as the key.
  * @param error - error key or message to be saved
  */
-function getMicroSecondOnyxError(error: string, isTranslated = false, errorKey?: number): Errors {
-    return {[errorKey ?? DateUtils.getMicroseconds()]: error && [error, {isTranslated}]};
+function getMicroSecondOnyxError(error: TranslationPaths, _isTranslated = false, errorKey?: number): Errors {
+    return {[errorKey ?? DateUtils.getMicroseconds()]: Localize.translateLocal(error)};
 }
 
 /**
@@ -53,8 +53,8 @@ function getMicroSecondOnyxErrorObject(error: Errors, errorKey?: number): ErrorF
 }
 
 // We can assume that if error is a string, it has already been translated because it is server error
-function getErrorMessageWithTranslationData(error: string): string {
-    return error;
+function getErrorMessageWithTranslationData(error: string | null): string {
+    return error ?? '';
 }
 
 type OnyxDataWithErrors = {
@@ -130,12 +130,12 @@ function getLatestErrorFieldForAnyField<TOnyxData extends OnyxDataWithErrorField
  * @param errors - An object containing current errors in the form
  * @returns Errors in the form of {timestamp: [message, {isTranslated}]}
  */
-function getErrorsWithTranslationData(errors: Localize.MaybePhraseKey | Errors): Errors {
-    if (!errors || (Array.isArray(errors) && errors.length === 0)) {
+function getErrorsWithTranslationData(errors: Errors): Errors {
+    if (!errors) {
         return {};
     }
 
-    if (typeof errors === 'string' || Array.isArray(errors)) {
+    if (typeof errors === 'string') {
         // eslint-disable-next-line @typescript-eslint/naming-convention
         return {'0': getErrorMessageWithTranslationData(errors)};
     }
@@ -157,11 +157,9 @@ function addErrorMessage(errors: Errors, inputID?: string | null, message?: stri
     const error = errorList[inputID];
 
     if (!error) {
-        errorList[inputID] = [message];
+        errorList[inputID] = message;
     } else if (typeof error === 'string') {
-        errorList[inputID] = [`${error}\n${message}`];
-    } else if (Array.isArray(error)) {
-        error[0] = `${error[0]}\n${message}`;
+        errorList[inputID] = `${error}\n${message}`;
     }
 }
 

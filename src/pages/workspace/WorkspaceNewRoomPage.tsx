@@ -175,20 +175,21 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
                 ErrorUtils.addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameInvalidError'));
             } else if (ValidationUtils.isReservedRoomName(values.roomName)) {
                 // Certain names are reserved for default rooms and should not be used for policy rooms.
-                ErrorUtils.addErrorMessage(errors, 'roomName', [translate('newRoomPage.roomNameReservedError'), {reservedName: values.roomName}]);
+                ErrorUtils.addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameReservedError', {reservedName: values.roomName}));
             } else if (ValidationUtils.isExistingRoomName(values.roomName, reports, values.policyID ?? '')) {
                 // Certain names are reserved for default rooms and should not be used for policy rooms.
                 ErrorUtils.addErrorMessage(errors, 'roomName', translate('newRoomPage.roomAlreadyExistsError'));
             } else if (values.roomName.length > CONST.TITLE_CHARACTER_LIMIT) {
-                ErrorUtils.addErrorMessage(errors, 'roomName', [translate('common.error.characterLimitExceedCounter'), {length: values.roomName.length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
+                ErrorUtils.addErrorMessage(errors, 'roomName', translate('common.error.characterLimitExceedCounter', {length: values.roomName.length, limit: CONST.TITLE_CHARACTER_LIMIT}));
             }
 
             const descriptionLength = ReportUtils.getCommentLength(values.reportDescription);
             if (descriptionLength > CONST.REPORT_DESCRIPTION.MAX_LENGTH) {
-                ErrorUtils.addErrorMessage(errors, 'reportDescription', [
-                    'common.error.characterLimitExceedCounter',
-                    {length: descriptionLength, limit: CONST.REPORT_DESCRIPTION.MAX_LENGTH},
-                ]);
+                ErrorUtils.addErrorMessage(
+                    errors,
+                    'reportDescription',
+                    translate('common.error.characterLimitExceedCounter', {length: descriptionLength, limit: CONST.REPORT_DESCRIPTION.MAX_LENGTH}),
+                );
             }
 
             if (!values.policyID) {
@@ -197,7 +198,7 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
 
             return errors;
         },
-        [reports],
+        [reports, translate],
     );
 
     const writeCapabilityOptions = useMemo(

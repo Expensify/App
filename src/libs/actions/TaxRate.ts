@@ -4,6 +4,7 @@ import type {FormOnyxValues} from '@components/Form/types';
 import * as API from '@libs/API';
 import type {CreatePolicyTaxParams, DeletePolicyTaxesParams, RenamePolicyTaxParams, SetPolicyTaxesEnabledParams, UpdatePolicyTaxValueParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {translateLocal} from '@libs/Localize';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import * as ErrorUtils from '@src/libs/ErrorUtils';
@@ -12,7 +13,6 @@ import INPUT_IDS from '@src/types/form/WorkspaceNewTaxForm';
 import type {Policy, TaxRate, TaxRates} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {OnyxData} from '@src/types/onyx/Request';
-import { translateLocal } from '@libs/Localize';
 
 let allPolicies: OnyxCollection<Policy>;
 Onyx.connect({

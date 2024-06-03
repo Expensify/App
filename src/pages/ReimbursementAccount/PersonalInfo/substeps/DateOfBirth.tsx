@@ -38,7 +38,7 @@ function DateOfBirth({reimbursementAccount, reimbursementAccountDraft, onNext, i
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
         const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
-    
+
         if (values.dob) {
             if (!ValidationUtils.isValidPastDate(values.dob) || !ValidationUtils.meetsMaximumAgeRequirement(values.dob)) {
                 errors.dob = translate('bankAccount.error.dob');
@@ -46,7 +46,7 @@ function DateOfBirth({reimbursementAccount, reimbursementAccountDraft, onNext, i
                 errors.dob = translate('bankAccount.error.age');
             }
         }
-    
+
         return errors;
     };
 

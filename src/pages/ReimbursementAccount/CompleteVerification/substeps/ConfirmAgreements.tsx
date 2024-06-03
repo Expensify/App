@@ -60,19 +60,19 @@ function ConfirmAgreements({onNext, reimbursementAccount}: ConfirmAgreementsProp
     };
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
         const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
-    
+
         if (!ValidationUtils.isRequiredFulfilled(values.acceptTermsAndConditions)) {
             errors.acceptTermsAndConditions = translate('common.error.acceptTerms');
         }
-    
+
         if (!ValidationUtils.isRequiredFulfilled(values.certifyTrueInformation)) {
             errors.certifyTrueInformation = translate('completeVerificationStep.certifyTrueAndAccurateError');
         }
-    
+
         if (!ValidationUtils.isRequiredFulfilled(values.isAuthorizedToUseBankAccount)) {
             errors.isAuthorizedToUseBankAccount = translate('completeVerificationStep.isAuthorizedToUseBankAccountError');
         }
-    
+
         return errors;
     };
 

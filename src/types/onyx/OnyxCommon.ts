@@ -1,7 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import type {AvatarSource} from '@libs/UserUtils';
 import type CONST from '@src/CONST';
-import type { MaybePhraseKey } from '@libs/Localize';
 
 type PendingAction = ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION> | null;
 

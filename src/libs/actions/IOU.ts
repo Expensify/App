@@ -5429,7 +5429,7 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
                     ...reportAction,
                     pendingAction: null,
                     errors: {
-                        [errorKey]: ['iou.error.genericDeleteFailureMessage', {isTranslated: false}],
+                        [errorKey]: Localize.translateLocal('iou.error.genericDeleteFailureMessage'),
                     },
                 },
             },
@@ -5453,7 +5453,7 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
                     ...reportPreviewAction,
                     pendingAction: null,
                     errors: {
-                        [errorKey]: ['iou.error.genericDeleteFailureMessage', {isTranslated: false}],
+                        [errorKey]: Localize.translateLocal('iou.error.genericDeleteFailureMessage'),
                     },
                 },
             },
