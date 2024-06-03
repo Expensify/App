@@ -212,8 +212,8 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
 
     const serverErrorText = useMemo(() => (account ? ErrorUtils.getLatestErrorMessage(account) : ''), [account]);
     const shouldShowServerError = !!serverErrorText && !formError;
-    const didPressGoogleOrIOSButton = useRef(false);
-    const setDidPressGoogleOrIOSButton = useCallback((pressed: boolean) => (didPressGoogleOrIOSButton.current = pressed), []);
+    const isSigningWithAppleOrGoogle = useRef(false);
+    const setIsSigningWithAppleOrGoogle = useCallback((isPressed: boolean) => (isSigningWithAppleOrGoogle.current = isPressed), []);
 
     return (
         <>
@@ -238,8 +238,8 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
                         // to validate in those case as the user has opted for other signin flow.
                         () =>
                             setTimeout(() => {
-                                if (didPressGoogleOrIOSButton.current || firstBlurred.current || !Visibility.isVisible() || !Visibility.hasFocus()) {
-                                    setDidPressGoogleOrIOSButton(false);
+                                if (isSigningWithAppleOrGoogle.current || firstBlurred.current || !Visibility.isVisible() || !Visibility.hasFocus()) {
+                                    setIsSigningWithAppleOrGoogle(false);
                                     return;
                                 }
                                 firstBlurred.current = true;
@@ -296,10 +296,10 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
 
                                     <View style={shouldUseNarrowLayout ? styles.loginButtonRowSmallScreen : styles.loginButtonRow}>
                                         <View>
-                                            <AppleSignIn onPress={() => setDidPressGoogleOrIOSButton(true)} />
+                                            <AppleSignIn onPress={() => setIsSigningWithAppleOrGoogle(true)} />
                                         </View>
                                         <View>
-                                            <GoogleSignIn onPress={() => setDidPressGoogleOrIOSButton(true)} />
+                                            <GoogleSignIn onPress={() => setIsSigningWithAppleOrGoogle(true)} />
                                         </View>
                                     </View>
                                 </View>
