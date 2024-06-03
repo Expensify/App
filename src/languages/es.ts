@@ -2187,6 +2187,7 @@ export default {
             createFailureMessage: 'Se ha producido un error al intentar crear la categoría. Por favor, inténtalo más tarde.',
             addCategory: 'Añadir categoría',
             editCategory: 'Editar categoría',
+            editCategories: 'Editar categorías',
             categoryRequiredError: 'Lo nombre de la categoría es obligatorio.',
             existingCategoryError: 'Ya existe una categoría con este nombre.',
             invalidCategoryName: 'Lo nombre de la categoría es invalido.',
