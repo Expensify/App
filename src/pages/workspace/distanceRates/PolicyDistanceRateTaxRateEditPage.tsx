@@ -82,7 +82,6 @@ function PolicyDistanceRateTaxRateEditPage({policy, route}: PolicyDistanceRateTa
                 <HeaderWithBackButton
                     title={translate('workspace.taxes.taxRate')}
                     shouldShowBackButton
-                    onBackButtonPress={() => Navigation.goBack()}
                 />
                 <SelectionList
                     sections={[{data: taxRateItems}]}
