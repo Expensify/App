@@ -1876,7 +1876,7 @@ function getOptions(
         allPersonalDetailsOptions = lodashOrderBy(allPersonalDetailsOptions, [(personalDetail) => personalDetail.text?.toLowerCase()], 'asc');
     }
 
-    const optionsToExclude: Option[] = [{login: CONST.EMAIL.NOTIFICATIONS}];
+    const optionsToExclude: Option[] = [];
 
     // If we're including selected options from the search results, we only want to exclude them if the search input is empty
     // This is because on certain pages, we show the selected options at the top when the search input is empty
