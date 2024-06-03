@@ -66,10 +66,9 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         setSelectedTags({});
     }, [isFocused]);
 
-    const policyTagList = useMemo(() => PolicyUtils.getTagLists(policyTags).find((policyTag) => policyTag.name === currentTagListName), [currentTagListName, policyTags]);
     const tagList = useMemo<TagListItem[]>(
         () =>
-            Object.values(policyTagList?.tags ?? {})
+            Object.values(currentPolicyTag?.tags ?? {})
                 .sort((tagA, tagB) => localeCompare(tagA.name, tagB.name))
                 .map((tag) => ({
                     value: tag.name,
@@ -82,7 +81,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                     isDisabled: tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                     rightElement: <ListItemRightCaretWithLabel labelText={tag.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
                 })),
-        [policyTagList, selectedTags, translate],
+        [currentPolicyTag, selectedTags, translate],
     );
 
     const tagListKeyedByName = useMemo(
@@ -239,7 +238,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                     <ToggleSettingOptionRow
                         title={translate('common.required')}
                         switchAccessibilityLabel={translate('common.required')}
-                        isActive={Boolean(policyTagList?.required)}
+                        isActive={Boolean(currentPolicyTag?.required)}
                         onToggle={(on) => Tag.setPolicyTagsRequired(policyID, on, route.params.orderWeight ?? 0)}
                         pendingAction={currentPolicyTag.pendingFields?.required}
                         errors={currentPolicyTag.errors}
