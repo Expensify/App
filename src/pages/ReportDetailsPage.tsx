@@ -84,19 +84,14 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const isMoneyRequest = useMemo(() => ReportUtils.isMoneyRequest(report), [report]);
     const isInvoiceReport = useMemo(() => ReportUtils.isInvoiceReport(report), [report]);
     const isInvoiceRoom = useMemo(() => ReportUtils.isInvoiceRoom(report), [report]);
-    const isTaskReport = useMemo(() => ReportUtils.isTaskReport(report), [report]);
     const canEditReportDescription = useMemo(() => ReportUtils.canEditReportDescription(report, policy), [report, policy]);
     const shouldShowReportDescription = isChatRoom && (canEditReportDescription || report.description !== '');
     const linkedWorkspace = useMemo(() => Object.values(policies ?? {}).find((linkedPolicy) => linkedPolicy && linkedPolicy.id === report?.policyID) ?? null, [policies, report?.policyID]);
     const shouldDisableRename = useMemo(() => ReportUtils.shouldDisableRename(report, linkedWorkspace), [report, linkedWorkspace]);
     const isDeprecatedGroupDM = useMemo(() => ReportUtils.isDeprecatedGroupDM(report), [report]);
-    const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(report), [report]);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(report);
 
-    // List the report types that can have their names modified
     const canModifyRoomName = !ReportUtils.isChatThread(report) && !isDeprecatedGroupDM && !isPolicyExpenseChat;
-
-    // Set shouldShowRoomName based on the new condition
     const shouldShowRoomName = canModifyRoomName && !isTaskReport && !isMoneyRequestReport && !isInvoiceRoom && !(isMoneyRequestReport || isInvoiceReport || isMoneyRequest);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
@@ -399,11 +394,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                                 shouldCheckActionAllowedOnPress={false}
                                 description={!shouldDisableRename ? roomDescription : ''}
                                 furtherDetails={chatRoomSubtitle && !isGroupChat ? additionalRoomDetails : ''}
-                                onPress={() =>
-                                    isGroupChat
-                                        ? Navigation.navigate(ROUTES.REPORT_SETTINGS_GROUP_NAME.getRoute(report.reportID))
-                                        : Navigation.navigate(ROUTES.REPORT_SETTINGS_ROOM_NAME.getRoute(report.reportID))
-                                }
+                                onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NAME.getRoute(report.reportID))}
                                 shouldCenter={shouldDisableRename}
                             />
                         </View>
