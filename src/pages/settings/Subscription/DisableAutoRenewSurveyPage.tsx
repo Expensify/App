@@ -1,28 +1,30 @@
 import React from 'react';
 import FeedbackSurvey from '@components/FeedbackSurvey';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 
 function DisableAutoRenewSurveyPage() {
-    const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
 
-    const handleSubmit = () => {};
+    const handleSubmit = () => {
+        // TODO API call to submit feedback will be implemented in next phase
+    };
 
     return (
-        <ScreenWrapper testID={DisableAutoRenewSurveyPage.displayName}>
+        <ScreenWrapper
+            testID={DisableAutoRenewSurveyPage.displayName}
+            includeSafeAreaPaddingBottom={false}
+            shouldEnablePickerAvoiding={false}
+            shouldEnableMaxHeight
+        >
             <HeaderWithBackButton
-                title={translate('workspace.common.subscription')}
+                title={translate('subscription.subscriptionSettings.disableAutoRenew')}
                 onBackButtonPress={() => Navigation.goBack()}
-                shouldShowBackButton={isSmallScreenWidth}
-                icon={Illustrations.CreditCardsNew}
             />
             <FeedbackSurvey
-                title={translate('subscription.subscriptionSettings.disableAutoRenew')}
+                title={translate('subscription.subscriptionSettings.helpUsImprove')}
                 description={translate('subscription.subscriptionSettings.whatsMainReason')}
                 onSubmit={handleSubmit}
             />

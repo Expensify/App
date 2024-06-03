@@ -231,6 +231,8 @@ export default {
             enterAmount: 'Introduce un importe.',
             enterDate: 'Introduce una fecha.',
             invalidTimeRange: 'Por favor, introduce una hora entre 1 y 12 (por ejemplo, 2:30 PM).',
+            // TODO translate
+            pleaseCompleteForm: 'Please complete the form above to continue.',
         },
         comma: 'la coma',
         semicolon: 'el punto y coma',
@@ -3662,12 +3664,15 @@ export default {
             disableAutoRenew: 'Desactivar auto-renovación',
             helpUsImprove: 'Ayúdanos a mejorar Expensify',
             whatsMainReason: '¿Cuál es la razón principal por la que deseas desactivar la auto-renovación de tu suscripción?',
-            functionalityNeeds: 'Hay que mejorar la funcionalidad',
-            tooExpensive: 'Demasiado caro',
-            inadequateCustomerSupport: 'Atención al cliente inadecuada',
-            companyClosing: 'Cierre, reducción, o adquisición de la empresa',
             renewsOn: ({date}) => `Renews on ${date}`, // TODO translate
             corporateKarma: 'Corporate Karma', // TODO translate
         },
+    },
+    // TODO translate
+    feedbackSurvey: {
+        functionalityNeeds: 'Functionality needs improvement',
+        tooExpensive: 'Too expensive',
+        inadequateCustomerSupport: 'Inadequate customer support',
+        companyClosing: 'Company closing, downsizing, or acquired',
     },
 } satisfies EnglishTranslation;

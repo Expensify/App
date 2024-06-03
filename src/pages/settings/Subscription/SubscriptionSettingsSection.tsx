@@ -1,5 +1,5 @@
 import {format} from 'date-fns';
-import React, {useMemo} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Section from '@components/Section';
 import Text from '@components/Text';
@@ -7,18 +7,20 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@navigation/Navigation';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 function SubscriptionSettingsSection() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
 
-    // TODO these values will come from API in next phase
-    const isAutoRenewOn = true;
-    const isAutoIncreaseOn = false;
-    const isCorporateKarmaOn = true;
+    // TODO these default state values will come from API in next phase
+    const [autoRenew, setAutoRenew] = useState(true);
+    const [autoIncrease, setAutoIncrease] = useState(false);
+    const [corporateKarma, setCorporateKarma] = useState(true);
 
     // TODO this will come from API in next phase
     const isCollectPlan = true;
@@ -26,9 +28,22 @@ function SubscriptionSettingsSection() {
     const expirationDate = format(new Date(), CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT);
 
     // TODO all actions will be implemented in next phase
-    const handleAutoRenewToggle = () => {};
-    const handleAutoIncreaseToggle = () => {};
-    const handleCorporateKarmaToggle = () => {};
+    const handleAutoRenewToggle = () => {
+        if (!autoRenew) {
+            // TODO make API call to enable auto renew here
+            setAutoRenew(true);
+            return;
+        }
+        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_DISABLE_AUTO_RENEW_SURVEY);
+    };
+    const handleAutoIncreaseToggle = () => {
+        // TODO make API call to toggle auto increase here
+        setAutoIncrease(!autoIncrease);
+    };
+    const handleCorporateKarmaToggle = () => {
+        // TODO make API call to toggle corporate karma here
+        setCorporateKarma(!corporateKarma);
+    };
 
     const customTitle = useMemo(() => {
         const customTitleSecondSentenceStyles = [styles.textNormal, {color: theme.success}];
@@ -54,7 +69,7 @@ function SubscriptionSettingsSection() {
                             title={translate('subscription.subscriptionSettings.autoRenew')}
                             switchAccessibilityLabel={translate('subscription.subscriptionSettings.autoRenew')}
                             onToggle={handleAutoRenewToggle}
-                            isActive={isAutoRenewOn}
+                            isActive={autoRenew}
                         />
                         <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('subscription.subscriptionSettings.renewsOn', {date: expirationDate})}</Text>
                     </View>
@@ -63,7 +78,7 @@ function SubscriptionSettingsSection() {
                             customTitle={customTitle}
                             switchAccessibilityLabel={translate('subscription.subscriptionSettings.autoRenew')}
                             onToggle={handleAutoIncreaseToggle}
-                            isActive={isAutoIncreaseOn}
+                            isActive={autoIncrease}
                         />
                         <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('subscription.subscriptionSettings.automaticallyIncrease')}</Text>
                     </View>
@@ -74,7 +89,7 @@ function SubscriptionSettingsSection() {
                         title={translate('subscription.subscriptionSettings.corporateKarma')}
                         switchAccessibilityLabel={translate('subscription.subscriptionSettings.corporateKarma')}
                         onToggle={handleCorporateKarmaToggle}
-                        isActive={isCorporateKarmaOn}
+                        isActive={corporateKarma}
                     />
                     <View style={[styles.flexRow, styles.mt2, styles.alignItemsCenter]}>
                         <Text style={[styles.mutedTextLabel, styles.mr1]}>{translate('subscription.subscriptionSettings.donateToExpensify')}</Text>
