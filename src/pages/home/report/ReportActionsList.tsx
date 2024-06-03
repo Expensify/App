@@ -447,11 +447,11 @@ function ReportActionsList({
      * Evaluate new unread marker visibility for each of the report actions.
      */
     const shouldDisplayNewMarker = useCallback(
-        (reportAction: OnyxTypes.ReportAction, index: number, lastReadTime?: string): boolean => {
+        (reportAction: OnyxTypes.ReportAction, index: number, lastReadTime?: string, shouldCheckWithCurrentUnreadMarker?: boolean): boolean => {
             // if lastReadTime is null, use the lastReadTimeRef.current
             const baseLastReadTime = lastReadTime ?? lastReadTimeRef.current;
             let shouldDisplay = false;
-            if (!currentUnreadMarker) {
+            if (!currentUnreadMarker || shouldCheckWithCurrentUnreadMarker) {
                 const nextMessage = sortedVisibleReportActions[index + 1];
                 const isCurrentMessageUnread = isMessageUnread(reportAction, baseLastReadTime);
                 shouldDisplay = isCurrentMessageUnread && (!nextMessage || !isMessageUnread(nextMessage, baseLastReadTime)) && !ReportActionsUtils.shouldHideNewMarker(reportAction);
@@ -468,7 +468,7 @@ function ReportActionsList({
             } else {
                 shouldDisplay = reportAction.reportActionID === currentUnreadMarker;
             }
-
+            
             return shouldDisplay;
         },
         [currentUnreadMarker, sortedVisibleReportActions, report.reportID, messageManuallyMarkedUnread],
@@ -508,16 +508,19 @@ function ReportActionsList({
         // Cannot update a component (ReportActionsList) while rendering a different component (CellRenderer).
         let markerFound = false;
         sortedVisibleReportActions.forEach((reportAction, index) => {
-            if (!shouldDisplayNewMarker(reportAction, index, markerLastReadTimeRef.current)) {
+            if (!shouldDisplayNewMarker(reportAction, index, markerLastReadTimeRef.current, false)) {
                 return;
             }
             markerFound = true;
-            if (!currentUnreadMarker && currentUnreadMarker !== reportAction.reportActionID) {
+            if (!currentUnreadMarker || currentUnreadMarker !== reportAction.reportActionID) {
                 cacheUnreadMarkers.set(report.reportID, reportAction.reportActionID);
+                if(!markerLastReadTimeRef.current) {
+                    markerLastReadTimeRef.current = lastReadTimeRef.current;
+                }
                 setCurrentUnreadMarker(reportAction.reportActionID);
-                markerLastReadTimeRef.current = lastReadTimeRef.current;
             }
         });
+
         if (!markerFound && !linkedReportActionID) {
             setCurrentUnreadMarker(null);
         }
@@ -586,7 +589,7 @@ function ReportActionsList({
                 displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(sortedVisibleReportActions, index)}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                 shouldHideThreadDividerLine={shouldHideThreadDividerLine}
-                shouldDisplayNewMarker={shouldDisplayNewMarker(reportAction, index, markerLastReadTimeRef.current)}
+                shouldDisplayNewMarker={shouldDisplayNewMarker(reportAction, index, markerLastReadTimeRef.current, true)}
                 shouldDisplayReplyDivider={sortedVisibleReportActions.length > 1}
                 isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
                 shouldUseThreadDividerLine={shouldUseThreadDividerLine}
