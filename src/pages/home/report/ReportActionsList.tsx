@@ -451,7 +451,7 @@ function ReportActionsList({
             // if lastReadTime is null, use the lastReadTimeRef.current
             const baseLastReadTime = lastReadTime ?? lastReadTimeRef.current;
             let shouldDisplay = false;
-            if (!currentUnreadMarker || shouldCheckWithCurrentUnreadMarker) {
+            if (!currentUnreadMarker || !shouldCheckWithCurrentUnreadMarker) {
                 const nextMessage = sortedVisibleReportActions[index + 1];
                 const isCurrentMessageUnread = isMessageUnread(reportAction, baseLastReadTime);
                 shouldDisplay = isCurrentMessageUnread && (!nextMessage || !isMessageUnread(nextMessage, baseLastReadTime)) && !ReportActionsUtils.shouldHideNewMarker(reportAction);
@@ -468,7 +468,7 @@ function ReportActionsList({
             } else {
                 shouldDisplay = reportAction.reportActionID === currentUnreadMarker;
             }
-            
+
             return shouldDisplay;
         },
         [currentUnreadMarker, sortedVisibleReportActions, report.reportID, messageManuallyMarkedUnread],
@@ -514,7 +514,7 @@ function ReportActionsList({
             markerFound = true;
             if (!currentUnreadMarker || currentUnreadMarker !== reportAction.reportActionID) {
                 cacheUnreadMarkers.set(report.reportID, reportAction.reportActionID);
-                if(!markerLastReadTimeRef.current) {
+                if (!markerLastReadTimeRef.current) {
                     markerLastReadTimeRef.current = lastReadTimeRef.current;
                 }
                 setCurrentUnreadMarker(reportAction.reportActionID);
