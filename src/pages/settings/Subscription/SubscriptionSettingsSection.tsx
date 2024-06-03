@@ -3,7 +3,6 @@ import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Section from '@components/Section';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,10 +19,7 @@ function SubscriptionSettingsSection() {
     // TODO these default state values will come from API in next phase
     const [autoRenew, setAutoRenew] = useState(true);
     const [autoIncrease, setAutoIncrease] = useState(false);
-    const [corporateKarma, setCorporateKarma] = useState(true);
 
-    // TODO this will come from API in next phase
-    const isCollectPlan = true;
     // TODO this will come from API in next phase
     const expirationDate = format(new Date(), CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT);
 
@@ -39,10 +35,6 @@ function SubscriptionSettingsSection() {
     const handleAutoIncreaseToggle = () => {
         // TODO make API call to toggle auto increase here
         setAutoIncrease(!autoIncrease);
-    };
-    const handleCorporateKarmaToggle = () => {
-        // TODO make API call to toggle corporate karma here
-        setCorporateKarma(!corporateKarma);
     };
 
     const customTitle = useMemo(() => {
@@ -62,46 +54,24 @@ function SubscriptionSettingsSection() {
             titleStyles={[styles.textStrong]}
             isCentralPane
         >
-            {isCollectPlan ? (
-                <>
-                    <View style={[styles.mt5]}>
-                        <ToggleSettingOptionRow
-                            title={translate('subscription.subscriptionSettings.autoRenew')}
-                            switchAccessibilityLabel={translate('subscription.subscriptionSettings.autoRenew')}
-                            onToggle={handleAutoRenewToggle}
-                            isActive={autoRenew}
-                        />
-                        <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('subscription.subscriptionSettings.renewsOn', {date: expirationDate})}</Text>
-                    </View>
-                    <View style={[styles.mt3]}>
-                        <ToggleSettingOptionRow
-                            customTitle={customTitle}
-                            switchAccessibilityLabel={translate('subscription.subscriptionSettings.autoRenew')}
-                            onToggle={handleAutoIncreaseToggle}
-                            isActive={autoIncrease}
-                        />
-                        <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('subscription.subscriptionSettings.automaticallyIncrease')}</Text>
-                    </View>
-                </>
-            ) : (
-                <View style={[styles.mt5]}>
-                    <ToggleSettingOptionRow
-                        title={translate('subscription.subscriptionSettings.corporateKarma')}
-                        switchAccessibilityLabel={translate('subscription.subscriptionSettings.corporateKarma')}
-                        onToggle={handleCorporateKarmaToggle}
-                        isActive={corporateKarma}
-                    />
-                    <View style={[styles.flexRow, styles.mt2, styles.alignItemsCenter]}>
-                        <Text style={[styles.mutedTextLabel, styles.mr1]}>{translate('subscription.subscriptionSettings.donateToExpensify')}</Text>
-                        <TextLink
-                            style={[styles.label]}
-                            href={CONST.CORPORATE_KARMA_URL}
-                        >
-                            {translate('common.learnMore')}
-                        </TextLink>
-                    </View>
-                </View>
-            )}
+            <View style={[styles.mt5]}>
+                <ToggleSettingOptionRow
+                    title={translate('subscription.subscriptionSettings.autoRenew')}
+                    switchAccessibilityLabel={translate('subscription.subscriptionSettings.autoRenew')}
+                    onToggle={handleAutoRenewToggle}
+                    isActive={autoRenew}
+                />
+                <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('subscription.subscriptionSettings.renewsOn', {date: expirationDate})}</Text>
+            </View>
+            <View style={[styles.mt3]}>
+                <ToggleSettingOptionRow
+                    customTitle={customTitle}
+                    switchAccessibilityLabel={translate('subscription.subscriptionSettings.autoRenew')}
+                    onToggle={handleAutoIncreaseToggle}
+                    isActive={autoIncrease}
+                />
+                <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('subscription.subscriptionSettings.automaticallyIncrease')}</Text>
+            </View>
         </Section>
     );
 }

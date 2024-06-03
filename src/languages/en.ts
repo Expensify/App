@@ -3153,12 +3153,10 @@ export default {
             saveUpTo: 'Save up to $10/month per active member',
             automaticallyIncrease:
                 'Automatically increase your annual seats to accommodate for active members that exceed your subscription size. Note: This will extend your annual subscription end date.',
-            donateToExpensify: 'Donate $1 to Expensify.org for every $500 your team spends each month.',
             disableAutoRenew: 'Disable auto-renew',
             helpUsImprove: 'Help us improve Expensify',
             whatsMainReason: 'What’s the main reason you’re disabling auto-renew on your subscription?',
             renewsOn: ({date}) => `Renews on ${date}`,
-            corporateKarma: 'Corporate Karma',
         },
     },
     feedbackSurvey: {

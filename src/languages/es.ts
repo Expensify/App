@@ -3660,19 +3660,16 @@ export default {
             saveUpTo: 'Ahorre hasta $10 al mes por miembro activo',
             automaticallyIncrease:
                 'Aumenta automáticamente tus plazas anuales para dar lugar a los miembros activos que superen el tamaño de tu suscripción. Nota: Esto ampliará la fecha de finalización de tu suscripción anual.',
-            donateToExpensify: 'Dona $1 a Expensify.org por cada $500 que tu equipo gaste cada mes.',
             disableAutoRenew: 'Desactivar auto-renovación',
             helpUsImprove: 'Ayúdanos a mejorar Expensify',
             whatsMainReason: '¿Cuál es la razón principal por la que deseas desactivar la auto-renovación de tu suscripción?',
             renewsOn: ({date}) => `Renews on ${date}`, // TODO translate
-            corporateKarma: 'Corporate Karma', // TODO translate
         },
     },
-    // TODO translate
     feedbackSurvey: {
-        functionalityNeeds: 'Functionality needs improvement',
-        tooExpensive: 'Too expensive',
-        inadequateCustomerSupport: 'Inadequate customer support',
-        companyClosing: 'Company closing, downsizing, or acquired',
+        functionalityNeeds: 'Hay que mejorar la funcionalidad',
+        tooExpensive: 'Demasiado caro',
+        inadequateCustomerSupport: 'Atención al cliente inadecuada',
+        companyClosing: 'Cierre, reducción, o adquisición de la empresa',
     },
 } satisfies EnglishTranslation;
