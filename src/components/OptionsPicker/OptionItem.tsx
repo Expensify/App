@@ -44,23 +44,28 @@ function OptionItem({title, icon, onPress, isSelected = false, isDisabled = fals
             wrapperStyle={[styles.flex1, style]}
         >
             <View style={[isSelected ? styles.borderedContentCardFocused : styles.borderedContentCard, styles.p5]}>
-                <View style={[styles.flexRow, styles.justifyContentBetween]}>
-                    <View style={[styles.flexColumn]}>
+                <View>
+                    <View style={[styles.flexRow, styles.justifyContentBetween]}>
                         <Icon
                             src={icon}
                             width={variables.iconHeader}
                             height={variables.iconHeader}
                         />
-                        <Text style={[styles.headerText, styles.mt2]}>{title}</Text>
+                        {!isDisabled ? (
+                            <View>
+                                <SelectCircle
+                                    isChecked={isSelected}
+                                    selectCircleStyles={styles.sectionSelectCircle}
+                                />
+                            </View>
+                        ) : null}
                     </View>
-                    {!isDisabled ? (
-                        <View>
-                            <SelectCircle
-                                isChecked={isSelected}
-                                selectCircleStyles={styles.sectionSelectCircle}
-                            />
-                        </View>
-                    ) : null}
+                    <Text
+                        style={[styles.headerText, styles.mt2]}
+                        numberOfLines={1}
+                    >
+                        {title}
+                    </Text>
                 </View>
             </View>
         </PressableWithFeedback>
