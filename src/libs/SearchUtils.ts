@@ -5,7 +5,7 @@ import type {ReportListItemType, TransactionListItemType} from '@components/Sele
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {SearchAccountDetails, SearchDataTypes, SearchTypeToItemMap, SectionsType} from '@src/types/onyx/SearchResults';
+import type {SearchAccountDetails, SearchDataTypes, SearchPersonalDetails, SearchTransaction, SearchTypeToItemMap, SectionsType} from '@src/types/onyx/SearchResults';
 import getTopmostCentralPaneRoute from './Navigation/getTopmostCentralPaneRoute';
 import navigationRef from './Navigation/navigationRef';
 import type {RootStackParamList, State} from './Navigation/types';
@@ -29,6 +29,32 @@ const columnNamesToSortingProperty = {
     [CONST.SEARCH_TABLE_COLUMNS.TAX_AMOUNT]: null,
     [CONST.SEARCH_TABLE_COLUMNS.RECEIPT]: null,
 };
+
+/**
+ * @private
+ */
+function getTransactionItemCommonFormattedProperties(
+    transactionItem: SearchTransaction,
+    from: SearchPersonalDetails,
+    to: SearchAccountDetails,
+): Pick<TransactionListItemType, 'formattedFrom' | 'formattedTo' | 'formattedTotal' | 'formattedMerchant' | 'date'> {
+    const isExpenseReport = transactionItem.reportType === CONST.REPORT.TYPE.EXPENSE;
+
+    const formattedFrom = from?.displayName ?? from?.login ?? '';
+    const formattedTo = to?.name ?? to?.displayName ?? to?.login ?? '';
+    const formattedTotal = TransactionUtils.getAmount(transactionItem, isExpenseReport);
+    const date = transactionItem?.modifiedCreated ? transactionItem.modifiedCreated : transactionItem?.created;
+    const merchant = TransactionUtils.getMerchant(transactionItem);
+    const formattedMerchant = merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || merchant === CONST.TRANSACTION.DEFAULT_MERCHANT ? '' : merchant;
+
+    return {
+        formattedFrom,
+        formattedTo,
+        date,
+        formattedTotal,
+        formattedMerchant,
+    };
+}
 
 function isSearchDataType(type: string): type is SearchDataTypes {
     const searchDataTypes: string[] = Object.values(CONST.SEARCH_DATA_TYPES);
@@ -69,12 +95,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data']): Transac
                 ? (data[`${ONYXKEYS.COLLECTION.POLICY}${transactionItem.policyID}`] as SearchAccountDetails)
                 : (data.personalDetailsList?.[transactionItem.managerID] as SearchAccountDetails);
 
-            const formattedFrom = from.displayName ?? from.login ?? '';
-            const formattedTo = to?.name ?? to?.displayName ?? to?.login ?? '';
-            const formattedTotal = TransactionUtils.getAmount(transactionItem, isExpenseReport);
-            const date = transactionItem?.modifiedCreated ? transactionItem.modifiedCreated : transactionItem?.created;
-            const merchant = TransactionUtils.getMerchant(transactionItem);
-            const formattedMerchant = merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || merchant === CONST.TRANSACTION.DEFAULT_MERCHANT ? '' : merchant;
+            const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to);
 
             return {
                 ...transactionItem,
@@ -82,9 +103,9 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data']): Transac
                 to,
                 formattedFrom,
                 formattedTo,
-                date,
                 formattedTotal,
                 formattedMerchant,
+                date,
                 shouldShowMerchant,
                 shouldShowCategory,
                 shouldShowTag,
@@ -119,12 +140,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data']): ReportListIte
                 ? (data[`${ONYXKEYS.COLLECTION.POLICY}${transactionItem.policyID}`] as SearchAccountDetails)
                 : (data.personalDetailsList?.[transactionItem.managerID] as SearchAccountDetails);
 
-            const formattedFrom = from.displayName ?? from.login ?? '';
-            const formattedTo = to?.name ?? to?.displayName ?? to?.login ?? '';
-            const formattedTotal = TransactionUtils.getAmount(transactionItem, isExpenseReport);
-            const date = transactionItem?.modifiedCreated ? transactionItem.modifiedCreated : transactionItem?.created;
-            const merchant = TransactionUtils.getMerchant(transactionItem);
-            const formattedMerchant = merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || merchant === CONST.TRANSACTION.DEFAULT_MERCHANT ? '' : merchant;
+            const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to);
 
             const transaction = {
                 ...transactionItem,
@@ -133,8 +149,8 @@ function getReportSections(data: OnyxTypes.SearchResults['data']): ReportListIte
                 formattedFrom,
                 formattedTo,
                 formattedTotal,
-                date,
                 formattedMerchant,
+                date,
                 shouldShowMerchant,
                 shouldShowCategory,
                 shouldShowTag,
