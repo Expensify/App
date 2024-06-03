@@ -1,8 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
 import {Keyboard} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -12,12 +10,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
+import withPolicy from '@pages/workspace/withPolicy';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type * as OnyxTypes from '@src/types/onyx';
 
 type ListItemType = {
     value: string;
@@ -26,12 +24,7 @@ type ListItemType = {
     keyForList: string;
 };
 
-type PolicyDistanceRateTaxRateEditPageOnyxProps = {
-    /** Policy details */
-    policy: OnyxEntry<OnyxTypes.Policy>;
-};
-
-type PolicyDistanceRateTaxRateEditPageProps = PolicyDistanceRateTaxRateEditPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RATE_EDIT>;
+type PolicyDistanceRateTaxRateEditPageProps = WithPolicyOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RATE_EDIT>;
 
 function PolicyDistanceRateTaxRateEditPage({policy, route}: PolicyDistanceRateTaxRateEditPageProps) {
     const styles = useThemeStyles();
@@ -96,8 +89,4 @@ function PolicyDistanceRateTaxRateEditPage({policy, route}: PolicyDistanceRateTa
 
 PolicyDistanceRateTaxRateEditPage.displayName = 'PolicyDistanceRateTaxRateEditPage';
 
-export default withOnyx<PolicyDistanceRateTaxRateEditPageProps, PolicyDistanceRateTaxRateEditPageOnyxProps>({
-    policy: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`,
-    },
-})(PolicyDistanceRateTaxRateEditPage);
+export default withPolicy(PolicyDistanceRateTaxRateEditPage);

@@ -42,8 +42,6 @@ import type {
     SetWorkspacePayerParams,
     SetWorkspaceReimbursementParams,
     UpdatePolicyDistanceRateValueParams,
-    UpdatePolicyDistanceTaxRateValueParams,
-    UpdatePolicyTaxClaimableValueParams,
     UpdateWorkspaceAvatarParams,
     UpdateWorkspaceCustomUnitAndRateParams,
     UpdateWorkspaceDescriptionParams,
@@ -3975,7 +3973,7 @@ function updateDistanceTaxClaimableValue(policyID: string, customUnit: CustomUni
         },
     ];
 
-    const params: UpdatePolicyTaxClaimableValueParams = {
+    const params: UpdatePolicyDistanceRateValueParams = {
         policyID,
         customUnitID: customUnit.customUnitID,
         customUnitRateArray: JSON.stringify(prepareCustomUnitRatesArray(customUnitRates)),
@@ -4046,7 +4044,7 @@ function updateDistanceTaxRate(policyID: string, customUnit: CustomUnit, customU
         },
     ];
 
-    const params: UpdatePolicyDistanceTaxRateValueParams = {
+    const params: UpdatePolicyDistanceRateValueParams = {
         policyID,
         customUnitID: customUnit.customUnitID,
         customUnitRateArray: JSON.stringify(prepareCustomUnitRatesArray(customUnitRates)),

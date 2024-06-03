@@ -1,8 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
 import {Keyboard} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
@@ -16,20 +14,15 @@ import Navigation from '@libs/Navigation/Navigation';
 import {validateTaxClaimableValue} from '@libs/PolicyDistanceRatesUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
+import withPolicy from '@pages/workspace/withPolicy';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PolicyDistanceRateTaxReclaimableOnEditForm';
-import type * as OnyxTypes from '@src/types/onyx';
 
-type PolicyDistanceRateTaxReclaimableOnEditPageOnyxProps = {
-    /** Policy details */
-    policy: OnyxEntry<OnyxTypes.Policy>;
-};
-
-type PolicyDistanceRateTaxReclaimableOnEditPageProps = PolicyDistanceRateTaxReclaimableOnEditPageOnyxProps &
-    StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT>;
+type PolicyDistanceRateTaxReclaimableOnEditPageProps = WithPolicyOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT>;
 
 function PolicyDistanceRateTaxReclaimableOnEditPage({policy, route}: PolicyDistanceRateTaxReclaimableOnEditPageProps) {
     const styles = useThemeStyles();
@@ -104,8 +97,4 @@ function PolicyDistanceRateTaxReclaimableOnEditPage({policy, route}: PolicyDista
 
 PolicyDistanceRateTaxReclaimableOnEditPage.displayName = 'PolicyDistanceRateTaxReclaimableOnEditPage';
 
-export default withOnyx<PolicyDistanceRateTaxReclaimableOnEditPageProps, PolicyDistanceRateTaxReclaimableOnEditPageOnyxProps>({
-    policy: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`,
-    },
-})(PolicyDistanceRateTaxReclaimableOnEditPage);
+export default withPolicy(PolicyDistanceRateTaxReclaimableOnEditPage);
