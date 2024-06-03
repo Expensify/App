@@ -566,13 +566,7 @@ function MenuItem(
                                                 </View>
                                             )}
                                             {secondaryIcon && (
-                                                <View
-                                                    style={[
-                                                        styles.popoverMenuIcon,
-                                                        iconStyles,
-                                                        isSecondaryIconHoverable && StyleUtils.getBackgroundAndBorderStyle(theme.border),
-                                                    ]}
-                                                >
+                                                <View style={[styles.popoverMenuIcon, iconStyles, isSecondaryIconHoverable && StyleUtils.getBackgroundAndBorderStyle(theme.border)]}>
                                                     <Icon
                                                         contentFit={contentFit}
                                                         src={secondaryIcon}
