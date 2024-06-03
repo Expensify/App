@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection} from 'react-native-onyx';
 import Log from '@libs/Log';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -24,25 +24,23 @@ export default function () {
                     return resolve();
                 }
 
-                const transactionsWithReceipt: Array<OnyxEntry<OldTransaction>> = Object.values(transactions).filter((transaction) => transaction?.receiptFilename);
+                const transactionsWithReceipt: Array<OldTransaction | null> = Object.values(transactions).filter((transaction) => transaction?.receiptFilename);
                 if (!transactionsWithReceipt?.length) {
                     Log.info('[Migrate Onyx] Skipped migration RenameReceiptFilename because there were no transactions with the receiptFilename property');
                     return resolve();
                 }
                 Log.info('[Migrate Onyx] Running  RenameReceiptFilename migration');
-                const dataToSave: Record<TransactionKey, NullishDeep<OldTransaction>> = transactionsWithReceipt?.reduce((result, transaction) => {
+                const dataToSave = transactionsWithReceipt?.reduce((acc, transaction) => {
                     if (!transaction) {
-                        return result;
+                        return acc;
                     }
                     Log.info(`[Migrate Onyx] Renaming receiptFilename ${transaction.receiptFilename} to filename`);
-                    return {
-                        ...result,
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: {
-                            filename: transaction.receiptFilename,
-                            receiptFilename: null,
-                        },
+                    acc[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {
+                        filename: transaction.receiptFilename,
+                        receiptFilename: null,
                     };
-                }, {});
+                    return acc;
+                }, {} as Record<TransactionKey, NullishDeep<OldTransaction>>);
 
                 // eslint-disable-next-line rulesdir/prefer-actions-set-data
                 Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, dataToSave).then(() => {
