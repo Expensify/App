@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -13,6 +13,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import * as IOU from '@userActions/IOU';
+import * as TransactionActions from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -29,21 +30,7 @@ import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
 import SettlementButton from './SettlementButton';
 
-type MoneyReportHeaderOnyxProps = {
-    /** The chat report this report is linked to */
-    chatReport: OnyxEntry<OnyxTypes.Report>;
-
-    /** The next step for the report */
-    nextStep: OnyxEntry<OnyxTypes.ReportNextStep>;
-
-    /** Session info for the currently logged in user. */
-    session: OnyxEntry<OnyxTypes.Session>;
-
-    /** The transaction thread report associated with the current report, if any */
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
-};
-
-type MoneyReportHeaderProps = MoneyReportHeaderOnyxProps & {
+type MoneyReportHeaderProps = {
     /** The report currently being looked at */
     report: OnyxTypes.Report;
 
@@ -64,17 +51,12 @@ type MoneyReportHeaderProps = MoneyReportHeaderOnyxProps & {
     onBackButtonPress: () => void;
 };
 
-function MoneyReportHeader({
-    session,
-    policy,
-    chatReport,
-    nextStep,
-    report: moneyRequestReport,
-    transactionThreadReport,
-    reportActions,
-    shouldUseNarrowLayout = false,
-    onBackButtonPress,
-}: MoneyReportHeaderProps) {
+function MoneyReportHeader({policy, report: moneyRequestReport, transactionThreadReportID, reportActions, shouldUseNarrowLayout = false, onBackButtonPress}: MoneyReportHeaderProps) {
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport.chatReportID}`);
+    const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport.reportID}`);
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+
     const styles = useThemeStyles();
     const theme = useTheme();
     const [isDeleteRequestModalVisible, setIsDeleteRequestModalVisible] = useState(false);
@@ -104,6 +86,7 @@ function MoneyReportHeader({
     const isDraft = ReportUtils.isOpenExpenseReport(moneyRequestReport);
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
 
+    const hasScanningReceipt = ReportUtils.getTransactionsWithReceipts(moneyRequestReport?.reportID).some((transaction) => TransactionUtils.isReceiptBeingScanned(transaction));
     const transactionIDs = TransactionUtils.getAllReportTransactions(moneyRequestReport?.reportID).map((transaction) => transaction.transactionID);
     const allHavePendingRTERViolation = TransactionUtils.allHavePendingRTERViolation(transactionIDs);
 
@@ -125,14 +108,16 @@ function MoneyReportHeader({
 
     const shouldShowSubmitButton = isDraft && reimbursableSpend !== 0 && !allHavePendingRTERViolation;
     const shouldDisableSubmitButton = shouldShowSubmitButton && !ReportUtils.isAllowedToSubmitDraftExpenseReport(moneyRequestReport);
+    const shouldShowMarkAsCashButton = isDraft && allHavePendingRTERViolation;
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
-    const shouldShowNextStep = !ReportUtils.isClosedExpenseReportWithNoExpenses(moneyRequestReport) && isFromPaidPolicy && !!nextStep?.message?.length && !allHavePendingRTERViolation;
-    const shouldShowAnyButton = shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextStep;
+    const shouldShowNextStep =
+        !ReportUtils.isClosedExpenseReportWithNoExpenses(moneyRequestReport) && isFromPaidPolicy && !!nextStep?.message?.length && !allHavePendingRTERViolation && !hasScanningReceipt;
+    const shouldShowAnyButton = shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextStep || allHavePendingRTERViolation;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
     const formattedAmount = CurrencyUtils.convertToDisplayString(reimbursableSpend, moneyRequestReport.currency);
     const [nonHeldAmount, fullAmount] = ReportUtils.getNonHeldAndFullAmount(moneyRequestReport, policy);
     const displayedAmount = ReportUtils.hasHeldExpenses(moneyRequestReport.reportID) && canAllowSettlement ? nonHeldAmount : formattedAmount;
-    const isMoreContentShown = shouldShowNextStep || (shouldShowAnyButton && shouldUseNarrowLayout);
+    const isMoreContentShown = shouldShowNextStep || hasScanningReceipt || (shouldShowAnyButton && shouldUseNarrowLayout);
 
     const confirmPayment = (type?: PaymentMethodType | undefined) => {
         if (!type) {
@@ -168,6 +153,16 @@ function MoneyReportHeader({
 
         setIsDeleteRequestModalVisible(false);
     }, [moneyRequestReport?.reportID, requestParentReportAction, setIsDeleteRequestModalVisible]);
+
+    const markAsCash = useCallback(() => {
+        if (!requestParentReportAction) {
+            return;
+        }
+        const iouTransactionID = requestParentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? requestParentReportAction.originalMessage?.IOUTransactionID ?? '' : '';
+        const reportID = transactionThreadReport?.reportID ?? '';
+
+        TransactionActions.markAsCash(iouTransactionID, reportID);
+    }, [requestParentReportAction, transactionThreadReport?.reportID]);
 
     // The submit button should be success green colour only if the user is submitter and the policy does not have Scheduled Submit turned on
     const isWaitingForSubmissionFromCurrentUser = useMemo(
@@ -212,7 +207,7 @@ function MoneyReportHeader({
                 shouldShowBackButton={shouldUseNarrowLayout}
                 onBackButtonPress={onBackButtonPress}
                 // Shows border if no buttons or next steps are showing below the header
-                shouldShowBorderBottom={!(shouldShowAnyButton && shouldUseNarrowLayout) && !(shouldShowNextStep && !shouldUseNarrowLayout) && !allHavePendingRTERViolation}
+                shouldShowBorderBottom={!isMoreContentShown && !allHavePendingRTERViolation}
                 shouldShowThreeDotsButton
                 threeDotsMenuItems={threeDotsMenuItems}
                 threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
@@ -249,20 +244,44 @@ function MoneyReportHeader({
                         />
                     </View>
                 )}
+                {shouldShowMarkAsCashButton && !shouldUseNarrowLayout && (
+                    <View style={[styles.pv2]}>
+                        <Button
+                            medium
+                            success
+                            text={translate('iou.markAsCash')}
+                            style={[styles.pv2, styles.pr0]}
+                            onPress={markAsCash}
+                        />
+                    </View>
+                )}
             </HeaderWithBackButton>
             {allHavePendingRTERViolation && (
-                <MoneyRequestHeaderStatusBar
-                    title={
-                        <Icon
-                            src={Expensicons.Hourglass}
-                            height={variables.iconSizeSmall}
-                            width={variables.iconSizeSmall}
-                            fill={theme.icon}
-                        />
-                    }
-                    description={translate('iou.pendingMatchWithCreditCardDescription')}
-                    shouldShowBorderBottom
-                />
+                <View>
+                    {shouldShowMarkAsCashButton && shouldUseNarrowLayout && (
+                        <View style={[styles.ph5, styles.pb3]}>
+                            <Button
+                                medium
+                                success
+                                text={translate('iou.markAsCash')}
+                                style={[styles.w100, styles.pr0]}
+                                onPress={markAsCash}
+                            />
+                        </View>
+                    )}
+                    <MoneyRequestHeaderStatusBar
+                        title={
+                            <Icon
+                                src={Expensicons.Hourglass}
+                                height={variables.iconSizeSmall}
+                                width={variables.iconSizeSmall}
+                                fill={theme.icon}
+                            />
+                        }
+                        description={translate('iou.pendingMatchWithCreditCardDescription')}
+                        shouldShowBorderBottom
+                    />
+                </View>
             )}
             <View style={isMoreContentShown ? [styles.dFlex, styles.flexColumn, styles.borderBottom] : []}>
                 {shouldShowSettlementButton && shouldUseNarrowLayout && (
@@ -300,6 +319,20 @@ function MoneyReportHeader({
                     <View style={[styles.ph5, styles.pb3]}>
                         <MoneyReportHeaderStatusBar nextStep={nextStep} />
                     </View>
+                )}
+                {hasScanningReceipt && (
+                    <MoneyRequestHeaderStatusBar
+                        title={
+                            <Icon
+                                src={Expensicons.ReceiptScan}
+                                height={variables.iconSizeSmall}
+                                width={variables.iconSizeSmall}
+                                fill={theme.icon}
+                            />
+                        }
+                        description={translate('iou.receiptScanInProgressDescription')}
+                        shouldShowBorderBottom={false}
+                    />
                 )}
             </View>
             {isHoldMenuVisible && requestType !== undefined && (
@@ -341,17 +374,4 @@ function MoneyReportHeader({
 
 MoneyReportHeader.displayName = 'MoneyReportHeader';
 
-export default withOnyx<MoneyReportHeaderProps, MoneyReportHeaderOnyxProps>({
-    chatReport: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`,
-    },
-    nextStep: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.NEXT_STEP}${report.reportID}`,
-    },
-    transactionThreadReport: {
-        key: ({transactionThreadReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(MoneyReportHeader);
+export default MoneyReportHeader;

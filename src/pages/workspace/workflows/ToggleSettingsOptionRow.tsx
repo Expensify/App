@@ -1,6 +1,6 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Switch from '@components/Switch';
@@ -24,8 +24,6 @@ type ToggleSettingOptionRowProps = {
     shouldPlaceSubtitleBelowSwitch?: boolean;
     /** Used to apply styles to the outermost container */
     wrapperStyle?: StyleProp<ViewStyle>;
-    /** Used to apply styles to the Title */
-    titleStyle?: StyleProp<TextStyle>;
     /** Whether the option is enabled or not */
     isActive: boolean;
     /** Callback to be called when the switch is toggled */
@@ -40,6 +38,9 @@ type ToggleSettingOptionRowProps = {
     onCloseError?: () => void;
     /** Whether the toggle should be disabled */
     disabled?: boolean;
+
+    /** Whether to show the lock icon even if the switch is enabled */
+    showLockIcon?: boolean;
 };
 const ICON_SIZE = 48;
 
@@ -51,7 +52,6 @@ function ToggleSettingOptionRow({
     switchAccessibilityLabel,
     shouldPlaceSubtitleBelowSwitch,
     wrapperStyle,
-    titleStyle,
     onToggle,
     subMenuItems,
     isActive,
@@ -59,6 +59,7 @@ function ToggleSettingOptionRow({
     errors,
     onCloseError,
     disabled = false,
+    showLockIcon = false,
 }: ToggleSettingOptionRowProps) {
     const styles = useThemeStyles();
 
@@ -88,7 +89,7 @@ function ToggleSettingOptionRow({
                         )}
                         {customTitle ?? (
                             <View style={[styles.flexColumn, styles.flex1]}>
-                                <Text style={[styles.textNormal, styles.lh20, titleStyle]}>{title}</Text>
+                                <Text style={[styles.textNormal, styles.lh20]}>{title}</Text>
                                 {!shouldPlaceSubtitleBelowSwitch && subtitle && subTitleView}
                             </View>
                         )}
@@ -98,6 +99,7 @@ function ToggleSettingOptionRow({
                         onToggle={onToggle}
                         isOn={isActive}
                         disabled={disabled}
+                        showLockIcon={showLockIcon}
                     />
                 </View>
                 {shouldPlaceSubtitleBelowSwitch && subtitle && subTitleView}
