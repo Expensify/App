@@ -73,6 +73,7 @@ export default {
         },
         [TEST_NAMES.OpenChatFinderPage]: {
             name: TEST_NAMES.OpenChatFinderPage,
+            requiresDoubleWarmup: true,
         },
         // TODO: Fix text and enable again
         // [TEST_NAMES.ReportTyping]: {
@@ -82,11 +83,13 @@ export default {
         //     },
         //     // Crowded Policy (Do Not Delete) Report, has a input bar available:
         //     reportID: '8268282951170052',
+        //     requiresDoubleWarmup: true,
         // },
         [TEST_NAMES.ChatOpening]: {
             name: TEST_NAMES.ChatOpening,
             // #announce Chat with many messages
             reportID: '5421294415618529',
+            requiresDoubleWarmup: true,
         },
         // TODO: fix and enable again
         // [TEST_NAMES.Linking]: {
@@ -98,6 +101,7 @@ export default {
         //     reportID: '8268282951170052',
         //     linkedReportID: '5421294415618529',
         //     linkedReportActionID: '2845024374735019929',
+        //     requiresDoubleWarmup: true,
         // },
     },
 };
