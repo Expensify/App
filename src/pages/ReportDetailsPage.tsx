@@ -385,19 +385,26 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                         </View>
                     </View>
                     {shouldShowRoomName && (
-                        <View style={[styles.flex1, !shouldDisableRename && styles.mt3, isGroupChat && styles.mb5]}>
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon={!shouldDisableRename}
-                                interactive={!shouldDisableRename}
-                                title={roomTitle}
-                                titleStyle={styles.newKansasLarge}
-                                shouldCheckActionAllowedOnPress={false}
-                                description={!shouldDisableRename ? roomDescription : ''}
-                                furtherDetails={chatRoomSubtitle && !isGroupChat ? additionalRoomDetails : ''}
-                                onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NAME.getRoute(report.reportID))}
-                                shouldCenter={shouldDisableRename}
-                            />
-                        </View>
+                        <OfflineWithFeedback
+                            pendingAction={report?.pendingFields?.reportName}
+                            errors={report?.errorFields?.reportName}
+                            errorRowStyles={[styles.ph5]}
+                            onClose={() => Report.clearPolicyRoomNameErrors(report?.reportID)}
+                        >
+                            <View style={[styles.flex1, !shouldDisableRename && styles.mt3, isGroupChat && styles.mb5]}>
+                                <MenuItemWithTopDescription
+                                    shouldShowRightIcon={!shouldDisableRename}
+                                    interactive={!shouldDisableRename}
+                                    title={roomTitle}
+                                    titleStyle={styles.newKansasLarge}
+                                    shouldCheckActionAllowedOnPress={false}
+                                    description={!shouldDisableRename ? roomDescription : ''}
+                                    furtherDetails={chatRoomSubtitle && !isGroupChat ? additionalRoomDetails : ''}
+                                    onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NAME.getRoute(report.reportID))}
+                                    shouldCenter={shouldDisableRename}
+                                />
+                            </View>
+                        </OfflineWithFeedback>
                     )}
                     {shouldShowReportDescription && (
                         <OfflineWithFeedback
