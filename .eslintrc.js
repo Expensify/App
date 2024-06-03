@@ -155,6 +155,7 @@ module.exports = {
                 fixMixedExportsWithInlineTypeSpecifier: false,
             },
         ],
+        '@typescript-eslint/no-use-before-define': ['error', {functions: false}],
 
         // ESLint core rules
         'es/no-nullish-coalescing-operators': 'off',

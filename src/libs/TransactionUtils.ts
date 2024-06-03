@@ -366,7 +366,7 @@ function getMerchant(transaction: OnyxEntry<Transaction>): string {
     return transaction?.modifiedMerchant ? transaction.modifiedMerchant : transaction?.merchant ?? '';
 }
 
-function getDistance(transaction: OnyxEntry<Transaction>): number {
+function getDistance(transaction: Transaction | null): number {
     return transaction?.comment?.customUnit?.quantity ?? 0;
 }
 
@@ -605,12 +605,12 @@ function getValidWaypoints(waypoints: WaypointCollection | undefined, reArrangeI
             return acc;
         }
 
-        const validatedWaypoints: WaypointCollection = {...acc, [`waypoint${reArrangeIndexes ? waypointIndex + 1 : index}`]: currentWaypoint};
+        acc[`waypoint${reArrangeIndexes ? waypointIndex + 1 : index}`] = currentWaypoint;
 
         lastWaypointIndex = index;
         waypointIndex += 1;
 
-        return validatedWaypoints;
+        return acc;
     }, {});
 }
 
