@@ -217,27 +217,20 @@ function mergeEmojisWithFrequentlyUsedEmojis(emojis: PickerEmojis): EmojiPickerL
         return addSpacesToEmojiCategories(emojis);
     }
 
-    console.log('>>>> nvp', frequentlyUsedEmojis);
-
     const formattedFrequentlyUsedEmojis = frequentlyUsedEmojis.map((frequentlyUsedEmoji: Emoji): Emoji => {
-        console.log('>>>> processing', frequentlyUsedEmoji);
         // Frequently used emojis in the old format will have name/types/code stored with them
         // The back-end may not always have both, so we'll need to fill them in.
         if (!('code' in (frequentlyUsedEmoji as FrequentlyUsedEmoji))) {
-            console.log('>>>> code does not exist');
             return findEmojiByName(frequentlyUsedEmoji.name);
         }
         if (!('name' in (frequentlyUsedEmoji as FrequentlyUsedEmoji))) {
-            console.log('>>>> name does not exist');
             return findEmojiByCode(frequentlyUsedEmoji.code);
         }
 
         return frequentlyUsedEmoji;
     });
 
-    console.log('>>>> formatted', formattedFrequentlyUsedEmojis);
     const mergedEmojis = [Emojis.categoryFrequentlyUsed, ...formattedFrequentlyUsedEmojis, ...emojis];
-    console.log('>>>>', mergedEmojis);
     return addSpacesToEmojiCategories(mergedEmojis);
 }
 

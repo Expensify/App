@@ -35,7 +35,7 @@ import Visibility from '@libs/Visibility';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {BlockedFromConcierge, CustomStatusDraft, FrequentlyUsedEmoji, Policy} from '@src/types/onyx';
+import type {BlockedFromConcierge, CustomStatusDraft, Policy} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import type {OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
 import type OnyxPersonalDetails from '@src/types/onyx/PersonalDetails';
