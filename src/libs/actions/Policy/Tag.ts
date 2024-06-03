@@ -594,7 +594,7 @@ function setPolicyTagsRequired(policyID: string, requiresTag: boolean, tagListIn
                 value: {
                     [policyTag.name]: {
                         required: requiresTag,
-                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                        pendingFields: {required: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
                         errors: null,
                     },
                 },
