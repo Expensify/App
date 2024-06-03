@@ -377,11 +377,18 @@ function IOURequestStepDistance({
             const oldWaypoints = transactionBackup?.comment.waypoints ?? {};
             const oldAddresses = Object.fromEntries(Object.entries(oldWaypoints).map(([key, waypoint]) => [key, 'address' in waypoint ? waypoint.address : {}]));
             const addresses = Object.fromEntries(Object.entries(waypoints).map(([key, waypoint]) => [key, 'address' in waypoint ? waypoint.address : {}]));
+            const hasRouteChanged = !isEqual(transactionBackup?.routes, transaction?.routes);
             if (isEqual(oldAddresses, addresses)) {
                 Navigation.dismissModal();
                 return;
             }
-            IOU.updateMoneyRequestDistance({transactionID: transaction?.transactionID ?? '', transactionThreadReportID: report?.reportID ?? '', waypoints});
+            IOU.updateMoneyRequestDistance({
+                transactionID: transaction?.transactionID ?? '',
+                transactionThreadReportID: report?.reportID ?? '',
+                waypoints,
+                ...(hasRouteChanged ? {routes: transaction?.routes} : {}),
+                policy,
+            });
             Navigation.dismissModal();
             return;
         }
@@ -399,7 +406,9 @@ function IOURequestStepDistance({
         transactionBackup,
         waypoints,
         transaction?.transactionID,
+        transaction?.routes,
         report?.reportID,
+        policy,
     ]);
 
     const renderItem = useCallback(
@@ -428,7 +437,7 @@ function IOURequestStepDistance({
                 <View style={styles.flex1}>
                     <DraggableList
                         data={waypointsList}
-                        keyExtractor={(item) => item}
+                        keyExtractor={(item) => (waypoints[item]?.keyForList ?? waypoints[item]?.address ?? '') + item}
                         shouldUsePortal
                         onDragEnd={updateWaypoints}
                         ref={scrollViewRef}

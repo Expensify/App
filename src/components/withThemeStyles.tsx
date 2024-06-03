@@ -1,13 +1,9 @@
-import PropTypes from 'prop-types';
 import type {ComponentType, ForwardedRef, ReactElement, RefAttributes} from 'react';
 import React, {forwardRef} from 'react';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import type {ThemeStyles} from '@styles/index';
 
-const withThemeStylesPropTypes = {
-    themeStyles: PropTypes.object.isRequired,
-};
 type WithThemeStylesProps = {themeStyles: ThemeStyles};
 
 export default function withThemeStyles<TProps extends WithThemeStylesProps, TRef>(
@@ -30,5 +26,4 @@ export default function withThemeStyles<TProps extends WithThemeStylesProps, TRe
     return forwardRef(WithThemeStyles);
 }
 
-export {withThemeStylesPropTypes};
 export type {WithThemeStylesProps};
