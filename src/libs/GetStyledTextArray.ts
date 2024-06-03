@@ -1,4 +1,5 @@
 import {Str} from 'expensify-common';
+import StringUtils from './StringUtils';
 
 type StyledText = {
     text: string;
@@ -8,7 +9,9 @@ type StyledText = {
 const getStyledTextArray = (name: string, prefix: string): StyledText[] => {
     const texts = [];
     const prefixLowercase = prefix.toLowerCase();
-    const prefixLocation = name.toLowerCase().search(Str.escapeForRegExp(prefixLowercase));
+    const prefixLocation = StringUtils.normalizeAccents(name)
+        .toLowerCase()
+        .search(Str.escapeForRegExp(StringUtils.normalizeAccents(prefixLowercase)));
 
     if (prefixLocation === 0 && prefix.length === name.length) {
         texts.push({text: name, isColored: true});

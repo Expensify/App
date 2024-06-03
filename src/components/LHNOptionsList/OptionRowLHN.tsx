@@ -14,10 +14,10 @@ import SubscriptAvatar from '@components/SubscriptAvatar';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import DateUtils from '@libs/DateUtils';
 import DomUtils from '@libs/DomUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -37,7 +37,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const popoverAnchor = useRef<View>(null);
     const StyleUtils = useStyleUtils();
     const isFocusedRef = useRef(true);
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const {translate} = useLocalize();
     const [isContextMenuActive, setIsContextMenuActive] = useState(false);
@@ -95,7 +95,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
      * @param [event] - A press event.
      */
     const showPopover = (event: MouseEvent | GestureResponderEvent) => {
-        if (!isFocusedRef.current && isSmallScreenWidth) {
+        if (!isFocusedRef.current && shouldUseNarrowLayout) {
             return;
         }
         setIsContextMenuActive(true);
