@@ -1,17 +1,11 @@
 import React from 'react';
 import {View} from 'react-native';
-import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import Button from './Button';
 import Header from './Header';
-import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import Modal from './Modal';
-import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Text from './Text';
-import Tooltip from './Tooltip';
 
 type DecisionModalProps = {
     /** Title describing purpose of modal */
@@ -43,8 +37,6 @@ type DecisionModalProps = {
 };
 
 function DecisionModal({title, prompt = '', firstOptionText, secondOptionText, onFirstOptionSubmit, onSecondOptionSubmit, isSmallScreenWidth, onClose, isVisible}: DecisionModalProps) {
-    const {translate} = useLocalize();
-    const theme = useTheme();
     const styles = useThemeStyles();
 
     return (
@@ -60,21 +52,7 @@ function DecisionModal({title, prompt = '', firstOptionText, secondOptionText, o
                             title={title}
                             containerStyles={[styles.alignItemsCenter]}
                         />
-                        <Tooltip text={translate('common.close')}>
-                            <PressableWithoutFeedback
-                                onPress={onClose}
-                                style={[styles.touchableButtonImage]}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                                accessibilityLabel={translate('common.close')}
-                            >
-                                <Icon
-                                    src={Expensicons.Close}
-                                    fill={theme.icon}
-                                />
-                            </PressableWithoutFeedback>
-                        </Tooltip>
                     </View>
-
                     <Text>{prompt}</Text>
                 </View>
                 {firstOptionText && (

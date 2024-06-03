@@ -37,10 +37,10 @@ function BaseListItem<TItem extends ListItem>({
     const styles = useThemeStyles();
     const {hovered, bind} = useHover();
 
-    const pressableRef = useRef<View | HTMLDivElement>(null);
+    const pressableRef = useRef<View>(null);
 
     // Sync focus on an item
-    useSyncFocus(pressableRef, Boolean(isFocused && shouldSyncFocus));
+    useSyncFocus(pressableRef, Boolean(isFocused), shouldSyncFocus);
 
     const rightHandSideComponentRender = () => {
         if (canSelectMultiple || !rightHandSideComponent) {
@@ -72,16 +72,17 @@ function BaseListItem<TItem extends ListItem>({
                     }
                     onSelectRow(item);
                 }}
-                disabled={isDisabled}
+                disabled={isDisabled && !item.isSelected}
                 accessibilityLabel={item.text ?? ''}
                 role={CONST.ROLE.BUTTON}
                 hoverDimmingValue={1}
                 hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, hoverStyle]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                 onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
-                nativeID={keyForList ?? ''}
+                id={keyForList ?? ''}
                 style={pressableStyle}
                 onFocus={onFocus}
+                tabIndex={item.tabIndex}
             >
                 <View style={wrapperStyle}>
                     {typeof children === 'function' ? children(hovered) : children}

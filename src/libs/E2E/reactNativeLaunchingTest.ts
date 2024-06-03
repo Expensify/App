@@ -66,6 +66,7 @@ E2EClient.getTestConfig()
             console.error(`[E2E] Test '${config.name}' not found`);
             // instead of throwing, report the error to the server, which is better for DX
             return E2EClient.submitTestResults({
+                branch: Config.E2E_BRANCH,
                 name: config.name,
                 error: `Test '${config.name}' not found`,
                 isCritical: false, 

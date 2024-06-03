@@ -1,23 +1,18 @@
 import React from 'react';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
-import Text from './Text';
-import WelcomeVideoModal from './WelcomeVideoModal';
+import CONST from '@src/CONST';
+import FeatureTrainingModal from './FeatureTrainingModal';
 
 function OnboardingWelcomeVideo() {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
-
-    const onClose = () => {
-        Navigation.goBack();
-    };
 
     return (
-        <WelcomeVideoModal onClose={onClose}>
-            <Text style={[styles.textHeadlineH1, styles.textXXLarge]}>{translate('onboarding.welcomeVideo.title')}</Text>
-            <Text style={styles.textSupporting}>{translate('onboarding.welcomeVideo.description')}</Text>
-        </WelcomeVideoModal>
+        <FeatureTrainingModal
+            title={translate('onboarding.welcomeVideo.title')}
+            description={translate('onboarding.welcomeVideo.description')}
+            confirmText={translate('footer.getStarted')}
+            videoURL={CONST.WELCOME_VIDEO_URL}
+        />
     );
 }
 

@@ -96,7 +96,7 @@ function IOURequestStepWaypoint({
         // If the user is online, and they are trying to save a value without using the autocomplete, show an error message instructing them to use a selected address instead.
         // That enables us to save the address with coordinates when it is selected
         if (!isOffline && waypointValue !== '' && waypointAddress !== waypointValue) {
-            ErrorUtils.addErrorMessage(errors, `waypoint${pageIndex}`, 'distance.errors.selectSuggestedAddress');
+            ErrorUtils.addErrorMessage(errors, `waypoint${pageIndex}`, 'distance.error.selectSuggestedAddress');
         }
 
         return errors;
@@ -119,6 +119,7 @@ function IOURequestStepWaypoint({
                 name: values.name ?? '',
                 lat: values.lat ?? 0,
                 lng: values.lng ?? 0,
+                keyForList: `${(values.name ?? 'waypoint') as string}_${Date.now()}`,
             };
             saveWaypoint(waypoint);
         }
@@ -139,6 +140,7 @@ function IOURequestStepWaypoint({
             lng: values.lng ?? 0,
             address: values.address ?? '',
             name: values.name ?? '',
+            keyForList: `${values.name ?? 'waypoint'}_${Date.now()}`,
         };
 
         Transaction.saveWaypoint(transactionID, pageIndex, waypoint, action === CONST.IOU.ACTION.CREATE);
@@ -204,7 +206,7 @@ function IOURequestStepWaypoint({
                             ref={(e: HTMLElement | null) => {
                                 textInput.current = e as unknown as TextInput;
                             }}
-                            hint={!isOffline ? 'distance.errors.selectSuggestedAddress' : ''}
+                            hint={!isOffline ? 'distance.error.selectSuggestedAddress' : ''}
                             containerStyles={[styles.mt4]}
                             label={translate('distance.address')}
                             defaultValue={waypointAddress}
@@ -258,4 +260,5 @@ export default withWritableReportOrNotFound(
             },
         })(IOURequestStepWaypoint),
     ),
+    true,
 );

@@ -4,6 +4,7 @@ import ReactNativeModal from 'react-native-modal';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import useKeyboardState from '@hooks/useKeyboardState';
 import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -46,13 +47,15 @@ function BaseModal(
         onBackdropPress,
         shouldEnableNewFocusManagement = false,
         restoreFocusType,
+        shouldUseModalPaddingStyle = true,
     }: BaseModalProps,
     ref: React.ForwardedRef<View>,
 ) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {windowWidth, windowHeight, isSmallScreenWidth} = useWindowDimensions();
+    const {windowWidth, windowHeight} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const keyboardStateContextValue = useKeyboardState();
 
     const safeAreaInsets = useSafeAreaInsets();
@@ -74,9 +77,11 @@ function BaseModal(
      */
     const hideModal = useCallback(
         (callHideCallback = true) => {
-            Modal.willAlertModalBecomeVisible(false);
-            if (shouldSetModalVisibility) {
-                Modal.setModalVisibility(false);
+            if (Modal.areAllModalsHidden()) {
+                Modal.willAlertModalBecomeVisible(false);
+                if (shouldSetModalVisibility) {
+                    Modal.setModalVisibility(false);
+                }
             }
             if (callHideCallback) {
                 onModalHide();
@@ -157,13 +162,13 @@ function BaseModal(
                 {
                     windowWidth,
                     windowHeight,
-                    isSmallScreenWidth,
+                    isSmallScreenWidth: shouldUseNarrowLayout,
                 },
                 popoverAnchorPosition,
                 innerContainerStyle,
                 outerStyle,
             ),
-        [StyleUtils, type, windowWidth, windowHeight, isSmallScreenWidth, popoverAnchorPosition, innerContainerStyle, outerStyle],
+        [StyleUtils, type, windowWidth, windowHeight, shouldUseNarrowLayout, popoverAnchorPosition, innerContainerStyle, outerStyle],
     );
 
     const {
@@ -173,21 +178,26 @@ function BaseModal(
         paddingRight: safeAreaPaddingRight,
     } = StyleUtils.getSafeAreaPadding(safeAreaInsets);
 
-    const modalPaddingStyles = StyleUtils.getModalPaddingStyles({
-        safeAreaPaddingTop,
-        safeAreaPaddingBottom,
-        safeAreaPaddingLeft,
-        safeAreaPaddingRight,
-        shouldAddBottomSafeAreaMargin,
-        shouldAddTopSafeAreaMargin,
-        shouldAddBottomSafeAreaPadding: !keyboardStateContextValue?.isKeyboardShown && shouldAddBottomSafeAreaPadding,
-        shouldAddTopSafeAreaPadding,
-        modalContainerStyleMarginTop: modalContainerStyle.marginTop,
-        modalContainerStyleMarginBottom: modalContainerStyle.marginBottom,
-        modalContainerStylePaddingTop: modalContainerStyle.paddingTop,
-        modalContainerStylePaddingBottom: modalContainerStyle.paddingBottom,
-        insets: safeAreaInsets,
-    });
+    const modalPaddingStyles = shouldUseModalPaddingStyle
+        ? StyleUtils.getModalPaddingStyles({
+              safeAreaPaddingTop,
+              safeAreaPaddingBottom,
+              safeAreaPaddingLeft,
+              safeAreaPaddingRight,
+              shouldAddBottomSafeAreaMargin,
+              shouldAddTopSafeAreaMargin,
+              shouldAddBottomSafeAreaPadding: !keyboardStateContextValue?.isKeyboardShown && shouldAddBottomSafeAreaPadding,
+              shouldAddTopSafeAreaPadding,
+              modalContainerStyleMarginTop: modalContainerStyle.marginTop,
+              modalContainerStyleMarginBottom: modalContainerStyle.marginBottom,
+              modalContainerStylePaddingTop: modalContainerStyle.paddingTop,
+              modalContainerStylePaddingBottom: modalContainerStyle.paddingBottom,
+              insets: safeAreaInsets,
+          })
+        : {
+              paddingLeft: safeAreaPaddingLeft ?? 0,
+              paddingRight: safeAreaPaddingRight ?? 0,
+          };
 
     return (
         // this is a workaround for modal not being visible on the new arch in some cases

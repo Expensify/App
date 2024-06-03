@@ -295,6 +295,10 @@ function requestPhysicalExpensifyCard(cardID: number, authToken: string, private
     API.write(WRITE_COMMANDS.REQUEST_PHYSICAL_EXPENSIFY_CARD, requestParams, {optimisticData});
 }
 
+function resetWalletAdditionalDetailsDraft() {
+    Onyx.set(ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_DRAFT, null);
+}
+
 export {
     openOnfidoFlow,
     openInitialSettingsPage,
@@ -309,4 +313,5 @@ export {
     acceptWalletTerms,
     setKYCWallSource,
     requestPhysicalExpensifyCard,
+    resetWalletAdditionalDetailsDraft,
 };

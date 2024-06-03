@@ -87,12 +87,11 @@ jobs:
           MYAPP_UPLOAD_STORE_PASSWORD: ${{ secrets.MYAPP_UPLOAD_STORE_PASSWORD }}
           MYAPP_UPLOAD_KEY_PASSWORD: ${{ secrets.MYAPP_UPLOAD_KEY_PASSWORD }}
 
-      # Note: Android production deploys are temporarily disabled until https://github.com/Expensify/App/issues/40108 is resolved
-      #      - name: Run Fastlane production
-      #        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-      #        run: bundle exec fastlane android production
-      #        env:
-      #          VERSION: ${{ env.VERSION_CODE }}
+      - name: Run Fastlane production
+        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        run: bundle exec fastlane android production
+        env:
+          VERSION: ${{ env.VERSION_CODE }}
 
       - name: Archive Android sourcemaps
         uses: actions/upload-artifact@v3

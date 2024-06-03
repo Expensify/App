@@ -8,11 +8,11 @@ These are best practices related to the current API used for App.
 - Data is pushed to the client and put straight into Onyx by low-level libraries.
 - Clients should be kept up-to-date with many small incremental changes to data.
 - Creating data needs to be optimistic on every connection (offline, slow 3G, etc), eg. `RequestMoney` or `SplitBill` should work without waiting for a server response.
-- For new objects created from the client (reports, reportActions, policies) we're going to generate a random string ID immediately on the client, rather than needing to wait for the server to give us an ID for the created object.
+- For new objects created from the client (reports, reportActions, policies), we're going to generate a random string ID immediately on the client, rather than needing to wait for the server to give us an ID for the created object.
   - This client-generated ID will become the primary key for that record in the database. This will provide more offline functionality than was previously possible.
 
 ## Response Handling
-When the web server responds to an API call the response is sent to the server in one of two ways.
+When the web server responds to an API call, the response is sent to the server in one of two ways.
 1. **HTTPS Response** - Data that is returned with the HTTPS response is only sent to the client that initiated the request.
 
     The network library will look for any `onyxData` in the response and send it straight to `Onyx.update(response.onyxData)`.
@@ -20,31 +20,38 @@ When the web server responds to an API call the response is sent to the server i
 1. **Pusher Event** (web socket) - Data returned with a Pusher event is sent to all currently connected clients for the user that made the request, as well as any other necessary participants (eg. like other people in the chat)
 
     Pusher listens for an `onyxApiUpdate` event and sends the data straight to `Onyx.update(pushJSON)`.
+
 ### READ Responses
 This is a response that returns data from the database.
 
-A READ response is very specific to the client making the request, so it's data is returned with the **HTTPS Response**. This prevents a lot of unnecessary data from being sent to other clients that will never use it.
+A READ response is very specific to the client making the request, so its data is returned with the **HTTPS Response**. This prevents a lot of unnecessary data from being sent to other clients that will never use it.
 
 In PHP, the response is added like this:
+
 ```php
 $response['onyxData'][] = blahblahblah;
 ```
+
 The data will be returned with the HTTPS response.
+
 ### WRITE Responses
 This response happens when new data is created in the database.
 
 New data (`jsonCode===200`) should be sent to all connected clients so a **Pusher Event** is used to update another currently connected clients with the new data that was created.
 
 In PHP, the response is added like this:
+
 ```php
 $onyxUpdate[] = blahblahblah;
 ```
+
 The data will automatically be sent to the user via Pusher.
 
 #### WRITE Response Errors
 When there is an error on a WRITE response (`jsonCode!==200`), the error must come back to the client on the HTTPS response. The error is only relevant to the client that made the request and it wouldn't make sense to send it out to all connected clients.
 
 Error messages should be returned and stored as an object under the `errors` property, keyed by an integer [microtime](https://github.com/Expensify/Web-Expensify/blob/25d056c9c531ea7f12c9bf3283ec554dd5d1d316/lib/Onyx.php#L148-L154). It's also common to store errors keyed by microtime under `errorFields.fieldName`. Use this format when error messages should be saved on a general object but are only relevant to a specific field / key on the object. If absolutely needed, additional error properties can be stored under other, more specific fields that sit at the same level as `errors`:
+
 ```php
 [
     'onyxMethod' => Onyx::METHOD_MERGE,

@@ -6,7 +6,7 @@ import {parseDocument} from 'htmlparser2';
 import CONST from '@src/CONST';
 import type GetCurrentSelection from './types';
 
-const markdownElements = ['h1', 'strong', 'em', 'del', 'blockquote', 'q', 'code', 'pre', 'a', 'br', 'li', 'ul', 'ol', 'b', 'i', 's'];
+const markdownElements = ['h1', 'strong', 'em', 'del', 'blockquote', 'q', 'code', 'pre', 'a', 'br', 'li', 'ul', 'ol', 'b', 'i', 's', 'mention-user'];
 const tagAttribute = 'data-testid';
 
 /**

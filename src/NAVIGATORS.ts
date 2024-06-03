@@ -8,6 +8,7 @@ export default {
     LEFT_MODAL_NAVIGATOR: 'LeftModalNavigator',
     RIGHT_MODAL_NAVIGATOR: 'RightModalNavigator',
     ONBOARDING_MODAL_NAVIGATOR: 'OnboardingModalNavigator',
+    FEATURE_TRANING_MODAL_NAVIGATOR: 'FeatureTrainingModalNavigator',
     WELCOME_VIDEO_MODAL_NAVIGATOR: 'WelcomeVideoModalNavigator',
     EXPLANATION_MODAL_NAVIGATOR: 'ExplanationModalNavigator',
     FULL_SCREEN_NAVIGATOR: 'FullScreenNavigator',

@@ -8,9 +8,9 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
-import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
-import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
-import * as PolicyActions from '@userActions/Policy';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import * as PolicyActions from '@userActions/Policy/Policy';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
@@ -30,25 +30,26 @@ function WorkspaceOwnerChangeSuccessPage({route}: WorkspaceOwnerChangeSuccessPag
     }, [accountID, policyID]);
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
-            <PaidPolicyAccessOrNotFoundWrapper policyID={policyID}>
-                <ScreenWrapper testID={WorkspaceOwnerChangeSuccessPage.displayName}>
-                    <HeaderWithBackButton
-                        title={translate('workspace.changeOwner.changeOwnerPageTitle')}
-                        onBackButtonPress={closePage}
-                    />
-                    <ConfirmationPage
-                        animation={LottieAnimations.Fireworks}
-                        heading={translate('workspace.changeOwner.successTitle')}
-                        description={translate('workspace.changeOwner.successDescription')}
-                        descriptionStyle={styles.textSupporting}
-                        shouldShowButton
-                        buttonText={translate('common.buttonConfirm')}
-                        onButtonPress={closePage}
-                    />
-                </ScreenWrapper>
-            </PaidPolicyAccessOrNotFoundWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+        <AccessOrNotFoundWrapper
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyID={policyID}
+        >
+            <ScreenWrapper testID={WorkspaceOwnerChangeSuccessPage.displayName}>
+                <HeaderWithBackButton
+                    title={translate('workspace.changeOwner.changeOwnerPageTitle')}
+                    onBackButtonPress={closePage}
+                />
+                <ConfirmationPage
+                    animation={LottieAnimations.Fireworks}
+                    heading={translate('workspace.changeOwner.successTitle')}
+                    description={translate('workspace.changeOwner.successDescription')}
+                    descriptionStyle={styles.textSupporting}
+                    shouldShowButton
+                    buttonText={translate('common.buttonConfirm')}
+                    onButtonPress={closePage}
+                />
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 

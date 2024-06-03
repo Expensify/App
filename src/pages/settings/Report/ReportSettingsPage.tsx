@@ -35,7 +35,7 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
 
     const shouldDisableSettings = isEmptyObject(report) || ReportUtils.isArchivedRoom(report) || ReportUtils.isSelfDM(report);
-    const shouldShowRoomName = !ReportUtils.isPolicyExpenseChat(report) && !ReportUtils.isChatThread(report);
+    const shouldShowRoomName = !ReportUtils.isPolicyExpenseChat(report) && !ReportUtils.isChatThread(report) && !ReportUtils.isInvoiceRoom(report);
     const notificationPreference =
         report?.notificationPreference && report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN
             ? translate(`notificationPreferencesPage.notificationPreferences.${report.notificationPreference}`)
@@ -96,11 +96,7 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
                                     shouldShowRightIcon
                                     title={report?.reportName === '' ? reportName : report?.reportName}
                                     description={isGroupChat ? translate('common.name') : translate('newRoomPage.roomName')}
-                                    onPress={() =>
-                                        isGroupChat
-                                            ? Navigation.navigate(ROUTES.REPORT_SETTINGS_GROUP_NAME.getRoute(reportID))
-                                            : Navigation.navigate(ROUTES.REPORT_SETTINGS_ROOM_NAME.getRoute(reportID))
-                                    }
+                                    onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NAME.getRoute(reportID))}
                                 />
                             )}
                         </OfflineWithFeedback>
@@ -149,6 +145,7 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
                         )}
                     </View>
                     {!!report?.visibility &&
+                        report.chatType !== CONST.REPORT.CHAT_TYPE.INVOICE &&
                         (shouldAllowChangeVisibility ? (
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon

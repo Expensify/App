@@ -220,12 +220,23 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoadingResendValidationForm]);
 
+    useEffect(() => {
+        if (!hasError) {
+            return;
+        }
+
+        setFormError({});
+    }, [hasError]);
+
     /**
      * Check that all the form fields are valid, then trigger the submit callback
      */
     const validateAndSubmitForm = useCallback(() => {
         if (account?.isLoading) {
             return;
+        }
+        if (account?.errors) {
+            SessionActions.clearAccountMessages();
         }
         const requiresTwoFactorAuth = account?.requiresTwoFactorAuth;
         if (requiresTwoFactorAuth) {

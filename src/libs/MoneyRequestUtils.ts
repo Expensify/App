@@ -17,6 +17,10 @@ function stripSpacesFromAmount(amount: string): string {
     return amount.replace(/\s+/g, '');
 }
 
+function replaceCommasWithPeriod(amount: string): string {
+    return amount.replace(/,+/g, '.');
+}
+
 /**
  * Strip decimals from the amount
  */
@@ -81,7 +85,7 @@ function replaceAllDigits(text: string, convertFn: (char: string) => string): st
  * Check if distance expense or not
  */
 function isDistanceRequest(iouType: IOUType, selectedTab: OnyxEntry<SelectedTabRequest>): boolean {
-    return iouType === CONST.IOU.TYPE.REQUEST && selectedTab === CONST.TAB_REQUEST.DISTANCE;
+    return (iouType === CONST.IOU.TYPE.REQUEST || iouType === CONST.IOU.TYPE.SUBMIT) && selectedTab === CONST.TAB_REQUEST.DISTANCE;
 }
 
 /**
@@ -91,4 +95,4 @@ function isScanRequest(selectedTab: SelectedTabRequest): boolean {
     return selectedTab === CONST.TAB_REQUEST.SCAN;
 }
 
-export {addLeadingZero, isDistanceRequest, isScanRequest, replaceAllDigits, stripCommaFromAmount, stripDecimalsFromAmount, stripSpacesFromAmount, validateAmount};
+export {addLeadingZero, isDistanceRequest, isScanRequest, replaceAllDigits, stripCommaFromAmount, stripDecimalsFromAmount, stripSpacesFromAmount, replaceCommasWithPeriod, validateAmount};
