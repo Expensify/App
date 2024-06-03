@@ -27,7 +27,8 @@ function AgreeToTheLabel() {
     const {translate} = useLocalize();
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
 
-    const walletAgreementUrl = userWallet?.walletProgramID === CONST.WALLET.MTL_WALLET_PROGRAM_ID ? CONST.WALLET_AGREEMENT_URL : CONST.BANCORP_WALLET_AGREEMENT_URL;
+    const walletAgreementUrl =
+        userWallet?.walletProgramID && userWallet?.walletProgramID === CONST.WALLET.BANCORP_WALLET_PROGRAM_ID ? CONST.BANCORP_WALLET_AGREEMENT_URL : CONST.WALLET_AGREEMENT_URL;
 
     return (
         <Text>
