@@ -82,7 +82,7 @@ function ReportActionItemFragment({
     source = '',
     style = [],
     delegateAccountID = 0,
-    actorIcon = {},
+    actorIcon,
     isThreadParentMessage = false,
     isApprovedOrSubmittedReportAction = false,
     isHoldReportAction = false,
