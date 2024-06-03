@@ -49,7 +49,7 @@ function DisplayNamePage({isLoadingApp = true, currentUserPersonalDetails}: Disp
         if (!ValidationUtils.isValidDisplayName(values.firstName)) {
             ErrorUtils.addErrorMessage(errors, 'firstName', 'personalDetails.error.hasInvalidCharacter');
         } else if (values.firstName.length > CONST.TITLE_CHARACTER_LIMIT) {
-            ErrorUtils.addErrorMessage(errors, 'firstName', ['common.error.characterLimitExceedCounter', {length: values.firstName.length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
+            ErrorUtils.addErrorMessage(errors, 'firstName', translate('common.error.characterLimitExceedCounter', {length: values.firstName.length, limit: CONST.TITLE_CHARACTER_LIMIT}));
         }
         if (ValidationUtils.doesContainReservedWord(values.firstName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
             ErrorUtils.addErrorMessage(errors, 'firstName', 'personalDetails.error.containsReservedWord');
@@ -59,7 +59,7 @@ function DisplayNamePage({isLoadingApp = true, currentUserPersonalDetails}: Disp
         if (!ValidationUtils.isValidDisplayName(values.lastName)) {
             ErrorUtils.addErrorMessage(errors, 'lastName', 'personalDetails.error.hasInvalidCharacter');
         } else if (values.lastName.length > CONST.TITLE_CHARACTER_LIMIT) {
-            ErrorUtils.addErrorMessage(errors, 'lastName', ['common.error.characterLimitExceedCounter', {length: values.lastName.length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
+            ErrorUtils.addErrorMessage(errors, 'lastName', translate('common.error.characterLimitExceedCounter', {length: values.lastName.length, limit: CONST.TITLE_CHARACTER_LIMIT}));
         }
         if (ValidationUtils.doesContainReservedWord(values.lastName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
             ErrorUtils.addErrorMessage(errors, 'lastName', 'personalDetails.error.containsReservedWord');

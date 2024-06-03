@@ -40,8 +40,12 @@ function getAuthenticateErrorMessage(response: Response): keyof TranslationFlatO
  * Method used to get an error object with microsecond as the key.
  * @param error - error key or message to be saved
  */
-function getMicroSecondOnyxError(error: TranslationPaths, _isTranslated = false, errorKey?: number): Errors {
+function getMicroSecondOnyxErrorWithTranslationKey(error: TranslationPaths, errorKey?: number): Errors {
     return {[errorKey ?? DateUtils.getMicroseconds()]: Localize.translateLocal(error)};
+}
+
+function getMicroSecondOnyxErrorWithMessage(error: string, errorKey?: number): Errors {
+    return {[errorKey ?? DateUtils.getMicroseconds()]: error};
 }
 
 /**
@@ -189,7 +193,8 @@ export {
     getLatestErrorMessage,
     getLatestErrorMessageField,
     getLatestErrorFieldForAnyField,
-    getMicroSecondOnyxError,
+    getMicroSecondOnyxErrorWithTranslationKey,
+    getMicroSecondOnyxErrorWithMessage,
     getMicroSecondOnyxErrorObject,
     isReceiptError,
 };

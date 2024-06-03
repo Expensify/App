@@ -35,11 +35,11 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
         if (!title) {
             ErrorUtils.addErrorMessage(errors, INPUT_IDS.TITLE, 'newTaskPage.pleaseEnterTaskName');
         } else if (title.length > CONST.TITLE_CHARACTER_LIMIT) {
-            ErrorUtils.addErrorMessage(errors, INPUT_IDS.TITLE, ['common.error.characterLimitExceedCounter', {length: title.length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
+            ErrorUtils.addErrorMessage(errors, INPUT_IDS.TITLE, translate('common.error.characterLimitExceedCounter', {length: title.length, limit: CONST.TITLE_CHARACTER_LIMIT}));
         }
 
         return errors;
-    }, []);
+    }, [translate]);
 
     const submit = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>) => {

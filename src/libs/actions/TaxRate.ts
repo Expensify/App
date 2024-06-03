@@ -124,7 +124,7 @@ function createPolicyTax(policyID: string, taxRate: TaxRate) {
                     taxRates: {
                         taxes: {
                             [taxRate.code]: {
-                                errors: ErrorUtils.getMicroSecondOnyxError('workspace.taxes.error.createFailureMessage'),
+                                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.taxes.error.createFailureMessage'),
                             },
                         },
                     },
@@ -232,7 +232,7 @@ function setPolicyTaxesEnabled(policyID: string, taxesIDsToUpdate: string[], isE
                             acc[taxID] = {
                                 isDisabled: !!originalTaxes[taxID].isDisabled,
                                 pendingFields: {isDisabled: null},
-                                errorFields: {isDisabled: ErrorUtils.getMicroSecondOnyxError('workspace.taxes.error.updateFailureMessage')},
+                                errorFields: {isDisabled: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.taxes.error.updateFailureMessage')},
                             };
                             return acc;
                         }, {}),
@@ -313,7 +313,7 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
                         taxes: taxesToDelete.reduce<TaxRateDeleteMap>((acc, taxID) => {
                             acc[taxID] = {
                                 pendingAction: null,
-                                errors: ErrorUtils.getMicroSecondOnyxError('workspace.taxes.error.deleteFailureMessage'),
+                                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.taxes.error.deleteFailureMessage'),
                             };
                             return acc;
                         }, {}),
@@ -377,7 +377,7 @@ function updatePolicyTaxValue(policyID: string, taxID: string, taxValue: number)
                             [taxID]: {
                                 value: originalTaxRate.value,
                                 pendingFields: {value: null},
-                                errorFields: {value: ErrorUtils.getMicroSecondOnyxError('workspace.taxes.error.updateFailureMessage')},
+                                errorFields: {value: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.taxes.error.updateFailureMessage')},
                             },
                         },
                     },
@@ -439,7 +439,7 @@ function renamePolicyTax(policyID: string, taxID: string, newName: string) {
                             [taxID]: {
                                 name: originalTaxRate.name,
                                 pendingFields: {name: null},
-                                errorFields: {name: ErrorUtils.getMicroSecondOnyxError('workspace.taxes.error.updateFailureMessage')},
+                                errorFields: {name: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.taxes.error.updateFailureMessage')},
                             },
                         },
                     },

@@ -63,7 +63,7 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
         } else if ([...work].length > CONST.TITLE_CHARACTER_LIMIT) {
             // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16
             // code units.
-            ErrorUtils.addErrorMessage(errors, 'work', ['common.error.characterLimitExceedCounter', {length: [...work].length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
+            ErrorUtils.addErrorMessage(errors, 'work', translate('common.error.characterLimitExceedCounter', {length: [...work].length, limit: CONST.TITLE_CHARACTER_LIMIT}));
         }
 
         return errors;

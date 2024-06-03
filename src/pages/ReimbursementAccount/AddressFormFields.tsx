@@ -96,7 +96,7 @@ function AddressFormFields({shouldSaveDraft = false, defaultValues, values, erro
                 onChangeText={(value) => onFieldChange?.({zipCode: value})}
                 errorText={errors?.zipCode ? translate('bankAccount.error.zipCode') : ''}
                 maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
-                hint={['common.zipCodeExampleFormat', {zipSampleFormat: CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}]}
+                hint={translate('common.zipCodeExampleFormat', {zipSampleFormat: CONST.COUNTRY_ZIP_REGEX_DATA.US.samples})}
                 containerStyles={styles.mt3}
             />
         </>

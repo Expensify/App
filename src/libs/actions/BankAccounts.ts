@@ -163,7 +163,7 @@ function getVBBADataForOnyx(currentStep?: BankAccountStep): OnyxData {
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                 value: {
                     isLoading: false,
-                    errors: ErrorUtils.getMicroSecondOnyxError('walletPage.addBankAccountFailure'),
+                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('walletPage.addBankAccountFailure'),
                 },
             },
         ],
@@ -239,7 +239,7 @@ function addPersonalBankAccount(account: PlaidBankAccount) {
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
                     isLoading: false,
-                    errors: ErrorUtils.getMicroSecondOnyxError('walletPage.addBankAccountFailure'),
+                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('walletPage.addBankAccountFailure'),
                 },
             },
         ],

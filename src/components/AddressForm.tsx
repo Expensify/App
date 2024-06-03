@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import type {MaybePhraseKey} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
@@ -77,7 +76,7 @@ function AddressForm({
 
     const zipSampleFormat = (country && (CONST.COUNTRY_ZIP_REGEX_DATA[country] as CountryZipRegex)?.samples) ?? '';
 
-    const zipFormat: MaybePhraseKey = ['common.zipCodeExampleFormat', {zipSampleFormat}];
+    const zipFormat = translate('common.zipCodeExampleFormat', {zipSampleFormat});
 
     const isUSAForm = country === CONST.COUNTRY.US;
 
