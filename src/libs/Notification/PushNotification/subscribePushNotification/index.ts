@@ -89,6 +89,11 @@ function navigateToReport({reportID, reportActionID}: ReportActionPushNotificati
     Airship.push
         .getActiveNotifications()
         .then((notifications) => {
+
+            if (notifications.length === 0) {
+                return;
+            }
+
             const onyxUpdates = notifications.reduce<DeferredUpdatesDictionary>((updates, notification) => {
                 const pushNotificationData = getPushNotificationData(notification);
                 const lastUpdateID = pushNotificationData.lastUpdateID;
@@ -105,13 +110,17 @@ function navigateToReport({reportID, reportActionID}: ReportActionPushNotificati
                 return updates;
             }, {});
 
-            DeferredOnyxUpdates.enqueueAndProcess(onyxUpdates);
+            if (Object.keys(onyxUpdates).length === 0) {
+                return;
+            }
 
-            Log.info('[PushNotification] Navigating to report', false, {reportID, reportActionID});
+            DeferredOnyxUpdates.enqueueAndProcess(onyxUpdates);
         })
         .then(Navigation.isNavigationReady)
         .then(Navigation.waitForProtectedRoutes)
         .then(() => {
+            Log.info('[PushNotification] Navigating to report', false, {reportID, reportActionID});
+
             const policyID = lastVisitedPath && extractPolicyIDFromPath(lastVisitedPath);
             const report = getReport(reportID.toString());
             const policyEmployeeAccountIDs = policyID ? getPolicyEmployeeAccountIDs(policyID) : [];
