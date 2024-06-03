@@ -27,4 +27,6 @@ function CardSectionDataEmpty() {
     );
 }
 
+CardSectionDataEmpty.displayName = 'CardSectionDataEmpty';
+
 export default CardSectionDataEmpty;

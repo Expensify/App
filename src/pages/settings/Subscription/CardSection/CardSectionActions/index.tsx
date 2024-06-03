@@ -1,4 +1,4 @@
-import React, {useMemo, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
@@ -30,27 +30,39 @@ function CardSectionActions() {
         [translate],
     );
 
+    const handleIconPress = useCallback(() => {
+        if (isSmallScreenWidth) {
+            return;
+        }
+        threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
+            setThreeDotsMenuPosition({
+                horizontal: x + width,
+                vertical: y + height,
+            });
+        });
+    }, [isSmallScreenWidth]);
+
+    const anchorAlignment = useMemo(
+        () => ({
+            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+        }),
+        [],
+    );
+
     return (
         <View ref={threeDotsMenuContainerRef}>
             <ThreeDotsMenu
-                onIconPress={() => {
-                    if (isSmallScreenWidth) {
-                        return;
-                    }
-                    threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
-                        setThreeDotsMenuPosition({
-                            horizontal: x + width,
-                            vertical: y + height,
-                        });
-                    });
-                }}
+                onIconPress={handleIconPress}
                 menuItems={overflowMenu}
                 anchorPosition={threeDotsMenuPosition}
-                anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                anchorAlignment={anchorAlignment}
                 shouldOverlay
             />
         </View>
     );
 }
+
+CardSectionActions.displayName = 'CardSectionActions';
 
 export default CardSectionActions;

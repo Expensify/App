@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Icon from '@components/Icon';
@@ -19,7 +19,7 @@ function CardSection() {
     const theme = useTheme();
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
 
-    const defaultCard = Object.values(fundList ?? {}).find((card) => card.isDefault);
+    const defaultCard = useMemo(() => Object.values(fundList ?? {}).find((card) => card.isDefault), [fundList]);
 
     return (
         <Section
@@ -60,5 +60,7 @@ function CardSection() {
         </Section>
     );
 }
+
+CardSection.displayName = 'CardSection';
 
 export default CardSection;

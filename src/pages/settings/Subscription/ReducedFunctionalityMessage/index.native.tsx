@@ -9,4 +9,6 @@ function ReducedFunctionalityMessage() {
     return <Text style={styles.sectionListMutedInfo}>{translate('subscription.mobileReducedFunctionalityMessage')}</Text>;
 }
 
+ReducedFunctionalityMessage.displayName = 'ReducedFunctionalityMessage';
+
 export default ReducedFunctionalityMessage;
