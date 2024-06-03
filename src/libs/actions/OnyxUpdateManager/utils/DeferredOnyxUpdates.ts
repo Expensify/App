@@ -60,7 +60,7 @@ function isEmpty() {
  * Manually processes and applies the updates from the deferred updates queue. (used e.g. for push notifications)
  */
 function process() {
-    Log.info('[DeferredOnyxUpdates] processing updates', false, {lastUpdateIDs: Object.keys(deferredUpdates)});
+    Log.info('[DeferredOnyxUpdates] Processing manually enqueued updates', false, {lastUpdateIDs: Object.keys(deferredUpdates)});
 
     if (missingOnyxUpdatesQueryPromise) {
         missingOnyxUpdatesQueryPromise.finally(() => OnyxUpdateManagerUtils.validateAndApplyDeferredUpdates);
@@ -88,12 +88,12 @@ function enqueue(updates: OnyxUpdatesFromServer | DeferredUpdatesDictionary, opt
     // We check here if the "updates" param is a single update.
     // If so, we only need to insert one update into the deferred updates queue.
     if (isValidOnyxUpdateFromServer(updates)) {
-        Log.info('[DeferredOnyxUpdates] enqueuing update', false, {lastUpdateID: updates.lastUpdateID});
+        Log.info('[DeferredOnyxUpdates] Manually enqueuing update', false, {lastUpdateID: updates.lastUpdateID});
 
         const lastUpdateID = Number(updates.lastUpdateID);
         deferredUpdates[lastUpdateID] = updates;
     } else {
-        Log.info('[DeferredOnyxUpdates] enqueuing updates', false, {lastUpdateIDs: Object.keys(updates)});
+        Log.info('[DeferredOnyxUpdates] Manually enqueuing updates', false, {lastUpdateIDs: Object.keys(updates)});
 
         // If the "updates" param is an object, we need to insert multiple updates into the deferred updates queue.
         Object.entries(updates).forEach(([lastUpdateIDString, update]) => {
