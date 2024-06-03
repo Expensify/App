@@ -325,9 +325,9 @@ export default {
         action: 'Acción',
         expenses: 'Gastos',
         tax: 'Impuesto',
-        shared: 'Compartido',
+        shared: 'Compartidos',
         drafts: 'Borradores',
-        finished: 'Finalizado',
+        finished: 'Finalizados',
     },
     connectionComplete: {
         title: 'Conexión Completa',
