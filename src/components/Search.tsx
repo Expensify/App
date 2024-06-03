@@ -135,7 +135,6 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
             sections={[{data: sortedData, isDisabled: false}]}
             onSelectRow={(item) => {
                 const reportID = isReportListItemType(item) ? item.reportID : item.transactionThreadReportID;
-
                 openReport(reportID);
             }}
             shouldDebounceRowSelect

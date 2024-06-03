@@ -221,7 +221,7 @@ function getSortedTransactionData(data: TransactionListItemType[], sortBy?: Sear
 
 function getSearchParams() {
     const topmostCentralPaneRoute = getTopmostCentralPaneRoute(navigationRef.getRootState() as State<RootStackParamList>);
-    return topmostCentralPaneRoute?.params;
+    return topmostCentralPaneRoute?.params as Record<string, string | undefined>;
 }
 
 export {getListItem, getQueryHash, getSections, getSortedSections, getShouldShowColumn, getShouldShowMerchant, getSearchType, getSearchParams};
