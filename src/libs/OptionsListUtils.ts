@@ -576,12 +576,22 @@ function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | nu
  * Update alternate text for the option when applicable
  */
 function getAlternateText(option: ReportUtils.OptionData, {showChatPreviewLine = false, forcePolicyNamePreview = false}: PreviewConfig) {
+    const report = ReportUtils.getReport(option.reportID);
+    const isAdminRoom = ReportUtils.isAdminRoom(report);
+    const isAnnounceRoom = ReportUtils.isAnnounceRoom(report);
+
     if (!!option.isThread || !!option.isMoneyRequestReport) {
         return option.lastMessageText ? option.lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
     }
-    if (!!option.isChatRoom || !!option.isPolicyExpenseChat) {
+
+    if (option.isChatRoom && !isAdminRoom && !isAnnounceRoom) {
+        return showChatPreviewLine && option.lastMessageText ? option.lastMessageText : option.subtitle;
+    }
+
+    if ((option.isPolicyExpenseChat ?? false) || isAdminRoom || isAnnounceRoom) {
         return showChatPreviewLine && !forcePolicyNamePreview && option.lastMessageText ? option.lastMessageText : option.subtitle;
     }
+
     if (option.isTaskReport) {
         return showChatPreviewLine && option.lastMessageText ? option.lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
     }
