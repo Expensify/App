@@ -4,9 +4,11 @@ import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import {isLinkedTransactionHeld} from '@libs/ReportActionsUtils';
 import * as IOU from '@userActions/IOU';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import DeepValueOf from '@src/types/utils/DeepValueOf';
 import DecisionModal from './DecisionModal';
 
 type ProcessMoneyReportHoldMenuProps = {
@@ -35,7 +37,7 @@ type ProcessMoneyReportHoldMenuProps = {
     paymentType?: PaymentMethodType;
 
     /** Type of action handled */
-    requestType?: 'pay' | 'approve';
+    requestType?: DeepValueOf<typeof CONST.IOU.ACTION_TYPE>;
 };
 
 function ProcessMoneyReportHoldMenu({
@@ -50,7 +52,7 @@ function ProcessMoneyReportHoldMenu({
     moneyRequestReport,
 }: ProcessMoneyReportHoldMenuProps) {
     const {translate} = useLocalize();
-    const isApprove = requestType === 'approve';
+    const isApprove = requestType === CONST.IOU.ACTION_TYPE.APPROVE;
 
     const onSubmit = (full: boolean) => {
         if (isApprove) {

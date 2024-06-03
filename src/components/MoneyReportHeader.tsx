@@ -19,6 +19,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Button from './Button';
 import ConfirmModal from './ConfirmModal';
@@ -79,7 +80,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         isActionOwner && (ReportUtils.canAddOrDeleteTransactions(moneyRequestReport) || ReportUtils.isTrackExpenseReport(transactionThreadReport)) && !isDeletedParentAction;
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
-    const [requestType, setRequestType] = useState<'pay' | 'approve'>();
+    const [requestType, setRequestType] = useState<DeepValueOf<typeof CONST.IOU.ACTION_TYPE>>();
     const canAllowSettlement = ReportUtils.hasUpdatedTotal(moneyRequestReport, policy);
     const policyType = policy?.type;
     const isPayer = ReportUtils.isPayer(session, moneyRequestReport);
@@ -124,7 +125,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             return;
         }
         setPaymentType(type);
-        setRequestType('pay');
+        setRequestType(CONST.IOU.ACTION_TYPE.PAY);
         if (ReportUtils.hasHeldExpenses(moneyRequestReport.reportID)) {
             setIsHoldMenuVisible(true);
         } else if (chatReport) {
@@ -133,7 +134,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     };
 
     const confirmApproval = () => {
-        setRequestType('approve');
+        setRequestType(CONST.IOU.ACTION_TYPE.APPROVE);
         if (ReportUtils.hasHeldExpenses(moneyRequestReport.reportID)) {
             setIsHoldMenuVisible(true);
         } else {

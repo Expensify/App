@@ -35,6 +35,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolations, UserWallet} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {PendingMessageProps} from './MoneyRequestPreview/types';
 import ReportActionItemImages from './ReportActionItemImages';
 
@@ -122,7 +123,7 @@ function ReportPreview({
     );
 
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
-    const [requestType, setRequestType] = useState<'pay' | 'approve'>();
+    const [requestType, setRequestType] = useState<DeepValueOf<typeof CONST.IOU.ACTION_TYPE>>();
     const [nonHeldAmount, fullAmount] = ReportUtils.getNonHeldAndFullAmount(iouReport, policy);
     const {isSmallScreenWidth} = useWindowDimensions();
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
@@ -175,7 +176,7 @@ function ReportPreview({
             return;
         }
         setPaymentType(type);
-        setRequestType('pay');
+        setRequestType(CONST.IOU.ACTION_TYPE.PAY);
         if (ReportUtils.hasHeldExpenses(iouReport?.reportID)) {
             setIsHoldMenuVisible(true);
         } else if (chatReport) {
@@ -185,7 +186,7 @@ function ReportPreview({
     };
 
     const confirmApproval = () => {
-        setRequestType('approve');
+        setRequestType(CONST.IOU.ACTION_TYPE.APPROVE);
         if (ReportUtils.hasHeldExpenses(iouReport?.reportID)) {
             setIsHoldMenuVisible(true);
         } else {
