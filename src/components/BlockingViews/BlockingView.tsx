@@ -1,3 +1,4 @@
+import type {ImageContentFit} from 'expo-image';
 import React, {useMemo} from 'react';
 import type {ImageSourcePropType, StyleProp, ViewStyle, WebStyle} from 'react-native';
 import {View} from 'react-native';
@@ -36,6 +37,9 @@ type BaseBlockingViewProps = {
 
     /** Render custom subtitle */
     CustomSubtitle?: React.ReactElement;
+
+    /** Determines how the image should be resized to fit its container */
+    contentFitImage?: ImageContentFit;
 
     /** Additional styles to apply to the container */
     containerStyle?: StyleProp<ViewStyle>;
@@ -84,6 +88,7 @@ function BlockingView({
     animationStyles = [],
     animationWebStyle = {},
     CustomSubtitle,
+    contentFitImage,
     containerStyle,
 }: BlockingViewProps) {
     const styles = useThemeStyles();
@@ -137,6 +142,7 @@ function BlockingView({
                     fill={iconColor}
                     width={iconWidth}
                     height={iconHeight}
+                    contentFit={contentFitImage}
                 />
             )}
             <View>

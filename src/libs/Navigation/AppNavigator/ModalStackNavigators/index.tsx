@@ -82,6 +82,7 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNa
     [SCREENS.MONEY_REQUEST.STEP_DISTANCE_RATE]: () => require('@pages/iou/request/step/IOURequestStepDistanceRate').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.STEP_MERCHANT]: () => require('../../../../pages/iou/request/step/IOURequestStepMerchant').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS]: () => require('../../../../pages/iou/request/step/IOURequestStepParticipants').default as React.ComponentType,
+    [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_ROOT]: () => require('../../../../pages/workspace/categories/WorkspaceCategoriesPage').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.STEP_SCAN]: () => require('../../../../pages/iou/request/step/IOURequestStepScan').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.STEP_TAG]: () => require('../../../../pages/iou/request/step/IOURequestStepTag').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.STEP_WAYPOINT]: () => require('../../../../pages/iou/request/step/IOURequestStepWaypoint').default as React.ComponentType,
@@ -131,6 +132,13 @@ const TaskModalStackNavigator = createModalStackNavigator<TaskDetailsNavigatorPa
 
 const ReportDescriptionModalStackNavigator = createModalStackNavigator<ReportDescriptionNavigatorParamList>({
     [SCREENS.REPORT_DESCRIPTION_ROOT]: () => require('../../../../pages/ReportDescriptionPage').default as React.ComponentType,
+});
+
+const CategoriesModalStackNavigator = createModalStackNavigator({
+    [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_SETTINGS]: () => require('../../../../pages/workspace/categories/WorkspaceCategoriesSettingsPage').default as React.ComponentType,
+    [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_CREATE]: () => require('../../../../pages/workspace/categories/CreateCategoryPage').default as React.ComponentType,
+    [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_EDIT]: () => require('../../../../pages/workspace/categories/EditCategoryPage').default as React.ComponentType,
+    [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS]: () => require('../../../../pages/workspace/categories/CategorySettingsPage').default as React.ComponentType,
 });
 
 const ReportParticipantsModalStackNavigator = createModalStackNavigator<ParticipantsNavigatorParamList>({
@@ -392,6 +400,7 @@ export {
     RoomMembersModalStackNavigator,
     SettingsModalStackNavigator,
     SignInModalStackNavigator,
+    CategoriesModalStackNavigator,
     SplitDetailsModalStackNavigator,
     TaskModalStackNavigator,
     WalletStatementStackNavigator,
