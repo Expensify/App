@@ -231,8 +231,7 @@ export default {
             enterAmount: 'Introduce un importe.',
             enterDate: 'Introduce una fecha.',
             invalidTimeRange: 'Por favor, introduce una hora entre 1 y 12 (por ejemplo, 2:30 PM).',
-            // TODO translate
-            pleaseCompleteForm: 'Please complete the form above to continue.',
+            pleaseCompleteForm: 'Por favor complete el formulario de arriba para continuar..',
         },
         comma: 'la coma',
         semicolon: 'el punto y coma',
@@ -3663,7 +3662,7 @@ export default {
             disableAutoRenew: 'Desactivar auto-renovación',
             helpUsImprove: 'Ayúdanos a mejorar Expensify',
             whatsMainReason: '¿Cuál es la razón principal por la que deseas desactivar la auto-renovación de tu suscripción?',
-            renewsOn: ({date}) => `Renews on ${date}`, // TODO translate
+            renewsOn: ({date}) => `Se renovará el ${date}`,
         },
     },
     feedbackSurvey: {
