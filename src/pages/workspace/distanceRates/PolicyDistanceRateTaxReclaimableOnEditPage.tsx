@@ -24,7 +24,7 @@ import INPUT_IDS from '@src/types/form/PolicyDistanceRateTaxReclaimableOnEditFor
 
 type PolicyDistanceRateTaxReclaimableOnEditPageProps = WithPolicyOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT>;
 
-function PolicyDistanceRateTaxReclaimableOnEditPage({policy, route}: PolicyDistanceRateTaxReclaimableOnEditPageProps) {
+function PolicyDistanceRateTaxReclaimableOnEditPage({route, policy}: PolicyDistanceRateTaxReclaimableOnEditPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();

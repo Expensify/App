@@ -26,7 +26,7 @@ type ListItemType = {
 
 type PolicyDistanceRateTaxRateEditPageProps = WithPolicyOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RATE_EDIT>;
 
-function PolicyDistanceRateTaxRateEditPage({policy, route}: PolicyDistanceRateTaxRateEditPageProps) {
+function PolicyDistanceRateTaxRateEditPage({route, policy}: PolicyDistanceRateTaxRateEditPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyID = route.params.policyID;
