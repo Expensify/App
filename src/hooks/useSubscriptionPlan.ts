@@ -9,7 +9,7 @@ function useSubscriptionPlan() {
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [session] = useOnyx(ONYXKEYS.SESSION);
 
-    // Filter workspaces in which user is the admin and the type is either corporate (control) or team (collect)
+    // Filter workspaces in which user is the owner and the type is either corporate (control) or team (collect)
     const ownerPolicies = useMemo(
         () =>
             Object.values(policies ?? {}).filter(
