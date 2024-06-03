@@ -35,7 +35,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolations, UserWallet} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
-import DeepValueOf from '@src/types/utils/DeepValueOf';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {PendingMessageProps} from './MoneyRequestPreview/types';
 import ReportActionItemImages from './ReportActionItemImages';
 
