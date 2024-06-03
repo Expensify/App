@@ -119,6 +119,7 @@ export default {
         to: 'A',
         optional: 'Opcional',
         new: 'Nuevo',
+        center: 'Centrar',
         search: 'Buscar',
         find: 'Encontrar',
         searchWithThreeDots: 'Buscar...',
