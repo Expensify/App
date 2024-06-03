@@ -2755,14 +2755,6 @@ function areAllRequestsBeingSmartScanned(iouReportID: string, reportPreviewActio
 }
 
 /**
- * Check if any of the transactions in the report has required missing fields
- *
- */
-function hasMissingSmartscanFields(iouReportID: string): boolean {
-    return TransactionUtils.getAllReportTransactions(iouReportID).some((transaction) => TransactionUtils.hasMissingSmartscanFields(transaction));
-}
-
-/**
  * Get the transactions related to a report preview with receipts
  * Get the details linked to the IOU reportAction
  *
@@ -2776,6 +2768,33 @@ function getLinkedTransaction(reportAction: OnyxEntry<ReportAction | OptimisticI
     }
 
     return allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? {};
+}
+
+/**
+ * Check if any of the transactions in the report has required missing fields
+ */
+function hasMissingSmartscanFields(iouReportID: string): boolean {
+    return TransactionUtils.getAllReportTransactions(iouReportID).some(TransactionUtils.hasMissingSmartscanFields);
+}
+
+/**
+ * Check if iouReportID has required missing fields
+ */
+function shouldShowRBRForMissingSmartscanFields(iouReportID: string): boolean {
+    const reportActions = Object.values(ReportActionsUtils.getAllReportActions(iouReportID));
+    return reportActions.some((action) => {
+        if (!ReportActionsUtils.isMoneyRequestAction(action)) {
+            return false;
+        }
+        const transaction = getLinkedTransaction(action);
+        if (isEmptyObject(transaction)) {
+            return false;
+        }
+        if (!ReportActionsUtils.wasActionTakenByCurrentUser(action)) {
+            return false;
+        }
+        return TransactionUtils.hasMissingSmartscanFields(transaction);
+    });
 }
 
 /**
@@ -6269,7 +6288,7 @@ function hasSmartscanError(reportActions: ReportAction[]) {
             return false;
         }
         const IOUReportID = ReportActionsUtils.getIOUReportIDFromReportActionPreview(action);
-        const isReportPreviewError = ReportActionsUtils.isReportPreviewAction(action) && hasMissingSmartscanFields(IOUReportID) && !isSettled(IOUReportID);
+        const isReportPreviewError = ReportActionsUtils.isReportPreviewAction(action) && shouldShowRBRForMissingSmartscanFields(IOUReportID) && !isSettled(IOUReportID);
         const transactionID = (action.originalMessage as IOUMessage).IOUTransactionID ?? '0';
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? {};
         const isSplitBillError = ReportActionsUtils.isSplitBillAction(action) && TransactionUtils.hasMissingSmartscanFields(transaction as Transaction);
@@ -7034,6 +7053,7 @@ export {
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
     shouldShowFlagComment,
+    shouldShowRBRForMissingSmartscanFields,
     shouldUseFullTitleToDisplay,
     sortReportsByLastRead,
     updateOptimisticParentReportAction,
