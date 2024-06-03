@@ -17,7 +17,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 type SubscriptionVariant = ValueOf<typeof CONST.SUBSCRIPTION.TYPE>;
 
-const options: OptionsPickerItem[] = [
+const options: Array<OptionsPickerItem<SubscriptionVariant>> = [
     {
         key: CONST.SUBSCRIPTION.TYPE.ANNUAL,
         title: 'subscription.details.annual',
@@ -38,8 +38,8 @@ function SubscriptionDetails() {
     const [selectedOption, setSelectedOption] = useState(privateSubscription?.type ?? CONST.SUBSCRIPTION.TYPE.ANNUAL);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
-    const onOptionSelected = (option: string) => {
-        setSelectedOption(option as SubscriptionVariant);
+    const onOptionSelected = (option: SubscriptionVariant) => {
+        setSelectedOption(option);
     };
 
     // This section is only shown when the subscription is annual

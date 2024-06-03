@@ -4,6 +4,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Subscription from '@userActions/Subscription';
@@ -13,6 +14,7 @@ import SubscriptionPlan from './SubscriptionPlan';
 function SubscriptionSettingsPage() {
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
 
     useEffect(() => {
         Subscription.openSubscriptionPage();
@@ -26,7 +28,7 @@ function SubscriptionSettingsPage() {
                 shouldShowBackButton={isSmallScreenWidth}
                 icon={Illustrations.CreditCardsNew}
             />
-            <ScrollView>
+            <ScrollView style={styles.pt3}>
                 <SubscriptionPlan />
                 <SubscriptionDetails />
             </ScrollView>

@@ -6,9 +6,9 @@ import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
 import OptionItem from './OptionItem';
 
-type OptionsPickerItem = {
+type OptionsPickerItem<TKey extends string> = {
     /** A unique identifier for each option */
-    key: string;
+    key: TKey;
 
     /** Text to be displayed */
     title: TranslationPaths;
@@ -17,15 +17,15 @@ type OptionsPickerItem = {
     icon: IconAsset;
 };
 
-type OptionsPickerProps = {
+type OptionsPickerProps<TKey extends string> = {
     /** Options list */
-    options: OptionsPickerItem[];
+    options: Array<OptionsPickerItem<TKey>>;
 
     /** Selected option's identifier */
-    selectedOption: string;
+    selectedOption: TKey;
 
     /** Option select handler */
-    onOptionSelected: (option: string) => void;
+    onOptionSelected: (option: TKey) => void;
 
     /** Indicates whether the picker is disabled */
     isDisabled?: boolean;
@@ -34,7 +34,7 @@ type OptionsPickerProps = {
     style?: StyleProp<ViewStyle>;
 };
 
-function OptionsPicker({options, selectedOption, onOptionSelected, style, isDisabled}: OptionsPickerProps) {
+function OptionsPicker<TKey extends string>({options, selectedOption, onOptionSelected, style, isDisabled}: OptionsPickerProps<TKey>) {
     const styles = useThemeStyles();
 
     return (
