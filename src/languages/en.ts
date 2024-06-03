@@ -701,7 +701,7 @@ export default {
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} added a bank account. The ${amount} payment has been made.`,
         paidElsewhereWithAmount: ({payer, amount}: PaidElsewhereWithAmountParams) => `${payer ? `${payer} ` : ''}paid ${amount} elsewhere`,
-        paidWithExpensifyWithAmount: ({payer, amount}: PaidWithExpensifyWithAmountParams) => `${payer ? `${payer} ` : ''}paid ${amount} using Expensify`,
+        paidWithExpensifyWithAmount: ({payer, amount}: PaidWithExpensifyWithAmountParams) => `${payer ? `${payer} ` : ''}paid ${amount} with Expensify`,
         noReimbursableExpenses: 'This report has an invalid amount',
         pendingConversionMessage: "Total will update when you're back online",
         changedTheExpense: 'changed the expense',
@@ -946,6 +946,7 @@ export default {
             noLogsAvailable: 'No logs available',
             logSizeTooLarge: ({size}: LogSizeParams) => `Log size exceeds the limit of ${size} MB. Please use "Save log" to download the log file instead.`,
             logs: 'Logs',
+            viewConsole: 'View console',
         },
         security: 'Security',
         signOut: 'Sign out',
@@ -1937,10 +1938,11 @@ export default {
             customersDescription: 'Choose whether to import customers/projects and see where customers/projects are displayed.',
             locationsDescription: 'Choose whether to import locations, and see where locations are displayed.',
             taxesDescription: 'Choose whether to import tax rates and tax defaults from your accounting integration.',
+            locationsAdditionalDescription: `QuickBooks Online does not support adding a location to vendor bills or checks. Update your export preference to journal entry if you'd like to import locations as tags.`,
+            outOfPocketLocationEnabledDescription:
+                'Note: QuickBooks Online does not support a field for locations on vendor bill or check exports. As you have locations enabled on your workspace, this export option is unavailable.',
             taxesJournalEntrySwitchNote:
                 'Note: QuickBooks Online does not support a field for tax on Journal Entry exports. Change your export preference to Vendor Bill or Check to import taxes.',
-            locationsAdditionalDescription:
-                'Locations are imported as Tags. This limits exporting expense reports as Vendor Bills or Checks to QuickBooks Online. To unlock these export options, either disable Locations import or upgrade to the Control Plan to export Locations encoded as a Report Field.',
             export: 'Export',
             exportAs: 'Export as',
             exportDescription: 'Configure how data in Expensify gets exported to QuickBooks Online.',
@@ -1980,20 +1982,23 @@ export default {
             exportPreferredExporterNote: 'This can be any workspace admin, but must be a Domain Admin if you set different export accounts for individual company cards in Domain Settings.',
             exportPreferredExporterSubNote: 'Once set, the preferred exporter will see reports for export in their account.',
             exportOutOfPocketExpensesDescription: 'Set how out-of-pocket expenses export to QuickBooks Online.',
+            exportCheckDescription: "We'll create a single itemized check for each Expensify report. You can write the check from your bank account of choice (below).",
+            exportJournalEntryDescription: "We'll create a single itemized journal entry for each Expensify report. You can post the offset entry to your account of choice (below).",
             exportVendorBillDescription:
                 "We'll create a single itemized vendor bill for each Expensify report. If the period of the bill is closed, we'll post to the 1st of the next open period. You can add the vendor bill to your A/P account of choice (below).",
-            accountsPayable: 'Accounts payable',
             account: 'Account',
+            accountDescription: 'This is your chosen account to post the journal entry offset for each report.',
+            accountsPayable: 'Accounts payable',
             accountsPayableDescription: 'This is your chosen A/P account, against which vendor bills for each report are created.',
+            bankAccount: 'Bank account',
+            bankAccountDescription: 'This is your chosen bank account to write checks from.',
             optionBelow: 'Choose an option below:',
             companyCardsLocationEnabledDescription:
-                'Note: QuickBooks Online does not support a field for Locations as Tags on Vendor Bills exports. As you import Locations from, this this export option is unavailable.',
+                'Note: QuickBooks Online does not support a field for locations on vendor bill exports. As you have locations enabled on your workspace, this export option is unavailable.',
             outOfPocketTaxEnabledDescription:
                 "Note: QuickBooks Online doesn't support a field for tax on Journal Entry exports. Because you have tax tracking enabled on your workspace, this export option is unavailable.",
             outOfPocketTaxEnabledError: 'Journal entry is not available when taxes enabled. please select a different export option.',
             outOfPocketLocationEnabledError: 'Vendor Bills are not available when locations are enabled. Please select a different export option.',
-            outOfPocketLocationEnabledDescription:
-                'Note: QuickBooks Online does not support a field for Locations as Tags on Vendor Bills exports. As you import Locations as Tags, this export option is unavailable.',
             advancedConfig: {
                 advanced: 'Advanced',
                 autoSync: 'Auto-sync',
@@ -2034,6 +2039,8 @@ export default {
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK}Error`]: 'Check is not available when locations are enabled. Please select a different export option.',
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY}Error`]: 'Journal entry is not available when taxes enabled. please select a different export option.',
             },
+            noAccountsFound: 'No accounts found',
+            noAccountsFoundDescription: 'Add the account in Quickbooks Online and sync the connection again',
         },
         xero: {
             organization: 'Xero organization',
@@ -2044,10 +2051,8 @@ export default {
             accountsSwitchDescription: 'Enabled categories are available for members to select when creating their expenses.',
             trackingCategories: 'Tracking categories',
             trackingCategoriesDescription: 'Choose whether to import tracking categories and see where they are displayed.',
-            mapXeroCostCentersTo: 'Map Xero cost centers to',
-            mapXeroRegionsTo: 'Map Xero regions to',
-            mapXeroCostCentersToDescription: 'Choose where to map cost centers to when exporting to Xero.',
-            mapXeroRegionsToDescription: 'Choose where to map employee regions when exporting expense reports to Xero.',
+            mapTrackingCategoryTo: ({categoryName}) => `Map Xero ${categoryName} to`,
+            mapTrackingCategoryToDescription: ({categoryName}) => `Choose where to map ${categoryName} to when exporting to Xero.`,
             customers: 'Re-bill customers',
             customersDescription: 'Import customer contacts. Billable expenses need tags for export. Expenses will carry the customer information to Xero for sales invoices.',
             taxesDescription: 'Choose whether to import tax rates and tax defaults from your accounting integration.',
@@ -2104,14 +2109,18 @@ export default {
                 },
             },
             invoiceStatus: {
+                label: 'Purchase bill status',
+                description: 'When exported to Xero what state should purchase bills have.',
                 values: {
-                    [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_PAYMENT]: 'Authorised',
                     [CONST.XERO_CONFIG.INVOICE_STATUS.DRAFT]: 'Draft',
-                    [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_APPROVAL]: 'Submitted',
+                    [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_APPROVAL]: 'Awaiting approval',
+                    [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_PAYMENT]: 'Awaiting payment',
                 },
             },
             exportPreferredExporterNote: 'This can be any workspace admin, but must be a domain admin if you set different export accounts for individual company cards in domain settings.',
             exportPreferredExporterSubNote: 'Once set, the preferred exporter will see reports for export in their account.',
+            noAccountsFound: 'No accounts found',
+            noAccountsFoundDescription: 'Add the account in Xero and sync the connection again',
         },
         type: {
             free: 'Free',
@@ -2140,6 +2149,7 @@ export default {
             createFailureMessage: 'An error occurred while creating the category, please try again.',
             addCategory: 'Add category',
             editCategory: 'Edit category',
+            editCategories: 'Edit categories',
             categoryRequiredError: 'Category name is required.',
             existingCategoryError: 'A category with this name already exists.',
             invalidCategoryName: 'Invalid category name.',
@@ -2185,6 +2195,12 @@ export default {
             connections: {
                 title: 'Accounting',
                 subtitle: 'Sync your chart of accounts and more.',
+            },
+            connectionsWarningModal: {
+                featureEnabledTitle: 'Not so fast...',
+                featureEnabledText: 'To enable or disable this feature change your accounting import settings.',
+                disconnectText: 'Disconnect your accounting connection from the workspace if you want to disable Accounting.',
+                manageSettings: 'Manage settings',
             },
         },
         reportFields: {
@@ -2241,6 +2257,7 @@ export default {
                 enable: 'Enable rate',
                 enableMultiple: 'Enable rates',
             },
+            importedFromAccountingSoftware: 'The taxes below are imported from your',
         },
         emptyWorkspace: {
             title: 'Create a workspace',
@@ -2341,6 +2358,17 @@ export default {
                     }
                 }
             },
+            syncError: (integration?: ConnectionName): string => {
+                switch (integration) {
+                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
+                        return "Couldn't connect to QuickBooks Online.";
+                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
+                        return "Couldn't connect to Xero.";
+                    default: {
+                        return "Couldn't connect to integration.";
+                    }
+                }
+            },
             accounts: 'Chart of accounts',
             taxes: 'Taxes',
             imported: 'Imported',
@@ -2397,7 +2425,9 @@ export default {
                             return 'Checking QuickBooks Online connection';
                         case 'quickbooksOnlineImportMain':
                             return 'Importing your QuickBooks Online data';
-                        case 'startingImport':
+                        case 'startingImportXero':
+                            return 'Importing your Xero data';
+                        case 'startingImportQBO':
                             return 'Importing your QuickBooks Online data';
                         case 'quickbooksOnlineSyncTitle':
                             return 'Synchronizing QuickBooks Online data';

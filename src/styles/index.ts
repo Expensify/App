@@ -3535,6 +3535,10 @@ const styles = (theme: ThemeColors) =>
             lineHeight: 16,
         },
 
+        searchTableHeaderActive: {
+            fontWeight: 'bold',
+        },
+
         threeDotsPopoverOffset: (windowWidth: number) =>
             ({
                 ...getPopOverVerticalOffset(60),
