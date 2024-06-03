@@ -256,6 +256,7 @@ function FormProvider(
                 (Object.keys(errorFields)
                     .sort()
                     .map((key) => errorFields[key])
+                    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                     .at(-1) as string) ?? '';
 
             const inputRef = inputProps.ref;
