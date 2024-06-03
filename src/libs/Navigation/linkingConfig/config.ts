@@ -19,7 +19,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
         [SCREENS.SIGN_IN_WITH_GOOGLE_DESKTOP]: ROUTES.GOOGLE_SIGN_IN,
         [SCREENS.SAML_SIGN_IN]: ROUTES.SAML_SIGN_IN,
         [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: ROUTES.DESKTOP_SIGN_IN_REDIRECT,
-        [SCREENS.REPORT_ATTACHMENTS]: ROUTES.REPORT_ATTACHMENTS.route,
+        [SCREENS.ATTACHMENTS]: ROUTES.ATTACHMENTS.route,
         [SCREENS.PROFILE_AVATAR]: ROUTES.PROFILE_AVATAR.route,
         [SCREENS.WORKSPACE_AVATAR]: ROUTES.WORKSPACE_AVATAR.route,
         [SCREENS.REPORT_AVATAR]: ROUTES.REPORT_AVATAR.route,
@@ -327,14 +327,14 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.ACCOUNTING.XERO_CHART_OF_ACCOUNTS]: {path: ROUTES.POLICY_ACCOUNTING_XERO_CHART_OF_ACCOUNTS.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.XERO_ORGANIZATION]: {path: ROUTES.POLICY_ACCOUNTING_XERO_ORGANIZATION.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.XERO_TRACKING_CATEGORIES]: {path: ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES.route},
-                        [SCREENS.WORKSPACE.ACCOUNTING.XERO_MAP_COST_CENTERS]: {path: ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES_MAP_COST_CENTERS.route},
-                        [SCREENS.WORKSPACE.ACCOUNTING.XERO_MAP_REGION]: {path: ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES_MAP_REGION.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.XERO_MAP_TRACKING_CATEGORY]: {path: ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES_MAP.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.XERO_CUSTOMER]: {path: ROUTES.POLICY_ACCOUNTING_XERO_CUSTOMER.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.XERO_TAXES]: {path: ROUTES.POLICY_ACCOUNTING_XERO_TAXES.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.XERO_EXPORT]: {path: ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.XERO_EXPORT_PURCHASE_BILL_DATE_SELECT]: {path: ROUTES.POLICY_ACCOUNTING_XERO_EXPORT_PURCHASE_BILL_DATE_SELECT.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.XERO_EXPORT_BANK_ACCOUNT_SELECT]: {path: ROUTES.POLICY_ACCOUNTING_XERO_EXPORT_BANK_ACCOUNT_SELECT.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.XERO_ADVANCED]: {path: ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.XERO_BILL_STATUS_SELECTOR]: {path: ROUTES.POLICY_ACCOUNTING_XERO_BILL_STATUS_SELECTOR.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.XERO_INVOICE_ACCOUNT_SELECTOR]: {path: ROUTES.POLICY_ACCOUNTING_XERO_INVOICE_SELECTOR.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.XERO_EXPORT_PREFERRED_EXPORTER_SELECT]: {path: ROUTES.POLICY_ACCOUNTING_XERO_PREFERRED_EXPORTER_SELECT.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.XERO_BILL_PAYMENT_ACCOUNT_SELECTOR]: {path: ROUTES.POLICY_ACCOUNTING_XERO_BILL_PAYMENT_ACCOUNT_SELECTOR.route},
@@ -428,12 +428,14 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.TAG_EDIT]: {
                             path: ROUTES.WORKSPACE_TAG_EDIT.route,
                             parse: {
+                                orderWeight: Number,
                                 tagName: (tagName: string) => decodeURIComponent(tagName),
                             },
                         },
                         [SCREENS.WORKSPACE.TAG_SETTINGS]: {
                             path: ROUTES.WORKSPACE_TAG_SETTINGS.route,
                             parse: {
+                                orderWeight: Number,
                                 tagName: (tagName: string) => decodeURIComponent(tagName),
                             },
                         },
@@ -518,11 +520,8 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.REPORT_SETTINGS.ROOT]: {
                             path: ROUTES.REPORT_SETTINGS.route,
                         },
-                        [SCREENS.REPORT_SETTINGS.ROOM_NAME]: {
-                            path: ROUTES.REPORT_SETTINGS_ROOM_NAME.route,
-                        },
-                        [SCREENS.REPORT_SETTINGS.GROUP_NAME]: {
-                            path: ROUTES.REPORT_SETTINGS_GROUP_NAME.route,
+                        [SCREENS.REPORT_SETTINGS.NAME]: {
+                            path: ROUTES.REPORT_SETTINGS_NAME.route,
                         },
                         [SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES]: {
                             path: ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.route,
@@ -532,6 +531,28 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.REPORT_SETTINGS.VISIBILITY]: {
                             path: ROUTES.REPORT_SETTINGS_VISIBILITY.route,
+                        },
+                    },
+                },
+                [SCREENS.RIGHT_MODAL.SETTINGS_CATEGORIES]: {
+                    screens: {
+                        [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS]: {
+                            path: ROUTES.SETTINGS_CATEGORY_SETTINGS.route,
+                            parse: {
+                                categoryName: (categoryName: string) => decodeURIComponent(categoryName),
+                            },
+                        },
+                        [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_SETTINGS]: {
+                            path: ROUTES.SETTINGS_CATEGORIES_SETTINGS.route,
+                        },
+                        [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_CREATE]: {
+                            path: ROUTES.SETTINGS_CATEGORY_CREATE.route,
+                        },
+                        [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_EDIT]: {
+                            path: ROUTES.SETTINGS_CATEGORY_EDIT.route,
+                            parse: {
+                                categoryName: (categoryName: string) => decodeURIComponent(categoryName),
+                            },
                         },
                     },
                 },
@@ -632,6 +653,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                                 },
                             },
                         },
+                        [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_ROOT]: ROUTES.SETTINGS_CATEGORIES_ROOT.route,
                         [SCREENS.MONEY_REQUEST.STEP_SEND_FROM]: ROUTES.MONEY_REQUEST_STEP_SEND_FROM.route,
                         [SCREENS.MONEY_REQUEST.STEP_AMOUNT]: ROUTES.MONEY_REQUEST_STEP_AMOUNT.route,
                         [SCREENS.MONEY_REQUEST.STEP_CATEGORY]: ROUTES.MONEY_REQUEST_STEP_CATEGORY.route,

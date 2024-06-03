@@ -57,6 +57,7 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
                             onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.getRoute(reportID))}
                         />
                     )}
+
                     {shouldShowWriteCapability &&
                         (shouldAllowWriteCapabilityEditing ? (
                             <MenuItemWithTopDescription
