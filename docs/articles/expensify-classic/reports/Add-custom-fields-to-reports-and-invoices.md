@@ -1,6 +1,6 @@
 ---
-title: Add custom report fields
-description: Customize the fields that appear on a report
+title: Add custom fields to reports and invoices
+description: Customize the fields that appear on a report or an invoice
 ---
 <div id="expensify-classic" markdown="1">
 
