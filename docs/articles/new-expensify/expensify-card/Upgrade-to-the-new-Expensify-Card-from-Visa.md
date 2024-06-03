@@ -31,7 +31,7 @@ Before completing this process, you’ll want to:
 New cards will have the same limit as the existing cards. Each cardholder’s current physical and virtual cards will remain active until a Domain Admin or the cardholder deactivates it.
 
 {% include info.html %}
-Cards won’t be issued to any employees who don’t currently have them. In this case, you’ll need to <a href="[url](https://help.expensify.com/articles/expensify-classic/expensify-card/Set-Up-the-Expensify-Visa%C2%AE-Commercial-Card-for-your-Company)">issue a new card</a>. 
+Cards won’t be issued to any employees who don’t currently have them. In this case, you’ll need to <a href="https://help.expensify.com/articles/expensify-classic/expensify-card/Set-Up-the-Expensify-Visa%C2%AE-Commercial-Card-for-your-Company">issue a new card</a>.
 {% include end-info.html %}
 
 {% include faq-begin.md %}
