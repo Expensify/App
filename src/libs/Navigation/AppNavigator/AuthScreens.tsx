@@ -427,15 +427,18 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         options={defaultScreenOptions}
                         component={ConnectionCompletePage}
                     />
-                    {Object.entries(CENTRAL_PANE_SCREENS).map(([screenName, componentGetter]) => (
-                        <RootStack.Screen
-                            key={screenName}
-                            name={screenName as CentralPaneName}
-                            initialParams={getCentralPaneScreenInitialParams(screenName as CentralPaneName)}
-                            getComponent={() => withPrepareCentralPaneScreen(componentGetter())}
-                            options={CentralPaneNameOptions}
-                        />
-                    ))}
+                    {Object.entries(CENTRAL_PANE_SCREENS).map(([screenName, componentGetter]) => {
+                        const centralPaneName = screenName as CentralPaneName;
+                        return (
+                            <RootStack.Screen
+                                key={centralPaneName}
+                                name={centralPaneName}
+                                initialParams={getCentralPaneScreenInitialParams(centralPaneName)}
+                                getComponent={() => withPrepareCentralPaneScreen(componentGetter())}
+                                options={CentralPaneNameOptions}
+                            />
+                        );
+                    })}
                 </RootStack.Navigator>
             </View>
         </OptionsListContextProvider>

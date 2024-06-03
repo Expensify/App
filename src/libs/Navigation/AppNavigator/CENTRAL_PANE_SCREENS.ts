@@ -1,10 +1,12 @@
 import type {ValueOf} from 'type-fest';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
-import type {AuthScreensParamList, CentralPaneScreensParamList} from '@libs/Navigation/types';
+import type {CentralPaneScreensParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 
-type Screens = Partial<Record<keyof AuthScreensParamList, () => React.ComponentType>>;
+type CentralPaneName = keyof CentralPaneScreensParamList;
+
+type Screens = Partial<Record<CentralPaneName, () => React.ComponentType>>;
 
 const CENTRAL_PANE_SCREENS = {
     [SCREENS.SETTINGS.WORKSPACES]: () => require('../../../pages/workspace/WorkspacesListPage').default as React.ComponentType,
@@ -21,8 +23,6 @@ const CENTRAL_PANE_SCREENS = {
 } satisfies Screens;
 
 const CENTRAL_PANE_SCREEN_NAMES = Object.keys(CENTRAL_PANE_SCREENS);
-
-type CentralPaneName = keyof typeof CENTRAL_PANE_SCREENS;
 
 function getCentralPaneScreenInitialParams(screenName: CentralPaneName): Partial<ValueOf<CentralPaneScreensParamList>> {
     const url = getCurrentUrl();
