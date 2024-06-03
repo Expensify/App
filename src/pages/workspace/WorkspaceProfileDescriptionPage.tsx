@@ -45,15 +45,18 @@ function WorkspaceProfileDescriptionPage({policy}: Props) {
      * @param {Object} values - form input values passed by the Form component
      * @returns {Boolean}
      */
-    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_DESCRIPTION_FORM>) => {
-        const errors = {};
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_DESCRIPTION_FORM>) => {
+            const errors = {};
 
-        if (values.description.length > CONST.DESCRIPTION_LIMIT) {
-            ErrorUtils.addErrorMessage(errors, 'description', translate('common.error.characterLimitExceedCounter', {length: values.description.length, limit: CONST.DESCRIPTION_LIMIT}));
-        }
+            if (values.description.length > CONST.DESCRIPTION_LIMIT) {
+                ErrorUtils.addErrorMessage(errors, 'description', translate('common.error.characterLimitExceedCounter', {length: values.description.length, limit: CONST.DESCRIPTION_LIMIT}));
+            }
 
-        return errors;
-    }, [translate]);
+            return errors;
+        },
+        [translate],
+    );
 
     const submit = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_DESCRIPTION_FORM>) => {

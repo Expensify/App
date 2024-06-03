@@ -2084,7 +2084,7 @@ describe('actions/IOU', () => {
                                 callback: (allActions) => {
                                     Onyx.disconnect(connectionID);
                                     const erroredAction = Object.values(allActions ?? {}).find((action) => !isEmptyObject(action?.errors));
-                                    expect(Object.values(erroredAction?.errors ?? {})).toEqual(Localize.translateLocal('iou.error.other'));
+                                    expect(Object.values(erroredAction?.errors ?? {})[0]).toEqual(Localize.translateLocal('iou.error.other'));
                                     resolve();
                                 },
                             });

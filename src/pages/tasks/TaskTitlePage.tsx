@@ -29,17 +29,20 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const validate = useCallback(({title}: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM> => {
-        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM> = {};
+    const validate = useCallback(
+        ({title}: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM> => {
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM> = {};
 
-        if (!title) {
-            ErrorUtils.addErrorMessage(errors, INPUT_IDS.TITLE, 'newTaskPage.pleaseEnterTaskName');
-        } else if (title.length > CONST.TITLE_CHARACTER_LIMIT) {
-            ErrorUtils.addErrorMessage(errors, INPUT_IDS.TITLE, translate('common.error.characterLimitExceedCounter', {length: title.length, limit: CONST.TITLE_CHARACTER_LIMIT}));
-        }
+            if (!title) {
+                ErrorUtils.addErrorMessage(errors, INPUT_IDS.TITLE, 'newTaskPage.pleaseEnterTaskName');
+            } else if (title.length > CONST.TITLE_CHARACTER_LIMIT) {
+                ErrorUtils.addErrorMessage(errors, INPUT_IDS.TITLE, translate('common.error.characterLimitExceedCounter', {length: title.length, limit: CONST.TITLE_CHARACTER_LIMIT}));
+            }
 
-        return errors;
-    }, [translate]);
+            return errors;
+        },
+        [translate],
+    );
 
     const submit = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>) => {
