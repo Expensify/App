@@ -210,7 +210,7 @@ describe('actions/IOU', () => {
                                     expect(transaction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
                                     // The transactionID on the iou action should match the one from the transactions collection
-                                    expect(ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(iouAction)?.IOUTransactionID).toBe(transactionID);
+                                    expect(ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(iouAction)?.IOUTransactionID).toBe(transactionID);
 
                                     expect(transaction?.merchant).toBe(merchant);
 
@@ -373,7 +373,7 @@ describe('actions/IOU', () => {
                                     expect(transaction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
                                     // The transactionID on the iou action should match the one from the transactions collection
-                                    expect(ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(iouAction)?.IOUTransactionID).toBe(transactionID);
+                                    expect(ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(iouAction)?.IOUTransactionID).toBe(transactionID);
 
                                     resolve();
                                 },
@@ -524,7 +524,7 @@ describe('actions/IOU', () => {
                                     const newOriginalMessage = ReportActionsUtils.getReportActionOriginalMessage<IOUMessage | undefined>(newIOUAction);
 
                                     // The IOUReportID should be correct
-                                    expect(ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(iouAction).IOUReportID).toBe(iouReportID);
+                                    expect(ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(iouAction).IOUReportID).toBe(iouReportID);
 
                                     // The comment should be included in the IOU action
                                     expect(newOriginalMessage?.comment).toBe(comment);
@@ -564,7 +564,7 @@ describe('actions/IOU', () => {
                                     expect(newTransaction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
                                     // The transactionID on the iou action should match the one from the transactions collection
-                                    expect(ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(newIOUAction)?.IOUTransactionID).toBe(newTransaction?.transactionID);
+                                    expect(ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(newIOUAction)?.IOUTransactionID).toBe(newTransaction?.transactionID);
 
                                     resolve();
                                 },
@@ -718,7 +718,7 @@ describe('actions/IOU', () => {
                                         expect(transaction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
                                         // The transactionID on the iou action should match the one from the transactions collection
-                                        expect(ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(iouAction)?.IOUTransactionID).toBe(transactionID);
+                                        expect(ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(iouAction)?.IOUTransactionID).toBe(transactionID);
 
                                         resolve();
                                     },
@@ -1196,7 +1196,7 @@ describe('actions/IOU', () => {
                                         Object.values(carlosReportActions ?? {}).find(
                                             (reportAction): reportAction is ReportActionBase & OriginalMessageIOU => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU,
                                         ) ?? null;
-                                    const carlosOriginalMessage = ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(carlosIOUAction);
+                                    const carlosOriginalMessage = ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(carlosIOUAction);
 
                                     expect(carlosIOUAction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                                     expect(carlosOriginalMessage.IOUReportID).toBe(carlosIOUReport?.reportID);
@@ -1217,7 +1217,7 @@ describe('actions/IOU', () => {
                                             (reportAction): reportAction is ReportActionBase & OriginalMessageIOU =>
                                                 reportAction.reportActionID !== julesCreatedAction.reportActionID && reportAction.reportActionID !== julesExistingIOUAction.reportActionID,
                                         ) ?? null;
-                                    const julesOriginalMessage = ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(julesIOUAction);
+                                    const julesOriginalMessage = ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(julesIOUAction);
 
                                     expect(julesIOUAction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                                     expect(julesOriginalMessage.IOUReportID).toBe(julesIOUReport?.reportID);
@@ -1236,7 +1236,7 @@ describe('actions/IOU', () => {
                                         Object.values(vitReportActions ?? {}).find(
                                             (reportAction): reportAction is ReportActionBase & OriginalMessageIOU => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU,
                                         ) ?? null;
-                                    const vitOriginalMessage = ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(vitIOUAction);
+                                    const vitOriginalMessage = ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(vitIOUAction);
 
                                     expect(vitCreatedAction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                                     expect(vitIOUAction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
@@ -1254,7 +1254,7 @@ describe('actions/IOU', () => {
                                         Object.values(groupReportActions ?? {}).find(
                                             (reportAction): reportAction is ReportActionBase & OriginalMessageIOU => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU,
                                         ) ?? null;
-                                    const groupOriginalMessage = ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(groupIOUAction);
+                                    const groupOriginalMessage = ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(groupIOUAction);
 
                                     expect(groupCreatedAction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                                     expect(groupIOUAction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
@@ -1286,15 +1286,15 @@ describe('actions/IOU', () => {
 
                                     carlosTransaction =
                                         Object.values(allTransactions ?? {}).find(
-                                            (transaction) => transaction?.transactionID === ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(carlosIOUAction)?.IOUTransactionID,
+                                            (transaction) => transaction?.transactionID === ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(carlosIOUAction)?.IOUTransactionID,
                                         ) ?? null;
                                     julesTransaction =
                                         Object.values(allTransactions ?? {}).find(
-                                            (transaction) => transaction?.transactionID === ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(julesIOUAction)?.IOUTransactionID,
+                                            (transaction) => transaction?.transactionID === ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(julesIOUAction)?.IOUTransactionID,
                                         ) ?? null;
                                     vitTransaction =
                                         Object.values(allTransactions ?? {}).find(
-                                            (transaction) => transaction?.transactionID === ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(vitIOUAction)?.IOUTransactionID,
+                                            (transaction) => transaction?.transactionID === ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(vitIOUAction)?.IOUTransactionID,
                                         ) ?? null;
                                     groupTransaction = Object.values(allTransactions ?? {}).find((transaction) => transaction?.reportID === CONST.REPORT.SPLIT_REPORTID) ?? null;
 
@@ -1466,7 +1466,7 @@ describe('actions/IOU', () => {
                                     createIOUAction =
                                         Object.values(reportActionsForIOUReport ?? {}).find((reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) ?? null;
                                     expect(createIOUAction).toBeTruthy();
-                                    expect(ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(createIOUAction)?.IOUReportID).toBe(iouReport?.reportID);
+                                    expect(ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(createIOUAction)?.IOUReportID).toBe(iouReport?.reportID);
 
                                     resolve();
                                 },
@@ -1486,7 +1486,7 @@ describe('actions/IOU', () => {
                                     expect(transaction).toBeTruthy();
                                     expect(transaction?.amount).toBe(amount);
                                     expect(transaction?.reportID).toBe(iouReport?.reportID);
-                                    expect(ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(createIOUAction)?.IOUTransactionID).toBe(transaction?.transactionID);
+                                    expect(ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(createIOUAction)?.IOUTransactionID).toBe(transaction?.transactionID);
                                     resolve();
                                 },
                             });
@@ -1539,7 +1539,7 @@ describe('actions/IOU', () => {
                                         Object.values(reportActionsForIOUReport ?? {}).find(
                                             (reportAction) =>
                                                 reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
-                                                ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(reportAction)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                                                ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(reportAction)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY,
                                         ) ?? null;
                                     expect(payIOUAction).toBeTruthy();
                                     expect(payIOUAction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
@@ -1590,7 +1590,7 @@ describe('actions/IOU', () => {
                                         Object.values(reportActionsForIOUReport ?? {}).find(
                                             (reportAction) =>
                                                 reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
-                                                ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(reportAction).type === CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                                                ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(reportAction).type === CONST.IOU.REPORT_ACTION_TYPE.PAY,
                                         ) ?? null;
                                     expect(payIOUAction).toBeTruthy();
 
@@ -2207,7 +2207,7 @@ describe('actions/IOU', () => {
                     (reportAction): reportAction is ReportActionBase & OriginalMessageIOU => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU,
                 ) ?? null;
             expect(createIOUAction).toBeTruthy();
-            expect(ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(createIOUAction).IOUReportID).toBe(iouReport?.reportID);
+            expect(ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(createIOUAction).IOUReportID).toBe(iouReport?.reportID);
 
             // When fetching all transactions from Onyx
             const allTransactions = await new Promise<OnyxCollection<OnyxTypes.Transaction>>((resolve) => {
@@ -2226,7 +2226,7 @@ describe('actions/IOU', () => {
             expect(transaction).toBeTruthy();
             expect(transaction?.amount).toBe(amount);
             expect(transaction?.reportID).toBe(iouReport?.reportID);
-            expect(ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(createIOUAction).IOUTransactionID).toBe(transaction?.transactionID);
+            expect(ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(createIOUAction).IOUTransactionID).toBe(transaction?.transactionID);
         });
 
         afterEach(PusherHelper.teardown);

@@ -145,7 +145,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         if (requestParentReportAction) {
             const iouTransactionID =
                 requestParentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU
-                    ? ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(requestParentReportAction)?.IOUTransactionID ?? ''
+                    ? ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(requestParentReportAction)?.IOUTransactionID ?? ''
                     : '';
             if (ReportActionsUtils.isTrackExpenseAction(requestParentReportAction)) {
                 IOU.deleteTrackExpense(moneyRequestReport?.reportID ?? '', iouTransactionID, requestParentReportAction, true);
@@ -163,7 +163,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         }
         const iouTransactionID =
             requestParentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU
-                ? ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(requestParentReportAction)?.IOUTransactionID ?? ''
+                ? ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(requestParentReportAction)?.IOUTransactionID ?? ''
                 : '';
         const reportID = transactionThreadReport?.reportID ?? '';
 

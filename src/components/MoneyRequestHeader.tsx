@@ -49,7 +49,7 @@ type MoneyRequestHeaderProps = {
 
 function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrowLayout = false, onBackButtonPress}: MoneyRequestHeaderProps) {
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`);
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(parentReportAction)?.IOUTransactionID ?? 0}`);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(parentReportAction)?.IOUTransactionID ?? 0}`);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [shownHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_HOLD_USE_EXPLAINED, {initWithStoredValues: false});
@@ -77,7 +77,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
         if (parentReportAction) {
             const iouTransactionID =
                 parentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU
-                    ? ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(parentReportAction)?.IOUTransactionID ?? ''
+                    ? ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(parentReportAction)?.IOUTransactionID ?? ''
                     : '';
             if (ReportActionsUtils.isTrackExpenseAction(parentReportAction)) {
                 IOU.deleteTrackExpense(parentReport?.reportID ?? '', iouTransactionID, parentReportAction, true);
@@ -103,7 +103,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
 
     const changeMoneyRequestStatus = () => {
         const iouTransactionID =
-            parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(parentReportAction)?.IOUTransactionID ?? '' : '';
+            parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(parentReportAction)?.IOUTransactionID ?? '' : '';
 
         if (isOnHold) {
             IOU.unholdRequest(iouTransactionID, report?.reportID);

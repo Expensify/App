@@ -32,7 +32,7 @@ export default withOnyx<MoneyRequestPreviewProps, MoneyRequestPreviewOnyxProps>(
     transaction: {
         key: ({action}) => {
             const isMoneyRequestAction = ReportActionsUtils.isMoneyRequestAction(action);
-            const transactionID = isMoneyRequestAction ? ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(action)?.IOUTransactionID : 0;
+            const transactionID = isMoneyRequestAction ? ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(action)?.IOUTransactionID : 0;
             return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
         },
     },

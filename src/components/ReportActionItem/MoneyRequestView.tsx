@@ -605,7 +605,7 @@ export default withOnyx<MoneyRequestViewPropsWithoutTransaction, MoneyRequestVie
             key: ({report, parentReportActions}) => {
                 const parentReportAction = parentReportActions?.[report.parentReportActionID ?? ''];
                 const originalMessage =
-                    parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(parentReportAction) : undefined;
+                    parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(parentReportAction) : undefined;
                 const transactionID = originalMessage?.IOUTransactionID ?? 0;
                 return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
             },
@@ -614,7 +614,7 @@ export default withOnyx<MoneyRequestViewPropsWithoutTransaction, MoneyRequestVie
             key: ({report, parentReportActions}) => {
                 const parentReportAction = parentReportActions?.[report.parentReportActionID ?? ''];
                 const originalMessage =
-                    parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(parentReportAction) : undefined;
+                    parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(parentReportAction) : undefined;
                 const transactionID = originalMessage?.IOUTransactionID ?? 0;
                 return `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`;
             },

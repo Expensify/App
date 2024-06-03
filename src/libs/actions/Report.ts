@@ -2110,7 +2110,7 @@ function deleteReport(reportID: string) {
 
     const transactionIDs = Object.values(reportActionsForReport ?? {})
         .filter((reportAction): reportAction is ReportActionBase & OriginalMessageIOU => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU)
-        .map((reportAction) => ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(reportAction).IOUTransactionID);
+        .map((reportAction) => ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(reportAction).IOUTransactionID);
 
     [...new Set(transactionIDs)].forEach((transactionID) => {
         onyxData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = null;

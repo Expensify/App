@@ -114,7 +114,7 @@ function LHNOptionsList({
             const itemPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${itemFullReport?.policyID}`] ?? null;
             const transactionID =
                 itemParentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU
-                    ? ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(itemParentReportAction).IOUTransactionID ?? ''
+                    ? ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(itemParentReportAction).IOUTransactionID ?? ''
                     : '';
             const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? null;
             const hasDraftComment = DraftCommentUtils.isValidDraftComment(draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`]);
@@ -125,7 +125,7 @@ function LHNOptionsList({
             let lastReportActionTransactionID = '';
 
             if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
-                lastReportActionTransactionID = ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(lastReportAction)?.IOUTransactionID ?? '';
+                lastReportActionTransactionID = ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(lastReportAction)?.IOUTransactionID ?? '';
             }
             const lastReportActionTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${lastReportActionTransactionID}`] ?? {};
 

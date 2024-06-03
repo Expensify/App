@@ -76,7 +76,7 @@ function MoneyRequestPreviewContent({
 
     const participantAccountIDs =
         action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && isBillSplit
-            ? ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(action).participantAccountIDs ?? []
+            ? ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(action).participantAccountIDs ?? []
             : [managerID, ownerAccountID];
     const participantAvatars = OptionsListUtils.getAvatarsForAccountIDs(participantAccountIDs, personalDetails ?? {});
     const sortedParticipantAvatars = lodashSortBy(participantAvatars, (avatar) => avatar.id);
@@ -222,7 +222,7 @@ function MoneyRequestPreviewContent({
 
     const getDisplayDeleteAmountText = (): string => {
         const iouOriginalMessage: IOUMessage | EmptyObject =
-            action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(action) : {};
+            action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(action) : {};
         const {amount = 0, currency = CONST.CURRENCY.USD} = iouOriginalMessage;
 
         return CurrencyUtils.convertToDisplayString(amount, currency);

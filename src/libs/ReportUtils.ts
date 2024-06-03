@@ -1537,7 +1537,7 @@ function canDeleteReportAction(reportAction: OnyxEntry<ReportAction>, reportID: 
 
     if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
         // For now, users cannot delete split actions
-        const isSplitAction = ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(reportAction)?.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
+        const isSplitAction = ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(reportAction)?.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
 
         if (isSplitAction) {
             return false;
@@ -2611,7 +2611,7 @@ function canEditMoneyRequest(reportAction: OnyxEntry<ReportAction>): boolean {
     }
 
     const allowedReportActionType: Array<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>> = [CONST.IOU.REPORT_ACTION_TYPE.TRACK, CONST.IOU.REPORT_ACTION_TYPE.CREATE];
-    const originalMessage = ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(reportAction);
+    const originalMessage = ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(reportAction);
 
     if (!allowedReportActionType.includes(originalMessage.type)) {
         return false;
@@ -2670,7 +2670,7 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxEntry<ReportAction>, field
         return true;
     }
 
-    const iouMessage = ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(reportAction);
+    const iouMessage = ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(reportAction);
     const moneyRequestReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouMessage?.IOUReportID}`] ?? ({} as Report);
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${iouMessage?.IOUTransactionID}`] ?? ({} as Transaction);
 
@@ -2766,7 +2766,7 @@ function getLinkedTransaction(reportAction: OnyxEntry<ReportAction | OptimisticI
     let transactionID = '';
 
     if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
-        transactionID = ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(reportAction)?.IOUTransactionID ?? '';
+        transactionID = ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(reportAction)?.IOUTransactionID ?? '';
     }
 
     return allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? {};
@@ -5122,7 +5122,7 @@ function doesTransactionThreadHaveViolations(report: OnyxEntry<Report>, transact
     if (parentReportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
         return false;
     }
-    const {IOUTransactionID, IOUReportID} = ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(parentReportAction) ?? {};
+    const {IOUTransactionID, IOUReportID} = ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(parentReportAction) ?? {};
     if (!IOUTransactionID || !IOUReportID) {
         return false;
     }
@@ -5143,7 +5143,7 @@ function shouldDisplayTransactionThreadViolations(
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     parentReportAction: OnyxEntry<ReportAction>,
 ): boolean {
-    const {IOUReportID} = ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(parentReportAction) ?? {};
+    const {IOUReportID} = ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(parentReportAction) ?? {};
     if (isSettled(IOUReportID)) {
         return false;
     }
@@ -6101,7 +6101,7 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
     if (reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
         return '';
     }
-    const originalMessage = ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(reportAction);
+    const originalMessage = ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(reportAction);
     const {IOUReportID} = originalMessage;
     const iouReport = getReport(IOUReportID);
     let translationKey: TranslationPaths;
@@ -6259,7 +6259,7 @@ function hasSmartscanError(reportActions: ReportAction[]) {
         }
         const IOUReportID = ReportActionsUtils.getIOUReportIDFromReportActionPreview(action);
         const isReportPreviewError = ReportActionsUtils.isReportPreviewAction(action) && hasMissingSmartscanFields(IOUReportID) && !isSettled(IOUReportID);
-        const transactionID = ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(action).IOUTransactionID ?? '0';
+        const transactionID = ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(action).IOUTransactionID ?? '0';
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? {};
         const isSplitBillError = ReportActionsUtils.isSplitBillAction(action) && TransactionUtils.hasMissingSmartscanFields(transaction as Transaction);
 
@@ -6702,7 +6702,7 @@ function createDraftTransactionAndNavigateToParticipantSelector(transactionID: s
     }
 
     const linkedTrackedExpenseReportAction = Object.values(reportActions).find(
-        (action) => ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(action)?.IOUTransactionID === transactionID,
+        (action) => ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(action)?.IOUTransactionID === transactionID,
     );
 
     const {created, amount, currency, merchant, mccGroup} = getTransactionDetails(transaction) ?? {};

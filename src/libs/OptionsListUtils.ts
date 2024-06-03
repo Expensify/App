@@ -534,7 +534,7 @@ function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<
 
     if (parentReportAction?.actorAccountID === currentUserAccountID && ReportActionUtils.isTransactionThread(parentReportAction)) {
         const transactionID =
-            parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? ReportActionUtils.getReportActionOriginalMessage<IOUMessage>(parentReportAction)?.IOUTransactionID : null;
+            parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? ReportActionUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(parentReportAction)?.IOUTransactionID : null;
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         if (TransactionUtils.hasMissingSmartscanFields(transaction ?? null) && !ReportUtils.isSettled(transaction?.reportID)) {
             reportActionErrors.smartscan = ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage');

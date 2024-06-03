@@ -482,7 +482,7 @@ function ReportActionsView({
 
         const reportPreviewAction = ReportActionsUtils.getReportPreviewAction(report.chatReportID ?? '', report.reportID);
         const moneyRequestActions = reportActions.filter((action) => {
-            const originalMessage = ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(action);
+            const originalMessage = ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(action);
             return (
                 action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
                 originalMessage &&

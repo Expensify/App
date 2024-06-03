@@ -8,22 +8,8 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {
-    ActionName,
-    ChangeLog,
-    IOUMessage,
-    OriginalMessageActionableMentionWhisper,
-    OriginalMessageActionableReportMentionWhisper,
-    OriginalMessageActionableTrackedExpenseWhisper,
-    OriginalMessageAddComment,
-    OriginalMessageDismissedViolation,
-    OriginalMessageIOU,
-    OriginalMessageJoinPolicyChangeLog,
-    OriginalMessageReimbursementDequeued,
-    OriginalMessageReportPreview,
-} from '@src/types/onyx/OriginalMessage';
 import type Report from '@src/types/onyx/Report';
-import type {Message, ReportActionBase, ReportActionMessageJSON, ReportActions} from '@src/types/onyx/ReportAction';
+import type {Message, OriginalMessage, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -37,6 +23,7 @@ import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import type {OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 import StringUtils from './StringUtils';
 import * as TransactionUtils from './TransactionUtils';
+import ReportActionName from '@src/types/onyx/ReportActionName';
 
 type LastVisibleMessage = {
     lastMessageTranslationKey?: string;
@@ -135,7 +122,7 @@ function isPendingRemove(reportAction: OnyxEntry<ReportAction> | EmptyObject): b
     return getReportActionMessage(reportAction)?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE;
 }
 
-function isMoneyRequestAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction & OriginalMessageIOU {
+function isMoneyRequestAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU;
 }
 
@@ -155,26 +142,46 @@ function getReportActionOriginalMessage<T>(reportAction: PartialReportAction) {
     return (reportAction?.originalMessage ?? reportAction?.message?.[0] ?? reportAction?.message) as T;
 }
 
+function isActionOfType<T extends ReportActionName[]>(action: OnyxEntry<ReportAction>, ...actionNames: T): action is ({
+    [K in keyof T]: ReportAction<T[K]>
+}[number]) {
+    return actionNames.includes(action?.actionName as T[number]);
+}
+
+function getOriginalMessage<T extends ReportActionName>(reportAction: ReportAction<T>): OriginalMessage<T> {
+    if (!Array.isArray(reportAction?.message)) {
+        return reportAction?.message ?? reportAction?.originalMessage;
+    }
+    return reportAction.originalMessage;
+}
+
+function getMessage<T extends ReportActionName>(reportAction: OnyxEntry<ReportAction<T>>): OriginalMessage<T> | Message | undefined {
+    if (!Array.isArray(reportAction?.message)) {
+        return reportAction?.message ?? reportAction?.originalMessage;
+    }
+    return reportAction.originalMessage ?? reportAction.message?.[0];
+}
+
 /**
  * We are in the process of deprecating reportAction.originalMessage and will be setting the db version of "message" to reportAction.message in the future see: https://github.com/Expensify/App/issues/39797
  * In the interim, we must check to see if we have an object or array for the reportAction.message, if we have an array we will use the originalMessage as this means we have not yet migrated.
  */
-function getWhisperedTo(reportAction: OnyxEntry<ReportAction> | EmptyObject): number[] {
-    const originalMessage = getReportActionOriginalMessage(reportAction);
+function getWhisperedTo(reportAction: OnyxEntry<ReportAction>): number[] {
+    const originalMessage = getMessage(reportAction);
     const message = reportAction?.message;
 
     if (!Array.isArray(message) && typeof message === 'object') {
-        return (message as ReportActionMessageJSON)?.whisperedTo ?? [];
+        return (message)?.whisperedTo ?? [];
     }
 
     if (originalMessage) {
-        return (originalMessage as ReportActionMessageJSON)?.whisperedTo ?? [];
+        return (originalMessage)?.whisperedTo ?? [];
     }
 
     return [];
 }
 
-function isWhisperAction(reportAction: OnyxEntry<ReportAction> | EmptyObject): boolean {
+function isWhisperAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return getWhisperedTo(reportAction).length > 0;
 }
 
@@ -193,13 +200,7 @@ function isReimbursementQueuedAction(reportAction: OnyxEntry<ReportAction>) {
 }
 
 function isMemberChangeAction(reportAction: OnyxEntry<ReportAction>) {
-    return (
-        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM ||
-        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.REMOVE_FROM_ROOM ||
-        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM ||
-        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_FROM_ROOM ||
-        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_POLICY
-    );
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.REMOVE_FROM_ROOM, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_FROM_ROOM, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_POLICY);
 }
 
 function isInviteMemberAction(reportAction: OnyxEntry<ReportAction>) {
@@ -210,7 +211,7 @@ function isLeavePolicyAction(reportAction: OnyxEntry<ReportAction>) {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_POLICY;
 }
 
-function isReimbursementDeQueuedAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportActionBase & OriginalMessageReimbursementDequeued {
+function isReimbursementDeQueuedAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED> {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED;
 }
 
@@ -238,8 +239,7 @@ function getParentReportAction(report: OnyxEntry<Report> | EmptyObject): ReportA
  * Determines if the given report action is sent money report action by checking for 'pay' type and presence of IOUDetails object.
  */
 function isSentMoneyReportAction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>): boolean {
-    const originalMessage = getReportActionOriginalMessage<IOUMessage>(reportAction);
-    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && !!originalMessage?.IOUDetails;
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(reportAction)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && !!getOriginalMessage(reportAction)?.IOUDetails;
 }
 
 /**
@@ -247,12 +247,15 @@ function isSentMoneyReportAction(reportAction: OnyxEntry<ReportAction | Optimist
  * report action from requesting money (type - create) or from sending money (type - pay with IOUDetails field)
  */
 function isTransactionThread(parentReportAction: OnyxEntry<ReportAction> | EmptyObject): boolean {
-    const originalMessage = getReportActionOriginalMessage<IOUMessage>(parentReportAction);
+    if (isEmptyObject(parentReportAction)) {
+        return false;
+    }
+    const originalMessage = getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(parentReportAction);
     return (
         parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
-        (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE ||
-            originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK ||
-            (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && !!originalMessage.IOUDetails))
+        (originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE ||
+            originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK ||
+            (originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && !!originalMessage?.IOUDetails))
     );
 }
 
@@ -331,7 +334,7 @@ function getCombinedReportActions(reportActions: ReportAction[], transactionThre
     const isSelfDM = report?.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM;
     // Filter out request and send money request actions because we don't want to show any preview actions for one transaction reports
     const filteredReportActions = [...reportActions, ...filteredTransactionThreadReportActions].filter((action) => {
-        const actionType = getReportActionOriginalMessage<IOUMessage>(action)?.type ?? '';
+        const actionType = getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(action)?.type ?? '';
         if (isSelfDM) {
             return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && !isSentMoneyReportAction(action);
         }
@@ -399,7 +402,7 @@ function getMostRecentIOURequestActionID(reportActions: ReportAction[] | null): 
         CONST.IOU.REPORT_ACTION_TYPE.TRACK,
     ];
     const iouRequestActions =
-        reportActions?.filter((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && iouRequestTypes.includes(getReportActionOriginalMessage<IOUMessage>(action).type)) ?? [];
+        reportActions?.filter((action) =>  isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU) && iouRequestTypes.includes(getOriginalMessage(action).type)) ?? [];
 
     if (iouRequestActions.length === 0) {
         return null;
@@ -516,13 +519,13 @@ function isReportActionDeprecated(reportAction: OnyxEntry<ReportAction>, key: st
         return true;
     }
 
-    const deprecatedOldDotReportActions: ActionName[] = [
+    const deprecatedOldDotReportActions: ReportActionName[] = [
         CONST.REPORT.ACTIONS.TYPE.DELETED_ACCOUNT,
         CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REQUESTED,
         CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP_REQUESTED,
         CONST.REPORT.ACTIONS.TYPE.DONATION,
     ];
-    if (deprecatedOldDotReportActions.includes(reportAction.actionName as ActionName)) {
+    if (deprecatedOldDotReportActions.includes(reportAction.actionName as ReportActionName)) {
         Log.info('Front end filtered out reportAction for being an older, deprecated report action', false, reportAction);
         return true;
     }
@@ -531,7 +534,7 @@ function isReportActionDeprecated(reportAction: OnyxEntry<ReportAction>, key: st
 }
 
 const {POLICY_CHANGE_LOG: policyChangelogTypes, ROOM_CHANGE_LOG: roomChangeLogTypes, ...otherActionTypes} = CONST.REPORT.ACTIONS.TYPE;
-const supportedActionTypes: ActionName[] = [...Object.values(otherActionTypes), ...Object.values(policyChangelogTypes), ...Object.values(roomChangeLogTypes)];
+const supportedActionTypes: ReportActionName[] = [...Object.values(otherActionTypes), ...Object.values(policyChangelogTypes), ...Object.values(roomChangeLogTypes)];
 
 /**
  * Checks if a reportAction is fit for display, meaning that it's not deprecated, is of a valid
@@ -590,8 +593,8 @@ function shouldHideNewMarker(reportAction: OnyxEntry<ReportAction>): boolean {
  * Checks whether an action is actionable track expense.
  *
  */
-function isActionableTrackExpense(reportAction: OnyxEntry<ReportAction>): reportAction is ReportActionBase & OriginalMessageActionableTrackedExpenseWhisper {
-    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER;
+function isActionableTrackExpense(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER);
 }
 
 /**
@@ -599,7 +602,7 @@ function isActionableTrackExpense(reportAction: OnyxEntry<ReportAction>): report
  *
  */
 function isResolvedActionTrackExpense(reportAction: OnyxEntry<ReportAction>): boolean {
-    const resolution = (reportAction?.originalMessage as OriginalMessageActionableMentionWhisper['originalMessage'])?.resolution;
+    const resolution = reportAction && 'resolution' in reportAction ? reportAction?.resolution : null;
     return isActionableTrackExpense(reportAction) && !!resolution;
 }
 
@@ -774,7 +777,7 @@ function getLinkedTransactionID(reportActionOrID: string | OnyxEntry<ReportActio
     if (!reportAction || reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
         return null;
     }
-    return getReportActionOriginalMessage<IOUMessage>(reportAction)?.IOUTransactionID ?? null;
+    return getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(reportAction)?.IOUTransactionID ?? null;
 }
 
 function getReportAction(reportID: string, reportActionID: string): OnyxEntry<ReportAction> {
@@ -828,8 +831,8 @@ function getReportPreviewAction(chatReportID: string, iouReportID: string): Onyx
         Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`] ?? {}).find(
             (reportAction) =>
                 reportAction &&
-                reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
-                getReportActionOriginalMessage<OriginalMessageReportPreview['originalMessage']>(reportAction).linkedReportID === iouReportID,
+                isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW)  &&
+                getOriginalMessage(reportAction)?.linkedReportID === iouReportID,
         ) ?? null
     );
 }
@@ -838,13 +841,13 @@ function getReportPreviewAction(chatReportID: string, iouReportID: string): Onyx
  * Get the iouReportID for a given report action.
  */
 function getIOUReportIDFromReportActionPreview(reportAction: OnyxEntry<ReportAction>): string {
-    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW
-        ? getReportActionOriginalMessage<OriginalMessageReportPreview['originalMessage']>(reportAction).linkedReportID
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW)
+        ? getOriginalMessage(reportAction)?.linkedReportID ?? '0'
         : '0';
 }
 
 function isCreatedTaskReportAction(reportAction: OnyxEntry<ReportAction>): boolean {
-    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && !!getReportActionOriginalMessage<OriginalMessageAddComment['originalMessage']>(reportAction)?.taskReportID;
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) && !!getOriginalMessage(reportAction)?.taskReportID;
 }
 
 /**
@@ -862,15 +865,15 @@ function getNumberOfMoneyRequests(reportPreviewAction: OnyxEntry<ReportAction>):
 }
 
 function isSplitBillAction(reportAction: OnyxEntry<ReportAction>): boolean {
-    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && getReportActionOriginalMessage<IOUMessage>(reportAction).type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(reportAction)?.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
 }
 
 function isTrackExpenseAction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>): boolean {
-    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && getReportActionOriginalMessage<IOUMessage>(reportAction).type === CONST.IOU.REPORT_ACTION_TYPE.TRACK;
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(reportAction)?.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK;
 }
 
 function isPayAction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>): boolean {
-    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && (reportAction.originalMessage as IOUMessage).type === CONST.IOU.REPORT_ACTION_TYPE.PAY;
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(reportAction)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY;
 }
 
 function isTaskAction(reportAction: OnyxEntry<ReportAction>): boolean {
@@ -917,13 +920,13 @@ function getOneTransactionThreadReportID(
     const iouRequestActions = reportActionsArray.filter(
         (action) =>
             action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
-            (iouRequestTypes.includes(getReportActionOriginalMessage<IOUMessage>(action).type) ?? []) &&
+            (iouRequestTypes.includes(getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(action).type) ?? []) &&
             action.childReportID &&
             // Include deleted IOU reportActions if:
             // - they have an assocaited IOU transaction ID or
             // - they have visibile childActions (like comments) that we'd want to display
             // - the action is pending deletion and the user is offline
-            (Boolean(getReportActionOriginalMessage<IOUMessage>(action).IOUTransactionID) ||
+            (Boolean(getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(action).IOUTransactionID) ||
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 (isMessageDeleted(action) && action.childVisibleActionCount) ||
                 (action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && (isOffline ?? isNetworkOffline))),
@@ -936,7 +939,7 @@ function getOneTransactionThreadReportID(
 
     // If there's only one IOU request action associated with the report but it's been deleted, then we don't consider this a oneTransaction report
     // and want to display it using the standard view
-    if ((getReportActionOriginalMessage<IOUMessage>(iouRequestActions[0])?.deleted ?? '') !== '') {
+    if ((getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(iouRequestActions[0])?.deleted ?? '') !== '') {
         return null;
     }
 
@@ -1332,6 +1335,8 @@ export {
     getReportActionHtml,
     getReportActionMessage,
     getReportActionOriginalMessage,
+    isActionOfType, 
+    getMessage,
     isActionableTrackExpense,
     isLinkedTransactionHeld,
     isResolvedActionTrackExpense,

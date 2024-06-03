@@ -1,4 +1,4 @@
-import type {ValueOf} from 'type-fest';
+import type {Spread, TupleToUnion, ValueOf} from 'type-fest';
 import type {FileObject} from '@components/AttachmentModal';
 import type {AvatarSource} from '@libs/UserUtils';
 import type CONST from '@src/CONST';
@@ -6,14 +6,11 @@ import type ONYXKEYS from '@src/ONYXKEYS';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import type * as OnyxCommon from './OnyxCommon';
-import type {Decision, OriginalMessageModifiedExpense, OriginalMessageReportPreview, Reaction} from './OriginalMessage';
 import type OriginalMessage from './OriginalMessage';
+import type {Decision, Reaction, ReportActionNamesWithHTMLMessage} from './OriginalMessage';
 import type {NotificationPreference} from './Report';
+import type ReportActionName from './ReportActionName';
 import type {Receipt} from './Transaction';
-
-type ReportActionMessageJSON = {
-    whisperedTo?: number[];
-};
 
 type Message = {
     /** The type of the action item fragment. Used to render a corresponding component */
@@ -131,6 +128,9 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** The ID of the previous reportAction on the report. It is a string represenation of a 64-bit integer (or null for CREATED actions). */
     previousReportActionID?: string;
 
+    /** The name (or type) of the action */
+    actionName: ReportActionName;
+
     actorAccountID?: number;
 
     /** The account of the last message's actor */
@@ -141,12 +141,6 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** ISO-formatted datetime */
     created: string;
-
-    /** report action message */
-    message?: Array<Message | undefined>;
-
-    /** report action message */
-    previousMessage?: Array<Message | undefined>;
 
     /** Whether we have received a response back from the server */
     isLoading?: boolean;
@@ -232,13 +226,22 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     adminAccountID?: number;
 }>;
 
-type ReportAction = ReportActionBase & OriginalMessage;
-type ReportPreviewAction = ReportActionBase & OriginalMessageReportPreview;
-type ModifiedExpenseAction = ReportActionBase & OriginalMessageModifiedExpense;
+type ReportAction<T extends ReportActionName = ReportActionName> = ReportActionBase & {
+    originalMessage: OriginalMessage<T>;
+
+    /** report action message */
+    message?: OriginalMessage<T> | Array<Message | undefined>;
+
+    /** report action message */
+    previousMessage?: OriginalMessage<T> | Array<Message | undefined>;
+};
+
+type ReportActionWithHTMLMessage = ReportAction<ReportActionNamesWithHTMLMessage>;
+type ReportActionChangeLog = ReportAction<ValueOf<Spread<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG, typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>>>;
 
 type ReportActions = Record<string, ReportAction>;
 
 type ReportActionsCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>;
 
 export default ReportAction;
-export type {ReportActions, ReportActionBase, Message, LinkMetadata, OriginalMessage, ReportActionsCollectionDataSet, ReportPreviewAction, ModifiedExpenseAction, ReportActionMessageJSON};
+export type {ReportActions, Message, LinkMetadata, OriginalMessage, ReportActionsCollectionDataSet, ReportActionWithHTMLMessage, ReportActionChangeLog};

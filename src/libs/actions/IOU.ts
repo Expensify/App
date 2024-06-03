@@ -3418,7 +3418,7 @@ function requestMoney(
         currentCreated,
         merchant,
         receipt,
-        isMovingTransactionFromTrackExpense ? ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(linkedTrackedExpenseReportAction)?.IOUTransactionID : undefined,
+        isMovingTransactionFromTrackExpense ? ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(linkedTrackedExpenseReportAction)?.IOUTransactionID : undefined,
         category,
         tag,
         taxCode,
@@ -3620,7 +3620,7 @@ function trackExpense(
         payeeAccountID,
         moneyRequestReportID,
         linkedTrackedExpenseReportAction,
-        isMovingTransactionFromTrackExpense ? ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(linkedTrackedExpenseReportAction)?.IOUTransactionID : undefined,
+        isMovingTransactionFromTrackExpense ? ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(linkedTrackedExpenseReportAction)?.IOUTransactionID : undefined,
     );
     const activeReportID = isMoneyRequestReport ? report.reportID : chatReport.reportID;
 
@@ -5200,7 +5200,7 @@ function updateMoneyRequestAmountAndCurrency({
 
 function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false) {
     // STEP 1: Get all collections we're updating
-    const iouReportID = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? ReportActionsUtils.getReportActionOriginalMessage<IOUMessage>(reportAction).IOUReportID : '';
+    const iouReportID = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(reportAction).IOUReportID : '';
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`] ?? null;
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`];
     const reportPreviewAction = getReportPreviewAction(iouReport?.chatReportID ?? '', iouReport?.reportID ?? '');
