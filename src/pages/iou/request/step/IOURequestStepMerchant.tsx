@@ -97,9 +97,9 @@ function IOURequestStepMerchant({
             navigateBack();
             return;
         }
-        IOU.setMoneyRequestMerchant(transactionID, newMerchant ?? '', !isEditing);
+        // When creating/editing an expense, newMerchant can be blank so we fall back on PARTIAL_TRANSACTION_MERCHANT
+        IOU.setMoneyRequestMerchant(transactionID, newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, !isEditing);
         if (isEditing) {
-            // When creating a new expense, newMerchant can be blank so we fall back on PARTIAL_TRANSACTION_MERCHANT
             IOU.updateMoneyRequestMerchant(transactionID, reportID, newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, policy, policyTags, policyCategories);
         }
         navigateBack();

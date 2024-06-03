@@ -60,7 +60,7 @@ const getPhoneNumber = ({login = '', displayName = ''}: PersonalDetails | EmptyO
 };
 
 /**
- * This function narrow down the data from Onyx to just the properties that we want to trigger a re-render of the component. This helps minimize re-rendering
+ * This function narrows down the data from Onyx to just the properties that we want to trigger a re-render of the component. This helps minimize re-rendering
  * and makes the entire component more performant because it's not re-rendering when a bunch of properties change which aren't ever used in the UI.
  */
 const chatReportSelector = (report: OnyxEntry<Report>): OnyxEntry<Report> =>
@@ -138,11 +138,8 @@ function ProfilePage({route}: ProfilePageProps) {
     const phoneNumber = getPhoneNumber(details);
     const phoneOrEmail = isSMSLogin ? getPhoneNumber(details) : login;
 
-    const hasMinimumDetails = !!avatar || !!loginParams;
+    const hasAvatar = Boolean(details.avatar);
     const isLoading = Boolean(personalDetailsMetadata?.[accountID]?.isLoading) || isEmptyObject(details);
-
-    // If the API returns an error for some reason there won't be any details and isLoading will get set to false, so we want to show a blocking screen
-    const shouldShowBlockingView = !hasMinimumDetails && !isLoading && !login;
 
     const statusEmojiCode = details?.status?.emojiCode ?? '';
     const statusText = details?.status?.text ?? '';
@@ -178,106 +175,106 @@ function ProfilePage({route}: ProfilePageProps) {
 
     return (
         <ScreenWrapper testID={ProfilePage.displayName}>
-            <FullPageNotFoundView shouldShow={shouldShowBlockingView || CONST.RESTRICTED_ACCOUNT_IDS.includes(accountID)}>
+            <FullPageNotFoundView shouldShow={CONST.RESTRICTED_ACCOUNT_IDS.includes(accountID)}>
                 <HeaderWithBackButton
                     title={translate('common.profile')}
                     onBackButtonPress={() => Navigation.goBack(navigateBackTo)}
                 />
                 <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
-                    {hasMinimumDetails && (
-                        <ScrollView>
-                            <View style={[styles.avatarSectionWrapper, styles.pb0]}>
-                                <PressableWithoutFocus
-                                    style={[styles.noOutline, styles.mb4]}
-                                    onPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(String(accountID)))}
-                                    accessibilityLabel={translate('common.profile')}
-                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                    <ScrollView>
+                        <View style={[styles.avatarSectionWrapper, styles.pb0]}>
+                            <PressableWithoutFocus
+                                style={[styles.noOutline, styles.mb4]}
+                                onPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(String(accountID)))}
+                                accessibilityLabel={translate('common.profile')}
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                                disabled={!hasAvatar}
+                            >
+                                <OfflineWithFeedback pendingAction={details?.pendingFields?.avatar}>
+                                    <Avatar
+                                        containerStyles={[styles.avatarXLarge]}
+                                        imageStyles={[styles.avatarXLarge]}
+                                        source={details.avatar}
+                                        avatarID={accountID}
+                                        size={CONST.AVATAR_SIZE.XLARGE}
+                                        fallbackIcon={fallbackIcon}
+                                    />
+                                </OfflineWithFeedback>
+                            </PressableWithoutFocus>
+                            {Boolean(displayName) && (
+                                <Text
+                                    style={[styles.textHeadline, styles.pre, styles.mb8, styles.w100, styles.textAlignCenter]}
+                                    numberOfLines={1}
                                 >
-                                    <OfflineWithFeedback pendingAction={details?.pendingFields?.avatar}>
-                                        <Avatar
-                                            containerStyles={[styles.avatarXLarge]}
-                                            imageStyles={[styles.avatarXLarge]}
-                                            source={UserUtils.getAvatar(avatar, accountID)}
-                                            size={CONST.AVATAR_SIZE.XLARGE}
-                                            fallbackIcon={fallbackIcon}
-                                        />
-                                    </OfflineWithFeedback>
-                                </PressableWithoutFocus>
-                                {Boolean(displayName) && (
+                                    {displayName}
+                                </Text>
+                            )}
+                            <PromotedActionsBar
+                                promotedActions={promotedActions}
+                                containerStyle={[styles.ph0, styles.mb8]}
+                            />
+                            {hasStatus && (
+                                <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.mw100]}>
                                     <Text
-                                        style={[styles.textHeadline, styles.pre, styles.mb8, styles.w100, styles.textAlignCenter]}
+                                        style={[styles.textLabelSupporting, styles.mb1]}
                                         numberOfLines={1}
                                     >
-                                        {displayName}
+                                        {translate('statusPage.status')}
                                     </Text>
-                                )}
-                                <PromotedActionsBar
-                                    promotedActions={promotedActions}
-                                    containerStyle={[styles.ph0, styles.mb8]}
-                                />
-                                {hasStatus && (
-                                    <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.mw100]}>
-                                        <Text
-                                            style={[styles.textLabelSupporting, styles.mb1]}
-                                            numberOfLines={1}
-                                        >
-                                            {translate('statusPage.status')}
-                                        </Text>
-                                        <Text>{statusContent}</Text>
-                                    </View>
-                                )}
+                                    <Text>{statusContent}</Text>
+                                </View>
+                            )}
 
-                                {/* Don't display email if current user is anonymous */}
-                                {!(isCurrentUser && SessionActions.isAnonymousUser()) && login ? (
-                                    <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.w100]}>
-                                        <Text
-                                            style={[styles.textLabelSupporting, styles.mb1]}
-                                            numberOfLines={1}
-                                        >
-                                            {translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
-                                        </Text>
-                                        <CommunicationsLink value={phoneOrEmail ?? ''}>
-                                            <UserDetailsTooltip accountID={details.accountID}>
-                                                <Text numberOfLines={1}>{isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : login}</Text>
-                                            </UserDetailsTooltip>
-                                        </CommunicationsLink>
-                                    </View>
-                                ) : null}
-                                {pronouns ? (
-                                    <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
-                                        <Text
-                                            style={[styles.textLabelSupporting, styles.mb1]}
-                                            numberOfLines={1}
-                                        >
-                                            {translate('profilePage.preferredPronouns')}
-                                        </Text>
-                                        <Text numberOfLines={1}>{pronouns}</Text>
-                                    </View>
-                                ) : null}
-                                {shouldShowLocalTime && <AutoUpdateTime timezone={timezone} />}
-                            </View>
-                            {shouldShowNotificationPreference && (
-                                <MenuItemWithTopDescription
-                                    shouldShowRightIcon
-                                    title={notificationPreference}
-                                    description={translate('notificationPreferencesPage.label')}
-                                    onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.getRoute(report.reportID))}
-                                />
-                            )}
-                            {!isEmptyObject(report) && report.reportID && !isCurrentUser && (
-                                <MenuItem
-                                    title={`${translate('privateNotes.title')}`}
-                                    titleStyle={styles.flex1}
-                                    icon={Expensicons.Pencil}
-                                    onPress={() => ReportUtils.navigateToPrivateNotes(report, session)}
-                                    wrapperStyle={styles.breakAll}
-                                    shouldShowRightIcon
-                                    brickRoadIndicator={ReportActions.hasErrorInPrivateNotes(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                />
-                            )}
-                        </ScrollView>
-                    )}
-                    {!hasMinimumDetails && isLoading && <FullScreenLoadingIndicator style={styles.flex1} />}
+                            {/* Don't display email if current user is anonymous */}
+                            {!(isCurrentUser && SessionActions.isAnonymousUser()) && login ? (
+                                <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.w100]}>
+                                    <Text
+                                        style={[styles.textLabelSupporting, styles.mb1]}
+                                        numberOfLines={1}
+                                    >
+                                        {translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
+                                    </Text>
+                                    <CommunicationsLink value={phoneOrEmail ?? ''}>
+                                        <UserDetailsTooltip accountID={details.accountID}>
+                                            <Text numberOfLines={1}>{isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : login}</Text>
+                                        </UserDetailsTooltip>
+                                    </CommunicationsLink>
+                                </View>
+                            ) : null}
+                            {pronouns ? (
+                                <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
+                                    <Text
+                                        style={[styles.textLabelSupporting, styles.mb1]}
+                                        numberOfLines={1}
+                                    >
+                                        {translate('profilePage.preferredPronouns')}
+                                    </Text>
+                                    <Text numberOfLines={1}>{pronouns}</Text>
+                                </View>
+                            ) : null}
+                            {shouldShowLocalTime && <AutoUpdateTime timezone={timezone} />}
+                        </View>
+                        {shouldShowNotificationPreference && (
+                            <MenuItemWithTopDescription
+                                shouldShowRightIcon
+                                title={notificationPreference}
+                                description={translate('notificationPreferencesPage.label')}
+                                onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.getRoute(report.reportID))}
+                            />
+                        )}
+                        {!isEmptyObject(report) && report.reportID && !isCurrentUser && (
+                            <MenuItem
+                                title={`${translate('privateNotes.title')}`}
+                                titleStyle={styles.flex1}
+                                icon={Expensicons.Pencil}
+                                onPress={() => ReportUtils.navigateToPrivateNotes(report, session)}
+                                wrapperStyle={styles.breakAll}
+                                shouldShowRightIcon
+                                brickRoadIndicator={ReportActions.hasErrorInPrivateNotes(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            />
+                        )}
+                    </ScrollView>
+                    {!hasAvatar && isLoading && <FullScreenLoadingIndicator style={styles.flex1} />}
                 </View>
             </FullPageNotFoundView>
         </ScreenWrapper>

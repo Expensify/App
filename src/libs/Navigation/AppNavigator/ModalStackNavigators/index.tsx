@@ -113,8 +113,7 @@ const ReportDetailsModalStackNavigator = createModalStackNavigator<ReportDetails
 
 const ReportSettingsModalStackNavigator = createModalStackNavigator<ReportSettingsNavigatorParamList>({
     [SCREENS.REPORT_SETTINGS.ROOT]: () => require('../../../../pages/settings/Report/ReportSettingsPage').default as React.ComponentType,
-    [SCREENS.REPORT_SETTINGS.ROOM_NAME]: () => require('../../../../pages/settings/Report/RoomNamePage').default as React.ComponentType,
-    [SCREENS.REPORT_SETTINGS.GROUP_NAME]: () => require('../../../../pages/GroupChatNameEditPage').default as React.ComponentType,
+    [SCREENS.REPORT_SETTINGS.NAME]: () => require('../../../../pages/settings/Report/NamePage').default as React.ComponentType,
     [SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES]: () => require('../../../../pages/settings/Report/NotificationPreferencePage').default as React.ComponentType,
     [SCREENS.REPORT_SETTINGS.WRITE_CAPABILITY]: () => require('../../../../pages/settings/Report/WriteCapabilityPage').default as React.ComponentType,
     [SCREENS.REPORT_SETTINGS.VISIBILITY]: () => require('../../../../pages/settings/Report/VisibilityPage').default as React.ComponentType,
@@ -252,8 +251,6 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require('../../../../pages/workspace/accounting/qbo/export/QuickbooksExportInvoiceAccountSelectPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT]: () =>
         require('../../../../pages/workspace/accounting/qbo/export/QuickbooksOutOfPocketExpenseAccountSelectPage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_PAYABLE_SELECT]: () =>
-        require('../../../../pages/workspace/accounting/qbo/export/QuickbooksCompanyCardExpenseAccountPayableSelectPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES]: () =>
         require('../../../../pages/workspace/accounting/qbo/export/QuickbooksOutOfPocketExpenseConfigurationPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT]: () =>
@@ -296,14 +293,16 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_TAXES]: () => require('../../../../pages/workspace/accounting/xero/XeroTaxesConfigurationPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_TRACKING_CATEGORIES]: () =>
         require('../../../../pages/workspace/accounting/xero/XeroTrackingCategoryConfigurationPage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.ACCOUNTING.XERO_MAP_COST_CENTERS]: () => require('../../../../pages/workspace/accounting/xero/XeroMapCostCentersToConfigurationPage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.ACCOUNTING.XERO_MAP_REGION]: () => require('../../../../pages/workspace/accounting/xero/XeroMapRegionsToConfigurationPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.XERO_MAP_TRACKING_CATEGORY]: () =>
+        require('../../../../pages/workspace/accounting/xero/XeroMapTrackingCategoryConfigurationPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_EXPORT]: () => require('../../../../pages/workspace/accounting/xero/export/XeroExportConfigurationPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_EXPORT_PURCHASE_BILL_DATE_SELECT]: () =>
         require('../../../../pages/workspace/accounting/xero/export/XeroPurchaseBillDateSelectPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_EXPORT_BANK_ACCOUNT_SELECT]: () =>
         require('../../../../pages/workspace/accounting/xero/export/XeroBankAccountSelectPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_ADVANCED]: () => require('../../../../pages/workspace/accounting/xero/advanced/XeroAdvancedPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.XERO_BILL_STATUS_SELECTOR]: () =>
+        require('../../../../pages/workspace/accounting/xero/export/XeroPurchaseBillStatusSelectorPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_INVOICE_ACCOUNT_SELECTOR]: () =>
         require('../../../../pages/workspace/accounting/xero/advanced/XeroInvoiceAccountSelectorPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_EXPORT_PREFERRED_EXPORTER_SELECT]: () =>
