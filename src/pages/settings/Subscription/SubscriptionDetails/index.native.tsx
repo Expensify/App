@@ -21,10 +21,10 @@ function SubscriptionDetails() {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
     // This section is only shown when the subscription is annual
-    let subscripitionSizeSection = null;
+    let subscriptionSizeSection: React.JSX.Element | null = null;
 
     if (privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL) {
-        subscripitionSizeSection = privateSubscription?.userCount ? (
+        subscriptionSizeSection = privateSubscription?.userCount ? (
             <MenuItemWithTopDescription
                 description={translate('subscription.details.subscriptionSize')}
                 title={`${privateSubscription?.userCount}`}
@@ -45,8 +45,7 @@ function SubscriptionDetails() {
             isCentralPane
             titleStyles={styles.textStrong}
         >
-            {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
-            {account?.isApprovedAccountant || account?.isApprovedAccountantClient ? (
+            {!!account?.isApprovedAccountant || !!account?.isApprovedAccountantClient ? (
                 <View style={[styles.borderedContentCard, styles.p5, styles.mt5]}>
                     <Icon
                         src={Illustrations.ExpensifyApprovedLogo}
@@ -59,24 +58,26 @@ function SubscriptionDetails() {
                 <>
                     {privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.PAYPERUSE ? (
                         <OptionItem
-                            title={translate('subscription.details.payPerUse')}
+                            title="subscription.details.payPerUse"
                             icon={Illustrations.SubscriptionPPU}
                             style={styles.mt5}
                             isDisabled
                         />
                     ) : (
                         <OptionItem
-                            title={translate('subscription.details.annual')}
+                            title="subscription.details.annual"
                             icon={Illustrations.SubscriptionAnnual}
                             style={styles.mt5}
                             isDisabled
                         />
                     )}
-                    {subscripitionSizeSection}
+                    {subscriptionSizeSection}
                 </>
             )}
         </Section>
     );
 }
+
+SubscriptionDetails.displayName = 'SubscriptionDetails';
 
 export default SubscriptionDetails;

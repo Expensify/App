@@ -91,4 +91,6 @@ function SubscriptionPlan() {
     );
 }
 
+SubscriptionPlan.displayName = 'SubscriptionPlan';
+
 export default SubscriptionPlan;

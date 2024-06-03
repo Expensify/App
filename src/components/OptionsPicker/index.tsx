@@ -1,7 +1,8 @@
-import React from 'react';
+import React, {Fragment} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
 import OptionItem from './OptionItem';
 
@@ -10,7 +11,7 @@ type OptionsPickerItem = {
     key: string;
 
     /** Text to be displayed */
-    title: string;
+    title: TranslationPaths;
 
     /** Icon to be displayed above the title */
     icon: IconAsset;
@@ -33,13 +34,13 @@ type OptionsPickerProps = {
     style?: StyleProp<ViewStyle>;
 };
 
-function OptionsPicker({options, selectedOption, onOptionSelected, style, isDisabled = false}: OptionsPickerProps) {
+function OptionsPicker({options, selectedOption, onOptionSelected, style, isDisabled}: OptionsPickerProps) {
     const styles = useThemeStyles();
 
     return (
         <View style={[styles.flexRow, styles.flex1, style]}>
             {options.map((option, index) => (
-                <React.Fragment key={option.key}>
+                <Fragment key={option.key}>
                     <OptionItem
                         title={option.title}
                         icon={option.icon}
@@ -48,11 +49,13 @@ function OptionsPicker({options, selectedOption, onOptionSelected, style, isDisa
                         onPress={() => onOptionSelected(option.key)}
                     />
                     {index < options.length - 1 && <View style={styles.mr3} />}
-                </React.Fragment>
+                </Fragment>
             ))}
         </View>
     );
 }
+
+OptionsPicker.displayName = 'OptionsPicker';
 
 export default OptionsPicker;
 export type {OptionsPickerItem};

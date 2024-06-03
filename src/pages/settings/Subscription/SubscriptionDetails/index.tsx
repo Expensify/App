@@ -1,6 +1,7 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import Icon from '@components/Icon';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -14,33 +15,35 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+type SubscriptionVariant = ValueOf<typeof CONST.SUBSCRIPTION.TYPE>;
+
+const options: OptionsPickerItem[] = [
+    {
+        key: CONST.SUBSCRIPTION.TYPE.ANNUAL,
+        title: 'subscription.details.annual',
+        icon: Illustrations.SubscriptionAnnual,
+    },
+    {
+        key: CONST.SUBSCRIPTION.TYPE.PAYPERUSE,
+        title: 'subscription.details.payPerUse',
+        icon: Illustrations.SubscriptionPPU,
+    },
+];
+
 function SubscriptionDetails() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
 
-    const [selectedOption, setSelectedOption] = React.useState<string>(privateSubscription?.type ?? CONST.SUBSCRIPTION.TYPE.ANNUAL);
+    const [selectedOption, setSelectedOption] = useState(privateSubscription?.type ?? CONST.SUBSCRIPTION.TYPE.ANNUAL);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
-    const options: OptionsPickerItem[] = [
-        {
-            key: CONST.SUBSCRIPTION.TYPE.ANNUAL,
-            title: translate('subscription.details.annual'),
-            icon: Illustrations.SubscriptionAnnual,
-        },
-        {
-            key: CONST.SUBSCRIPTION.TYPE.PAYPERUSE,
-            title: translate('subscription.details.payPerUse'),
-            icon: Illustrations.SubscriptionPPU,
-        },
-    ];
-
     const onOptionSelected = (option: string) => {
-        setSelectedOption(option);
+        setSelectedOption(option as SubscriptionVariant);
     };
 
     // This section is only shown when the subscription is annual
-    let subscriptionSizeSection = null;
+    let subscriptionSizeSection: React.JSX.Element | null = null;
 
     if (privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL) {
         subscriptionSizeSection = privateSubscription?.userCount ? (
@@ -72,8 +75,7 @@ function SubscriptionDetails() {
             isCentralPane
             titleStyles={styles.textStrong}
         >
-            {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
-            {account?.isApprovedAccountant || account?.isApprovedAccountantClient ? (
+            {!!account?.isApprovedAccountant || !!account?.isApprovedAccountantClient ? (
                 <View style={[styles.borderedContentCard, styles.p5, styles.mt5]}>
                     <Icon
                         src={Illustrations.ExpensifyApprovedLogo}
@@ -96,5 +98,7 @@ function SubscriptionDetails() {
         </Section>
     );
 }
+
+SubscriptionDetails.displayName = 'SubscriptionDetails';
 
 export default SubscriptionDetails;

@@ -9,11 +9,12 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type OptionItemProps = {
     /** Text to be rendered */
-    title: string;
+    title: TranslationPaths;
 
     /** Icon to be displayed above the title */
     icon: IconAsset;
@@ -31,7 +32,7 @@ type OptionItemProps = {
     style?: StyleProp<ViewStyle>;
 };
 
-function OptionItem({title, icon, onPress, isSelected = false, isDisabled = false, style}: OptionItemProps) {
+function OptionItem({title, icon, onPress, isSelected = false, isDisabled, style}: OptionItemProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -51,25 +52,27 @@ function OptionItem({title, icon, onPress, isSelected = false, isDisabled = fals
                             width={variables.iconHeader}
                             height={variables.iconHeader}
                         />
-                        {!isDisabled ? (
+                        {!isDisabled && (
                             <View>
                                 <SelectCircle
                                     isChecked={isSelected}
                                     selectCircleStyles={styles.sectionSelectCircle}
                                 />
                             </View>
-                        ) : null}
+                        )}
                     </View>
                     <Text
                         style={[styles.headerText, styles.mt2]}
                         numberOfLines={1}
                     >
-                        {title}
+                        {translate(title)}
                     </Text>
                 </View>
             </View>
         </PressableWithFeedback>
     );
 }
+
+OptionItem.displayName = 'OptionItem';
 
 export default OptionItem;

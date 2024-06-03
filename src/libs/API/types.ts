@@ -527,7 +527,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_POLICY_MORE_FEATURES_PAGE]: Parameters.OpenPolicyMoreFeaturesPageParams;
     [READ_COMMANDS.OPEN_POLICY_ACCOUNTING_PAGE]: Parameters.OpenPolicyAccountingPageParams;
     [READ_COMMANDS.SEARCH]: Parameters.SearchParams;
-    [READ_COMMANDS.OPEN_SUBSCRIPTION_PAGE]: EmptyObject;
+    [READ_COMMANDS.OPEN_SUBSCRIPTION_PAGE]: null;
 };
 
 const SIDE_EFFECT_REQUEST_COMMANDS = {
