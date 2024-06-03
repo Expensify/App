@@ -1,4 +1,5 @@
 import React from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -18,16 +19,19 @@ type OptionItemProps = {
     icon: IconAsset;
 
     /** Press handler */
-    onPress: () => void;
+    onPress?: () => void;
 
     /** Indicates whether the option is currently selected (active) */
-    isSelected: boolean;
+    isSelected?: boolean;
 
     /** Indicates whether the option is disabled */
     isDisabled?: boolean;
+
+    /** Optional style prop */
+    style?: StyleProp<ViewStyle>;
 };
 
-function OptionItem({title, icon, onPress, isSelected, isDisabled = false}: OptionItemProps) {
+function OptionItem({title, icon, onPress, isSelected = false, isDisabled = false, style}: OptionItemProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -37,7 +41,7 @@ function OptionItem({title, icon, onPress, isSelected, isDisabled = false}: Opti
             role={CONST.ROLE.BUTTON}
             accessibilityLabel={translate('common.close')}
             disabled={isDisabled}
-            wrapperStyle={[styles.flex1]}
+            wrapperStyle={[styles.flex1, style]}
         >
             <View style={[isSelected ? styles.borderedContentCardFocused : styles.borderedContentCard, styles.p5]}>
                 <View style={[styles.flexRow, styles.justifyContentBetween]}>
@@ -49,12 +53,14 @@ function OptionItem({title, icon, onPress, isSelected, isDisabled = false}: Opti
                         />
                         <Text style={[styles.headerText, styles.mt2]}>{title}</Text>
                     </View>
-                    <View>
-                        <SelectCircle
-                            isChecked={isSelected}
-                            selectCircleStyles={styles.sectionSelectCircle}
-                        />
-                    </View>
+                    {!isDisabled ? (
+                        <View>
+                            <SelectCircle
+                                isChecked={isSelected}
+                                selectCircleStyles={styles.sectionSelectCircle}
+                            />
+                        </View>
+                    ) : null}
                 </View>
             </View>
         </PressableWithFeedback>

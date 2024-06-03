@@ -2,6 +2,7 @@ import React, {useEffect} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
@@ -25,8 +26,10 @@ function SubscriptionSettingsPage() {
                 shouldShowBackButton={isSmallScreenWidth}
                 icon={Illustrations.CreditCardsNew}
             />
-            <SubscriptionPlan />
-            <SubscriptionDetails />
+            <ScrollView>
+                <SubscriptionPlan />
+                <SubscriptionDetails />
+            </ScrollView>
         </ScreenWrapper>
     );
 }
