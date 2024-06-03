@@ -32,27 +32,27 @@ const INPUT_KEYS = {
 
 const STEP_FIELDS = [COMPANY_BUSINESS_INFO_KEY.STREET, COMPANY_BUSINESS_INFO_KEY.CITY, COMPANY_BUSINESS_INFO_KEY.STATE, COMPANY_BUSINESS_INFO_KEY.ZIP_CODE];
 
-const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-    const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
-
-    if (values.addressStreet && !ValidationUtils.isValidAddress(values.addressStreet)) {
-        errors.addressStreet = 'bankAccount.error.addressStreet';
-    }
-
-    if (values.addressCity && !ValidationUtils.isValidAddress(values.addressCity)) {
-        errors.addressCity = 'bankAccount.error.addressCity';
-    }
-
-    if (values.addressZipCode && !ValidationUtils.isValidZipCode(values.addressZipCode)) {
-        errors.addressZipCode = 'bankAccount.error.zipCode';
-    }
-
-    return errors;
-};
-
 function AddressBusiness({reimbursementAccount, onNext, isEditing}: AddressBusinessProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+        const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+
+        if (values.addressStreet && !ValidationUtils.isValidAddress(values.addressStreet)) {
+            errors.addressStreet = translate('bankAccount.error.addressStreet');
+        }
+
+        if (values.addressCity && !ValidationUtils.isValidAddress(values.addressCity)) {
+            errors.addressCity = translate('bankAccount.error.addressCity');
+        }
+
+        if (values.addressZipCode && !ValidationUtils.isValidZipCode(values.addressZipCode)) {
+            errors.addressZipCode = translate('bankAccount.error.zipCode');
+        }
+
+        return errors;
+    };
 
     const defaultValues = {
         street: reimbursementAccount?.achData?.addressStreet ?? '',

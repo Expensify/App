@@ -46,9 +46,9 @@ function LegalNamePage({privatePersonalDetails, isLoadingApp = true}: LegalNameP
 
             if (typeof values.legalFirstName === 'string') {
                 if (!ValidationUtils.isValidLegalName(values.legalFirstName)) {
-                    ErrorUtils.addErrorMessage(errors, 'legalFirstName', 'privatePersonalDetails.error.hasInvalidCharacter');
+                    ErrorUtils.addErrorMessage(errors, 'legalFirstName', translate('privatePersonalDetails.error.hasInvalidCharacter'));
                 } else if (!values.legalFirstName) {
-                    errors.legalFirstName = 'common.error.fieldRequired';
+                    errors.legalFirstName = translate('common.error.fieldRequired');
                 } else if (values.legalFirstName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
                     ErrorUtils.addErrorMessage(
                         errors,
@@ -57,13 +57,13 @@ function LegalNamePage({privatePersonalDetails, isLoadingApp = true}: LegalNameP
                     );
                 }
                 if (ValidationUtils.doesContainReservedWord(values.legalFirstName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
-                    ErrorUtils.addErrorMessage(errors, 'legalFirstName', 'personalDetails.error.containsReservedWord');
+                    ErrorUtils.addErrorMessage(errors, 'legalFirstName', translate('personalDetails.error.containsReservedWord'));
                 }
             }
 
             if (typeof values.legalLastName === 'string') {
                 if (!ValidationUtils.isValidLegalName(values.legalLastName)) {
-                    ErrorUtils.addErrorMessage(errors, 'legalLastName', 'privatePersonalDetails.error.hasInvalidCharacter');
+                    ErrorUtils.addErrorMessage(errors, 'legalLastName', translate('privatePersonalDetails.error.hasInvalidCharacter'));
                 } else if (!values.legalLastName) {
                     errors.legalLastName = 'common.error.fieldRequired';
                 } else if (values.legalLastName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
@@ -74,7 +74,7 @@ function LegalNamePage({privatePersonalDetails, isLoadingApp = true}: LegalNameP
                     );
                 }
                 if (ValidationUtils.doesContainReservedWord(values.legalLastName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
-                    ErrorUtils.addErrorMessage(errors, 'legalLastName', 'personalDetails.error.containsReservedWord');
+                    ErrorUtils.addErrorMessage(errors, 'legalLastName', translate('personalDetails.error.containsReservedWord'));
                 }
             }
 

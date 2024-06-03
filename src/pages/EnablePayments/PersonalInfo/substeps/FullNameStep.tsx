@@ -19,18 +19,6 @@ import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
 const PERSONAL_INFO_STEP_KEY = INPUT_IDS.PERSONAL_INFO_STEP;
 const STEP_FIELDS = [PERSONAL_INFO_STEP_KEY.FIRST_NAME, PERSONAL_INFO_STEP_KEY.LAST_NAME];
 
-const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>): FormInputErrors<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS> => {
-    const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
-    if (values.legalFirstName && !ValidationUtils.isValidLegalName(values.legalFirstName)) {
-        errors.legalFirstName = 'bankAccount.error.firstName';
-    }
-
-    if (values.legalLastName && !ValidationUtils.isValidLegalName(values.legalLastName)) {
-        errors.legalLastName = 'bankAccount.error.lastName';
-    }
-    return errors;
-};
-
 function FullNameStep({onNext, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -40,6 +28,18 @@ function FullNameStep({onNext, isEditing}: SubStepProps) {
     const defaultValues = {
         firstName: walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.FIRST_NAME] ?? '',
         lastName: walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.LAST_NAME] ?? '',
+    };
+
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>): FormInputErrors<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS> => {
+        const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+        if (values.legalFirstName && !ValidationUtils.isValidLegalName(values.legalFirstName)) {
+            errors.legalFirstName = translate('bankAccount.error.firstName');
+        }
+
+        if (values.legalLastName && !ValidationUtils.isValidLegalName(values.legalLastName)) {
+            errors.legalLastName = translate('bankAccount.error.lastName');
+        }
+        return errors;
     };
 
     const handleSubmit = useWalletAdditionalDetailsStepFormSubmit({

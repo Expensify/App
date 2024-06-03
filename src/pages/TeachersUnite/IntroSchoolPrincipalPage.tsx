@@ -50,27 +50,27 @@ function IntroSchoolPrincipalPage(props: IntroSchoolPrincipalPageProps) {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM> = {};
 
             if (!values.firstName || !ValidationUtils.isValidPersonName(values.firstName)) {
-                ErrorUtils.addErrorMessage(errors, 'firstName', 'bankAccount.error.firstName');
+                ErrorUtils.addErrorMessage(errors, 'firstName', translate('bankAccount.error.firstName'));
             }
             if (!values.lastName || !ValidationUtils.isValidPersonName(values.lastName)) {
-                ErrorUtils.addErrorMessage(errors, 'lastName', 'bankAccount.error.lastName');
+                ErrorUtils.addErrorMessage(errors, 'lastName', translate('bankAccount.error.lastName'));
             }
             if (!values.partnerUserID) {
-                ErrorUtils.addErrorMessage(errors, 'partnerUserID', 'teachersUnitePage.error.enterEmail');
+                ErrorUtils.addErrorMessage(errors, 'partnerUserID', translate('teachersUnitePage.error.enterEmail'));
             }
             if (values.partnerUserID && props.loginList?.[values.partnerUserID.toLowerCase()]) {
-                ErrorUtils.addErrorMessage(errors, 'partnerUserID', 'teachersUnitePage.error.tryDifferentEmail');
+                ErrorUtils.addErrorMessage(errors, 'partnerUserID', translate('teachersUnitePage.error.tryDifferentEmail'));
             }
             if (values.partnerUserID && !Str.isValidEmail(values.partnerUserID)) {
-                ErrorUtils.addErrorMessage(errors, 'partnerUserID', 'teachersUnitePage.error.enterValidEmail');
+                ErrorUtils.addErrorMessage(errors, 'partnerUserID', translate('teachersUnitePage.error.enterValidEmail'));
             }
             if (values.partnerUserID && LoginUtils.isEmailPublicDomain(values.partnerUserID)) {
-                ErrorUtils.addErrorMessage(errors, 'partnerUserID', 'teachersUnitePage.error.tryDifferentEmail');
+                ErrorUtils.addErrorMessage(errors, 'partnerUserID', translate('teachersUnitePage.error.tryDifferentEmail'));
             }
 
             return errors;
         },
-        [props.loginList],
+        [props.loginList, translate],
     );
 
     return (

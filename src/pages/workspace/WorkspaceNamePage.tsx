@@ -44,7 +44,7 @@ function WorkspaceNamePage({policy}: Props) {
             const name = values.name.trim();
 
             if (!ValidationUtils.isRequiredFulfilled(name)) {
-                errors.name = 'workspace.editor.nameIsRequiredError';
+                errors.name = translate('workspace.editor.nameIsRequiredError');
             } else if ([...name].length > CONST.TITLE_CHARACTER_LIMIT) {
                 // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16
                 // code units.

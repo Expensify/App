@@ -76,27 +76,27 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
         const errors = ValidationUtils.getFieldRequiredErrors(formValues, REQUIRED_FIELDS);
 
         if (formValues.nameOnCard && !ValidationUtils.isValidLegalName(formValues.nameOnCard)) {
-            errors.nameOnCard = 'addDebitCardPage.error.invalidName';
+            errors.nameOnCard = translate('addDebitCardPage.error.invalidName');
         }
 
         if (formValues.cardNumber && !ValidationUtils.isValidDebitCard(formValues.cardNumber.replace(/ /g, ''))) {
-            errors.cardNumber = 'addDebitCardPage.error.debitCardNumber';
+            errors.cardNumber = translate('addDebitCardPage.error.debitCardNumber');
         }
 
         if (formValues.expirationDate && !ValidationUtils.isValidExpirationDate(formValues.expirationDate)) {
-            errors.expirationDate = 'addDebitCardPage.error.expirationDate';
+            errors.expirationDate = translate('addDebitCardPage.error.expirationDate');
         }
 
         if (formValues.securityCode && !ValidationUtils.isValidSecurityCode(formValues.securityCode)) {
-            errors.securityCode = 'addDebitCardPage.error.securityCode';
+            errors.securityCode = translate('addDebitCardPage.error.securityCode');
         }
 
         if (formValues.addressStreet && !ValidationUtils.isValidAddress(formValues.addressStreet)) {
-            errors.addressStreet = 'addDebitCardPage.error.addressStreet';
+            errors.addressStreet = translate('addDebitCardPage.error.addressStreet');
         }
 
         if (formValues.addressZipCode && !ValidationUtils.isValidZipCode(formValues.addressZipCode)) {
-            errors.addressZipCode = 'addDebitCardPage.error.addressZipCode';
+            errors.addressZipCode = translate('addDebitCardPage.error.addressZipCode');
         }
 
         return errors;

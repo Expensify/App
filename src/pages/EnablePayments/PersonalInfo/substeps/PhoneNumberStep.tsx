@@ -19,14 +19,6 @@ import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
 const PERSONAL_INFO_STEP_KEY = INPUT_IDS.PERSONAL_INFO_STEP;
 const STEP_FIELDS = [PERSONAL_INFO_STEP_KEY.PHONE_NUMBER];
 
-const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>): FormInputErrors<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS> => {
-    const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
-
-    if (values.phoneNumber && !ValidationUtils.isValidUSPhone(values.phoneNumber, true)) {
-        errors.phoneNumber = 'bankAccount.error.phoneNumber';
-    }
-    return errors;
-};
 function PhoneNumberStep({onNext, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -34,6 +26,15 @@ function PhoneNumberStep({onNext, isEditing}: SubStepProps) {
     const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
 
     const defaultPhoneNumber = walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.PHONE_NUMBER] ?? '';
+
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>): FormInputErrors<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS> => {
+        const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+
+        if (values.phoneNumber && !ValidationUtils.isValidUSPhone(values.phoneNumber, true)) {
+            errors.phoneNumber = translate('bankAccount.error.phoneNumber');
+        }
+        return errors;
+    };
 
     const handleSubmit = useWalletAdditionalDetailsStepFormSubmit({
         fieldIds: STEP_FIELDS,

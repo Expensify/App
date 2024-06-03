@@ -19,18 +19,19 @@ import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
 const PERSONAL_INFO_STEP_KEY = INPUT_IDS.PERSONAL_INFO_STEP;
 const STEP_FIELDS = [PERSONAL_INFO_STEP_KEY.SSN_LAST_4];
 
-const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>): FormInputErrors<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS> => {
-    const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
-
-    if (values.ssn && !ValidationUtils.isValidSSNLastFour(values.ssn)) {
-        errors.ssn = 'bankAccount.error.ssnLast4';
-    }
-
-    return errors;
-};
 function SocialSecurityNumberStep({onNext, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>): FormInputErrors<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS> => {
+        const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+
+        if (values.ssn && !ValidationUtils.isValidSSNLastFour(values.ssn)) {
+            errors.ssn = translate('bankAccount.error.ssnLast4');
+        }
+
+        return errors;
+    };
 
     const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
 

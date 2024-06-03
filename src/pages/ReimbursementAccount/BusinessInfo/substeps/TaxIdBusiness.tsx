@@ -25,23 +25,22 @@ type TaxIdBusinessProps = TaxIdBusinessOnyxProps & SubStepProps;
 
 const COMPANY_TAX_ID_KEY = INPUT_IDS.BUSINESS_INFO_STEP.COMPANY_TAX_ID;
 const STEP_FIELDS = [COMPANY_TAX_ID_KEY];
-
-const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-    const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
-
-    if (values.companyTaxID && !ValidationUtils.isValidTaxID(values.companyTaxID)) {
-        errors.companyTaxID = 'bankAccount.error.taxID';
-    }
-
-    return errors;
-};
-
 function TaxIdBusiness({reimbursementAccount, onNext, isEditing}: TaxIdBusinessProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const defaultCompanyTaxId = reimbursementAccount?.achData?.companyTaxID ?? '';
     const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? 0;
     const shouldDisableCompanyTaxID = !!(bankAccountID && defaultCompanyTaxId && reimbursementAccount?.achData?.state !== 'SETUP');
+
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+        const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+
+        if (values.companyTaxID && !ValidationUtils.isValidTaxID(values.companyTaxID)) {
+            errors.companyTaxID = translate('bankAccount.error.taxID');
+        }
+
+        return errors;
+    };
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,

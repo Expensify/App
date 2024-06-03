@@ -26,20 +26,20 @@ type PhoneNumberBusinessProps = PhoneNumberBusinessOnyxProps & SubStepProps;
 const COMPANY_PHONE_NUMBER_KEY = INPUT_IDS.BUSINESS_INFO_STEP.COMPANY_PHONE;
 const STEP_FIELDS = [COMPANY_PHONE_NUMBER_KEY];
 
-const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-    const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
-
-    if (values.companyPhone && !ValidationUtils.isValidUSPhone(values.companyPhone, true)) {
-        errors.companyPhone = 'bankAccount.error.phoneNumber';
-    }
-
-    return errors;
-};
-
 function PhoneNumberBusiness({reimbursementAccount, onNext, isEditing}: PhoneNumberBusinessProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const defaultCompanyPhoneNumber = reimbursementAccount?.achData?.companyPhone ?? '';
+
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+        const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+
+        if (values.companyPhone && !ValidationUtils.isValidUSPhone(values.companyPhone, true)) {
+            errors.companyPhone = translate('bankAccount.error.phoneNumber');
+        }
+
+        return errors;
+    };
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,

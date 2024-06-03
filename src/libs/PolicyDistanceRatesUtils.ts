@@ -4,6 +4,7 @@ import type ONYXKEYS from '@src/ONYXKEYS';
 import type {Rate} from '@src/types/onyx/Policy';
 import * as CurrencyUtils from './CurrencyUtils';
 import getPermittedDecimalSeparator from './getPermittedDecimalSeparator';
+import * as Localize from './Localize';
 import * as MoneyRequestUtils from './MoneyRequestUtils';
 import * as NumberUtils from './NumberUtils';
 
@@ -17,9 +18,9 @@ function validateRateValue(values: FormOnyxValues<RateValueForm>, currency: stri
     // Allow one more decimal place for accuracy
     const rateValueRegex = RegExp(String.raw`^-?\d{0,8}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{0,${CurrencyUtils.getCurrencyDecimals(currency) + 1}})?$`, 'i');
     if (!rateValueRegex.test(parsedRate) || parsedRate === '') {
-        errors.rate = 'workspace.reimburse.invalidRateError';
+        errors.rate = Localize.translateLocal('workspace.reimburse.invalidRateError');
     } else if (NumberUtils.parseFloatAnyLocale(parsedRate) <= 0) {
-        errors.rate = 'workspace.reimburse.lowRateError';
+        errors.rate = Localize.translateLocal('workspace.reimburse.lowRateError');
     }
     return errors;
 }

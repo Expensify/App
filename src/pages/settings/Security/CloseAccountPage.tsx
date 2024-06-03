@@ -72,7 +72,7 @@ function CloseAccountPage({session}: CloseAccountPageProps) {
         const errors = ValidationUtils.getFieldRequiredErrors(values, ['phoneOrEmail']);
 
         if (values.phoneOrEmail && userEmailOrPhone && sanitizePhoneOrEmail(userEmailOrPhone) !== sanitizePhoneOrEmail(values.phoneOrEmail)) {
-            errors.phoneOrEmail = 'closeAccountPage.enterYourDefaultContactMethod';
+            errors.phoneOrEmail = translate('closeAccountPage.enterYourDefaultContactMethod');
         }
         return errors;
     };

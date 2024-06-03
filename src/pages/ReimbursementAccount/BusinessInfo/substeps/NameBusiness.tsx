@@ -26,16 +26,6 @@ type NameBusinessProps = NameBusinessOnyxProps & SubStepProps;
 const COMPANY_NAME_KEY = INPUT_IDS.BUSINESS_INFO_STEP.COMPANY_NAME;
 const STEP_FIELDS = [COMPANY_NAME_KEY];
 
-const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-    const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
-
-    if (values.companyName && !ValidationUtils.isValidCompanyName(values.companyName)) {
-        errors.companyName = 'bankAccount.error.companyName';
-    }
-
-    return errors;
-};
-
 function NameBusiness({reimbursementAccount, onNext, isEditing}: NameBusinessProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -44,6 +34,16 @@ function NameBusiness({reimbursementAccount, onNext, isEditing}: NameBusinessPro
     const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? 0;
 
     const shouldDisableCompanyName = !!(bankAccountID && defaultCompanyName && reimbursementAccount?.achData?.state !== 'SETUP');
+
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+        const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+
+        if (values.companyName && !ValidationUtils.isValidCompanyName(values.companyName)) {
+            errors.companyName = translate('bankAccount.error.companyName');
+        }
+
+        return errors;
+    };
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,

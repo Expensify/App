@@ -90,13 +90,13 @@ function IOURequestStepWaypoint({
         const errors = {};
         const waypointValue = values[`waypoint${pageIndex}`] ?? '';
         if (isOffline && waypointValue !== '' && !ValidationUtils.isValidAddress(waypointValue)) {
-            ErrorUtils.addErrorMessage(errors, `waypoint${pageIndex}`, 'bankAccount.error.address');
+            ErrorUtils.addErrorMessage(errors, `waypoint${pageIndex}`, translate('bankAccount.error.address'));
         }
 
         // If the user is online, and they are trying to save a value without using the autocomplete, show an error message instructing them to use a selected address instead.
         // That enables us to save the address with coordinates when it is selected
         if (!isOffline && waypointValue !== '' && waypointAddress !== waypointValue) {
-            ErrorUtils.addErrorMessage(errors, `waypoint${pageIndex}`, 'distance.error.selectSuggestedAddress');
+            ErrorUtils.addErrorMessage(errors, `waypoint${pageIndex}`, translate('distance.error.selectSuggestedAddress'));
         }
 
         return errors;
