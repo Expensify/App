@@ -1,7 +1,7 @@
 import React, {useCallback, useMemo, useState} from 'react';
+import ActiveWorkspaceContext from '@components/ActiveWorkspace/ActiveWorkspaceContext';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import ActiveWorkspaceContext from './ActiveWorkspaceContext';
 
 function ActiveWorkspaceContextProvider({children}: ChildrenProps) {
     const [activeWorkspaceID, updateActiveWorkspaceID] = useState<string | undefined>(undefined);
