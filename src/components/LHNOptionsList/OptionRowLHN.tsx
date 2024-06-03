@@ -105,7 +105,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
             '',
             popoverAnchor.current,
             reportID,
-            '0',
+            '-1',
             reportID,
             undefined,
             () => {},
