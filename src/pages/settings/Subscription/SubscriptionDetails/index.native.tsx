@@ -20,6 +20,25 @@ function SubscriptionDetails() {
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
+    // This section is only shown when the subscription is annual
+    let subscripitionSizeSection = null;
+
+    if (privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL) {
+        subscripitionSizeSection = privateSubscription?.userCount ? (
+            <MenuItemWithTopDescription
+                description={translate('subscription.details.subscriptionSize')}
+                title={`${privateSubscription?.userCount}`}
+                wrapperStyle={styles.sectionMenuItemTopDescription}
+                style={styles.mt5}
+            />
+        ) : (
+            <Text style={styles.mt5}>
+                <Text style={styles.h4}>{translate('subscription.details.headsUpTitle')}</Text>
+                <Text style={styles.textLabelSupporting}>{translate('subscription.details.headsUpBody')}</Text>
+            </Text>
+        );
+    }
+
     return (
         <Section
             title={translate('subscription.details.title')}
@@ -53,19 +72,7 @@ function SubscriptionDetails() {
                             isDisabled
                         />
                     )}
-                    {privateSubscription?.userCount ? (
-                        <MenuItemWithTopDescription
-                            description={translate('subscription.details.subscriptionSize')}
-                            title={`${privateSubscription?.userCount}`}
-                            wrapperStyle={styles.sectionMenuItemTopDescription}
-                            style={styles.mt5}
-                        />
-                    ) : (
-                        <Text style={styles.mt5}>
-                            <Text style={styles.h4}>{translate('subscription.details.headsUpTitle')}</Text>
-                            <Text style={styles.textLabelSupporting}>{translate('subscription.details.headsUpBody')}</Text>
-                        </Text>
-                    )}
+                    {subscripitionSizeSection}
                 </>
             )}
         </Section>

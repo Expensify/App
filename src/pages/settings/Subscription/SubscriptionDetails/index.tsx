@@ -39,27 +39,32 @@ function SubscriptionDetails() {
         setSelectedOption(option);
     };
 
-    const subscriptionSizeSection = privateSubscription?.userCount ? (
-        <MenuItemWithTopDescription
-            description={translate('subscription.details.subscriptionSize')}
-            title={`${privateSubscription?.userCount}`}
-            wrapperStyle={styles.sectionMenuItemTopDescription}
-            style={styles.mt5}
-        />
-    ) : (
-        <>
+    // This section is only shown when the subscription is annual
+    let subscriptionSizeSection = null;
+
+    if (privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL) {
+        subscriptionSizeSection = privateSubscription?.userCount ? (
             <MenuItemWithTopDescription
                 description={translate('subscription.details.subscriptionSize')}
-                shouldShowRightIcon
+                title={`${privateSubscription?.userCount}`}
                 wrapperStyle={styles.sectionMenuItemTopDescription}
                 style={styles.mt5}
             />
-            <Text style={styles.mt2}>
-                <Text style={styles.h4}>{translate('subscription.details.headsUpTitle')}</Text>
-                <Text style={styles.textLabelSupporting}>{translate('subscription.details.headsUpBody')}</Text>
-            </Text>
-        </>
-    );
+        ) : (
+            <>
+                <MenuItemWithTopDescription
+                    description={translate('subscription.details.subscriptionSize')}
+                    shouldShowRightIcon
+                    wrapperStyle={styles.sectionMenuItemTopDescription}
+                    style={styles.mt5}
+                />
+                <Text style={styles.mt2}>
+                    <Text style={styles.h4}>{translate('subscription.details.headsUpTitle')}</Text>
+                    <Text style={styles.textLabelSupporting}>{translate('subscription.details.headsUpBody')}</Text>
+                </Text>
+            </>
+        );
+    }
 
     return (
         <Section
