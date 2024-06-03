@@ -31,9 +31,9 @@ import LoginForm from './LoginForm';
 import type {InputHandle} from './LoginForm/types';
 import SignInPageLayout from './SignInPageLayout';
 import type {SignInPageLayoutRef} from './SignInPageLayout/types';
+import SignUpWelcomeForm from './SignUpWelcomeForm';
 import UnlinkLoginForm from './UnlinkLoginForm';
 import ValidateCodeForm from './ValidateCodeForm';
-import SignUpWelcomeForm from './SignUpWelcomeForm';
 
 type SignInPageInnerOnyxProps = {
     /** The details about the account that the user is signing in with */
@@ -116,10 +116,17 @@ function getRenderOptions({
     const shouldShowLoginForm = !shouldShowAnotherLoginPageOpenedMessage && !hasLogin && !hasValidateCode;
     const shouldShowEmailDeliveryFailurePage = hasLogin && hasEmailDeliveryFailure && !shouldShowChooseSSOOrMagicCode && !shouldInitiateSAMLLogin;
     const isUnvalidatedSecondaryLogin = hasLogin && !isPrimaryLogin && !account?.validated && !hasEmailDeliveryFailure;
-    const shouldShowValidateCodeForm = !shouldShouldSignUpWelcomeForm && 
-        (hasAccount && (hasLogin || hasValidateCode) && !isUnvalidatedSecondaryLogin && !hasEmailDeliveryFailure && !shouldShowChooseSSOOrMagicCode && !isSAMLRequired);
+    const shouldShowValidateCodeForm =
+        !shouldShouldSignUpWelcomeForm &&
+        hasAccount &&
+        (hasLogin || hasValidateCode) &&
+        !isUnvalidatedSecondaryLogin &&
+        !hasEmailDeliveryFailure &&
+        !shouldShowChooseSSOOrMagicCode &&
+        !isSAMLRequired;
     const shouldShowWelcomeHeader = shouldShowLoginForm || shouldShowValidateCodeForm || shouldShowChooseSSOOrMagicCode || isUnvalidatedSecondaryLogin || shouldShouldSignUpWelcomeForm;
-    const shouldShowWelcomeText = shouldShowLoginForm || shouldShowValidateCodeForm || shouldShowChooseSSOOrMagicCode || shouldShowAnotherLoginPageOpenedMessage || shouldShouldSignUpWelcomeForm;
+    const shouldShowWelcomeText =
+        shouldShowLoginForm || shouldShowValidateCodeForm || shouldShowChooseSSOOrMagicCode || shouldShowAnotherLoginPageOpenedMessage || shouldShouldSignUpWelcomeForm;
 
     return {
         shouldShowLoginForm,
@@ -198,7 +205,7 @@ function SignInPageInner({credentials, account, activeClients = [], preferredLoc
         isUsingMagicCode,
         hasInitiatedSAMLLogin,
         shouldShowAnotherLoginPageOpenedMessage,
-        credentials
+        credentials,
     });
 
     if (shouldInitiateSAMLLogin) {
@@ -242,8 +249,8 @@ function SignInPageInner({credentials, account, activeClients = [], preferredLoc
     } else if (shouldShouldSignUpWelcomeForm) {
         welcomeHeader = shouldUseNarrowLayout ? headerText : translate('welcomeText.welcome');
         welcomeText = shouldUseNarrowLayout
-                ? `${translate('welcomeText.welcome')} ${translate('welcomeText.welcomeNewFace', {login: userLoginToDisplay})}`
-                : translate('welcomeText.welcomeNewFace', {login: userLoginToDisplay});
+            ? `${translate('welcomeText.welcome')} ${translate('welcomeText.welcomeNewFace', {login: userLoginToDisplay})}`
+            : translate('welcomeText.welcomeNewFace', {login: userLoginToDisplay});
     } else if (!shouldInitiateSAMLLogin && !hasInitiatedSAMLLogin) {
         Log.warn('SignInPage in unexpected state!');
     }

@@ -16,9 +16,9 @@ import type {
     RequestNewValidateCodeParams,
     RequestUnlinkValidationLinkParams,
     SignInUserWithLinkParams,
+    SignUpUserParams,
     UnlinkLoginParams,
     ValidateTwoFactorAuthParams,
-    SignUpUserParams
 } from '@libs/API/parameters';
 import type SignInUserParams from '@libs/API/parameters/SignInUserParams';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -427,7 +427,7 @@ function signUpUser() {
         },
     ];
 
-    const successData:OnyxUpdate[] = [
+    const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -437,7 +437,7 @@ function signUpUser() {
         },
     ];
 
-    const failureData:OnyxUpdate[] = [
+    const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
