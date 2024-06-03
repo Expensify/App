@@ -21,7 +21,7 @@ function DisableAutoRenewSurveyPage() {
         >
             <HeaderWithBackButton
                 title={translate('subscription.subscriptionSettings.disableAutoRenew')}
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={Navigation.goBack}
             />
             <FeedbackSurvey
                 title={translate('subscription.subscriptionSettings.helpUsImprove')}

@@ -13,8 +13,10 @@ import Text from './Text';
 type FeedbackSurveyProps = {
     /** Title of the survey */
     title: string;
+
     /** Description of the survey */
     description: string;
+
     /** Callback to be called when the survey is submitted */
     onSubmit: (reason: Option) => void;
 };
