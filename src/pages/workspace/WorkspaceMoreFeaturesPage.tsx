@@ -201,6 +201,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 <ToggleSettingOptionRow
                     icon={item.icon}
                     title={translate(item.titleTranslationKey)}
+                    titleStyle={styles.textStrong}
                     subtitle={translate(item.subtitleTranslationKey)}
                     switchAccessibilityLabel={translate(item.subtitleTranslationKey)}
                     isActive={item.isActive}
