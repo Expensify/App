@@ -120,7 +120,7 @@ function WorkspaceEditTaxPage({
                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAX_VALUE.getRoute(`${policyID}`, taxID))}
                         />
                     </OfflineWithFeedback>
-                    {(canEdit && !hasAccountingConnections) && (
+                    {canEdit && !hasAccountingConnections && (
                         <MenuItem
                             icon={Expensicons.Trashcan}
                             title={translate('common.delete')}

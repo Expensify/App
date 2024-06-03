@@ -86,9 +86,9 @@ function CategorySettingsPage({route, policyCategories, navigation}: CategorySet
                 style={[styles.defaultModalContainer]}
                 testID={CategorySettingsPage.displayName}
             >
-                <HeaderWithBackButton 
+                <HeaderWithBackButton
                     title={route.params.categoryName}
-                    onBackButtonPress={() => (backTo ? Navigation.goBack(ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(route.params.policyID, backTo)) : Navigation.goBack())}    
+                    onBackButtonPress={() => (backTo ? Navigation.goBack(ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(route.params.policyID, backTo)) : Navigation.goBack())}
                 />
                 <ConfirmModal
                     isVisible={deleteCategoryConfirmModalVisible}
