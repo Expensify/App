@@ -1,7 +1,6 @@
 import {useNavigation} from '@react-navigation/native';
 import React, {useMemo, useRef, useState} from 'react';
 import type {TextInput} from 'react-native';
-import {View} from 'react-native';
 import type {Place} from 'react-native-google-places-autocomplete';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -17,6 +16,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useLocationBias from '@hooks/useLocationBias';
 import useNetwork from '@hooks/useNetwork';
+import useSubmitButtonVisibility from '@hooks/useSubmitButtonVisibility';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -57,6 +57,7 @@ function IOURequestStepWaypoint({
 }: IOURequestStepWaypointProps) {
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
+    const {isSubmitButtonVisible, showSubmitButton, hideSubmitButton, formStyle} = useSubmitButtonVisibility();
     const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
     const navigation = useNavigation();
     const isFocused = navigation.isFocused();
@@ -157,6 +158,7 @@ function IOURequestStepWaypoint({
             onEntryTransitionEnd={() => textInput.current?.focus()}
             shouldEnableMaxHeight
             testID={IOURequestStepWaypoint.displayName}
+            style={styles.overflowHidden}
         >
             <FullPageNotFoundView shouldShow={shouldDisableEditor}>
                 <HeaderWithBackButton
@@ -188,45 +190,48 @@ function IOURequestStepWaypoint({
                     danger
                 />
                 <FormProvider
-                    style={[styles.flexGrow1, styles.mh5]}
+                    style={[styles.flex1, styles.mh5, formStyle]}
                     formID={ONYXKEYS.FORMS.WAYPOINT_FORM}
                     enabledWhenOffline
                     validate={validate}
                     onSubmit={submit}
+                    submitFlexEnabled={false}
+                    shouldContainerGrow={false}
                     shouldValidateOnChange={false}
                     shouldValidateOnBlur={false}
+                    isSubmitButtonVisible={isSubmitButtonVisible}
                     submitButtonText={translate('common.save')}
                 >
-                    <View>
-                        <InputWrapperWithRef
-                            InputComponent={AddressSearch}
-                            locationBias={locationBias}
-                            canUseCurrentLocation
-                            inputID={`waypoint${pageIndex}`}
-                            ref={(e: HTMLElement | null) => {
-                                textInput.current = e as unknown as TextInput;
-                            }}
-                            hint={!isOffline ? 'distance.error.selectSuggestedAddress' : ''}
-                            containerStyles={[styles.mt4]}
-                            label={translate('distance.address')}
-                            defaultValue={waypointAddress}
-                            onPress={selectWaypoint}
-                            maxInputLength={CONST.FORM_CHARACTER_LIMIT}
-                            renamedInputKeys={{
-                                address: `waypoint${pageIndex}`,
-                                city: '',
-                                country: '',
-                                street: '',
-                                street2: '',
-                                zipCode: '',
-                                lat: '',
-                                lng: '',
-                                state: '',
-                            }}
-                            predefinedPlaces={recentWaypoints}
-                            resultTypes=""
-                        />
-                    </View>
+                    <InputWrapperWithRef
+                        InputComponent={AddressSearch}
+                        locationBias={locationBias}
+                        canUseCurrentLocation
+                        inputID={`waypoint${pageIndex}`}
+                        ref={(e: HTMLElement | null) => {
+                            textInput.current = e as unknown as TextInput;
+                        }}
+                        hint={!isOffline ? 'distance.error.selectSuggestedAddress' : ''}
+                        containerStyles={[styles.mt4]}
+                        label={translate('distance.address')}
+                        defaultValue={waypointAddress}
+                        onPress={selectWaypoint}
+                        onFocus={hideSubmitButton}
+                        onBlur={showSubmitButton}
+                        maxInputLength={CONST.FORM_CHARACTER_LIMIT}
+                        renamedInputKeys={{
+                            address: `waypoint${pageIndex}`,
+                            city: '',
+                            country: '',
+                            street: '',
+                            street2: '',
+                            zipCode: '',
+                            lat: '',
+                            lng: '',
+                            state: '',
+                        }}
+                        predefinedPlaces={recentWaypoints}
+                        resultTypes=""
+                    />
                 </FormProvider>
             </FullPageNotFoundView>
         </ScreenWrapper>
@@ -244,10 +249,10 @@ export default withWritableReportOrNotFound(
             recentWaypoints: {
                 key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
 
-                // Only grab the most recent 5 waypoints because that's all that is shown in the UI. This also puts them into the format of data
+                // Only grab the most recent 20 waypoints because that's all that is shown in the UI. This also puts them into the format of data
                 // that the google autocomplete component expects for it's "predefined places" feature.
                 selector: (waypoints) =>
-                    (waypoints ? waypoints.slice(0, 5) : []).map((waypoint) => ({
+                    (waypoints ? waypoints.slice(0, CONST.RECENT_WAYPOINTS_NUMBER) : []).map((waypoint) => ({
                         name: waypoint.name,
                         description: waypoint.address ?? '',
                         geometry: {
