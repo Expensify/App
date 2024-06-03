@@ -50,7 +50,7 @@ describe('ErrorUtils', () => {
         ErrorUtils.addErrorMessage(errors, 'username', 'Username must be at least 6 characters long');
         ErrorUtils.addErrorMessage(errors, 'username', 'Username must contain at least one letter');
 
-        expect(errors).toEqual({username: ['Username cannot be empty\nUsername must be at least 6 characters long\nUsername must contain at least one letter', {isTranslated: true}]});
+        expect(errors).toEqual({username: 'Username cannot be empty\nUsername must be at least 6 characters long\nUsername must contain at least one letter'});
     });
 
     test('should append multiple error messages to an existing error message for the same inputID', () => {
