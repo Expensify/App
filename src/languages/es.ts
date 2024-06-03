@@ -3610,4 +3610,25 @@ export default {
     systemMessage: {
         mergedWithCashTransaction: 'encontró un recibo para esta transacción.',
     },
+    subscription: {
+        subscriptionSettings: {
+            title: 'Configuración de suscripción',
+            autoRenew: 'Auto-renovación',
+            yourAnnual: 'Tu suscripción anual se renovará el (date). Puedes cambiar a pago-por-uso a partir de los 30 días previos a la renovación.',
+            autoIncrease: 'Auto-incremento',
+            saveUpTo: 'Ahorre hasta $10 al mes por miembro activo',
+            automaticallyIncrease:
+                'Aumenta automáticamente tus plazas anuales para dar lugar a los miembros activos que superen el tamaño de tu suscripción. Nota: Esto ampliará la fecha de finalización de tu suscripción anual.',
+            donateToExpensify: 'Dona $1 a Expensify.org por cada $500 que tu equipo gaste cada mes.',
+            disableAutoRenew: 'Desactivar auto-renovación',
+            helpUsImprove: 'Ayúdanos a mejorar Expensify',
+            whatsMainReason: '¿Cuál es la razón principal por la que deseas desactivar la auto-renovación de tu suscripción?',
+            functionalityNeeds: 'Hay que mejorar la funcionalidad',
+            tooExpensive: 'Demasiado caro',
+            inadequateCustomerSupport: 'Atención al cliente inadecuada',
+            companyClosing: 'Cierre, reducción, o adquisición de la empresa',
+            renewsOn: ({date}) => `Renews on ${date}`, // TODO translate
+            corporateKarma: 'Corporate Karma', // TODO translate
+        },
+    },
 } satisfies EnglishTranslation;

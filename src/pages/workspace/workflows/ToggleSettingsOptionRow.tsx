@@ -13,7 +13,9 @@ type ToggleSettingOptionRowProps = {
     /** Icon to be shown for the option */
     icon?: IconAsset;
     /** Title of the option */
-    title: string;
+    title?: string;
+    /** Custom title for the option */
+    customTitle?: React.ReactNode;
     /** Subtitle of the option */
     subtitle?: string;
     /** Accessibility label for the switch */
@@ -44,6 +46,7 @@ const ICON_SIZE = 48;
 function ToggleSettingOptionRow({
     icon,
     title,
+    customTitle,
     subtitle,
     switchAccessibilityLabel,
     shouldPlaceSubtitleBelowSwitch,
@@ -83,10 +86,12 @@ function ToggleSettingOptionRow({
                                 additionalStyles={[styles.mr3]}
                             />
                         )}
-                        <View style={[styles.flexColumn, styles.flex1]}>
-                            <Text style={[styles.textNormal, styles.lh20, titleStyle]}>{title}</Text>
-                            {!shouldPlaceSubtitleBelowSwitch && subtitle && subTitleView}
-                        </View>
+                        {customTitle ?? (
+                            <View style={[styles.flexColumn, styles.flex1]}>
+                                <Text style={[styles.textNormal, styles.lh20, titleStyle]}>{title}</Text>
+                                {!shouldPlaceSubtitleBelowSwitch && subtitle && subTitleView}
+                            </View>
+                        )}
                     </View>
                     <Switch
                         accessibilityLabel={switchAccessibilityLabel}

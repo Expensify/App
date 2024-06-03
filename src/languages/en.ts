@@ -3106,4 +3106,25 @@ export default {
     systemMessage: {
         mergedWithCashTransaction: 'matched a receipt to this transaction.',
     },
+    subscription: {
+        subscriptionSettings: {
+            title: 'Subscription settings',
+            autoRenew: 'Auto-renew',
+            yourAnnual: 'Your annual subscription will automatically renew on (date). You can switch to pay-per-use starting 30 days before renewal.',
+            autoIncrease: 'Auto-increase annual seats',
+            saveUpTo: 'Save up to $10/month per active member',
+            automaticallyIncrease:
+                'Automatically increase your annual seats to accommodate for active members that exceed your subscription size. Note: This will extend your annual subscription end date.',
+            donateToExpensify: 'Donate $1 to Expensify.org for every $500 your team spends each month.',
+            disableAutoRenew: 'Disable auto-renew',
+            helpUsImprove: 'Help us improve Expensify',
+            whatsMainReason: 'What’s the main reason you’re disabling auto-renew on your subscription?',
+            functionalityNeeds: 'Functionality needs improvement',
+            tooExpensive: 'Too expensive',
+            inadequateCustomerSupport: 'Inadequate customer support',
+            companyClosing: 'Company closing, downsizing, or acquired',
+            renewsOn: ({date}) => `Renews on ${date}`,
+            corporateKarma: 'Corporate Karma',
+        },
+    },
 } satisfies TranslationBase;
