@@ -47,7 +47,7 @@ function Confirmation({onNext}: ConfirmationProps) {
             ) : (
                 <>
                     <Text style={[styles.ph5, styles.pb5, styles.textNormalThemeText]}>{translate('subscription.subscriptionSize.youCantDowngrade')}</Text>
-                    <Text style={[styles.ph5, styles.textLabel]}>
+                    <Text style={[styles.ph5, styles.textNormalThemeText]}>
                         {translate('subscription.subscriptionSize.youAlreadyCommitted', {
                             size: subscriptionSizeFormDraft ? subscriptionSizeFormDraft[INPUT_IDS.SUBSCRIPTION_SIZE] : 0,
                             date: SUBSCRIPTION_UNTIL,

@@ -42,8 +42,8 @@ function Size({onNext}: SizeProps) {
                     defaultValue={defaultValues[INPUT_IDS.SUBSCRIPTION_SIZE]}
                     shouldSaveDraft
                 />
-                <Text style={[styles.textLabel, styles.mt5]}>{translate('subscription.subscriptionSize.eachMonth')}</Text>
-                <Text style={[styles.textLabel, styles.mt5]}>{translate('subscription.subscriptionSize.note')}</Text>
+                <Text style={[styles.formHelp, styles.mt2]}>{translate('subscription.subscriptionSize.eachMonth')}</Text>
+                <Text style={[styles.formHelp, styles.mt2]}>{translate('subscription.subscriptionSize.note')}</Text>
             </View>
         </FormProvider>
     );
