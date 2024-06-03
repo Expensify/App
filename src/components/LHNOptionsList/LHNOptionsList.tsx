@@ -71,7 +71,8 @@ function LHNOptionsList({
         () => (
             <View style={[styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.flexWrap, styles.textAlignCenter]}>
                 <TextBlock
-                    color={theme.placeholderText}
+                    color={theme.textSupporting}
+                    textStyles={[styles.textAlignCenter, styles.textNormal]}
                     text={translate('common.emptyLHN.subtitleText1')}
                 />
                 <Icon
@@ -83,7 +84,8 @@ function LHNOptionsList({
                     additionalStyles={styles.mh1}
                 />
                 <TextBlock
-                    color={theme.placeholderText}
+                    color={theme.textSupporting}
+                    textStyles={[styles.textAlignCenter, styles.textNormal]}
                     text={translate('common.emptyLHN.subtitleText2')}
                 />
                 <Icon
@@ -95,7 +97,8 @@ function LHNOptionsList({
                     additionalStyles={styles.mh1}
                 />
                 <TextBlock
-                    color={theme.placeholderText}
+                    color={theme.textSupporting}
+                    textStyles={[styles.textAlignCenter, styles.textNormal]}
                     text={translate('common.emptyLHN.subtitleText3')}
                 />
             </View>

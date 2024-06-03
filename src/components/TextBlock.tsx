@@ -16,17 +16,14 @@ type TextBlockProps = {
 };
 
 function TextBlock({color, textStyles, text}: TextBlockProps) {
-    const theme = useTheme();
-    const styles = useThemeStyles();
-
     const words = useMemo(() => text.match(/(\S+\s*)/g) ?? [], [text]);
 
     return (
         <>
             {words.map((word) => (
                 <Text
-                    color={color ?? theme.placeholderText}
-                    style={textStyles ?? [styles.textAlignCenter, styles.textNormal]}
+                    color={color}
+                    style={textStyles}
                 >
                     {word}
                 </Text>
