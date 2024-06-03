@@ -1161,8 +1161,8 @@ function expandURLPreview(reportID: string, reportActionID: string) {
 }
 
 /** Marks the new report actions as read
- *
- * @param shouldResetUnreadMarker Should we reset unread indicator
+ * @param shouldResetUnreadMarker Indicates whether the unread indicator should be reset.
+ * Currently, the unread indicator needs to be reset only when users mark a report as read.
  */
 function readNewestAction(reportID: string, shouldResetUnreadMarker = false) {
     const lastReadTime = DateUtils.getDBTime();
