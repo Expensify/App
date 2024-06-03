@@ -10,6 +10,7 @@ import * as Report from '@src/libs/actions/Report';
 import * as ReportActions from '@src/libs/actions/ReportActions';
 import * as User from '@src/libs/actions/User';
 import DateUtils from '@src/libs/DateUtils';
+import * as Localize from '@src/libs/Localize';
 import Navigation from '@src/libs/Navigation/Navigation';
 import * as NumberUtils from '@src/libs/NumberUtils';
 import * as PersonalDetailsUtils from '@src/libs/PersonalDetailsUtils';
@@ -769,7 +770,7 @@ describe('actions/IOU', () => {
                                         Onyx.disconnect(connectionID);
                                         expect(transaction?.pendingAction).toBeFalsy();
                                         expect(transaction?.errors).toBeTruthy();
-                                        expect(Object.values(transaction?.errors ?? {})[0]).toEqual(expect.arrayContaining(['iou.error.genericCreateFailureMessage', {isTranslated: false}]));
+                                        expect(Object.values(transaction?.errors ?? {})[0]).toEqual(Localize.translateLocal('iou.error.genericCreateFailureMessage'));
                                         resolve();
                                     },
                                 });
