@@ -11,13 +11,6 @@ function stripCommaFromAmount(amount: string): string {
 }
 
 /**
- * Strip dot from the amount
- */
-function stripDotFromAmount(amount: string): string {
-    return amount.replace(/\./g, '');
-}
-
-/**
  * Strip spaces from the amount
  */
 function stripSpacesFromAmount(amount: string): string {
