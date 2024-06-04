@@ -3101,7 +3101,7 @@ function createWorkspaceFromIOUPayment(iouReport: Report | EmptyObject): string 
 /**
  * Accept user join request to a workspace
  */
-function acceptJoinRequest(reportID: string, reportAction: OnyxEntry<ReportAction>) {
+function acceptJoinRequest(reportID: string, reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST>>) {
     const choice = CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.ACCEPT;
     if (!reportAction) {
         return;
@@ -3148,7 +3148,7 @@ function acceptJoinRequest(reportID: string, reportAction: OnyxEntry<ReportActio
 
     const parameters = {
         requests: JSON.stringify({
-            [ReportActionsUtils.getReportActionOriginalMessage<OriginalMessageJoinPolicyChangeLog['originalMessage']>(reportAction).policyID]: {
+            [ReportActionsUtils.getOriginalMessage(reportAction).policyID]: {
                 requests: [{accountID: reportAction?.actorAccountID, adminsRoomMessageReportActionID: reportAction.reportActionID}],
             },
         }),
@@ -3160,7 +3160,7 @@ function acceptJoinRequest(reportID: string, reportAction: OnyxEntry<ReportActio
 /**
  * Decline user join request to a workspace
  */
-function declineJoinRequest(reportID: string, reportAction: OnyxEntry<ReportAction>) {
+function declineJoinRequest(reportID: string, reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST>>) {
     if (!reportAction) {
         return;
     }
@@ -3206,7 +3206,7 @@ function declineJoinRequest(reportID: string, reportAction: OnyxEntry<ReportActi
 
     const parameters = {
         requests: JSON.stringify({
-            [ReportActionsUtils.getReportActionOriginalMessage<OriginalMessageJoinPolicyChangeLog['originalMessage']>(reportAction).policyID]: {
+            [ReportActionsUtils.getOriginalMessage(reportAction).policyID]: {
                 requests: [{accountID: reportAction?.actorAccountID, adminsRoomMessageReportActionID: reportAction.reportActionID}],
             },
         }),

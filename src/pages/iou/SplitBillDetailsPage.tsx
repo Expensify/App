@@ -23,7 +23,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
-import type {IOUMessage} from '@src/types/onyx/OriginalMessage';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -61,7 +60,7 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
     const {translate} = useLocalize();
     const reportAction = useMemo(() => reportActions?.[route.params.reportActionID] ?? ({} as ReportAction), [reportActions, route.params.reportActionID]);
     const participantAccountIDs =
-        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(reportAction).participantAccountIDs ?? [] : [];
+        ReportActionsUtils.isMoneyRequestAction(reportAction) ? ReportActionsUtils.getOriginalMessage(reportAction).participantAccountIDs ?? [] : [];
 
     // In case this is workspace split expense, we manually add the workspace as the second participant of the split expense
     // because we don't save any accountID in the report action's originalMessage other than the payee's accountID
@@ -148,7 +147,7 @@ const WrappedComponent = withOnyx<SplitBillDetailsPageProps, SplitBillDetailsPag
     transaction: {
         key: ({route, reportActions}) => {
             const reportAction = reportActions?.[route.params.reportActionID];
-            const originalMessage = ReportActionsUtils.getReportActionOriginalMessage<IOUMessage | undefined>(reportAction);
+            const originalMessage = reportAction && ReportActionsUtils.isMoneyRequestAction(reportAction) ? ReportActionsUtils.getOriginalMessage(reportAction) : undefined;
             const IOUTransactionID = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && originalMessage?.IOUTransactionID ? originalMessage.IOUTransactionID : 0;
             return `${ONYXKEYS.COLLECTION.TRANSACTION}${IOUTransactionID}`;
         },
@@ -156,7 +155,7 @@ const WrappedComponent = withOnyx<SplitBillDetailsPageProps, SplitBillDetailsPag
     draftTransaction: {
         key: ({route, reportActions}) => {
             const reportAction = reportActions?.[route.params.reportActionID];
-            const originalMessage = ReportActionsUtils.getReportActionOriginalMessage<IOUMessage | undefined>(reportAction);
+            const originalMessage = reportAction && ReportActionsUtils.isMoneyRequestAction(reportAction) ? ReportActionsUtils.getOriginalMessage(reportAction) : undefined;
             const IOUTransactionID = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && originalMessage?.IOUTransactionID ? originalMessage.IOUTransactionID : 0;
             return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${IOUTransactionID}`;
         },

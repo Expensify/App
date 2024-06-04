@@ -605,7 +605,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
 
     if (ReportUtils.isArchivedRoom(report)) {
         const archiveReason =
-            (lastOriginalReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED && ReportActionUtils.getReportActionOriginalMessage<Closed>(lastOriginalReportAction)?.reason) ||
+            (ReportActionUtils.isClosedAction(lastOriginalReportAction) && ReportActionUtils.getOriginalMessage(lastOriginalReportAction)?.reason) ||
             CONST.REPORT.ARCHIVE_REASON.DEFAULT;
         switch (archiveReason) {
             case CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED:

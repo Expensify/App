@@ -1,7 +1,7 @@
 import {format} from 'date-fns';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
-import {isEmpty} from 'lodash';
+import {isEmpty, last} from 'lodash';
 import lodashEscape from 'lodash/escape';
 import lodashFindLastIndex from 'lodash/findLastIndex';
 import lodashIntersection from 'lodash/intersection';
@@ -2167,8 +2167,11 @@ function getDeletedParentActionMessageForChatReport(reportAction: OnyxEntry<Repo
  * Returns the preview message for `REIMBURSEMENT_QUEUED` action
  */
 function getReimbursementQueuedActionMessage(reportAction: OnyxEntry<ReportAction>, report: OnyxEntry<Report>, shouldUseShortDisplayName = true): string {
+    if (!ReportActionsUtils.isMoneyRequestAction(reportAction)) {
+        return '';
+    }
     const submitterDisplayName = getDisplayNameForParticipant(report?.ownerAccountID, shouldUseShortDisplayName) ?? '';
-    const originalMessage = ReportActionsUtils.getReportActionOriginalMessage<IOUMessage | undefined>(reportAction);
+    const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
     let messageKey: TranslationPaths;
     if (originalMessage?.paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
         messageKey = 'iou.waitingOnEnabledWallet';
@@ -2187,7 +2190,10 @@ function getReimbursementDeQueuedActionMessage(
     report: OnyxEntry<Report> | EmptyObject,
     isLHNPreview = false,
 ): string {
-    const originalMessage = ReportActionsUtils.getReportActionOriginalMessage<ReimbursementDeQueuedMessage | undefined>(reportAction);
+    if (!ReportActionsUtils.isMoneyRequestAction(reportAction)) {
+        return '';
+    }
+    const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
     const amount = originalMessage?.amount;
     const currency = originalMessage?.currency;
     const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
@@ -2389,7 +2395,7 @@ function getPolicyExpenseChatName(report: OnyxEntry<Report>, policy: OnyxEntry<P
     if (isArchivedRoom(report)) {
         const lastAction = ReportActionsUtils.getLastVisibleAction(report?.reportID ?? '');
         const archiveReason =
-            lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED ? ReportActionsUtils.getReportActionOriginalMessage<Closed>(lastAction)?.reason : CONST.REPORT.ARCHIVE_REASON.DEFAULT;
+            ReportActionsUtils.isClosedAction(lastAction) ? ReportActionsUtils.getOriginalMessage(lastAction)?.reason : CONST.REPORT.ARCHIVE_REASON.DEFAULT;
         if (archiveReason === CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED && policyExpenseChatRole !== CONST.POLICY.ROLE.ADMIN) {
             return getPolicyName(report, false, policy);
         }
@@ -2826,7 +2832,7 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction | Optimis
  */
 function getReportPreviewMessage(
     report: OnyxEntry<Report> | EmptyObject,
-    iouReportAction: OnyxEntry<ReportAction> | EmptyObject = {},
+    iouReportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU | typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>> | EmptyObject = {},
     shouldConsiderScanningReceiptOrPendingRoute = false,
     isPreviewMessageForParentChatReport = false,
     policy: OnyxEntry<Policy> = null,
@@ -2835,7 +2841,7 @@ function getReportPreviewMessage(
 ): string {
     const reportActionMessage = ReportActionsUtils.getReportActionMessage(iouReportAction)?.html ?? '';
 
-    if (isEmptyObject(report) || !report?.reportID) {
+    if (isEmptyObject(report) || !report?.reportID || isEmptyObject(iouReportAction)) {
         // The iouReport is not found locally after SignIn because the OpenApp API won't return iouReports if they're settled
         // As a temporary solution until we know how to solve this the best, we just use the message that returned from BE
         return reportActionMessage;
@@ -2913,7 +2919,7 @@ function getReportPreviewMessage(
         return Localize.translateLocal('iou.fieldPending');
     }
 
-    const originalMessage = ReportActionsUtils.getReportActionOriginalMessage<IOUMessage | undefined>(iouReportAction);
+    const originalMessage = ReportActionsUtils.isMoneyRequestAction(iouReportAction) ? ReportActionsUtils.getOriginalMessage(iouReportAction) : undefined;
 
     // Show Paid preview message if it's settled or if the amount is paid & stuck at receivers end for only chat reports.
     if (isSettled(report.reportID) || (report.isWaitingOnBankAccount && isPreviewMessageForParentChatReport)) {
@@ -3064,14 +3070,14 @@ function isChangeLogObject(originalMessage?: ChangeLog): ChangeLog | undefined {
  * @param parentReportAction
  * @param parentReportActionMessage
  */
-function getAdminRoomInvitedParticipants(parentReportAction: ReportAction | Record<string, never>, parentReportActionMessage: string) {
-    if (!ReportActionsUtils.getReportActionOriginalMessage(parentReportAction)) {
+function getAdminRoomInvitedParticipants(parentReportAction: ReportAction, parentReportActionMessage: string) {
+    if (!ReportActionsUtils.getOriginalMessage(parentReportAction)) {
         return parentReportActionMessage || Localize.translateLocal('parentReportAction.deletedMessage');
     }
-    const originalMessage = isChangeLogObject(ReportActionsUtils.getReportActionOriginalMessage(parentReportAction));
+    const originalMessage = isChangeLogObject(ReportActionsUtils.getOriginalMessage(parentReportAction));
     const participantAccountIDs = originalMessage?.targetAccountIDs ?? [];
 
-    const participants = participantAccountIDs.map((id) => {
+    const participants = participantAccountIDs.map((id: number) => {
         const name = getDisplayNameForParticipant(id);
         if (name && name?.length > 0) {
             return name;
@@ -3194,7 +3200,7 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
         if (parentReportActionMessage && isArchivedRoom(report)) {
             return `${parentReportActionMessage} (${Localize.translateLocal('common.archived')})`;
         }
-        if (ReportActionsUtils.isModifiedExpenseAction(parentReportAction)) {
+        if (!isEmptyObject(parentReportAction) && ReportActionsUtils.isModifiedExpenseAction(parentReportAction)) {
             return ModifiedExpenseMessage.getForReportAction(report?.reportID, parentReportAction);
         }
         return parentReportActionMessage;
@@ -4293,7 +4299,7 @@ function buildOptimisticMovedTrackedExpenseModifiedReportAction(transactionThrea
  */
 function updateReportPreview(
     iouReport: OnyxEntry<Report>,
-    reportPreviewAction: ReportPreviewAction,
+    reportPreviewAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>,
     isPayRequest = false,
     comment = '',
     transaction: OnyxEntry<Transaction> = null,
@@ -4313,7 +4319,7 @@ function updateReportPreview(
     }
 
     const message = getReportPreviewMessage(iouReport, reportPreviewAction);
-    const originalMessage = ReportActionsUtils.getReportActionOriginalMessage<OriginalMessageReportPreview['originalMessage']>(reportPreviewAction);
+    const originalMessage = ReportActionsUtils.getOriginalMessage(reportPreviewAction);
     return {
         ...reportPreviewAction,
         message: [
@@ -6564,10 +6570,10 @@ function isAllowedToSubmitDraftExpenseReport(report: OnyxEntry<Report>): boolean
  */
 function getIndicatedMissingPaymentMethod(userWallet: OnyxEntry<UserWallet>, reportId: string, reportAction: ReportAction): MissingPaymentMethod | undefined {
     const isSubmitterOfUnsettledReport = isCurrentUserSubmitter(reportId) && !isSettled(reportId);
-    if (!isSubmitterOfUnsettledReport || reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED) {
+    if (!isSubmitterOfUnsettledReport || !ReportActionsUtils.isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED)) {
         return undefined;
     }
-    const paymentType = ReportActionsUtils.getReportActionOriginalMessage<OriginalMessageReimbursementQueued['originalMessage']>(reportAction)?.paymentType;
+    const paymentType = ReportActionsUtils.getOriginalMessage(reportAction)?.paymentType;
     if (paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
         return isEmpty(userWallet) || userWallet.tierName === CONST.WALLET.TIER_NAME.SILVER ? 'wallet' : undefined;
     }

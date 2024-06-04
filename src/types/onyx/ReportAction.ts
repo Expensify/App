@@ -230,10 +230,10 @@ type ReportAction<T extends ReportActionName = ReportActionName> = ReportActionB
     originalMessage: OriginalMessage<T>;
 
     /** report action message */
-    message?: OriginalMessage<T> | Array<Message | undefined>;
+    message?: OriginalMessage<T> & Message | Array<Message | undefined>;
 
     /** report action message */
-    previousMessage?: OriginalMessage<T> | Array<Message | undefined>;
+    previousMessage?: OriginalMessage<T> & Message | Array<Message | undefined>;
 };
 
 type ReportActionWithHTMLMessage = ReportAction<ReportActionNamesWithHTMLMessage>;

@@ -295,8 +295,8 @@ function getReportPreviewAction(chatReportID: string, iouReportID: string): Onyx
         Object.values(reportActions).find(
             (reportAction) =>
                 reportAction &&
-                reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
-                ReportActionsUtils.getReportActionOriginalMessage<OriginalMessageReportPreview['originalMessage']>(reportAction).linkedReportID === iouReportID,
+                ReportActionsUtils.isReportPreviewAction(reportAction) &&
+                ReportActionsUtils.getOriginalMessage(reportAction).linkedReportID === iouReportID,
         ) ?? null
     );
 }

@@ -18,9 +18,7 @@ import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {IOUMessage, OriginalMessageIOU, OriginalMessageModifiedExpense} from '@src/types/onyx/OriginalMessage';
 import type {Participant} from '@src/types/onyx/Report';
-import type {ReportActionBase} from '@src/types/onyx/ReportAction';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import PusherHelper from '../utils/PusherHelper';
@@ -128,13 +126,13 @@ describe('actions/IOU', () => {
                                         (reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED,
                                     );
                                     const iouActions = Object.values(reportActionsForIOUReport ?? {}).filter(
-                                        (reportAction): reportAction is ReportActionBase & OriginalMessageIOU => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU,
+                                        (reportAction) => ReportActionsUtils.isMoneyRequestAction(reportAction)
                                     );
                                     expect(Object.values(createdActions).length).toBe(1);
                                     expect(Object.values(iouActions).length).toBe(1);
                                     createdAction = createdActions?.[0] ?? null;
                                     iouAction = iouActions?.[0] ?? null;
-                                    const originalMessage = ReportActionsUtils.getReportActionOriginalMessage<IOUMessage | undefined>(iouAction);
+                                    const originalMessage = ReportActionsUtils.isMoneyRequestAction(iouAction) ? ReportActionsUtils.getOriginalMessage(iouAction) : undefined;
 
                                     // The CREATED action should not be created after the IOU action
                                     expect(Date.parse(createdAction?.created ?? '')).toBeLessThan(Date.parse(iouAction?.created ?? ''));
@@ -265,7 +263,7 @@ describe('actions/IOU', () => {
                 created: DateUtils.getDBTime(),
             };
             let iouReportID: string | undefined;
-            let iouAction: OnyxEntry<OnyxTypes.ReportAction>;
+            let iouAction: OnyxEntry<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>;
             let iouCreatedAction: OnyxEntry<OnyxTypes.ReportAction>;
             let transactionID: string | undefined;
             mockFetch?.pause?.();
@@ -317,9 +315,9 @@ describe('actions/IOU', () => {
                                     iouCreatedAction = Object.values(allIOUReportActions ?? {}).find((reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) ?? null;
                                     iouAction =
                                         Object.values(allIOUReportActions ?? {}).find(
-                                            (reportAction): reportAction is ReportActionBase & OriginalMessageIOU => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU,
+                                            (reportAction): reportAction is OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => ReportActionsUtils.isMoneyRequestAction(reportAction)
                                         ) ?? null;
-                                    const originalMessage = ReportActionsUtils.getReportActionOriginalMessage<IOUMessage | undefined>(iouAction);
+                                    const originalMessage = iouAction ? ReportActionsUtils.getOriginalMessage(iouAction) : null;
 
                                     // The CREATED action should not be created after the IOU action
                                     expect(Date.parse(iouCreatedAction?.created ?? '')).toBeLessThan(Date.parse(iouAction?.created ?? ''));
@@ -357,6 +355,7 @@ describe('actions/IOU', () => {
                                     expect(Object.values(allTransactions ?? {}).length).toBe(1);
                                     const transaction = Object.values(allTransactions ?? {}).find((t) => !isEmptyObject(t));
                                     transactionID = transaction?.transactionID;
+                                    const originalMessage = iouAction ? ReportActionsUtils.getOriginalMessage(iouAction) : null
 
                                     // The transaction should be attached to the IOU report
                                     expect(transaction?.reportID).toBe(iouReportID);
@@ -373,7 +372,7 @@ describe('actions/IOU', () => {
                                     expect(transaction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
                                     // The transactionID on the iou action should match the one from the transactions collection
-                                    expect(ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(iouAction)?.IOUTransactionID).toBe(transactionID);
+                                    expect(originalMessage?.IOUTransactionID).toBe(transactionID);
 
                                     resolve();
                                 },
@@ -448,7 +447,7 @@ describe('actions/IOU', () => {
                 currency: CONST.CURRENCY.USD,
                 total: existingTransaction.amount,
             };
-            const iouAction: OnyxEntry<OnyxTypes.ReportAction> = {
+            const iouAction: OnyxEntry<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
                 reportActionID: NumberUtils.rand64(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 actorAccountID: RORY_ACCOUNT_ID,
@@ -462,7 +461,7 @@ describe('actions/IOU', () => {
                     participantAccountIDs: [RORY_ACCOUNT_ID, CARLOS_ACCOUNT_ID],
                 },
             };
-            let newIOUAction: OnyxEntry<OnyxTypes.ReportAction>;
+            let newIOUAction: OnyxEntry<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>;
             let newTransaction: OnyxEntry<OnyxTypes.Transaction>;
             mockFetch?.pause?.();
             return Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, chatReport)
@@ -517,11 +516,11 @@ describe('actions/IOU', () => {
                                     expect(Object.values(reportActionsForIOUReport ?? {}).length).toBe(3);
                                     newIOUAction =
                                         Object.values(reportActionsForIOUReport ?? {}).find(
-                                            (reportAction): reportAction is ReportActionBase & OriginalMessageIOU =>
+                                            (reportAction): reportAction is OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
                                                 reportAction?.reportActionID !== createdAction.reportActionID && reportAction?.reportActionID !== iouAction?.reportActionID,
                                         ) ?? null;
 
-                                    const newOriginalMessage = ReportActionsUtils.getReportActionOriginalMessage<IOUMessage | undefined>(newIOUAction);
+                                    const newOriginalMessage = newIOUAction ? ReportActionsUtils.getOriginalMessage(newIOUAction) : null;
 
                                     // The IOUReportID should be correct
                                     expect(ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(iouAction).IOUReportID).toBe(iouReportID);
@@ -564,7 +563,7 @@ describe('actions/IOU', () => {
                                     expect(newTransaction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
                                     // The transactionID on the iou action should match the one from the transactions collection
-                                    expect(ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(newIOUAction)?.IOUTransactionID).toBe(newTransaction?.transactionID);
+                                    expect(ReportActionsUtils.isMoneyRequestAction(newIOUAction) ? ReportActionsUtils.getOriginalMessage(newIOUAction)?.IOUTransactionID : '0').toBe(newTransaction?.transactionID);
 
                                     resolve();
                                 },

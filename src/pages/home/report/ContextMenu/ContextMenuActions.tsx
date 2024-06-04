@@ -29,7 +29,6 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type {Beta, ReportAction, ReportActionReactions, Transaction} from '@src/types/onyx';
-import type {OriginalMessageReimbursementDequeued} from '@src/types/onyx/OriginalMessage';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {ContextMenuAnchor} from './ReportActionContextMenu';
 import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
@@ -343,7 +342,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const modifyExpenseMessage = ModifiedExpenseMessage.getForReportAction(reportID, reportAction);
                     Clipboard.setString(modifyExpenseMessage);
                 } else if (ReportActionsUtils.isReimbursementDeQueuedAction(reportAction)) {
-                    const {expenseReportID} = ReportActionsUtils.getReportActionOriginalMessage<OriginalMessageReimbursementDequeued['originalMessage']>(reportAction);
+                    const {expenseReportID} = ReportActionsUtils.getOriginalMessage(reportAction);
                     const expenseReport = ReportUtils.getReport(expenseReportID);
                     const displayMessage = ReportUtils.getReimbursementDeQueuedActionMessage(reportAction, expenseReport);
                     Clipboard.setString(displayMessage);
