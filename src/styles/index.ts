@@ -2827,10 +2827,6 @@ const styles = (theme: ThemeColors) =>
             width: 40,
         },
 
-        subscriptionCardDetails: {
-            width: '100%',
-        },
-
         selectCircle: {
             width: variables.componentSizeSmall,
             height: variables.componentSizeSmall,
