@@ -1,5 +1,5 @@
 import {format} from 'date-fns';
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import Section from '@components/Section';
 import Text from '@components/Text';
@@ -37,16 +37,13 @@ function SubscriptionSettingsSection() {
         setAutoIncrease(!autoIncrease);
     };
 
-    const customTitle = useMemo(() => {
-        const customTitleSecondSentenceStyles = [styles.textNormal, {color: theme.success}];
-
-        return (
-            <View style={[styles.flexRow, styles.flex1, styles.alignItemsCenter]}>
-                <Text style={[styles.mr1, styles.textNormalThemeText]}>{translate('subscription.subscriptionSettings.autoIncrease')}</Text>
-                <Text style={customTitleSecondSentenceStyles}>{translate('subscription.subscriptionSettings.saveUpTo')}</Text>
-            </View>
-        );
-    }, [styles.alignItemsCenter, styles.flex1, styles.flexRow, styles.mr1, styles.textNormal, styles.textNormalThemeText, theme.success, translate]);
+    const customTitleSecondSentenceStyles = [styles.textNormal, {color: theme.success}];
+    const customTitle = (
+        <View style={[styles.flexRow, styles.flex1, styles.alignItemsCenter]}>
+            <Text style={[styles.mr1, styles.textNormalThemeText]}>{translate('subscription.subscriptionSettings.autoIncrease')}</Text>
+            <Text style={customTitleSecondSentenceStyles}>{translate('subscription.subscriptionSettings.saveUpTo')}</Text>
+        </View>
+    );
 
     return (
         <Section
