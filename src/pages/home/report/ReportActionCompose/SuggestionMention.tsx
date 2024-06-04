@@ -16,7 +16,6 @@ import * as LoginUtils from '@libs/LoginUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as SuggestionsUtils from '@libs/SuggestionUtils';
-import * as UserUtils from '@libs/UserUtils';
 import {isValidRoomName} from '@libs/ValidationUtils';
 import * as ReportUserActions from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -242,9 +241,10 @@ function SuggestionMention(
                     icons: [
                         {
                             name: detail?.login,
-                            source: UserUtils.getAvatar(detail?.avatar, detail?.accountID),
+                            source: detail?.avatar ?? Expensicons.FallbackAvatar,
                             type: CONST.ICON_TYPE_AVATAR,
                             fallbackIcon: detail?.fallbackIcon,
+                            id: detail?.accountID,
                         },
                     ],
                 });

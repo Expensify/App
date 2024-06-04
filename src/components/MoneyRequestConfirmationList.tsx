@@ -9,6 +9,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+import {MouseProvider} from '@hooks/useMouseContext';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
@@ -178,15 +179,13 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
 
 type MoneyRequestConfirmationListItem = Participant | ReportUtils.OptionData;
 
-/**
- * Calculate and set tax amount in transaction draft
- */
-const setTaxAmountInDraft = (transaction: OnyxEntry<OnyxTypes.Transaction>, policy: OnyxEntry<OnyxTypes.Policy>) => {
+const getTaxAmount = (transaction: OnyxEntry<OnyxTypes.Transaction>, policy: OnyxEntry<OnyxTypes.Policy>, isDistanceRequest: boolean) => {
+    if (isDistanceRequest) {
+        return DistanceRequestUtils.calculateTaxAmount(policy, transaction, TransactionUtils.getRateID(transaction) ?? '');
+    }
     const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction) ?? '';
     const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, transaction?.taxCode ?? defaultTaxCode) ?? '';
-    const taxAmount = TransactionUtils.calculateTaxAmount(taxPercentage, transaction?.amount ?? 0);
-    const taxAmountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount.toString()));
-    IOU.setMoneyRequestTaxAmount(transaction?.transactionID ?? '', taxAmountInSmallestCurrencyUnits, true);
+    return TransactionUtils.calculateTaxAmount(taxPercentage, transaction?.amount ?? 0);
 };
 
 function MoneyRequestConfirmationList({
@@ -248,6 +247,16 @@ function MoneyRequestConfirmationList({
     const transactionID = transaction?.transactionID ?? '';
     const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '';
 
+    useEffect(() => {
+        if (customUnitRateID || !canUseP2PDistanceRequests) {
+            return;
+        }
+        if (!customUnitRateID) {
+            const rateID = lastSelectedDistanceRates?.[policy?.id ?? ''] ?? defaultMileageRate?.customUnitRateID ?? '';
+            IOU.setCustomUnitRateID(transactionID, rateID);
+        }
+    }, [defaultMileageRate, customUnitRateID, lastSelectedDistanceRates, policy?.id, canUseP2PDistanceRequests, transactionID]);
+
     const policyCurrency = policy?.outputCurrency ?? PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
 
     const mileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction)
@@ -287,13 +296,13 @@ function MoneyRequestConfirmationList({
 
     const canUpdateSenderWorkspace = useMemo(() => PolicyUtils.canSendInvoice(allPolicies) && !!transaction?.isFromGlobalCreate, [allPolicies, transaction?.isFromGlobalCreate]);
 
+    const canModifyTaxFields = !isReadOnly && !isDistanceRequest;
+
     // A flag for showing the tags field
     // TODO: remove the !isTypeInvoice from this condition after BE supports tags for invoices: https://github.com/Expensify/App/issues/41281
     const shouldShowTags = useMemo(() => isPolicyExpenseChat && OptionsListUtils.hasEnabledTags(policyTagLists) && !isTypeInvoice, [isPolicyExpenseChat, policyTagLists, isTypeInvoice]);
 
-    // A flag for showing tax rate
-    // TODO: remove the !isTypeInvoice from this condition after BE supports tax for invoices: https://github.com/Expensify/App/issues/41281
-    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy) && !isTypeInvoice;
+    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest) && !isTypeInvoice;
 
     // A flag for showing the billable field
     const shouldShowBillable = policy?.disabledFields?.defaultBillable === false;
@@ -308,9 +317,9 @@ function MoneyRequestConfirmationList({
           );
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transaction?.taxAmount, iouCurrencyCode);
     const taxRateTitle = TransactionUtils.getTaxName(policy, transaction);
-    const prevTaxAmount = usePrevious(transaction?.taxAmount);
-    const prevAmount = usePrevious(transaction?.amount);
-    const prevCurrency = usePrevious(transaction?.currency);
+
+    const previousTransactionAmount = usePrevious(transaction?.amount);
+    const previousTransactionCurrency = usePrevious(transaction?.currency);
 
     const isFocused = useIsFocused();
     const [formError, debouncedFormError, setFormError] = useDebouncedState('');
@@ -340,31 +349,6 @@ function MoneyRequestConfirmationList({
     const isCategoryRequired = !!policy?.requiresCategory;
 
     useEffect(() => {
-        if (!shouldShowTax) {
-            return;
-        }
-        setTaxAmountInDraft(transaction, policy);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we want to call this function when component is mounted
-    }, []);
-
-    useEffect(() => {
-        if (!shouldShowTax || prevTaxAmount !== transaction?.taxAmount || (prevAmount === transaction?.amount && prevCurrency === transaction?.currency)) {
-            return;
-        }
-        setTaxAmountInDraft(transaction, policy);
-    }, [policy, shouldShowTax, prevTaxAmount, prevAmount, prevCurrency, transaction]);
-
-    useEffect(() => {
-        if (customUnitRateID || !canUseP2PDistanceRequests) {
-            return;
-        }
-        if (!customUnitRateID) {
-            const rateID = lastSelectedDistanceRates?.[policy?.id ?? ''] ?? defaultMileageRate?.customUnitRateID ?? '';
-            IOU.setCustomUnitRateID(transactionID, rateID);
-        }
-    }, [defaultMileageRate, customUnitRateID, lastSelectedDistanceRates, policy?.id, canUseP2PDistanceRequests, transactionID]);
-
-    useEffect(() => {
         if (shouldDisplayFieldError && hasSmartScanFailed) {
             setFormError('iou.receiptScanningFailed');
             return;
@@ -387,6 +371,18 @@ function MoneyRequestConfirmationList({
         const amount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate ?? 0);
         IOU.setMoneyRequestAmount(transactionID, amount, currency ?? '');
     }, [shouldCalculateDistanceAmount, distance, rate, unit, transactionID, currency]);
+
+    // Calculate and set tax amount in transaction draft
+    useEffect(() => {
+        const taxAmount = getTaxAmount(transaction, policy, isDistanceRequest).toString();
+        const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount));
+
+        if (transaction?.taxAmount && previousTransactionAmount === transaction?.amount && previousTransactionCurrency === transaction?.currency) {
+            return IOU.setMoneyRequestTaxAmount(transactionID, transaction?.taxAmount ?? 0, true);
+        }
+
+        IOU.setMoneyRequestTaxAmount(transactionID, amountInSmallestCurrencyUnits, true);
+    }, [policy, transaction, transactionID, previousTransactionAmount, previousTransactionCurrency, isDistanceRequest]);
 
     // If completing a split expense fails, set didConfirm to false to allow the user to edit the fields again
     if (isEditingSplitBill && didConfirm) {
@@ -504,6 +500,7 @@ function MoneyRequestConfirmationList({
             isSelected: false,
             rightElement: (
                 <MoneyRequestAmountInput
+                    autoGrow={false}
                     amount={transaction?.splitShares?.[participantOption.accountID ?? 0]?.amount}
                     currency={iouCurrencyCode}
                     prefixCharacter={currencySymbol}
@@ -514,8 +511,9 @@ function MoneyRequestConfirmationList({
                     formatAmountOnBlur
                     prefixContainerStyle={[styles.pv0]}
                     inputStyle={[styles.optionRowAmountInput, amountWidth] as TextStyle[]}
-                    containerStyle={[styles.textInputContainer]}
+                    containerStyle={[styles.textInputContainer, amountWidth]}
                     touchableInputWrapperStyle={[styles.ml3]}
+                    onFormatAmount={CurrencyUtils.convertToDisplayStringWithoutCurrency}
                     onAmountChange={(value: string) => onSplitShareChange(participantOption.accountID ?? 0, Number(value))}
                     maxLength={formattedTotalAmount.length}
                 />
@@ -552,7 +550,7 @@ function MoneyRequestConfirmationList({
     const getSplitSectionHeader = useCallback(
         () => (
             <View style={[styles.mt2, styles.mb1, styles.flexRow, styles.justifyContentBetween]}>
-                <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('moneyRequestConfirmationList.splitAmounts')}</Text>
+                <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('iou.participants')}</Text>
                 {!shouldShowReadOnlySplits && isSplitModified && (
                     <PressableWithFeedback
                         onPress={() => {
@@ -1031,14 +1029,14 @@ function MoneyRequestConfirmationList({
             item: (
                 <MenuItemWithTopDescription
                     key={`${taxRates?.name}${taxRateTitle}`}
-                    shouldShowRightIcon={!isReadOnly}
+                    shouldShowRightIcon={canModifyTaxFields}
                     title={taxRateTitle}
                     description={taxRates?.name}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
                     disabled={didConfirm}
-                    interactive={!isReadOnly}
+                    interactive={canModifyTaxFields}
                 />
             ),
             shouldShow: shouldShowTax,
@@ -1048,14 +1046,14 @@ function MoneyRequestConfirmationList({
             item: (
                 <MenuItemWithTopDescription
                     key={`${taxRates?.name}${formattedTaxAmount}`}
-                    shouldShowRightIcon={!isReadOnly}
+                    shouldShowRightIcon={canModifyTaxFields}
                     title={formattedTaxAmount}
                     description={translate('iou.taxAmount')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
                     disabled={didConfirm}
-                    interactive={!isReadOnly}
+                    interactive={canModifyTaxFields}
                 />
             ),
             shouldShow: shouldShowTax,
@@ -1233,16 +1231,19 @@ function MoneyRequestConfirmationList({
     );
 
     return (
-        <SelectionList<MoneyRequestConfirmationListItem>
-            sections={sections}
-            ListItem={UserListItem}
-            onSelectRow={navigateToReportOrUserDetail}
-            canSelectMultiple={false}
-            shouldPreventDefaultFocusOnSelectRow
-            footerContent={footerContent}
-            listFooterContent={listFooterContent}
-            containerStyle={[styles.flexBasisAuto]}
-        />
+        <MouseProvider>
+            <SelectionList<MoneyRequestConfirmationListItem>
+                sections={sections}
+                ListItem={UserListItem}
+                onSelectRow={navigateToReportOrUserDetail}
+                shouldDebounceRowSelect
+                canSelectMultiple={false}
+                shouldPreventDefaultFocusOnSelectRow
+                footerContent={footerContent}
+                listFooterContent={listFooterContent}
+                containerStyle={[styles.flexBasisAuto]}
+            />
+        </MouseProvider>
     );
 }
 

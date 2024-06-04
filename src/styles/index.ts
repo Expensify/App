@@ -15,6 +15,7 @@ import colors from './theme/colors';
 import type {ThemeColors} from './theme/types';
 import addOutlineWidth from './utils/addOutlineWidth';
 import borders from './utils/borders';
+import chatContentScrollViewPlatformStyles from './utils/chatContentScrollViewPlatformStyles';
 import codeStyles from './utils/codeStyles';
 import cursor from './utils/cursor';
 import display from './utils/display';
@@ -567,7 +568,6 @@ const styles = (theme: ThemeColors) =>
         },
 
         buttonContainer: {
-            padding: 1,
             borderRadius: variables.buttonBorderRadius,
         },
 
@@ -1696,7 +1696,7 @@ const styles = (theme: ThemeColors) =>
         createMenuHeaderText: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeLabel,
-            color: theme.heading,
+            color: theme.textSupporting,
         },
 
         popoverMenuItem: {
@@ -1941,8 +1941,10 @@ const styles = (theme: ThemeColors) =>
         },
 
         chatContentScrollView: {
-            justifyContent: 'flex-end',
+            flexGrow: 1,
+            justifyContent: 'flex-start',
             paddingBottom: 16,
+            ...chatContentScrollViewPlatformStyles,
         },
 
         // Chat Item
@@ -3317,6 +3319,12 @@ const styles = (theme: ThemeColors) =>
             marginTop: 6,
         },
 
+        workspaceListRBR: {
+            flexDirection: 'column',
+            justifyContent: 'flex-start',
+            marginTop: 10,
+        },
+
         peopleRow: {
             width: '100%',
             flexDirection: 'row',
@@ -3501,6 +3509,10 @@ const styles = (theme: ThemeColors) =>
             lineHeight: 16,
         },
 
+        searchTableHeaderActive: {
+            fontWeight: 'bold',
+        },
+
         threeDotsPopoverOffset: (windowWidth: number) =>
             ({
                 ...getPopOverVerticalOffset(60),
@@ -3517,6 +3529,12 @@ const styles = (theme: ThemeColors) =>
             ({
                 ...getPopOverVerticalOffset(80),
                 horizontal: windowWidth - 140,
+            } satisfies AnchorPosition),
+
+        popoverMenuOffset: (windowWidth: number) =>
+            ({
+                ...getPopOverVerticalOffset(180),
+                horizontal: windowWidth - 355,
             } satisfies AnchorPosition),
 
         iPhoneXSafeArea: {
@@ -3919,7 +3937,6 @@ const styles = (theme: ThemeColors) =>
             position: 'absolute',
             aspectRatio: 335 / 540,
             top: 0,
-            minWidth: 217,
         },
 
         eReceiptContainer: {
@@ -4405,6 +4422,7 @@ const styles = (theme: ThemeColors) =>
             borderWidth: variables.componentBorderWidth,
             borderColor: theme.appBG,
         },
+        currentPositionDot: {backgroundColor: colors.blue400, width: 16, height: 16, borderRadius: 16},
 
         mapViewOverlay: {
             flex: 1,
@@ -4910,6 +4928,21 @@ const styles = (theme: ThemeColors) =>
 
         textLineThrough: {
             textDecorationLine: 'line-through',
+        },
+
+        reportListItemSeparator: {
+            borderBottomWidth: 1,
+            borderBottomColor: theme.activeComponentBG,
+        },
+
+        reportListItemTitle: {
+            color: theme.text,
+            fontSize: variables.fontSizeNormal,
+            fontWeight: FontUtils.fontWeight.bold,
+        },
+
+        reportListItemActionButtonMargin: {
+            marginLeft: variables.searchTypeColumnWidth,
         },
     } satisfies Styles);
 

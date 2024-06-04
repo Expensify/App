@@ -78,8 +78,13 @@ const CONST = {
     // Note: Group and Self-DM excluded as these are not tied to a Workspace
     WORKSPACE_ROOM_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL, chatTypes.POLICY_ROOM, chatTypes.POLICY_EXPENSE_CHAT],
     ANDROID_PACKAGE_NAME,
-    ANIMATED_HIGHLIGHT_DELAY: 500,
-    ANIMATED_HIGHLIGHT_DURATION: 500,
+    WORKSPACE_ENABLE_FEATURE_REDIRECT_DELAY: 100,
+    ANIMATED_HIGHLIGHT_ENTRY_DELAY: 50,
+    ANIMATED_HIGHLIGHT_ENTRY_DURATION: 300,
+    ANIMATED_HIGHLIGHT_START_DELAY: 10,
+    ANIMATED_HIGHLIGHT_START_DURATION: 300,
+    ANIMATED_HIGHLIGHT_END_DELAY: 800,
+    ANIMATED_HIGHLIGHT_END_DURATION: 2000,
     ANIMATED_TRANSITION: 300,
     ANIMATED_TRANSITION_FROM_VALUE: 100,
     ANIMATION_IN_TIMING: 100,
@@ -90,6 +95,7 @@ const CONST = {
     // Multiplier for gyroscope animation in order to make it a bit more subtle
     ANIMATION_GYROSCOPE_VALUE: 0.4,
     BACKGROUND_IMAGE_TRANSITION_DURATION: 1000,
+    SCREEN_TRANSITION_END_TIMEOUT: 1000,
     ARROW_HIDE_DELAY: 3000,
 
     API_ATTACHMENT_VALIDATIONS: {
@@ -145,6 +151,7 @@ const CONST = {
     DISPLAY_NAME: {
         MAX_LENGTH: 50,
         RESERVED_NAMES: ['Expensify', 'Concierge'],
+        EXPENSIFY_CONCIERGE: 'Expensify Concierge',
     },
 
     GPS: {
@@ -202,27 +209,12 @@ const CONST = {
     // Sizes needed for report empty state background image handling
     EMPTY_STATE_BACKGROUND: {
         ASPECT_RATIO: 3.72,
+        OVERLAP: 60,
         SMALL_SCREEN: {
             IMAGE_HEIGHT: 300,
-            CONTAINER_MINHEIGHT: 200,
-            VIEW_HEIGHT: 240,
         },
         WIDE_SCREEN: {
             IMAGE_HEIGHT: 450,
-            CONTAINER_MINHEIGHT: 500,
-            VIEW_HEIGHT: 390,
-        },
-        MONEY_OR_TASK_REPORT: {
-            SMALL_SCREEN: {
-                IMAGE_HEIGHT: 300,
-                CONTAINER_MINHEIGHT: 280,
-                VIEW_HEIGHT: 240,
-            },
-            WIDE_SCREEN: {
-                IMAGE_HEIGHT: 450,
-                CONTAINER_MINHEIGHT: 280,
-                VIEW_HEIGHT: 390,
-            },
         },
     },
 
@@ -669,9 +661,9 @@ const CONST = {
                 DELETED_ACCOUNT: 'DELETEDACCOUNT', // OldDot Action
                 DISMISSED_VIOLATION: 'DISMISSEDVIOLATION',
                 DONATION: 'DONATION', // OldDot Action
-                EXPORTED_TO_CSV: 'EXPORTEDTOCSV', // OldDot Action
-                EXPORTED_TO_INTEGRATION: 'EXPORTEDTOINTEGRATION', // OldDot Action
-                EXPORTED_TO_QUICK_BOOKS: 'EXPORTEDTOQUICKBOOKS', // OldDot Action
+                EXPORTED_TO_CSV: 'EXPORTCSV', // OldDot Action
+                EXPORTED_TO_INTEGRATION: 'EXPORTINTEGRATION', // OldDot Action
+                EXPORTED_TO_QUICK_BOOKS: 'EXPORTED', // OldDot Action
                 FORWARDED: 'FORWARDED', // OldDot Action
                 HOLD: 'HOLD',
                 HOLD_COMMENT: 'HOLDCOMMENT',
@@ -693,6 +685,7 @@ const CONST = {
                 REIMBURSEMENT_DEQUEUED: 'REIMBURSEMENTDEQUEUED',
                 REIMBURSEMENT_REQUESTED: 'REIMBURSEMENTREQUESTED', // OldDot Action
                 REIMBURSEMENT_SETUP: 'REIMBURSEMENTSETUP', // OldDot Action
+                REIMBURSEMENT_SETUP_REQUESTED: 'REIMBURSEMENTSETUPREQUESTED', // OldDot Action
                 RENAMED: 'RENAMED',
                 REPORT_PREVIEW: 'REPORTPREVIEW',
                 SELECTED_FOR_RANDOM_AUDIT: 'SELECTEDFORRANDOMAUDIT', // OldDot Action
@@ -936,8 +929,10 @@ const CONST = {
         RESIZE_DEBOUNCE_TIME: 100,
     },
     SEARCH_TABLE_COLUMNS: {
+        RECEIPT: 'receipt',
         DATE: 'date',
         MERCHANT: 'merchant',
+        DESCRIPTION: 'description',
         FROM: 'from',
         TO: 'to',
         CATEGORY: 'category',
@@ -967,7 +962,7 @@ const CONST = {
         DARK_CONTENT: 'dark-content',
     },
     TRANSACTION: {
-        DEFAULT_MERCHANT: 'Request',
+        DEFAULT_MERCHANT: 'Expense',
         UNKNOWN_MERCHANT: 'Unknown Merchant',
         PARTIAL_TRANSACTION_MERCHANT: '(none)',
         TYPE: {
@@ -1191,6 +1186,10 @@ const CONST = {
         WEBP: 'image/webp',
         JPEG: 'image/jpeg',
     },
+    ATTACHMENT_TYPE: {
+        REPORT: 'r',
+        NOTE: 'n',
+    },
 
     IMAGE_OBJECT_POSITION: {
         TOP: 'top',
@@ -1274,6 +1273,8 @@ const CONST = {
         EXPENSIFY_EMAIL_DOMAIN: '@expensify.com',
     },
 
+    CONCIERGE_DISPLAY_NAME: 'Concierge',
+
     INTEGRATION_ENTITY_MAP_TYPES: {
         DEFAULT: 'DEFAULT',
         NONE: 'NONE',
@@ -1310,12 +1311,13 @@ const CONST = {
         SYNC: 'sync',
         ENABLE_NEW_CATEGORIES: 'enableNewCategories',
         EXPORT: 'export',
+        TENANT_ID: 'tenantID',
         IMPORT_CUSTOMERS: 'importCustomers',
         IMPORT_TAX_RATES: 'importTaxRates',
         INVOICE_STATUS: {
-            AWAITING_PAYMENT: 'AWT_PAYMENT',
             DRAFT: 'DRAFT',
             AWAITING_APPROVAL: 'AWT_APPROVAL',
+            AWAITING_PAYMENT: 'AWT_PAYMENT',
         },
         IMPORT_TRACKING_CATEGORIES: 'importTrackingCategories',
         MAPPINGS: 'mappings',
@@ -1600,6 +1602,9 @@ const CONST = {
                 ACCOUNTANT: 'accountant',
             },
         },
+        ACCESS_VARIANTS: {
+            CREATE: 'create',
+        },
     },
 
     GROWL: {
@@ -1780,7 +1785,8 @@ const CONST = {
                 XERO: 'xero',
             },
             SYNC_STAGE_NAME: {
-                STARTING_IMPORT: 'startingImport',
+                STARTING_IMPORT_QBO: 'startingImportQBO',
+                STARTING_IMPORT_XERO: 'startingImportXero',
                 QBO_IMPORT_MAIN: 'quickbooksOnlineImportMain',
                 QBO_IMPORT_CUSTOMERS: 'quickbooksOnlineImportCustomers',
                 QBO_IMPORT_EMPLOYEES: 'quickbooksOnlineImportEmployees',
@@ -1926,8 +1932,8 @@ const CONST = {
         // Extract attachment's source from the data's html string
         ATTACHMENT_DATA: /(data-expensify-source|data-name)="([^"]+)"/g,
 
-        EMOJI_NAME: /:[\w+-]+:/g,
-        EMOJI_SUGGESTIONS: /:[a-zA-Z0-9_+-]{1,40}$/,
+        EMOJI_NAME: /:[\p{L}0-9_+-]+:/gu,
+        EMOJI_SUGGESTIONS: /:[\p{L}0-9_+-]{1,40}$/u,
         AFTER_FIRST_LINE_BREAK: /\n.*/g,
         LINE_BREAK: /\r\n|\r|\n/g,
         CODE_2FA: /^\d{6}$/,
@@ -2063,7 +2069,7 @@ const CONST = {
     LOGIN_CHARACTER_LIMIT: 254,
     CATEGORY_NAME_LIMIT: 256,
     TAG_NAME_LIMIT: 256,
-    REPORT_NAME_LIMIT: 256,
+    REPORT_NAME_LIMIT: 100,
     TITLE_CHARACTER_LIMIT: 100,
     DESCRIPTION_LIMIT: 500,
     WORKSPACE_NAME_CHARACTER_LIMIT: 80,
@@ -2090,7 +2096,6 @@ const CONST = {
         INFO: 'info',
     },
     REPORT_DETAILS_MENU_ITEM: {
-        SHARE_CODE: 'shareCode',
         MEMBERS: 'member',
         INVITE: 'invite',
         SETTINGS: 'settings',
@@ -3293,6 +3298,7 @@ const CONST = {
     },
 
     CONCIERGE_TRAVEL_URL: 'https://community.expensify.com/discussion/7066/introducing-concierge-travel',
+    BOOK_TRAVEL_DEMO_URL: 'https://calendly.com/d/ck2z-xsh-q97/expensify-travel-demo-travel-page',
     SCREEN_READER_STATES: {
         ALL: 'all',
         ACTIVE: 'active',
@@ -3483,6 +3489,9 @@ const CONST = {
     },
     TAB_SEARCH: {
         ALL: 'all',
+        SHARED: 'shared',
+        DRAFTS: 'drafts',
+        FINISHED: 'finished',
     },
     STATUS_TEXT_MAX_LENGTH: 100,
 
@@ -3495,7 +3504,6 @@ const CONST = {
 
     NAVIGATION: {
         TYPE: {
-            FORCED_UP: 'FORCED_UP',
             UP: 'UP',
         },
         ACTION_TYPE: {
@@ -3516,10 +3524,12 @@ const CONST = {
     COLON: ':',
     MAPBOX: {
         PADDING: 50,
-        DEFAULT_ZOOM: 10,
+        DEFAULT_ZOOM: 15,
         SINGLE_MARKER_ZOOM: 15,
         DEFAULT_COORDINATE: [-122.4021, 37.7911],
         STYLE_URL: 'mapbox://styles/expensify/cllcoiqds00cs01r80kp34tmq',
+        ANIMATION_DURATION_ON_CENTER_ME: 1000,
+        CENTER_BUTTON_FADE_DURATION: 300,
     },
     ONYX_UPDATE_TYPES: {
         HTTPS: 'https',
@@ -3677,6 +3687,7 @@ const CONST = {
         TAX_OUT_OF_POLICY: 'taxOutOfPolicy',
         TAX_RATE_CHANGED: 'taxRateChanged',
         TAX_REQUIRED: 'taxRequired',
+        HOLD: 'hold',
     },
 
     /** Context menu types */
@@ -3741,7 +3752,7 @@ const CONST = {
 
     ONBOARDING_INTRODUCTION: 'Let’s get you set up 🔧',
     ONBOARDING_CHOICES: {...onboardingChoices},
-
+    ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE: 'What would you like to do with this expense?',
     ONBOARDING_CONCIERGE: {
         [onboardingChoices.EMPLOYER]:
             '# Expensify is the fastest way to get paid back!\n' +
@@ -4759,6 +4770,7 @@ const CONST = {
     MAX_TAX_RATE_DECIMAL_PLACES: 4,
 
     DOWNLOADS_PATH: '/Downloads',
+    DOWNLOADS_TIMEOUT: 5000,
     NEW_EXPENSIFY_PATH: '/New Expensify',
 
     ENVIRONMENT_SUFFIX: {
@@ -4773,15 +4785,22 @@ const CONST = {
     },
 
     SEARCH_RESULTS_PAGE_SIZE: 50,
-    SEARCH_BOTTOM_TAB_URL: '/Search_Bottom_Tab',
 
     SEARCH_DATA_TYPES: {
         TRANSACTION: 'transaction',
+        REPORT: 'report',
     },
 
     REFERRER: {
         NOTIFICATION: 'notification',
     },
+
+    SORT_ORDER: {
+        ASC: 'asc',
+        DESC: 'desc',
+    },
+
+    SUBSCRIPTION_SIZE_LIMIT: 20000,
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
