@@ -14,6 +14,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, Transaction} from '@src/types/onyx';
 import TextCommentFragment from './comment/TextCommentFragment';
 import ReportActionItemFragment from './ReportActionItemFragment';
+import { Message } from '@src/types/onyx/ReportAction';
 
 type ReportActionItemMessageOnyxProps = {
     /** The transaction linked to the report action. */
@@ -42,9 +43,9 @@ function ReportActionItemMessage({action, transaction, displayAsGroup, reportID,
     const {translate} = useLocalize();
 
     const actionMessage = action.previousMessage ?? action.message;
-    let fragments = [];
+    let fragments: Message[] = [];
     if (Array.isArray(actionMessage)) {
-        fragments = actionMessage.filter((item) => !!item);
+        fragments = actionMessage.filter((item): item is Message => !!item);
     } else {
         fragments = actionMessage ? [actionMessage] : [];
     }
