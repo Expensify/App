@@ -1867,21 +1867,22 @@ function getSecondaryAvatar(chatReport: OnyxEntry<Report>, iouReport: OnyxEntry<
         if (!isIndividualInvoiceRoom(chatReport)) {
             const secondaryPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : '-1';
             const secondaryPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${secondaryPolicyID}`];
-            const avatar = secondaryPolicy?.avatarURL ?? getDefaultWorkspaceAvatar(secondaryPolicy?.name);
+            const secondaryPolicyAvatar = secondaryPolicy?.avatarURL ?? getDefaultWorkspaceAvatar(secondaryPolicy?.name);
 
             secondaryAvatar = {
-                source: avatar,
+                source: secondaryPolicyAvatar,
                 type: CONST.ICON_TYPE_WORKSPACE,
                 name: secondaryPolicy?.name,
                 id: secondaryPolicyID,
             };
         } else {
+            // The ownerAccountID and actorAccountID can be the same if the user submits an expense back from the IOU's original creator, in that case we need to use managerID to avoid displaying the same user twice
             const secondaryAccountId = iouReport?.ownerAccountID === actorAccountID || isInvoiceReport(iouReport) ? iouReport?.managerID : iouReport?.ownerAccountID;
-            const secondaryUserAvatar = allPersonalDetails?.[secondaryAccountId ?? -1]?.avatar ?? '';
+            const secondaryUserAvatar = allPersonalDetails?.[secondaryAccountId ?? -1]?.avatar ?? FallbackAvatar;
             const secondaryDisplayName = getDisplayNameForParticipant(secondaryAccountId);
 
             secondaryAvatar = {
-                source: UserUtils.getAvatar(secondaryUserAvatar, secondaryAccountId),
+                source: secondaryUserAvatar,
                 type: CONST.ICON_TYPE_AVATAR,
                 name: secondaryDisplayName ?? '',
                 id: secondaryAccountId,
