@@ -1782,7 +1782,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         sidebarLinkActive: {
-            backgroundColor: theme.buttonHoveredBG,
+            backgroundColor: theme.overlay,
             textDecorationLine: 'none',
         },
 
