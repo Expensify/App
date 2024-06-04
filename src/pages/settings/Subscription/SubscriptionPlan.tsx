@@ -34,6 +34,7 @@ function SubscriptionPlan() {
               translate('subscription.yourPlan.collect.benefit4'),
               translate('subscription.yourPlan.collect.benefit5'),
               translate('subscription.yourPlan.collect.benefit6'),
+              translate('subscription.yourPlan.collect.benefit7'),
           ]
         : [
               translate('subscription.yourPlan.control.benefit1'),
@@ -42,7 +43,6 @@ function SubscriptionPlan() {
               translate('subscription.yourPlan.control.benefit4'),
               translate('subscription.yourPlan.control.benefit5'),
               translate('subscription.yourPlan.control.benefit6'),
-              translate('subscription.yourPlan.control.benefit7'),
           ];
 
     return (
