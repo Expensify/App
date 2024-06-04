@@ -4,7 +4,6 @@ import * as API from '@libs/API';
 import type {SearchParams} from '@libs/API/parameters';
 import {READ_COMMANDS} from '@libs/API/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import * as ReportUtils from '@libs/ReportUtils';
 import * as ReportActions from './Report';
 
 function search({hash, query, policyIDs, offset, sortBy, sortOrder}: SearchParams) {
@@ -38,7 +37,15 @@ function search({hash, query, policyIDs, offset, sortBy, sortOrder}: SearchParam
 function createTransactionThread(hash: number, transactionID: string, reportID: string, moneyRequestReportActionID: string) {
     ReportActions.openReport(reportID, '', ['cc2@cc.com'], {}, moneyRequestReportActionID);
 
-    Onyx.merge();
+    Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {
+        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
+            data: {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
+                    transactionThreadReportID: reportID
+                }
+            }
+        }
+    });
 }
 
 export {
