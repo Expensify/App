@@ -1,10 +1,10 @@
-import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import React, {useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import FixedFooter from './FixedFooter';
 import FormAlertWithSubmitButton from './FormAlertWithSubmitButton';
@@ -28,10 +28,10 @@ type Option = {
 };
 
 const OPTIONS: Option[] = [
-    {key: COMMON_CONST.SUBSCRIPTION_CHANGE_REASONS.TOO_LIMITED.id, label: 'feedbackSurvey.functionalityNeeds'},
-    {key: COMMON_CONST.SUBSCRIPTION_CHANGE_REASONS.TOO_EXPENSIVE.id, label: 'feedbackSurvey.tooExpensive'},
-    {key: COMMON_CONST.SUBSCRIPTION_CHANGE_REASONS.INADEQUATE_SUPPORT.id, label: 'feedbackSurvey.inadequateCustomerSupport'},
-    {key: COMMON_CONST.SUBSCRIPTION_CHANGE_REASONS.BUSINESS_CLOSING.id, label: 'feedbackSurvey.companyClosing'},
+    {key: CONST.FEEDBACK_SURVEY_OPTIONS.TOO_LIMITED.ID, label: CONST.FEEDBACK_SURVEY_OPTIONS.TOO_LIMITED.TRANSLATION_KEY},
+    {key: CONST.FEEDBACK_SURVEY_OPTIONS.TOO_EXPENSIVE.ID, label: CONST.FEEDBACK_SURVEY_OPTIONS.TOO_EXPENSIVE.TRANSLATION_KEY},
+    {key: CONST.FEEDBACK_SURVEY_OPTIONS.INADEQUATE_SUPPORT.ID, label: CONST.FEEDBACK_SURVEY_OPTIONS.INADEQUATE_SUPPORT.TRANSLATION_KEY},
+    {key: CONST.FEEDBACK_SURVEY_OPTIONS.BUSINESS_CLOSING.ID, label: CONST.FEEDBACK_SURVEY_OPTIONS.BUSINESS_CLOSING.TRANSLATION_KEY},
 ];
 
 function FeedbackSurvey({title, description, onSubmit}: FeedbackSurveyProps) {

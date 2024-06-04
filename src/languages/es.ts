@@ -3689,9 +3689,9 @@ export default {
         },
     },
     feedbackSurvey: {
-        functionalityNeeds: 'Hay que mejorar la funcionalidad',
+        tooLimited: 'Hay que mejorar la funcionalidad',
         tooExpensive: 'Demasiado caro',
-        inadequateCustomerSupport: 'Atención al cliente inadecuada',
-        companyClosing: 'Cierre, reducción, o adquisición de la empresa',
+        inadequateSupport: 'Atención al cliente inadecuada',
+        businessClosing: 'Cierre, reducción, o adquisición de la empresa',
     },
 } satisfies EnglishTranslation;

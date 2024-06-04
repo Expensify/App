@@ -3183,9 +3183,9 @@ export default {
         },
     },
     feedbackSurvey: {
-        functionalityNeeds: 'Functionality needs improvement',
+        tooLimited: 'Functionality needs improvement',
         tooExpensive: 'Too expensive',
-        inadequateCustomerSupport: 'Inadequate customer support',
-        companyClosing: 'Company closing, downsizing, or acquired',
+        inadequateSupport: 'Inadequate customer support',
+        businessClosing: 'Company closing, downsizing, or acquired',
     },
 } satisfies TranslationBase;
