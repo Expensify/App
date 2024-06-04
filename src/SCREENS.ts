@@ -106,6 +106,7 @@ const SCREENS = {
 
         SUBSCRIPTION: {
             ROOT: 'Settings_Subscription',
+            SIZE: 'Settings_Subscription_Size',
         },
     },
     SAVE_THE_WORLD: {
@@ -142,6 +143,7 @@ const SCREENS = {
         PROCESS_MONEY_REQUEST_HOLD: 'ProcessMoneyRequestHold',
         TRAVEL: 'Travel',
         SEARCH_REPORT: 'SearchReport',
+        SETTINGS_CATEGORIES: 'SettingsCategories',
     },
     ONBOARDING_MODAL: {
         ONBOARDING: 'Onboarding',
@@ -184,6 +186,14 @@ const SCREENS = {
         ADD_BANK_ACCOUNT: 'IOU_Send_Add_Bank_Account',
         ADD_DEBIT_CARD: 'IOU_Send_Add_Debit_Card',
         ENABLE_PAYMENTS: 'IOU_Send_Enable_Payments',
+    },
+
+    SETTINGS_CATEGORIES: {
+        SETTINGS_CATEGORY_SETTINGS: 'Settings_Category_Settings',
+        SETTINGS_CATEGORIES_SETTINGS: 'Settings_Categories_Settings',
+        SETTINGS_CATEGORY_CREATE: 'Settings_Category_Create',
+        SETTINGS_CATEGORY_EDIT: 'Settings_Category_Edit',
+        SETTINGS_CATEGORIES_ROOT: 'Settings_Categories',
     },
 
     REPORT_SETTINGS: {
