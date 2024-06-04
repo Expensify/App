@@ -68,7 +68,6 @@ export default {
     TESTS_CONFIG: {
         [TEST_NAMES.AppStartTime]: {
             name: TEST_NAMES.AppStartTime,
-            warmupRuns: 1,
             // ... any additional config you might need
         },
         [TEST_NAMES.OpenChatFinderPage]: {
