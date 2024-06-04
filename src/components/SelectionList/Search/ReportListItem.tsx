@@ -159,6 +159,7 @@ function ReportListItem<TItem extends ListItem>({
                             showItemHeaderOnNarrowLayout={false}
                             containerStyle={styles.mt3}
                             isHovered={hovered}
+                            isChildListItem
                         />
                     ))}
                 </View>
