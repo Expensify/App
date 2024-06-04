@@ -26,16 +26,18 @@ Onyx.connect({
                 return;
             }
 
-            accountIDToNameMap[personalDetails.accountID] = personalDetails.displayName ?? String(personalDetails.accountID);
+            accountIDToNameMap[personalDetails.accountID] = personalDetails.login ?? String(personalDetails.accountID);
         });
     },
 });
 
 function parseHtmlToMarkdown(html: string): string {
+    // TODO: change `reportIdToName` to `reportIDToName` (changes in expensify-common)
     return parser.htmlToMarkdown(html, {reportIdToName: reportIDToNameMap, accountIDToName: accountIDToNameMap});
 }
 
 function parseHtmlToText(html: string): string {
+    // TODO: change `reportIdToName` to `reportIDToName` (changes in expensify-common)
     return parser.htmlToText(html, {reportIdToName: reportIDToNameMap, accountIDToName: accountIDToNameMap});
 }
 
