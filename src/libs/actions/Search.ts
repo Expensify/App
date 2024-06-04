@@ -4,8 +4,8 @@ import * as API from '@libs/API';
 import type {SearchParams} from '@libs/API/parameters';
 import {READ_COMMANDS} from '@libs/API/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {SearchTransaction} from '@src/types/onyx/SearchResults';
 import * as ReportActions from './Report';
-import { SearchTransaction } from '@src/types/onyx/SearchResults';
 
 let currentUserEmail: string;
 Onyx.connect({
@@ -50,14 +50,11 @@ function createTransactionThread(hash: number, transactionID: string, reportID: 
         data: {
             [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
                 transactionThreadReportID: reportID,
-            }
-        }
+            },
+        },
     };
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, onyxUpdate);
 }
 
-export {
-    search,
-    createTransactionThread,
-};
+export {search, createTransactionThread};
