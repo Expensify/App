@@ -215,6 +215,8 @@ type Options = {
 
 type PreviewConfig = {showChatPreviewLine?: boolean; forcePolicyNamePreview?: boolean; showPersonalDetails?: boolean};
 
+type FilterOptionsConfig = Pick<GetOptionsConfig, 'betas'> & {preferChatroomsOverThreads: boolean};
+
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
  * be configured to display different results based on the options passed to the private getOptions() method. Public
@@ -519,21 +521,24 @@ function getSearchText(
 function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): OnyxCommon.Errors {
     const reportErrors = report?.errors ?? {};
     const reportErrorFields = report?.errorFields ?? {};
-    const reportActionErrors: OnyxCommon.ErrorFields = Object.values(reportActions ?? {}).reduce(
-        (prevReportActionErrors, action) => (!action || isEmptyObject(action.errors) ? prevReportActionErrors : {...prevReportActionErrors, ...action.errors}),
-        {},
-    );
+    const reportActionErrors: OnyxCommon.ErrorFields = Object.values(reportActions ?? {}).reduce((prevReportActionErrors, action) => {
+        if (!action || isEmptyObject(action.errors)) {
+            return prevReportActionErrors;
+        }
+
+        return Object.assign(prevReportActionErrors, action.errors);
+    }, {});
     const parentReportAction: OnyxEntry<ReportAction> =
         !report?.parentReportID || !report?.parentReportActionID ? null : allReportActions?.[report.parentReportID ?? '']?.[report.parentReportActionID ?? ''] ?? null;
 
-    if (parentReportAction?.actorAccountID === currentUserAccountID && ReportActionUtils.isTransactionThread(parentReportAction)) {
+    if (ReportActionUtils.wasActionTakenByCurrentUser(parentReportAction) && ReportActionUtils.isTransactionThread(parentReportAction)) {
         const transactionID = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction?.originalMessage?.IOUTransactionID : null;
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         if (TransactionUtils.hasMissingSmartscanFields(transaction ?? null) && !ReportUtils.isSettled(transaction?.reportID)) {
             reportActionErrors.smartscan = ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage');
         }
     } else if ((ReportUtils.isIOUReport(report) || ReportUtils.isExpenseReport(report)) && report?.ownerAccountID === currentUserAccountID) {
-        if (ReportUtils.hasMissingSmartscanFields(report?.reportID ?? '') && !ReportUtils.isSettled(report?.reportID)) {
+        if (ReportUtils.shouldShowRBRForMissingSmartscanFields(report?.reportID ?? '') && !ReportUtils.isSettled(report?.reportID)) {
             reportActionErrors.smartscan = ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage');
         }
     } else if (ReportUtils.hasSmartscanError(Object.values(reportActions ?? {}))) {
@@ -546,7 +551,13 @@ function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<
         ...reportActionErrors,
     };
     // Combine all error messages keyed by microtime into one object
-    const allReportErrors = Object.values(errorSources)?.reduce((prevReportErrors, errors) => (isEmptyObject(errors) ? prevReportErrors : {...prevReportErrors, ...errors}), {});
+    const allReportErrors = Object.values(errorSources)?.reduce((prevReportErrors, errors) => {
+        if (isEmptyObject(errors)) {
+            return prevReportErrors;
+        }
+
+        return Object.assign(prevReportErrors, errors);
+    }, {});
 
     return allReportErrors;
 }
@@ -565,12 +576,22 @@ function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | nu
  * Update alternate text for the option when applicable
  */
 function getAlternateText(option: ReportUtils.OptionData, {showChatPreviewLine = false, forcePolicyNamePreview = false}: PreviewConfig) {
+    const report = ReportUtils.getReport(option.reportID);
+    const isAdminRoom = ReportUtils.isAdminRoom(report);
+    const isAnnounceRoom = ReportUtils.isAnnounceRoom(report);
+
     if (!!option.isThread || !!option.isMoneyRequestReport) {
         return option.lastMessageText ? option.lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
     }
-    if (!!option.isChatRoom || !!option.isPolicyExpenseChat) {
+
+    if (option.isChatRoom && !isAdminRoom && !isAnnounceRoom) {
+        return showChatPreviewLine && option.lastMessageText ? option.lastMessageText : option.subtitle;
+    }
+
+    if ((option.isPolicyExpenseChat ?? false) || isAdminRoom || isAnnounceRoom) {
         return showChatPreviewLine && !forcePolicyNamePreview && option.lastMessageText ? option.lastMessageText : option.subtitle;
     }
+
     if (option.isTaskReport) {
         return showChatPreviewLine && option.lastMessageText ? option.lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
     }
@@ -742,7 +763,7 @@ function createOption(
         result.tooltipText = ReportUtils.getReportParticipantsTitle(visibleParticipantAccountIDs);
         result.isOneOnOneChat = isOneOnOneChat;
 
-        hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
+        hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || ReportUtils.isGroupChat(report);
         subtitle = ReportUtils.getChatRoomSubtitle(report);
 
         const lastActorDetails = personalDetailMap[report.lastActorAccountID ?? 0] ?? null;
@@ -1518,7 +1539,8 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
                 .map(Number)
                 .filter((accountID) => accountID !== currentUserAccountID || !isOneOnOneChat);
 
-            if (!accountIDs || accountIDs.length === 0) {
+            const isChatRoom = ReportUtils.isChatRoom(report);
+            if ((!accountIDs || accountIDs.length === 0) && !isChatRoom) {
                 return;
             }
 
@@ -1566,11 +1588,17 @@ function createOptionFromReport(report: Report, personalDetails: OnyxEntry<Perso
  * @param searchValue - search string
  * @returns a sorted list of options
  */
-function orderOptions(options: ReportUtils.OptionData[], searchValue: string | undefined) {
+function orderOptions(options: ReportUtils.OptionData[], searchValue: string | undefined, {preferChatroomsOverThreads = false} = {}) {
     return lodashOrderBy(
         options,
         [
             (option) => {
+                if (option.isSelfDM) {
+                    return 0;
+                }
+                if (preferChatroomsOverThreads && option.isThread) {
+                    return 4;
+                }
                 if (!!option.isChatRoom || option.isArchivedRoom) {
                     return 3;
                 }
@@ -1787,11 +1815,16 @@ function getOptions(
 
     // Sorting the reports works like this:
     // - Order everything by the last message timestamp (descending)
+    // - When searching, self DM is put at the top
     // - All archived reports should remain at the bottom
     const orderedReportOptions = lodashSortBy(filteredReportOptions, (option) => {
         const report = option.item;
         if (option.isArchivedRoom) {
             return CONST.DATE.UNIX_EPOCH;
+        }
+
+        if (searchValue) {
+            return [option.isSelfDM, report?.lastVisibleActionCreated];
         }
 
         return report?.lastVisibleActionCreated;
@@ -1811,6 +1844,7 @@ function getOptions(
         const isMoneyRequestReport = option.isMoneyRequestReport;
         const isSelfDM = option.isSelfDM;
         const isOneOnOneChat = option.isOneOnOneChat;
+        const isChatRoom = option.isChatRoom;
 
         // For 1:1 chat, we don't want to include currentUser as participants in order to not mark 1:1 chats as having multiple participants
         const accountIDs = Object.keys(report.participants ?? {})
@@ -1847,7 +1881,7 @@ function getOptions(
             return;
         }
 
-        if (!accountIDs || accountIDs.length === 0) {
+        if ((!accountIDs || accountIDs.length === 0) && !isChatRoom) {
             return;
         }
 
@@ -1862,7 +1896,7 @@ function getOptions(
         allPersonalDetailsOptions = lodashOrderBy(allPersonalDetailsOptions, [(personalDetail) => personalDetail.text?.toLowerCase()], 'asc');
     }
 
-    const optionsToExclude: Option[] = [{login: CONST.EMAIL.NOTIFICATIONS}];
+    const optionsToExclude: Option[] = [];
 
     // If we're including selected options from the search results, we only want to exclude them if the search input is empty
     // This is because on certain pages, we show the selected options at the top when the search input is empty
@@ -1985,7 +2019,7 @@ function getOptions(
         // When sortByReportTypeInSearch is true, recentReports will be returned with all the reports including personalDetailsOptions in the correct Order.
         recentReportOptions.push(...personalDetailsOptions);
         personalDetailsOptions = [];
-        recentReportOptions = orderOptions(recentReportOptions, searchValue);
+        recentReportOptions = orderOptions(recentReportOptions, searchValue, {preferChatroomsOverThreads: true});
     }
 
     return {
@@ -2328,7 +2362,8 @@ function getFirstKeyForList(data?: Option[] | null) {
 /**
  * Filters options based on the search input value
  */
-function filterOptions(options: Options, searchInputValue: string, betas: OnyxEntry<Beta[]> = []): Options {
+function filterOptions(options: Options, searchInputValue: string, config?: FilterOptionsConfig): Options {
+    const {betas = [], preferChatroomsOverThreads = false} = config ?? {};
     const searchValue = getSearchValueForPhoneOrEmail(searchInputValue);
     const searchTerms = searchValue ? searchValue.split(' ') : [];
 
@@ -2407,7 +2442,7 @@ function filterOptions(options: Options, searchInputValue: string, betas: OnyxEn
 
     return {
         personalDetails: [],
-        recentReports: orderOptions(recentReports, searchValue),
+        recentReports: orderOptions(recentReports, searchValue, {preferChatroomsOverThreads}),
         userToInvite,
         currentUserOption: null,
         categoryOptions: [],
