@@ -262,7 +262,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         />
     ) : null;
 
-    const renderAvatar = useMemo(() => {
+    const renderedAvatar = useMemo(() => {
         if (isMoneyRequestReport || isInvoiceReport) {
             return (
                 <View style={styles.mb3}>
@@ -319,7 +319,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 />
                 <ScrollView style={[styles.flex1]}>
                     <View style={styles.reportDetailsTitleContainer}>
-                        {renderAvatar}
+                        {renderedAvatar}
                         <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
                             <View style={[styles.alignSelfCenter, styles.w100, styles.mt1]}>
                                 <DisplayNames
