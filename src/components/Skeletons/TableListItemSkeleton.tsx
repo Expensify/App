@@ -4,16 +4,18 @@ import ItemListSkeletonView from './ItemListSkeletonView';
 
 type TableListItemSkeletonProps = {
     shouldAnimate?: boolean;
+    fixedNumItems?: number;
 };
 
 const barHeight = '10';
 const shortBarWidth = '40';
 const longBarWidth = '120';
 
-function TableListItemSkeleton({shouldAnimate = true}: TableListItemSkeletonProps) {
+function TableListItemSkeleton({shouldAnimate = true, fixedNumItems}: TableListItemSkeletonProps) {
     return (
         <ItemListSkeletonView
             shouldAnimate={shouldAnimate}
+            fixedNumItems={fixedNumItems}
             renderSkeletonItem={() => (
                 <>
                     <Rect

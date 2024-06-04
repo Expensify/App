@@ -12,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import {sortWorkspacesBySelected} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {getWorkspacesBrickRoads, getWorkspacesUnreadStatuses} from '@libs/WorkspacesSettingsUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
@@ -23,20 +24,10 @@ import WorkspacesSectionHeader from './WorkspacesSectionHeader';
 
 type WorkspaceListItem = {
     text: string;
-    policyID: string;
+    policyID?: string;
     isPolicyAdmin?: boolean;
     brickRoadIndicator?: BrickRoad;
 } & ListItem;
-
-const sortWorkspacesBySelected = (workspace1: WorkspaceListItem, workspace2: WorkspaceListItem, selectedWorkspaceID: string | undefined): number => {
-    if (workspace1.policyID === selectedWorkspaceID) {
-        return -1;
-    }
-    if (workspace2.policyID === selectedWorkspaceID) {
-        return 1;
-    }
-    return workspace1.text?.toLowerCase().localeCompare(workspace2.text?.toLowerCase() ?? '') ?? 0;
-};
 
 const WorkspaceCardCreateAWorkspaceInstance = <WorkspaceCardCreateAWorkspace />;
 
@@ -132,7 +123,7 @@ function WorkspaceSwitcherPage() {
         () =>
             usersWorkspaces
                 .filter((policy) => policy.text?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase() ?? ''))
-                .sort((policy1, policy2) => sortWorkspacesBySelected(policy1, policy2, activeWorkspaceID)),
+                .sort((policy1, policy2) => sortWorkspacesBySelected({policyID: policy1.policyID, name: policy1.text}, {policyID: policy2.policyID, name: policy2.text}, activeWorkspaceID)),
         [debouncedSearchTerm, usersWorkspaces, activeWorkspaceID],
     );
 
@@ -145,7 +136,6 @@ function WorkspaceSwitcherPage() {
                 data: [
                     {
                         text: CONST.WORKSPACE_SWITCHER.NAME,
-                        policyID: '',
                         icons: [{source: Expensicons.ExpensifyAppIcon, name: CONST.WORKSPACE_SWITCHER.NAME, type: CONST.ICON_TYPE_AVATAR}],
                         brickRoadIndicator: getIndicatorTypeForPolicy(undefined),
                         isSelected: activeWorkspaceID === undefined,
@@ -179,6 +169,7 @@ function WorkspaceSwitcherPage() {
                 ListItem={UserListItem}
                 sections={sections}
                 onSelectRow={selectPolicy}
+                shouldDebounceRowSelect
                 textInputLabel={usersWorkspaces.length >= CONST.WORKSPACE_SWITCHER.MINIMUM_WORKSPACES_TO_SHOW_SEARCH ? translate('common.search') : undefined}
                 textInputValue={searchTerm}
                 onChangeText={setSearchTerm}

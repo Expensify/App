@@ -15,6 +15,7 @@ import colors from './theme/colors';
 import type {ThemeColors} from './theme/types';
 import addOutlineWidth from './utils/addOutlineWidth';
 import borders from './utils/borders';
+import chatContentScrollViewPlatformStyles from './utils/chatContentScrollViewPlatformStyles';
 import codeStyles from './utils/codeStyles';
 import cursor from './utils/cursor';
 import display from './utils/display';
@@ -567,7 +568,6 @@ const styles = (theme: ThemeColors) =>
         },
 
         buttonContainer: {
-            padding: 1,
             borderRadius: variables.buttonBorderRadius,
         },
 
@@ -1392,14 +1392,14 @@ const styles = (theme: ThemeColors) =>
         formHelp: {
             color: theme.textSupporting,
             fontSize: variables.fontSizeLabel,
-            lineHeight: variables.lineHeightLarge,
+            lineHeight: variables.lineHeightNormal,
             marginBottom: 4,
         },
 
         formError: {
             color: theme.textError,
             fontSize: variables.fontSizeLabel,
-            lineHeight: variables.formErrorLineHeight,
+            lineHeight: variables.lineHeightNormal,
             marginBottom: 4,
         },
 
@@ -1696,7 +1696,7 @@ const styles = (theme: ThemeColors) =>
         createMenuHeaderText: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeLabel,
-            color: theme.heading,
+            color: theme.textSupporting,
         },
 
         popoverMenuItem: {
@@ -1941,8 +1941,10 @@ const styles = (theme: ThemeColors) =>
         },
 
         chatContentScrollView: {
-            justifyContent: 'flex-end',
+            flexGrow: 1,
+            justifyContent: 'flex-start',
             paddingBottom: 16,
+            ...chatContentScrollViewPlatformStyles,
         },
 
         // Chat Item
@@ -2233,6 +2235,15 @@ const styles = (theme: ThemeColors) =>
             textAlign: 'center',
             verticalAlign: 'middle',
             width: 200,
+        },
+
+        chatItemPDFAttachmentLoading: {
+            backgroundColor: 'transparent',
+            borderColor: theme.border,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadiusNormal,
+            ...flex.alignItemsCenter,
+            ...flex.justifyContentCenter,
         },
 
         sidebarVisible: {
@@ -2785,6 +2796,12 @@ const styles = (theme: ThemeColors) =>
             fontWeight: FontUtils.fontWeight.bold,
         },
 
+        borderedContentCard: {
+            borderWidth: 1,
+            borderColor: theme.border,
+            borderRadius: variables.componentBorderRadiusMedium,
+        },
+
         sectionMenuItem: {
             borderRadius: 8,
             paddingHorizontal: 8,
@@ -3308,6 +3325,12 @@ const styles = (theme: ThemeColors) =>
             marginTop: 6,
         },
 
+        workspaceListRBR: {
+            flexDirection: 'column',
+            justifyContent: 'flex-start',
+            marginTop: 10,
+        },
+
         peopleRow: {
             width: '100%',
             flexDirection: 'row',
@@ -3378,6 +3401,7 @@ const styles = (theme: ThemeColors) =>
         shortTermsBorder: {
             borderWidth: 1,
             borderColor: theme.border,
+            borderRadius: variables.componentBorderRadius,
         },
 
         shortTermsHorizontalRule: {
@@ -3412,8 +3436,8 @@ const styles = (theme: ThemeColors) =>
             ...headlineFont,
             ...whiteSpace.preWrap,
             color: theme.heading,
-            fontSize: variables.fontSizeXXXLarge,
-            lineHeight: variables.lineHeightXXXLarge,
+            fontSize: variables.fontSizeXLarge,
+            lineHeight: variables.lineHeightXXLarge,
         },
 
         longTermsRow: {
@@ -3491,6 +3515,10 @@ const styles = (theme: ThemeColors) =>
             lineHeight: 16,
         },
 
+        searchTableHeaderActive: {
+            fontWeight: 'bold',
+        },
+
         threeDotsPopoverOffset: (windowWidth: number) =>
             ({
                 ...getPopOverVerticalOffset(60),
@@ -3507,6 +3535,12 @@ const styles = (theme: ThemeColors) =>
             ({
                 ...getPopOverVerticalOffset(80),
                 horizontal: windowWidth - 140,
+            } satisfies AnchorPosition),
+
+        popoverMenuOffset: (windowWidth: number) =>
+            ({
+                ...getPopOverVerticalOffset(180),
+                horizontal: windowWidth - 355,
             } satisfies AnchorPosition),
 
         iPhoneXSafeArea: {
@@ -3909,7 +3943,6 @@ const styles = (theme: ThemeColors) =>
             position: 'absolute',
             aspectRatio: 335 / 540,
             top: 0,
-            minWidth: 217,
         },
 
         eReceiptContainer: {
@@ -4404,6 +4437,7 @@ const styles = (theme: ThemeColors) =>
             borderWidth: variables.componentBorderWidth,
             borderColor: theme.appBG,
         },
+        currentPositionDot: {backgroundColor: colors.blue400, width: 16, height: 16, borderRadius: 16},
 
         mapViewOverlay: {
             flex: 1,
@@ -4480,15 +4514,17 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 8,
         },
 
+        selectionListStickyHeader: {
+            backgroundColor: theme.appBG,
+        },
+
         draggableTopBar: {
             height: 30,
             width: '100%',
         },
         menuItemError: {
-            position: 'absolute',
-            bottom: -4,
-            left: 20,
-            right: 20,
+            marginTop: 4,
+            marginBottom: 0,
         },
         formHelperMessage: {
             height: 32,
@@ -4507,13 +4543,22 @@ const styles = (theme: ThemeColors) =>
             top: -36,
         },
 
-        chatBottomLoader: {
+        listBoundaryLoader: {
             position: 'absolute',
             top: 0,
             bottom: 0,
             left: 0,
             right: 0,
             height: CONST.CHAT_HEADER_LOADER_HEIGHT,
+        },
+        listBoundaryError: {
+            paddingVertical: 15,
+            paddingHorizontal: 20,
+        },
+        listBoundaryErrorText: {
+            color: theme.textSupporting,
+            fontSize: variables.fontSizeLabel,
+            marginBottom: 10,
         },
 
         videoContainer: {
@@ -4893,10 +4938,26 @@ const styles = (theme: ThemeColors) =>
         workspaceTitleStyle: {
             ...headlineFont,
             fontSize: variables.fontSizeXLarge,
+            flex: 1,
         },
 
         textLineThrough: {
             textDecorationLine: 'line-through',
+        },
+
+        reportListItemSeparator: {
+            borderBottomWidth: 1,
+            borderBottomColor: theme.activeComponentBG,
+        },
+
+        reportListItemTitle: {
+            color: theme.text,
+            fontSize: variables.fontSizeNormal,
+            fontWeight: FontUtils.fontWeight.bold,
+        },
+
+        reportListItemActionButtonMargin: {
+            marginLeft: variables.searchTypeColumnWidth,
         },
     } satisfies Styles);
 

@@ -20,7 +20,7 @@ import type {
     OriginalMessageReimbursementDequeued,
 } from '@src/types/onyx/OriginalMessage';
 import type Report from '@src/types/onyx/Report';
-import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
+import type {Message, ReportActionBase, ReportActionMessageJSON, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -32,6 +32,7 @@ import Log from './Log';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import type {OptimisticIOUReportAction} from './ReportUtils';
+import StringUtils from './StringUtils';
 import * as TransactionUtils from './TransactionUtils';
 
 type LastVisibleMessage = {
@@ -143,8 +144,27 @@ function isModifiedExpenseAction(reportAction: OnyxEntry<ReportAction> | ReportA
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE;
 }
 
+/**
+ * We are in the process of deprecating reportAction.originalMessage and will be setting the db version of "message" to reportAction.message in the future see: https://github.com/Expensify/App/issues/39797
+ * In the interim, we must check to see if we have an object or array for the reportAction.message, if we have an array we will use the originalMessage as this means we have not yet migrated.
+ */
+function getWhisperedTo(reportAction: OnyxEntry<ReportAction> | EmptyObject): number[] {
+    const originalMessage = reportAction?.originalMessage;
+    const message = reportAction?.message;
+
+    if (!Array.isArray(message) && typeof message === 'object') {
+        return (message as ReportActionMessageJSON)?.whisperedTo ?? [];
+    }
+
+    if (originalMessage) {
+        return (originalMessage as ReportActionMessageJSON)?.whisperedTo ?? [];
+    }
+
+    return [];
+}
+
 function isWhisperAction(reportAction: OnyxEntry<ReportAction> | EmptyObject): boolean {
-    return (reportAction?.whisperedToAccountIDs ?? []).length > 0;
+    return getWhisperedTo(reportAction).length > 0;
 }
 
 /**
@@ -154,7 +174,7 @@ function isWhisperActionTargetedToOthers(reportAction: OnyxEntry<ReportAction>):
     if (!isWhisperAction(reportAction)) {
         return false;
     }
-    return !reportAction?.whisperedToAccountIDs?.includes(currentUserAccountID ?? 0);
+    return !getWhisperedTo(reportAction).includes(currentUserAccountID ?? 0);
 }
 
 function isReimbursementQueuedAction(reportAction: OnyxEntry<ReportAction>) {
@@ -278,8 +298,8 @@ function shouldIgnoreGap(currentReportAction: ReportAction | undefined, nextRepo
     return (
         isOptimisticAction(currentReportAction) ||
         isOptimisticAction(nextReportAction) ||
-        !!currentReportAction.whisperedToAccountIDs?.length ||
-        !!nextReportAction.whisperedToAccountIDs?.length ||
+        !!getWhisperedTo(currentReportAction).length ||
+        !!getWhisperedTo(nextReportAction).length ||
         currentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM ||
         nextReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED ||
         nextReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED
@@ -290,7 +310,7 @@ function shouldIgnoreGap(currentReportAction: ReportAction | undefined, nextRepo
  * Returns a sorted and filtered list of report actions from a report and it's associated child
  * transaction thread report in order to correctly display reportActions from both reports in the one-transaction report view.
  */
-function getCombinedReportActions(reportActions: ReportAction[], transactionThreadReportActions: ReportAction[]): ReportAction[] {
+function getCombinedReportActions(reportActions: ReportAction[], transactionThreadReportActions: ReportAction[], reportID?: string): ReportAction[] {
     if (isEmptyObject(transactionThreadReportActions)) {
         return reportActions;
     }
@@ -298,9 +318,14 @@ function getCombinedReportActions(reportActions: ReportAction[], transactionThre
     // Filter out the created action from the transaction thread report actions, since we already have the parent report's created action in `reportActions`
     const filteredTransactionThreadReportActions = transactionThreadReportActions?.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
 
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const isSelfDM = report?.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM;
     // Filter out request and send money request actions because we don't want to show any preview actions for one transaction reports
     const filteredReportActions = [...reportActions, ...filteredTransactionThreadReportActions].filter((action) => {
         const actionType = (action as OriginalMessageIOU).originalMessage?.type ?? '';
+        if (isSelfDM) {
+            return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && !isSentMoneyReportAction(action);
+        }
         return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && actionType !== CONST.IOU.REPORT_ACTION_TYPE.TRACK && !isSentMoneyReportAction(action);
     });
 
@@ -380,8 +405,7 @@ function getMostRecentIOURequestActionID(reportActions: ReportAction[] | null): 
 function extractLinksFromMessageHtml(reportAction: OnyxEntry<ReportAction>): string[] {
     const htmlContent = reportAction?.message?.[0]?.html;
 
-    // Regex to get link in href prop inside of <a/> component
-    const regex = /<a\s+(?:[^>]*?\s+)?href="([^"]*)"/gi;
+    const regex = CONST.REGEX_LINK_IN_ANCHOR;
 
     if (!htmlContent) {
         return [];
@@ -482,6 +506,17 @@ function isReportActionDeprecated(reportAction: OnyxEntry<ReportAction>, key: st
         return true;
     }
 
+    const deprecatedOldDotReportActions: ActionName[] = [
+        CONST.REPORT.ACTIONS.TYPE.DELETED_ACCOUNT,
+        CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REQUESTED,
+        CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP_REQUESTED,
+        CONST.REPORT.ACTIONS.TYPE.DONATION,
+    ];
+    if (deprecatedOldDotReportActions.includes(reportAction.actionName as ActionName)) {
+        Log.info('Front end filtered out reportAction for being an older, deprecated report action', false, reportAction);
+        return true;
+    }
+
     return false;
 }
 
@@ -542,6 +577,23 @@ function shouldHideNewMarker(reportAction: OnyxEntry<ReportAction>): boolean {
 }
 
 /**
+ * Checks whether an action is actionable track expense.
+ *
+ */
+function isActionableTrackExpense(reportAction: OnyxEntry<ReportAction>): reportAction is ReportActionBase & OriginalMessageActionableTrackedExpenseWhisper {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER;
+}
+
+/**
+ * Checks whether an action is actionable track expense and resolved.
+ *
+ */
+function isResolvedActionTrackExpense(reportAction: OnyxEntry<ReportAction>): boolean {
+    const resolution = (reportAction?.originalMessage as OriginalMessageActionableMentionWhisper['originalMessage'])?.resolution;
+    return isActionableTrackExpense(reportAction) && !!resolution;
+}
+
+/**
  * Checks if a reportAction is fit for display as report last action, meaning that
  * it satisfies shouldReportActionBeVisible, it's not whisper action and not deleted.
  */
@@ -559,7 +611,8 @@ function shouldReportActionBeVisibleAsLastAction(reportAction: OnyxEntry<ReportA
     return (
         shouldReportActionBeVisible(reportAction, reportAction.reportActionID) &&
         !(isWhisperAction(reportAction) && !isReportPreviewAction(reportAction) && !isMoneyRequestAction(reportAction)) &&
-        !(isDeletedAction(reportAction) && !isDeletedParentAction(reportAction))
+        !(isDeletedAction(reportAction) && !isDeletedParentAction(reportAction)) &&
+        !isResolvedActionTrackExpense(reportAction)
     );
 }
 
@@ -615,7 +668,7 @@ function getLastVisibleMessage(reportID: string, actionsToMerge: OnyxCollection<
 
     let messageText = message?.text ?? '';
     if (messageText) {
-        messageText = String(messageText).replace(CONST.REGEX.LINE_BREAK, ' ').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
+        messageText = StringUtils.lineBreaksToSpaces(String(messageText)).substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
     }
     return {
         lastMessageText: messageText,
@@ -799,6 +852,10 @@ function isSplitBillAction(reportAction: OnyxEntry<ReportAction>): boolean {
 
 function isTrackExpenseAction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>): boolean {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && (reportAction.originalMessage as IOUMessage).type === CONST.IOU.REPORT_ACTION_TYPE.TRACK;
+}
+
+function isPayAction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>): boolean {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && (reportAction.originalMessage as IOUMessage).type === CONST.IOU.REPORT_ACTION_TYPE.PAY;
 }
 
 function isTaskAction(reportAction: OnyxEntry<ReportAction>): boolean {
@@ -1142,10 +1199,6 @@ function isActionableJoinRequest(reportAction: OnyxEntry<ReportAction>): reportA
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST;
 }
 
-function isActionableTrackExpense(reportAction: OnyxEntry<ReportAction>): reportAction is ReportActionBase & OriginalMessageActionableTrackedExpenseWhisper {
-    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER;
-}
-
 /**
  * Checks if any report actions correspond to a join request action that is still pending.
  * @param reportID
@@ -1180,6 +1233,13 @@ function isLinkedTransactionHeld(reportActionID: string, reportID: string): bool
     return TransactionUtils.isOnHoldByTransactionID(getLinkedTransactionID(reportActionID, reportID) ?? '');
 }
 
+/**
+ * Check if the current user is the requestor of the action
+ */
+function wasActionTakenByCurrentUser(reportAction: OnyxEntry<ReportAction>): boolean {
+    return currentUserAccountID === reportAction?.actorAccountID;
+}
+
 export {
     extractLinksFromMessageHtml,
     getDismissedViolationMessageText,
@@ -1196,6 +1256,7 @@ export {
     getParentReportAction,
     getReportAction,
     getReportActionMessageText,
+    getWhisperedTo,
     isApprovedOrSubmittedReportAction,
     getReportPreviewAction,
     getSortedReportActions,
@@ -1218,6 +1279,7 @@ export {
     isSentMoneyReportAction,
     isSplitBillAction,
     isTrackExpenseAction,
+    isPayAction,
     isTaskAction,
     doesReportHaveVisibleActions,
     isThreadParentMessage,
@@ -1244,7 +1306,10 @@ export {
     isActionableJoinRequest,
     isActionableJoinRequestPending,
     isActionableTrackExpense,
+    getAllReportActions,
     isLinkedTransactionHeld,
+    wasActionTakenByCurrentUser,
+    isResolvedActionTrackExpense,
 };
 
 export type {LastVisibleMessage};

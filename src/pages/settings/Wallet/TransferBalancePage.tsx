@@ -14,6 +14,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -51,6 +52,7 @@ function TransferBalancePage({bankAccountList, fundList, userWallet, walletTrans
     const styles = useThemeStyles();
     const {numberFormat, translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const {paddingBottom} = useStyledSafeAreaInsets();
     const paymentCardList = fundList ?? {};
 
     const paymentTypes = [
@@ -217,6 +219,7 @@ function TransferBalancePage({bankAccountList, fundList, userWallet, walletTrans
                         isDisabled={isButtonDisabled || isOffline}
                         message={errorMessage}
                         isAlertVisible={!isEmptyObject(errorMessage)}
+                        containerStyles={[styles.ph5, !paddingBottom ? styles.pb5 : null]}
                     />
                 </View>
             </FullPageNotFoundView>
