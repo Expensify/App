@@ -1,6 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import {isEmpty} from 'lodash';
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback} from 'react';
 import {Keyboard} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
