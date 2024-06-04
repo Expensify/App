@@ -9,7 +9,6 @@ import OptionsPicker from '@components/OptionsPicker';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useSubscriptionID from '@hooks/useSubscriptionID';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import * as Subscription from '@userActions/Subscription';
@@ -36,13 +35,9 @@ function SubscriptionDetails() {
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const subscriptionID = useSubscriptionID();
 
     const onOptionSelected = (option: SubscriptionType) => {
-        if (!subscriptionID) {
-            return;
-        }
-        Subscription.updateSubscriptionType(subscriptionID, option);
+        Subscription.updateSubscriptionType(option);
     };
 
     // This section is only shown when the subscription is annual

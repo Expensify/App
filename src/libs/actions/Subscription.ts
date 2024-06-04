@@ -13,7 +13,7 @@ function openSubscriptionPage() {
     API.read(READ_COMMANDS.OPEN_SUBSCRIPTION_PAGE, null);
 }
 
-function updateSubscriptionType(policyID: string, type: SubscriptionType) {
+function updateSubscriptionType(type: SubscriptionType) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -26,7 +26,6 @@ function updateSubscriptionType(policyID: string, type: SubscriptionType) {
 
     const parameters: UpdateSubscriptionTypeParams = {
         type,
-        policyID,
     };
 
     API.write(WRITE_COMMANDS.UPDATE_SUBSCRIPTION_TYPE, parameters, {
