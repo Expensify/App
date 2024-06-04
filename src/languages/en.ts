@@ -125,6 +125,7 @@ export default {
         buttonConfirm: 'Got it',
         name: 'Name',
         attachment: 'Attachment',
+        center: 'Center',
         from: 'From',
         to: 'To',
         optional: 'Optional',
@@ -334,6 +335,9 @@ export default {
         action: 'Action',
         expenses: 'Expenses',
         tax: 'Tax',
+        shared: 'Shared',
+        drafts: 'Drafts',
+        finished: 'Finished',
     },
     location: {
         useCurrent: 'Use current location',
@@ -673,7 +677,11 @@ export default {
         deleteConfirmation: 'Are you sure that you want to delete this expense?',
         settledExpensify: 'Paid',
         settledElsewhere: 'Paid elsewhere',
+        individual: 'Individual',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} with Expensify` : `Pay with Expensify`),
+        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} as an individual` : `Pay as an individual`),
+        settlePayment: ({formattedAmount}: SettleExpensifyCardParams) => `Pay ${formattedAmount}`,
+        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} as a business` : `Pay as a business`),
         payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} elsewhere` : `Pay elsewhere`),
         nextStep: 'Next Steps',
         finished: 'Finished',
@@ -1867,6 +1875,7 @@ export default {
             alerts: 'Get realtime updates and alerts',
         },
         bookTravel: 'Book travel',
+        bookDemo: 'Book demo',
         termsAndConditions: {
             header: 'Before we continue...',
             title: 'Please read the Terms & Conditions for travel',
@@ -2492,6 +2501,14 @@ export default {
             viewUnpaidInvoices: 'View unpaid invoices',
             sendInvoice: 'Send invoice',
             sendFrom: 'Send from',
+            paymentMethods: {
+                personal: 'Personal',
+                business: 'Business',
+                chooseInvoiceMethod: 'Choose a payment method below:',
+                addBankAccount: 'Add bank account',
+                payingAsIndividual: 'Paying as an individual',
+                payingAsBusiness: 'Paying as a business',
+            },
         },
         travel: {
             unlockConciergeBookingTravel: 'Unlock Concierge travel booking',
@@ -3143,5 +3160,24 @@ export default {
     },
     systemMessage: {
         mergedWithCashTransaction: 'matched a receipt to this transaction.',
+    },
+    subscription: {
+        subscriptionSize: {
+            title: 'Subscription size',
+            yourSize: 'Your subscription size is the number of open seats that can be filled by any active member in a given month.',
+            eachMonth:
+                'Each month, your subscription covers up to the number of active members set above. Any time you increase your subscription size, you’ll start a new 12-month subscription at that new size.',
+            note: 'Note: An active member is anyone who has created, edited, submitted, approved, reimbursed, or exported expense data tied to your company workspace.',
+            confirmDetails: 'Confirm your new annual subscription details',
+            subscriptionSize: 'Subscription size',
+            activeMembers: ({size}) => `${size} active members/month`,
+            subscriptionRenews: 'Subscription renews',
+            youCantDowngrade: 'You can’t downgrade during your annual subscription',
+            youAlreadyCommitted: ({size, date}) =>
+                `You already committed to an annual subscription size of ${size} active members per month until ${date}. You can switch to a pay-per-use subscription on ${date} by disabling auto-renew.`,
+            error: {
+                size: 'Please enter a valid subscription size.',
+            },
+        },
     },
 } satisfies TranslationBase;

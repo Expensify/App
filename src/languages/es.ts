@@ -119,6 +119,7 @@ export default {
         to: 'A',
         optional: 'Opcional',
         new: 'Nuevo',
+        center: 'Centrar',
         search: 'Buscar',
         find: 'Encontrar',
         searchWithThreeDots: 'Buscar...',
@@ -324,6 +325,9 @@ export default {
         action: 'Acción',
         expenses: 'Gastos',
         tax: 'Impuesto',
+        shared: 'Compartido',
+        drafts: 'Borradores',
+        finished: 'Finalizado',
     },
     connectionComplete: {
         title: 'Conexión Completa',
@@ -666,7 +670,11 @@ export default {
         deleteConfirmation: '¿Estás seguro de que quieres eliminar esta solicitud?',
         settledExpensify: 'Pagado',
         settledElsewhere: 'Pagado de otra forma',
+        individual: 'Individual',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} con Expensify` : `Pagar con Expensify`),
+        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pago ${formattedAmount} como individuo` : `Pago individual`),
+        settlePayment: ({formattedAmount}: SettleExpensifyCardParams) => `Pagar ${formattedAmount}`,
+        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} como negocio` : `Pagar como empresa`),
         payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} de otra forma` : `Pagar de otra forma`),
         nextStep: 'Pasos Siguientes',
         finished: 'Finalizado',
@@ -1891,6 +1899,7 @@ export default {
             alerts: 'Obtén actualizaciones y alertas en tiempo real',
         },
         bookTravel: 'Reservar viajes',
+        bookDemo: 'Pedir demostración',
         termsAndConditions: {
             header: 'Antes de continuar...',
             title: 'Por favor, lee los Términos y condiciones para reservar viajes',
@@ -2531,6 +2540,14 @@ export default {
             viewUnpaidInvoices: 'Ver facturas emitidas pendientes',
             sendInvoice: 'Enviar factura',
             sendFrom: 'Enviar desde',
+            paymentMethods: {
+                personal: 'Personal',
+                business: 'Empresas',
+                chooseInvoiceMethod: 'Elija un método de pago:',
+                addBankAccount: 'Añadir cuenta bancaria',
+                payingAsIndividual: 'Pago individual',
+                payingAsBusiness: 'Pagar como una empresa',
+            },
         },
         travel: {
             unlockConciergeBookingTravel: 'Desbloquea la reserva de viajes con Concierge',
@@ -3649,5 +3666,24 @@ export default {
     },
     systemMessage: {
         mergedWithCashTransaction: 'encontró un recibo para esta transacción.',
+    },
+    subscription: {
+        subscriptionSize: {
+            title: 'Tamaño de suscripción',
+            yourSize: 'El tamaño de tu suscripción es el número de plazas abiertas que puede ocupar cualquier miembro activo en un mes determinado.',
+            eachMonth:
+                'Cada mes, tu suscripción cubre hasta el número de miembros activos establecido anteriormente. Cada vez que aumentes el tamaño de tu suscripción, iniciarás una nueva suscripción de 12 meses con ese nuevo tamaño.',
+            note: 'Nota: Un miembro activo es cualquiera que haya creado, editado, enviado, aprobado, reembolsado, o exportado datos de gastos vinculados al espacio de trabajo de tu empresa.',
+            confirmDetails: 'Confirma los datos de tu nueva suscripción anual',
+            subscriptionSize: 'Tamaño de suscripción',
+            activeMembers: ({size}) => `${size} miembros activos/mes`,
+            subscriptionRenews: 'Renovación de la suscripción',
+            youCantDowngrade: 'No puedes bajar de categoría durante tu suscripción anual',
+            youAlreadyCommitted: ({size, date}) =>
+                `Ya se ha comprometido a un tamaño de suscripción anual de ${size} miembros activos al mes hasta el ${date}. Puede cambiar a una suscripción de pago por uso en ${date} desactivando la auto-renovación.`,
+            error: {
+                size: 'Por favor ingrese un tamaño de suscripción valido.',
+            },
+        },
     },
 } satisfies EnglishTranslation;
