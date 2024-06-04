@@ -438,8 +438,6 @@ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName:
 }
 
 function enablePolicyTags(policyID: string, enabled: boolean) {
-    const defaultTag: {name: string} = CONST.DEFAULT_TAG;
-    const doesPolicyTagListExist = !isEmpty(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`]);
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -477,19 +475,24 @@ function enablePolicyTags(policyID: string, enabled: boolean) {
             },
         ],
     };
-    if (enabled && !doesPolicyTagListExist) {
-        onyxData.optimisticData?.push({
-            key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
-            onyxMethod: Onyx.METHOD.MERGE,
-            value: {
-                [defaultTag.name]: {
-                    ...defaultTag,
-                },
+    const policyTagList = allPolicyTags?.[policyID];
+    if (!policyTagList) {
+        const defaultTagList: PolicyTagList = {
+            Tag: {
+                name: 'Tag',
+                orderWeight: 0,
+                required: false,
+                tags: {},
             },
+        };
+        onyxData.optimisticData?.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+            value: defaultTagList,
         });
         onyxData.failureData?.push({
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
-            onyxMethod: Onyx.METHOD.MERGE,
             value: null,
         });
     }

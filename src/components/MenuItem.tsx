@@ -360,7 +360,7 @@ function MenuItem(
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const combinedStyle = [style, styles.popoverMenuItem];
+    const combinedStyle = [styles.popoverMenuItem, style];
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isExecuting, singleExecution, waitForNavigate} = useContext(MenuItemGroupContext) ?? {};
 
