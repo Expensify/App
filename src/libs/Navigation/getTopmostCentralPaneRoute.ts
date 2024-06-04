@@ -1,6 +1,5 @@
 import isCentralPaneName from '@libs/NavigationUtils';
-import type {CentralPaneName} from './AppNavigator/CENTRAL_PANE_SCREENS';
-import type {NavigationPartialRoute, RootStackParamList, State} from './types';
+import type {CentralPaneName, NavigationPartialRoute, RootStackParamList, State} from './types';
 
 // Get the name of topmost central pane route in the navigation stack.
 function getTopmostCentralPaneRoute(state: State<RootStackParamList>): NavigationPartialRoute<CentralPaneName> | undefined {

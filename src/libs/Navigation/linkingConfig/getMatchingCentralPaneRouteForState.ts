@@ -1,6 +1,5 @@
-import type {CentralPaneName} from '@libs/Navigation/AppNavigator/CENTRAL_PANE_SCREENS';
 import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute';
-import type {AuthScreensParamList, NavigationPartialRoute, RootStackParamList, State} from '@libs/Navigation/types';
+import type {AuthScreensParamList, CentralPaneName, NavigationPartialRoute, RootStackParamList, State} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import TAB_TO_CENTRAL_PANE_MAPPING from './TAB_TO_CENTRAL_PANE_MAPPING';

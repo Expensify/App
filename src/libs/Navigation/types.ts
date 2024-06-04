@@ -928,6 +928,8 @@ type BottomTabName = keyof BottomTabNavigatorParamList;
 
 type FullScreenName = keyof FullScreenNavigatorParamList;
 
+type CentralPaneName = keyof CentralPaneScreensParamList;
+
 type SwitchPolicyIDParams = {
     policyID?: string;
     route?: Routes;
@@ -938,6 +940,7 @@ export type {
     AddPersonalBankAccountNavigatorParamList,
     AuthScreensParamList,
     CentralPaneScreensParamList,
+    CentralPaneName,
     BackToParams,
     BottomTabName,
     BottomTabNavigatorParamList,

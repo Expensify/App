@@ -1,5 +1,4 @@
-import type {CentralPaneName} from '@libs/Navigation/AppNavigator/CENTRAL_PANE_SCREENS';
-import type {BottomTabName} from '@navigation/types';
+import type {BottomTabName, CentralPaneName} from '@navigation/types';
 import SCREENS from '@src/SCREENS';
 
 const TAB_TO_CENTRAL_PANE_MAPPING: Record<BottomTabName, CentralPaneName[]> = {

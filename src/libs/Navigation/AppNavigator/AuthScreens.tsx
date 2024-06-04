@@ -2,6 +2,7 @@ import React, {memo, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {withOnyx} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import withPrepareCentralPaneScreen from '@components/withPrepareCentralPaneScreen';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
@@ -15,7 +16,7 @@ import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import getOnboardingModalScreenOptions from '@libs/Navigation/getOnboardingModalScreenOptions';
 import Navigation from '@libs/Navigation/Navigation';
-import type {AuthScreensParamList} from '@libs/Navigation/types';
+import type {AuthScreensParamList, CentralPaneName, CentralPaneScreensParamList} from '@libs/Navigation/types';
 import NetworkConnection from '@libs/NetworkConnection';
 import * as Pusher from '@libs/Pusher/pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
@@ -41,8 +42,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
-import type {CentralPaneName} from './CENTRAL_PANE_SCREENS';
-import {CENTRAL_PANE_SCREENS, getCentralPaneScreenInitialParams} from './CENTRAL_PANE_SCREENS';
+import CENTRAL_PANE_SCREENS from './CENTRAL_PANE_SCREENS';
 import createCustomStackNavigator from './createCustomStackNavigator';
 import defaultScreenOptions from './defaultScreenOptions';
 import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
@@ -74,6 +74,21 @@ const loadWorkspaceAvatar = () => require('../../../pages/workspace/WorkspaceAva
 const loadReportAvatar = () => require('../../../pages/ReportAvatar').default as React.ComponentType;
 const loadReceiptView = () => require('../../../pages/TransactionReceiptPage').default as React.ComponentType;
 const loadWorkspaceJoinUser = () => require('@pages/workspace/WorkspaceJoinUserPage').default as React.ComponentType;
+
+function getCentralPaneScreenInitialParams(screenName: CentralPaneName): Partial<ValueOf<CentralPaneScreensParamList>> {
+    const url = getCurrentUrl();
+    const openOnAdminRoom = url ? new URL(url).searchParams.get('openOnAdminRoom') : undefined;
+
+    if (screenName === SCREENS.SEARCH.CENTRAL_PANE) {
+        return {sortBy: CONST.SEARCH_TABLE_COLUMNS.DATE, sortOrder: CONST.SORT_ORDER.DESC};
+    }
+
+    if (screenName === SCREENS.REPORT && openOnAdminRoom === 'true') {
+        return {openOnAdminRoom: true};
+    }
+
+    return undefined;
+}
 
 let timezone: Timezone | null;
 let currentAccountID = -1;

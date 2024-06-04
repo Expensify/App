@@ -1,10 +1,5 @@
-import type {ValueOf} from 'type-fest';
-import getCurrentUrl from '@libs/Navigation/currentUrl';
-import type {CentralPaneScreensParamList} from '@libs/Navigation/types';
-import CONST from '@src/CONST';
+import type {CentralPaneName} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
-
-type CentralPaneName = keyof CentralPaneScreensParamList;
 
 type Screens = Partial<Record<CentralPaneName, () => React.ComponentType>>;
 
@@ -22,23 +17,4 @@ const CENTRAL_PANE_SCREENS = {
     [SCREENS.REPORT]: () => require('./ReportScreenWrapper').default as React.ComponentType,
 } satisfies Screens;
 
-const CENTRAL_PANE_SCREEN_NAMES = Object.keys(CENTRAL_PANE_SCREENS);
-
-function getCentralPaneScreenInitialParams(screenName: CentralPaneName): Partial<ValueOf<CentralPaneScreensParamList>> {
-    const url = getCurrentUrl();
-    const openOnAdminRoom = url ? new URL(url).searchParams.get('openOnAdminRoom') : undefined;
-
-    if (screenName === SCREENS.SEARCH.CENTRAL_PANE) {
-        return {sortBy: CONST.SEARCH_TABLE_COLUMNS.DATE, sortOrder: CONST.SORT_ORDER.DESC};
-    }
-
-    if (screenName === SCREENS.REPORT && openOnAdminRoom === 'true') {
-        return {openOnAdminRoom: true};
-    }
-
-    return undefined;
-}
-
-export type {CentralPaneName};
-
-export {CENTRAL_PANE_SCREENS, CENTRAL_PANE_SCREEN_NAMES, getCentralPaneScreenInitialParams};
+export default CENTRAL_PANE_SCREENS;
