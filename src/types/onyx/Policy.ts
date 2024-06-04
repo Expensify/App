@@ -7,6 +7,11 @@ import type {WorkspaceTravelSettings} from './TravelSettings';
 
 type Unit = 'mi' | 'km';
 
+type TaxRateAttributes = {
+    taxClaimablePercentage?: number;
+    taxRateExternalID?: string;
+};
+
 type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     name?: string;
     rate?: number;
@@ -15,10 +20,12 @@ type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     enabled?: boolean;
     errors?: OnyxCommon.Errors;
     errorFields?: OnyxCommon.ErrorFields;
+    attributes?: TaxRateAttributes;
 }>;
 
 type Attributes = {
     unit: Unit;
+    taxEnabled?: boolean;
 };
 
 type CustomUnit = OnyxCommon.OnyxValueWithOfflineFeedback<{
@@ -527,6 +534,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Indicates if the Policy is in loading state */
         isLoading?: boolean;
+
+        /** Indicates the Policy's SetWorkspaceReimbursement call loading state */
+        isLoadingWorkspaceReimbursement?: boolean;
 
         /** Indicates if the Policy ownership change is successful */
         isChangeOwnerSuccessful?: boolean;

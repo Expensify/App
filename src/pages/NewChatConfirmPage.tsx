@@ -128,6 +128,8 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
                     shouldDisableViewPhoto
                     editIcon={Expensicons.Camera}
                     editIconStyle={styles.smallEditIconAccount}
+                    shouldUseStyleUtilityForAnchorPosition
+                    style={styles.w100}
                 />
             </View>
             <MenuItemWithTopDescription

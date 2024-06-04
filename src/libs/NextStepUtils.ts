@@ -16,6 +16,7 @@ import * as PolicyUtils from './PolicyUtils';
 import * as ReportUtils from './ReportUtils';
 
 let currentUserAccountID = -1;
+let currentUserEmail = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
@@ -24,6 +25,7 @@ Onyx.connect({
         }
 
         currentUserAccountID = value?.accountID ?? -1;
+        currentUserEmail = value?.email ?? '';
     },
 });
 
@@ -273,6 +275,27 @@ function buildNextStep(
 
         // Generates an optimistic nextStep once a report has been approved
         case CONST.REPORT.STATUS_NUM.APPROVED:
+            if (
+                ReportUtils.isInvoiceReport(report) ||
+                !ReportUtils.isPayer(
+                    {
+                        accountID: currentUserAccountID,
+                        email: currentUserEmail,
+                    },
+                    report as Report,
+                )
+            ) {
+                optimisticNextStep = {
+                    type,
+                    title: 'Finished!',
+                    message: [
+                        {
+                            text: 'No further action required!',
+                        },
+                    ],
+                };
+                break;
+            }
             // Self review
             optimisticNextStep = {
                 type,
@@ -297,30 +320,6 @@ function buildNextStep(
                     },
                 ],
             };
-
-            // Another owner
-            if (!isOwner) {
-                optimisticNextStep.message = [
-                    {
-                        text: 'Waiting for ',
-                    },
-                    {
-                        text: managerDisplayName,
-                        type: 'strong',
-                    },
-                    {
-                        text: ' to ',
-                    },
-                    {
-                        text: 'pay',
-                        type: 'strong',
-                    },
-                    {
-                        text: ' %expenses.',
-                    },
-                ];
-            }
-
             break;
 
         // Generates an optimistic nextStep once a report has been paid
