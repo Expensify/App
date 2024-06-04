@@ -90,7 +90,7 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
             >
                 <HeaderWithBackButton title={translate('workspace.common.settings')} />
                 <ScrollView contentContainerStyle={styles.flexGrow1}>
-                    <View style={styles.flexGrow1}>
+                    <View>
                         <OfflineWithFeedback
                             errors={ErrorUtils.getLatestErrorField(customUnits[customUnitID] ?? {}, 'attributes')}
                             pendingAction={customUnits[customUnitID]?.pendingFields?.attributes}

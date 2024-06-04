@@ -1,6 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
-import {Keyboard} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -56,7 +55,6 @@ function PolicyDistanceRateTaxRateEditPage({route, policy}: PolicyDistanceRateTa
                 },
             },
         ]);
-        Keyboard.dismiss();
         Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATE_DETAILS.getRoute(policyID, rateID));
     };
 

@@ -128,7 +128,7 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
                 />
                 <ScrollView contentContainerStyle={styles.flexGrow1}>
-                    <View style={styles.flexGrow1}>
+                    <View>
                         <OfflineWithFeedback
                             errors={ErrorUtils.getLatestErrorField(rate ?? {}, 'enabled')}
                             pendingAction={rate?.pendingFields?.enabled}

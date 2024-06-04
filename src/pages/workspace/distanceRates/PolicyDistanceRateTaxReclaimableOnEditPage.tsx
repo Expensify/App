@@ -1,6 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
-import {Keyboard} from 'react-native';
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
@@ -46,7 +45,6 @@ function PolicyDistanceRateTaxReclaimableOnEditPage({route, policy}: PolicyDista
                 },
             },
         ]);
-        Keyboard.dismiss();
         Navigation.goBack();
     };
 
