@@ -4763,6 +4763,12 @@ const CONST = {
             },
         },
     },
+    DEFAULT_TAG: {
+        name: 'Tag',
+        orderWeight: 0,
+        required: false,
+        tags: [],
+    },
 
     MAX_TAX_RATE_INTEGER_PLACES: 4,
     MAX_TAX_RATE_DECIMAL_PLACES: 4,
