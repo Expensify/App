@@ -2008,6 +2008,7 @@ function buildOptimisticCustomUnits(): OptimisticCustomUnits {
                     name: CONST.CUSTOM_UNITS.DEFAULT_RATE,
                     rate: CONST.CUSTOM_UNITS.MILEAGE_IRS_RATE * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET,
                     currency,
+                    enabled: true,
                 },
             },
         },
