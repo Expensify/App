@@ -56,6 +56,7 @@ function BaseSelectionList<TItem extends ListItem>(
         headerContent,
         footerContent,
         listFooterContent,
+        listEmptyContent,
         showScrollIndicator = true,
         showLoadingPlaceholder = false,
         showConfirmButton = false,
@@ -103,6 +104,7 @@ function BaseSelectionList<TItem extends ListItem>(
     const itemFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
     const isTextInputFocusedRef = useRef<boolean>(false);
+    const isEmptyList = sections.length === 0;
 
     const incrementPage = () => setCurrentPage((prev) => prev + 1);
 
@@ -256,12 +258,16 @@ function BaseSelectionList<TItem extends ListItem>(
         initialFocusedIndex: flattenedSections.allOptions.findIndex((option) => option.keyForList === initiallyFocusedOptionKey),
         maxIndex: Math.min(flattenedSections.allOptions.length - 1, CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage - 1),
         disabledIndexes: disabledArrowKeyIndexes,
-        isActive: true,
+        isActive: isFocused,
         onFocusedIndexChange: (index: number) => {
             scrollToIndex(index, true);
         },
         isFocused,
     });
+
+    const clearInputAfterSelect = useCallback(() => {
+        onChangeText?.('');
+    }, [onChangeText]);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const debouncedOnSelectRow = useCallback(lodashDebounce(onSelectRow, 1000, {leading: true}), [onSelectRow]);
@@ -284,6 +290,10 @@ function BaseSelectionList<TItem extends ListItem>(
                     // If we're selecting an item, scroll to it's position at the top, so we can see it
                     scrollToIndex(Math.max(selectedOptionsCount - 1, 0), true);
                 }
+            }
+
+            if (shouldShowTextInput) {
+                clearInputAfterSelect();
             }
         }
 
@@ -414,30 +424,32 @@ function BaseSelectionList<TItem extends ListItem>(
         const showTooltip = shouldShowTooltips && normalizedIndex < 10;
 
         return (
-            <ListItem
-                item={item}
-                isFocused={isItemFocused}
-                isDisabled={isDisabled}
-                showTooltip={showTooltip}
-                canSelectMultiple={canSelectMultiple}
-                onSelectRow={() => selectRow(item)}
-                onCheckboxPress={onCheckboxPress ? () => onCheckboxPress?.(item) : undefined}
-                onDismissError={() => onDismissError?.(item)}
-                shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
-                // We're already handling the Enter key press in the useKeyboardShortcut hook, so we don't want the list item to submit the form
-                shouldPreventEnterKeySubmit
-                // Change this because of lint
-                rightHandSideComponent={rightHandSideComponent && (typeof rightHandSideComponent === 'function' ? rightHandSideComponent({} as TItem) : rightHandSideComponent)}
-                keyForList={item.keyForList ?? ''}
-                isMultilineSupported={isRowMultilineSupported}
-                onFocus={() => {
-                    if (isDisabled) {
-                        return;
-                    }
-                    setFocusedIndex(normalizedIndex);
-                }}
-                shouldSyncFocus={!isTextInputFocusedRef.current}
-            />
+            <>
+                <ListItem
+                    item={item}
+                    isFocused={isItemFocused}
+                    isDisabled={isDisabled}
+                    showTooltip={showTooltip}
+                    canSelectMultiple={canSelectMultiple}
+                    onSelectRow={() => selectRow(item)}
+                    onCheckboxPress={onCheckboxPress ? () => onCheckboxPress?.(item) : undefined}
+                    onDismissError={() => onDismissError?.(item)}
+                    shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
+                    // We're already handling the Enter key press in the useKeyboardShortcut hook, so we don't want the list item to submit the form
+                    shouldPreventEnterKeySubmit
+                    rightHandSideComponent={rightHandSideComponent}
+                    keyForList={item.keyForList ?? ''}
+                    isMultilineSupported={isRowMultilineSupported}
+                    onFocus={() => {
+                        if (isDisabled) {
+                            return;
+                        }
+                        setFocusedIndex(normalizedIndex);
+                    }}
+                    shouldSyncFocus={!isTextInputFocusedRef.current}
+                />
+                {item.footerContent && item.footerContent}
+            </>
         );
     };
 
@@ -580,7 +592,7 @@ function BaseSelectionList<TItem extends ListItem>(
         [flattenedSections.allOptions, setFocusedIndex, updateAndScrollToFocusedIndex],
     );
 
-    useImperativeHandle(ref, () => ({scrollAndHighlightItem}), [scrollAndHighlightItem]);
+    useImperativeHandle(ref, () => ({scrollAndHighlightItem, clearInputAfterSelect}), [scrollAndHighlightItem, clearInputAfterSelect]);
 
     /** Selects row when pressing Enter */
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, shouldDebounceRowSelect ? debouncedSelectFocusedOption : selectFocusedOption, {
@@ -692,8 +704,11 @@ function BaseSelectionList<TItem extends ListItem>(
                                 testID="selection-list"
                                 onLayout={onSectionListLayout}
                                 style={(!maxToRenderPerBatch || (shouldHideListOnInitialRender && isInitialSectionListRender)) && styles.opacity0}
+                                ListHeaderComponent={listHeaderContent}
                                 ListFooterComponent={listFooterContent ?? ShowMoreButtonInstance}
-                                ListHeaderComponent={listHeaderContent && listHeaderContent}
+                                ListEmptyComponent={listEmptyContent}
+                                contentContainerStyle={isEmptyList && listEmptyContent ? styles.flexGrow1 : undefined}
+                                scrollEnabled={!isEmptyList || !listEmptyContent}
                                 onEndReached={onEndReached}
                                 onEndReachedThreshold={onEndReachedThreshold}
                             />

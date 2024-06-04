@@ -255,6 +255,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}
                 danger
+                shouldEnableNewFocusManagement
             />
             {isSmallScreenWidth && shouldShowHoldMenu && (
                 <ProcessMoneyRequestHoldMenu
