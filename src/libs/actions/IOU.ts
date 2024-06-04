@@ -6646,28 +6646,24 @@ function setSplitShares(transaction: OnyxEntry<OnyxTypes.Transaction>, amount: n
     // If this is called from an existing group chat, it'll be included. So we manually add them to account for both cases.
     const accountIDs = [...new Set<number>([userAccountID, ...newAccountIDs, ...oldAccountIDs])];
 
-    const splitShares: SplitShares = accountIDs.reduce((result: SplitShares, accountID): SplitShares => {
+    const splitShares: SplitShares = accountIDs.reduce((acc: SplitShares, accountID): SplitShares => {
         // We want to replace the contents of splitShares to contain only `newAccountIDs` entries
         // In the case of going back to the participants page and removing a participant
         // a simple merge will have the previous participant still present in the splitshares object
         // So we manually set their entry to null
         if (!newAccountIDs.includes(accountID) && accountID !== userAccountID) {
-            return {
-                ...result,
-                [accountID]: null,
-            };
+            acc[accountID] = null;
+            return acc;
         }
 
         const isPayer = accountID === userAccountID;
         const participantsLength = newAccountIDs.includes(userAccountID) ? newAccountIDs.length - 1 : newAccountIDs.length;
         const splitAmount = IOUUtils.calculateAmount(participantsLength, amount, currency, isPayer);
-        return {
-            ...result,
-            [accountID]: {
-                amount: splitAmount,
-                isModified: false,
-            },
+        acc[accountID] = {
+            amount: splitAmount,
+            isModified: false,
         };
+        return acc;
     }, {});
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, {splitShares});
@@ -6719,14 +6715,12 @@ function adjustRemainingSplitShares(transaction: NonNullable<OnyxTypes.Transacti
         return;
     }
 
-    const splitShares: SplitShares = unmodifiedSharesAccountIDs.reduce((result: SplitShares, accountID: number, index: number): SplitShares => {
+    const splitShares: SplitShares = unmodifiedSharesAccountIDs.reduce((acc: SplitShares, accountID: number, index: number): SplitShares => {
         const splitAmount = IOUUtils.calculateAmount(unmodifiedSharesAccountIDs.length - 1, remainingTotal, transaction.currency, index === 0);
-        return {
-            ...result,
-            [accountID]: {
-                amount: splitAmount,
-            },
+        acc[accountID] = {
+            amount: splitAmount,
         };
+        return acc;
     }, {});
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, {splitShares});
