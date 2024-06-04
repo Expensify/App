@@ -186,6 +186,7 @@ function IOURequestStepWaypoint({
                     confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}
                     danger
+                    shouldEnableNewFocusManagement
                 />
                 <FormProvider
                     style={[styles.flexGrow1, styles.mh5]}
