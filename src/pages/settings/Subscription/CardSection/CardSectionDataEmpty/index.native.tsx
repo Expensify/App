@@ -13,16 +13,14 @@ function CardSectionDataEmpty() {
     const theme = useTheme();
 
     return (
-        <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
             <Icon
                 src={Expensicons.CreditCardExclamation}
                 additionalStyles={styles.subscriptionCardIcon}
                 fill={theme.icon}
-                large
+                medium
             />
-            <View style={styles.alignSelfCenter}>
-                <Text style={[styles.mutedNormalTextLabel, styles.textBold]}>{translate('subscription.cardSection.cardNotFound')}</Text>
-            </View>
+            <Text style={[styles.mutedNormalTextLabel, styles.textStrong]}>{translate('subscription.cardSection.cardNotFound')}</Text>
         </View>
     );
 }

@@ -29,7 +29,7 @@ function CardSection() {
             titleStyles={styles.textStrong}
             subtitleMuted
         >
-            <View style={styles.mt5}>
+            <View style={[styles.mt5, styles.flexRow]}>
                 {!isEmptyObject(defaultCard?.accountData) && (
                     <>
                         <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
@@ -37,9 +37,9 @@ function CardSection() {
                                 src={Expensicons.CreditCard}
                                 additionalStyles={styles.subscriptionCardIcon}
                                 fill={theme.text}
-                                large
+                                medium
                             />
-                            <View>
+                            <View style={styles.flex1}>
                                 <Text>{translate('subscription.cardSection.cardEnding', {cardNumber: defaultCard?.accountData?.cardNumber})}</Text>
                                 <Text style={styles.mutedNormalTextLabel}>
                                     {translate('subscription.cardSection.cardInfo', {

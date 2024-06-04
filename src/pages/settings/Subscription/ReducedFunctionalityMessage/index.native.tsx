@@ -6,7 +6,7 @@ function ReducedFunctionalityMessage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    return <Text style={styles.sectionListMutedInfo}>{translate('subscription.mobileReducedFunctionalityMessage')}</Text>;
+    return <Text style={[styles.ph5, styles.pb5, styles.textSupporting]}>{translate('subscription.mobileReducedFunctionalityMessage')}</Text>;
 }
 
 ReducedFunctionalityMessage.displayName = 'ReducedFunctionalityMessage';
