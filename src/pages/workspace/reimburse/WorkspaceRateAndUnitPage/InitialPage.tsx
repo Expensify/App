@@ -12,12 +12,13 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import {getUnitTranslationKey} from '@libs/WorkspacesSettingsUtils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import * as BankAccounts from '@userActions/BankAccounts';
-import * as Policy from '@userActions/Policy';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -61,7 +62,7 @@ function WorkspaceRateAndUnitPage(props: WorkspaceRateAndUnitPageProps) {
     }, [props]);
 
     const saveUnitAndRate = (newUnit: Unit, newRate: string) => {
-        const distanceCustomUnit = Object.values(props.policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+        const distanceCustomUnit = PolicyUtils.getCustomUnit(props.policy);
         if (!distanceCustomUnit) {
             return;
         }
@@ -81,7 +82,7 @@ function WorkspaceRateAndUnitPage(props: WorkspaceRateAndUnitPageProps) {
         Policy.updateWorkspaceCustomUnitAndRate(props.policy?.id ?? '', distanceCustomUnit, newCustomUnit, props.policy?.lastModified);
     };
 
-    const distanceCustomUnit = Object.values(props.policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+    const distanceCustomUnit = PolicyUtils.getCustomUnit(props.policy);
     const distanceCustomRate = Object.values(distanceCustomUnit?.rates ?? {}).find((rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE);
 
     const unitValue = props.workspaceRateAndUnit?.unit ?? distanceCustomUnit?.attributes.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;

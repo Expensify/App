@@ -600,7 +600,7 @@ function ReportActionsList({
     const extraData = useMemo(() => [isSmallScreenWidth ? currentUnreadMarker : undefined, ReportUtils.isArchivedRoom(report)], [currentUnreadMarker, isSmallScreenWidth, report]);
     const hideComposer = !ReportUtils.canUserPerformWriteAction(report);
     const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(personalDetailsList, report, currentUserPersonalDetails.accountID) && !isComposerFullSize;
-    const canShowHeader = !isOffline && !hasHeaderRendered.current && scrollingVerticalOffset.current > VERTICAL_OFFSET_THRESHOLD;
+    const canShowHeader = isOffline || hasHeaderRendered.current;
 
     const contentContainerStyle: StyleProp<ViewStyle> = useMemo(
         () => [styles.chatContentScrollView, isLoadingNewerReportActions && canShowHeader ? styles.chatContentScrollViewWithHeaderLoader : {}],
