@@ -1102,9 +1102,7 @@ function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>): 
 }
 
 function getReportActionHtml(reportAction: PartialReportAction): string {
-    // @ts-expect-error Handle refactor not using message array, will remove when Back End is changed complete https://github.com/Expensify/App/issues/39797
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return (reportAction?.message?.html as string) || reportAction?.message?.[0]?.html;
+    return getReportActionMessage(reportAction)?.html;
 }
 
 function getReportActionText(reportAction: PartialReportAction): string {
@@ -1407,7 +1405,8 @@ export {
     isRenamedAction,
     isRoomChangeLogAction,
     isChronosOOOListAction,
-    isAddCommentAction
+    isAddCommentAction,
+    isPolicyChangelLogAction
 };
 
 export type {LastVisibleMessage};

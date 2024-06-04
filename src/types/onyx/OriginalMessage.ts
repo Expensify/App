@@ -178,6 +178,7 @@ type OriginalMessageModifiedExpense = {
     oldBillable?: string;
     billable?: string;
     whisperedTo?: number[];
+    movedToReportID?: string;
 };
 
 type OriginalMessageReimbursementQueued = {
@@ -296,4 +297,4 @@ type AssertAllActionsWithHTMLAreListed = AssertTypesEqual<
 
 export default OriginalMessage;
 export {REPORT_ACTIONS_WITH_HTML_MESSAGE};
-export type {ChronosOOOEvent, PaymentMethodType, OriginalMessageSource, ReportActionNamesWithHTMLMessage, Reaction, Decision};
+export type {ChronosOOOEvent, PaymentMethodType, OriginalMessageSource, ReportActionNamesWithHTMLMessage, Reaction, Decision, OriginalMessageChangeLog};

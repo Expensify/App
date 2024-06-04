@@ -38,23 +38,9 @@ import type {
 } from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {
-    ChangeLog,
-    Closed,
-    IOUMessage,
-    OriginalMessageActionName,
-    OriginalMessageCreated,
-    OriginalMessageDismissedViolation,
-    OriginalMessageReimbursementDequeued,
-    OriginalMessageReimbursementQueued,
-    OriginalMessageRenamed,
-    OriginalMessageReportPreview,
-    PaymentMethodType,
-    ReimbursementDeQueuedMessage,
-} from '@src/types/onyx/OriginalMessage';
 import type {Status} from '@src/types/onyx/PersonalDetails';
 import type {NotificationPreference, Participants, PendingChatMember, Participant as ReportParticipant} from '@src/types/onyx/Report';
-import type {Message, ReportActionBase, ReportActions, ReportPreviewAction} from '@src/types/onyx/ReportAction';
+import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import type {Comment, Receipt, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -86,6 +72,8 @@ import * as TransactionUtils from './TransactionUtils';
 import * as Url from './Url';
 import type {AvatarSource} from './UserUtils';
 import * as UserUtils from './UserUtils';
+import { OriginalMessageChangeLog, PaymentMethodType } from '@src/types/onyx/OriginalMessage';
+import ReportActionName from '@src/types/onyx/ReportActionName';
 
 type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18;
 
@@ -263,11 +251,11 @@ type OptimisticDismissedViolationReportAction = Pick<
     'actionName' | 'actorAccountID' | 'avatar' | 'created' | 'message' | 'originalMessage' | 'person' | 'reportActionID' | 'shouldShow' | 'pendingAction'
 >;
 
-type OptimisticCreatedReportAction = OriginalMessageCreated &
-    Pick<ReportActionBase, 'actorAccountID' | 'automatic' | 'avatar' | 'created' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'pendingAction'>;
+type OptimisticCreatedReportAction =
+    Pick<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CREATED>, 'actorAccountID' | 'automatic' | 'avatar' | 'created' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'pendingAction' | 'actionName'>;
 
-type OptimisticRenamedReportAction = OriginalMessageRenamed &
-    Pick<ReportActionBase, 'actorAccountID' | 'automatic' | 'avatar' | 'created' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'pendingAction'>;
+type OptimisticRenamedReportAction =
+    Pick<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.RENAMED>, 'actorAccountID' | 'automatic' | 'avatar' | 'created' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'pendingAction' | 'actionName' | 'originalMessage'>;
 
 type OptimisticChatReport = Pick<
     Report,
@@ -341,7 +329,7 @@ type OptimisticWorkspaceChats = {
 };
 
 type OptimisticModifiedExpenseReportAction = Pick<
-    ReportAction,
+    ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE>,
     'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'created' | 'isAttachment' | 'message' | 'originalMessage' | 'person' | 'pendingAction' | 'reportActionID' | 'shouldShow'
 > & {reportID?: string};
 
@@ -2199,11 +2187,11 @@ function getReimbursementQueuedActionMessage(reportAction: OnyxEntry<ReportActio
  * Returns the preview message for `REIMBURSEMENT_DEQUEUED` action
  */
 function getReimbursementDeQueuedActionMessage(
-    reportAction: OnyxEntry<ReportActionBase & OriginalMessageReimbursementDequeued>,
+    reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED>>,
     report: OnyxEntry<Report> | EmptyObject,
     isLHNPreview = false,
 ): string {
-    if (!ReportActionsUtils.isMoneyRequestAction(reportAction)) {
+    if (!ReportActionsUtils.isReimbursementDeQueuedAction(reportAction)) {
         return '';
     }
     const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
@@ -2625,12 +2613,12 @@ function canEditMoneyRequest(reportAction: OnyxEntry<ReportAction>): boolean {
     }
 
     // If the report action is not IOU type, return true early
-    if (reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
+    if (!ReportActionsUtils.isMoneyRequestAction(reportAction)) {
         return true;
     }
 
     const allowedReportActionType: Array<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>> = [CONST.IOU.REPORT_ACTION_TYPE.TRACK, CONST.IOU.REPORT_ACTION_TYPE.CREATE];
-    const originalMessage = ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(reportAction);
+    const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
 
     if (!allowedReportActionType.includes(originalMessage.type)) {
         return false;
@@ -2680,7 +2668,7 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxEntry<ReportAction>, field
         CONST.EDIT_REQUEST_FIELD.DISTANCE,
     ];
 
-    if (!canEditMoneyRequest(reportAction)) {
+    if (!canEditMoneyRequest(reportAction) || !ReportActionsUtils.isMoneyRequestAction(reportAction)) {
         return false;
     }
 
@@ -2689,7 +2677,7 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxEntry<ReportAction>, field
         return true;
     }
 
-    const iouMessage = ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(reportAction);
+    const iouMessage = ReportActionsUtils.getOriginalMessage(reportAction);
     const moneyRequestReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouMessage?.IOUReportID}`] ?? ({} as Report);
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${iouMessage?.IOUTransactionID}`] ?? ({} as Transaction);
 
@@ -2730,12 +2718,13 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxEntry<ReportAction>, field
  */
 function canEditReportAction(reportAction: OnyxEntry<ReportAction>): boolean {
     const isCommentOrIOU = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU;
+    const message = Array.isArray(reportAction?.message) ? reportAction?.message?.[0]: reportAction?.message;
 
     return Boolean(
         reportAction?.actorAccountID === currentUserAccountID &&
             isCommentOrIOU &&
             canEditMoneyRequest(reportAction) && // Returns true for non-IOU actions
-            !isReportMessageAttachment(reportAction?.message?.[0]) &&
+            !isReportMessageAttachment(message) &&
             (isEmptyObject(reportAction.attachmentInfo) || !reportAction.isOptimisticAction) &&
             !ReportActionsUtils.isDeletedAction(reportAction) &&
             !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
@@ -2776,8 +2765,8 @@ function areAllRequestsBeingSmartScanned(iouReportID: string, reportPreviewActio
 function getLinkedTransaction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>): Transaction | EmptyObject {
     let transactionID = '';
 
-    if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
-        transactionID = ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(reportAction)?.IOUTransactionID ?? '';
+    if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
+        transactionID = ReportActionsUtils.getOriginalMessage(reportAction)?.IOUTransactionID ?? '';
     }
 
     return allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? {};
@@ -3090,7 +3079,7 @@ function getModifiedExpenseOriginalMessage(
  * Check if original message is an object and can be used as a ChangeLog type
  * @param originalMessage
  */
-function isChangeLogObject(originalMessage?: ChangeLog): ChangeLog | undefined {
+function isChangeLogObject(originalMessage?: OriginalMessageChangeLog): OriginalMessageChangeLog | undefined {
     if (originalMessage && typeof originalMessage === 'object') {
         return originalMessage;
     }
@@ -3102,10 +3091,17 @@ function isChangeLogObject(originalMessage?: ChangeLog): ChangeLog | undefined {
  * @param parentReportAction
  * @param parentReportActionMessage
  */
-function getAdminRoomInvitedParticipants(parentReportAction: ReportAction, parentReportActionMessage: string) {
+function getAdminRoomInvitedParticipants(parentReportAction: ReportAction | EmptyObject, parentReportActionMessage: string) {
+    if (isEmptyObject(parentReportAction)) {
+        return parentReportActionMessage || Localize.translateLocal('parentReportAction.deletedMessage');
+    }
     if (!ReportActionsUtils.getOriginalMessage(parentReportAction)) {
         return parentReportActionMessage || Localize.translateLocal('parentReportAction.deletedMessage');
     }
+    if (!ReportActionsUtils.isPolicyChangelLogAction(parentReportAction) || !ReportActionsUtils.isRoomChangeLogAction(parentReportAction)) {
+        return parentReportActionMessage || Localize.translateLocal('parentReportAction.deletedMessage');
+    }
+
     const originalMessage = isChangeLogObject(ReportActionsUtils.getOriginalMessage(parentReportAction));
     const participantAccountIDs = originalMessage?.targetAccountIDs ?? [];
 
@@ -3169,7 +3165,7 @@ function getReportActionMessage(reportAction: ReportAction | EmptyObject, parent
     if (ReportActionsUtils.isReimbursementQueuedAction(reportAction)) {
         return getReimbursementQueuedActionMessage(reportAction, getReport(parentReportID), false);
     }
-    return Str.removeSMSDomain(reportAction?.message?.[0]?.text ?? '');
+    return Str.removeSMSDomain(ReportActionsUtils.getReportActionText(reportAction) ?? '');
 }
 
 /**
@@ -3576,6 +3572,11 @@ function buildOptimisticAddCommentReportAction(
                     text: textForNewComment,
                 },
             ],
+            originalMessage: {
+                html: htmlForNewComment,
+                text: textForNewComment,
+                whisperedTo: []
+            },
             isFirstItem: false,
             isAttachment,
             attachmentInfo,
@@ -3647,15 +3648,18 @@ function buildOptimisticTaskCommentReportAction(
     createdOffset = 0,
 ): OptimisticReportAction {
     const reportAction = buildOptimisticAddCommentReportAction(text, undefined, undefined, createdOffset, undefined, taskReportID);
-    if (reportAction.reportAction.message?.[0]) {
+    if (Array.isArray(reportAction.reportAction.message) && reportAction.reportAction.message?.[0]) {
         reportAction.reportAction.message[0].taskReportID = taskReportID;
+    } else if (!Array.isArray(reportAction.reportAction.message) && reportAction.reportAction.message) {
+        reportAction.reportAction.message.taskReportID = taskReportID;
     }
 
     // These parameters are not saved on the reportAction, but are used to display the task in the UI
     // Added when we fetch the reportActions on a report
     reportAction.reportAction.originalMessage = {
-        html: ReportActionsUtils.getReportActionMessage(reportAction.reportAction)?.html,
+        html: ReportActionsUtils.getReportActionMessage(reportAction.reportAction)?.html ?? '',
         taskReportID: ReportActionsUtils.getReportActionMessage(reportAction.reportAction)?.taskReportID,
+        whisperedTo: []
     };
     reportAction.reportAction.childReportID = taskReportID;
     reportAction.reportAction.parentReportID = parentReportID;
@@ -3995,7 +3999,7 @@ function buildOptimisticIOUReportAction(
 ): OptimisticIOUReportAction {
     const IOUReportID = iouReportID || generateReportID();
 
-    const originalMessage: IOUMessage = {
+    const originalMessage: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>['originalMessage'] = {
         amount,
         comment,
         currency,
@@ -4339,7 +4343,7 @@ function updateReportPreview(
     isPayRequest = false,
     comment = '',
     transaction: OnyxEntry<Transaction> = null,
-): ReportPreviewAction {
+): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> {
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const recentReceiptTransactions = reportPreviewAction?.childRecentReceiptTransactionIDs ?? {};
     const transactionsToKeep = TransactionUtils.getRecentTransactions(recentReceiptTransactions);
@@ -4385,7 +4389,7 @@ function updateReportPreview(
 
 function buildOptimisticTaskReportAction(
     taskReportID: string,
-    actionName: OriginalMessageActionName,
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED | typeof CONST.REPORT.ACTIONS.TYPE.TASK_REOPENED | typeof CONST.REPORT.ACTIONS.TYPE.TASK_CANCELLED,
     message = '',
     actorAccountID = currentUserAccountID,
     createdOffset = 0,
@@ -4394,6 +4398,8 @@ function buildOptimisticTaskReportAction(
         taskReportID,
         type: actionName,
         text: message,
+        html: message,
+        whisperedTo: [],
     };
     return {
         actionName,
