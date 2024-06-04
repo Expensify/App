@@ -15,7 +15,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import AccountUtils from '@libs/AccountUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
@@ -34,7 +33,6 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useOnboardingLayout();
-    const {accountID} = useSession();
 
     useDisableModalDismissOnEscape();
 

@@ -3428,6 +3428,7 @@ function completeOnboarding(
         engagementChoice,
         firstName,
         lastName,
+        actorAccountID,
         guidedSetupData: JSON.stringify(guidedSetupData),
     };
 
