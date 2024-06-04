@@ -10,7 +10,6 @@ import * as Report from '@src/libs/actions/Report';
 import * as ReportActions from '@src/libs/actions/ReportActions';
 import * as User from '@src/libs/actions/User';
 import DateUtils from '@src/libs/DateUtils';
-import Navigation from '@src/libs/Navigation/Navigation';
 import * as NumberUtils from '@src/libs/NumberUtils';
 import * as PersonalDetailsUtils from '@src/libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
