@@ -1552,10 +1552,6 @@ const CONST = {
             CATEGORIZE: 'categorize',
             SHARE: 'share',
         },
-        ACTION_TYPE: {
-            APPROVE: 'approve',
-            PAY: 'pay',
-        },
         DEFAULT_AMOUNT: 0,
         TYPE: {
             SEND: 'send',

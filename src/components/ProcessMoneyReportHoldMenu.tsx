@@ -11,6 +11,8 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import DecisionModal from './DecisionModal';
 
+type ActionHandledType = DeepValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE.PAY | typeof CONST.IOU.REPORT_ACTION_TYPE.APPROVE>;
+
 type ProcessMoneyReportHoldMenuProps = {
     /** The chat report this report is linked to */
     chatReport: OnyxEntry<OnyxTypes.Report>;
@@ -37,7 +39,7 @@ type ProcessMoneyReportHoldMenuProps = {
     paymentType?: PaymentMethodType;
 
     /** Type of action handled */
-    requestType?: DeepValueOf<typeof CONST.IOU.ACTION_TYPE>;
+    requestType?: ActionHandledType;
 };
 
 function ProcessMoneyReportHoldMenu({
@@ -52,7 +54,7 @@ function ProcessMoneyReportHoldMenu({
     moneyRequestReport,
 }: ProcessMoneyReportHoldMenuProps) {
     const {translate} = useLocalize();
-    const isApprove = requestType === CONST.IOU.ACTION_TYPE.APPROVE;
+    const isApprove = requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE;
 
     const onSubmit = (full: boolean) => {
         if (isApprove) {
@@ -84,3 +86,4 @@ function ProcessMoneyReportHoldMenu({
 ProcessMoneyReportHoldMenu.displayName = 'ProcessMoneyReportHoldMenu';
 
 export default ProcessMoneyReportHoldMenu;
+export type {ActionHandledType};
