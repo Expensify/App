@@ -3723,7 +3723,6 @@ export {
     buildPolicyData,
     navigateWhenEnableFeature,
     removePendingFieldsFromCustomUnit,
-    getPolicy,
     createPolicyExpenseChats,
 };
 
