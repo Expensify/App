@@ -1,4 +1,4 @@
-import {formatDistanceToNow, differenceInMinutes, isValid, parseISO} from 'date-fns';
+import {differenceInMinutes, formatDistanceToNow, isValid, parseISO} from 'date-fns';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
