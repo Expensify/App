@@ -12,9 +12,9 @@ import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, Transaction} from '@src/types/onyx';
+import type {Message} from '@src/types/onyx/ReportAction';
 import TextCommentFragment from './comment/TextCommentFragment';
 import ReportActionItemFragment from './ReportActionItemFragment';
-import { Message } from '@src/types/onyx/ReportAction';
 
 type ReportActionItemMessageOnyxProps = {
     /** The transaction linked to the report action. */
