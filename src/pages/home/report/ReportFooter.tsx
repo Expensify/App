@@ -26,6 +26,9 @@ import ReportActionCompose from './ReportActionCompose/ReportActionCompose';
 import SystemChatReportFooterMessage from './SystemChatReportFooterMessage';
 
 type ReportFooterOnyxProps = {
+    /** The account that is logged in */
+    account: OnyxEntry<OnyxTypes.Account>;
+
     /** Whether to show the compose input */
     shouldShowComposeInput: OnyxEntry<boolean>;
 
@@ -68,6 +71,7 @@ type ReportFooterProps = ReportFooterOnyxProps & {
 };
 
 function ReportFooter({
+    account,
     lastReportAction,
     pendingAction,
     session,
@@ -90,7 +94,7 @@ function ReportFooter({
     const isAnonymousUser = session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
 
     const isSmallSizeLayout = windowWidth - (isSmallScreenWidth ? 0 : variables.sideBarWidth) < variables.anonymousReportFooterBreakpoint;
-    const hideComposer = !ReportUtils.canUserPerformWriteAction(report, reportNameValuePairs) || blockedFromChat;
+    const hideComposer = (!ReportUtils.canUserPerformWriteAction(report, reportNameValuePairs) && !account?.isLoading) || blockedFromChat;
     const canWriteInReport = ReportUtils.canWriteInReport(report);
     const isSystemChat = ReportUtils.isSystemChat(report);
 
@@ -189,6 +193,9 @@ function ReportFooter({
 ReportFooter.displayName = 'ReportFooter';
 
 export default withOnyx<ReportFooterProps, ReportFooterOnyxProps>({
+    account: {
+        key: ONYXKEYS.ACCOUNT,
+    },
     shouldShowComposeInput: {
         key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
         initialValue: false,
@@ -211,6 +218,7 @@ export default withOnyx<ReportFooterProps, ReportFooterOnyxProps>({
             prevProps.lastReportAction === nextProps.lastReportAction &&
             prevProps.shouldShowComposeInput === nextProps.shouldShowComposeInput &&
             prevProps.isReportReadyForDisplay === nextProps.isReportReadyForDisplay &&
-            lodashIsEqual(prevProps.session, nextProps.session),
+            lodashIsEqual(prevProps.session, nextProps.session) &&
+            lodashIsEqual(prevProps.account, nextProps.account),
     ),
 );
