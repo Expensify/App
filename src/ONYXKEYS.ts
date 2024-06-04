@@ -154,6 +154,9 @@ const ONYXKEYS = {
     /** Whether the user has dismissed the hold educational interstitial */
     DISMISSED_HOLD_USE_EXPLANATION: 'nvp_dismissedHoldUseExplanation',
 
+    /** Store the state of the subscription */
+    NVP_PRIVATE_SUBSCRIPTION: 'nvp_private_subscription',
+
     /** Store preferred skintone for emoji */
     PREFERRED_EMOJI_SKIN_TONE: 'nvp_expensify_preferredEmojiSkinTone',
 
@@ -479,6 +482,8 @@ const ONYXKEYS = {
         WORKSPACE_TAX_VALUE_FORM_DRAFT: 'workspaceTaxValueFormDraft',
         NEW_CHAT_NAME_FORM: 'newChatNameForm',
         NEW_CHAT_NAME_FORM_DRAFT: 'newChatNameFormDraft',
+        SUBSCRIPTION_SIZE_FORM: 'subscriptionSizeForm',
+        SUBSCRIPTION_SIZE_FORM_DRAFT: 'subscriptionSizeFormDraft',
     },
 } as const;
 
@@ -536,6 +541,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.WORKSPACE_TAX_NAME_FORM]: FormTypes.WorkspaceTaxNameForm;
     [ONYXKEYS.FORMS.WORKSPACE_TAX_VALUE_FORM]: FormTypes.WorkspaceTaxValueForm;
     [ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM]: FormTypes.NewChatNameForm;
+    [ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM]: FormTypes.SubscriptionSizeForm;
 };
 
 type OnyxFormDraftValuesMapping = {
@@ -640,6 +646,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_ACTIVE_POLICY_ID]: string;
     [ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS]: OnyxTypes.DismissedReferralBanners;
     [ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING]: boolean;
+    [ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION]: OnyxTypes.PrivateSubscription;
     [ONYXKEYS.USER_WALLET]: OnyxTypes.UserWallet;
     [ONYXKEYS.WALLET_ONFIDO]: OnyxTypes.WalletOnfido;
     [ONYXKEYS.WALLET_ADDITIONAL_DETAILS]: OnyxTypes.WalletAdditionalDetails;
