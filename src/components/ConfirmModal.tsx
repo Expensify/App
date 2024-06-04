@@ -89,6 +89,12 @@ type ConfirmModalProps = {
 
     /** Image to display with content */
     image?: IconAsset;
+
+    /**
+     * Whether the modal should enable the new focus manager.
+     * We are attempting to migrate to a new refocus manager, adding this property for gradual migration.
+     * */
+    shouldEnableNewFocusManagement?: boolean;
 };
 
 function ConfirmModal({
@@ -119,8 +125,9 @@ function ConfirmModal({
     shouldShowDismissIcon,
     titleContainerStyles,
     shouldReverseStackedButtons,
+    shouldEnableNewFocusManagement,
 }: ConfirmModalProps) {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
 
     return (
@@ -130,8 +137,9 @@ function ConfirmModal({
             isVisible={isVisible}
             shouldSetModalVisibility={shouldSetModalVisibility}
             onModalHide={onModalHide}
-            type={shouldUseNarrowLayout ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
+            type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             innerContainerStyle={image ? styles.pt0 : {}}
+            shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
         >
             <ConfirmContent
                 title={title}
@@ -148,7 +156,7 @@ function ConfirmModal({
                 shouldShowCancelButton={shouldShowCancelButton}
                 shouldCenterContent={shouldCenterContent}
                 iconSource={iconSource}
-                contentStyles={shouldUseNarrowLayout && shouldShowDismissIcon ? styles.mt2 : undefined}
+                contentStyles={isSmallScreenWidth && shouldShowDismissIcon ? styles.mt2 : undefined}
                 iconFill={iconFill}
                 iconHeight={iconHeight}
                 iconWidth={iconWidth}

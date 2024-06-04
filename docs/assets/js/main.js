@@ -196,6 +196,30 @@ const tocbotOptions = {
     scrollContainer: 'content-area',
 };
 
+function selectNewExpensify(newExpensifyTab, newExpensifyContent, expensifyClassicTab, expensifyClassicContent) {
+    newExpensifyTab.classList.add('active');
+    newExpensifyContent.classList.remove('hidden');
+
+    expensifyClassicTab.classList.remove('active');
+    expensifyClassicContent.classList.add('hidden');
+    window.tocbot.refresh({
+        ...tocbotOptions,
+        contentSelector: '#new-expensify',
+    });
+}
+
+function selectExpensifyClassic(newExpensifyTab, newExpensifyContent, expensifyClassicTab, expensifyClassicContent) {
+    expensifyClassicTab.classList.add('active');
+    expensifyClassicContent.classList.remove('hidden');
+
+    newExpensifyTab.classList.remove('active');
+    newExpensifyContent.classList.add('hidden');
+    window.tocbot.refresh({
+        ...tocbotOptions,
+        contentSelector: '#expensify-classic',
+    });
+}
+
 window.addEventListener('DOMContentLoaded', () => {
     injectFooterCopywrite();
 
@@ -219,8 +243,10 @@ window.addEventListener('DOMContentLoaded', () => {
     let contentSelector = '.article-toc-content';
     if (expensifyClassicContent) {
         contentSelector = '#expensify-classic';
+        selectExpensifyClassic(newExpensifyTab, newExpensifyContent, expensifyClassicTab, expensifyClassicContent);
     } else if (newExpensifyContent) {
         contentSelector = '#new-expensify';
+        selectNewExpensify(newExpensifyTab, newExpensifyContent, expensifyClassicTab, expensifyClassicContent);
     }
 
     if (window.tocbot) {
@@ -232,28 +258,12 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // eslint-disable-next-line es/no-optional-chaining
     expensifyClassicTab?.addEventListener('click', () => {
-        expensifyClassicTab.classList.add('active');
-        expensifyClassicContent.classList.remove('hidden');
-
-        newExpensifyTab.classList.remove('active');
-        newExpensifyContent.classList.add('hidden');
-        window.tocbot.refresh({
-            ...tocbotOptions,
-            contentSelector: '#expensify-classic',
-        });
+        selectExpensifyClassic(newExpensifyTab, newExpensifyContent, expensifyClassicTab, expensifyClassicContent);
     });
 
     // eslint-disable-next-line es/no-optional-chaining
     newExpensifyTab?.addEventListener('click', () => {
-        newExpensifyTab.classList.add('active');
-        newExpensifyContent.classList.remove('hidden');
-
-        expensifyClassicTab.classList.remove('active');
-        expensifyClassicContent.classList.add('hidden');
-        window.tocbot.refresh({
-            ...tocbotOptions,
-            contentSelector: '#new-expensify',
-        });
+        selectNewExpensify(newExpensifyTab, newExpensifyContent, expensifyClassicTab, expensifyClassicContent);
     });
 
     document.getElementById('header-button').addEventListener('click', toggleHeaderMenu);
