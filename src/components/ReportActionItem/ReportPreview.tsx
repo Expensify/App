@@ -179,9 +179,8 @@ function ReportPreview({
         setRequestType(CONST.IOU.ACTION_TYPE.PAY);
         if (ReportUtils.hasHeldExpenses(iouReport?.reportID)) {
             setIsHoldMenuVisible(true);
-        } else if (chatReport) {
-            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-            IOU.payMoneyRequest(type, chatReport, iouReport as Report, false);
+        } else if (chatReport && iouReport) {
+            IOU.payMoneyRequest(type, chatReport, iouReport, false);
         }
     };
 
@@ -400,9 +399,7 @@ function ReportPreview({
                                         policyID={policyID}
                                         chatReportID={chatReportID}
                                         iouReport={iouReport}
-                                        onPress={(type) => {
-                                            confirmPayment(type);
-                                        }}
+                                        onPress={confirmPayment}
                                         confirmApproval={confirmApproval}
                                         enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                                         addBankAccountRoute={bankAccountRoute}
@@ -434,7 +431,7 @@ function ReportPreview({
                     </View>
                 </PressableWithoutFeedback>
             </View>
-            {isHoldMenuVisible && !!iouReport && requestType !== undefined && (
+            {isHoldMenuVisible && iouReport && requestType !== undefined && (
                 <ProcessMoneyReportHoldMenu
                     nonHeldAmount={!ReportUtils.hasOnlyHeldExpenses(iouReport?.reportID ?? '') ? nonHeldAmount : undefined}
                     requestType={requestType}
