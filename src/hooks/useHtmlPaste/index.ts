@@ -16,9 +16,8 @@ const insertAtCaret = (target: HTMLElement, text: string) => {
         range.insertNode(node);
 
         // Move caret to the end of the newly inserted text node.
-        // we have to set offset as `node.length - 1` when text has empty line at the end
-        // because the length of line break at the end will be calculated as 2 and it will occurs console error & cursor is not positioned correctly.
-        // link to issue: https://github.com/Expensify/App/issues/42216
+        // Correctly calculate text length since newline character does not create a new line in HTML
+        // https://github.com/Expensify/App/issues/42216
         const offset = text.endsWith('\n') ? node.length - 1 : node.length;
         range.setStart(node, offset);
         range.setEnd(node, offset);
