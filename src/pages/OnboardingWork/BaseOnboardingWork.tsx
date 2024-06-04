@@ -7,7 +7,6 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import OfflineIndicator from '@components/OfflineIndicator';
-import {useSession} from '@components/OnyxProvider';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useDisableModalDismissOnEscape from '@hooks/useDisableModalDismissOnEscape';
