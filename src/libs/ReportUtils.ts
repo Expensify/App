@@ -51,7 +51,7 @@ import type {
 } from '@src/types/onyx/OriginalMessage';
 import type {Status} from '@src/types/onyx/PersonalDetails';
 import type {NotificationPreference, Participants, PendingChatMember, Participant as ReportParticipant} from '@src/types/onyx/Report';
-import type {Message, ReportActionBase, ReportActions, ReportPreviewAction} from '@src/types/onyx/ReportAction';
+import type {Message, OriginalMessage, ReportActionBase, ReportActions, ReportPreviewAction} from '@src/types/onyx/ReportAction';
 import type {Comment, Receipt, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -3039,6 +3039,28 @@ function getModifiedExpenseOriginalMessage(
     }
 
     return originalMessage;
+}
+
+const ORIGINAL_MESSAGE_FIELDS = ['comment', 'created', 'merchant', 'amount', 'currency', 'category', 'tag', 'taxCode', 'taxAmount', 'billable'] as const;
+
+// /**
+//  * Detect and return a modified field name based on the original message.
+//  *
+//  * At the moment, we only allow changing one transaction field at a time.
+//  * @param originalMessage
+//  */
+function getOriginalMessageModifiedField({originalMessage}: OriginalMessage): string {
+    if (typeof originalMessage !== 'object' || originalMessage === null) {
+        return '';
+    }
+
+    for (const field of ORIGINAL_MESSAGE_FIELDS) {
+        if (field in originalMessage) {
+            return field;
+        }
+    }
+
+    return '';
 }
 
 /**
@@ -7026,6 +7048,7 @@ export {
     isCurrentUserInvoiceReceiver,
     isDraftReport,
     createDraftWorkspaceAndNavigateToConfirmationScreen,
+    getOriginalMessageModifiedField,
 };
 
 export type {

@@ -31,6 +31,7 @@ import * as Localize from './Localize';
 import Log from './Log';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
+import {getOriginalMessageModifiedField} from './ReportUtils';
 import type {OptimisticIOUReportAction} from './ReportUtils';
 import StringUtils from './StringUtils';
 import * as TransactionUtils from './TransactionUtils';
@@ -1098,58 +1099,76 @@ function isOldDotReportAction(action: ReportAction): boolean {
  * Helper method to format message of OldDot Actions.
  * For now, we just concat all of the text elements of the message to create the full message.
  */
-function getMessageOfOldDotReportAction(action: ReportAction, actionName: ActionName): string {
-    console.log('ACTION ', action);
-
+function getMessageOfOldDotReportAction({originalMessage}: ReportAction, actionName: ActionName): string {
     switch (actionName) {
-        case CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD:
-            return Localize.translateLocal('report.actions.type.changeField', {value: '', oldValue: '', fieldName: ''});
-        case CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY:
-            return Localize.translateLocal('report.actions.type.changePolicy', {});
-        case CONST.REPORT.ACTIONS.TYPE.CHANGE_TYPE:
-            return Localize.translateLocal('report.actions.type.changeType', {});
-        case CONST.REPORT.ACTIONS.TYPE.DELEGATE_SUBMIT:
-            return Localize.translateLocal('report.actions.type.delegateSubmit', {});
+        case CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD: {
+            const fieldName = getOriginalMessageModifiedField(action.originalMessage);
+            const {value, oldValue} = originalMessage;
+
+            return Localize.translateLocal('report.actions.type.changeField', {value, oldValue, fieldName});
+        }
+        case CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY: {
+            const {value, oldValue} = originalMessage;
+            return Localize.translateLocal('report.actions.type.changePolicy', {value, oldValue});
+        }
+        case CONST.REPORT.ACTIONS.TYPE.CHANGE_TYPE: {
+            const {value, oldValue} = originalMessage;
+            return Localize.translateLocal('report.actions.type.changeType', {value, oldValue});
+        }
+        case CONST.REPORT.ACTIONS.TYPE.DELEGATE_SUBMIT: {
+            const {delegateUser, awayUser} = originalMessage;
+            return Localize.translateLocal('report.actions.type.delegateSubmit', {delegateUser, awayUser});
+        }
         case CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV:
-            return Localize.translateLocal('report.actions.type.exportedToCSV', {});
+            return Localize.translateLocal('report.actions.type.exportedToCSV');
         case CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION:
-            return Localize.translateLocal('report.actions.type.exportedToIntegration', {});
+            return Localize.translateLocal('report.actions.type.exportedToIntegration');
         case CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_QUICK_BOOKS:
-            return Localize.translateLocal('report.actions.type.exportedToQuickBooks', {});
-        case CONST.REPORT.ACTIONS.TYPE.FORWARDED:
-            return Localize.translateLocal('report.actions.type.forwarded', {});
+            return Localize.translateLocal('report.actions.type.exportedToQuickBooks');
+        case CONST.REPORT.ACTIONS.TYPE.FORWARDED: {
+            const {amount, currency} = originalMessage;
+            return Localize.translateLocal('report.actions.type.forwarded', {amount, currency});
+        }
         case CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE:
-            return Localize.translateLocal('report.actions.type.integrationsMessage', {});
+            return Localize.translateLocal('report.actions.type.integrationsMessage', {errorMessage: originalMessage.errorMessage});
         case CONST.REPORT.ACTIONS.TYPE.MANAGER_ATTACH_RECEIPT:
-            return Localize.translateLocal('report.actions.type.managerAttachReceipt', {});
+            return Localize.translateLocal('report.actions.type.managerAttachReceipt');
         case CONST.REPORT.ACTIONS.TYPE.MANAGER_DETACH_RECEIPT:
-            return Localize.translateLocal('report.actions.type.managerDetachReceipt', {});
-        case CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED:
-            return Localize.translateLocal('report.actions.type.markedReimbursed', {});
-        case CONST.REPORT.ACTIONS.TYPE.MARK_REIMBURSED_FROM_INTEGRATION:
-            return Localize.translateLocal('report.actions.type.markedReimbursedFromIntegration', {});
+            return Localize.translateLocal('report.actions.type.managerDetachReceipt');
+        case CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED: {
+            const {amount, currency} = originalMessage;
+            return Localize.translateLocal('report.actions.type.markedReimbursed', {amount, currency});
+        }
+        case CONST.REPORT.ACTIONS.TYPE.MARK_REIMBURSED_FROM_INTEGRATION: {
+            const {amount, currency} = originalMessage;
+            return Localize.translateLocal('report.actions.type.markedReimbursedFromIntegration', {amount, currency});
+        }
         case CONST.REPORT.ACTIONS.TYPE.OUTDATED_BANK_ACCOUNT:
-            return Localize.translateLocal('report.actions.type.outdatedBankAccount', {});
+            return Localize.translateLocal('report.actions.type.outdatedBankAccount');
         case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE:
-            return Localize.translateLocal('report.actions.type.reimbursementACHBounce', {});
+            return Localize.translateLocal('report.actions.type.reimbursementACHBounce');
         case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELLED:
-            return Localize.translateLocal('report.actions.type.reimbursementACHCancelled', {});
+            return Localize.translateLocal('report.actions.type.reimbursementACHCancelled');
         case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACCOUNT_CHANGED:
-            return Localize.translateLocal('report.actions.type.reimbursementACHCancelled', {});
+            return Localize.translateLocal('report.actions.type.reimbursementAccountChanged');
         case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED:
-            return Localize.translateLocal('report.actions.type.reimbursementDelayed', {});
+            return Localize.translateLocal('report.actions.type.reimbursementDelayed', {delayReason: originalMessage.delayReason});
         case CONST.REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT:
-            return Localize.translateLocal('report.actions.type.selectedForRandomAudit', {});
+            return Localize.translateLocal('report.actions.type.selectedForRandomAudit');
         case CONST.REPORT.ACTIONS.TYPE.SHARE:
-            return Localize.translateLocal('report.actions.type.share', {});
+            return Localize.translateLocal('report.actions.type.share', {user: originalMessage.invitedUser});
         case CONST.REPORT.ACTIONS.TYPE.UNSHARE:
-            return Localize.translateLocal('report.actions.type.unshare', {});
-        case CONST.REPORT.ACTIONS.TYPE.STRIPE_PAID:
-            return Localize.translateLocal('report.actions.type.stripePaid', {});
+            return Localize.translateLocal('report.actions.type.unshare', {user: originalMessage.removedUser});
+        case CONST.REPORT.ACTIONS.TYPE.STRIPE_PAID: {
+            const {amount, currency} = originalMessage;
+            return Localize.translateLocal('report.actions.type.stripePaid', {amount, currency});
+        }
         case CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL:
-            return Localize.translateLocal('report.actions.type.takeControl', {});
-        case CONST.REPORT.ACTIONS.TYPE.UNAPPROVED:
-            return Localize.translateLocal('report.actions.type.unapproved', {});
+            return Localize.translateLocal('report.actions.type.takeControl');
+        case CONST.REPORT.ACTIONS.TYPE.UNAPPROVED: {
+            const {amount, currency} = originalMessage;
+            return Localize.translateLocal('report.actions.type.unapproved', {amount, currency});
+        }
         default:
             return '';
     }

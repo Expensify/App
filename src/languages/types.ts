@@ -302,21 +302,21 @@ type ModifyExpenseParams = {oldValue: string; value: string};
 
 type ChangeFieldParams = ModifyExpenseParams & {fieldName: string};
 
-type DelegateSubmitParams = {delegateUser: string; targetUser: string};
+type DelegateSubmitParams = {delegateUser: string; awayUser: string};
 
-type ForwardedParams = {amount: string};
+type ForwardedParams = {amount: string; currency: string};
 
 type IntegrationsMessageParams = {errorMessage: string};
 
-type MarkedReimbursedParams = {amount: string};
+type MarkedReimbursedParams = {amount: string; currency: string};
 
 type ReimbursementDelayedParams = {delayReason: string};
 
 type ShareParams = {user: string};
 
-type StripePaidParams = {amount: string};
+type StripePaidParams = {amount: string; currency: string};
 
-type UnapprovedParams = {amount: string};
+type UnapprovedParams = {amount: string; currency: string};
 
 export type {
     AdminCanceledRequestParams,
