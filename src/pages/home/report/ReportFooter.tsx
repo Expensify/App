@@ -26,9 +26,6 @@ import ReportActionCompose from './ReportActionCompose/ReportActionCompose';
 import SystemChatReportFooterMessage from './SystemChatReportFooterMessage';
 
 type ReportFooterOnyxProps = {
-    /** The account that is logged in */
-    account: OnyxEntry<OnyxTypes.Account>;
-
     /** Whether to show the compose input */
     shouldShowComposeInput: OnyxEntry<boolean>;
 
@@ -42,6 +39,8 @@ type ReportFooterOnyxProps = {
 type ReportFooterProps = ReportFooterOnyxProps & {
     /** Report object for the current report */
     report?: OnyxTypes.Report;
+
+    reportMetadata?: OnyxEntry<OnyxTypes.ReportMetadata>;
 
     reportNameValuePairs?: OnyxEntry<OnyxTypes.ReportNameValuePairs>;
 
@@ -71,11 +70,11 @@ type ReportFooterProps = ReportFooterOnyxProps & {
 };
 
 function ReportFooter({
-    account,
     lastReportAction,
     pendingAction,
     session,
     report = {reportID: '0'},
+    reportMetadata,
     reportNameValuePairs,
     shouldShowComposeInput = false,
     isEmptyChat = true,
@@ -94,7 +93,10 @@ function ReportFooter({
     const isAnonymousUser = session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
 
     const isSmallSizeLayout = windowWidth - (isSmallScreenWidth ? 0 : variables.sideBarWidth) < variables.anonymousReportFooterBreakpoint;
-    const hideComposer = (!ReportUtils.canUserPerformWriteAction(report, reportNameValuePairs) && !account?.isLoading) || blockedFromChat;
+
+    // If a user just signed in and is viewing a public report, optimistically show the composer while loading the report, since they will have write access when the response comes back.
+    const showComposerOptimistically = ReportUtils.isPublicRoom(report) && reportMetadata?.isLoadingInitialReportActions;
+    const hideComposer = (!ReportUtils.canUserPerformWriteAction(report, reportNameValuePairs) && !showComposerOptimistically) || blockedFromChat;
     const canWriteInReport = ReportUtils.canWriteInReport(report);
     const isSystemChat = ReportUtils.isSystemChat(report);
 
@@ -193,9 +195,6 @@ function ReportFooter({
 ReportFooter.displayName = 'ReportFooter';
 
 export default withOnyx<ReportFooterProps, ReportFooterOnyxProps>({
-    account: {
-        key: ONYXKEYS.ACCOUNT,
-    },
     shouldShowComposeInput: {
         key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
         initialValue: false,
@@ -219,6 +218,6 @@ export default withOnyx<ReportFooterProps, ReportFooterOnyxProps>({
             prevProps.shouldShowComposeInput === nextProps.shouldShowComposeInput &&
             prevProps.isReportReadyForDisplay === nextProps.isReportReadyForDisplay &&
             lodashIsEqual(prevProps.session, nextProps.session) &&
-            lodashIsEqual(prevProps.account, nextProps.account),
+            lodashIsEqual(prevProps.reportMetadata, nextProps.reportMetadata),
     ),
 );

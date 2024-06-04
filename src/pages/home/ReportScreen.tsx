@@ -713,6 +713,7 @@ function ReportScreen({
                                         onComposerFocus={() => setIsComposerFocus(true)}
                                         onComposerBlur={() => setIsComposerFocus(false)}
                                         report={report}
+                                        reportMetadata={reportMetadata}
                                         reportNameValuePairs={reportNameValuePairs}
                                         pendingAction={reportPendingAction}
                                         isComposerFullSize={!!isComposerFullSize}
