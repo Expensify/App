@@ -125,6 +125,7 @@ describe('test workflow platformDeploy', () => {
 
                 assertions.assertVerifyActorJobExecuted(result);
                 assertions.assertDeployChecklistJobExecuted(result, true);
+                assertions.assertHybridAppJobExecuted(result, true);
                 assertions.assertAndroidJobExecuted(result, true, false, true);
                 assertions.assertDesktopJobExecuted(result, true, false);
                 assertions.assertIOSJobExecuted(result, true, false, true);
@@ -213,6 +214,7 @@ describe('test workflow platformDeploy', () => {
 
                 assertions.assertVerifyActorJobExecuted(result);
                 assertions.assertDeployChecklistJobExecuted(result, true);
+                assertions.assertHybridAppJobExecuted(result, true);
                 assertions.assertAndroidJobExecuted(result, true, false, true);
                 assertions.assertDesktopJobExecuted(result, true, false);
                 assertions.assertIOSJobExecuted(result, true, false, true);
@@ -301,6 +303,7 @@ describe('test workflow platformDeploy', () => {
 
                 assertions.assertVerifyActorJobExecuted(result);
                 assertions.assertDeployChecklistJobExecuted(result, true);
+                assertions.assertHybridAppJobExecuted(result, false);
                 assertions.assertAndroidJobExecuted(result, false);
                 assertions.assertDesktopJobExecuted(result, false);
                 assertions.assertIOSJobExecuted(result, false);

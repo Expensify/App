@@ -26,7 +26,7 @@ function assertDeployChecklistJobExecuted(workflowResult: Step[], didExecute = t
 }
 
 function assertHybridAppJobExecuted(workflowResult: Step[], didExecute = true) {
-    const steps = [createStepAssertion('hybridApp', true, null, 'HYBRID_APP', 'Run hybridApp')] as const;
+    const steps = [createStepAssertion('hybridApp', true, null, 'HYBRID_APP', 'Deploy HybridApp')] as const;
 
     steps.forEach((expectedStep) => {
         if (didExecute) {
