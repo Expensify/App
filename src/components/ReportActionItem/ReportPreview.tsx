@@ -171,7 +171,7 @@ function ReportPreview({
         [chatReport?.isOwnPolicyExpenseChat, policy?.harvesting?.enabled],
     );
 
-    const confirmPayment = (type?: PaymentMethodType | undefined) => {
+    const confirmPayment = (type: PaymentMethodType | undefined) => {
         if (!type) {
             return;
         }
@@ -400,7 +400,9 @@ function ReportPreview({
                                         policyID={policyID}
                                         chatReportID={chatReportID}
                                         iouReport={iouReport}
-                                        onPress={confirmPayment}
+                                        onPress={(type) => {
+                                            confirmPayment(type);
+                                        }}
                                         confirmApproval={confirmApproval}
                                         enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                                         addBankAccountRoute={bankAccountRoute}
