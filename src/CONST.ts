@@ -4779,7 +4779,7 @@ const CONST = {
     SEARCH_RESULTS_PAGE_SIZE: 50,
 
     SEARCH_DATA_TYPES: {
-        TRANSACTION: 'transactions',
+        TRANSACTION: 'transaction',
         REPORT: 'report',
     },
 
