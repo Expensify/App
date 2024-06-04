@@ -1696,7 +1696,7 @@ const styles = (theme: ThemeColors) =>
         createMenuHeaderText: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeLabel,
-            color: theme.heading,
+            color: theme.textSupporting,
         },
 
         popoverMenuItem: {

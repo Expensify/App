@@ -31,12 +31,6 @@ import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscree
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import ToggleSettingOptionRow from './workflows/ToggleSettingsOptionRow';
 
-type ItemType = 'organize' | 'integrate';
-type ConnectionWarningModalState = {
-    isOpen: boolean;
-    itemType?: ItemType;
-};
-
 type WorkspaceMoreFeaturesPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.MORE_FEATURES>;
 
 type Item = {
@@ -66,7 +60,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const isSyncTaxEnabled = !!policy?.connections?.quickbooksOnline?.config.syncTax || !!policy?.connections?.xero?.config.importTaxRates;
     const policyID = policy?.id ?? '';
 
-    const [connectionWarningModalState, setConnectionWarningModalState] = useState<ConnectionWarningModalState>({isOpen: false});
+    const [isOrganizeWarningModalOpen, setIsOrganizeWarningModalOpen] = useState<boolean>(false);
+    const [isIntegrateWarningModalOpen, setIsIntegrateWarningModalOpen] = useState<boolean>(false);
 
     const spendItems: Item[] = [
         {
@@ -101,10 +96,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             pendingAction: policy?.pendingFields?.areCategoriesEnabled,
             action: (isEnabled: boolean) => {
                 if (hasAccountingConnection) {
-                    setConnectionWarningModalState({
-                        isOpen: true,
-                        itemType: 'organize',
-                    });
+                    setIsOrganizeWarningModalOpen(true);
                     return;
                 }
                 Category.enablePolicyCategories(policy?.id ?? '', isEnabled);
@@ -119,10 +111,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             pendingAction: policy?.pendingFields?.areTagsEnabled,
             action: (isEnabled: boolean) => {
                 if (hasAccountingConnection) {
-                    setConnectionWarningModalState({
-                        isOpen: true,
-                        itemType: 'organize',
-                    });
+                    setIsOrganizeWarningModalOpen(true);
                     return;
                 }
                 Tag.enablePolicyTags(policy?.id ?? '', isEnabled);
@@ -137,10 +126,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             pendingAction: policy?.pendingFields?.tax,
             action: (isEnabled: boolean) => {
                 if (hasAccountingConnection) {
-                    setConnectionWarningModalState({
-                        isOpen: true,
-                        itemType: 'organize',
-                    });
+                    setIsOrganizeWarningModalOpen(true);
                     return;
                 }
                 Policy.enablePolicyTaxes(policy?.id ?? '', isEnabled);
@@ -157,10 +143,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             pendingAction: policy?.pendingFields?.areConnectionsEnabled,
             action: (isEnabled: boolean) => {
                 if (hasAccountingConnection) {
-                    setConnectionWarningModalState({
-                        isOpen: true,
-                        itemType: 'integrate',
-                    });
+                    setIsIntegrateWarningModalOpen(true);
                     return;
                 }
                 Policy.enablePolicyConnections(policy?.id ?? '', isEnabled);
@@ -247,17 +230,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         }, [fetchFeatures]),
     );
 
-    const getConnectionWarningPrompt = useCallback(() => {
-        switch (connectionWarningModalState.itemType) {
-            case 'organize':
-                return translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledText');
-            case 'integrate':
-                return translate('workspace.moreFeatures.connectionsWarningModal.disconnectText');
-            default:
-                return undefined;
-        }
-    }, [connectionWarningModalState.itemType, translate]);
-
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -280,20 +252,24 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 <ConfirmModal
                     title={translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledTitle')}
                     onConfirm={() => {
-                        setConnectionWarningModalState({
-                            isOpen: false,
-                            itemType: undefined,
-                        });
+                        setIsOrganizeWarningModalOpen(false);
                         Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
                     }}
-                    onCancel={() =>
-                        setConnectionWarningModalState({
-                            isOpen: false,
-                            itemType: undefined,
-                        })
-                    }
-                    isVisible={connectionWarningModalState.isOpen}
-                    prompt={getConnectionWarningPrompt()}
+                    onCancel={() => setIsOrganizeWarningModalOpen(false)}
+                    isVisible={isOrganizeWarningModalOpen}
+                    prompt={translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledText')}
+                    confirmText={translate('workspace.moreFeatures.connectionsWarningModal.manageSettings')}
+                    cancelText={translate('common.cancel')}
+                />
+                <ConfirmModal
+                    title={translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledTitle')}
+                    onConfirm={() => {
+                        setIsIntegrateWarningModalOpen(false);
+                        Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
+                    }}
+                    onCancel={() => setIsIntegrateWarningModalOpen(false)}
+                    isVisible={isIntegrateWarningModalOpen}
+                    prompt={translate('workspace.moreFeatures.connectionsWarningModal.disconnectText')}
                     confirmText={translate('workspace.moreFeatures.connectionsWarningModal.manageSettings')}
                     cancelText={translate('common.cancel')}
                 />
