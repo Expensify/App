@@ -8,6 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as HeaderUtils from '@libs/HeaderUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -16,7 +17,8 @@ import * as IOU from '@userActions/IOU';
 import * as TransactionActions from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, { Route } from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -369,7 +371,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     if (!navigateBackToAfterDelete.current) {
                         return;
                     }
-                    Navigation.goBack(navigateBackToAfterDelete.current)
+                    Navigation.goBack(navigateBackToAfterDelete.current);
                 }}
                 prompt={translate('iou.deleteConfirmation')}
                 confirmText={translate('common.delete')}

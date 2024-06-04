@@ -261,7 +261,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
                     if (!navigateBackToAfterDelete.current) {
                         return;
                     }
-                    Navigation.goBack(navigateBackToAfterDelete.current)
+                    Navigation.goBack(navigateBackToAfterDelete.current);
                 }}
                 prompt={translate('iou.deleteConfirmation')}
                 confirmText={translate('common.delete')}
