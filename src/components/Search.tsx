@@ -20,6 +20,7 @@ import type {SearchQuery} from '@src/types/onyx/SearchResults';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import * as ReportUtils from '@libs/ReportUtils';
 import SelectionList from './SelectionList';
 import SearchTableHeader from './SelectionList/SearchTableHeader';
 import type {ReportListItemType, TransactionListItemType} from './SelectionList/types';
@@ -31,11 +32,6 @@ type SearchProps = {
     sortBy?: SearchColumnType;
     sortOrder?: SortOrder;
 };
-
-function isReportListItemType(item: TransactionListItemType | ReportListItemType): item is ReportListItemType {
-    const reportListItem = item as ReportListItemType;
-    return reportListItem.transactions !== undefined;
-}
 
 function isTransactionListItemType(item: TransactionListItemType | ReportListItemType): item is TransactionListItemType {
     const transactionListItem = item as TransactionListItemType;
@@ -79,9 +75,17 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
         return <EmptySearchView />;
     }
 
-    const openReport = (reportID?: string) => {
+    const openReport = (item: TransactionListItemType | ReportListItemType) => {
+        let reportID = isTransactionListItemType(item) ? item.transactionThreadReportID : item.reportID;
+
         if (!reportID) {
             return;
+        }
+
+        // If we're trying to open a legacy transaction without a transaction thread, let's create the thread and navigate the user
+        if (isTransactionListItemType(item) && reportID === '0' && item.moneyRequestReportActionID) {
+            reportID = ReportUtils.generateReportID();
+            SearchActions.createTransactionThread(hash, item.transactionID, reportID, item.moneyRequestReportActionID);
         }
 
         Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(query, reportID));
@@ -138,16 +142,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
             updateCellsBatchingPeriod={200}
             ListItem={ListItem}
             sections={[{data: sortedData, isDisabled: false}]}
-            onSelectRow={(item) => {
-                const reportID = isReportListItemType(item) ? item.reportID : item.transactionThreadReportID;
-
-                if (isTransactionListItemType(item) && item.transactionThreadReportID === '0' && item.moneyRequestReportActionID) {
-                    SearchActions.createTransactionThread(hash, query, item.transactionID, item.moneyRequestReportActionID);
-                    return;
-                }
-
-                openReport(reportID);
-            }}
+            onSelectRow={(item) => openReport(item)}
             shouldDebounceRowSelect
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
             listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
