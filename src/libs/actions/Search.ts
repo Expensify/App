@@ -2,7 +2,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {SearchParams} from '@libs/API/parameters';
-import {READ_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function search({hash, query, policyIDs, offset, sortBy, sortOrder}: SearchParams) {
@@ -32,7 +32,12 @@ function search({hash, query, policyIDs, offset, sortBy, sortOrder}: SearchParam
 
     API.read(READ_COMMANDS.SEARCH, {hash, query, offset, policyIDs, sortBy, sortOrder}, {optimisticData, finallyData});
 }
+
+function createTransactionThread(hash: number, transactionID: string, newThreadReportID: string) {
+    API.write(WRITE_COMMANDS.CREATE_TRANSACTION_THREAD, {hash, transactionID, reportID: newThreadReportID});
+}
+
 export {
-    // eslint-disable-next-line import/prefer-default-export
     search,
+    createTransactionThread,
 };

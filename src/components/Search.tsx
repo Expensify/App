@@ -20,6 +20,8 @@ import type {SearchQuery} from '@src/types/onyx/SearchResults';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import * as ReportActions from '@libs/actions/Report';
+import * as ReportUtils from '@libs/ReportUtils';
 import SelectionList from './SelectionList';
 import SearchTableHeader from './SelectionList/SearchTableHeader';
 import type {ReportListItemType, TransactionListItemType} from './SelectionList/types';
@@ -35,6 +37,11 @@ type SearchProps = {
 function isReportListItemType(item: TransactionListItemType | ReportListItemType): item is ReportListItemType {
     const reportListItem = item as ReportListItemType;
     return reportListItem.transactions !== undefined;
+}
+
+function isTransactionListItemType(item: TransactionListItemType | ReportListItemType): item is TransactionListItemType {
+    const transactionListItem = item as TransactionListItemType;
+    return transactionListItem.transactionID !== undefined;
 }
 
 function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
@@ -135,6 +142,13 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
             sections={[{data: sortedData, isDisabled: false}]}
             onSelectRow={(item) => {
                 const reportID = isReportListItemType(item) ? item.reportID : item.transactionThreadReportID;
+
+                if (isTransactionListItemType(item) && item.transactionThreadReportID === '0') {
+                    const newThreadReportID = ReportUtils.generateReportID();
+                    SearchActions.createTransactionThread(hash, item.transactionID, newThreadReportID);
+                    Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(query, newThreadReportID));
+                    return;
+                }
 
                 openReport(reportID);
             }}

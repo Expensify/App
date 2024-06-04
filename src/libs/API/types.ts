@@ -78,6 +78,7 @@ const WRITE_COMMANDS = {
     SIGN_IN_USER_WITH_LINK: 'SigninUserWithLink',
     REQUEST_UNLINK_VALIDATION_LINK: 'RequestUnlinkValidationLink',
     UNLINK_LOGIN: 'UnlinkLogin',
+    CREATE_TRANSACTION_THREAD: 'CreateTransactionThread',
     ENABLE_TWO_FACTOR_AUTH: 'EnableTwoFactorAuth',
     DISABLE_TWO_FACTOR_AUTH: 'DisableTwoFactorAuth',
     TWO_FACTOR_AUTH_VALIDATE: 'TwoFactorAuth_Validate',
@@ -284,6 +285,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SIGN_IN_USER_WITH_LINK]: Parameters.SignInUserWithLinkParams;
     [WRITE_COMMANDS.REQUEST_UNLINK_VALIDATION_LINK]: Parameters.RequestUnlinkValidationLinkParams;
     [WRITE_COMMANDS.UNLINK_LOGIN]: Parameters.UnlinkLoginParams;
+    [WRITE_COMMANDS.CREATE_TRANSACTION_THREAD]: Parameters.CreateTransactionThreadParams;
     [WRITE_COMMANDS.ENABLE_TWO_FACTOR_AUTH]: EmptyObject;
     [WRITE_COMMANDS.DISABLE_TWO_FACTOR_AUTH]: EmptyObject;
     [WRITE_COMMANDS.TWO_FACTOR_AUTH_VALIDATE]: Parameters.ValidateTwoFactorAuthParams;
