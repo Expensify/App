@@ -241,6 +241,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Holds the accountIDs of accounts who paid the split, for now only supports a single payer */
         splitPayerAccountIDs?: number[];
 
+        /** Whether the user input should be kept */
+        shouldShowOriginalAmount?: boolean;
+
         /** The actionable report action ID associated with the transaction */
         actionableWhisperReportActionID?: string;
 
