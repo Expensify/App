@@ -1,5 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback} from 'react';
+import {isEmpty} from 'lodash';
+import React, {useCallback, useMemo} from 'react';
 import {Keyboard} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -65,7 +66,7 @@ function CreateTagPage({route, policyTags}: CreateTagPageProps) {
         },
         [route.params.policyID],
     );
-
+    const enabledWhenOffline = useMemo(() => !isEmpty(policyTags), [policyTags]);
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -88,6 +89,7 @@ function CreateTagPage({route, policyTags}: CreateTagPageProps) {
                     submitButtonText={translate('common.save')}
                     validate={validate}
                     style={[styles.mh5, styles.flex1]}
+                    enabledWhenOffline={enabledWhenOffline}
                 >
                     <InputWrapper
                         InputComponent={TextInput}
