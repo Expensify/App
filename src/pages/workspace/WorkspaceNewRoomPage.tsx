@@ -227,8 +227,8 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
         <>
             <BlockingView
                 icon={Illustrations.TeleScope}
-                iconWidth={variables.emptyWorkspaceIconWidth}
-                iconHeight={variables.emptyWorkspaceIconHeight}
+                iconWidth={variables.emptyListIconWidth}
+                iconHeight={variables.emptyListIconHeight}
                 title={translate('workspace.emptyWorkspace.notFound')}
                 subtitle={translate('workspace.emptyWorkspace.description')}
                 shouldShowLink={false}
@@ -291,9 +291,9 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
                                     accessibilityLabel={translate('reportDescriptionPage.roomDescriptionOptional')}
                                     role={CONST.ROLE.PRESENTATION}
                                     autoGrowHeight
+                                    maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                                     maxLength={CONST.REPORT_DESCRIPTION.MAX_LENGTH}
                                     autoCapitalize="none"
-                                    containerStyles={[styles.autoGrowHeightMultilineInput]}
                                     shouldInterceptSwipe
                                 />
                             </View>
@@ -351,6 +351,7 @@ export default withOnyx<WorkspaceNewRoomPageProps, WorkspaceNewRoomPageOnyxProps
     },
     formState: {
         key: ONYXKEYS.FORMS.NEW_ROOM_FORM,
+        initWithStoredValues: false,
     },
     session: {
         key: ONYXKEYS.SESSION,

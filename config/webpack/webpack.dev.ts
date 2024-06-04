@@ -21,16 +21,12 @@ const getConfiguration = (environment: Environment): Promise<Configuration> =>
             process.env.USE_WEB_PROXY === 'false'
                 ? {}
                 : {
-                      proxy: {
-                          // eslint-disable-next-line @typescript-eslint/naming-convention
-                          '/api': 'http://[::1]:9000',
-                          // eslint-disable-next-line @typescript-eslint/naming-convention
-                          '/staging': 'http://[::1]:9000',
-                          // eslint-disable-next-line @typescript-eslint/naming-convention
-                          '/chat-attachments': 'http://[::1]:9000',
-                          // eslint-disable-next-line @typescript-eslint/naming-convention
-                          '/receipts': 'http://[::1]:9000',
-                      },
+                      proxy: [
+                          {
+                              context: ['/api', '/staging', '/chat-attachments', '/receipts'],
+                              target: 'http://[::1]:9000',
+                          },
+                      ],
                   };
 
         const baseConfig = getCommonConfiguration(environment);

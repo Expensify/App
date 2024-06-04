@@ -105,15 +105,21 @@ function IOURequestStepDistance({
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
     // request and the workspace requires a category or a tag
     const shouldSkipConfirmation: boolean = useMemo(() => {
-        if (!skipConfirmation || !report?.reportID || iouType === CONST.IOU.TYPE.TRACK) {
+        if (!skipConfirmation || !report?.reportID) {
             return false;
         }
 
         return !ReportUtils.isArchivedRoom(report) && !(ReportUtils.isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
-    }, [report, skipConfirmation, policy, iouType]);
+    }, [report, skipConfirmation, policy]);
     let buttonText = !isCreatingNewRequest ? translate('common.save') : translate('common.next');
     if (shouldSkipConfirmation) {
-        buttonText = iouType === CONST.IOU.TYPE.SPLIT ? translate('iou.split') : translate('iou.submitExpense');
+        if (iouType === CONST.IOU.TYPE.SPLIT) {
+            buttonText = translate('iou.split');
+        } else if (iouType === CONST.IOU.TYPE.TRACK) {
+            buttonText = translate('iou.trackExpense');
+        } else {
+            buttonText = translate('iou.submitExpense');
+        }
     }
 
     useEffect(() => {
@@ -225,24 +231,51 @@ function IOURequestStepDistance({
             });
             if (shouldSkipConfirmation) {
                 if (iouType === CONST.IOU.TYPE.SPLIT) {
-                    IOU.splitBillAndOpenReport({
+                    IOU.splitBill({
                         participants,
                         currentUserLogin: currentUserPersonalDetails.login ?? '',
-                        currentUserAccountID: currentUserPersonalDetails.accountID ?? 0,
+                        currentUserAccountID: currentUserPersonalDetails.accountID,
                         amount: 0,
                         comment: '',
                         currency: transaction?.currency ?? 'USD',
-                        merchant: translate('iou.routePending'),
+                        merchant: translate('iou.fieldPending'),
                         created: transaction?.created ?? '',
                         category: '',
                         tag: '',
                         billable: false,
                         iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                        existingSplitChatReportID: report?.reportID,
                     });
                     return;
                 }
                 IOU.setMoneyRequestPendingFields(transactionID, {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
-                IOU.setMoneyRequestMerchant(transactionID, translate('iou.routePending'), false);
+                IOU.setMoneyRequestMerchant(transactionID, translate('iou.fieldPending'), false);
+                if (iouType === CONST.IOU.TYPE.TRACK) {
+                    IOU.trackExpense(
+                        report,
+                        0,
+                        transaction?.currency ?? 'USD',
+                        transaction?.created ?? '',
+                        translate('iou.fieldPending'),
+                        currentUserPersonalDetails.login,
+                        currentUserPersonalDetails.accountID,
+                        participants[0],
+                        '',
+                        {},
+                        '',
+                        '',
+                        '',
+                        0,
+                        false,
+                        policy,
+                        undefined,
+                        undefined,
+                        undefined,
+                        TransactionUtils.getValidWaypoints(waypoints, true),
+                    );
+                    return;
+                }
+
                 IOU.createDistanceRequest(
                     report,
                     participants[0],
@@ -250,9 +283,11 @@ function IOURequestStepDistance({
                     transaction?.created ?? '',
                     '',
                     '',
+                    '',
+                    0,
                     0,
                     transaction?.currency ?? 'USD',
-                    translate('iou.routePending'),
+                    translate('iou.fieldPending'),
                     false,
                     TransactionUtils.getValidWaypoints(waypoints, true),
                 );
@@ -279,6 +314,7 @@ function IOURequestStepDistance({
         translate,
         navigateToParticipantPage,
         navigateToConfirmationPage,
+        policy,
     ]);
 
     const getError = () => {
@@ -341,11 +377,18 @@ function IOURequestStepDistance({
             const oldWaypoints = transactionBackup?.comment.waypoints ?? {};
             const oldAddresses = Object.fromEntries(Object.entries(oldWaypoints).map(([key, waypoint]) => [key, 'address' in waypoint ? waypoint.address : {}]));
             const addresses = Object.fromEntries(Object.entries(waypoints).map(([key, waypoint]) => [key, 'address' in waypoint ? waypoint.address : {}]));
+            const hasRouteChanged = !isEqual(transactionBackup?.routes, transaction?.routes);
             if (isEqual(oldAddresses, addresses)) {
                 Navigation.dismissModal();
                 return;
             }
-            IOU.updateMoneyRequestDistance({transactionID: transaction?.transactionID ?? '', transactionThreadReportID: report?.reportID ?? '', waypoints});
+            IOU.updateMoneyRequestDistance({
+                transactionID: transaction?.transactionID ?? '',
+                transactionThreadReportID: report?.reportID ?? '',
+                waypoints,
+                ...(hasRouteChanged ? {routes: transaction?.routes} : {}),
+                policy,
+            });
             Navigation.dismissModal();
             return;
         }
@@ -363,7 +406,9 @@ function IOURequestStepDistance({
         transactionBackup,
         waypoints,
         transaction?.transactionID,
+        transaction?.routes,
         report?.reportID,
+        policy,
     ]);
 
     const renderItem = useCallback(
@@ -392,7 +437,7 @@ function IOURequestStepDistance({
                 <View style={styles.flex1}>
                     <DraggableList
                         data={waypointsList}
-                        keyExtractor={(item) => item}
+                        keyExtractor={(item) => (waypoints[item]?.keyForList ?? waypoints[item]?.address ?? '') + item}
                         shouldUsePortal
                         onDragEnd={updateWaypoints}
                         ref={scrollViewRef}

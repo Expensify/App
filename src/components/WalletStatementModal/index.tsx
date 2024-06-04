@@ -24,7 +24,7 @@ function WalletStatementModal({statementPageURL, session}: WalletStatementProps)
         }
 
         if (event.data.type === CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE) {
-            Report.navigateToConciergeChat();
+            Report.navigateToConciergeChat(true);
         }
 
         if (event.data.type === CONST.WALLET.WEB_MESSAGE_TYPE.STATEMENT && event.data.url) {

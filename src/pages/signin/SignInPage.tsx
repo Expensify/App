@@ -130,7 +130,7 @@ function SignInPageInner({credentials, account, activeClients = [], preferredLoc
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
-    const {shouldUseNarrowLayout, isInModal} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
     const safeAreaInsets = useSafeAreaInsets();
     const signInPageLayoutRef = useRef<SignInPageLayoutRef>(null);
     const loginFormRef = useRef<InputHandle>(null);
@@ -209,7 +209,7 @@ function SignInPageInner({credentials, account, activeClients = [], preferredLoc
     } else if (shouldShowValidateCodeForm) {
         if (account?.requiresTwoFactorAuth) {
             // We will only know this after a user signs in successfully, without their 2FA code
-            welcomeHeader = shouldUseNarrowLayout ? '' : translate('welcomeText.welcomeBack');
+            welcomeHeader = shouldUseNarrowLayout ? '' : translate('welcomeText.welcome');
             welcomeText = isUsingRecoveryCode ? translate('validateCodeForm.enterRecoveryCode') : translate('validateCodeForm.enterAuthenticatorCode');
         } else {
             const userLogin = Str.removeSMSDomain(credentials?.login ?? '');
@@ -217,9 +217,9 @@ function SignInPageInner({credentials, account, activeClients = [], preferredLoc
             // replacing spaces with "hard spaces" to prevent breaking the number
             const userLoginToDisplay = Str.isSMSLogin(userLogin) ? formatPhoneNumber(userLogin).replace(/ /g, '\u00A0') : userLogin;
             if (account?.validated) {
-                welcomeHeader = shouldUseNarrowLayout ? '' : translate('welcomeText.welcomeBack');
+                welcomeHeader = shouldUseNarrowLayout ? '' : translate('welcomeText.welcome');
                 welcomeText = shouldUseNarrowLayout
-                    ? `${translate('welcomeText.welcomeBack')} ${translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay})}`
+                    ? `${translate('welcomeText.welcome')} ${translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay})}`
                     : translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay});
             } else {
                 welcomeHeader = shouldUseNarrowLayout ? '' : translate('welcomeText.welcome');
@@ -229,7 +229,7 @@ function SignInPageInner({credentials, account, activeClients = [], preferredLoc
             }
         }
     } else if (shouldShowUnlinkLoginForm || shouldShowEmailDeliveryFailurePage || shouldShowChooseSSOOrMagicCode) {
-        welcomeHeader = shouldUseNarrowLayout ? headerText : translate('welcomeText.welcomeBack');
+        welcomeHeader = shouldUseNarrowLayout ? headerText : translate('welcomeText.welcome');
 
         // Don't show any welcome text if we're showing the user the email delivery failed view
         if (shouldShowEmailDeliveryFailurePage || shouldShowChooseSSOOrMagicCode) {
@@ -250,7 +250,7 @@ function SignInPageInner({credentials, account, activeClients = [], preferredLoc
         <ScreenWrapper
             shouldShowOfflineIndicator={false}
             shouldEnableMaxHeight={shouldEnableMaxHeight}
-            style={[styles.signInPage, StyleUtils.getSafeAreaPadding({...safeAreaInsets, bottom: 0, top: isInModal ? 0 : safeAreaInsets.top}, 1)]}
+            style={[styles.signInPage, StyleUtils.getSafeAreaPadding({...safeAreaInsets, bottom: 0, top: isInNarrowPaneModal ? 0 : safeAreaInsets.top}, 1)]}
             testID={SignInPageInner.displayName}
         >
             <SignInPageLayout

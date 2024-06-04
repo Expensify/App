@@ -66,6 +66,10 @@ function RightModalNavigator({navigation}: RightModalNavigatorProps) {
                         component={ModalStackNavigators.ReportDescriptionModalStackNavigator}
                     />
                     <Stack.Screen
+                        name={SCREENS.RIGHT_MODAL.SETTINGS_CATEGORIES}
+                        component={ModalStackNavigators.CategoriesModalStackNavigator}
+                    />
+                    <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.PARTICIPANTS}
                         component={ModalStackNavigators.ReportParticipantsModalStackNavigator}
                     />
@@ -84,10 +88,6 @@ function RightModalNavigator({navigation}: RightModalNavigatorProps) {
                     <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.NEW_TASK}
                         component={ModalStackNavigators.NewTaskModalStackNavigator}
-                    />
-                    <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.ONBOARD_ENGAGEMENT}
-                        component={ModalStackNavigators.OnboardEngagementModalStackNavigator}
                     />
                     <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.TEACHERS_UNITE}
@@ -136,6 +136,14 @@ function RightModalNavigator({navigation}: RightModalNavigatorProps) {
                     <Stack.Screen
                         name="ProcessMoneyRequestHold"
                         component={ModalStackNavigators.ProcessMoneyRequestHoldStackNavigator}
+                    />
+                    <Stack.Screen
+                        name={SCREENS.RIGHT_MODAL.TRAVEL}
+                        component={ModalStackNavigators.TravelModalStackNavigator}
+                    />
+                    <Stack.Screen
+                        name={SCREENS.RIGHT_MODAL.SEARCH_REPORT}
+                        component={ModalStackNavigators.SearchReportModalStackNavigator}
                     />
                 </Stack.Navigator>
             </View>

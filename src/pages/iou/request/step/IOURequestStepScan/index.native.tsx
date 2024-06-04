@@ -22,6 +22,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
+import getCurrentPosition from '@libs/getCurrentPosition';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -35,7 +36,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import CameraPermission from './CameraPermission';
-import NavigationAwareCamera from './NavigationAwareCamera';
+import NavigationAwareCamera from './NavigationAwareCamera/Camera';
 import type {IOURequestStepOnyxProps, IOURequestStepScanProps} from './types';
 
 function IOURequestStepScan({
@@ -65,12 +66,12 @@ function IOURequestStepScan({
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
     // request and the workspace requires a category or a tag
     const shouldSkipConfirmation: boolean = useMemo(() => {
-        if (!skipConfirmation || !report?.reportID || iouType === CONST.IOU.TYPE.TRACK) {
+        if (!skipConfirmation || !report?.reportID) {
             return false;
         }
 
         return !ReportUtils.isArchivedRoom(report) && !(ReportUtils.isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
-    }, [report, skipConfirmation, policy, iouType]);
+    }, [report, skipConfirmation, policy]);
 
     const {translate} = useLocalize();
 
@@ -104,11 +105,11 @@ function IOURequestStepScan({
             return;
         }
 
-        camera.current.focus(point).catch((ex) => {
-            if (ex.message === '[unknown/unknown] Cancelled by another startFocusAndMetering()') {
+        camera.current.focus(point).catch((error: Record<string, unknown>) => {
+            if (error.message === '[unknown/unknown] Cancelled by another startFocusAndMetering()') {
                 return;
             }
-            Log.warn('Error focusing camera', ex);
+            Log.warn('Error focusing camera', error);
         });
     };
 
@@ -245,17 +246,95 @@ function IOURequestStepScan({
                     });
                     return;
                 }
-                IOU.requestMoney(
-                    report,
-                    0,
-                    transaction?.currency ?? 'USD',
-                    transaction?.created ?? '',
-                    '',
-                    currentUserPersonalDetails.login,
-                    currentUserPersonalDetails.accountID,
-                    participants[0],
-                    '',
-                    receipt,
+                getCurrentPosition(
+                    (successData) => {
+                        if (iouType === CONST.IOU.TYPE.TRACK && report) {
+                            IOU.trackExpense(
+                                report,
+                                0,
+                                transaction?.currency ?? 'USD',
+                                transaction?.created ?? '',
+                                '',
+                                currentUserPersonalDetails.login,
+                                currentUserPersonalDetails.accountID,
+                                participants[0],
+                                '',
+                                receipt,
+                                '',
+                                '',
+                                '',
+                                0,
+                                false,
+                                policy,
+                                {},
+                                {},
+                                {
+                                    lat: successData.coords.latitude,
+                                    long: successData.coords.longitude,
+                                },
+                            );
+                        } else {
+                            IOU.requestMoney(
+                                report,
+                                0,
+                                transaction?.currency ?? 'USD',
+                                transaction?.created ?? '',
+                                '',
+                                currentUserPersonalDetails.login,
+                                currentUserPersonalDetails.accountID,
+                                participants[0],
+                                '',
+                                receipt,
+                                '',
+                                '',
+                                '',
+                                0,
+                                false,
+                                policy,
+                                {},
+                                {},
+                                {
+                                    lat: successData.coords.latitude,
+                                    long: successData.coords.longitude,
+                                },
+                            );
+                        }
+                    },
+                    (errorData) => {
+                        Log.info('[IOURequestStepScan] getCurrentPosition failed', false, errorData);
+                        // When there is an error, the money can still be requested, it just won't include the GPS coordinates
+                        if (iouType === CONST.IOU.TYPE.TRACK && report) {
+                            IOU.trackExpense(
+                                report,
+                                0,
+                                transaction?.currency ?? 'USD',
+                                transaction?.created ?? '',
+                                '',
+                                currentUserPersonalDetails.login,
+                                currentUserPersonalDetails.accountID,
+                                participants[0],
+                                '',
+                                receipt,
+                            );
+                        } else {
+                            IOU.requestMoney(
+                                report,
+                                0,
+                                transaction?.currency ?? 'USD',
+                                transaction?.created ?? '',
+                                '',
+                                currentUserPersonalDetails.login,
+                                currentUserPersonalDetails.accountID,
+                                participants[0],
+                                '',
+                                receipt,
+                            );
+                        }
+                    },
+                    {
+                        maximumAge: CONST.GPS.MAX_AGE,
+                        timeout: CONST.GPS.TIMEOUT,
+                    },
                 );
                 return;
             }
@@ -273,6 +352,7 @@ function IOURequestStepScan({
             transaction,
             navigateToConfirmationPage,
             navigateToParticipantPage,
+            policy,
         ],
     );
 
@@ -400,8 +480,7 @@ function IOURequestStepScan({
                             <NavigationAwareCamera
                                 ref={camera}
                                 device={device}
-                                // @ts-expect-error The HOC are not migrated to TypeScript yet
-                                style={[styles.flex1]}
+                                style={styles.flex1}
                                 zoom={device.neutralZoom}
                                 photo
                                 cameraTabIndex={1}

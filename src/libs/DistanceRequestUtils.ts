@@ -4,13 +4,14 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {RateAndUnit} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {LastSelectedDistanceRates, Report} from '@src/types/onyx';
+import type {LastSelectedDistanceRates, Report, Transaction} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import * as CurrencyUtils from './CurrencyUtils';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportUtils from './ReportUtils';
+import * as TransactionUtils from './TransactionUtils';
 
 type MileageRate = {
     customUnitRateID?: string;
@@ -19,18 +20,6 @@ type MileageRate = {
     unit: Unit;
     name?: string;
 };
-
-const policies: OnyxCollection<Policy> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    callback: (policy, key) => {
-        if (!policy || !key || !policy.name) {
-            return;
-        }
-
-        policies[key] = policy;
-    },
-});
 
 let lastSelectedDistanceRates: OnyxEntry<LastSelectedDistanceRates> = {};
 Onyx.connect({
@@ -65,7 +54,7 @@ function getDefaultMileageRate(policy: OnyxEntry<Policy> | EmptyObject): Mileage
         return null;
     }
 
-    const distanceUnit = Object.values(policy.customUnits).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+    const distanceUnit = PolicyUtils.getCustomUnit(policy);
     if (!distanceUnit?.rates) {
         return null;
     }
@@ -116,7 +105,7 @@ function getRoundedDistanceInUnits(distanceInMeters: number, unit: Unit): string
  * @param currency The currency associated with the rate
  * @param translate Translate function
  * @param toLocaleDigit Function to convert to localized digit
- * @returns A string that describes the distance traveled and the rate used for expense calculation
+ * @returns A string that displays the rate used for expense calculation
  */
 function getRateForDisplay(
     unit: Unit | undefined,
@@ -130,15 +119,15 @@ function getRateForDisplay(
         return translate('iou.defaultRate');
     }
     if (!rate || !currency || !unit) {
-        return translate('iou.routePending');
+        return translate('iou.fieldPending');
     }
 
     const singularDistanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer');
-    const ratePerUnit = PolicyUtils.getUnitRateValue(toLocaleDigit, {rate});
+    const formattedRate = PolicyUtils.getUnitRateValue(toLocaleDigit, {rate});
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const currencySymbol = CurrencyUtils.getCurrencySymbol(currency) || `${currency} `;
 
-    return `${currencySymbol}${ratePerUnit} / ${singularDistanceUnit}`;
+    return `${currencySymbol}${formattedRate} / ${singularDistanceUnit}`;
 }
 
 /**
@@ -150,8 +139,8 @@ function getRateForDisplay(
  * @returns A string that describes the distance traveled
  */
 function getDistanceForDisplay(hasRoute: boolean, distanceInMeters: number, unit: Unit | undefined, rate: number | undefined, translate: LocaleContextProps['translate']): string {
-    if (!hasRoute || !rate || !unit) {
-        return translate('iou.routePending');
+    if (!hasRoute || !rate || !unit || !distanceInMeters) {
+        return translate('iou.fieldPending');
     }
 
     const distanceInUnits = getRoundedDistanceInUnits(distanceInMeters, unit);
@@ -182,7 +171,7 @@ function getDistanceMerchant(
     toLocaleDigit: LocaleContextProps['toLocaleDigit'],
 ): string {
     if (!hasRoute || !rate) {
-        return translate('iou.routePending');
+        return translate('iou.fieldPending');
     }
 
     const distanceInUnits = getDistanceForDisplay(hasRoute, distanceInMeters, unit, rate, translate);
@@ -201,15 +190,11 @@ function getDistanceMerchant(
 function getMileageRates(policy: OnyxEntry<Policy>): Record<string, MileageRate> {
     const mileageRates: Record<string, MileageRate> = {};
 
-    if (!policy) {
+    if (!policy || !policy?.customUnits) {
         return mileageRates;
     }
 
-    if (!policy?.customUnits) {
-        return mileageRates;
-    }
-
-    const distanceUnit = Object.values(policy.customUnits).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+    const distanceUnit = PolicyUtils.getCustomUnit(policy);
     if (!distanceUnit?.rates) {
         return mileageRates;
     }
@@ -227,6 +212,12 @@ function getMileageRates(policy: OnyxEntry<Policy>): Record<string, MileageRate>
     return mileageRates;
 }
 
+/**
+ * Retrieves the rate and unit for a P2P distance expense for a given currency.
+ *
+ * @param currency
+ * @returns The rate and unit in RateAndUnit object.
+ */
 function getRateForP2P(currency: string): RateAndUnit {
     return CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE[currency] ?? CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE.USD;
 }
@@ -246,22 +237,17 @@ function getDistanceRequestAmount(distance: number, unit: Unit, rate: number): n
 }
 
 /**
- * Extracts the distance from a merchant string.
+ * Converts the distance from kilometers or miles to meters.
  *
- * @param merchant - The merchant string containing the distance.
- * @returns The distance extracted from the merchant string.
+ * @param distance - The distance to be converted.
+ * @param unit - The unit of measurement for the distance.
+ * @returns The distance in meters.
  */
-function getDistanceFromMerchant(merchant: string | undefined, unit: Unit): number {
-    if (!merchant) {
-        return 0;
+function convertToDistanceInMeters(distance: number, unit: Unit): number {
+    if (unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS) {
+        return distance / METERS_TO_KM;
     }
-
-    const distance = Number(merchant.split(' ')[0]);
-    if (!distance) {
-        return 0;
-    }
-    // we need to convert the distance back to meters (it's saved in kilometers or miles in merchant) to pass it to getDistanceForDisplay
-    return unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS ? distance / METERS_TO_KM : distance / METERS_TO_MILES;
+    return distance / METERS_TO_MILES;
 }
 
 /**
@@ -281,6 +267,24 @@ function getCustomUnitRateID(reportID: string) {
     return customUnitRateID;
 }
 
+function calculateTaxAmount(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, customUnitRateID: string) {
+    const distanceUnit = PolicyUtils.getCustomUnit(policy);
+    const customUnitID = distanceUnit?.customUnitID;
+    if (!policy?.customUnits || !customUnitID) {
+        return 0;
+    }
+    const policyCustomUnitRate = policy?.customUnits[customUnitID].rates[customUnitRateID];
+    const unit = policy?.customUnits[customUnitID]?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
+    const rate = policyCustomUnitRate?.rate ?? 0;
+    const distance = TransactionUtils.getDistance(transaction);
+    const amount = getDistanceRequestAmount(distance, unit, rate);
+    const taxClaimablePercentage = policyCustomUnitRate.attributes?.taxClaimablePercentage ?? 0;
+    const taxRateExternalID = policyCustomUnitRate.attributes?.taxRateExternalID ?? '';
+    const taxableAmount = amount * taxClaimablePercentage;
+    const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, taxRateExternalID) ?? '';
+    return TransactionUtils.calculateTaxAmount(taxPercentage, taxableAmount);
+}
+
 export default {
     getDefaultMileageRate,
     getDistanceMerchant,
@@ -289,8 +293,9 @@ export default {
     getMileageRates,
     getDistanceForDisplay,
     getRateForP2P,
-    getDistanceFromMerchant,
     getCustomUnitRateID,
+    convertToDistanceInMeters,
+    calculateTaxAmount,
 };
 
 export type {MileageRate};

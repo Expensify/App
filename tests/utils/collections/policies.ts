@@ -20,7 +20,7 @@ export default function createRandomPolicy(index: number): Policy {
         role: rand(Object.values(CONST.POLICY.ROLE)),
         owner: randEmail(),
         ownerAccountID: index,
-        avatar: randAvatar(),
+        avatarURL: randAvatar(),
         isFromFullPolicy: randBoolean(),
         lastModified: randPastDate().toISOString(),
         pendingAction: rand(Object.values(CONST.RED_BRICK_ROAD_PENDING_ACTION)),

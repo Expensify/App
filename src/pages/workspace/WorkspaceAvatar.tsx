@@ -19,7 +19,7 @@ type WorkspaceAvatarOnyxProps = {
 type WorkspaceAvatarProps = WorkspaceAvatarOnyxProps & StackScreenProps<AuthScreensParamList, typeof SCREENS.WORKSPACE_AVATAR>;
 
 function WorkspaceAvatar({policy, isLoadingApp = true}: WorkspaceAvatarProps) {
-    const avatarURL = policy?.avatar ?? '' ? policy?.avatar ?? '' : ReportUtils.getDefaultWorkspaceAvatar(policy?.name ?? '');
+    const avatarURL = policy?.avatarURL ?? '' ? policy?.avatarURL ?? '' : ReportUtils.getDefaultWorkspaceAvatar(policy?.name ?? '');
 
     return (
         <AttachmentModal
@@ -28,7 +28,7 @@ function WorkspaceAvatar({policy, isLoadingApp = true}: WorkspaceAvatarProps) {
             source={UserUtils.getFullSizeAvatar(avatarURL, 0)}
             onModalClose={Navigation.goBack}
             isWorkspaceAvatar
-            originalFileName={policy?.originalFileName ?? policy?.name ?? ''}
+            originalFileName={policy?.originalFileName ?? policy?.id}
             shouldShowNotFoundPage={!Object.keys(policy ?? {}).length && !isLoadingApp}
             isLoading={!Object.keys(policy ?? {}).length && !!isLoadingApp}
             maybeIcon

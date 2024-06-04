@@ -93,17 +93,6 @@ function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
                 />
             </TestToolRow>
 
-            {/* Navigate to the new Onboarding flow (Stage 1). This button is temporary and should be removed after passing QA tests. */}
-            <TestToolRow title="Onboarding Flow">
-                <Button
-                    small
-                    text="Navigate"
-                    onPress={() => {
-                        Navigation.dismissModal();
-                        Navigation.navigate(ROUTES.ONBOARDING_PURPOSE);
-                    }}
-                />
-            </TestToolRow>
             {/* Navigate to the new Search Page. This button is temporary and should be removed after passing QA tests. */}
             <TestToolRow title="New Search Page">
                 <Button

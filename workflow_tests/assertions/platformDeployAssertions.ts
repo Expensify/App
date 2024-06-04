@@ -360,12 +360,24 @@ function assertPostGithubCommentJobExecuted(workflowResult: Step[], didExecute =
             {key: 'IS_PRODUCTION_DEPLOY', value: isProduction ? 'true' : 'false'},
             {key: 'DEPLOY_VERSION', value: '1.2.3'},
             {key: 'GITHUB_TOKEN', value: '***'},
-            {key: 'ANDROID', value: didDeploy ? 'success' : ''},
-            {key: 'DESKTOP', value: didDeploy ? 'success' : ''},
-            {key: 'IOS', value: didDeploy ? 'success' : ''},
-            {key: 'WEB', value: didDeploy ? 'success' : ''},
+            {key: 'ANDROID', value: didDeploy ? 'success' : 'skipped'},
+            {key: 'DESKTOP', value: didDeploy ? 'success' : 'skipped'},
+            {key: 'IOS', value: didDeploy ? 'success' : 'skipped'},
+            {key: 'WEB', value: didDeploy ? 'success' : 'skipped'},
         ]),
     ] as const;
+
+    steps.forEach((expectedStep) => {
+        if (didExecute) {
+            expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
+        } else {
+            expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
+        }
+    });
+}
+
+function assertHybridAppJobExecuted(workflowResult: Step[], didExecute = true) {
+    const steps = [createStepAssertion('Deploy HybridApp', true, null, 'HYBRID_APP', 'Deploy HybridApp')] as const;
 
     steps.forEach((expectedStep) => {
         if (didExecute) {
@@ -383,6 +395,7 @@ export default {
     assertDesktopJobExecuted,
     assertIOSJobExecuted,
     assertWebJobExecuted,
+    assertHybridAppJobExecuted,
     assertPostSlackOnFailureJobExecuted,
     assertPostSlackOnSuccessJobExecuted,
     assertPostGithubCommentJobExecuted,

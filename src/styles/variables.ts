@@ -73,6 +73,7 @@ export default {
     lineHeightHero: 45,
     iconSizeXXXSmall: 4,
     iconSizeXXSmall: 8,
+    iconSizeXSmall: 10,
     iconSizeExtraSmall: 12,
     iconSizeSmall: 16,
     iconSizeMedium: 18,
@@ -127,8 +128,8 @@ export default {
     borderTopWidth: 1,
     emptyLHNIconWidth: 24, // iconSizeSmall + 4*2 horizontal margin
     emptyLHNIconHeight: 16,
-    emptyWorkspaceIconWidth: 84,
-    emptyWorkspaceIconHeight: 84,
+    emptyListIconWidth: 136,
+    emptyListIconHeight: 144,
     modalTopIconWidth: 200,
     modalTopIconHeight: 164,
     modalTopBigIconHeight: 244,
@@ -178,6 +179,8 @@ export default {
     eReceiptMCCHeightWidth: 40,
     eReceiptIconHeightSmall: 65,
     eReceiptIconWidthSmall: 46,
+    eReceiptIconHeightXSmall: 24,
+    eReceiptIconWidthXSmall: 20,
     eReceiptMCCHeightWidthSmall: 26,
     eReceiptIconHeightMedium: 82,
     eReceiptIconWidthMedium: 59,
@@ -203,7 +206,7 @@ export default {
     sectionIllustrationHeight: 220,
     photoUploadPopoverWidth: 335,
     onboardingModalWidth: 500,
-    welcomeVideoDelay: 500,
+    welcomeVideoDelay: 1000,
 
     // The height of the empty list is 14px (2px for borders and 12px for vertical padding)
     // This is calculated based on the values specified in the 'getGoogleListViewStyle' function of the 'StyleUtils' utility
@@ -211,7 +214,7 @@ export default {
     hoverDimValue: 1,
     pressDimValue: 0.8,
     qrShareHorizontalPadding: 32,
-    purposeMenuIconSize: 48,
+    menuIconSize: 48,
 
     moneyRequestSkeletonHeight: 107,
 
@@ -229,4 +232,16 @@ export default {
     mushroomTopHatWidth: 138,
     mushroomTopHatHeight: 128,
     bankButtonMargin: 23,
+    textInputAutoGrowMaxHeight: 115,
+    eReceiptBackgroundImageMinWidth: 217,
+
+    searchTypeColumnWidth: 52,
+
+    h36: 36,
+    w28: 28,
+    w36: 36,
+    w40: 40,
+    w44: 44,
+    w80: 80,
+    w96: 96,
 } as const;

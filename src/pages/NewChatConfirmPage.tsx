@@ -13,7 +13,6 @@ import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem
 import type {ListItem} from '@components/SelectionList/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import Navigation from '@libs/Navigation/Navigation';
@@ -41,7 +40,6 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
     const fileRef = useRef<File | CustomRNImageManipulatorResult | undefined>();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const personalData = useCurrentUserPersonalDetails();
     const participantAccountIDs = (newGroupDraft?.participants ?? []).map((participant) => participant.accountID);
     const selectedOptions = useMemo((): Participant[] => {
@@ -70,18 +68,12 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
                         accountID,
                         icons: selectedOption?.icons,
                         alternateText: selectedOption?.login ?? '',
-                        rightElement: isAdmin ? (
-                            <Badge
-                                text={translate('common.admin')}
-                                textStyles={styles.textStrong}
-                                badgeStyles={[styles.justifyContentCenter, StyleUtils.getMinimumWidth(60), styles.badgeBordered]}
-                            />
-                        ) : undefined,
+                        rightElement: isAdmin ? <Badge text={translate('common.admin')} /> : undefined,
                     };
                     return section;
                 })
                 .sort((a, b) => a.text?.toLowerCase().localeCompare(b.text?.toLowerCase() ?? '') ?? -1),
-        [selectedOptions, personalData.accountID, translate, StyleUtils, styles],
+        [selectedOptions, personalData.accountID, translate],
     );
 
     /**
@@ -101,7 +93,7 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
         }
 
         const logins: string[] = (newGroupDraft.participants ?? []).map((participant) => participant.login);
-        Report.navigateToAndOpenReport(logins, true, newGroupDraft.reportName ?? '', newGroupDraft.avatarUri ?? '', fileRef.current, optimisticReportID.current);
+        Report.navigateToAndOpenReport(logins, true, newGroupDraft.reportName ?? '', newGroupDraft.avatarUri ?? '', fileRef.current, optimisticReportID.current, true);
     };
 
     const navigateBack = () => {
@@ -136,6 +128,8 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
                     shouldDisableViewPhoto
                     editIcon={Expensicons.Camera}
                     editIconStyle={styles.smallEditIconAccount}
+                    shouldUseStyleUtilityForAnchorPosition
+                    style={styles.w100}
                 />
             </View>
             <MenuItemWithTopDescription
@@ -152,9 +146,9 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
                     sections={[{title: translate('common.members'), data: sections}]}
                     ListItem={InviteMemberListItem}
                     onSelectRow={unselectOption}
-                    showConfirmButton={selectedOptions.length > 1}
+                    showConfirmButton={Boolean(selectedOptions.length)}
                     confirmButtonText={translate('newChatPage.startGroup')}
-                    onConfirm={selectedOptions.length > 1 ? createGroup : undefined}
+                    onConfirm={createGroup}
                     shouldHideListOnInitialRender={false}
                 />
             </View>

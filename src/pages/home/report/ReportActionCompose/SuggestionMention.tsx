@@ -1,8 +1,8 @@
 import Str from 'expensify-common/lib/str';
 import lodashSortBy from 'lodash/sortBy';
-import type {ForwardedRef, RefAttributes} from 'react';
+import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {Mention} from '@components/MentionSuggestions';
@@ -10,13 +10,14 @@ import MentionSuggestions from '@components/MentionSuggestions';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDebounce from '@hooks/useDebounce';
 import useLocalize from '@hooks/useLocalize';
 import * as LoginUtils from '@libs/LoginUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as SuggestionsUtils from '@libs/SuggestionUtils';
-import * as UserUtils from '@libs/UserUtils';
 import {isValidRoomName} from '@libs/ValidationUtils';
+import * as ReportUserActions from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Report} from '@src/types/onyx';
@@ -29,11 +30,6 @@ type SuggestionValues = {
     shouldShowSuggestionMenu: boolean;
     mentionPrefix: string;
     prefixType: string;
-};
-
-type RoomMentionOnyxProps = {
-    /** All reports shared with the user */
-    reports: OnyxCollection<Report>;
 };
 
 /**
@@ -50,23 +46,14 @@ const defaultSuggestionsValues: SuggestionValues = {
 };
 
 function SuggestionMention(
-    {
-        value,
-        selection,
-        setSelection,
-        updateComment,
-        isAutoSuggestionPickerLarge,
-        measureParentContainer,
-        isComposerFocused,
-        reports,
-        isGroupPolicyReport,
-        policyID,
-    }: SuggestionProps & RoomMentionOnyxProps,
+    {value, selection, setSelection, updateComment, isAutoSuggestionPickerLarge, measureParentContainer, isComposerFocused, isGroupPolicyReport, policyID}: SuggestionProps,
     ref: ForwardedRef<SuggestionsRef>,
 ) {
     const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
     const {translate, formatPhoneNumber} = useLocalize();
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
+
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isMentionSuggestionsMenuVisible = !!suggestionValues.suggestedMentions.length && suggestionValues.shouldShowSuggestionMenu;
@@ -89,6 +76,21 @@ function SuggestionMention(
 
     // Used to decide whether to block the suggestions list from showing to prevent flickering
     const shouldBlockCalc = useRef(false);
+
+    /**
+     * Search for reports suggestions in server.
+     *
+     * The function is debounced to not perform requests on every keystroke.
+     */
+    const debouncedSearchInServer = useDebounce(
+        useCallback(() => {
+            const foundSuggestionsCount = suggestionValues.suggestedMentions.length;
+            if (suggestionValues.prefixType === '#' && foundSuggestionsCount < 5 && isGroupPolicyReport) {
+                ReportUserActions.searchInServer(value, policyID);
+            }
+        }, [suggestionValues.suggestedMentions.length, suggestionValues.prefixType, policyID, value, isGroupPolicyReport]),
+        CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME,
+    );
 
     const formatLoginPrivateDomain = useCallback(
         (displayText = '', userLogin = '') => {
@@ -137,6 +139,7 @@ function SuggestionMention(
             setSuggestionValues((prevState) => ({
                 ...prevState,
                 suggestedMentions: [],
+                shouldShowSuggestionMenu: false,
             }));
         },
         [
@@ -238,9 +241,10 @@ function SuggestionMention(
                     icons: [
                         {
                             name: detail?.login,
-                            source: UserUtils.getAvatar(detail?.avatar, detail?.accountID),
+                            source: detail?.avatar ?? Expensicons.FallbackAvatar,
                             type: CONST.ICON_TYPE_AVATAR,
                             fallbackIcon: detail?.fallbackIcon,
+                            id: detail?.accountID,
                         },
                     ],
                 });
@@ -323,10 +327,11 @@ function SuggestionMention(
 
             const shouldDisplayRoomMentionsSuggestions = isGroupPolicyReport && (isValidRoomName(suggestionWord.toLowerCase()) || prefix === '');
             if (prefixType === '#' && shouldDisplayRoomMentionsSuggestions) {
-                // filter reports by room name and current policy
-                const filteredRoomMentions = getRoomMentionOptions(prefix, reports);
-                nextState.suggestedMentions = filteredRoomMentions;
-                nextState.shouldShowSuggestionMenu = !!filteredRoomMentions.length;
+                // Filter reports by room name and current policy
+                nextState.suggestedMentions = getRoomMentionOptions(prefix, reports);
+
+                // Even if there are no reports, we should show the suggestion menu - to perform live search
+                nextState.shouldShowSuggestionMenu = true;
             }
 
             setSuggestionValues((prevState) => ({
@@ -341,6 +346,10 @@ function SuggestionMention(
     useEffect(() => {
         calculateMentionSuggestion(selection.end);
     }, [selection, calculateMentionSuggestion]);
+
+    useEffect(() => {
+        debouncedSearchInServer();
+    }, [suggestionValues.suggestedMentions.length, suggestionValues.prefixType, policyID, value, debouncedSearchInServer]);
 
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
         setSuggestionValues((prevState) => {
@@ -390,8 +399,4 @@ function SuggestionMention(
 
 SuggestionMention.displayName = 'SuggestionMention';
 
-export default withOnyx<SuggestionProps & RoomMentionOnyxProps & RefAttributes<SuggestionsRef>, RoomMentionOnyxProps>({
-    reports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
-    },
-})(forwardRef(SuggestionMention));
+export default forwardRef(SuggestionMention);

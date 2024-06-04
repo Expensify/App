@@ -87,12 +87,11 @@ jobs:
           MYAPP_UPLOAD_STORE_PASSWORD: ${{ secrets.MYAPP_UPLOAD_STORE_PASSWORD }}
           MYAPP_UPLOAD_KEY_PASSWORD: ${{ secrets.MYAPP_UPLOAD_KEY_PASSWORD }}
 
-      # Note: Android production deploys are temporarily disabled until https://github.com/Expensify/App/issues/40108 is resolved
-      #      - name: Run Fastlane production
-      #        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-      #        run: bundle exec fastlane android production
-      #        env:
-      #          VERSION: ${{ env.VERSION_CODE }}
+      - name: Run Fastlane production
+        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        run: bundle exec fastlane android production
+        env:
+          VERSION: ${{ env.VERSION_CODE }}
 
       - name: Archive Android sourcemaps
         uses: actions/upload-artifact@v3
@@ -352,6 +351,16 @@ jobs:
         run: /home/runner/.local/bin/cli4 --verbose --delete hosts=["staging.new.expensify.com"] /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
         env:
           CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
+
+  # Build a version of iOS and Android HybridApp if we are deploying to staging
+  hybridApp:
+    runs-on: ubuntu-latest
+    needs: validateActor
+    if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
+    steps:
+      - name: 'Deploy HybridApp'
+        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        uses: Expensify/Mobile-Deploy/.github/workflows/deploy.yml@main
 
   postSlackMessageOnFailure:
     name: Post a Slack message when any platform fails to build or deploy

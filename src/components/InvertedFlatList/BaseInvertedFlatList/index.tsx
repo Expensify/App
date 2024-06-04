@@ -7,7 +7,7 @@ type BaseInvertedFlatListProps<T> = FlatListProps<T> & {
     shouldEnableAutoScrollToTopThreshold?: boolean;
 };
 
-const AUTOSCROLL_TO_TOP_THRESHOLD = 128;
+const AUTOSCROLL_TO_TOP_THRESHOLD = 250;
 
 function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: ForwardedRef<RNFlatList>) {
     const {shouldEnableAutoScrollToTopThreshold, ...rest} = props;

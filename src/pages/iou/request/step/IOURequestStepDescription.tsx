@@ -17,6 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
+import variables from '@styles/variables';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -176,7 +177,7 @@ function IOURequestStepDescription({
                             updateMultilineInputRange(inputRef.current);
                         }}
                         autoGrowHeight
-                        containerStyles={[styles.autoGrowHeightMultilineInput]}
+                        maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                         shouldSubmitForm
                         isMarkdownEnabled
                     />
@@ -225,8 +226,8 @@ const IOURequestStepDescriptionWithOnyx = withOnyx<IOURequestStepDescriptionProp
 })(IOURequestStepDescription);
 
 // eslint-disable-next-line rulesdir/no-negated-variables
-const IOURequestStepDescriptionWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDescriptionWithOnyx);
+const IOURequestStepDescriptionWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDescriptionWithOnyx);
 // eslint-disable-next-line rulesdir/no-negated-variables
-const IOURequestStepDescriptionWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDescriptionWithWritableReportOrNotFound);
+const IOURequestStepDescriptionWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDescriptionWithFullTransactionOrNotFound);
 
-export default IOURequestStepDescriptionWithFullTransactionOrNotFound;
+export default IOURequestStepDescriptionWithWritableReportOrNotFound;

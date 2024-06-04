@@ -1,9 +1,8 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -13,12 +12,12 @@ import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import * as IOUUtils from '@libs/IOUUtils';
 import * as KeyDownPressListener from '@libs/KeyboardShortcut/KeyDownPressListener';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as IOU from '@userActions/IOU';
 import type {IOURequestType} from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -43,6 +42,9 @@ type IOURequestStartPageOnyxProps = {
 
     /** The transaction being modified */
     transaction: OnyxEntry<Transaction>;
+
+    /** The list of all policies */
+    allPolicies: OnyxCollection<Policy>;
 };
 
 type IOURequestStartPageProps = IOURequestStartPageOnyxProps & WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.CREATE>;
@@ -56,6 +58,7 @@ function IOURequestStartPage({
     },
     selectedTab,
     transaction,
+    allPolicies,
 }: IOURequestStartPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -67,6 +70,7 @@ function IOURequestStartPage({
         [CONST.IOU.TYPE.PAY]: translate('iou.paySomeone', {name: ReportUtils.getPayeeName(report)}),
         [CONST.IOU.TYPE.SPLIT]: translate('iou.splitExpense'),
         [CONST.IOU.TYPE.TRACK]: translate('iou.trackExpense'),
+        [CONST.IOU.TYPE.INVOICE]: translate('workspace.invoices.sendInvoice'),
     };
     const transactionRequestType = useRef(TransactionUtils.getRequestType(transaction));
     const {canUseP2PDistanceRequests} = usePermissions(iouType);
@@ -99,11 +103,8 @@ function IOURequestStartPage({
     const isExpenseReport = ReportUtils.isExpenseReport(report);
     const shouldDisplayDistanceRequest = (!!canUseP2PDistanceRequests || isExpenseChat || isExpenseReport || isFromGlobalCreate) && iouType !== CONST.IOU.TYPE.SPLIT;
 
-    // Allow the user to submit the expense if we are submitting the expense in global menu or the report can create the exoense
-    const isAllowedToCreateRequest = isEmptyObject(report?.reportID) || ReportUtils.canCreateRequest(report, policy, iouType);
-
     const navigateBack = () => {
-        Navigation.dismissModal();
+        Navigation.closeRHPFlow();
     };
 
     const resetIOUTypeIfChanged = useCallback(
@@ -120,15 +121,21 @@ function IOURequestStartPage({
     }
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            shouldEnableKeyboardAvoidingView={false}
-            shouldEnableMinHeight={DeviceCapabilities.canUseTouchScreen()}
-            headerGapStyles={isDraggingOver ? [styles.receiptDropHeaderGap] : []}
-            testID={IOURequestStartPage.displayName}
+        <AccessOrNotFoundWrapper
+            reportID={reportID}
+            iouType={iouType}
+            policyID={policy?.id}
+            accessVariants={[CONST.IOU.ACCESS_VARIANTS.CREATE]}
+            allPolicies={allPolicies}
         >
-            {({safeAreaPaddingBottomStyle}) => (
-                <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType) || !isAllowedToCreateRequest}>
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                shouldEnableKeyboardAvoidingView={false}
+                shouldEnableMinHeight={DeviceCapabilities.canUseTouchScreen()}
+                headerGapStyles={isDraggingOver ? [styles.receiptDropHeaderGap] : []}
+                testID={IOURequestStartPage.displayName}
+            >
+                {({safeAreaPaddingBottomStyle}) => (
                     <DragAndDropProvider
                         setIsDraggingOver={setIsDraggingOver}
                         isDisabled={selectedTab !== CONST.TAB_REQUEST.SCAN}
@@ -138,7 +145,7 @@ function IOURequestStartPage({
                                 title={tabTitles[iouType]}
                                 onBackButtonPress={navigateBack}
                             />
-                            {iouType !== CONST.IOU.TYPE.SEND && iouType !== CONST.IOU.TYPE.PAY ? (
+                            {iouType !== CONST.IOU.TYPE.SEND && iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.INVOICE ? (
                                 <OnyxTabNavigator
                                     id={CONST.TAB.IOU_REQUEST_TYPE}
                                     onTabSelected={resetIOUTypeIfChanged}
@@ -153,9 +160,9 @@ function IOURequestStartPage({
                             )}
                         </View>
                     </DragAndDropProvider>
-                </FullPageNotFoundView>
-            )}
-        </ScreenWrapper>
+                )}
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 
@@ -173,5 +180,8 @@ export default withOnyx<IOURequestStartPageProps, IOURequestStartPageOnyxProps>(
     },
     transaction: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${route?.params.transactionID ?? 0}`,
+    },
+    allPolicies: {
+        key: ONYXKEYS.COLLECTION.POLICY,
     },
 })(IOURequestStartPage);

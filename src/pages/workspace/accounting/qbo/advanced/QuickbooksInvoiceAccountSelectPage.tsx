@@ -1,6 +1,8 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
+import BlockingView from '@components/BlockingViews/BlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
@@ -10,11 +12,10 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
-import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
-import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
-import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
-import withPolicy from '@pages/workspace/withPolicy';
-import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
+import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -22,23 +23,14 @@ type SelectorType = ListItem & {
     value: string;
 };
 
-// TODO: remove once UI is approved
-const DRAFT = [
-    {name: 'Croissant Co Payroll Account', id: 'Croissant Co Payroll Account'},
-    {name: 'Croissant Co Money in Clearing', id: 'Croissant Co Money in Clearing'},
-    {name: 'Croissant Co Debts and Loans', id: 'Croissant Co Debts and Loans'},
-];
-
-function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyProps) {
+function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const selectedAccount = DRAFT[1].id; // selected
-
     const policyID = policy?.id ?? '';
     const {bankAccounts, otherCurrentAssetAccounts} = policy?.connections?.quickbooksOnline?.data ?? {};
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const accountOptions = useMemo(() => DRAFT || [...(bankAccounts ?? []), ...(otherCurrentAssetAccounts ?? [])], [bankAccounts, otherCurrentAssetAccounts]);
+    const accountOptions = useMemo(() => [...(bankAccounts ?? []), ...(otherCurrentAssetAccounts ?? [])], [bankAccounts, otherCurrentAssetAccounts]);
+    const {collectionAccountID} = policy?.connections?.quickbooksOnline?.config ?? {};
 
     const qboOnlineSelectorOptions = useMemo<SelectorType[]>(
         () =>
@@ -46,15 +38,15 @@ function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyProps) {
                 value: id,
                 text: name,
                 keyForList: id,
-                isSelected: selectedAccount === id,
+                isSelected: collectionAccountID === id,
             })),
-        [selectedAccount, accountOptions],
+        [collectionAccountID, accountOptions],
     );
 
     const listHeaderComponent = useMemo(
         () => (
             <View style={[styles.pb2, styles.ph5]}>
-                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.qbo.advancedConfig.invoiceAccountSelectDescription')}</Text>
+                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.qbo.advancedConfig.invoiceAccountSelectorDescription')}</Text>
             </View>
         ),
         [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal],
@@ -62,7 +54,7 @@ function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyProps) {
 
     const initiallyFocusedOptionKey = useMemo(() => qboOnlineSelectorOptions?.find((mode) => mode.isSelected)?.keyForList, [qboOnlineSelectorOptions]);
 
-    const updateMode = useCallback(
+    const updateAccount = useCallback(
         ({value}: SelectorType) => {
             Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.COLLECTION_ACCOUNT_ID, value);
             Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED.getRoute(policyID));
@@ -70,33 +62,46 @@ function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyProps) {
         [policyID],
     );
 
-    return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
-            <PaidPolicyAccessOrNotFoundWrapper policyID={policyID}>
-                <FeatureEnabledAccessOrNotFoundWrapper
-                    policyID={policyID}
-                    featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-                >
-                    <ScreenWrapper
-                        includeSafeAreaPaddingBottom={false}
-                        testID={QuickbooksInvoiceAccountSelectPage.displayName}
-                    >
-                        <HeaderWithBackButton title={translate('workspace.qbo.advancedConfig.collectionAccount')} />
+    const listEmptyContent = useMemo(
+        () => (
+            <BlockingView
+                icon={Illustrations.TeleScope}
+                iconWidth={variables.emptyListIconWidth}
+                iconHeight={variables.emptyListIconHeight}
+                title={translate('workspace.qbo.noAccountsFound')}
+                subtitle={translate('workspace.qbo.noAccountsFoundDescription')}
+                containerStyle={styles.pb10}
+            />
+        ),
+        [translate, styles.pb10],
+    );
 
-                        <SelectionList
-                            sections={[{data: qboOnlineSelectorOptions}]}
-                            ListItem={RadioListItem}
-                            headerContent={listHeaderComponent}
-                            onSelectRow={updateMode}
-                            initiallyFocusedOptionKey={initiallyFocusedOptionKey}
-                        />
-                    </ScreenWrapper>
-                </FeatureEnabledAccessOrNotFoundWrapper>
-            </PaidPolicyAccessOrNotFoundWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+    return (
+        <AccessOrNotFoundWrapper
+            policyID={policyID}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+        >
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                testID={QuickbooksInvoiceAccountSelectPage.displayName}
+            >
+                <HeaderWithBackButton title={translate('workspace.qbo.advancedConfig.qboInvoiceCollectionAccount')} />
+
+                <SelectionList
+                    sections={qboOnlineSelectorOptions.length ? [{data: qboOnlineSelectorOptions}] : []}
+                    ListItem={RadioListItem}
+                    headerContent={listHeaderComponent}
+                    onSelectRow={updateAccount}
+                    shouldDebounceRowSelect
+                    initiallyFocusedOptionKey={initiallyFocusedOptionKey}
+                    listEmptyContent={listEmptyContent}
+                />
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 
 QuickbooksInvoiceAccountSelectPage.displayName = 'QuickbooksInvoiceAccountSelectPage';
 
-export default withPolicy(QuickbooksInvoiceAccountSelectPage);
+export default withPolicyConnections(QuickbooksInvoiceAccountSelectPage);

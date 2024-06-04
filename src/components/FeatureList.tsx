@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
@@ -32,6 +32,15 @@ type FeatureListProps = {
     /** Action to call on cta button press */
     onCtaPress?: () => void;
 
+    /** Text of the secondary button button */
+    secondaryButtonText?: string;
+
+    /** Accessibility label for the secondary button */
+    secondaryButtonAccessibilityLabel?: string;
+
+    /** Action to call on secondary button press */
+    onSecondaryButtonPress?: () => void;
+
     /** A list of menuItems representing the feature list. */
     menuItems: FeatureListItem[];
 
@@ -43,6 +52,12 @@ type FeatureListProps = {
 
     /** The background color to apply in the upper half of the screen. */
     illustrationBackgroundColor?: string;
+
+    /** The style used for the title */
+    titleStyles?: StyleProp<TextStyle>;
+
+    /** Padding for content on large screens */
+    contentPaddingOnLargeScreens?: {padding: number};
 };
 
 function FeatureList({
@@ -51,10 +66,15 @@ function FeatureList({
     ctaText = '',
     ctaAccessibilityLabel = '',
     onCtaPress,
+    secondaryButtonText = '',
+    secondaryButtonAccessibilityLabel = '',
+    onSecondaryButtonPress,
     menuItems,
     illustration,
     illustrationStyle,
     illustrationBackgroundColor,
+    titleStyles,
+    contentPaddingOnLargeScreens,
 }: FeatureListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -68,6 +88,8 @@ function FeatureList({
             illustration={illustration}
             illustrationBackgroundColor={illustrationBackgroundColor}
             illustrationStyle={illustrationStyle}
+            titleStyles={titleStyles}
+            contentPaddingOnLargeScreens={contentPaddingOnLargeScreens}
         >
             <View style={styles.flex1}>
                 <View style={[styles.flex1, styles.flexRow, styles.flexWrap, styles.rowGap4, styles.pv4, styles.pl1]}>
@@ -79,8 +101,8 @@ function FeatureList({
                             <MenuItem
                                 title={translate(translationKey)}
                                 icon={icon}
-                                iconWidth={variables.avatarSizeMedium}
-                                iconHeight={variables.avatarSizeMedium}
+                                iconWidth={variables.menuIconSize}
+                                iconHeight={variables.menuIconSize}
                                 interactive={false}
                                 displayInDefaultIconColor
                                 wrapperStyle={[styles.p0, styles.cursorAuto]}
@@ -89,6 +111,15 @@ function FeatureList({
                         </View>
                     ))}
                 </View>
+                {secondaryButtonText && (
+                    <Button
+                        text={secondaryButtonText}
+                        onPress={onSecondaryButtonPress}
+                        accessibilityLabel={secondaryButtonAccessibilityLabel}
+                        style={[styles.w100, styles.mb3]}
+                        large
+                    />
+                )}
                 <Button
                     text={ctaText}
                     onPress={onCtaPress}

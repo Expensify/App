@@ -1,5 +1,5 @@
 import React, {useCallback} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -12,7 +12,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PriorityMode} from '@src/types/onyx';
 
 type PriorityModeItem = {
     value: ValueOf<typeof CONST.PRIORITY_MODE>;
@@ -22,15 +21,9 @@ type PriorityModeItem = {
     isSelected: boolean;
 };
 
-type PriorityModePageOnyxProps = {
-    /** The chat priority mode */
-    priorityMode: PriorityMode;
-};
-
-type PriorityModePageProps = PriorityModePageOnyxProps;
-
-function PriorityModePage({priorityMode}: PriorityModePageProps) {
+function PriorityModePage() {
     const {translate} = useLocalize();
+    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {selector: (mode) => mode ?? CONST.PRIORITY_MODE.DEFAULT});
     const styles = useThemeStyles();
     const priorityModes = Object.values(CONST.PRIORITY_MODE).map<PriorityModeItem>((mode) => ({
         value: mode,
@@ -65,6 +58,7 @@ function PriorityModePage({priorityMode}: PriorityModePageProps) {
                 sections={[{data: priorityModes}]}
                 ListItem={RadioListItem}
                 onSelectRow={updateMode}
+                shouldDebounceRowSelect
                 initiallyFocusedOptionKey={priorityModes.find((mode) => mode.isSelected)?.keyForList}
             />
         </ScreenWrapper>
@@ -73,8 +67,4 @@ function PriorityModePage({priorityMode}: PriorityModePageProps) {
 
 PriorityModePage.displayName = 'PriorityModePage';
 
-export default withOnyx<PriorityModePageProps, PriorityModePageOnyxProps>({
-    priorityMode: {
-        key: ONYXKEYS.NVP_PRIORITY_MODE,
-    },
-})(PriorityModePage);
+export default PriorityModePage;

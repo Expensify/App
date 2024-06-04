@@ -2,19 +2,12 @@ import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {OnboardingPurposeType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type Onboarding from '@src/types/onyx/Onboarding';
 import type OnyxPolicy from '@src/types/onyx/Policy';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 
-let hasSelectedPurpose: boolean | undefined;
-let hasProvidedPersonalDetails: boolean | undefined;
-let isFirstTimeNewExpensifyUser: boolean | undefined;
-let hasDismissedModal: boolean | undefined;
+let onboarding: Onboarding | [] | undefined;
 let isLoadingReportData = true;
-
-type DetermineOnboardingStatusProps = {
-    onAble?: () => void;
-    onNotAble?: () => void;
-};
 
 type HasCompletedOnboardingFlowProps = {
     onCompleted?: () => void;
@@ -22,12 +15,12 @@ type HasCompletedOnboardingFlowProps = {
 };
 
 let resolveIsReadyPromise: (value?: Promise<void>) => void | undefined;
-const isServerDataReadyPromise = new Promise<void>((resolve) => {
+let isServerDataReadyPromise = new Promise<void>((resolve) => {
     resolveIsReadyPromise = resolve;
 });
 
 let resolveOnboardingFlowStatus: (value?: Promise<void>) => void | undefined;
-const isOnboardingFlowStatusKnownPromise = new Promise<void>((resolve) => {
+let isOnboardingFlowStatusKnownPromise = new Promise<void>((resolve) => {
     resolveOnboardingFlowStatus = resolve;
 });
 
@@ -35,116 +28,65 @@ function onServerDataReady(): Promise<void> {
     return isServerDataReadyPromise;
 }
 
-/**
- * Checks if Onyx keys required to determine the
- * onboarding flow status have been loaded (namely,
- * are not undefined).
- */
-function isAbleToDetermineOnboardingStatus({onAble, onNotAble}: DetermineOnboardingStatusProps) {
-    const hasRequiredOnyxKeysBeenLoaded = [hasProvidedPersonalDetails, hasSelectedPurpose].every((value) => value !== undefined);
-
-    if (hasRequiredOnyxKeysBeenLoaded) {
-        onAble?.();
-    } else {
-        onNotAble?.();
-    }
-}
-
-/**
- * A promise returning the onboarding flow status.
- * Returns true if user has completed the onboarding
- * flow, false otherwise.
- */
 function isOnboardingFlowCompleted({onCompleted, onNotCompleted}: HasCompletedOnboardingFlowProps) {
     isOnboardingFlowStatusKnownPromise.then(() => {
-        // Remove once Stage 1 Onboarding Flow is ready
-        if (!isFirstTimeNewExpensifyUser) {
+        if (Array.isArray(onboarding) || onboarding?.hasCompletedGuidedSetupFlow === undefined) {
             return;
         }
 
-        // Uncomment once Stage 1 Onboarding Flow is ready
-        //
-        // const onboardingFlowCompleted = hasProvidedPersonalDetails && hasSelectedPurpose;
-        //
-        const onboardingFlowCompleted = hasSelectedPurpose;
-
-        if (onboardingFlowCompleted) {
+        if (onboarding?.hasCompletedGuidedSetupFlow) {
             onCompleted?.();
         } else {
-            // Remove once Stage 1 Onboarding Flow is ready
-            // This key is only updated when we call ReconnectApp, setting it to false now allows the user to navigate normally instead of always redirecting to the workspace chat
-            Onyx.set(ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER, false);
-
             onNotCompleted?.();
         }
     });
 }
 
 /**
- * Check that a few requests have completed so that the welcome action can proceed:
- *
- * - Whether we are a first time new expensify user
- * - Whether we have loaded all policies the server knows about
- * - Whether we have loaded all reports the server knows about
+ * Check if onboarding data is ready in order to check if the user has completed onboarding or not
  */
-function checkOnReady() {
-    const hasRequiredOnyxKeysBeenLoaded = [isFirstTimeNewExpensifyUser, hasDismissedModal].every((value) => value !== undefined);
+function checkOnboardingDataReady() {
+    if (onboarding === undefined) {
+        return;
+    }
 
-    if (isLoadingReportData || !hasRequiredOnyxKeysBeenLoaded) {
+    resolveOnboardingFlowStatus?.();
+}
+
+/**
+ * Check if user dismissed modal and if report data are loaded
+ */
+function checkServerDataReady() {
+    if (isLoadingReportData) {
         return;
     }
 
     resolveIsReadyPromise?.();
 }
 
-function getPersonalDetails(accountID: number | undefined) {
-    Onyx.connect({
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        initWithStoredValues: true,
-        callback: (value) => {
-            if (!value || !accountID) {
-                return;
-            }
-
-            hasProvidedPersonalDetails = !!value[accountID]?.firstName && !!value[accountID]?.lastName;
-            isAbleToDetermineOnboardingStatus({onAble: resolveOnboardingFlowStatus});
-        },
-    });
-}
-
 function setOnboardingPurposeSelected(value: OnboardingPurposeType) {
     Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, value ?? null);
 }
 
+function setOnboardingAdminsChatReportID(adminsChatReportID?: string) {
+    Onyx.set(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID, adminsChatReportID ?? null);
+}
+
+function setOnboardingPolicyID(policyID?: string) {
+    Onyx.set(ONYXKEYS.ONBOARDING_POLICY_ID, policyID ?? null);
+}
+
 Onyx.connect({
-    key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
+    key: ONYXKEYS.NVP_ONBOARDING,
     initWithStoredValues: false,
     callback: (value) => {
-        // If isFirstTimeNewExpensifyUser was true do not update it to false. We update it to false inside the Welcome.show logic
-        // More context here https://github.com/Expensify/App/pull/16962#discussion_r1167351359
+        if (value === null) {
+            return;
+        }
 
-        isFirstTimeNewExpensifyUser = value ?? undefined;
+        onboarding = value;
 
-        checkOnReady();
-    },
-});
-
-Onyx.connect({
-    key: ONYXKEYS.NVP_INTRO_SELECTED,
-    initWithStoredValues: true,
-    callback: (value) => {
-        hasSelectedPurpose = !!value;
-        isAbleToDetermineOnboardingStatus({onAble: resolveOnboardingFlowStatus});
-    },
-});
-
-Onyx.connect({
-    key: ONYXKEYS.NVP_HAS_DISMISSED_IDLE_PANEL,
-    initWithStoredValues: true,
-    callback: (value) => {
-        hasDismissedModal = value ?? false;
-
-        checkOnReady();
+        checkOnboardingDataReady();
     },
 });
 
@@ -153,7 +95,7 @@ Onyx.connect({
     initWithStoredValues: false,
     callback: (value) => {
         isLoadingReportData = value ?? false;
-        checkOnReady();
+        checkServerDataReady();
     },
 });
 
@@ -174,15 +116,15 @@ Onyx.connect({
     },
 });
 
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (val, key) => {
-        if (!val || !key) {
-            return;
-        }
+function resetAllChecks() {
+    isServerDataReadyPromise = new Promise((resolve) => {
+        resolveIsReadyPromise = resolve;
+    });
+    isOnboardingFlowStatusKnownPromise = new Promise((resolve) => {
+        resolveOnboardingFlowStatus = resolve;
+    });
+    onboarding = undefined;
+    isLoadingReportData = true;
+}
 
-        getPersonalDetails(val.accountID);
-    },
-});
-
-export {onServerDataReady, isOnboardingFlowCompleted, setOnboardingPurposeSelected};
+export {onServerDataReady, isOnboardingFlowCompleted, setOnboardingPurposeSelected, resetAllChecks, setOnboardingAdminsChatReportID, setOnboardingPolicyID};

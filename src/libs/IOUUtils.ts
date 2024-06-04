@@ -9,7 +9,7 @@ import Navigation from './Navigation/Navigation';
 import * as TransactionUtils from './TransactionUtils';
 
 function navigateToStartMoneyRequestStep(requestType: IOURequestType, iouType: IOUType, transactionID: string, reportID: string, iouAction?: IOUAction): void {
-    if (iouAction === CONST.IOU.ACTION.CATEGORIZE || iouAction === CONST.IOU.ACTION.SUBMIT) {
+    if (iouAction === CONST.IOU.ACTION.CATEGORIZE || iouAction === CONST.IOU.ACTION.SUBMIT || iouAction === CONST.IOU.ACTION.SHARE) {
         Navigation.goBack();
         return;
     }
@@ -106,10 +106,18 @@ function isIOUReportPendingCurrencyConversion(iouReport: Report): boolean {
 }
 
 /**
- * Checks if the iou type is one of request, send, or split.
+ * Checks if the iou type is one of request, send, invoice or split.
  */
 function isValidMoneyRequestType(iouType: string): boolean {
-    const moneyRequestType: string[] = [CONST.IOU.TYPE.REQUEST, CONST.IOU.TYPE.SUBMIT, CONST.IOU.TYPE.SPLIT, CONST.IOU.TYPE.SEND, CONST.IOU.TYPE.PAY, CONST.IOU.TYPE.TRACK];
+    const moneyRequestType: string[] = [
+        CONST.IOU.TYPE.REQUEST,
+        CONST.IOU.TYPE.SUBMIT,
+        CONST.IOU.TYPE.SPLIT,
+        CONST.IOU.TYPE.SEND,
+        CONST.IOU.TYPE.PAY,
+        CONST.IOU.TYPE.TRACK,
+        CONST.IOU.TYPE.INVOICE,
+    ];
     return moneyRequestType.includes(iouType);
 }
 
@@ -118,7 +126,7 @@ function isValidMoneyRequestType(iouType: string): boolean {
  */
 // eslint-disable-next-line @typescript-eslint/naming-convention
 function temporary_isValidMoneyRequestType(iouType: string): boolean {
-    const moneyRequestType: string[] = [CONST.IOU.TYPE.SUBMIT, CONST.IOU.TYPE.SPLIT, CONST.IOU.TYPE.PAY, CONST.IOU.TYPE.TRACK];
+    const moneyRequestType: string[] = [CONST.IOU.TYPE.SUBMIT, CONST.IOU.TYPE.SPLIT, CONST.IOU.TYPE.PAY, CONST.IOU.TYPE.TRACK, CONST.IOU.TYPE.INVOICE];
     return moneyRequestType.includes(iouType);
 }
 
