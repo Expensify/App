@@ -90,6 +90,7 @@ import TrashCan from '@assets/images/simple-illustrations/simple-illustration__t
 import TreasureChest from '@assets/images/simple-illustrations/simple-illustration__treasurechest.svg';
 import WalletAlt from '@assets/images/simple-illustrations/simple-illustration__wallet-alt.svg';
 import Workflows from '@assets/images/simple-illustrations/simple-illustration__workflows.svg';
+import ExpensifyApprovedLogoLight from '@assets/images/subscription-details__approvedlogo--light.svg';
 import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
 
 export {
@@ -184,6 +185,7 @@ export {
     SubscriptionAnnual,
     SubscriptionPPU,
     ExpensifyApprovedLogo,
+    ExpensifyApprovedLogoLight,
     SendMoney,
     CheckmarkCircle,
 };

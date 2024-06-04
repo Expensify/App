@@ -33,10 +33,12 @@ const options: Array<OptionsPickerItem<SubscriptionVariant>> = [
 function SubscriptionDetails() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [preferredTheme] = useOnyx(ONYXKEYS.PREFERRED_THEME);
 
     const [selectedOption, setSelectedOption] = useState(privateSubscription?.type ?? CONST.SUBSCRIPTION.TYPE.ANNUAL);
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
     const onOptionSelected = (option: SubscriptionVariant) => {
         setSelectedOption(option);
@@ -79,7 +81,7 @@ function SubscriptionDetails() {
             {!!account?.isApprovedAccountant || !!account?.isApprovedAccountantClient ? (
                 <View style={[styles.borderedContentCard, styles.p5, styles.mt5]}>
                     <Icon
-                        src={Illustrations.ExpensifyApprovedLogo}
+                        src={preferredTheme === CONST.THEME.LIGHT ? Illustrations.ExpensifyApprovedLogoLight : Illustrations.ExpensifyApprovedLogo}
                         width={variables.modalTopIconWidth}
                         height={variables.menuIconSize}
                     />
