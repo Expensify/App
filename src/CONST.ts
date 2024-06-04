@@ -574,6 +574,7 @@ const CONST = {
     ADD_SECONDARY_LOGIN_URL: encodeURI('settings?param={"section":"account","openModal":"secondaryLogin"}'),
     MANAGE_CARDS_URL: 'domain_companycards',
     FEES_URL: `${USE_EXPENSIFY_URL}/fees`,
+    SAVE_WITH_EXPENSIFY_URL: `${USE_EXPENSIFY_URL}/savings-calculator`,
     CFPB_PREPAID_URL: 'https://cfpb.gov/prepaid',
     STAGING_NEW_EXPENSIFY_URL: 'https://staging.new.expensify.com',
     NEWHELP_URL: 'https://help.expensify.com',
@@ -1896,6 +1897,12 @@ const CONST = {
     OPTION_MODE: {
         COMPACT: 'compact',
         DEFAULT: 'default',
+    },
+    SUBSCRIPTION: {
+        TYPE: {
+            ANNUAL: 'yearly2018',
+            PAYPERUSE: 'monthly2018',
+        },
     },
     REGEX: {
         SPECIAL_CHARS_WITHOUT_NEWLINE: /((?!\n)[()-\s\t])/g,
