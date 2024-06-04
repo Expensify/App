@@ -90,7 +90,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const shouldDisableRename = useMemo(() => ReportUtils.shouldDisableRename(report, linkedWorkspace), [report, linkedWorkspace]);
     const isDeprecatedGroupDM = useMemo(() => ReportUtils.isDeprecatedGroupDM(report), [report]);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(report);
-
     const shouldShowRoomName =
         !ReportUtils.isChatThread(report) &&
         !isDeprecatedGroupDM &&
@@ -99,7 +98,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         !isMoneyRequestReport &&
         !isInvoiceRoom &&
         !(isMoneyRequestReport || isInvoiceReport || isMoneyRequest);
-
     // eslint-disable-next-line react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
     const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(report), [report, policy]);
     const isSystemChat = useMemo(() => ReportUtils.isSystemChat(report), [report]);
@@ -113,17 +111,13 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
         return ReportUtils.getVisibleChatMemberAccountIDs(report.reportID ?? '');
     }, [report, session, isGroupChat, isSystemChat]);
-
     // Get the active chat members by filtering out the pending members with delete action
     const activeChatMembers = participants.flatMap((accountID) => {
         const pendingMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
         return !pendingMember || pendingMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? accountID : [];
     });
-
     const isGroupDMChat = useMemo(() => ReportUtils.isDM(report) && participants.length > 1, [report, participants.length]);
-
     const isPrivateNotesFetchTriggered = report?.isLoadingPrivateNotes !== undefined;
-
     const isSelfDM = useMemo(() => ReportUtils.isSelfDM(report), [report]);
 
     useEffect(() => {
