@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -23,15 +23,18 @@ function SocialSecurityNumberStep({onNext, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>): FormInputErrors<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS> => {
-        const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>): FormInputErrors<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS> => {
+            const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
 
-        if (values.ssn && !ValidationUtils.isValidSSNLastFour(values.ssn)) {
-            errors.ssn = translate('bankAccount.error.ssnLast4');
-        }
+            if (values.ssn && !ValidationUtils.isValidSSNLastFour(values.ssn)) {
+                errors.ssn = translate('bankAccount.error.ssnLast4');
+            }
 
-        return errors;
-    };
+            return errors;
+        },
+        [translate],
+    );
 
     const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
 

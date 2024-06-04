@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -27,14 +27,17 @@ function PhoneNumberStep({onNext, isEditing}: SubStepProps) {
 
     const defaultPhoneNumber = walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.PHONE_NUMBER] ?? '';
 
-    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>): FormInputErrors<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS> => {
-        const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>): FormInputErrors<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS> => {
+            const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
 
-        if (values.phoneNumber && !ValidationUtils.isValidUSPhone(values.phoneNumber, true)) {
-            errors.phoneNumber = translate('bankAccount.error.phoneNumber');
-        }
-        return errors;
-    };
+            if (values.phoneNumber && !ValidationUtils.isValidUSPhone(values.phoneNumber, true)) {
+                errors.phoneNumber = translate('bankAccount.error.phoneNumber');
+            }
+            return errors;
+        },
+        [translate],
+    );
 
     const handleSubmit = useWalletAdditionalDetailsStepFormSubmit({
         fieldIds: STEP_FIELDS,

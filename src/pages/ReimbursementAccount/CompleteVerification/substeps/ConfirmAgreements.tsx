@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
@@ -58,23 +58,26 @@ function ConfirmAgreements({onNext, reimbursementAccount}: ConfirmAgreementsProp
         certifyTrueInformation: reimbursementAccount?.achData?.certifyTrueInformation ?? false,
         acceptTermsAndConditions: reimbursementAccount?.achData?.acceptTermsAndConditions ?? false,
     };
-    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-        const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+            const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
 
-        if (!ValidationUtils.isRequiredFulfilled(values.acceptTermsAndConditions)) {
-            errors.acceptTermsAndConditions = translate('common.error.acceptTerms');
-        }
+            if (!ValidationUtils.isRequiredFulfilled(values.acceptTermsAndConditions)) {
+                errors.acceptTermsAndConditions = translate('common.error.acceptTerms');
+            }
 
-        if (!ValidationUtils.isRequiredFulfilled(values.certifyTrueInformation)) {
-            errors.certifyTrueInformation = translate('completeVerificationStep.certifyTrueAndAccurateError');
-        }
+            if (!ValidationUtils.isRequiredFulfilled(values.certifyTrueInformation)) {
+                errors.certifyTrueInformation = translate('completeVerificationStep.certifyTrueAndAccurateError');
+            }
 
-        if (!ValidationUtils.isRequiredFulfilled(values.isAuthorizedToUseBankAccount)) {
-            errors.isAuthorizedToUseBankAccount = translate('completeVerificationStep.isAuthorizedToUseBankAccountError');
-        }
+            if (!ValidationUtils.isRequiredFulfilled(values.isAuthorizedToUseBankAccount)) {
+                errors.isAuthorizedToUseBankAccount = translate('completeVerificationStep.isAuthorizedToUseBankAccountError');
+            }
 
-        return errors;
-    };
+            return errors;
+        },
+        [translate],
+    );
 
     return (
         <FormProvider

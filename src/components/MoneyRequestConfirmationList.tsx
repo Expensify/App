@@ -35,6 +35,7 @@ import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import * as IOU from '@userActions/IOU';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
@@ -322,7 +323,7 @@ function MoneyRequestConfirmationList({
     const previousTransactionCurrency = usePrevious(transaction?.currency);
 
     const isFocused = useIsFocused();
-    const [formError, debouncedFormError, setFormError] = useDebouncedState('');
+    const [formError, debouncedFormError, setFormError] = useDebouncedState<TranslationPaths | ''>('');
 
     const [didConfirm, setDidConfirm] = useState(false);
     const [didConfirmSplit, setDidConfirmSplit] = useState(false);
@@ -349,8 +350,12 @@ function MoneyRequestConfirmationList({
     const isCategoryRequired = !!policy?.requiresCategory;
 
     useEffect(() => {
+        if (shouldDisplayFieldError && hasSmartScanFailed) {
+            setFormError('iou.receiptScanningFailed');
+            return;
+        }
         if (shouldDisplayFieldError && didConfirmSplit) {
-            setFormError(translate('iou.error.genericSmartscanFailureMessage'));
+            setFormError('iou.error.genericSmartscanFailureMessage');
             return;
         }
 
@@ -435,7 +440,7 @@ function MoneyRequestConfirmationList({
         const shares: number[] = Object.values(splitSharesMap).map((splitShare) => splitShare?.amount ?? 0);
         const sumOfShares = shares?.reduce((prev, current): number => prev + current, 0);
         if (sumOfShares !== iouAmount) {
-            setFormError(translate('iou.error.invalidSplit'));
+            setFormError('iou.error.invalidSplit');
             return;
         }
 
@@ -445,7 +450,7 @@ function MoneyRequestConfirmationList({
 
         // A split must have at least two participants with amounts bigger than 0
         if (participantsWithAmount.length === 1) {
-            setFormError(translate('iou.error.invalidSplitParticipants'));
+            setFormError('iou.error.invalidSplitParticipants');
             return;
         }
 
@@ -702,11 +707,11 @@ function MoneyRequestConfirmationList({
                 return;
             }
             if (!isEditingSplitBill && isMerchantRequired && (isMerchantEmpty || (shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction ?? null)))) {
-                setFormError(translate('iou.error.invalidMerchant'));
+                setFormError('iou.error.invalidMerchant');
                 return;
             }
             if (iouCategory.length > CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH) {
-                setFormError(translate('iou.error.invalidCategoryLength'));
+                setFormError('iou.error.invalidCategoryLength');
                 return;
             }
             if (iouType !== CONST.IOU.TYPE.PAY) {
@@ -751,7 +756,6 @@ function MoneyRequestConfirmationList({
             formError,
             iouType,
             setFormError,
-            translate,
             onSendMoney,
             iouCurrencyCode,
             isDistanceRequest,
@@ -808,7 +812,7 @@ function MoneyRequestConfirmationList({
                     <FormHelpMessage
                         style={[styles.ph1, styles.mb2]}
                         isError
-                        message={!shouldShowReadOnlySplits ? debouncedFormError : formError}
+                        message={!shouldShowReadOnlySplits ? debouncedFormError : translate(formError)}
                     />
                 )}
 
@@ -825,10 +829,11 @@ function MoneyRequestConfirmationList({
         policyID,
         splitOrRequestOptions,
         formError,
-        debouncedFormError,
-        shouldShowReadOnlySplits,
         styles.ph1,
         styles.mb2,
+        shouldShowReadOnlySplits,
+        debouncedFormError,
+        translate,
     ]);
 
     // An intermediate structure that helps us classify the fields as "primary" and "supplementary".

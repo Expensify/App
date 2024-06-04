@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import DatePicker from '@components/DatePicker';
@@ -33,17 +33,20 @@ function IncorporationDateBusiness({reimbursementAccount, reimbursementAccountDr
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-        const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+            const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
 
-        if (values.incorporationDate && !ValidationUtils.isValidDate(values.incorporationDate)) {
-            errors.incorporationDate = translate('common.error.dateInvalid');
-        } else if (values.incorporationDate && !ValidationUtils.isValidPastDate(values.incorporationDate)) {
-            errors.incorporationDate = translate('bankAccount.error.incorporationDateFuture');
-        }
+            if (values.incorporationDate && !ValidationUtils.isValidDate(values.incorporationDate)) {
+                errors.incorporationDate = translate('common.error.dateInvalid');
+            } else if (values.incorporationDate && !ValidationUtils.isValidPastDate(values.incorporationDate)) {
+                errors.incorporationDate = translate('bankAccount.error.incorporationDateFuture');
+            }
 
-        return errors;
-    };
+            return errors;
+        },
+        [translate],
+    );
 
     const defaultCompanyIncorporationDate = reimbursementAccount?.achData?.incorporationDate ?? reimbursementAccountDraft?.incorporationDate ?? '';
 

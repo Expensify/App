@@ -1,5 +1,5 @@
 import {subYears} from 'date-fns';
-import React from 'react';
+import React, {useCallback} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
@@ -26,19 +26,22 @@ function DateOfBirthStep({onNext, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>): FormInputErrors<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS> => {
-        const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>): FormInputErrors<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS> => {
+            const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
 
-        if (values.dob) {
-            if (!ValidationUtils.isValidPastDate(values.dob) || !ValidationUtils.meetsMaximumAgeRequirement(values.dob)) {
-                errors.dob = translate('bankAccount.error.dob');
-            } else if (!ValidationUtils.meetsMinimumAgeRequirement(values.dob)) {
-                errors.dob = translate('bankAccount.error.age');
+            if (values.dob) {
+                if (!ValidationUtils.isValidPastDate(values.dob) || !ValidationUtils.meetsMaximumAgeRequirement(values.dob)) {
+                    errors.dob = translate('bankAccount.error.dob');
+                } else if (!ValidationUtils.meetsMinimumAgeRequirement(values.dob)) {
+                    errors.dob = translate('bankAccount.error.age');
+                }
             }
-        }
 
-        return errors;
-    };
+            return errors;
+        },
+        [translate],
+    );
 
     const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
 

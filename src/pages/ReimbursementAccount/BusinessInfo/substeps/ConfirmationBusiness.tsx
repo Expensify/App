@@ -1,5 +1,5 @@
 import type {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
@@ -52,15 +52,18 @@ function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-        const errors = ValidationUtils.getFieldRequiredErrors(values, [BUSINESS_INFO_STEP_KEYS.HAS_NO_CONNECTION_TO_CANNABIS]);
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+            const errors = ValidationUtils.getFieldRequiredErrors(values, [BUSINESS_INFO_STEP_KEYS.HAS_NO_CONNECTION_TO_CANNABIS]);
 
-        if (!values.hasNoConnectionToCannabis) {
-            errors.hasNoConnectionToCannabis = translate('bankAccount.error.restrictedBusiness');
-        }
+            if (!values.hasNoConnectionToCannabis) {
+                errors.hasNoConnectionToCannabis = translate('bankAccount.error.restrictedBusiness');
+            }
 
-        return errors;
-    };
+            return errors;
+        },
+        [translate],
+    );
 
     const values = useMemo(() => getSubstepValues(BUSINESS_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
 

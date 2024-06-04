@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -31,15 +31,18 @@ function PhoneNumberBusiness({reimbursementAccount, onNext, isEditing}: PhoneNum
     const styles = useThemeStyles();
     const defaultCompanyPhoneNumber = reimbursementAccount?.achData?.companyPhone ?? '';
 
-    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-        const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+            const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
 
-        if (values.companyPhone && !ValidationUtils.isValidUSPhone(values.companyPhone, true)) {
-            errors.companyPhone = translate('bankAccount.error.phoneNumber');
-        }
+            if (values.companyPhone && !ValidationUtils.isValidUSPhone(values.companyPhone, true)) {
+                errors.companyPhone = translate('bankAccount.error.phoneNumber');
+            }
 
-        return errors;
-    };
+            return errors;
+        },
+        [translate],
+    );
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,

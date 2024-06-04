@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -36,17 +36,20 @@ function FullName({reimbursementAccount, onNext, isEditing}: FullNameProps) {
         lastName: reimbursementAccount?.achData?.[PERSONAL_INFO_STEP_KEY.LAST_NAME] ?? '',
     };
 
-    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-        const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
-        if (values.firstName && !ValidationUtils.isValidLegalName(values.firstName)) {
-            errors.firstName = translate('bankAccount.error.firstName');
-        }
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+            const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+            if (values.firstName && !ValidationUtils.isValidLegalName(values.firstName)) {
+                errors.firstName = translate('bankAccount.error.firstName');
+            }
 
-        if (values.lastName && !ValidationUtils.isValidLegalName(values.lastName)) {
-            errors.lastName = translate('bankAccount.error.lastName');
-        }
-        return errors;
-    };
+            if (values.lastName && !ValidationUtils.isValidLegalName(values.lastName)) {
+                errors.lastName = translate('bankAccount.error.lastName');
+            }
+            return errors;
+        },
+        [translate],
+    );
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,

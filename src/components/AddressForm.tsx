@@ -116,18 +116,18 @@ function AddressForm({
             const countrySpecificZipRegex = countryRegexDetails?.regex;
             const countryZipFormat = countryRegexDetails?.samples ?? '';
 
-            ErrorUtils.addErrorMessage(errors, 'firstName', 'bankAccount.error.firstName');
+            ErrorUtils.addErrorMessage(errors, 'firstName', translate('bankAccount.error.firstName'));
 
             if (countrySpecificZipRegex) {
                 if (!countrySpecificZipRegex.test(values.zipPostCode?.trim().toUpperCase())) {
                     if (ValidationUtils.isRequiredFulfilled(values.zipPostCode?.trim())) {
-                        errors.zipPostCode = ['privatePersonalDetails.error.incorrectZipFormat', countryZipFormat];
+                        errors.zipPostCode = [translate('privatePersonalDetails.error.incorrectZipFormat', countryZipFormat)];
                     } else {
-                        errors.zipPostCode = 'common.error.fieldRequired';
+                        errors.zipPostCode = translate('common.error.fieldRequired');
                     }
                 }
             } else if (!CONST.GENERIC_ZIP_CODE_REGEX.test(values?.zipPostCode?.trim()?.toUpperCase() ?? '')) {
-                errors.zipPostCode = 'privatePersonalDetails.error.incorrectZipFormat';
+                errors.zipPostCode = translate('privatePersonalDetails.error.incorrectZipFormat');
             }
 
             return errors;

@@ -90,7 +90,7 @@ function PDFPasswordForm({isFocused, isPasswordInvalid = false, shouldShowLoadin
             return true;
         }
         if (!password) {
-            setValidationErrorText('attachmentView.passwordRequired');
+            setValidationErrorText(translate('attachmentView.passwordRequired'));
         }
         return false;
     };
