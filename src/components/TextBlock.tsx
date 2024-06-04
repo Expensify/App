@@ -1,7 +1,5 @@
 import React, {memo, useMemo} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
-import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
 import Text from './Text';
 
 type TextBlockProps = {
