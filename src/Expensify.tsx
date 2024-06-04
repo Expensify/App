@@ -37,6 +37,7 @@ import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/Popo
 import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
 import type {Route} from './ROUTES';
 import type {ScreenShareRequest, Session} from './types/onyx';
+import crashlytics from "@react-native-firebase/crashlytics";
 
 Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
@@ -215,6 +216,13 @@ function Expensify({
     useEffect(() => {
         Audio.setAudioModeAsync({playsInSilentModeIOS: true});
     }, []);
+
+    useEffect(() => {
+        if (!isAuthenticated) {
+            return
+        }
+        crashlytics().setUserId(Number(session?.accountID).toString())
+    }, [isAuthenticated, session?.accountID])
 
     // Display a blank page until the onyx migration completes
     if (!isOnyxMigrated) {
