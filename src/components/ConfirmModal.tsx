@@ -92,7 +92,7 @@ function ConfirmModal({
     onConfirm,
     image,
 }: ConfirmModalProps) {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
 
     return (
@@ -102,7 +102,7 @@ function ConfirmModal({
             isVisible={isVisible}
             shouldSetModalVisibility={shouldSetModalVisibility}
             onModalHide={onModalHide}
-            type={shouldUseNarrowLayout ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
+            type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             innerContainerStyle={image ? styles.pt0 : {}}
         >
             <ConfirmContent
