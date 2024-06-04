@@ -101,6 +101,7 @@ describe('test workflow platformDeploy', () => {
                     desktop: mocks.PLATFORM_DEPLOY__DESKTOP__STEP_MOCKS,
                     iOS: mocks.PLATFORM_DEPLOY__IOS__STEP_MOCKS,
                     web: mocks.PLATFORM_DEPLOY__WEB__STEP_MOCKS,
+                    hybridApp: mocks.PLATFORM_DEPLOY__HYBRID_APP__STEP_MOCKS,
                     postSlackMessageOnFailure: mocks.PLATFORM_DEPLOY__POST_SLACK_FAIL__STEP_MOCKS,
                     postSlackMessageOnSuccess: mocks.PLATFORM_DEPLOY__POST_SLACK_SUCCESS__STEP_MOCKS,
                     postGithubComment: mocks.PLATFORM_DEPLOY__POST_GITHUB_COMMENT__STEP_MOCKS,
@@ -125,6 +126,7 @@ describe('test workflow platformDeploy', () => {
                 assertions.assertDesktopJobExecuted(result, true, false);
                 assertions.assertIOSJobExecuted(result, true, false, true);
                 assertions.assertWebJobExecuted(result, true, false);
+                assertions.assertHybridAppJobExecuted(result, true);
                 assertions.assertPostSlackOnFailureJobExecuted(result, false);
                 assertions.assertPostSlackOnSuccessJobExecuted(result, true, false);
                 assertions.assertPostGithubCommentJobExecuted(result, true, false);
@@ -185,6 +187,7 @@ describe('test workflow platformDeploy', () => {
                     desktop: mocks.PLATFORM_DEPLOY__DESKTOP__STEP_MOCKS,
                     iOS: mocks.PLATFORM_DEPLOY__IOS__STEP_MOCKS,
                     web: mocks.PLATFORM_DEPLOY__WEB__STEP_MOCKS,
+                    hybridApp: mocks.PLATFORM_DEPLOY__HYBRID_APP__STEP_MOCKS,
                     postSlackMessageOnFailure: mocks.PLATFORM_DEPLOY__POST_SLACK_FAIL__STEP_MOCKS,
                     postSlackMessageOnSuccess: mocks.PLATFORM_DEPLOY__POST_SLACK_SUCCESS__STEP_MOCKS,
                     postGithubComment: mocks.PLATFORM_DEPLOY__POST_GITHUB_COMMENT__STEP_MOCKS,
@@ -209,6 +212,7 @@ describe('test workflow platformDeploy', () => {
                 assertions.assertDesktopJobExecuted(result, true, false);
                 assertions.assertIOSJobExecuted(result, true, false, true);
                 assertions.assertWebJobExecuted(result, true, false);
+                assertions.assertHybridAppJobExecuted(result, true);
                 assertions.assertPostSlackOnFailureJobExecuted(result, false);
                 assertions.assertPostSlackOnSuccessJobExecuted(result, true, false);
                 assertions.assertPostGithubCommentJobExecuted(result, true, false);
@@ -269,6 +273,7 @@ describe('test workflow platformDeploy', () => {
                     desktop: mocks.PLATFORM_DEPLOY__DESKTOP__STEP_MOCKS,
                     iOS: mocks.PLATFORM_DEPLOY__IOS__STEP_MOCKS,
                     web: mocks.PLATFORM_DEPLOY__WEB__STEP_MOCKS,
+                    hybridApp: mocks.PLATFORM_DEPLOY__HYBRID_APP__STEP_MOCKS,
                     postSlackMessageOnFailure: mocks.PLATFORM_DEPLOY__POST_SLACK_FAIL__STEP_MOCKS,
                     postSlackMessageOnSuccess: mocks.PLATFORM_DEPLOY__POST_SLACK_SUCCESS__STEP_MOCKS,
                     postGithubComment: mocks.PLATFORM_DEPLOY__POST_GITHUB_COMMENT__STEP_MOCKS,
@@ -293,6 +298,7 @@ describe('test workflow platformDeploy', () => {
                 assertions.assertDesktopJobExecuted(result, false);
                 assertions.assertIOSJobExecuted(result, false);
                 assertions.assertWebJobExecuted(result, false);
+                assertions.assertHybridAppJobExecuted(result, false);
                 assertions.assertPostSlackOnFailureJobExecuted(result, false);
                 assertions.assertPostSlackOnSuccessJobExecuted(result, false);
                 assertions.assertPostGithubCommentJobExecuted(result, true, false, false);
