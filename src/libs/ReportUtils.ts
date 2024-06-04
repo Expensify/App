@@ -6639,7 +6639,7 @@ function getTripTransactions(tripRoomReportID: string | undefined): Transaction[
 }
 
 function getTripIDFromTransactionParentReport(transactionParentReport: OnyxEntry<Report> | undefined | null): string | undefined {
-    return getReport(transactionParentReport?.parentReportID)?.tripData?.tripId;
+    return getReport(transactionParentReport?.parentReportID)?.tripData?.tripID;
 }
 
 /**
