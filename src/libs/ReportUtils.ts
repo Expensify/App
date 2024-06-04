@@ -901,7 +901,7 @@ function isPolicyExpenseChat(report: OnyxEntry<Report> | Participant | EmptyObje
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT || (report?.isPolicyExpenseChat ?? false);
 }
 
-function isInvoiceRoom(report: OnyxEntry<Report>): boolean {
+function isInvoiceRoom(report: OnyxEntry<Report> | EmptyObject): boolean {
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.INVOICE;
 }
 
