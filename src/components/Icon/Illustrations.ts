@@ -41,6 +41,7 @@ import Binoculars from '@assets/images/simple-illustrations/simple-illustration_
 import CarIce from '@assets/images/simple-illustrations/simple-illustration__car-ice.svg';
 import Car from '@assets/images/simple-illustrations/simple-illustration__car.svg';
 import ChatBubbles from '@assets/images/simple-illustrations/simple-illustration__chatbubbles.svg';
+import CheckmarkCircle from '@assets/images/simple-illustrations/simple-illustration__checkmarkcircle.svg';
 import CoffeeMug from '@assets/images/simple-illustrations/simple-illustration__coffeemug.svg';
 import Coins from '@assets/images/simple-illustrations/simple-illustration__coins.svg';
 import CommentBubbles from '@assets/images/simple-illustrations/simple-illustration__commentbubbles.svg';
@@ -76,6 +77,7 @@ import ReceiptEnvelope from '@assets/images/simple-illustrations/simple-illustra
 import ReceiptWrangler from '@assets/images/simple-illustrations/simple-illustration__receipt-wrangler.svg';
 import ReceiptUpload from '@assets/images/simple-illustrations/simple-illustration__receiptupload.svg';
 import SanFrancisco from '@assets/images/simple-illustrations/simple-illustration__sanfrancisco.svg';
+import SendMoney from '@assets/images/simple-illustrations/simple-illustration__sendmoney.svg';
 import ShieldYellow from '@assets/images/simple-illustrations/simple-illustration__shield.svg';
 import SmallRocket from '@assets/images/simple-illustrations/simple-illustration__smallrocket.svg';
 import SplitBill from '@assets/images/simple-illustrations/simple-illustration__splitbill.svg';
@@ -178,4 +180,6 @@ export {
     Tag,
     CarIce,
     Lightbulb,
+    SendMoney,
+    CheckmarkCircle,
 };
