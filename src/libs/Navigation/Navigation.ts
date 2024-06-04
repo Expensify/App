@@ -1,7 +1,6 @@
 import {findFocusedRoute} from '@react-navigation/core';
-import type {EventArg, NavigationContainerEventMap, NavigationState} from '@react-navigation/native';
+import type {EventArg, NavigationContainerEventMap} from '@react-navigation/native';
 import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
-import type {ValueOf} from 'type-fest';
 import Log from '@libs/Log';
 import * as ReportUtils from '@libs/ReportUtils';
 import {getReport} from '@libs/ReportUtils';
