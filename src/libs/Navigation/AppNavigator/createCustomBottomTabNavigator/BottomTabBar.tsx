@@ -51,11 +51,10 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
         }
 
         Welcome.isFirstTimeHybridAppUser({
-            // When user opens New Expensify from HybridApp we always want to show explanation modal first.
+            // When user opens New Expensify for the first time from HybridApp we always want to show explanation modal first.
             onFirstTimeInHybridApp: () => Navigation.navigate(ROUTES.EXPLANATION_MODAL_ROOT),
             // In other scenarios we need to check if onboarding was completed.
-            onSubsequentRunsOrNotInHybridApp: () =>
-                Welcome.isOnboardingFlowCompleted({onNotCompleted: () => Navigation.navigate(ROUTES.ONBOARDING_ROOT)});
+            onSubsequentRunsOrNotInHybridApp: () => Welcome.isOnboardingFlowCompleted({onNotCompleted: () => Navigation.navigate(ROUTES.ONBOARDING_ROOT)}),
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoadingApp]);

@@ -385,7 +385,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         name={NAVIGATORS.EXPLANATION_MODAL_NAVIGATOR}
                         options={onboardingScreenOptions}
                         component={ExplanationModalNavigator}
-                        listeners={modalScreenListeners}
                     />
                     <RootStack.Screen
                         name={NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR}

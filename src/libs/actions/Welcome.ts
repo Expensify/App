@@ -9,7 +9,7 @@ import type {EmptyObject} from '@src/types/utils/EmptyObject';
 
 let onboarding: Onboarding | [] | undefined;
 let isLoadingReportData = true;
-let hasSeenNewUserModal = false;
+let hasSeenNewUserModal: boolean | null | undefined;
 
 type HasCompletedOnboardingFlowProps = {
     onCompleted?: () => void;
@@ -96,6 +96,17 @@ function checkServerDataReady() {
     resolveIsReadyPromise?.();
 }
 
+/**
+ * Check if user saw explanation modal and dismissed it
+ */
+function checkNewUserModalDataReady() {
+    if (hasSeenNewUserModal === undefined) {
+        return;
+    }
+
+    resolveNewUserModalStatus?.();
+}
+
 function setOnboardingPurposeSelected(value: OnboardingPurposeType) {
     Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, value ?? null);
 }
@@ -106,6 +117,10 @@ function setOnboardingAdminsChatReportID(adminsChatReportID?: string) {
 
 function setOnboardingPolicyID(policyID?: string) {
     Onyx.set(ONYXKEYS.ONBOARDING_POLICY_ID, policyID ?? null);
+}
+
+function setHasSeenNewUserModal() {
+    Onyx.set(ONYXKEYS.NVP_SEEN_NEW_USER_MODAL, true);
 }
 
 Onyx.connect({
@@ -151,14 +166,10 @@ Onyx.connect({
 Onyx.connect({
     key: ONYXKEYS.NVP_SEEN_NEW_USER_MODAL,
     callback: (value) => {
-        if(value === null) {
-            return;
-        }
-
         hasSeenNewUserModal = value;
-        resolveNewUserModalStatus?.();
-    }
-})
+        checkNewUserModalDataReady();
+    },
+});
 
 function resetAllChecks() {
     isServerDataReadyPromise = new Promise((resolve) => {
@@ -171,4 +182,13 @@ function resetAllChecks() {
     isLoadingReportData = true;
 }
 
-export {onServerDataReady, isOnboardingFlowCompleted, setOnboardingPurposeSelected, resetAllChecks, setOnboardingAdminsChatReportID, setOnboardingPolicyID, isFirstTimeHybridAppUser};
+export {
+    onServerDataReady,
+    isOnboardingFlowCompleted,
+    setOnboardingPurposeSelected,
+    resetAllChecks,
+    setOnboardingAdminsChatReportID,
+    setOnboardingPolicyID,
+    isFirstTimeHybridAppUser,
+    setHasSeenNewUserModal,
+};
