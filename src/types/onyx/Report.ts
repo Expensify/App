@@ -203,6 +203,13 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         fieldList?: Record<string, PolicyReportField>;
 
         permissions?: Array<ValueOf<typeof CONST.REPORT.PERMISSIONS>>;
+
+        /** The trip data for a trip room */
+        tripData?: {
+            startDate: string;
+            endDate: string;
+            tripId: string;
+        };
     },
     PolicyReportField['fieldID']
 >;
