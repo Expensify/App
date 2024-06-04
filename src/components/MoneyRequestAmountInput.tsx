@@ -2,6 +2,7 @@ import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {NativeSyntheticEvent, StyleProp, TextInputSelectionChangeEventData, TextStyle, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
+import {useMouseContext} from '@hooks/useMouseContext';
 import * as Browser from '@libs/Browser';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import getOperatingSystem from '@libs/getOperatingSystem';
@@ -258,6 +259,16 @@ function MoneyRequestAmountInput(
 
     const formattedAmount = MoneyRequestUtils.replaceAllDigits(currentAmount, toLocaleDigit);
 
+    const {setMouseDown, setMouseUp} = useMouseContext();
+    const handleMouseDown = (e: React.MouseEvent<Element, MouseEvent>) => {
+        e.stopPropagation();
+        setMouseDown();
+    };
+    const handleMouseUp = (e: React.MouseEvent<Element, MouseEvent>) => {
+        e.stopPropagation();
+        setMouseUp();
+    };
+
     return (
         <TextInputWithCurrencySymbol
             autoGrow={autoGrow}
@@ -298,7 +309,8 @@ function MoneyRequestAmountInput(
             touchableInputWrapperStyle={props.touchableInputWrapperStyle}
             maxLength={maxLength}
             hideFocusedState={hideFocusedState}
-            onMouseDown={(event) => event.stopPropagation()}
+            onMouseDown={handleMouseDown}
+            onMouseUp={handleMouseUp}
         />
     );
 }

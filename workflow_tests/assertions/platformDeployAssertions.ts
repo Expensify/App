@@ -376,6 +376,18 @@ function assertPostGithubCommentJobExecuted(workflowResult: Step[], didExecute =
     });
 }
 
+function assertHybridAppJobExecuted(workflowResult: Step[], didExecute = true) {
+    const steps = [createStepAssertion('Deploy HybridApp', true, null, 'HYBRID_APP', 'Deploy HybridApp')] as const;
+
+    steps.forEach((expectedStep) => {
+        if (didExecute) {
+            expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
+        } else {
+            expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
+        }
+    });
+}
+
 export default {
     assertVerifyActorJobExecuted,
     assertDeployChecklistJobExecuted,
@@ -383,6 +395,7 @@ export default {
     assertDesktopJobExecuted,
     assertIOSJobExecuted,
     assertWebJobExecuted,
+    assertHybridAppJobExecuted,
     assertPostSlackOnFailureJobExecuted,
     assertPostSlackOnSuccessJobExecuted,
     assertPostGithubCommentJobExecuted,
