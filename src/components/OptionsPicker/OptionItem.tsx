@@ -40,7 +40,7 @@ function OptionItem({title, icon, onPress, isSelected = false, isDisabled, style
         <PressableWithFeedback
             onPress={onPress}
             role={CONST.ROLE.BUTTON}
-            accessibilityLabel={translate('common.close')}
+            accessibilityLabel={translate(title)}
             disabled={isDisabled}
             wrapperStyle={[styles.flex1, style]}
         >

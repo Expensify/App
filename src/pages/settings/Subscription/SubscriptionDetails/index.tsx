@@ -43,6 +43,7 @@ function SubscriptionDetails() {
     };
 
     // This section is only shown when the subscription is annual
+    // An onPress action is going to be assigned to these buttons in phase 2
     let subscriptionSizeSection: React.JSX.Element | null = null;
 
     if (privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL) {
