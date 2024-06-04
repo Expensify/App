@@ -4,6 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmedRoute from '@components/ConfirmedRoute';
 import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {useSession} from '@components/OnyxProvider';
@@ -550,6 +551,13 @@ function MoneyRequestView({
                             }
                         />
                     </OfflineWithFeedback>
+                )}
+                {shouldShowViewTripDetails && (
+                    <MenuItem
+                        title="View trip details"
+                        iconRight={Expensicons.NewWindow}
+                        shouldShowRightIcon
+                    />
                 )}
                 {shouldShowBillable && (
                     <View style={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
