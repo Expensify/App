@@ -2799,7 +2799,7 @@ const styles = (theme: ThemeColors) =>
         borderedContentCard: {
             borderWidth: 1,
             borderColor: theme.border,
-            borderRadius: variables.componentBorderRadiusMedium,
+            borderRadius: variables.componentBorderRadiusNormal,
         },
 
         sectionMenuItem: {
@@ -2807,6 +2807,10 @@ const styles = (theme: ThemeColors) =>
             paddingHorizontal: 8,
             height: 56,
             alignItems: 'center',
+        },
+
+        sectionSelectCircle: {
+            backgroundColor: colors.productDark200,
         },
 
         qrShareSection: {
