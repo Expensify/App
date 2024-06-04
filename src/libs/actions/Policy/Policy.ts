@@ -24,7 +24,6 @@ import type {
     OpenWorkspaceInvitePageParams,
     OpenWorkspaceParams,
     OpenWorkspaceReimburseViewParams,
-    RequestWorkspaceOwnerChangeParams,
     SetWorkspaceApprovalModeParams,
     SetWorkspaceAutoReportingFrequencyParams,
     SetWorkspaceAutoReportingMonthlyOffsetParams,
@@ -58,7 +57,6 @@ import type {
     PersonalDetailsList,
     Policy,
     PolicyCategory,
-    PolicyOwnershipChangeChecks,
     ReimbursementAccount,
     Report,
     ReportAction,
@@ -169,14 +167,6 @@ let reimbursementAccount: OnyxEntry<ReimbursementAccount>;
 Onyx.connect({
     key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     callback: (val) => (reimbursementAccount = val),
-});
-
-let policyOwnershipChecks: Record<string, PolicyOwnershipChangeChecks>;
-Onyx.connect({
-    key: ONYXKEYS.POLICY_OWNERSHIP_CHANGE_CHECKS,
-    callback: (value) => {
-        policyOwnershipChecks = value ?? {};
-    },
 });
 
 /**
@@ -745,92 +735,6 @@ function leaveWorkspace(policyID: string) {
         email: sessionEmail,
     };
     API.write(WRITE_COMMANDS.LEAVE_POLICY, params, {optimisticData, successData, failureData});
-}
-
-function requestWorkspaceOwnerChange(policyID: string) {
-    const policy = getPolicy(policyID);
-    const ownershipChecks = {...policyOwnershipChecks?.[policyID]} ?? {};
-
-    const changeOwnerErrors = Object.keys(policy?.errorFields?.changeOwner ?? {});
-
-    if (changeOwnerErrors && changeOwnerErrors.length > 0) {
-        const currentError = changeOwnerErrors[0];
-        if (currentError === CONST.POLICY.OWNERSHIP_ERRORS.AMOUNT_OWED) {
-            ownershipChecks.shouldClearOutstandingBalance = true;
-        }
-
-        if (currentError === CONST.POLICY.OWNERSHIP_ERRORS.OWNER_OWES_AMOUNT) {
-            ownershipChecks.shouldTransferAmountOwed = true;
-        }
-
-        if (currentError === CONST.POLICY.OWNERSHIP_ERRORS.SUBSCRIPTION) {
-            ownershipChecks.shouldTransferSubscription = true;
-        }
-
-        if (currentError === CONST.POLICY.OWNERSHIP_ERRORS.DUPLICATE_SUBSCRIPTION) {
-            ownershipChecks.shouldTransferSingleSubscription = true;
-        }
-
-        Onyx.merge(ONYXKEYS.POLICY_OWNERSHIP_CHANGE_CHECKS, {
-            [policyID]: ownershipChecks,
-        });
-    }
-
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                errorFields: null,
-                isLoading: true,
-                isChangeOwnerSuccessful: false,
-                isChangeOwnerFailed: false,
-            },
-        },
-    ];
-
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                isLoading: false,
-                isChangeOwnerSuccessful: true,
-                isChangeOwnerFailed: false,
-                owner: sessionEmail,
-                ownerAccountID: sessionAccountID,
-            },
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                isLoading: false,
-                isChangeOwnerSuccessful: false,
-                isChangeOwnerFailed: true,
-            },
-        },
-    ];
-
-    const params: RequestWorkspaceOwnerChangeParams = {
-        policyID,
-        ...ownershipChecks,
-    };
-
-    API.write(WRITE_COMMANDS.REQUEST_WORKSPACE_OWNER_CHANGE, params, {optimisticData, successData, failureData});
-}
-
-function clearWorkspaceOwnerChangeFlow(policyID: string) {
-    Onyx.merge(ONYXKEYS.POLICY_OWNERSHIP_CHANGE_CHECKS, null);
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-        errorFields: null,
-        isLoading: false,
-        isChangeOwnerSuccessful: false,
-        isChangeOwnerFailed: false,
-    });
 }
 
 function addBillingCardAndRequestPolicyOwnerChange(
@@ -3182,8 +3086,6 @@ function setForeignCurrencyDefault(policyID: string, taxCode: string) {
 
 export {
     leaveWorkspace,
-    requestWorkspaceOwnerChange,
-    clearWorkspaceOwnerChangeFlow,
     addBillingCardAndRequestPolicyOwnerChange,
     isAdminOfFreePolicy,
     hasActiveChatEnabledPolicies,
