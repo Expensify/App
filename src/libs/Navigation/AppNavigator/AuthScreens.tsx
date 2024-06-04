@@ -301,7 +301,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const CentralPaneNameOptions = {
+    const CentralPaneScreenOptions = {
         headerShown: false,
         title: 'New Expensify',
 
@@ -450,7 +450,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                                 name={centralPaneName}
                                 initialParams={getCentralPaneScreenInitialParams(centralPaneName)}
                                 getComponent={() => withPrepareCentralPaneScreen(componentGetter())}
-                                options={CentralPaneNameOptions}
+                                options={CentralPaneScreenOptions}
                             />
                         );
                     })}
