@@ -106,6 +106,7 @@ const SCREENS = {
 
         SUBSCRIPTION: {
             ROOT: 'Settings_Subscription',
+            SIZE: 'Settings_Subscription_Size',
             DISABLE_AUTO_RENEW_SURVEY: 'Settings_Subscription_DisableAutoRenewSurvey',
         },
     },
