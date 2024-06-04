@@ -34,6 +34,7 @@ import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNo
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
+import DistanceRequestUtils from "@libs/DistanceRequestUtils";
 
 type IOURequestStepConfirmationOnyxProps = {
     /** The policy of the report */
@@ -81,11 +82,14 @@ function IOURequestStepConfirmation({
     const {windowWidth} = useWindowDimensions();
     const {isOffline} = useNetwork();
     const [receiptFile, setReceiptFile] = useState<Receipt>();
+    const requestType = TransactionUtils.getRequestType(transaction);
+    const isDistanceRequest = requestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
 
     const receiptFilename = transaction?.filename;
     const receiptPath = transaction?.receipt?.source;
     const receiptType = transaction?.receipt?.type;
-    const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction);
+    const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '';
+    const defaultTaxCode = isDistanceRequest ? DistanceRequestUtils.getTaxCodeFromRateID(policy, customUnitRateID) : TransactionUtils.getDefaultTaxCode(policy, transaction);
     const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
     const isSharingTrackExpense = action === CONST.IOU.ACTION.SHARE;
@@ -106,8 +110,6 @@ function IOURequestStepConfirmation({
             isOptimisticPersonalDetail: true,
         };
     }, [personalDetails, transaction?.participants, transaction?.splitPayerAccountIDs]);
-
-    const requestType = TransactionUtils.getRequestType(transaction);
 
     const headerTitle = useMemo(() => {
         if (isCategorizingTrackExpense) {
@@ -468,8 +470,7 @@ function IOURequestStepConfirmation({
                 return;
             }
 
-            if (requestType === CONST.IOU.REQUEST_TYPE.DISTANCE && !IOUUtils.isMovingTransactionFromTrackExpense(action)) {
-                const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '';
+            if (isDistanceRequest && !IOUUtils.isMovingTransactionFromTrackExpense(action)) {
                 createDistanceRequest(selectedParticipants, trimmedComment, customUnitRateID);
                 return;
             }
@@ -568,7 +569,7 @@ function IOURequestStepConfirmation({
                         bankAccountRoute={ReportUtils.getBankAccountRoute(report)}
                         iouMerchant={transaction?.merchant}
                         iouCreated={transaction?.created}
-                        isDistanceRequest={requestType === CONST.IOU.REQUEST_TYPE.DISTANCE}
+                        isDistanceRequest={isDistanceRequest}
                         shouldShowSmartScanFields={IOUUtils.isMovingTransactionFromTrackExpense(action) ? transaction?.amount !== 0 : requestType !== CONST.IOU.REQUEST_TYPE.SCAN}
                         action={action}
                         payeePersonalDetails={payeePersonalDetails}
