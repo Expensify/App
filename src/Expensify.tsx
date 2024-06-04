@@ -216,6 +216,12 @@ function Expensify({
         Audio.setAudioModeAsync({playsInSilentModeIOS: true});
     }, []);
 
+    useEffect(() => {
+        if (isAuthenticated) {
+            crashlytics().setUserId(Number(session?.accountID).toString())
+        }
+    }, [isAuthenticated, session?.accountID])
+
     // Display a blank page until the onyx migration completes
     if (!isOnyxMigrated) {
         return null;
