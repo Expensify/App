@@ -210,17 +210,12 @@ function ReportActionsList({
         [sortedReportActions, isOffline],
     );
 
-    // whisper action doesn't affect lastVisibleActionCreated, so we should not take it into account while checking if there is the newest report action
-    // const newestVisibleReportAction = useMemo(() => sortedVisibleReportActions.find((item) => !ReportActionsUtils.isWhisperAction(item)) ?? null, [sortedVisibleReportActions]);
-
     const lastActionIndex = sortedVisibleReportActions[0]?.reportActionID;
     const reportActionSize = useRef(sortedVisibleReportActions.length);
     const hasNewestReportAction = sortedVisibleReportActions[0]?.created === report.lastVisibleActionCreated;
     const hasNewestReportActionRef = useRef(hasNewestReportAction);
     hasNewestReportActionRef.current = hasNewestReportAction;
     const previousLastIndex = useRef(lastActionIndex);
-
-    console.log(sortedVisibleReportActions[0].created, report.lastVisibleActionCreated)
 
     const isLastPendingActionIsDelete = sortedReportActions?.[0]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const linkedReportActionID = route.params?.reportActionID ?? '';
@@ -348,7 +343,6 @@ function ReportActionsList({
         (isFromCurrentUser: boolean) => {
             // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
             // they are now in the list.
-            console.log(hasNewestReportActionRef.current);
             if (!isFromCurrentUser || !hasNewestReportActionRef.current) {
                 return;
             }
