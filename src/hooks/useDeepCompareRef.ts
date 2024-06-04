@@ -1,5 +1,5 @@
-import { useRef } from 'react';
 import isEqual from 'lodash/isEqual';
+import {useRef} from 'react';
 
 /**
  * This hook returns a reference to the provided value,
@@ -16,9 +16,9 @@ import isEqual from 'lodash/isEqual';
  * }, [deepComparedArray]);
  */
 export default function useDeepCompareRef<T>(value: T): T | undefined {
-  const ref = useRef<T>();
-  if (!isEqual(value, ref.current)) {
-    ref.current = value;
-  }
-  return ref.current;
+    const ref = useRef<T>();
+    if (!isEqual(value, ref.current)) {
+        ref.current = value;
+    }
+    return ref.current;
 }
