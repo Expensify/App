@@ -33,7 +33,9 @@ function ReportAvatar({report = {} as Report, policies, isLoadingApp = true, rou
     if (shouldUseGroupChatDraft) {
         avatarURL = groupChatDraft?.avatarUri ?? undefined;
         fileName = groupChatDraft?.originalFileName ?? undefined;
-        title = groupChatDraft?.reportName ?? '';
+        // When user enters custom group name, it typically stored in groupChatDraft.reportName
+        // If that is null then we will use ReportUtils.getGroupChatName to get the name
+        title = groupChatDraft?.reportName ? groupChatDraft?.reportName : ReportUtils.getGroupChatName(groupChatDraft?.participants.map(x => x.accountID) ?? []);
     } else {
         avatarURL = policy ? ReportUtils.getWorkspaceAvatar(report) : report?.avatarUrl;
         // In the case of default workspace avatar, originalFileName prop takes policyID as value to get the color of the avatar
