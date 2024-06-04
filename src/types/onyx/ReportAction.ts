@@ -7,7 +7,7 @@ import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import type * as OnyxCommon from './OnyxCommon';
 import type OriginalMessage from './OriginalMessage';
-import type {Decision, Reaction, ReportActionNamesWithHTMLMessage} from './OriginalMessage';
+import type {Decision, OriginalMessageTemporary, Reaction, ReportActionNamesWithHTMLMessage} from './OriginalMessage';
 import type {NotificationPreference} from './Report';
 import type ReportActionName from './ReportActionName';
 import type {Receipt} from './Transaction';
@@ -226,9 +226,7 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     adminAccountID?: number;
 }>;
 
-type ReportAction<T extends ReportActionName = ReportActionName> = ReportActionBase & {
-    originalMessage: OriginalMessage<T>;
-
+type ReportAction<T extends ReportActionName = ReportActionName> = ReportActionBase & OriginalMessageTemporary<T> &{
     /** report action message */
     message?: OriginalMessage<T> & Message | Array<Message | undefined>;
 
