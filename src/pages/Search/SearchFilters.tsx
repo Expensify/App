@@ -44,18 +44,6 @@ function SearchFilters({query}: SearchFiltersProps) {
             icon: Expensicons.Send,
             route: ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.SHARED),
         },
-        // {
-        //     title: translate('common.drafts'),
-        //     query: CONST.TAB_SEARCH.DRAFTS,
-        //     icon: Expensicons.Pencil,
-        //     route: ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.DRAFTS),
-        // },
-        // {
-        //     title: translate('common.finished'),
-        //     query: CONST.TAB_SEARCH.FINISHED,
-        //     icon: Expensicons.CheckCircle,
-        //     route: ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.FINISHED),
-        // },
     ];
     const activeItemIndex = filterItems.findIndex((item) => item.query === query);
 
