@@ -47,7 +47,7 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
     const customUnit = customUnits[Object.keys(customUnits)[0]];
     const customUnitID = customUnit?.customUnitID ?? '';
     const isDistanceTrackTaxEnabled = customUnit?.attributes?.taxEnabled;
-    const isPolicyTrackTaxEnabled = !policy?.tax?.trackingEnabled;
+    const isPolicyTrackTaxEnabled = policy?.tax?.trackingEnabled;
 
     const defaultCategory = customUnits[customUnitID]?.defaultCategory;
     const defaultUnit = customUnits[customUnitID]?.attributes.unit;
