@@ -114,9 +114,6 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = {
     /** Should the button be enabled when offline */
     enabledWhenOffline?: boolean;
 
-    /** Should the button be disabled */
-    disableSubmit?: boolean;
-
     /** Whether the form submit action is dangerous */
     isSubmitActionDangerous?: boolean;
 

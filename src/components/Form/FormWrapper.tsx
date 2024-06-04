@@ -55,7 +55,6 @@ function FormWrapper({
     submitButtonStyles,
     submitFlexEnabled = true,
     enabledWhenOffline,
-    disableSubmit,
     isSubmitActionDangerous = false,
     formID,
     scrollContextEnabled = false,
@@ -117,7 +116,6 @@ function FormWrapper({
                         onFixTheErrorsLinkPressed={onFixTheErrorsLinkPressed}
                         containerStyles={[styles.mh0, styles.mt5, submitFlexEnabled ? styles.flex1 : {}, submitButtonStyles]}
                         enabledWhenOffline={enabledWhenOffline}
-                        disableSubmit={disableSubmit}
                         isSubmitActionDangerous={isSubmitActionDangerous}
                         disablePressOnEnter={disablePressOnEnter}
                         enterKeyEventListenerPriority={1}
@@ -148,7 +146,6 @@ function FormWrapper({
             enabledWhenOffline,
             isSubmitActionDangerous,
             disablePressOnEnter,
-            disableSubmit,
         ],
     );
 
