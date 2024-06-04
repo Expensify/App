@@ -46,7 +46,8 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
     const customUnits = policy?.customUnits ?? {};
     const customUnit = customUnits[Object.keys(customUnits)[0]];
     const customUnitID = customUnit?.customUnitID ?? '';
-    const isTrackTaxEnabled = customUnit?.attributes?.taxEnabled;
+    const isDistanceTrackTaxEnabled = customUnit?.attributes?.taxEnabled;
+    const isPolicyTrackTaxEnabled = !policy?.tax?.trackingEnabled;
 
     const defaultCategory = customUnits[customUnitID]?.defaultCategory;
     const defaultUnit = customUnits[customUnitID]?.attributes.unit;
@@ -122,14 +123,14 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
                             <View style={[styles.flexRow, styles.mb2, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
                                 <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.distanceRates.trackTax')}</Text>
                                 <Switch
-                                    isOn={Boolean(isTrackTaxEnabled)}
+                                    isOn={Boolean(isDistanceTrackTaxEnabled)}
                                     accessibilityLabel={translate('workspace.distanceRates.trackTax')}
                                     onToggle={onToggleTrackTax}
-                                    disabled={!policy?.tax?.trackingEnabled}
+                                    disabled={!isPolicyTrackTaxEnabled}
                                 />
                             </View>
                         </View>
-                        {!policy?.tax?.trackingEnabled && (
+                        {!isPolicyTrackTaxEnabled && (
                             <View style={[styles.mh4]}>
                                 <Text
                                     style={styles.colorMuted}
