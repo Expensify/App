@@ -51,7 +51,7 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
     const taxClaimablePercentage = rate.attributes?.taxClaimablePercentage;
     const taxRateExternalID = rate.attributes?.taxRateExternalID;
 
-    const isDistanceTrackTaxEnabled = customUnit?.attributes?.taxEnabled;
+    const isDistanceTrackTaxEnabled = Boolean(customUnit?.attributes?.taxEnabled);
     const taxRate = taxRateExternalID ? `${policy?.taxRates?.taxes[taxRateExternalID].name} (${policy?.taxRates?.taxes[taxRateExternalID].value})` : '';
     // Rates can be disabled or deleted as long as in the remaining rates there is always at least one enabled rate and there are no pending delete action
     const canDisableOrDeleteRate = Object.values(customUnit?.rates ?? {}).some(
@@ -121,13 +121,13 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
                 includeSafeAreaPaddingBottom={false}
                 style={[styles.defaultModalContainer]}
             >
+                <HeaderWithBackButton
+                    title={`${rateValueToDisplay} / ${translate(`common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`)}`}
+                    shouldShowThreeDotsButton
+                    threeDotsMenuItems={threeDotsMenuItems}
+                    threeDotsAnchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
+                />
                 <ScrollView contentContainerStyle={styles.flexGrow1}>
-                    <HeaderWithBackButton
-                        title={`${rateValueToDisplay} / ${translate(`common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`)}`}
-                        shouldShowThreeDotsButton
-                        threeDotsMenuItems={threeDotsMenuItems}
-                        threeDotsAnchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
-                    />
                     <View style={styles.flexGrow1}>
                         <OfflineWithFeedback
                             errors={ErrorUtils.getLatestErrorField(rate ?? {}, 'enabled')}

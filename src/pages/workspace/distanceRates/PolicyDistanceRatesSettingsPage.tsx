@@ -47,8 +47,8 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
     const customUnits = policy?.customUnits ?? {};
     const customUnit = customUnits[Object.keys(customUnits)[0]];
     const customUnitID = customUnit?.customUnitID ?? '';
-    const isDistanceTrackTaxEnabled = customUnit?.attributes?.taxEnabled;
-    const isPolicyTrackTaxEnabled = policy?.tax?.trackingEnabled;
+    const isDistanceTrackTaxEnabled = Boolean(customUnit?.attributes?.taxEnabled);
+    const isPolicyTrackTaxEnabled = Boolean(policy?.tax?.trackingEnabled);
 
     const defaultCategory = customUnits[customUnitID]?.defaultCategory;
     const defaultUnit = customUnits[customUnitID]?.attributes.unit;
@@ -88,8 +88,8 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
                 style={[styles.defaultModalContainer]}
                 testID={PolicyDistanceRatesSettingsPage.displayName}
             >
+                <HeaderWithBackButton title={translate('workspace.common.settings')} />
                 <ScrollView contentContainerStyle={styles.flexGrow1}>
-                    <HeaderWithBackButton title={translate('workspace.common.settings')} />
                     <View style={styles.flexGrow1}>
                         <OfflineWithFeedback
                             errors={ErrorUtils.getLatestErrorField(customUnits[customUnitID] ?? {}, 'attributes')}
@@ -125,7 +125,7 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
                                 <View style={[styles.flexRow, styles.mb2, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
                                     <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.distanceRates.trackTax')}</Text>
                                     <Switch
-                                        isOn={Boolean(isDistanceTrackTaxEnabled)}
+                                        isOn={isDistanceTrackTaxEnabled}
                                         accessibilityLabel={translate('workspace.distanceRates.trackTax')}
                                         onToggle={onToggleTrackTax}
                                         disabled={!isPolicyTrackTaxEnabled}
