@@ -4,7 +4,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {RateAndUnit} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {LastSelectedDistanceRates, Report} from '@src/types/onyx';
+import type {LastSelectedDistanceRates, Report, Transaction} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
@@ -12,6 +12,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CurrencyUtils from './CurrencyUtils';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportUtils from './ReportUtils';
+import * as TransactionUtils from './TransactionUtils';
 
 type MileageRate = {
     customUnitRateID?: string;
@@ -46,7 +47,7 @@ function getMileageRates(policy: OnyxEntry<Policy>, includeDisabledRates = false
         return mileageRates;
     }
 
-    const distanceUnit = Object.values(policy.customUnits).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+    const distanceUnit = PolicyUtils.getCustomUnit(policy);
     if (!distanceUnit?.rates) {
         return mileageRates;
     }
@@ -83,7 +84,7 @@ function getDefaultMileageRate(policy: OnyxEntry<Policy> | EmptyObject): Mileage
         return null;
     }
 
-    const distanceUnit = Object.values(policy.customUnits).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+    const distanceUnit = PolicyUtils.getCustomUnit(policy);
     if (!distanceUnit?.rates) {
         return null;
     }
@@ -271,6 +272,24 @@ function getCustomUnitRateID(reportID: string) {
     return customUnitRateID;
 }
 
+function calculateTaxAmount(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, customUnitRateID: string) {
+    const distanceUnit = PolicyUtils.getCustomUnit(policy);
+    const customUnitID = distanceUnit?.customUnitID;
+    if (!policy?.customUnits || !customUnitID) {
+        return 0;
+    }
+    const policyCustomUnitRate = policy?.customUnits[customUnitID].rates[customUnitRateID];
+    const unit = policy?.customUnits[customUnitID]?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
+    const rate = policyCustomUnitRate?.rate ?? 0;
+    const distance = TransactionUtils.getDistance(transaction);
+    const amount = getDistanceRequestAmount(distance, unit, rate);
+    const taxClaimablePercentage = policyCustomUnitRate.attributes?.taxClaimablePercentage ?? 0;
+    const taxRateExternalID = policyCustomUnitRate.attributes?.taxRateExternalID ?? '';
+    const taxableAmount = amount * taxClaimablePercentage;
+    const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, taxRateExternalID) ?? '';
+    return TransactionUtils.calculateTaxAmount(taxPercentage, taxableAmount);
+}
+
 export default {
     getDefaultMileageRate,
     getDistanceMerchant,
@@ -281,6 +300,7 @@ export default {
     getRateForP2P,
     getCustomUnitRateID,
     convertToDistanceInMeters,
+    calculateTaxAmount,
 };
 
 export type {MileageRate};
