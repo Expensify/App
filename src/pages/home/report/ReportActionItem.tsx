@@ -218,14 +218,13 @@ function ReportActionItem({
     );
 
     const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(action);
-    const prevActionResolution = usePrevious(
-        isActionableWhisper && 'resolution' in originalMessage ?
-        originalMessage.resolution
-            : null,
-    );
+    const prevActionResolution = usePrevious(isActionableWhisper && originalMessage && 'resolution' in originalMessage ? originalMessage?.resolution : null);
 
     // IOUDetails only exists when we are sending money
-    const isSendingMoney = ReportActionsUtils.isMoneyRequestAction(action) && ReportActionsUtils.getOriginalMessage(action).type === CONST.IOU.REPORT_ACTION_TYPE.PAY && ReportActionsUtils.getOriginalMessage(action).IOUDetails;
+    const isSendingMoney =
+        ReportActionsUtils.isMoneyRequestAction(action) &&
+        ReportActionsUtils.getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY &&
+        ReportActionsUtils.getOriginalMessage(action)?.IOUDetails;
 
     const updateHiddenState = useCallback(
         (isHiddenValue: boolean) => {
@@ -370,9 +369,7 @@ function ReportActionItem({
             return;
         }
 
-        if (
-            prevActionResolution !== ('resolution' in originalMessage ? originalMessage.resolution : null)
-        ) {
+        if (prevActionResolution !== (originalMessage && 'resolution' in originalMessage ? originalMessage.resolution : null)) {
             reportScrollManager.scrollToIndex(index);
         }
     }, [index, originalMessage, prevActionResolution, reportScrollManager, isActionableWhisper]);
@@ -398,7 +395,7 @@ function ReportActionItem({
     const attachmentContextValue = useMemo(() => ({reportID: report.reportID, type: CONST.ATTACHMENT_TYPE.REPORT}), [report.reportID]);
 
     const actionableItemButtons: ActionableItem[] = useMemo(() => {
-        if (!isActionableWhisper && (!ReportActionsUtils.isActionableJoinRequest(action) || ReportActionsUtils.getOriginalMessage(action).choice !== '')) {
+        if (!isActionableWhisper && (!ReportActionsUtils.isActionableJoinRequest(action) || ReportActionsUtils.getOriginalMessage(action)?.choice !== '')) {
             return [];
         }
 
@@ -409,7 +406,7 @@ function ReportActionItem({
                     text: 'actionableMentionTrackExpense.submit',
                     key: `${action.reportActionID}-actionableMentionTrackExpense-submit`,
                     onPress: () => {
-                        ReportUtils.createDraftTransactionAndNavigateToParticipantSelector(transactionID, report.reportID, CONST.IOU.ACTION.SUBMIT, action.reportActionID);
+                        ReportUtils.createDraftTransactionAndNavigateToParticipantSelector(transactionID ?? '0', report.reportID, CONST.IOU.ACTION.SUBMIT, action.reportActionID);
                     },
                     isMediumSized: true,
                 },
@@ -417,7 +414,7 @@ function ReportActionItem({
                     text: 'actionableMentionTrackExpense.categorize',
                     key: `${action.reportActionID}-actionableMentionTrackExpense-categorize`,
                     onPress: () => {
-                        ReportUtils.createDraftTransactionAndNavigateToParticipantSelector(transactionID, report.reportID, CONST.IOU.ACTION.CATEGORIZE, action.reportActionID);
+                        ReportUtils.createDraftTransactionAndNavigateToParticipantSelector(transactionID ?? '0', report.reportID, CONST.IOU.ACTION.CATEGORIZE, action.reportActionID);
                     },
                     isMediumSized: true,
                 },
@@ -425,7 +422,7 @@ function ReportActionItem({
                     text: 'actionableMentionTrackExpense.share',
                     key: `${action.reportActionID}-actionableMentionTrackExpense-share`,
                     onPress: () => {
-                        ReportUtils.createDraftTransactionAndNavigateToParticipantSelector(transactionID, report.reportID, CONST.IOU.ACTION.SHARE, action.reportActionID);
+                        ReportUtils.createDraftTransactionAndNavigateToParticipantSelector(transactionID ?? '0', report.reportID, CONST.IOU.ACTION.SHARE, action.reportActionID);
                     },
                     isMediumSized: true,
                 },
@@ -564,11 +561,7 @@ function ReportActionItem({
             children = (
                 <ShowContextMenuContext.Provider value={contextValue}>
                     <TaskPreview
-                        taskReportID={
-                            ReportActionsUtils.isAddCommentAction(action)
-                                ? ReportActionsUtils.getOriginalMessage(action).taskReportID?.toString() ?? ''
-                                : ''
-                        }
+                        taskReportID={ReportActionsUtils.isAddCommentAction(action) ? ReportActionsUtils.getOriginalMessage(action)?.taskReportID?.toString() ?? '' : ''}
                         chatReportID={report.reportID}
                         action={action}
                         isHovered={hovered}
@@ -581,7 +574,7 @@ function ReportActionItem({
         } else if (ReportActionsUtils.isReimbursementQueuedAction(action)) {
             const linkedReport = ReportUtils.isChatThread(report) ? ReportUtils.getReport(report.parentReportID) : report;
             const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails[linkedReport?.ownerAccountID ?? -1]);
-            const paymentType = ReportActionsUtils.getOriginalMessage(action).paymentType ?? '';
+            const paymentType = ReportActionsUtils.getOriginalMessage(action)?.paymentType ?? '';
 
             const missingPaymentMethod = ReportUtils.getIndicatedMissingPaymentMethod(userWallet, linkedReport?.reportID ?? '', action);
             children = (
@@ -623,7 +616,7 @@ function ReportActionItem({
                     </>
                 </ReportActionItemBasicMessage>
             );
-        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED) {
+        } else if (ReportActionsUtils.isReimbursementDeQueuedAction(action)) {
             children = <ReportActionItemBasicMessage message={ReportUtils.getReimbursementDeQueuedActionMessage(action, report)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
             children = <ReportActionItemBasicMessage message={ModifiedExpenseMessage.getForReportAction(report.reportID, action)} />;
@@ -639,9 +632,7 @@ function ReportActionItem({
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION) {
             children = <ReportActionItemBasicMessage message={translate('systemMessage.mergedWithCashTransaction')} />;
         } else if (ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION)) {
-            children = (
-                <ReportActionItemBasicMessage message={ReportActionsUtils.getDismissedViolationMessageText(ReportActionsUtils.getOriginalMessage(action))} />
-            );
+            children = <ReportActionItemBasicMessage message={ReportActionsUtils.getDismissedViolationMessageText(ReportActionsUtils.getOriginalMessage(action))} />;
         } else {
             const hasBeenFlagged =
                 ![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === moderationDecision) &&
@@ -916,15 +907,17 @@ function ReportActionItem({
 
     // For the `pay` IOU action on non-pay expense flow, we don't want to render anything if `isWaitingOnBankAccount` is true
     // Otherwise, we will see two system messages informing the payee needs to add a bank account or wallet
-    if (ReportActionsUtils.isMoneyRequestAction(action) && !!report?.isWaitingOnBankAccount && ReportActionsUtils.getOriginalMessage(action).type === CONST.IOU.REPORT_ACTION_TYPE.PAY && !isSendingMoney) {
+    if (
+        ReportActionsUtils.isMoneyRequestAction(action) &&
+        !!report?.isWaitingOnBankAccount &&
+        ReportActionsUtils.getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY &&
+        !isSendingMoney
+    ) {
         return null;
     }
 
     // If action is actionable whisper and resolved by user, then we don't want to render anything
-    if (
-        isActionableWhisper &&
-        ('resolution' in originalMessage ? originalMessage.resolution : null)
-    ) {
+    if (isActionableWhisper && (originalMessage && 'resolution' in originalMessage ? originalMessage.resolution : null)) {
         return null;
     }
 
@@ -939,7 +932,10 @@ function ReportActionItem({
     const whisperedTo = ReportActionsUtils.getWhisperedTo(action);
     const isMultipleParticipant = whisperedTo.length > 1;
 
-    const iouReportID = ReportActionsUtils.isMoneyRequestAction(action) && ReportActionsUtils.getOriginalMessage(action).IOUReportID ? (ReportActionsUtils.getOriginalMessage(action)?.IOUReportID ?? '').toString() : '0';
+    const iouReportID =
+        ReportActionsUtils.isMoneyRequestAction(action) && ReportActionsUtils.getOriginalMessage(action)?.IOUReportID
+            ? (ReportActionsUtils.getOriginalMessage(action)?.IOUReportID ?? '').toString()
+            : '0';
     const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(iouReportID);
     const isWhisper = whisperedTo.length > 0 && transactionsWithReceipts.length === 0 && !action.pendingAction;
     const whisperedToPersonalDetails = isWhisper
@@ -1057,7 +1053,10 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
     },
     transaction: {
         key: ({parentReportActionForTransactionThread}) => {
-            const originalMessage = !!parentReportActionForTransactionThread && ReportActionsUtils.isMoneyRequestAction(parentReportActionForTransactionThread) ? ReportActionsUtils.getOriginalMessage(parentReportActionForTransactionThread) : undefined;
+            const originalMessage =
+                !!parentReportActionForTransactionThread && ReportActionsUtils.isMoneyRequestAction(parentReportActionForTransactionThread)
+                    ? ReportActionsUtils.getOriginalMessage(parentReportActionForTransactionThread)
+                    : undefined;
             const transactionID = originalMessage?.IOUTransactionID ? originalMessage?.IOUTransactionID : 0;
             return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
         },

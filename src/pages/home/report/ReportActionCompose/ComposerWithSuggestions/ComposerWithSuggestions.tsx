@@ -541,7 +541,8 @@ function ComposerWithSuggestions(
                 event.preventDefault();
                 if (lastReportAction) {
                     const parser = new ExpensiMark();
-                    Report.saveReportActionDraft(reportID, lastReportAction, parser.htmlToMarkdown(lastReportAction.message?.at(-1)?.html ?? ''));
+                    const message = Array.isArray(lastReportAction?.message) ? lastReportAction?.message?.at(-1) ?? null : lastReportAction?.message ?? null;
+                    Report.saveReportActionDraft(reportID, lastReportAction, parser.htmlToMarkdown(message?.html ?? ''));
                 }
             }
         },

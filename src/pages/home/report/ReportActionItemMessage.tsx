@@ -42,7 +42,12 @@ function ReportActionItemMessage({action, transaction, displayAsGroup, reportID,
     const {translate} = useLocalize();
 
     const actionMessage = action.previousMessage ?? action.message;
-    const fragments = Array.isArray(actionMessage) ? actionMessage.filter((item) => !!item) : !!actionMessage ? [actionMessage] : [];
+    let fragments = [];
+    if (Array.isArray(actionMessage)) {
+        fragments = actionMessage.filter((item) => !!item);
+    } else {
+        fragments = actionMessage ? [actionMessage] : [];
+    }
     const isIOUReport = ReportActionsUtils.isMoneyRequestAction(action);
 
     if (ReportActionsUtils.isMemberChangeAction(action)) {
@@ -63,7 +68,7 @@ function ReportActionItemMessage({action, transaction, displayAsGroup, reportID,
 
     let iouMessage: string | undefined;
     if (isIOUReport) {
-        const originalMessage = action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(action) : null;
+        const originalMessage = action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? ReportActionsUtils.getOriginalMessage(action) : null;
         const iouReportID = originalMessage?.IOUReportID;
         if (iouReportID) {
             iouMessage = ReportUtils.getIOUReportActionDisplayMessage(action, transaction);

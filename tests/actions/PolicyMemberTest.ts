@@ -5,7 +5,6 @@ import * as Policy from '@src/libs/actions/Policy/Policy';
 import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy as PolicyType, Report, ReportAction} from '@src/types/onyx';
-import type {OriginalMessageJoinPolicyChangeLog} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
@@ -37,10 +36,10 @@ describe('actions/PolicyMember', () => {
                 ...createRandomReport(0),
                 policyID: fakePolicy.id,
             };
-            const fakeReportAction: ReportAction = {
+            const fakeReportAction = {
                 ...createRandomReportAction(0),
                 actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST,
-            } as ReportAction;
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST>;
 
             mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
@@ -57,12 +56,10 @@ describe('actions/PolicyMember', () => {
                     callback: (reportActions) => {
                         Onyx.disconnect(connectionID);
 
-                        const reportAction = reportActions?.[fakeReportAction.reportActionID];
+                        const reportAction = reportActions?.[fakeReportAction.reportActionID] as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST>;
 
                         if (!isEmptyObject(reportAction)) {
-                            expect(ReportActionsUtils.getReportActionOriginalMessage<OriginalMessageJoinPolicyChangeLog['originalMessage']>(reportAction)?.choice)?.toBe(
-                                CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.ACCEPT,
-                            );
+                            expect(ReportActionsUtils.getOriginalMessage(reportAction)?.choice)?.toBe(CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.ACCEPT);
                             expect(reportAction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
                         }
                         resolve();

@@ -8,8 +8,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as Chronos from '@userActions/Chronos';
-import ReportAction from '@src/types/onyx/ReportAction';
-import CONST from '@src/CONST';
+import type CONST from '@src/CONST';
+import type ReportAction from '@src/types/onyx/ReportAction';
 
 type ChronosOOOListActionsProps = {
     /** The ID of the report */

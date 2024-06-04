@@ -5,7 +5,6 @@ import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, Report, ReportAction} from '@src/types/onyx';
-import type {ModifiedExpenseAction} from '@src/types/onyx/ReportAction';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import * as NumberUtils from '../../src/libs/NumberUtils';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
@@ -766,7 +765,7 @@ describe('ReportUtils', () => {
                 originalMessage: {
                     whisperedTo: [123456],
                 },
-            } as ModifiedExpenseAction;
+            } as ReportAction;
             expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeTruthy();
         });
 

@@ -3147,7 +3147,7 @@ function acceptJoinRequest(reportID: string, reportAction: OnyxEntry<ReportActio
 
     const parameters = {
         requests: JSON.stringify({
-            [ReportActionsUtils.getOriginalMessage(reportAction).policyID]: {
+            [ReportActionsUtils.getOriginalMessage(reportAction)?.policyID ?? 0]: {
                 requests: [{accountID: reportAction?.actorAccountID, adminsRoomMessageReportActionID: reportAction.reportActionID}],
             },
         }),
@@ -3205,7 +3205,7 @@ function declineJoinRequest(reportID: string, reportAction: OnyxEntry<ReportActi
 
     const parameters = {
         requests: JSON.stringify({
-            [ReportActionsUtils.getOriginalMessage(reportAction).policyID]: {
+            [ReportActionsUtils.getOriginalMessage(reportAction)?.policyID ?? 0]: {
                 requests: [{accountID: reportAction?.actorAccountID, adminsRoomMessageReportActionID: reportAction.reportActionID}],
             },
         }),

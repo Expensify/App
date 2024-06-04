@@ -18,7 +18,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {IOUMessage, PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Button from './Button';
 import ConfirmModal from './ConfirmModal';
@@ -68,9 +68,9 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         if (!reportActions || !transactionThreadReport?.parentReportActionID) {
             return null;
         }
-        return reportActions.find((action) => action.reportActionID === transactionThreadReport.parentReportActionID);
+        return reportActions.find((action) => action.reportActionID === transactionThreadReport.parentReportActionID) ?? null;
     }, [reportActions, transactionThreadReport?.parentReportActionID]);
-    const isDeletedParentAction = ReportActionsUtils.isDeletedAction(requestParentReportAction as OnyxTypes.ReportAction);
+    const isDeletedParentAction = ReportActionsUtils.isDeletedAction(requestParentReportAction);
 
     // Only the requestor can delete the request, admins can only edit it.
     const isActionOwner =
@@ -143,10 +143,9 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const deleteTransaction = useCallback(() => {
         if (requestParentReportAction) {
-            const iouTransactionID =
-                requestParentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU
-                    ? ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(requestParentReportAction)?.IOUTransactionID ?? ''
-                    : '';
+            const iouTransactionID = ReportActionsUtils.isMoneyRequestAction(requestParentReportAction)
+                ? ReportActionsUtils.getOriginalMessage(requestParentReportAction)?.IOUTransactionID ?? ''
+                : '';
             if (ReportActionsUtils.isTrackExpenseAction(requestParentReportAction)) {
                 IOU.deleteTrackExpense(moneyRequestReport?.reportID ?? '', iouTransactionID, requestParentReportAction, true);
                 return;
@@ -161,10 +160,9 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         if (!requestParentReportAction) {
             return;
         }
-        const iouTransactionID =
-            requestParentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU
-                ? ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(requestParentReportAction)?.IOUTransactionID ?? ''
-                : '';
+        const iouTransactionID = ReportActionsUtils.isMoneyRequestAction(requestParentReportAction)
+            ? ReportActionsUtils.getOriginalMessage(requestParentReportAction)?.IOUTransactionID ?? ''
+            : '';
         const reportID = transactionThreadReport?.reportID ?? '';
 
         TransactionActions.markAsCash(iouTransactionID, reportID);

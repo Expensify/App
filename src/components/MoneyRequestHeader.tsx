@@ -19,7 +19,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportAction} from '@src/types/onyx';
-import type {IOUMessage} from '@src/types/onyx/OriginalMessage';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Button from './Button';
 import ConfirmModal from './ConfirmModal';
@@ -49,7 +48,11 @@ type MoneyRequestHeaderProps = {
 
 function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrowLayout = false, onBackButtonPress}: MoneyRequestHeaderProps) {
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`);
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(parentReportAction)?.IOUTransactionID ?? 0}`);
+    const [transaction] = useOnyx(
+        `${ONYXKEYS.COLLECTION.TRANSACTION}${
+            ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID ?? 0 : 0
+        }`,
+    );
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [shownHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_HOLD_USE_EXPLAINED, {initWithStoredValues: false});
@@ -75,10 +78,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
 
     const deleteTransaction = useCallback(() => {
         if (parentReportAction) {
-            const iouTransactionID =
-                parentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU
-                    ? ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(parentReportAction)?.IOUTransactionID ?? ''
-                    : '';
+            const iouTransactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID ?? '' : '';
             if (ReportActionsUtils.isTrackExpenseAction(parentReportAction)) {
                 IOU.deleteTrackExpense(parentReport?.reportID ?? '', iouTransactionID, parentReportAction, true);
                 return;
@@ -102,8 +102,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
     const canDeleteRequest = isActionOwner && (ReportUtils.canAddOrDeleteTransactions(moneyRequestReport) || ReportUtils.isTrackExpenseReport(report)) && !isDeletedParentAction;
 
     const changeMoneyRequestStatus = () => {
-        const iouTransactionID =
-            parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(parentReportAction)?.IOUTransactionID ?? '' : '';
+        const iouTransactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID ?? '' : '';
 
         if (isOnHold) {
             IOU.unholdRequest(iouTransactionID, report?.reportID);

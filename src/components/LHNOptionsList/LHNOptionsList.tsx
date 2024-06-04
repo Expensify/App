@@ -22,7 +22,6 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {IOUMessage} from '@src/types/onyx/OriginalMessage';
 import OptionRowLHNData from './OptionRowLHNData';
 import type {LHNOptionsListOnyxProps, LHNOptionsListProps, RenderItemProps} from './types';
 
@@ -112,10 +111,9 @@ function LHNOptionsList({
             const itemParentReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${itemFullReport?.parentReportID}`] ?? null;
             const itemParentReportAction = itemParentReportActions?.[itemFullReport?.parentReportActionID ?? ''] ?? null;
             const itemPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${itemFullReport?.policyID}`] ?? null;
-            const transactionID =
-                itemParentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU
-                    ? ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(itemParentReportAction).IOUTransactionID ?? ''
-                    : '';
+            const transactionID = ReportActionsUtils.isMoneyRequestAction(itemParentReportAction)
+                ? ReportActionsUtils.getOriginalMessage(itemParentReportAction)?.IOUTransactionID ?? ''
+                : '';
             const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? null;
             const hasDraftComment = DraftCommentUtils.isValidDraftComment(draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`]);
             const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(itemReportActions);
@@ -124,8 +122,8 @@ function LHNOptionsList({
             // Get the transaction for the last report action
             let lastReportActionTransactionID = '';
 
-            if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
-                lastReportActionTransactionID = ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(lastReportAction)?.IOUTransactionID ?? '';
+            if (ReportActionsUtils.isMoneyRequestAction(lastReportAction)) {
+                lastReportActionTransactionID = ReportActionsUtils.getOriginalMessage(lastReportAction)?.IOUTransactionID ?? '';
             }
             const lastReportActionTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${lastReportActionTransactionID}`] ?? {};
 

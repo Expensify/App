@@ -28,7 +28,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {IOUMessage} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getInitialPaginationSize from './getInitialPaginationSize';
 import PopoverReactionList from './ReactionList/PopoverReactionList';
@@ -482,13 +481,13 @@ function ReportActionsView({
 
         const reportPreviewAction = ReportActionsUtils.getReportPreviewAction(report.chatReportID ?? '', report.reportID);
         const moneyRequestActions = reportActions.filter((action) => {
-            const originalMessage = ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(action);
+            const originalMessage = ReportActionsUtils.isMoneyRequestAction(action) ? ReportActionsUtils.getOriginalMessage(action) : undefined;
             return (
-                action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
+                ReportActionsUtils.isMoneyRequestAction(action) &&
                 originalMessage &&
-                (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE ||
-                    Boolean(originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && originalMessage.IOUDetails) ||
-                    originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK)
+                (originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE ||
+                    Boolean(originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && originalMessage?.IOUDetails) ||
+                    originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK)
             );
         });
 

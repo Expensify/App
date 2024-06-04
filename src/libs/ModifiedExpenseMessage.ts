@@ -9,7 +9,6 @@ import getReportPolicyID from './getReportPolicyID';
 import * as Localize from './Localize';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
-import type {ExpenseOriginalMessage} from './ReportUtils';
 import * as TransactionUtils from './TransactionUtils';
 
 let allPolicyTags: OnyxCollection<PolicyTagList> = {};

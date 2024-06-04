@@ -2,6 +2,7 @@ import React, {createContext, useCallback, useContext, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import {getPolicyEmployeeListByIdWithoutCurrentUser} from '@libs/PolicyUtils';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
@@ -78,7 +79,8 @@ const reportActionsSelector = (reportActions: OnyxEntry<OnyxTypes.ReportActions>
     (reportActions &&
         Object.values(reportActions).map((reportAction) => {
             const {reportActionID, actionName, errors = [], originalMessage} = reportAction;
-            const decision = reportAction.message?.[0]?.moderationDecision?.decision;
+            const message = ReportActionsUtils.getReportActionMessage(reportAction);
+            const decision = message?.moderationDecision?.decision;
 
             return {
                 reportActionID,

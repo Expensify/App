@@ -212,31 +212,31 @@ type OriginalMessageDismissedViolation = {
 
 type OriginalMessageMap1 = {
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST]: {
-        originalMessage: OriginalMessageJoinPolicyChangeLog
+        originalMessage: OriginalMessageJoinPolicyChangeLog;
     };
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER]: {
         originalMessage: OriginalMessageActionableMentionWhisper;
     };
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER]: {
-        originalMessage: OriginalMessageActionableReportMentionWhisper
+        originalMessage: OriginalMessageActionableReportMentionWhisper;
     };
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER]: {
         originalMessage: OriginalMessageActionableTrackedExpenseWhisper;
-    }
+    };
     [CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT]: {
         originalMessage: OriginalMessageAddComment;
     };
     [CONST.REPORT.ACTIONS.TYPE.APPROVED]: {
-        originalMessage?: never
+        originalMessage?: never;
     };
     [CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD]: {
-        originalMessage?: never
+        originalMessage?: never;
     };
     [CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY]: {
-        originalMessage?: never
+        originalMessage?: never;
     };
     [CONST.REPORT.ACTIONS.TYPE.CHANGE_TYPE]: {
-        originalMessage?: never
+        originalMessage?: never;
     };
     [CONST.REPORT.ACTIONS.TYPE.CHRONOS_OOO_LIST]: {
         originalMessage: OriginalMessageChronosOOOList;
@@ -245,58 +245,58 @@ type OriginalMessageMap1 = {
         originalMessage: OriginalMessageClosed;
     };
     [CONST.REPORT.ACTIONS.TYPE.CREATED]: {
-        originalMessage?: never
+        originalMessage?: never;
     };
     [CONST.REPORT.ACTIONS.TYPE.DELEGATE_SUBMIT]: {
-        originalMessage?: never
+        originalMessage?: never;
     };
     [CONST.REPORT.ACTIONS.TYPE.DELETED_ACCOUNT]: {
-        originalMessage?: never
+        originalMessage?: never;
     };
     [CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION]: {
         originalMessage: OriginalMessageDismissedViolation;
     };
     [CONST.REPORT.ACTIONS.TYPE.DONATION]: {
-        originalMessage?: never
+        originalMessage?: never;
     };
     [CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV]: {
-        originalMessage?: never
+        originalMessage?: never;
     };
     [CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION]: {
-        originalMessage?: never
+        originalMessage?: never;
     };
     [CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_QUICK_BOOKS]: {
-        originalMessage?: never
+        originalMessage?: never;
     };
     [CONST.REPORT.ACTIONS.TYPE.FORWARDED]: {
-        originalMessage?: never
+        originalMessage?: never;
     };
     [CONST.REPORT.ACTIONS.TYPE.HOLD]: {
-        originalMessage?: never
+        originalMessage?: never;
     };
     [CONST.REPORT.ACTIONS.TYPE.HOLD_COMMENT]: {
-        originalMessage?: never
+        originalMessage?: never;
     };
     [CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE]: {
-        originalMessage?: never
+        originalMessage?: never;
     };
     [CONST.REPORT.ACTIONS.TYPE.IOU]: {
         originalMessage: OriginalMessageIOU;
     };
     [CONST.REPORT.ACTIONS.TYPE.MANAGER_ATTACH_RECEIPT]: {
-        originalMessage?: never
+        originalMessage?: never;
     };
     [CONST.REPORT.ACTIONS.TYPE.MANAGER_DETACH_RECEIPT]: {
-        originalMessage?: never
+        originalMessage?: never;
     };
     [CONST.REPORT.ACTIONS.TYPE.MARK_REIMBURSED_FROM_INTEGRATION]: {
-        originalMessage?: never
+        originalMessage?: never;
     };
     [CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED]: {
-        originalMessage?: never
+        originalMessage?: never;
     };
     [CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION]: {
-        originalMessage?: never
+        originalMessage?: never;
     };
     [CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE]: {
         originalMessage: OriginalMessageModifiedExpense;
@@ -305,83 +305,83 @@ type OriginalMessageMap1 = {
         originalMessage: OriginalMessageMoved;
     };
     [CONST.REPORT.ACTIONS.TYPE.OUTDATED_BANK_ACCOUNT]: {
-        originalMessage?: never
+        originalMessage?: never;
     };
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE]: {
-        originalMessage?: never
+        originalMessage?: never;
     };
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELLED]: {
-        originalMessage?: never
+        originalMessage?: never;
     };
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACCOUNT_CHANGED]: {
-        originalMessage?: never
+        originalMessage?: never;
     };
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED]: {
         originalMessage: OriginalMessageReimbursementDequeued;
     };
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED]: {
-        originalMessage?: never
+        originalMessage?: never;
     };
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED]: {
-        originalMessage: OriginalMessageReimbursementQueued
+        originalMessage: OriginalMessageReimbursementQueued;
     };
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REQUESTED]: {
-        originalMessage?: never
+        originalMessage?: never;
     };
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP]: {
-        originalMessage?: never
+        originalMessage?: never;
     };
     [CONST.REPORT.ACTIONS.TYPE.RENAMED]: {
         originalMessage: OriginalMessageRenamed;
     };
     [CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW]: {
-        originalMessage: OriginalMessageReportPreview
+        originalMessage: OriginalMessageReportPreview;
     };
     [CONST.REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT]: {
-        originalMessage?: never
+        originalMessage?: never;
     };
     [CONST.REPORT.ACTIONS.TYPE.SHARE]: {
-        originalMessage?: never
+        originalMessage?: never;
     };
     [CONST.REPORT.ACTIONS.TYPE.STRIPE_PAID]: {
-        originalMessage?: never
+        originalMessage?: never;
     };
     [CONST.REPORT.ACTIONS.TYPE.SUBMITTED]: {
-        originalMessage?: never
+        originalMessage?: never;
     };
     [CONST.REPORT.ACTIONS.TYPE.TASK_CANCELLED]: {
-        originalMessage?: never
+        originalMessage?: never;
     };
     [CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED]: {
-        originalMessage?: never
+        originalMessage?: never;
     };
     [CONST.REPORT.ACTIONS.TYPE.TASK_EDITED]: {
-        originalMessage?: never
+        originalMessage?: never;
     };
     [CONST.REPORT.ACTIONS.TYPE.TASK_REOPENED]: {
-        originalMessage?: never
+        originalMessage?: never;
     };
     [CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL]: {
-        originalMessage?: never
+        originalMessage?: never;
     };
     [CONST.REPORT.ACTIONS.TYPE.UNAPPROVED]: {
-        originalMessage?: never
+        originalMessage?: never;
     };
     [CONST.REPORT.ACTIONS.TYPE.UNHOLD]: {
-        originalMessage?: never
+        originalMessage?: never;
     };
     [CONST.REPORT.ACTIONS.TYPE.UNSHARE]: {
-        originalMessage?: never
+        originalMessage?: never;
     };
     [CONST.REPORT.ACTIONS.TYPE.UPDATE_GROUP_CHAT_MEMBER_ROLE]: {
-        originalMessage?: never
+        originalMessage?: never;
     };
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP_REQUESTED]: {
-        originalMessage?: never
+        originalMessage?: never;
     };
 } & {
     [T in ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>]: {
-        originalMessage: OriginalMessageChangeLog
+        originalMessage: OriginalMessageChangeLog;
     };
 } & {
     [T in ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>]: {
@@ -477,4 +477,15 @@ type AssertAllActionsWithHTMLAreListed = AssertTypesEqual<
 
 export default OriginalMessage;
 export {REPORT_ACTIONS_WITH_HTML_MESSAGE};
-export type {ChronosOOOEvent, PaymentMethodType, OriginalMessageSource, ReportActionNamesWithHTMLMessage, Reaction, Decision, OriginalMessageChangeLog, OriginalMessageTemporary};
+export type {
+    DecisionName,
+    OriginalMessageIOU,
+    ChronosOOOEvent,
+    PaymentMethodType,
+    OriginalMessageSource,
+    ReportActionNamesWithHTMLMessage,
+    Reaction,
+    Decision,
+    OriginalMessageChangeLog,
+    OriginalMessageTemporary,
+};

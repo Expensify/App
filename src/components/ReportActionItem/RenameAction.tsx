@@ -20,8 +20,7 @@ function RenameAction({currentUserPersonalDetails, action}: RenameActionProps) {
     const userDisplayName = action.person?.[0]?.text;
     const actorAccountID = action.actorAccountID ?? '';
     const displayName = actorAccountID === currentUserAccountID ? `${translate('common.you')}` : `${userDisplayName}`;
-    const originalMessage =
-        ReportActionsUtils.isRenamedAction(action) ? ReportActionsUtils.getOriginalMessage(action) : null;
+    const originalMessage = ReportActionsUtils.isRenamedAction(action) ? ReportActionsUtils.getOriginalMessage(action) : null;
     const oldName = originalMessage?.oldName ?? '';
     const newName = originalMessage?.newName ?? '';
 

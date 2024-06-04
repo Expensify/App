@@ -93,10 +93,10 @@ import type {
     ReportMetadata,
     ReportUserIsTyping,
 } from '@src/types/onyx';
-import type {Decision, IOUMessage, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
+import type {Decision} from '@src/types/onyx/OriginalMessage';
 import type {NotificationPreference, Participants, Participant as ReportParticipant, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
 import type Report from '@src/types/onyx/Report';
-import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
+import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CachedPDFPaths from './CachedPDFPaths';
@@ -2109,8 +2109,8 @@ function deleteReport(reportID: string) {
     const reportActionsForReport = allReportActions?.[reportID];
 
     const transactionIDs = Object.values(reportActionsForReport ?? {})
-        .filter((reportAction): reportAction is ReportActionBase & OriginalMessageIOU => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU)
-        .map((reportAction) => ReportActionsUtils.getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(reportAction).IOUTransactionID);
+        .filter((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => ReportActionsUtils.isMoneyRequestAction(reportAction))
+        .map((reportAction) => ReportActionsUtils.getOriginalMessage(reportAction)?.IOUTransactionID);
 
     [...new Set(transactionIDs)].forEach((transactionID) => {
         onyxData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = null;
@@ -3611,8 +3611,9 @@ function resolveActionableReportMentionWhisper(
 }
 
 function dismissTrackExpenseActionableWhisper(reportID: string, reportAction: OnyxEntry<ReportAction>): void {
-    const message = reportAction?.message?.[0];
-    if (!message) {
+    const isArrayMessage = Array.isArray(reportAction?.message);
+    const message = ReportActionsUtils.getReportActionMessage(reportAction);
+    if (!message || !reportAction) {
         return;
     }
 
@@ -3627,7 +3628,7 @@ function dismissTrackExpenseActionableWhisper(reportID: string, reportAction: On
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [reportAction.reportActionID]: {
-                    message: [updatedMessage],
+                    message: isArrayMessage ? [updatedMessage] : updatedMessage,
                     originalMessage: {
                         resolution: CONST.REPORT.ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION.NOTHING,
                     },
