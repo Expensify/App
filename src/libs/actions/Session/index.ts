@@ -88,10 +88,10 @@ Onyx.connect({
     callback: (value) => (stashedCredentials = value ?? {}),
 });
 
-let preferredLocale: ValueOf<typeof CONST.LOCALES> | undefined;
+let preferredLocale: ValueOf<typeof CONST.LOCALES> | null = null;
 Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: (val) => (preferredLocale = val),
+    callback: (val) => (preferredLocale = val ?? null),
 });
 
 function isSupportAuthToken(): boolean {
@@ -414,7 +414,7 @@ function beginSignIn(email: string) {
  * Given an idToken from Sign in with Apple, checks the API to see if an account
  * exists for that email address and signs the user in if so.
  */
-function beginAppleSignIn(idToken: string | null) {
+function beginAppleSignIn(idToken: string | undefined | null) {
     const {optimisticData, successData, failureData} = signInAttemptState();
 
     const params: BeginAppleSignInParams = {idToken, preferredLocale};
