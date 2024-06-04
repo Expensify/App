@@ -127,7 +127,7 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
                     </OfflineWithFeedback>
                     <MenuItem
                         icon={Expensicons.Trashcan}
-                        title={translate('workspace.distanceRates.deleteDistanceRate')}
+                        title={translate('common.delete')}
                         onPress={() => {
                             if (canDisableOrDeleteRate) {
                                 setIsDeleteModalVisible(true);
