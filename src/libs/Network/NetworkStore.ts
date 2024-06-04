@@ -5,7 +5,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Credentials from '@src/types/onyx/Credentials';
 
-let credentials: Credentials | null = null;
+let credentials: Credentials | undefined;
 let authToken: string | null = null;
 let authTokenType: ValueOf<typeof CONST.AUTH_TOKEN_TYPES> | null;
 let currentUserEmail: string | null = null;
@@ -85,7 +85,7 @@ Onyx.connect({
     },
 });
 
-function getCredentials(): Credentials | null {
+function getCredentials(): Credentials | undefined {
     return credentials;
 }
 

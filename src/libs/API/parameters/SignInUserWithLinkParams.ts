@@ -5,7 +5,7 @@ type SignInUserWithLinkParams = {
     accountID: number;
     validateCode?: string;
     twoFactorAuthCode?: string;
-    preferredLocale: ValueOf<typeof CONST.LOCALES> | null;
+    preferredLocale?: ValueOf<typeof CONST.LOCALES>;
     deviceInfo: string;
 };
 

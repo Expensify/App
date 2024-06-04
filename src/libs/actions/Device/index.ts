@@ -4,12 +4,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import generateDeviceID from './generateDeviceID';
 import getDeviceInfo from './getDeviceInfo';
 
-let deviceID: string | null = null;
+let deviceID: string | undefined;
 
 /**
  * @returns - device ID string or null in case of failure
  */
-function getDeviceID(): Promise<string | null> {
+function getDeviceID(): Promise<string | undefined> {
     return new Promise((resolve) => {
         if (deviceID) {
             resolve(deviceID);

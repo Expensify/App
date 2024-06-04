@@ -21,7 +21,7 @@ let isReadyPromise = new Promise((resolve) => {
     resolveIsReadyPromise = resolve;
 });
 
-let currentUserAccountID: number | undefined | null;
+let currentUserAccountID: number | undefined;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
@@ -59,7 +59,7 @@ Onyx.connect({
     },
 });
 
-let isInFocusMode: boolean | undefined;
+let isInFocusMode: boolean;
 Onyx.connect({
     key: ONYXKEYS.NVP_PRIORITY_MODE,
     callback: (priorityMode) => {
@@ -70,7 +70,7 @@ Onyx.connect({
     },
 });
 
-let hasTriedFocusMode: boolean | undefined | null;
+let hasTriedFocusMode: boolean | undefined;
 Onyx.connect({
     key: ONYXKEYS.NVP_TRY_FOCUS_MODE,
     callback: (val) => {

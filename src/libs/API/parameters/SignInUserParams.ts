@@ -4,7 +4,7 @@ import type CONST from '@src/CONST';
 type SignInUserParams = {
     twoFactorAuthCode?: string;
     email?: string;
-    preferredLocale: ValueOf<typeof CONST.LOCALES> | null;
+    preferredLocale?: ValueOf<typeof CONST.LOCALES>;
     validateCode?: string;
     deviceInfo: string;
 };

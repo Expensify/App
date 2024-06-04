@@ -1,12 +1,12 @@
-import type {OnyxInput} from 'react-native-onyx';
+import type {OnyxInputValue} from 'react-native-onyx';
 import type {OnyxCollectionKey, OnyxCollectionValuesMapping} from '@src/ONYXKEYS';
 
 /** Helps with typing a collection item update inside Onyx.multiSet call */
-type CollectionDataSet<TCollectionKey extends OnyxCollectionKey> = Record<`${TCollectionKey}${string}`, OnyxInput<OnyxCollectionValuesMapping[TCollectionKey]>>;
+type CollectionDataSet<TCollectionKey extends OnyxCollectionKey> = Record<`${TCollectionKey}${string}`, OnyxInputValue<OnyxCollectionValuesMapping[TCollectionKey]>>;
 
 const toCollectionDataSet = <TCollectionKey extends OnyxCollectionKey>(
     collectionKey: TCollectionKey,
-    collection: Array<OnyxInput<OnyxCollectionValuesMapping[TCollectionKey]>>,
+    collection: Array<OnyxInputValue<OnyxCollectionValuesMapping[TCollectionKey]>>,
     idSelector: (collectionValue: OnyxCollectionValuesMapping[TCollectionKey]) => string,
 ) => {
     const collectionDataSet = collection.reduce<CollectionDataSet<TCollectionKey>>((result, collectionValue) => {
