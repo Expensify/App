@@ -208,7 +208,7 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         tripData?: {
             startDate: string;
             endDate: string;
-            tripId: string;
+            tripID: string;
         };
     },
     PolicyReportField['fieldID']
