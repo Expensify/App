@@ -21,7 +21,7 @@ const Stack = createStackNavigator<LeftModalNavigatorParamList>();
 function LeftModalNavigator({navigation}: LeftModalNavigatorProps) {
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const screenOptions = useMemo(() => ModalNavigatorScreenOptions(styles), [styles]);
+    const screenOptions = useMemo(() => ModalNavigatorScreenOptions(styles, 'horizontal-inverted'), [styles]);
 
     return (
         <NoDropZone>
