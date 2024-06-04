@@ -103,7 +103,18 @@ function LHNOptionsList({
                 />
             </View>
         ),
-        [styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.flexWrap, styles.textAlignCenter, styles.mh1, theme.icon, theme.textSupporting, styles.textNormal, translate],
+        [
+            styles.alignItemsCenter,
+            styles.flexRow,
+            styles.justifyContentCenter,
+            styles.flexWrap,
+            styles.textAlignCenter,
+            styles.mh1,
+            theme.icon,
+            theme.textSupporting,
+            styles.textNormal,
+            translate,
+        ],
     );
 
     /**
