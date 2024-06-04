@@ -190,7 +190,7 @@ function getGlobalFetchMock() {
     mockFetch.fail = () => (shouldFail = true);
     mockFetch.succeed = () => (shouldFail = false);
 
-    return mockFetch;
+    return mockFetch as typeof fetch;
 }
 
 function setPersonalDetails(login: string, accountID: number) {
@@ -203,7 +203,7 @@ function setPersonalDetails(login: string, accountID: number) {
 function buildTestReportComment(created: string, actorAccountID: number, actionID: string | null = null, previousReportActionID: string | null = null) {
     const reportActionID = actionID ?? NumberUtils.rand64().toString();
     return {
-        actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
         person: [{type: 'TEXT', style: 'strong', text: 'User B'}],
         created,
         message: [{type: 'COMMENT', html: `Comment ${actionID}`, text: `Comment ${actionID}`}],
@@ -214,7 +214,12 @@ function buildTestReportComment(created: string, actorAccountID: number, actionI
 }
 
 function assertFormDataMatchesObject(formData: FormData, obj: Report) {
-    expect(Array.from(formData.entries()).reduce((memo, x) => ({...memo, [x[0]]: x[1]}), {})).toEqual(expect.objectContaining(obj));
+    expect(
+        Array.from(formData.entries()).reduce((acc, [key, val]) => {
+            acc[key] = val;
+            return acc;
+        }, {} as Record<string, string | Blob>),
+    ).toEqual(expect.objectContaining(obj));
 }
 
 /**
@@ -230,7 +235,7 @@ const createAddListenerMock = () => {
         transitionEndListeners.forEach((transitionEndListener) => transitionEndListener());
     };
 
-    const addListener = jest.fn().mockImplementation((listener, callback) => {
+    const addListener = jest.fn().mockImplementation((listener, callback: Listener) => {
         if (listener === 'transitionEnd') {
             transitionEndListeners.push(callback);
         }
@@ -242,4 +247,5 @@ const createAddListenerMock = () => {
     return {triggerTransitionEnd, addListener};
 };
 
+export type {MockFetch, FormData};
 export {assertFormDataMatchesObject, buildPersonalDetails, buildTestReportComment, createAddListenerMock, getGlobalFetchMock, setPersonalDetails, signInWithTestUser, signOutTestUser};

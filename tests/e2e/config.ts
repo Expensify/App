@@ -4,7 +4,7 @@ const OUTPUT_DIR = process.env.WORKING_DIRECTORY || './tests/e2e/results';
 // add your test name here …
 const TEST_NAMES = {
     AppStartTime: 'App start time',
-    OpenSearchPage: 'Open search page TTI',
+    OpenChatFinderPage: 'Open chat finder page TTI',
     ReportTyping: 'Report typing',
     ChatOpening: 'Chat opening',
     Linking: 'Linking',
@@ -68,11 +68,11 @@ export default {
     TESTS_CONFIG: {
         [TEST_NAMES.AppStartTime]: {
             name: TEST_NAMES.AppStartTime,
-
+            warmupRuns: 1,
             // ... any additional config you might need
         },
-        [TEST_NAMES.OpenSearchPage]: {
-            name: TEST_NAMES.OpenSearchPage,
+        [TEST_NAMES.OpenChatFinderPage]: {
+            name: TEST_NAMES.OpenChatFinderPage,
         },
         // TODO: Fix text and enable again
         // [TEST_NAMES.ReportTyping]: {

@@ -1,36 +1,31 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Badge from '@components/Badge';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {FallbackAvatar} from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import type {ListItem, Section} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import type {WorkspacesCentralPaneNavigatorParamList} from '@libs/Navigation/types';
+import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import * as UserUtils from '@libs/UserUtils';
-import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
-import * as Policy from '@userActions/Policy';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetailsList, PolicyMember} from '@src/types/onyx';
+import type {PersonalDetailsList, PolicyEmployee} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type WorkspaceWorkflowsApproverPageOnyxProps = {
@@ -40,32 +35,33 @@ type WorkspaceWorkflowsApproverPageOnyxProps = {
 
 type WorkspaceWorkflowsApproverPageProps = WorkspaceWorkflowsApproverPageOnyxProps &
     WithPolicyAndFullscreenLoadingProps &
-    StackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVER>;
+    StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVER>;
 type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 type MembersSection = SectionListData<MemberOption, Section<MemberOption>>;
 
-function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails, isLoadingReportData = true, route}: WorkspaceWorkflowsApproverPageProps) {
+function WorkspaceWorkflowsApproverPage({policy, personalDetails, isLoadingReportData = true, route}: WorkspaceWorkflowsApproverPageProps) {
     const {translate} = useLocalize();
     const policyName = policy?.name ?? '';
     const [searchTerm, setSearchTerm] = useState('');
     const {isOffline} = useNetwork();
-    const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
 
-    const isDeletedPolicyMember = useCallback(
-        (policyMember: PolicyMember) => !isOffline && policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isEmptyObject(policyMember.errors),
+    const isDeletedPolicyEmployee = useCallback(
+        (policyEmployee: PolicyEmployee) => !isOffline && policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isEmptyObject(policyEmployee.errors),
         [isOffline],
     );
 
-    const [formattedPolicyMembers, formattedApprover] = useMemo(() => {
+    const [formattedPolicyEmployeeList, formattedApprover] = useMemo(() => {
         const policyMemberDetails: MemberOption[] = [];
         const approverDetails: MemberOption[] = [];
 
-        Object.entries(policyMembers ?? {}).forEach(([accountIDKey, policyMember]) => {
-            const accountID = Number(accountIDKey);
-            if (isDeletedPolicyMember(policyMember)) {
+        const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList);
+
+        Object.entries(policy?.employeeList ?? {}).forEach(([email, policyEmployee]) => {
+            if (isDeletedPolicyEmployee(policyEmployee)) {
                 return;
             }
+
+            const accountID = Number(policyMemberEmailsToAccountIDs[email] ?? '');
 
             const details = personalDetails?.[accountID];
             if (!details) {
@@ -74,37 +70,31 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails,
             }
 
             const isOwner = policy?.owner === details.login;
-            const isAdmin = policyMember.role === CONST.POLICY.ROLE.ADMIN;
+            const isAdmin = policyEmployee.role === CONST.POLICY.ROLE.ADMIN;
 
             let roleBadge = null;
             if (isOwner || isAdmin) {
-                roleBadge = (
-                    <Badge
-                        text={isOwner ? translate('common.owner') : translate('common.admin')}
-                        textStyles={styles.textStrong}
-                        badgeStyles={[styles.justifyContentCenter, StyleUtils.getMinimumWidth(60), styles.badgeBordered]}
-                    />
-                );
+                roleBadge = <Badge text={isOwner ? translate('common.owner') : translate('common.admin')} />;
             }
 
             const formattedMember = {
-                keyForList: accountIDKey,
+                keyForList: String(accountID),
                 accountID,
                 isSelected: policy?.approver === details.login,
-                isDisabled: policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyMember.errors),
+                isDisabled: policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyEmployee.errors),
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: formatPhoneNumber(details?.login ?? ''),
                 rightElement: roleBadge,
                 icons: [
                     {
-                        source: UserUtils.getAvatar(details.avatar, accountID),
+                        source: details.avatar ?? FallbackAvatar,
                         name: formatPhoneNumber(details?.login ?? ''),
                         type: CONST.ICON_TYPE_AVATAR,
                         id: accountID,
                     },
                 ],
-                errors: policyMember.errors,
-                pendingAction: policyMember.pendingAction,
+                errors: policyEmployee.errors,
+                pendingAction: policyEmployee.pendingAction,
             };
 
             if (policy?.approver === details.login) {
@@ -114,13 +104,13 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails,
             }
         });
         return [policyMemberDetails, approverDetails];
-    }, [personalDetails, policyMembers, translate, policy?.approver, StyleUtils, isDeletedPolicyMember, policy?.owner, styles]);
+    }, [personalDetails, translate, policy?.approver, isDeletedPolicyEmployee, policy?.owner, policy?.employeeList]);
 
     const sections: MembersSection[] = useMemo(() => {
         const sectionsArray: MembersSection[] = [];
 
         if (searchTerm !== '') {
-            const filteredOptions = [...formattedApprover, ...formattedPolicyMembers].filter((option) => {
+            const filteredOptions = [...formattedApprover, ...formattedPolicyEmployeeList].filter((option) => {
                 const searchValue = OptionsListUtils.getSearchValueForPhoneOrEmail(searchTerm);
                 return !!option.text?.toLowerCase().includes(searchValue) || !!option.login?.toLowerCase().includes(searchValue);
             });
@@ -141,12 +131,12 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails,
 
         sectionsArray.push({
             title: translate('common.all'),
-            data: formattedPolicyMembers,
+            data: formattedPolicyEmployeeList,
             shouldShow: true,
         });
 
         return sectionsArray;
-    }, [formattedPolicyMembers, formattedApprover, searchTerm, translate]);
+    }, [formattedPolicyEmployeeList, formattedApprover, searchTerm, translate]);
 
     const headerMessage = useMemo(
         () => (searchTerm && !sections[0].data.length ? translate('common.noResultsFound') : ''),
@@ -165,7 +155,7 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails,
     };
 
     return (
-        <FeatureEnabledAccessOrNotFoundWrapper
+        <AccessOrNotFoundWrapper
             policyID={route.params.policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
         >
@@ -186,27 +176,21 @@ function WorkspaceWorkflowsApproverPage({policy, policyMembers, personalDetails,
                     />
                     <SelectionList
                         sections={sections}
-                        textInputLabel={translate('optionsSelector.findMember')}
+                        textInputLabel={translate('selectionList.findMember')}
                         textInputValue={searchTerm}
                         onChangeText={setSearchTerm}
                         headerMessage={headerMessage}
                         ListItem={UserListItem}
                         onSelectRow={setPolicyApprover}
+                        shouldDebounceRowSelect
                         showScrollIndicator
                     />
                 </FullPageNotFoundView>
             </ScreenWrapper>
-        </FeatureEnabledAccessOrNotFoundWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 
 WorkspaceWorkflowsApproverPage.displayName = 'WorkspaceWorkflowsApproverPage';
 
-export default compose(
-    withOnyx<WorkspaceWorkflowsApproverPageProps, WorkspaceWorkflowsApproverPageOnyxProps>({
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-    }),
-    withPolicyAndFullscreenLoading,
-)(WorkspaceWorkflowsApproverPage);
+export default withPolicyAndFullscreenLoading(WorkspaceWorkflowsApproverPage);

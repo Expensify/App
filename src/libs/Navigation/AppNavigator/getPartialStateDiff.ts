@@ -3,19 +3,8 @@ import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRo
 import getTopmostFullScreenRoute from '@libs/Navigation/getTopmostFullScreenRoute';
 import type {Metainfo} from '@libs/Navigation/linkingConfig/getAdaptedStateFromPath';
 import type {NavigationPartialRoute, RootStackParamList, State} from '@libs/Navigation/types';
+import shallowCompare from '@libs/ObjectUtils';
 import NAVIGATORS from '@src/NAVIGATORS';
-
-// eslint-disable-next-line @typescript-eslint/ban-types
-const shallowCompare = (obj1?: object, obj2?: object) => {
-    if (!obj1 && !obj2) {
-        return true;
-    }
-    if (obj1 && obj2) {
-        // @ts-expect-error we know that obj1 and obj2 are params of a route.
-        return Object.keys(obj1).length === Object.keys(obj2).length && Object.keys(obj1).every((key) => obj1[key] === obj2[key]);
-    }
-    return false;
-};
 
 type GetPartialStateDiffReturnType = {
     [NAVIGATORS.BOTTOM_TAB_NAVIGATOR]?: NavigationPartialRoute;
@@ -64,7 +53,7 @@ function getPartialStateDiff(state: State<RootStackParamList>, templateState: St
             (stateTopmostCentralPane &&
                 templateStateTopmostCentralPane &&
                 stateTopmostCentralPane.name !== templateStateTopmostCentralPane.name &&
-                !shallowCompare(stateTopmostCentralPane.params, templateStateTopmostCentralPane.params))
+                !shallowCompare(stateTopmostCentralPane.params as Record<string, unknown> | undefined, templateStateTopmostCentralPane.params as Record<string, unknown> | undefined))
         ) {
             // We need to wrap central pane routes in the central pane navigator.
             diff[NAVIGATORS.CENTRAL_PANE_NAVIGATOR] = templateStateTopmostCentralPane;
@@ -84,7 +73,7 @@ function getPartialStateDiff(state: State<RootStackParamList>, templateState: St
             (stateTopmostFullScreen &&
                 templateStateTopmostFullScreen &&
                 stateTopmostFullScreen.name !== templateStateTopmostFullScreen.name &&
-                !shallowCompare(stateTopmostFullScreen.params, templateStateTopmostFullScreen.params))
+                !shallowCompare(stateTopmostFullScreen.params as Record<string, unknown> | undefined, templateStateTopmostFullScreen.params as Record<string, unknown> | undefined))
         ) {
             diff[NAVIGATORS.FULL_SCREEN_NAVIGATOR] = fullScreenDiff;
         }

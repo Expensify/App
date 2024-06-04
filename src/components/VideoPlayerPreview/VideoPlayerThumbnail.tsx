@@ -34,7 +34,8 @@ function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel}: Video
                     <Image
                         source={{uri: thumbnailUrl}}
                         style={styles.flex1}
-                        isAuthTokenRequired
+                        // The auth header is required except for static images on Cloudfront, which makes them fail to load
+                        isAuthTokenRequired={!CONST.CLOUDFRONT_DOMAIN_REGEX.test(thumbnailUrl)}
                     />
                 </View>
             )}

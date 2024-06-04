@@ -8,7 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import navigateAfterJoinRequest from '@libs/navigateAfterJoinRequest';
 import Navigation from '@navigation/Navigation';
 import type {AuthScreensParamList} from '@navigation/types';
-import * as PolicyAction from '@userActions/Policy';
+import * as PolicyAction from '@userActions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -39,10 +39,10 @@ function WorkspaceJoinUserPage({route, policy}: WorkspaceJoinUserPageProps) {
     }, []);
 
     useEffect(() => {
-        if (!policy || isUnmounted.current || isJoinLinkUsed) {
+        if (isUnmounted.current || isJoinLinkUsed) {
             return;
         }
-        if (!isEmptyObject(policy)) {
+        if (!isEmptyObject(policy) && !policy?.isJoinRequestPending) {
             Navigation.isNavigationReady().then(() => {
                 Navigation.goBack(undefined, false, true);
                 Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID ?? ''));

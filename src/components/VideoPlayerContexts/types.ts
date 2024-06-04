@@ -9,6 +9,7 @@ import type CONST from '@src/CONST';
 type PlaybackContext = {
     updateCurrentlyPlayingURL: (url: string | null) => void;
     currentlyPlayingURL: string | null;
+    currentlyPlayingURLReportID: string | undefined;
     originalParent: View | HTMLDivElement | null;
     sharedElement: View | HTMLDivElement | null;
     videoResumeTryNumber: MutableRefObject<number>;
@@ -17,6 +18,7 @@ type PlaybackContext = {
     playVideo: () => void;
     pauseVideo: () => void;
     checkVideoPlaying: (statusCallback: StatusCallback) => void;
+    setCurrentlyPlayingURL: React.Dispatch<React.SetStateAction<string | null>>;
 };
 
 type VolumeContext = {
@@ -26,7 +28,9 @@ type VolumeContext = {
 
 type VideoPopoverMenuContext = {
     menuItems: PopoverMenuItem[];
+    videoPopoverMenuPlayerRef: MutableRefObject<VideoWithOnFullScreenUpdate | null>;
     updatePlaybackSpeed: (speed: PlaybackSpeed) => void;
+    setCurrentPlaybackSpeed: (speed: PlaybackSpeed) => void;
 };
 
 type FullScreenContext = {

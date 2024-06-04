@@ -15,7 +15,6 @@ import type {
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PlaidDataProps from '@pages/ReimbursementAccount/plaidDataPropTypes';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -64,7 +63,7 @@ type PersonalAddress = {
 function clearPlaid(): Promise<void | void[]> {
     Onyx.set(ONYXKEYS.PLAID_LINK_TOKEN, '');
     Onyx.set(ONYXKEYS.PLAID_CURRENT_EVENT, null);
-    return Onyx.set(ONYXKEYS.PLAID_DATA, PlaidDataProps.plaidDataDefaultProps);
+    return Onyx.set(ONYXKEYS.PLAID_DATA, CONST.PLAID.DEFAULT_DATA);
 }
 
 function openPlaidView() {
@@ -113,7 +112,7 @@ function setPersonalBankAccountContinueKYCOnSuccess(onSuccessFallbackRoute: Rout
 
 function clearPersonalBankAccount() {
     clearPlaid();
-    Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {});
+    Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, null);
     Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, null);
     clearPersonalBankAccountSetupType();
 }
@@ -188,7 +187,6 @@ function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAcc
         plaidAccessToken: selectedPlaidBankAccount.plaidAccessToken,
         plaidMask: selectedPlaidBankAccount.mask,
         isSavings: selectedPlaidBankAccount.isSavings,
-        canUseNewVbbaFlow: true,
         policyID,
     };
 
@@ -282,15 +280,17 @@ function deletePaymentBankAccount(bankAccountID: number) {
  * This action is called by the requestor step in the Verified Bank Account flow
  * @param bankAccountID - ID for bank account
  * @param params - User personal data
+ * @param policyID - ID of the policy we're setting the bank account on
+ * @param isConfirmPage - If we're submitting from the confirmation substep, to trigger all external checks
  */
-function updatePersonalInformationForBankAccount(bankAccountID: number, params: RequestorStepProps, policyID: string) {
+function updatePersonalInformationForBankAccount(bankAccountID: number, params: RequestorStepProps, policyID: string, isConfirmPage: boolean) {
     API.write(
         WRITE_COMMANDS.UPDATE_PERSONAL_INFORMATION_FOR_BANK_ACCOUNT,
         {
             ...params,
             bankAccountID,
             policyID,
-            canUseNewVbbaFlow: true,
+            confirm: isConfirmPage,
         },
         getVBBADataForOnyx(CONST.BANK_ACCOUNT.STEP.REQUESTOR),
     );
@@ -384,7 +384,6 @@ function openReimbursementAccountPage(stepToOpen: ReimbursementAccountStep, subS
         subStep,
         localCurrentStep,
         policyID,
-        canUseNewVbbaFlow: true,
     };
 
     return API.read(READ_COMMANDS.OPEN_REIMBURSEMENT_ACCOUNT_PAGE, parameters, onyxData);
@@ -393,15 +392,17 @@ function openReimbursementAccountPage(stepToOpen: ReimbursementAccountStep, subS
 /**
  * Updates the bank account in the database with the company step data
  * @param params - Business step form data
+ * @param policyID - ID of the policy we're setting the bank account on
+ * @param isConfirmPage - If we're submitting from the confirmation substep, to trigger all external checks
  */
-function updateCompanyInformationForBankAccount(bankAccountID: number, params: Partial<CompanyStepProps>, policyID: string) {
+function updateCompanyInformationForBankAccount(bankAccountID: number, params: Partial<CompanyStepProps>, policyID: string, isConfirmPage: boolean) {
     API.write(
         WRITE_COMMANDS.UPDATE_COMPANY_INFORMATION_FOR_BANK_ACCOUNT,
         {
             ...params,
             bankAccountID,
             policyID,
-            canUseNewVbbaFlow: true,
+            confirm: isConfirmPage,
         },
         getVBBADataForOnyx(CONST.BANK_ACCOUNT.STEP.COMPANY),
     );
@@ -418,7 +419,6 @@ function updateBeneficialOwnersForBankAccount(bankAccountID: number, params: Par
             ...params,
             bankAccountID,
             policyID,
-            canUseNewVbbaFlow: true,
         },
         getVBBADataForOnyx(),
     );
@@ -435,7 +435,6 @@ function acceptACHContractForBankAccount(bankAccountID: number, params: ACHContr
             ...params,
             bankAccountID,
             policyID,
-            canUseNewVbbaFlow: true,
         },
         getVBBADataForOnyx(),
     );
@@ -454,7 +453,6 @@ function connectBankAccountManually(bankAccountID: number, bankAccount: PlaidBan
         plaidAccessToken: bankAccount.plaidAccessToken,
         plaidMask: bankAccount.mask,
         isSavings: bankAccount.isSavings,
-        canUseNewVbbaFlow: true,
         policyID,
     };
 
@@ -469,7 +467,6 @@ function verifyIdentityForBankAccount(bankAccountID: number, onfidoData: OnfidoD
         bankAccountID,
         onfidoData: JSON.stringify(onfidoData),
         policyID: policyID ?? '',
-        canUseNewVbbaFlow: true,
     };
 
     API.write(WRITE_COMMANDS.VERIFY_IDENTITY_FOR_BANK_ACCOUNT, parameters, getVBBADataForOnyx());

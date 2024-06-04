@@ -1,9 +1,8 @@
-import type {ValueOf} from 'type-fest';
-import type CONST from '@src/CONST';
+import type {OnboardingPurposeType} from '@src/CONST';
 
 type IntroSelected = {
     /** The choice that the user selected in the engagement modal */
-    choice: ValueOf<typeof CONST.ONBOARDING_CHOICES>;
+    choice: OnboardingPurposeType;
 };
 
 export default IntroSelected;

@@ -13,9 +13,8 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
-import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
-import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
-import * as PolicyActions from '@userActions/Policy';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import * as PolicyActions from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -31,45 +30,47 @@ function WorkspaceOwnerChangeErrorPage({route}: WorkspaceOwnerChangeSuccessPageP
 
     const closePage = useCallback(() => {
         PolicyActions.clearWorkspaceOwnerChangeFlow(policyID);
+        Navigation.goBack();
         Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
     }, [accountID, policyID]);
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
-            <PaidPolicyAccessOrNotFoundWrapper policyID={policyID}>
-                <ScreenWrapper testID={WorkspaceOwnerChangeErrorPage.displayName}>
-                    <HeaderWithBackButton
-                        title={translate('workspace.changeOwner.changeOwnerPageTitle')}
-                        onBackButtonPress={closePage}
+        <AccessOrNotFoundWrapper
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyID={policyID}
+        >
+            <ScreenWrapper testID={WorkspaceOwnerChangeErrorPage.displayName}>
+                <HeaderWithBackButton
+                    title={translate('workspace.changeOwner.changeOwnerPageTitle')}
+                    onBackButtonPress={closePage}
+                />
+                <View style={[styles.screenCenteredContainer, styles.alignItemsCenter]}>
+                    <Icon
+                        src={Expensicons.MoneyWaving}
+                        width={187}
+                        height={173}
+                        fill=""
+                        additionalStyles={styles.mb3}
                     />
-                    <View style={[styles.screenCenteredContainer, styles.alignItemsCenter]}>
-                        <Icon
-                            src={Expensicons.MoneyWaving}
-                            width={187}
-                            height={173}
-                            fill=""
-                            additionalStyles={styles.mb3}
-                        />
-                        <Text style={[styles.textHeadline, styles.textAlignCenter, styles.mv2]}>{translate('workspace.changeOwner.errorTitle')}</Text>
-                        <Text style={[styles.textAlignCenter, styles.textSupporting]}>
-                            {translate('workspace.changeOwner.errorDescriptionPartOne')}{' '}
-                            <TextLink href={`mailto:${CONST.EMAIL.CONCIERGE}`}>{translate('workspace.changeOwner.errorDescriptionPartTwo')}</TextLink>{' '}
-                            {translate('workspace.changeOwner.errorDescriptionPartThree')}
-                        </Text>
-                    </View>
-                    <FixedFooter>
-                        <Button
-                            success
-                            large
-                            text={translate('common.buttonConfirm')}
-                            style={styles.mt6}
-                            pressOnEnter
-                            onPress={closePage}
-                        />
-                    </FixedFooter>
-                </ScreenWrapper>
-            </PaidPolicyAccessOrNotFoundWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+                    <Text style={[styles.textHeadline, styles.textAlignCenter, styles.mv2]}>{translate('workspace.changeOwner.errorTitle')}</Text>
+                    <Text style={[styles.textAlignCenter, styles.textSupporting]}>
+                        {translate('workspace.changeOwner.errorDescriptionPartOne')}{' '}
+                        <TextLink href={`mailto:${CONST.EMAIL.CONCIERGE}`}>{translate('workspace.changeOwner.errorDescriptionPartTwo')}</TextLink>{' '}
+                        {translate('workspace.changeOwner.errorDescriptionPartThree')}
+                    </Text>
+                </View>
+                <FixedFooter>
+                    <Button
+                        success
+                        large
+                        text={translate('common.buttonConfirm')}
+                        style={styles.mt6}
+                        pressOnEnter
+                        onPress={closePage}
+                    />
+                </FixedFooter>
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 

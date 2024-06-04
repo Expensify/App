@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, ScrollView as RNScrollView, ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -12,7 +12,6 @@ import CurrentUserPersonalDetailsSkeletonView from '@components/CurrentUserPerso
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
@@ -71,9 +70,6 @@ type InitialSettingsPageOnyxProps = {
 
     /** The policies which the user has access to */
     policies: OnyxCollection<OnyxTypes.Policy>;
-
-    /** Members of all the workspaces the user is member of */
-    policyMembers: OnyxCollection<OnyxTypes.PolicyMembers>;
 };
 
 type InitialSettingsPageProps = InitialSettingsPageOnyxProps & WithCurrentUserPersonalDetailsProps;
@@ -98,7 +94,7 @@ type MenuData = {
 
 type Menu = {sectionStyle: StyleProp<ViewStyle>; sectionTranslationKey: TranslationPaths; items: MenuData[]};
 
-function InitialSettingsPage({session, userWallet, bankAccountList, fundList, walletTerms, loginList, currentUserPersonalDetails, policies, policyMembers}: InitialSettingsPageProps) {
+function InitialSettingsPage({session, userWallet, bankAccountList, fundList, walletTerms, loginList, currentUserPersonalDetails, policies}: InitialSettingsPageProps) {
     const network = useNetwork();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -189,7 +185,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                 translationKey: 'common.workspaces',
                 icon: Expensicons.Building,
                 routeName: ROUTES.SETTINGS_WORKSPACES,
-                brickRoadIndicator: hasGlobalWorkspaceSettingsRBR(policies, policyMembers) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                brickRoadIndicator: hasGlobalWorkspaceSettingsRBR(policies) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             },
             {
                 translationKey: 'allSettingsScreen.cardsAndDomains',
@@ -221,7 +217,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
             sectionTranslationKey: 'common.workspaces',
             items,
         };
-    }, [policies, policyMembers, styles.workspaceSettingsSectionContainer]);
+    }, [policies, styles.workspaceSettingsSectionContainer]);
 
     /**
      * Retuns a list of menu items data for general section
@@ -249,6 +245,11 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                     translationKey: 'initialSettingsPage.about',
                     icon: Expensicons.Info,
                     routeName: ROUTES.SETTINGS_ABOUT,
+                },
+                {
+                    translationKey: 'initialSettingsPage.aboutPage.troubleshoot',
+                    icon: Expensicons.Lightbulb,
+                    routeName: ROUTES.SETTINGS_TROUBLESHOOT,
                 },
                 {
                     translationKey: 'sidebarScreen.saveTheWorld',
@@ -324,7 +325,9 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                                 hoverAndPressStyle={styles.hoveredComponentBG}
                                 shouldBlockSelection={Boolean(item.link)}
                                 onSecondaryInteraction={item.link ? (event) => openPopover(item.link, event) : undefined}
-                                focused={!!activeRoute && !!item.routeName && !!(activeRoute.toLowerCase().replaceAll('_', '') === item.routeName.toLowerCase().replaceAll('/', ''))}
+                                focused={
+                                    !!activeRoute?.name && !!item.routeName && !!(activeRoute?.name.toLowerCase().replaceAll('_', '') === item.routeName.toLowerCase().replaceAll('/', ''))
+                                }
                                 isPaneMenu
                                 iconRight={item.iconRight}
                                 shouldShowRightIcon={item.shouldShowRightIcon}
@@ -403,13 +406,11 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                             </PressableWithFeedback>
                         </Tooltip>
                     </View>
-                    <OfflineWithFeedback
-                        pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
-                        style={[styles.mb3, styles.w100]}
-                    >
+                    <View style={[styles.mb3, styles.w100]}>
                         <AvatarWithImagePicker
                             isUsingDefaultAvatar={UserUtils.isDefaultAvatar(currentUserDetails?.avatar ?? '')}
-                            source={UserUtils.getAvatar(avatarURL, accountID)}
+                            source={avatarURL}
+                            avatarID={accountID}
                             onImageSelected={PersonalDetails.updateAvatar}
                             onImageRemoved={PersonalDetails.deleteAvatar}
                             size={CONST.AVATAR_SIZE.XLARGE}
@@ -425,7 +426,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                             fallbackIcon={currentUserDetails?.fallbackIcon}
                             editIconStyle={styles.smallEditIconAccount}
                         />
-                    </OfflineWithFeedback>
+                    </View>
                     <Text
                         style={[styles.textHeadline, styles.pre, styles.textAlignCenter]}
                         numberOfLines={1}
@@ -461,18 +462,13 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
         [route, saveScrollOffset],
     );
 
-    const [isAfterOnLayout, setIsAfterOnLayout] = useState(false);
-
-    const onLayout = useCallback(() => {
+    useLayoutEffect(() => {
         const scrollOffset = getScrollOffset(route);
-        setIsAfterOnLayout(true);
         if (!scrollOffset || !scrollViewRef.current) {
             return;
         }
         scrollViewRef.current.scrollTo({y: scrollOffset, animated: false});
     }, [getScrollOffset, route]);
-
-    const scrollOffset = getScrollOffset(route);
 
     return (
         <ScreenWrapper
@@ -483,12 +479,9 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
         >
             <ScrollView
                 ref={scrollViewRef}
-                onLayout={onLayout}
                 onScroll={onScroll}
                 scrollEventThrottle={16}
-                // We use marginTop to prevent glitching on the initial frame that renders before scrollTo.
-                contentContainerStyle={[!isAfterOnLayout && !!scrollOffset && {marginTop: -scrollOffset}]}
-                style={[styles.w100, styles.pt4]}
+                contentContainerStyle={[styles.w100, styles.pt4]}
             >
                 {headerContent}
                 {accountMenuItems}
@@ -533,9 +526,6 @@ export default withCurrentUserPersonalDetails(
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
-        },
-        policyMembers: {
-            key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
         },
     })(InitialSettingsPage),
 );

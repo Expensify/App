@@ -1,10 +1,10 @@
-import React, {useCallback, useRef} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import TextInput from '@components/TextInput';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -30,7 +30,7 @@ type EditReportFieldTextPageProps = {
 function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, isRequired, fieldKey}: EditReportFieldTextPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const inputRef = useRef<AnimatedTextInputRef>(null);
+    const {inputCallbackRef} = useAutoFocusInput();
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM>) => {
@@ -61,7 +61,7 @@ function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, isRequired, f
                     label={fieldName}
                     accessibilityLabel={fieldName}
                     role={CONST.ROLE.PRESENTATION}
-                    ref={inputRef}
+                    ref={inputCallbackRef}
                 />
             </View>
         </FormProvider>

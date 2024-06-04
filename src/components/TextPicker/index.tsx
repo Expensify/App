@@ -1,11 +1,11 @@
 import React, {forwardRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
-import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import TextSelectorModal from './TextSelectorModal';
 import type {TextPickerProps} from './types';
 
@@ -42,11 +42,10 @@ function TextPicker({value, description, placeholder = '', errorText = '', onInp
                 onPress={showPickerModal}
                 furtherDetails={furtherDetails}
                 rightLabel={rightLabel}
+                brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                errorText={errorText}
                 style={[styles.moneyRequestMenuItem]}
             />
-            <View style={styles.ml5}>
-                <FormHelpMessage message={errorText} />
-            </View>
             <TextSelectorModal
                 value={value}
                 isVisible={isPickerVisible}

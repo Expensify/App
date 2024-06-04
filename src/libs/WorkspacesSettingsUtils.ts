@@ -4,13 +4,12 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyMembers, ReimbursementAccount, Report} from '@src/types/onyx';
+import type {Policy, ReimbursementAccount, Report, ReportActions} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import * as CurrencyUtils from './CurrencyUtils';
 import type {Phrase, PhraseParameters} from './Localize';
 import * as OptionsListUtils from './OptionsListUtils';
-import {hasCustomUnitsError, hasPolicyError, hasPolicyMemberError, hasTaxRateError} from './PolicyUtils';
-import * as ReportActionsUtils from './ReportActionsUtils';
+import {hasCustomUnitsError, hasEmployeeListError, hasPolicyError, hasTaxRateError} from './PolicyUtils';
 import * as ReportUtils from './ReportUtils';
 
 type CheckingMethod = () => boolean;
@@ -33,16 +32,6 @@ Onyx.connect({
     callback: (value) => (allPolicies = value),
 });
 
-let allPolicyMembers: OnyxCollection<PolicyMembers>;
-
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
-    waitForCollectionCallback: true,
-    callback: (val) => {
-        allPolicyMembers = val;
-    },
-});
-
 let reimbursementAccount: OnyxEntry<ReimbursementAccount>;
 
 Onyx.connect({
@@ -52,12 +41,24 @@ Onyx.connect({
     },
 });
 
+let allReportActions: OnyxCollection<ReportActions>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+    waitForCollectionCallback: true,
+    callback: (actions) => {
+        if (!actions) {
+            return;
+        }
+        allReportActions = actions;
+    },
+});
+
 /**
- * @param report
- * @returns BrickRoad for the policy passed as a param
+ * @param altReportActions Replaces (local) allReportActions used within (local) function getWorkspacesBrickRoads
+ * @returns BrickRoad for the policy passed as a param and optionally actionsByReport (if passed)
  */
-const getBrickRoadForPolicy = (report: Report): BrickRoad => {
-    const reportActions = ReportActionsUtils.getAllReportActions(report.reportID);
+const getBrickRoadForPolicy = (report: Report, altReportActions?: OnyxCollection<ReportActions>): BrickRoad => {
+    const reportActions = (altReportActions ?? allReportActions)?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? {};
     const reportErrors = OptionsListUtils.getAllReportErrors(report, reportActions);
     const doesReportContainErrors = Object.keys(reportErrors ?? {}).length !== 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
     if (doesReportContainErrors) {
@@ -67,7 +68,7 @@ const getBrickRoadForPolicy = (report: Report): BrickRoad => {
     // To determine if the report requires attention from the current user, we need to load the parent report action
     let itemParentReportAction = {};
     if (report.parentReportID) {
-        const itemParentReportActions = ReportActionsUtils.getAllReportActions(report.parentReportID);
+        const itemParentReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`] ?? {};
         itemParentReportAction = report.parentReportActionID ? itemParentReportActions[report.parentReportActionID] : {};
     }
     const reportOption = {...report, isUnread: ReportUtils.isUnread(report), isUnreadWithMention: ReportUtils.isUnreadWithMention(report)};
@@ -75,17 +76,16 @@ const getBrickRoadForPolicy = (report: Report): BrickRoad => {
     return shouldShowGreenDotIndicator ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : undefined;
 };
 
-function hasGlobalWorkspaceSettingsRBR(policies: OnyxCollection<Policy>, policyMembers: OnyxCollection<PolicyMembers>) {
+function hasGlobalWorkspaceSettingsRBR(policies: OnyxCollection<Policy>) {
     // When attempting to open a policy with an invalid policyID, the policy collection is updated to include policy objects with error information.
     // Only policies displayed on the policy list page should be verified. Otherwise, the user will encounter an RBR unrelated to any policies on the list.
     const cleanPolicies = Object.fromEntries(Object.entries(policies ?? {}).filter(([, policy]) => policy?.id));
 
-    const cleanAllPolicyMembers = Object.fromEntries(Object.entries(policyMembers ?? {}).filter(([, policyMemberValues]) => !!policyMemberValues));
     const errorCheckingMethods: CheckingMethod[] = [
         () => Object.values(cleanPolicies).some(hasPolicyError),
         () => Object.values(cleanPolicies).some(hasCustomUnitsError),
         () => Object.values(cleanPolicies).some(hasTaxRateError),
-        () => Object.values(cleanAllPolicyMembers).some(hasPolicyMemberError),
+        () => Object.values(cleanPolicies).some(hasEmployeeListError),
         () => Object.keys(reimbursementAccount?.errors ?? {}).length > 0,
     ];
 
@@ -93,7 +93,7 @@ function hasGlobalWorkspaceSettingsRBR(policies: OnyxCollection<Policy>, policyM
 }
 
 function hasWorkspaceSettingsRBR(policy: Policy) {
-    const policyMemberError = allPolicyMembers ? hasPolicyMemberError(allPolicyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policy.id}`]) : false;
+    const policyMemberError = hasEmployeeListError(policy);
     const taxRateError = hasTaxRateError(policy);
 
     return Object.keys(reimbursementAccount?.errors ?? {}).length > 0 || hasPolicyError(policy) || hasCustomUnitsError(policy) || policyMemberError || taxRateError;
@@ -130,7 +130,7 @@ function getChatTabBrickRoad(policyID?: string): BrickRoad | undefined {
 
 function checkIfWorkspaceSettingsTabHasRBR(policyID?: string) {
     if (!policyID) {
-        return hasGlobalWorkspaceSettingsRBR(allPolicies, allPolicyMembers);
+        return hasGlobalWorkspaceSettingsRBR(allPolicies);
     }
     const policy = allPolicies ? allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] : null;
 
@@ -144,14 +144,14 @@ function checkIfWorkspaceSettingsTabHasRBR(policyID?: string) {
 /**
  * @returns a map where the keys are policyIDs and the values are BrickRoads for each policy
  */
-function getWorkspacesBrickRoads(): Record<string, BrickRoad> {
-    if (!allReports) {
+function getWorkspacesBrickRoads(reports: OnyxCollection<Report>, policies: OnyxCollection<Policy>, reportActions: OnyxCollection<ReportActions>): Record<string, BrickRoad> {
+    if (!reports) {
         return {};
     }
 
     // The key in this map is the workspace id
     const workspacesBrickRoadsMap: Record<string, BrickRoad> = {};
-    Object.values(allPolicies ?? {}).forEach((policy) => {
+    Object.values(policies ?? {}).forEach((policy) => {
         // Only policies which user has access to on the list should be checked. Policies that don't have an ID and contain only information about the errors aren't displayed anywhere.
         if (!policy?.id) {
             return;
@@ -162,12 +162,12 @@ function getWorkspacesBrickRoads(): Record<string, BrickRoad> {
         }
     });
 
-    Object.values(allReports).forEach((report) => {
+    Object.values(reports).forEach((report) => {
         const policyID = report?.policyID ?? CONST.POLICY.EMPTY;
         if (!report || workspacesBrickRoadsMap[policyID] === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR) {
             return;
         }
-        const workspaceBrickRoad = getBrickRoadForPolicy(report);
+        const workspaceBrickRoad = getBrickRoadForPolicy(report, reportActions);
 
         if (!workspaceBrickRoad && !!workspacesBrickRoadsMap[policyID]) {
             return;
@@ -182,14 +182,14 @@ function getWorkspacesBrickRoads(): Record<string, BrickRoad> {
 /**
  * @returns a map where the keys are policyIDs and the values are truthy booleans if policy has unread content
  */
-function getWorkspacesUnreadStatuses(): Record<string, boolean> {
-    if (!allReports) {
+function getWorkspacesUnreadStatuses(reports: OnyxCollection<Report>): Record<string, boolean> {
+    if (!reports) {
         return {};
     }
 
     const workspacesUnreadStatuses: Record<string, boolean> = {};
 
-    Object.values(allReports).forEach((report) => {
+    Object.values(reports).forEach((report) => {
         const policyID = report?.policyID;
         if (!policyID || workspacesUnreadStatuses[policyID]) {
             return;

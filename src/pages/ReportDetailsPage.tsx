@@ -1,10 +1,11 @@
 import {useRoute} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DisplayNames from '@components/DisplayNames';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -15,6 +16,7 @@ import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import PromotedActionsBar, {PromotedActions} from '@components/PromotedActionsBar';
 import RoomHeaderAvatars from '@components/RoomHeaderAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -27,6 +29,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as Report from '@userActions/Report';
+import ConfirmModal from '@src/components/ConfirmModal';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -47,6 +50,7 @@ type ReportDetailsPageMenuItem = {
     action: () => void;
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
     subtitle?: number;
+    shouldShowRightIcon?: boolean;
 };
 
 type ReportDetailsPageOnyxProps = {
@@ -63,9 +67,11 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const route = useRoute();
+    const [isLastMemberLeavingGroupModalVisible, setIsLastMemberLeavingGroupModalVisible] = useState(false);
     const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? ''}`], [policies, report?.policyID]);
     const isPolicyAdmin = useMemo(() => PolicyUtils.isPolicyAdmin(policy ?? null), [policy]);
-    const isPolicyMember = useMemo(() => PolicyUtils.isPolicyMember(report?.policyID ?? '', policies), [report?.policyID, policies]);
+    const isPolicyEmployee = useMemo(() => PolicyUtils.isPolicyEmployee(report?.policyID ?? '', policies), [report?.policyID, policies]);
+    const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(report), [report]);
     const shouldUseFullTitle = useMemo(() => ReportUtils.shouldUseFullTitleToDisplay(report), [report]);
     const isChatRoom = useMemo(() => ReportUtils.isChatRoom(report), [report]);
     const isUserCreatedPolicyRoom = useMemo(() => ReportUtils.isUserCreatedPolicyRoom(report), [report]);
@@ -73,13 +79,32 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const isChatThread = useMemo(() => ReportUtils.isChatThread(report), [report]);
     const isArchivedRoom = useMemo(() => ReportUtils.isArchivedRoom(report), [report]);
     const isMoneyRequestReport = useMemo(() => ReportUtils.isMoneyRequestReport(report), [report]);
+    const isMoneyRequest = useMemo(() => ReportUtils.isMoneyRequest(report), [report]);
+    const isInvoiceReport = useMemo(() => ReportUtils.isInvoiceReport(report), [report]);
+    const isTaskReport = useMemo(() => ReportUtils.isTaskReport(report), [report]);
     const canEditReportDescription = useMemo(() => ReportUtils.canEditReportDescription(report, policy), [report, policy]);
     const shouldShowReportDescription = isChatRoom && (canEditReportDescription || report.description !== '');
 
     // eslint-disable-next-line react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
     const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(report), [report, policy]);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(report);
-    const participants = useMemo(() => ReportUtils.getVisibleMemberIDs(report), [report]);
+    const isSystemChat = useMemo(() => ReportUtils.isSystemChat(report), [report]);
+    const isGroupChat = useMemo(() => ReportUtils.isGroupChat(report), [report]);
+    const isThread = useMemo(() => ReportUtils.isThread(report), [report]);
+    const participants = useMemo(() => {
+        if (isGroupChat || isSystemChat) {
+            // Filter out the current user from the particpants of the systemChat
+            return ReportUtils.getParticipantAccountIDs(report.reportID ?? '').filter((accountID) => accountID !== session?.accountID && isSystemChat);
+        }
+
+        return ReportUtils.getVisibleChatMemberAccountIDs(report.reportID ?? '');
+    }, [report, session, isGroupChat, isSystemChat]);
+
+    // Get the active chat members by filtering out the pending members with delete action
+    const activeChatMembers = participants.flatMap((accountID) => {
+        const pendingMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
+        return !pendingMember || pendingMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? accountID : [];
+    });
 
     const isGroupDMChat = useMemo(() => ReportUtils.isDM(report) && participants.length > 1, [report, participants.length]);
 
@@ -96,21 +121,20 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         Report.getReportPrivateNote(report?.reportID ?? '');
     }, [report?.reportID, isOffline, isPrivateNotesFetchTriggered, isSelfDM]);
 
+    const leaveChat = useCallback(() => {
+        if (isChatRoom) {
+            const isWorkspaceMemberLeavingWorkspaceRoom = (report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED || isPolicyExpenseChat) && isPolicyEmployee;
+            Report.leaveRoom(report.reportID, isWorkspaceMemberLeavingWorkspaceRoom);
+            return;
+        }
+        Report.leaveGroupChat(report.reportID);
+    }, [isChatRoom, isPolicyEmployee, isPolicyExpenseChat, report.reportID, report.visibility]);
+
     const menuItems: ReportDetailsPageMenuItem[] = useMemo(() => {
         const items: ReportDetailsPageMenuItem[] = [];
 
         if (isSelfDM) {
             return [];
-        }
-
-        if (!isGroupDMChat) {
-            items.push({
-                key: CONST.REPORT_DETAILS_MENU_ITEM.SHARE_CODE,
-                translationKey: 'common.shareCode',
-                icon: Expensicons.QrCode,
-                isAnonymousAction: true,
-                action: () => Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.getRoute(report?.reportID ?? '')),
-            });
         }
 
         if (isArchivedRoom) {
@@ -122,34 +146,35 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         // - The report is not a user created room with participants to show i.e. DM, Group Chat, etc
         // - The report is a user created room and the room and the current user is a workspace member i.e. non-workspace members should not see this option.
         if (
-            ((isDefaultRoom && isChatThread && isPolicyMember) ||
+            (isGroupChat ||
+                (isDefaultRoom && isChatThread && isPolicyEmployee) ||
                 (!isUserCreatedPolicyRoom && participants.length) ||
-                (isUserCreatedPolicyRoom && (isPolicyMember || (isChatThread && !ReportUtils.isPublicRoom(report))))) &&
-            !ReportUtils.isConciergeChatReport(report)
+                (isUserCreatedPolicyRoom && (isPolicyEmployee || (isChatThread && !ReportUtils.isPublicRoom(report))))) &&
+            !ReportUtils.isConciergeChatReport(report) &&
+            !isSystemChat
         ) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.MEMBERS,
                 translationKey: 'common.members',
                 icon: Expensicons.Users,
-                subtitle: participants.length,
+                subtitle: activeChatMembers.length,
                 isAnonymousAction: false,
+                shouldShowRightIcon: true,
                 action: () => {
-                    if (isUserCreatedPolicyRoom || isChatThread) {
+                    if (isUserCreatedPolicyRoom || isChatThread || isPolicyExpenseChat) {
                         Navigation.navigate(ROUTES.ROOM_MEMBERS.getRoute(report?.reportID ?? ''));
                     } else {
                         Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID ?? ''));
                     }
                 },
             });
-        } else if (
-            (isUserCreatedPolicyRoom && (!participants.length || !isPolicyMember)) ||
-            ((isDefaultRoom || ReportUtils.isPolicyExpenseChat(report)) && isChatThread && !isPolicyMember)
-        ) {
+        } else if ((isUserCreatedPolicyRoom && (!participants.length || !isPolicyEmployee)) || ((isDefaultRoom || isPolicyExpenseChat) && isChatThread && !isPolicyEmployee)) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.INVITE,
                 translationKey: 'common.invite',
                 icon: Expensicons.Users,
                 isAnonymousAction: false,
+                shouldShowRightIcon: true,
                 action: () => {
                     Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(report?.reportID ?? ''));
                 },
@@ -161,25 +186,63 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             translationKey: 'common.settings',
             icon: Expensicons.Gear,
             isAnonymousAction: false,
+            shouldShowRightIcon: true,
             action: () => {
                 Navigation.navigate(ROUTES.REPORT_SETTINGS.getRoute(report?.reportID ?? ''));
             },
         });
 
         // Prevent displaying private notes option for threads and task reports
-        if (!isChatThread && !isMoneyRequestReport && !ReportUtils.isTaskReport(report)) {
+        if (!isChatThread && !isMoneyRequestReport && !isInvoiceReport && !ReportUtils.isTaskReport(report)) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.PRIVATE_NOTES,
                 translationKey: 'privateNotes.title',
                 icon: Expensicons.Pencil,
                 isAnonymousAction: false,
+                shouldShowRightIcon: true,
                 action: () => ReportUtils.navigateToPrivateNotes(report, session),
                 brickRoadIndicator: Report.hasErrorInPrivateNotes(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             });
         }
 
+        if (isGroupChat || (isChatRoom && ReportUtils.canLeaveChat(report, policy ?? null))) {
+            items.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
+                translationKey: 'common.leave',
+                icon: Expensicons.Exit,
+                isAnonymousAction: true,
+                action: () => {
+                    if (Object.keys(report?.participants ?? {}).length === 1 && isGroupChat) {
+                        setIsLastMemberLeavingGroupModalVisible(true);
+                        return;
+                    }
+
+                    leaveChat();
+                },
+            });
+        }
+
         return items;
-    }, [isArchivedRoom, participants.length, isChatThread, isMoneyRequestReport, report, isGroupDMChat, isPolicyMember, isUserCreatedPolicyRoom, session, isSelfDM, isDefaultRoom]);
+    }, [
+        isSelfDM,
+        isSystemChat,
+        isArchivedRoom,
+        isGroupChat,
+        isDefaultRoom,
+        isChatThread,
+        isPolicyEmployee,
+        isPolicyExpenseChat,
+        isUserCreatedPolicyRoom,
+        participants.length,
+        report,
+        isMoneyRequestReport,
+        isInvoiceReport,
+        isChatRoom,
+        policy,
+        activeChatMembers.length,
+        session,
+        leaveChat,
+    ]);
 
     const displayNamesWithTooltips = useMemo(() => {
         const hasMultipleParticipants = participants.length > 1;
@@ -198,6 +261,53 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         />
     ) : null;
 
+    const renderAvatar = useMemo(() => {
+        if (isMoneyRequestReport || isInvoiceReport) {
+            return (
+                <View style={styles.mb3}>
+                    <MultipleAvatars
+                        icons={icons}
+                        size={CONST.AVATAR_SIZE.LARGE}
+                    />
+                </View>
+            );
+        }
+        if (isGroupChat && !isThread) {
+            return (
+                <AvatarWithImagePicker
+                    source={icons[0].source}
+                    avatarID={icons[0].id}
+                    isUsingDefaultAvatar={!report.avatarUrl}
+                    size={CONST.AVATAR_SIZE.XLARGE}
+                    avatarStyle={styles.avatarXLarge}
+                    shouldDisableViewPhoto
+                    onImageRemoved={() => {
+                        // Calling this without a file will remove the avatar
+                        Report.updateGroupChatAvatar(report.reportID ?? '');
+                    }}
+                    onImageSelected={(file) => Report.updateGroupChatAvatar(report.reportID ?? '', file)}
+                    editIcon={Expensicons.Camera}
+                    editIconStyle={styles.smallEditIconAccount}
+                    pendingAction={report.pendingFields?.avatar ?? undefined}
+                    errors={report.errorFields?.avatar ?? null}
+                    errorRowStyles={styles.mt6}
+                    onErrorClose={() => Report.clearAvatarErrors(report.reportID ?? '')}
+                    shouldUseStyleUtilityForAnchorPosition
+                    style={[styles.w100, styles.mb3]}
+                />
+            );
+        }
+        return (
+            <View style={styles.mb3}>
+                <RoomHeaderAvatars
+                    icons={icons}
+                    reportID={report?.reportID}
+                />
+            </View>
+        );
+    }, [report, icons, isMoneyRequestReport, isInvoiceReport, isGroupChat, isThread, styles]);
+
+    const reportName = ReportUtils.isDeprecatedGroupDM(report) || isGroupChat ? ReportUtils.getGroupChatName(undefined, false, report.reportID ?? '') : ReportUtils.getReportName(report);
     return (
         <ScreenWrapper testID={ReportDetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={isEmptyObject(report)}>
@@ -208,24 +318,11 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 />
                 <ScrollView style={[styles.flex1]}>
                     <View style={styles.reportDetailsTitleContainer}>
-                        <View style={styles.mb3}>
-                            {isMoneyRequestReport ? (
-                                <MultipleAvatars
-                                    icons={icons}
-                                    size={CONST.AVATAR_SIZE.LARGE}
-                                />
-                            ) : (
-                                <RoomHeaderAvatars
-                                    icons={icons}
-                                    reportID={report?.reportID}
-                                    isGroupChat={ReportUtils.isGroupChat(report)}
-                                />
-                            )}
-                        </View>
+                        {renderAvatar}
                         <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
                             <View style={[styles.alignSelfCenter, styles.w100, styles.mt1]}>
                                 <DisplayNames
-                                    fullTitle={ReportUtils.getReportName(report)}
+                                    fullTitle={reportName ?? ''}
                                     displayNamesWithTooltips={displayNamesWithTooltips}
                                     tooltipEnabled
                                     numberOfLines={isChatRoom && !isChatThread ? 0 : 1}
@@ -249,7 +346,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                             ) : (
                                 chatRoomSubtitleText
                             )}
-                            {!isEmptyObject(parentNavigationSubtitleData) && isMoneyRequestReport && (
+                            {!isEmptyObject(parentNavigationSubtitleData) && (isMoneyRequestReport || isInvoiceReport || isMoneyRequest || isTaskReport) && (
                                 <ParentNavigationSubtitle
                                     parentNavigationSubtitleData={parentNavigationSubtitleData}
                                     parentReportID={report?.parentReportID}
@@ -260,7 +357,10 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                         </View>
                     </View>
                     {shouldShowReportDescription && (
-                        <OfflineWithFeedback pendingAction={report.pendingFields?.description}>
+                        <OfflineWithFeedback
+                            pendingAction={report.pendingFields?.description}
+                            style={styles.mb5}
+                        >
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon={canEditReportDescription}
                                 interactive={canEditReportDescription}
@@ -272,6 +372,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                             />
                         </OfflineWithFeedback>
                     )}
+                    <PromotedActionsBar promotedActions={[PromotedActions.pin(report), ...(isGroupDMChat ? [] : [PromotedActions.share(report)])]} />
                     {menuItems.map((item) => {
                         const brickRoadIndicator =
                             ReportUtils.hasReportNameError(report) && item.key === CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
@@ -283,12 +384,25 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                                 icon={item.icon}
                                 onPress={item.action}
                                 isAnonymousAction={item.isAnonymousAction}
-                                shouldShowRightIcon
+                                shouldShowRightIcon={item.shouldShowRightIcon}
                                 brickRoadIndicator={brickRoadIndicator ?? item.brickRoadIndicator}
                             />
                         );
                     })}
                 </ScrollView>
+                <ConfirmModal
+                    danger
+                    title={translate('groupChat.lastMemberTitle')}
+                    isVisible={isLastMemberLeavingGroupModalVisible}
+                    onConfirm={() => {
+                        setIsLastMemberLeavingGroupModalVisible(false);
+                        Report.leaveGroupChat(report.reportID);
+                    }}
+                    onCancel={() => setIsLastMemberLeavingGroupModalVisible(false)}
+                    prompt={translate('groupChat.lastMemberWarning')}
+                    confirmText={translate('common.leave')}
+                    cancelText={translate('common.cancel')}
+                />
             </FullPageNotFoundView>
         </ScreenWrapper>
     );

@@ -14,10 +14,9 @@ import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
-import * as ComposerUtils from '@libs/ComposerUtils';
 import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullComposerAvailable';
+import * as EmojiUtils from '@libs/EmojiUtils';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
@@ -58,14 +57,11 @@ function Composer(
         style,
         shouldClear = false,
         autoFocus = false,
-        isFullComposerAvailable = false,
         shouldCalculateCaretPosition = false,
-        numberOfLines: numberOfLinesProp = 0,
         isDisabled = false,
         onClear = () => {},
         onPasteFile = () => {},
         onSelectionChange = () => {},
-        onNumberOfLinesChange = () => {},
         setIsFullComposerAvailable = () => {},
         checkComposerVisibility = () => false,
         selection: selectionProp = {
@@ -79,14 +75,13 @@ function Composer(
     }: ComposerProps,
     ref: ForwardedRef<TextInput | HTMLInputElement>,
 ) {
+    const textContainsOnlyEmojis = useMemo(() => EmojiUtils.containsOnlyEmojis(value ?? ''), [value]);
     const theme = useTheme();
     const styles = useThemeStyles();
-    const markdownStyle = useMarkdownStyle();
+    const markdownStyle = useMarkdownStyle(value);
     const StyleUtils = useStyleUtils();
-    const {windowWidth} = useWindowDimensions();
     const textRef = useRef<HTMLElement & RNText>(null);
     const textInput = useRef<AnimatedMarkdownTextInputRef | null>(null);
-    const [numberOfLines, setNumberOfLines] = useState(numberOfLinesProp);
     const [selection, setSelection] = useState<
         | {
               start: number;
@@ -109,7 +104,6 @@ function Composer(
             return;
         }
         textInput.current?.clear();
-        setNumberOfLines(1);
         onClear();
     }, [shouldClear, onClear]);
 
@@ -126,15 +120,11 @@ function Composer(
      *  Adds the cursor position to the selection change event.
      */
     const addCursorPositionToSelectionChange = (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
-        if (!isRendered) {
-            return;
-        }
         const webEvent = event as BaseSyntheticEvent<TextInputSelectionChangeEventData>;
-
-        if (shouldCalculateCaretPosition) {
+        if (shouldCalculateCaretPosition && isRendered) {
             // we do flushSync to make sure that the valueBeforeCaret is updated before we calculate the caret position to receive a proper position otherwise we will calculate position for the previous state
             flushSync(() => {
-                setValueBeforeCaret(webEvent.target.value.slice(0, webEvent.nativeEvent.selection.start));
+                setValueBeforeCaret((webEvent.target as HTMLInputElement).value.slice(0, webEvent.nativeEvent.selection.start));
                 setCaretContent(getNextChars(value ?? '', webEvent.nativeEvent.selection.start));
             });
             const selectionValue = {
@@ -236,41 +226,6 @@ function Composer(
         [onPasteFile, checkComposerVisibility],
     );
 
-    /**
-     * Check the current scrollHeight of the textarea (minus any padding) and
-     * divide by line height to get the total number of rows for the textarea.
-     */
-    const updateNumberOfLines = useCallback(() => {
-        if (!textInput.current) {
-            return;
-        }
-        // we reset the height to 0 to get the correct scrollHeight
-        textInput.current.style.height = '0';
-        const computedStyle = window.getComputedStyle(textInput.current);
-        const lineHeight = parseInt(computedStyle.lineHeight, 10) || 20;
-        const paddingTopAndBottom = parseInt(computedStyle.paddingBottom, 10) + parseInt(computedStyle.paddingTop, 10);
-        setTextInputWidth(computedStyle.width);
-
-        const computedNumberOfLines = ComposerUtils.getNumberOfLines(lineHeight, paddingTopAndBottom, textInput.current.scrollHeight, maxLines);
-        const generalNumberOfLines = computedNumberOfLines === 0 ? numberOfLinesProp : computedNumberOfLines;
-
-        onNumberOfLinesChange(generalNumberOfLines);
-        updateIsFullComposerAvailable({isFullComposerAvailable, setIsFullComposerAvailable}, generalNumberOfLines);
-        setNumberOfLines(generalNumberOfLines);
-        textInput.current.style.height = 'auto';
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [value, maxLines, numberOfLinesProp, onNumberOfLinesChange, isFullComposerAvailable, setIsFullComposerAvailable, windowWidth]);
-
-    useEffect(() => {
-        updateNumberOfLines();
-    }, [updateNumberOfLines]);
-
-    const currentNumberOfLines = useMemo(
-        () => (isComposerFullSize ? undefined : numberOfLines),
-
-        [isComposerFullSize, numberOfLines],
-    );
-
     useEffect(() => {
         if (!textInput.current) {
             return;
@@ -333,7 +288,7 @@ function Composer(
                 opacity: 0,
             }}
         >
-            <Text style={[StyleSheet.flatten([style, styles.noSelect]), numberOfLines < maxLines ? styles.overflowHidden : {}, {maxWidth: textInputWidth as DimensionValue}]}>
+            <Text style={[StyleSheet.flatten([style, styles.noSelect]), StyleUtils.getComposerMaxHeightStyle(maxLines, isComposerFullSize), {maxWidth: textInputWidth as DimensionValue}]}>
                 {`${valueBeforeCaret} `}
                 <Text
                     numberOfLines={1}
@@ -349,23 +304,21 @@ function Composer(
         if (shouldContainScroll) {
             return isScrollBarVisible ? [styles.overflowScroll, styles.overscrollBehaviorContain] : styles.overflowHidden;
         }
-        return [
-            // We are hiding the scrollbar to prevent it from reducing the text input width,
-            // so we can get the correct scroll height while calculating the number of lines.
-            numberOfLines < maxLines ? styles.overflowHidden : {},
-        ];
-    }, [shouldContainScroll, isScrollBarVisible, maxLines, numberOfLines, styles.overflowHidden, styles.overflowScroll, styles.overscrollBehaviorContain]);
+        return styles.overflowAuto;
+    }, [shouldContainScroll, styles.overflowAuto, styles.overflowScroll, styles.overscrollBehaviorContain, styles.overflowHidden, isScrollBarVisible]);
 
     const inputStyleMemo = useMemo(
         () => [
             StyleSheet.flatten([style, {outline: 'none'}]),
-            StyleUtils.getComposeTextAreaPadding(numberOfLines, isComposerFullSize),
+            StyleUtils.getComposeTextAreaPadding(isComposerFullSize),
             Browser.isMobileSafari() || Browser.isSafari() ? styles.rtlTextRenderForSafari : {},
             scrollStyleMemo,
+            StyleUtils.getComposerMaxHeightStyle(maxLines, isComposerFullSize),
             isComposerFullSize ? ({height: '100%', maxHeight: 'none' as DimensionValue} as TextStyle) : undefined,
+            textContainsOnlyEmojis ? styles.onlyEmojisTextLineHeight : {},
         ],
 
-        [numberOfLines, scrollStyleMemo, styles.rtlTextRenderForSafari, style, StyleUtils, isComposerFullSize],
+        [style, styles.rtlTextRenderForSafari, styles.onlyEmojisTextLineHeight, scrollStyleMemo, StyleUtils, maxLines, isComposerFullSize, textContainsOnlyEmojis],
     );
 
     return (
@@ -376,7 +329,7 @@ function Composer(
                 placeholderTextColor={theme.placeholderText}
                 ref={(el) => (textInput.current = el)}
                 selection={selection}
-                style={inputStyleMemo}
+                style={[inputStyleMemo]}
                 markdownStyle={markdownStyle}
                 value={value}
                 defaultValue={defaultValue}
@@ -384,24 +337,20 @@ function Composer(
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...props}
                 onSelectionChange={addCursorPositionToSelectionChange}
-                numberOfLines={currentNumberOfLines}
+                onContentSizeChange={(e) => {
+                    setTextInputWidth(`${e.nativeEvent.contentSize.width}px`);
+                    updateIsFullComposerAvailable({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e, styles);
+                }}
                 disabled={isDisabled}
                 onKeyPress={handleKeyPress}
                 onFocus={(e) => {
-                    if (isReportActionCompose) {
-                        ReportActionComposeFocusManager.onComposerFocus(null);
-                    } else {
-                        // While a user edits a comment, if they open the LHN menu, we want to ensure that
-                        // the focus returns to the message edit composer after they click on a menu item (e.g. mark as read).
-                        // To achieve this, we re-assign the focus callback here.
-                        ReportActionComposeFocusManager.onComposerFocus(() => {
-                            if (!textInput.current) {
-                                return;
-                            }
+                    ReportActionComposeFocusManager.onComposerFocus(() => {
+                        if (!textInput.current) {
+                            return;
+                        }
 
-                            textInput.current.focus();
-                        });
-                    }
+                        textInput.current.focus();
+                    });
 
                     props.onFocus?.(e);
                 }}

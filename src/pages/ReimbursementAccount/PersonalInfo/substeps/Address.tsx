@@ -10,7 +10,7 @@ import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccoun
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import AddressForm from '@pages/ReimbursementAccount/AddressForm';
+import AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
 import HelpLinks from '@pages/ReimbursementAccount/PersonalInfo/HelpLinks';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
@@ -77,7 +77,7 @@ function Address({reimbursementAccount, onNext, isEditing}: AddressProps) {
             <View>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate('personalInfoStep.enterYourAddress')}</Text>
                 <Text style={[styles.textSupporting]}>{translate('common.noPO')}</Text>
-                <AddressForm
+                <AddressFormFields
                     inputKeys={INPUT_KEYS}
                     streetTranslationKey="common.streetAddress"
                     defaultValues={defaultValues}

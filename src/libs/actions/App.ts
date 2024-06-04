@@ -5,6 +5,7 @@ import {AppState} from 'react-native';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import {importEmojiLocale} from '@assets/emojis';
 import * as API from '@libs/API';
 import type {
     GetMissingOnyxMessagesParams,
@@ -18,6 +19,7 @@ import type {
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as Browser from '@libs/Browser';
 import DateUtils from '@libs/DateUtils';
+import {buildEmojisTrie} from '@libs/EmojiTrie';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
@@ -26,12 +28,13 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as SessionUtils from '@libs/SessionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {OnyxKey} from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
-import * as Policy from './Policy';
+import * as Policy from './Policy/Policy';
 import * as Session from './Session';
 import Timing from './Timing';
 
@@ -58,10 +61,17 @@ Onyx.connect({
     initWithStoredValues: false,
 });
 
-let preferredLocale: string | null;
+let preferredLocale: string | null = null;
 Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: (val) => (preferredLocale = val),
+    callback: (val) => {
+        preferredLocale = val;
+        if (preferredLocale) {
+            importEmojiLocale(preferredLocale as Locale).then(() => {
+                buildEmojisTrie(preferredLocale as Locale);
+            });
+        }
+    },
 });
 
 let priorityMode: ValueOf<typeof CONST.PRIORITY_MODE> | null;
@@ -74,6 +84,38 @@ Onyx.connect({
             openApp();
         }
         priorityMode = nextPriorityMode;
+    },
+});
+
+const KEYS_TO_PRESERVE: OnyxKey[] = [
+    ONYXKEYS.ACCOUNT,
+    ONYXKEYS.IS_CHECKING_PUBLIC_ROOM,
+    ONYXKEYS.IS_LOADING_APP,
+    ONYXKEYS.IS_SIDEBAR_LOADED,
+    ONYXKEYS.MODAL,
+    ONYXKEYS.NETWORK,
+    ONYXKEYS.SESSION,
+    ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
+    ONYXKEYS.NVP_TRY_FOCUS_MODE,
+    ONYXKEYS.PREFERRED_THEME,
+    ONYXKEYS.NVP_PREFERRED_LOCALE,
+    ONYXKEYS.CREDENTIALS,
+];
+
+Onyx.connect({
+    key: ONYXKEYS.RESET_REQUIRED,
+    callback: (isResetRequired) => {
+        if (!isResetRequired) {
+            return;
+        }
+
+        Onyx.clear(KEYS_TO_PRESERVE).then(() => {
+            // Set this to false to reset the flag for this client
+            Onyx.set(ONYXKEYS.RESET_REQUIRED, false);
+
+            // eslint-disable-next-line @typescript-eslint/no-use-before-define
+            openApp();
+        });
     },
 });
 
@@ -116,6 +158,10 @@ function setLocale(locale: Locale) {
     const parameters: UpdatePreferredLocaleParams = {
         value: locale,
     };
+
+    importEmojiLocale(locale).then(() => {
+        buildEmojisTrie(locale);
+    });
 
     API.write(WRITE_COMMANDS.UPDATE_PREFERRED_LOCALE, parameters, {optimisticData});
 }
@@ -238,9 +284,7 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
             params.updateIDFrom = updateIDFrom;
         }
 
-        API.write(WRITE_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(), {
-            getConflictingRequests: (persistedRequests) => persistedRequests.filter((request) => request?.command === WRITE_COMMANDS.RECONNECT_APP),
-        });
+        API.write(WRITE_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect());
     });
 }
 
@@ -527,4 +571,5 @@ export {
     savePolicyDraftByNewWorkspace,
     createWorkspaceWithPolicyDraftAndNavigateToIt,
     updateLastVisitedPath,
+    KEYS_TO_PRESERVE,
 };

@@ -1,20 +1,27 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
+import isEmpty from 'lodash/isEmpty';
+import reject from 'lodash/reject';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
+import Button from '@components/Button';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import OfflineIndicator from '@components/OfflineIndicator';
 import {useOptionsList} from '@components/OptionListContextProvider';
-import OptionsSelector from '@components/OptionsSelector';
+import {PressableWithFeedback} from '@components/Pressable';
+import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import ScreenWrapper from '@components/ScreenWrapper';
-import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import SelectCircle from '@components/SelectCircle';
+import SelectionList from '@components/SelectionList';
+import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
+import UserListItem from '@components/SelectionList/UserListItem';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useSearchTermAndSearch from '@hooks/useSearchTermAndSearch';
+import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
+import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import doInteractionTask from '@libs/DoInteractionTask';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -32,171 +39,23 @@ type NewChatPageProps = {
 
 const excludedGroupEmails = CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE);
 
-function NewChatPage({isGroupChat}: NewChatPageProps) {
-    const [dismissedReferralBanners] = useOnyx(ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS);
-    const [newGroupDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+function useOptions({isGroupChat}: NewChatPageProps) {
+    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
+    const [selectedOptions, setSelectedOptions] = useState<Array<ListItem & OptionData>>([]);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
-
-    const {translate} = useLocalize();
-
-    const styles = useThemeStyles();
-
+    const [newGroupDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
     const personalData = useCurrentUserPersonalDetails();
-
-    const getGroupParticipants = () => {
-        if (!newGroupDraft?.participants) {
-            return [];
-        }
-        const selectedParticipants = newGroupDraft.participants.filter((participant) => participant.accountID !== personalData.accountID);
-        const newSelectedOptions = selectedParticipants.map((participant): OptionData => {
-            const baseOption = OptionsListUtils.getParticipantsOption({accountID: participant.accountID, login: participant.login, reportID: ''}, personalDetails);
-            return {...baseOption, reportID: baseOption.reportID ?? ''};
-        });
-        return newSelectedOptions;
-    };
-
-    const [searchTerm, setSearchTerm] = useState('');
-    const [filteredRecentReports, setFilteredRecentReports] = useState<OptionData[]>([]);
-    const [filteredPersonalDetails, setFilteredPersonalDetails] = useState<OptionData[]>([]);
-    const [filteredUserToInvite, setFilteredUserToInvite] = useState<OptionData | null>();
-    const [selectedOptions, setSelectedOptions] = useState<OptionData[]>(getGroupParticipants);
-    const {isOffline} = useNetwork();
-    const {isSmallScreenWidth} = useWindowDimensions();
-    const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
-    const {options, areOptionsInitialized} = useOptionsList({
+    const {didScreenTransitionEnd} = useScreenWrapperTranstionStatus();
+    const {options: listOptions, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
 
-    const maxParticipantsReached = selectedOptions.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
-    const setSearchTermAndSearchInServer = useSearchTermAndSearch(setSearchTerm, maxParticipantsReached);
-
-    const headerMessage = OptionsListUtils.getHeaderMessage(
-        filteredPersonalDetails.length + filteredRecentReports.length !== 0,
-        Boolean(filteredUserToInvite),
-        searchTerm.trim(),
-        maxParticipantsReached,
-        selectedOptions.some((participant) => participant?.searchText?.toLowerCase().includes(searchTerm.trim().toLowerCase())),
-    );
-
-    const sections = useMemo((): OptionsListUtils.CategorySection[] => {
-        const sectionsList: OptionsListUtils.CategorySection[] = [];
-
-        const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(searchTerm, selectedOptions, filteredRecentReports, filteredPersonalDetails, maxParticipantsReached);
-        sectionsList.push(formatResults.section);
-
-        if (maxParticipantsReached) {
-            return sectionsList;
-        }
-
-        sectionsList.push({
-            title: translate('common.recents'),
-            data: filteredRecentReports,
-            shouldShow: filteredRecentReports.length > 0,
-        });
-
-        sectionsList.push({
-            title: translate('common.contacts'),
-            data: filteredPersonalDetails,
-            shouldShow: filteredPersonalDetails.length > 0,
-        });
-
-        if (filteredUserToInvite) {
-            sectionsList.push({
-                title: undefined,
-                data: [filteredUserToInvite],
-                shouldShow: true,
-            });
-        }
-
-        return sectionsList;
-    }, [translate, filteredPersonalDetails, filteredRecentReports, filteredUserToInvite, maxParticipantsReached, selectedOptions, searchTerm]);
-
-    /**
-     * Removes a selected option from list if already selected. If not already selected add this option to the list.
-     */
-    const toggleOption = (option: OptionData) => {
-        const isOptionInList = selectedOptions.some((selectedOption) => selectedOption.login === option.login);
-
-        let newSelectedOptions;
-
-        if (isOptionInList) {
-            newSelectedOptions = selectedOptions.filter((selectedOption) => selectedOption.login !== option.login);
-        } else {
-            newSelectedOptions = [...selectedOptions, option];
-        }
-
-        const {
-            recentReports,
-            personalDetails: newChatPersonalDetails,
-            userToInvite,
-        } = OptionsListUtils.getFilteredOptions(
-            options.reports ?? [],
-            options.personalDetails ?? [],
+    const options = useMemo(() => {
+        const filteredOptions = OptionsListUtils.getFilteredOptions(
+            listOptions.reports ?? [],
+            listOptions.personalDetails ?? [],
             betas ?? [],
-            searchTerm,
-            newSelectedOptions,
-            isGroupChat ? excludedGroupEmails : [],
-            false,
-            true,
-            false,
-            {},
-            [],
-            false,
-            {},
-            [],
-            true,
-        );
-        setSelectedOptions(newSelectedOptions);
-        setFilteredRecentReports(recentReports);
-        setFilteredPersonalDetails(newChatPersonalDetails);
-        setFilteredUserToInvite(userToInvite);
-    };
-
-    /**
-     * Creates a new 1:1 chat with the option and the current user,
-     * or navigates to the existing chat if one with those participants already exists.
-     */
-    const createChat = (option: OptionData) => {
-        let login = '';
-
-        if (option.login) {
-            login = option.login;
-        } else if (selectedOptions.length === 1) {
-            login = selectedOptions[0].login ?? '';
-        }
-
-        if (!login) {
-            Log.warn('Tried to create chat with empty login');
-            return;
-        }
-
-        Report.navigateToAndOpenReport([login]);
-    };
-    /**
-     * Navigates to create group confirm page
-     */
-    const navigateToConfirmPage = () => {
-        if (!personalData || !personalData.login || !personalData.accountID) {
-            return;
-        }
-        const selectedParticipants: SelectedParticipant[] = selectedOptions.map((option: OptionData) => ({login: option.login ?? '', accountID: option.accountID ?? -1}));
-        const logins = [...selectedParticipants, {login: personalData.login, accountID: personalData.accountID}];
-        Report.setGroupDraft(logins);
-        Navigation.navigate(ROUTES.NEW_CHAT_CONFIRM);
-    };
-
-    const updateOptions = useCallback(() => {
-        const {
-            recentReports,
-            personalDetails: newChatPersonalDetails,
-            userToInvite,
-        } = OptionsListUtils.getFilteredOptions(
-            options.reports ?? [],
-            options.personalDetails ?? [],
-            betas ?? [],
-            searchTerm,
+            debouncedSearchTerm,
             selectedOptions,
             isGroupChat ? excludedGroupEmails : [],
             false,
@@ -208,42 +67,225 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
             {},
             [],
             true,
+            undefined,
+            undefined,
+            undefined,
+            true,
         );
 
-        setFilteredRecentReports(recentReports);
-        setFilteredPersonalDetails(newChatPersonalDetails);
-        setFilteredUserToInvite(userToInvite);
-        // props.betas is not added as dependency since it doesn't change during the component lifecycle
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [options, searchTerm]);
+        const headerMessage = OptionsListUtils.getHeaderMessage(
+            filteredOptions.personalDetails.length + filteredOptions.recentReports.length !== 0,
+            Boolean(filteredOptions.userToInvite),
+            debouncedSearchTerm.trim(),
+            selectedOptions.some((participant) => participant?.searchText?.toLowerCase?.().includes(debouncedSearchTerm.trim().toLowerCase())),
+        );
+        return {...filteredOptions, headerMessage};
+    }, [betas, debouncedSearchTerm, isGroupChat, listOptions.personalDetails, listOptions.reports, selectedOptions]);
 
     useEffect(() => {
-        const interactionTask = doInteractionTask(() => {
-            setDidScreenTransitionEnd(true);
-        });
-
-        return () => {
-            if (!interactionTask) {
-                return;
-            }
-
-            interactionTask.cancel();
-        };
-    }, []);
-
-    useEffect(() => {
-        setSelectedOptions(getGroupParticipants());
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- Overwrite participants only if the draft changes
-    }, [newGroupDraft?.participants]);
-
-    useEffect(() => {
-        if (!didScreenTransitionEnd) {
+        if (!debouncedSearchTerm.length) {
             return;
         }
-        updateOptions();
-    }, [didScreenTransitionEnd, updateOptions]);
 
-    const {inputCallbackRef} = useAutoFocusInput();
+        Report.searchInServer(debouncedSearchTerm);
+    }, [debouncedSearchTerm]);
+
+    useEffect(() => {
+        if (!newGroupDraft?.participants) {
+            return;
+        }
+        const newSelectedOptions: OptionData[] = [];
+        newGroupDraft.participants.forEach((participant) => {
+            if (participant.accountID === personalData.accountID) {
+                return;
+            }
+            let participantOption: OptionData | undefined | null = listOptions.personalDetails.find((option) => option.accountID === participant.accountID);
+            if (!participantOption) {
+                participantOption = OptionsListUtils.getUserToInviteOption({
+                    searchValue: participant.login,
+                    betas,
+                });
+            }
+            if (!participantOption) {
+                return;
+            }
+            newSelectedOptions.push({
+                ...participantOption,
+                isSelected: true,
+            });
+        });
+        setSelectedOptions(newSelectedOptions);
+    }, [newGroupDraft?.participants, listOptions.personalDetails, betas, personalData.accountID]);
+
+    return {...options, searchTerm, debouncedSearchTerm, setSearchTerm, areOptionsInitialized: areOptionsInitialized && didScreenTransitionEnd, selectedOptions, setSelectedOptions};
+}
+
+function NewChatPage({isGroupChat}: NewChatPageProps) {
+    const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
+    const {isSmallScreenWidth} = useWindowDimensions();
+    const styles = useThemeStyles();
+    const personalData = useCurrentUserPersonalDetails();
+    const {insets} = useStyledSafeAreaInsets();
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const selectionListRef = useRef<SelectionListHandle>(null);
+
+    const {headerMessage, searchTerm, debouncedSearchTerm, setSearchTerm, selectedOptions, setSelectedOptions, recentReports, personalDetails, userToInvite, areOptionsInitialized} =
+        useOptions({
+            isGroupChat,
+        });
+
+    const [sections, firstKeyForList] = useMemo(() => {
+        const sectionsList: OptionsListUtils.CategorySection[] = [];
+        let firstKey = '';
+
+        const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(debouncedSearchTerm, selectedOptions, recentReports, personalDetails);
+        sectionsList.push(formatResults.section);
+
+        if (!firstKey) {
+            firstKey = OptionsListUtils.getFirstKeyForList(formatResults.section.data);
+        }
+
+        sectionsList.push({
+            title: translate('common.recents'),
+            data: recentReports,
+            shouldShow: !isEmpty(recentReports),
+        });
+        if (!firstKey) {
+            firstKey = OptionsListUtils.getFirstKeyForList(recentReports);
+        }
+
+        sectionsList.push({
+            title: translate('common.contacts'),
+            data: personalDetails,
+            shouldShow: !isEmpty(personalDetails),
+        });
+        if (!firstKey) {
+            firstKey = OptionsListUtils.getFirstKeyForList(personalDetails);
+        }
+
+        if (userToInvite) {
+            sectionsList.push({
+                title: undefined,
+                data: [userToInvite],
+                shouldShow: true,
+            });
+            if (!firstKey) {
+                firstKey = OptionsListUtils.getFirstKeyForList([userToInvite]);
+            }
+        }
+
+        return [sectionsList, firstKey];
+    }, [debouncedSearchTerm, selectedOptions, recentReports, personalDetails, translate, userToInvite]);
+
+    /**
+     * Creates a new 1:1 chat with the option and the current user,
+     * or navigates to the existing chat if one with those participants already exists.
+     */
+    const createChat = useCallback(
+        (option?: OptionsListUtils.Option) => {
+            if (option?.isSelfDM) {
+                Navigation.dismissModal(option.reportID);
+                return;
+            }
+            let login = '';
+
+            if (option?.login) {
+                login = option.login;
+            } else if (selectedOptions.length === 1) {
+                login = selectedOptions[0].login ?? '';
+            }
+            if (!login) {
+                Log.warn('Tried to create chat with empty login');
+                return;
+            }
+            Report.navigateToAndOpenReport([login]);
+        },
+        [selectedOptions],
+    );
+
+    const itemRightSideComponent = useCallback(
+        (item: ListItem & OptionsListUtils.Option) => {
+            if (item.isSelfDM) {
+                return null;
+            }
+            /**
+             * Removes a selected option from list if already selected. If not already selected add this option to the list.
+             * @param  option
+             */
+            function toggleOption(option: ListItem & Partial<OptionData>) {
+                const isOptionInList = !!option.isSelected;
+
+                let newSelectedOptions;
+
+                if (isOptionInList) {
+                    newSelectedOptions = reject(selectedOptions, (selectedOption) => selectedOption.login === option.login);
+                } else {
+                    newSelectedOptions = [...selectedOptions, {...option, isSelected: true, selected: true, reportID: option.reportID ?? ''}];
+                }
+
+                selectionListRef?.current?.clearInputAfterSelect?.();
+
+                setSelectedOptions(newSelectedOptions);
+            }
+
+            if (item.isSelected) {
+                return (
+                    <PressableWithFeedback
+                        onPress={() => toggleOption(item)}
+                        disabled={item.isDisabled}
+                        role={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
+                        accessibilityLabel={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
+                        style={[styles.flexRow, styles.alignItemsCenter, styles.ml3]}
+                    >
+                        <SelectCircle isChecked={item.isSelected} />
+                    </PressableWithFeedback>
+                );
+            }
+
+            return (
+                <Button
+                    onPress={() => toggleOption(item)}
+                    style={[styles.pl2]}
+                    text={translate('newChatPage.addToGroup')}
+                    small
+                />
+            );
+        },
+        [selectedOptions, setSelectedOptions, styles, translate],
+    );
+
+    const createGroup = useCallback(() => {
+        if (!personalData || !personalData.login || !personalData.accountID) {
+            return;
+        }
+        const selectedParticipants: SelectedParticipant[] = selectedOptions.map((option: OptionData) => ({login: option.login ?? '', accountID: option.accountID ?? -1}));
+        const logins = [...selectedParticipants, {login: personalData.login, accountID: personalData.accountID}];
+        Report.setGroupDraft({participants: logins});
+        Navigation.navigate(ROUTES.NEW_CHAT_CONFIRM);
+    }, [selectedOptions, personalData]);
+
+    const footerContent = useMemo(
+        () => (
+            <>
+                <ReferralProgramCTA
+                    referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT}
+                    style={selectedOptions.length ? styles.mb5 : undefined}
+                />
+
+                {!!selectedOptions.length && (
+                    <Button
+                        success
+                        large
+                        text={translate('common.next')}
+                        onPress={createGroup}
+                        pressOnEnter
+                    />
+                )}
+            </>
+        ),
+        [createGroup, selectedOptions.length, styles.mb5, translate],
+    );
 
     return (
         <ScreenWrapper
@@ -251,48 +293,38 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
             includeSafeAreaPaddingBottom={isOffline}
             shouldShowOfflineIndicator={false}
             includePaddingTop={false}
-            shouldEnableMaxHeight
+            shouldEnablePickerAvoiding={false}
             testID={NewChatPage.displayName}
         >
-            {({safeAreaPaddingBottomStyle, insets}) => (
-                <KeyboardAvoidingView
-                    style={{height: '100%'}}
-                    behavior="padding"
-                    // Offset is needed as KeyboardAvoidingView in nested inside of TabNavigator instead of wrapping whole screen.
-                    // This is because when wrapping whole screen the screen was freezing when changing Tabs.
-                    keyboardVerticalOffset={variables.contentHeaderHeight + (insets?.top ?? 0) + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding}
-                >
-                    <View style={[styles.flex1, styles.w100, styles.pRelative, selectedOptions.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
-                        <OptionsSelector
-                            ref={inputCallbackRef}
-                            // @ts-expect-error TODO: Remove this once OptionsSelector (https://github.com/Expensify/App/issues/25125) is migrated to TypeScript.
-                            canSelectMultipleOptions
-                            shouldShowMultipleOptionSelectorAsButton
-                            multipleOptionSelectorButtonText={translate('newChatPage.addToGroup')}
-                            onAddToSelection={toggleOption}
-                            sections={sections}
-                            selectedOptions={selectedOptions}
-                            onSelectRow={createChat}
-                            onChangeText={setSearchTermAndSearchInServer}
-                            headerMessage={headerMessage}
-                            boldStyle
-                            shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                            shouldShowOptions={areOptionsInitialized}
-                            shouldShowConfirmButton
-                            shouldShowReferralCTA={!dismissedReferralBanners?.[CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]}
-                            referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT}
-                            confirmButtonText={selectedOptions.length > 1 ? translate('common.next') : translate('newChatPage.createChat')}
-                            textInputAlert={isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : ''}
-                            onConfirmSelection={selectedOptions.length > 1 ? navigateToConfirmPage : createChat}
-                            textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
-                            safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
-                            isLoadingNewOptions={isSearchingForReports}
-                            autoFocus={false}
-                        />
-                    </View>
-                    {isSmallScreenWidth && <OfflineIndicator />}
-                </KeyboardAvoidingView>
-            )}
+            <KeyboardAvoidingView
+                style={styles.flex1}
+                behavior="padding"
+                // Offset is needed as KeyboardAvoidingView in nested inside of TabNavigator instead of wrapping whole screen.
+                // This is because when wrapping whole screen the screen was freezing when changing Tabs.
+                keyboardVerticalOffset={variables.contentHeaderHeight + (insets?.top ?? 0) + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding}
+            >
+                <SelectionList<OptionsListUtils.Option & ListItem>
+                    ref={selectionListRef}
+                    ListItem={UserListItem}
+                    sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
+                    textInputValue={searchTerm}
+                    textInputHint={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
+                    onChangeText={setSearchTerm}
+                    textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
+                    headerMessage={headerMessage}
+                    onSelectRow={createChat}
+                    shouldDebounceRowSelect
+                    onConfirm={(e, option) => (selectedOptions.length > 0 ? createGroup() : createChat(option))}
+                    rightHandSideComponent={itemRightSideComponent}
+                    footerContent={footerContent}
+                    showLoadingPlaceholder={!areOptionsInitialized}
+                    shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+                    isLoadingNewOptions={!!isSearchingForReports}
+                    initiallyFocusedOptionKey={firstKeyForList}
+                    shouldTextInputInterceptSwipe
+                />
+                {isSmallScreenWidth && <OfflineIndicator />}
+            </KeyboardAvoidingView>
         </ScreenWrapper>
     );
 }

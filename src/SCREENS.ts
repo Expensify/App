@@ -7,7 +7,7 @@ import type DeepValueOf from './types/utils/DeepValueOf';
 const PROTECTED_SCREENS = {
     HOME: 'Home',
     CONCIERGE: 'Concierge',
-    REPORT_ATTACHMENTS: 'ReportAttachments',
+    ATTACHMENTS: 'Attachments',
 } as const;
 
 const SCREENS = {
@@ -20,9 +20,18 @@ const SCREENS = {
     NOT_FOUND: 'not-found',
     TRANSITION_BETWEEN_APPS: 'TransitionBetweenApps',
     VALIDATE_LOGIN: 'ValidateLogin',
+    CONNECTION_COMPLETE: 'ConnectionComplete',
     UNLINK_LOGIN: 'UnlinkLogin',
     SETTINGS_CENTRAL_PANE: 'SettingsCentralPane',
-    WORKSPACES_CENTRAL_PANE: 'WorkspacesCentralPane',
+    TRAVEL: {
+        MY_TRIPS: 'Travel_MyTrips',
+        TCS: 'Travel_TCS',
+    },
+    SEARCH: {
+        CENTRAL_PANE: 'Search_Central_Pane',
+        REPORT_RHP: 'Search_Report_RHP',
+        BOTTOM_TAB: 'Search_Bottom_Tab',
+    },
     SETTINGS: {
         ROOT: 'Settings_Root',
         SHARE_CODE: 'Settings_Share_Code',
@@ -80,6 +89,10 @@ const SCREENS = {
             TRANSFER_BALANCE: 'Settings_Wallet_Transfer_Balance',
             CHOOSE_TRANSFER_ACCOUNT: 'Settings_Wallet_Choose_Transfer_Account',
             ENABLE_PAYMENTS: 'Settings_Wallet_EnablePayments',
+            // TODO: Added temporarily for testing purposes, remove after refactor - https://github.com/Expensify/App/issues/36648
+            ENABLE_PAYMENTS_REFACTOR: 'Settings_Wallet_EnablePayments_Refactor',
+            // TODO: Added temporarily for testing purposes, remove after refactor - https://github.com/Expensify/App/issues/36648
+            ENABLE_PAYMENTS_TEMPORARY_TERMS: 'Settings_Wallet_EnablePayments_Temporary_Terms',
             CARD_ACTIVATE: 'Settings_Wallet_Card_Activate',
             REPORT_VIRTUAL_CARD_FRAUD: 'Settings_Wallet_ReportVirtualCardFraud',
             CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS: 'Settings_Wallet_Cards_Digital_Details_Update_Address',
@@ -90,16 +103,18 @@ const SCREENS = {
             RESPONSE: 'Settings_ExitSurvey_Response',
             CONFIRM: 'Settings_ExitSurvey_Confirm',
         },
+
+        SUBSCRIPTION: {
+            ROOT: 'Settings_Subscription',
+            SIZE: 'Settings_Subscription_Size',
+        },
     },
     SAVE_THE_WORLD: {
         ROOT: 'SaveTheWorld_Root',
     },
     LEFT_MODAL: {
-        SEARCH: 'Search',
+        CHAT_FINDER: 'ChatFinder',
         WORKSPACE_SWITCHER: 'WorkspaceSwitcher',
-    },
-    WORKSPACE_SWITCHER: {
-        ROOT: 'WorkspaceSwitcher_Root',
     },
     RIGHT_MODAL: {
         SETTINGS: 'Settings',
@@ -112,7 +127,6 @@ const SCREENS = {
         PARTICIPANTS: 'Participants',
         MONEY_REQUEST: 'MoneyRequest',
         NEW_TASK: 'NewTask',
-        ONBOARD_ENGAGEMENT: 'Onboard_Engagement',
         TEACHERS_UNITE: 'TeachersUnite',
         TASK_DETAILS: 'Task_Details',
         ENABLE_PAYMENTS: 'EnablePayments',
@@ -127,6 +141,9 @@ const SCREENS = {
         ROOM_INVITE: 'RoomInvite',
         REFERRAL: 'Referral',
         PROCESS_MONEY_REQUEST_HOLD: 'ProcessMoneyRequestHold',
+        TRAVEL: 'Travel',
+        SEARCH_REPORT: 'SearchReport',
+        SETTINGS_CATEGORIES: 'SettingsCategories',
     },
     ONBOARDING_MODAL: {
         ONBOARDING: 'Onboarding',
@@ -148,6 +165,7 @@ const SCREENS = {
         STEP_DATE: 'Money_Request_Step_Date',
         STEP_DESCRIPTION: 'Money_Request_Step_Description',
         STEP_DISTANCE: 'Money_Request_Step_Distance',
+        STEP_DISTANCE_RATE: 'Money_Request_Step_Rate',
         STEP_MERCHANT: 'Money_Request_Step_Merchant',
         STEP_PARTICIPANTS: 'Money_Request_Step_Participants',
         STEP_SCAN: 'Money_Request_Step_Scan',
@@ -155,7 +173,8 @@ const SCREENS = {
         STEP_WAYPOINT: 'Money_Request_Step_Waypoint',
         STEP_TAX_AMOUNT: 'Money_Request_Step_Tax_Amount',
         STEP_TAX_RATE: 'Money_Request_Step_Tax_Rate',
-        PARTICIPANTS: 'Money_Request_Participants',
+        STEP_SPLIT_PAYER: 'Money_Request_Step_Split_Payer',
+        STEP_SEND_FROM: 'Money_Request_Step_Send_From',
         CURRENCY: 'Money_Request_Currency',
         WAYPOINT: 'Money_Request_Waypoint',
         EDIT_WAYPOINT: 'Money_Request_Edit_Waypoint',
@@ -169,9 +188,17 @@ const SCREENS = {
         ENABLE_PAYMENTS: 'IOU_Send_Enable_Payments',
     },
 
+    SETTINGS_CATEGORIES: {
+        SETTINGS_CATEGORY_SETTINGS: 'Settings_Category_Settings',
+        SETTINGS_CATEGORIES_SETTINGS: 'Settings_Categories_Settings',
+        SETTINGS_CATEGORY_CREATE: 'Settings_Category_Create',
+        SETTINGS_CATEGORY_EDIT: 'Settings_Category_Edit',
+        SETTINGS_CATEGORIES_ROOT: 'Settings_Categories',
+    },
+
     REPORT_SETTINGS: {
         ROOT: 'Report_Settings_Root',
-        ROOM_NAME: 'Report_Settings_Room_Name',
+        NAME: 'Report_Settings_Name',
         NOTIFICATION_PREFERENCES: 'Report_Settings_Notification_Preferences',
         WRITE_CAPABILITY: 'Report_Settings_Write_Capability',
         VISIBILITY: 'Report_Settings_Visibility',
@@ -202,6 +229,44 @@ const SCREENS = {
     },
 
     WORKSPACE: {
+        ACCOUNTING: {
+            ROOT: 'Policy_Accounting',
+            QUICKBOOKS_ONLINE_IMPORT: 'Policy_Accounting_Quickbooks_Online_Import',
+            QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS: 'Policy_Accounting_Quickbooks_Online_Import_Chart_Of_Accounts',
+            QUICKBOOKS_ONLINE_CLASSES: 'Policy_Accounting_Quickbooks_Online_Import_Classes',
+            QUICKBOOKS_ONLINE_CUSTOMERS: 'Policy_Accounting_Quickbooks_Online_Import_Customers',
+            QUICKBOOKS_ONLINE_LOCATIONS: 'Policy_Accounting_Quickbooks_Online_Import_Locations',
+            QUICKBOOKS_ONLINE_TAXES: 'Policy_Accounting_Quickbooks_Online_Import_Taxes',
+            QUICKBOOKS_ONLINE_EXPORT: 'Workspace_Accounting_Quickbooks_Online_Export',
+            QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT: 'Workspace_Accounting_Quickbooks_Online_Export_Date_Select',
+            QUICKBOOKS_ONLINE_EXPORT_INVOICE_ACCOUNT_SELECT: 'Workspace_Accounting_Quickbooks_Online_Export_Invoice_Account_Select',
+            QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT: 'Workspace_Accounting_Quickbooks_Online_Export_Company_Card_Expense',
+            QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT: 'Workspace_Accounting_Quickbooks_Online_Export_Company_Card_Expense_Account_Select',
+            QUICKBOOKS_ONLINE_NON_REIMBURSABLE_DEFAULT_VENDOR_SELECT: 'Workspace_Accounting_Quickbooks_Online_Export_Non_Reimbursable_Default_Vendor_Select',
+            QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_COMPANY_CARD_SELECT: 'Workspace_Accounting_Quickbooks_Online_Export_Company_Card_Expense_Select',
+            QUICKBOOKS_ONLINE_EXPORT_PREFERRED_EXPORTER: 'Workspace_Accounting_Quickbooks_Online_Export_Preferred_Exporter',
+            QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES: 'Workspace_Accounting_Quickbooks_Online_Export_Out_Of_Pocket_Expenses',
+            QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT: 'Workspace_Accounting_Quickbooks_Online_Export_Out_Of_Pocket_Expenses_Select',
+            QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT: 'Workspace_Accounting_Quickbooks_Online_Export_Out_Of_Pocket_Expenses_Account_Select',
+            QUICKBOOKS_ONLINE_ADVANCED: 'Policy_Accounting_Quickbooks_Online_Advanced',
+            QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR: 'Policy_Accounting_Quickbooks_Online_Account_Selector',
+            QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR: 'Policy_Accounting_Quickbooks_Online_Invoice_Account_Selector',
+            XERO_IMPORT: 'Policy_Accounting_Xero_Import',
+            XERO_ORGANIZATION: 'Policy_Accounting_Xero_Customers',
+            XERO_CHART_OF_ACCOUNTS: 'Policy_Accounting_Xero_Import_Chart_Of_Accounts',
+            XERO_CUSTOMER: 'Policy_Acounting_Xero_Import_Customer',
+            XERO_TAXES: 'Policy_Accounting_Xero_Taxes',
+            XERO_TRACKING_CATEGORIES: 'Policy_Accounting_Xero_Tracking_Categories',
+            XERO_MAP_TRACKING_CATEGORY: 'Policy_Accounting_Xero_Map_Tracking_Category',
+            XERO_EXPORT: 'Policy_Accounting_Xero_Export',
+            XERO_EXPORT_PURCHASE_BILL_DATE_SELECT: 'Policy_Accounting_Xero_Export_Purchase_Bill_Date_Select',
+            XERO_ADVANCED: 'Policy_Accounting_Xero_Advanced',
+            XERO_BILL_STATUS_SELECTOR: 'Policy_Accounting_Xero_Export_Bill_Status_Selector',
+            XERO_INVOICE_ACCOUNT_SELECTOR: 'Policy_Accounting_Xero_Invoice_Account_Selector',
+            XERO_EXPORT_PREFERRED_EXPORTER_SELECT: 'Workspace_Accounting_Xero_Export_Preferred_Exporter_Select',
+            XERO_BILL_PAYMENT_ACCOUNT_SELECTOR: 'Policy_Accounting_Xero_Bill_Payment_Account_Selector',
+            XERO_EXPORT_BANK_ACCOUNT_SELECT: 'Policy_Accounting_Xero_Export_Bank_Account_Select',
+        },
         INITIAL: 'Workspace_Initial',
         PROFILE: 'Workspace_Profile',
         CARD: 'Workspace_Card',
@@ -213,7 +278,6 @@ const SCREENS = {
         INVOICES: 'Workspace_Invoices',
         TRAVEL: 'Workspace_Travel',
         MEMBERS: 'Workspace_Members',
-        ACCOUNTING: 'Workspace_Accounting',
         INVITE: 'Workspace_Invite',
         INVITE_MESSAGE: 'Workspace_Invite_Message',
         CATEGORIES: 'Workspace_Categories',
@@ -232,7 +296,9 @@ const SCREENS = {
         TAX_CREATE: 'Workspace_Tax_Create',
         TAG_CREATE: 'Tag_Create',
         TAG_SETTINGS: 'Tag_Settings',
+        TAG_LIST_VIEW: 'Tag_List_View',
         CURRENCY: 'Workspace_Profile_Currency',
+        ADDRESS: 'Workspace_Profile_Address',
         WORKFLOWS: 'Workspace_Workflows',
         WORKFLOWS_PAYER: 'Workspace_Workflows_Payer',
         WORKFLOWS_APPROVER: 'Workspace_Workflows_Approver',
@@ -253,18 +319,11 @@ const SCREENS = {
         DISTANCE_RATES: 'Distance_Rates',
         CREATE_DISTANCE_RATE: 'Create_Distance_Rate',
         DISTANCE_RATES_SETTINGS: 'Distance_Rates_Settings',
-        QUICKBOOKS_ONLINE_IMPORT: 'Workspace_Accounting_Quickbooks_Online_Import',
-        QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS: 'Workspace_Accounting_Quickbooks_Online_Import_Chart_Of_Accounts',
-        QUICKBOOKS_ONLINE_CLASSES: 'Workspace_Accounting_Quickbooks_Online_Import_Classes',
-        QUICKBOOKS_ONLINE_CUSTOMERS: 'Workspace_Accounting_Quickbooks_Online_Import_Customers',
-        QUICKBOOKS_ONLINE_LOCATIONS: 'Workspace_Accounting_Quickbooks_Online_Import_Locations',
-        QUICKBOOKS_ONLINE_TAXES: 'Workspace_Accounting_Quickbooks_Online_Import_Taxes',
         DISTANCE_RATE_DETAILS: 'Distance_Rate_Details',
         DISTANCE_RATE_EDIT: 'Distance_Rate_Edit',
     },
 
     EDIT_REQUEST: {
-        ROOT: 'EditRequest_Root',
         CURRENCY: 'EditRequest_Currency',
         REPORT_FIELD: 'EditRequest_ReportField',
     },
@@ -273,6 +332,7 @@ const SCREENS = {
         ROOT: 'NewChat_Root',
         NEW_CHAT: 'chat',
         NEW_CHAT_CONFIRM: 'NewChat_Confirm',
+        NEW_CHAT_EDIT_NAME: 'NewChat_Edit_Name',
         NEW_ROOM: 'room',
     },
 
@@ -285,12 +345,7 @@ const SCREENS = {
     ONBOARDING: {
         PERSONAL_DETAILS: 'Onboarding_Personal_Details',
         PURPOSE: 'Onboarding_Purpose',
-    },
-
-    ONBOARD_ENGAGEMENT: {
-        ROOT: 'Onboard_Engagement_Root',
-        MANAGE_TEAMS_EXPENSES: 'Manage_Teams_Expenses',
-        EXPENSIFY_CLASSIC: 'Expenisfy_Classic',
+        WORK: 'Onboarding_Work',
     },
 
     WELCOME_VIDEO: {
@@ -309,16 +364,21 @@ const SCREENS = {
     PROFILE_ROOT: 'Profile_Root',
     PROCESS_MONEY_REQUEST_HOLD_ROOT: 'ProcessMoneyRequestHold_Root',
     REPORT_DESCRIPTION_ROOT: 'Report_Description_Root',
-    REPORT_PARTICIPANTS_ROOT: 'ReportParticipants_Root',
+    REPORT_PARTICIPANTS: {
+        ROOT: 'ReportParticipants_Root',
+        INVITE: 'ReportParticipants_Invite',
+        DETAILS: 'ReportParticipants_Details',
+        ROLE: 'ReportParticipants_Role',
+    },
     ROOM_MEMBERS_ROOT: 'RoomMembers_Root',
     ROOM_INVITE_ROOT: 'RoomInvite_Root',
-    SEARCH_ROOT: 'Search_Root',
     FLAG_COMMENT_ROOT: 'FlagComment_Root',
     REIMBURSEMENT_ACCOUNT: 'ReimbursementAccount',
     GET_ASSISTANCE: 'GetAssistance',
     REFERRAL_DETAILS: 'Referral_Details',
     KEYBOARD_SHORTCUTS: 'KeyboardShortcuts',
     TRANSACTION_RECEIPT: 'TransactionReceipt',
+    FEATURE_TRAINING_ROOT: 'FeatureTraining_Root',
 } as const;
 
 type Screen = DeepValueOf<typeof SCREENS>;

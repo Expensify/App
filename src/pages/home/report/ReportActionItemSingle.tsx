@@ -3,6 +3,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Avatar from '@components/Avatar';
+import {FallbackAvatar} from '@components/Icon/Expensicons';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxProvider';
@@ -19,7 +20,6 @@ import ControlSelection from '@libs/ControlSelection';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Report, ReportAction} from '@src/types/onyx';
@@ -78,19 +78,23 @@ function ReportActionItemSingle({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
-    const actorAccountID = action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && iouReport ? iouReport.managerID : action?.actorAccountID;
+    const actorAccountID = ReportUtils.getReportActionActorAccountID(action, iouReport);
+
     let displayName = ReportUtils.getDisplayNameForParticipant(actorAccountID);
     const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails[actorAccountID ?? -1] ?? {};
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     let actorHint = (login || (displayName ?? '')).replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
-    const displayAllActors = useMemo(() => action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && iouReport, [action?.actionName, iouReport]);
-    const isWorkspaceActor = ReportUtils.isPolicyExpenseChat(report) && (!actorAccountID || displayAllActors);
-    let avatarSource = UserUtils.getAvatar(avatar ?? '', actorAccountID);
+    const displayAllActors = useMemo(() => action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && iouReport, [action?.actionName, iouReport]);
+    const isInvoiceReport = ReportUtils.isInvoiceReport(iouReport ?? {});
+    const isWorkspaceActor = isInvoiceReport || (ReportUtils.isPolicyExpenseChat(report) && (!actorAccountID || displayAllActors));
+    let avatarSource = avatar;
+    let avatarId: number | string | undefined = actorAccountID;
 
     if (isWorkspaceActor) {
         displayName = ReportUtils.getPolicyName(report);
         actorHint = displayName;
         avatarSource = ReportUtils.getWorkspaceAvatar(report);
+        avatarId = report.policyID;
     } else if (action?.delegateAccountID && personalDetails[action?.delegateAccountID]) {
         // We replace the actor's email, name, and avatar with the Copilot manually for now. And only if we have their
         // details. This will be improved upon when the Copilot feature is implemented.
@@ -98,20 +102,25 @@ function ReportActionItemSingle({
         const delegateDisplayName = delegateDetails?.displayName;
         actorHint = `${delegateDisplayName} (${translate('reportAction.asCopilot')} ${displayName})`;
         displayName = actorHint;
-        avatarSource = UserUtils.getAvatar(delegateDetails?.avatar ?? '', Number(action.delegateAccountID));
+        avatarSource = delegateDetails?.avatar;
+        avatarId = action.delegateAccountID;
     }
 
     // If this is a report preview, display names and avatars of both people involved
     let secondaryAvatar: Icon;
     const primaryDisplayName = displayName;
     if (displayAllActors) {
-        // The ownerAccountID and actorAccountID can be the same if the a user requests money back from the IOU's original creator, in that case we need to use managerID to avoid displaying the same user twice
-        const secondaryAccountId = iouReport?.ownerAccountID === actorAccountID ? iouReport?.managerID : iouReport?.ownerAccountID;
-        const secondaryUserAvatar = personalDetails?.[secondaryAccountId ?? -1]?.avatar ?? '';
+        // The ownerAccountID and actorAccountID can be the same if the user submits an expense back from the IOU's original creator, in that case we need to use managerID to avoid displaying the same user twice
+        const secondaryAccountId = iouReport?.ownerAccountID === actorAccountID || isInvoiceReport ? iouReport?.managerID : iouReport?.ownerAccountID;
+        const secondaryUserAvatar = personalDetails?.[secondaryAccountId ?? -1]?.avatar ?? FallbackAvatar;
         const secondaryDisplayName = ReportUtils.getDisplayNameForParticipant(secondaryAccountId);
-        displayName = `${primaryDisplayName} & ${secondaryDisplayName}`;
+
+        if (!isInvoiceReport) {
+            displayName = `${primaryDisplayName} & ${secondaryDisplayName}`;
+        }
+
         secondaryAvatar = {
-            source: UserUtils.getAvatar(secondaryUserAvatar, secondaryAccountId),
+            source: secondaryUserAvatar,
             type: CONST.ICON_TYPE_AVATAR,
             name: secondaryDisplayName ?? '',
             id: secondaryAccountId,
@@ -126,10 +135,10 @@ function ReportActionItemSingle({
         secondaryAvatar = {name: '', source: '', type: 'avatar'};
     }
     const icon = {
-        source: avatarSource,
+        source: avatarSource ?? FallbackAvatar,
         type: isWorkspaceActor ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR,
         name: primaryDisplayName ?? '',
-        id: isWorkspaceActor ? '' : actorAccountID,
+        id: avatarId,
     };
 
     // Since the display name for a report action message is delivered with the report history as an array of fragments
@@ -199,6 +208,7 @@ function ReportActionItemSingle({
                         source={icon.source}
                         type={icon.type}
                         name={icon.name}
+                        avatarID={icon.id}
                         fallbackIcon={fallbackIcon}
                     />
                 </View>

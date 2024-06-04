@@ -37,9 +37,9 @@ import type PlaidData from './PlaidData';
 import type Policy from './Policy';
 import type {PolicyConnectionSyncProgress, PolicyReportField, TaxRate, TaxRates, TaxRatesWithDefault} from './Policy';
 import type {PolicyCategories, PolicyCategory} from './PolicyCategory';
+import type {PolicyEmployeeList} from './PolicyEmployee';
+import type PolicyEmployee from './PolicyEmployee';
 import type PolicyJoinMember from './PolicyJoinMember';
-import type {PolicyMembers} from './PolicyMember';
-import type PolicyMember from './PolicyMember';
 import type PolicyOwnershipChangeChecks from './PolicyOwnershipChangeChecks';
 import type {PolicyTag, PolicyTagList, PolicyTags} from './PolicyTag';
 import type PreferredTheme from './PreferredTheme';
@@ -58,11 +58,13 @@ import type ReportActionReactions from './ReportActionReactions';
 import type ReportActionsDraft from './ReportActionsDraft';
 import type ReportActionsDrafts from './ReportActionsDrafts';
 import type ReportMetadata from './ReportMetadata';
+import type ReportNameValuePairs from './ReportNameValuePairs';
 import type ReportNextStep from './ReportNextStep';
 import type ReportUserIsTyping from './ReportUserIsTyping';
 import type Request from './Request';
 import type Response from './Response';
 import type ScreenShareRequest from './ScreenShareRequest';
+import type SearchResults from './SearchResults';
 import type SecurityGroup from './SecurityGroup';
 import type SelectedTabRequest from './SelectedTabRequest';
 import type Session from './Session';
@@ -72,6 +74,7 @@ import type {TransactionViolation, ViolationName} from './TransactionViolation';
 import type TransactionViolations from './TransactionViolation';
 import type User from './User';
 import type UserLocation from './UserLocation';
+import type UserMetadata from './UserMetadata';
 import type UserWallet from './UserWallet';
 import type WalletAdditionalDetails from './WalletAdditionalDetails';
 import type {WalletAdditionalQuestionDetails} from './WalletAdditionalDetails';
@@ -117,9 +120,9 @@ export type {
     Policy,
     PolicyCategories,
     PolicyCategory,
+    PolicyEmployee,
+    PolicyEmployeeList,
     PolicyConnectionSyncProgress,
-    PolicyMember,
-    PolicyMembers,
     PolicyOwnershipChangeChecks,
     PolicyTag,
     PolicyTags,
@@ -133,6 +136,7 @@ export type {
     RecentlyUsedTags,
     ReimbursementAccount,
     Report,
+    ReportNameValuePairs,
     ReportAction,
     ReportActionReactions,
     ReportActions,
@@ -155,6 +159,7 @@ export type {
     TransactionViolations,
     User,
     UserLocation,
+    UserMetadata,
     UserWallet,
     ViolationName,
     WalletAdditionalDetails,
@@ -177,4 +182,5 @@ export type {
     Log,
     PolicyJoinMember,
     CapturedLogs,
+    SearchResults,
 };

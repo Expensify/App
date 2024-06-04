@@ -66,7 +66,7 @@ function ReportActionItemMessage({action, transaction, displayAsGroup, reportID,
         const originalMessage = action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? action.originalMessage : null;
         const iouReportID = originalMessage?.IOUReportID;
         if (iouReportID) {
-            iouMessage = ReportUtils.getIOUReportActionDisplayMessage(action, transaction, true);
+            iouMessage = ReportUtils.getIOUReportActionDisplayMessage(action, transaction);
         }
     }
 

@@ -2,14 +2,18 @@
 import type {AVPlaybackStatus, VideoFullscreenUpdateEvent} from 'expo-av';
 import {ResizeMode, Video, VideoFullscreenUpdate} from 'expo-av';
 import type {MutableRefObject} from 'react';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
+import AttachmentOfflineIndicator from '@components/AttachmentOfflineIndicator';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Hoverable from '@components/Hoverable';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {useFullScreenContext} from '@components/VideoPlayerContexts/FullScreenContext';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
+import type {PlaybackSpeed} from '@components/VideoPlayerContexts/types';
+import {useVideoPopoverMenuContext} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
+import {useVolumeContext} from '@components/VideoPlayerContexts/VolumeContext';
 import VideoPopoverMenu from '@components/VideoPopoverMenu';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -43,10 +47,21 @@ function BaseVideoPlayer({
     // user hovers the mouse over the carousel arrows, but this UI bug feels much less troublesome for now.
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     isVideoHovered = false,
+    isPreview,
 }: VideoPlayerProps) {
     const styles = useThemeStyles();
-    const {pauseVideo, playVideo, currentlyPlayingURL, sharedElement, originalParent, shareVideoPlayerElements, currentVideoPlayerRef, updateCurrentlyPlayingURL, videoResumeTryNumber} =
-        usePlaybackContext();
+    const {
+        pauseVideo,
+        playVideo,
+        currentlyPlayingURL,
+        sharedElement,
+        originalParent,
+        shareVideoPlayerElements,
+        currentVideoPlayerRef,
+        updateCurrentlyPlayingURL,
+        videoResumeTryNumber,
+        setCurrentlyPlayingURL,
+    } = usePlaybackContext();
     const {isFullScreenRef} = useFullScreenContext();
     const {isOffline} = useNetwork();
     const [duration, setDuration] = useState(videoDuration * 1000);
@@ -67,6 +82,8 @@ function BaseVideoPlayer({
     const isCurrentlyURLSet = currentlyPlayingURL === url;
     const isUploading = CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => url.startsWith(prefix));
     const videoStateRef = useRef<AVPlaybackStatus | null>(null);
+    const {updateVolume} = useVolumeContext();
+    const {videoPopoverMenuPlayerRef, setCurrentPlaybackSpeed} = useVideoPopoverMenuContext();
 
     const togglePlayCurrentVideo = useCallback(() => {
         videoResumeTryNumber.current = 0;
@@ -80,7 +97,14 @@ function BaseVideoPlayer({
     }, [isCurrentlyURLSet, isPlaying, pauseVideo, playVideo, updateCurrentlyPlayingURL, url, videoResumeTryNumber]);
 
     const showPopoverMenu = (event?: GestureResponderEvent | KeyboardEvent) => {
-        setIsPopoverVisible(true);
+        videoPopoverMenuPlayerRef.current = videoPlayerRef.current;
+        videoPlayerRef.current?.getStatusAsync().then((status) => {
+            if (!('rate' in status && status.rate)) {
+                return;
+            }
+            setIsPopoverVisible(true);
+            setCurrentPlaybackSpeed(status.rate as PlaybackSpeed);
+        });
         if (!event || !('nativeEvent' in event)) {
             return;
         }
@@ -146,6 +170,16 @@ function BaseVideoPlayer({
 
             if (event.fullscreenUpdate === VideoFullscreenUpdate.PLAYER_DID_DISMISS) {
                 isFullScreenRef.current = false;
+
+                // Sync volume updates in full screen mode after leaving it
+                currentVideoPlayerRef.current?.getStatusAsync?.().then((status) => {
+                    if (!('isMuted' in status)) {
+                        return;
+                    }
+
+                    updateVolume(status.isMuted ? 0 : status.volume || 1);
+                });
+
                 // we need to use video state ref to check if video is playing, to catch proper state after exiting fullscreen
                 // and also fix a bug with fullscreen mode dismissing when handleFullscreenUpdate function changes
                 if (videoStateRef.current && (!('isPlaying' in videoStateRef.current) || videoStateRef.current.isPlaying)) {
@@ -155,7 +189,7 @@ function BaseVideoPlayer({
                 }
             }
         },
-        [isFullScreenRef, onFullscreenUpdate, pauseVideo, playVideo, videoResumeTryNumber],
+        [isFullScreenRef, onFullscreenUpdate, pauseVideo, playVideo, videoResumeTryNumber, updateVolume, currentVideoPlayerRef],
     );
 
     const bindFunctions = useCallback(() => {
@@ -172,15 +206,43 @@ function BaseVideoPlayer({
         });
     }, [currentVideoPlayerRef, handleFullscreenUpdate, handlePlaybackStatusUpdate]);
 
+    // use `useLayoutEffect` instead of `useEffect` because ref is null when unmount in `useEffect` hook
+    // ref url: https://reactjs.org/blog/2020/08/10/react-v17-rc.html#effect-cleanup-timing
+    useLayoutEffect(
+        () => () => {
+            if (shouldUseSharedVideoElement || videoPlayerRef.current !== currentVideoPlayerRef.current) {
+                return;
+            }
+            currentVideoPlayerRef.current = null;
+        },
+        [currentVideoPlayerRef, shouldUseSharedVideoElement],
+    );
+
     useEffect(() => {
         if (!isUploading || !videoPlayerRef.current) {
             return;
         }
 
-        // If we are uploading a new video, we want to immediately set the video player ref.
+        // If we are uploading a new video, we want to pause previous playing video and immediately set the video player ref.
+        if (currentVideoPlayerRef.current) {
+            pauseVideo();
+        }
         currentVideoPlayerRef.current = videoPlayerRef.current;
-    }, [url, currentVideoPlayerRef, isUploading]);
+    }, [url, currentVideoPlayerRef, isUploading, pauseVideo]);
 
+    const isCurrentlyURLSetRef = useRef<boolean>();
+    isCurrentlyURLSetRef.current = isCurrentlyURLSet;
+
+    useEffect(
+        () => () => {
+            if (shouldUseSharedVideoElement || !isCurrentlyURLSetRef.current) {
+                return;
+            }
+
+            setCurrentlyPlayingURL(null);
+        },
+        [setCurrentlyPlayingURL, shouldUseSharedVideoElement],
+    );
     // update shared video elements
     useEffect(() => {
         if (shouldUseSharedVideoElement || url !== currentlyPlayingURL || isFullScreenRef.current) {
@@ -238,7 +300,7 @@ function BaseVideoPlayer({
                 accessible={false}
                 style={[styles.cursorDefault, style]}
             >
-                <Hoverable>
+                <Hoverable shouldFreezeCapture={isPopoverVisible}>
                     {(isHovered) => (
                         <View style={[styles.w100, styles.h100]}>
                             <PressableWithoutFeedback
@@ -250,7 +312,7 @@ function BaseVideoPlayer({
                                     }
                                     togglePlayCurrentVideo();
                                 }}
-                                style={styles.flex1}
+                                style={[styles.flex1, styles.noSelect]}
                             >
                                 {shouldUseSharedVideoElement ? (
                                     <>
@@ -265,6 +327,7 @@ function BaseVideoPlayer({
                                     </>
                                 ) : (
                                     <View
+                                        fsClass="fs-exclude"
                                         style={styles.flex1}
                                         ref={(el) => {
                                             if (!el) {
@@ -302,9 +365,8 @@ function BaseVideoPlayer({
                                     </View>
                                 )}
                             </PressableWithoutFeedback>
-
-                            {(isLoading || isBuffering) && <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
-
+                            {((isLoading && !isOffline) || isBuffering) && <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
+                            {isLoading && !isBuffering && <AttachmentOfflineIndicator isPreview={isPreview} />}
                             {controlsStatus !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE && !isLoading && (isPopoverVisible || isHovered || canUseTouchScreen) && (
                                 <VideoPlayerControls
                                     duration={duration}

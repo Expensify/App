@@ -1,12 +1,11 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import lodashDebounce from 'lodash/debounce';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {GestureResponderEvent} from 'react-native/Libraries/Types/CoreEventTypes';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors} from '@components/Form/types';
@@ -17,6 +16,8 @@ import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -25,8 +26,9 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+import variables from '@styles/variables';
 import * as Link from '@userActions/Link';
-import * as Policy from '@userActions/Policy';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -34,6 +36,7 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceInviteMessageForm';
 import type {InvitedEmailsToAccountIDs, PersonalDetailsList} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import SearchInputManager from './SearchInputManager';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
@@ -50,18 +53,31 @@ type WorkspaceInviteMessagePageOnyxProps = {
 };
 
 type WorkspaceInviteMessagePageProps = WithPolicyAndFullscreenLoadingProps &
+    WithCurrentUserPersonalDetailsProps &
     WorkspaceInviteMessagePageOnyxProps &
     StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVITE_MESSAGE>;
 
 const parser = new ExpensiMark();
 
-function WorkspaceInviteMessagePage({workspaceInviteMessageDraft, invitedEmailsToAccountIDsDraft, policy, route, allPersonalDetails}: WorkspaceInviteMessagePageProps) {
+function WorkspaceInviteMessagePage({
+    workspaceInviteMessageDraft,
+    invitedEmailsToAccountIDsDraft,
+    policy,
+    route,
+    allPersonalDetails,
+    currentUserPersonalDetails,
+}: WorkspaceInviteMessagePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const [welcomeNote, setWelcomeNote] = useState<string>();
 
     const {inputCallbackRef} = useAutoFocusInput();
+
+    const welcomeNoteSubject = useMemo(
+        () => `# ${currentUserPersonalDetails?.displayName ?? ''} invited you to ${policy?.name ?? 'a workspace'}`,
+        [policy?.name, currentUserPersonalDetails?.displayName],
+    );
 
     const getDefaultWelcomeNote = () =>
         // workspaceInviteMessageDraft can be an empty string
@@ -92,7 +108,7 @@ function WorkspaceInviteMessagePage({workspaceInviteMessageDraft, invitedEmailsT
     const sendInvitation = () => {
         Keyboard.dismiss();
         // Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
-        Policy.addMembersToWorkspace(invitedEmailsToAccountIDsDraft ?? {}, welcomeNote ?? '', route.params.policyID);
+        Policy.addMembersToWorkspace(invitedEmailsToAccountIDsDraft ?? {}, `${welcomeNoteSubject}\n\n${welcomeNote}`, route.params.policyID);
         debouncedSaveDraft(null);
         SearchInputManager.searchInput = '';
         // Pop the invite message page before navigating to the members page.
@@ -117,15 +133,14 @@ function WorkspaceInviteMessagePage({workspaceInviteMessageDraft, invitedEmailsT
     const policyName = policy?.name;
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            testID={WorkspaceInviteMessagePage.displayName}
+        <AccessOrNotFoundWrapper
+            policyID={route.params.policyID}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
+            fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: PolicyUtils.goBackFromInvalidPolicy}}
         >
-            <FullPageNotFoundView
-                shouldShow={isEmptyObject(policy) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy)}
-                subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
-                onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
-                onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                testID={WorkspaceInviteMessagePage.displayName}
             >
                 <HeaderWithBackButton
                     title={translate('workspace.inviteMessage.inviteMessageTitle')}
@@ -183,7 +198,7 @@ function WorkspaceInviteMessagePage({workspaceInviteMessageDraft, invitedEmailsT
                             autoCompleteType="off"
                             autoCorrect={false}
                             autoGrowHeight
-                            containerStyles={[styles.autoGrowHeightMultilineInput]}
+                            maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                             defaultValue={getDefaultWelcomeNote()}
                             value={welcomeNote}
                             onChangeText={(text: string) => {
@@ -200,23 +215,25 @@ function WorkspaceInviteMessagePage({workspaceInviteMessageDraft, invitedEmailsT
                         />
                     </View>
                 </FormProvider>
-            </FullPageNotFoundView>
-        </ScreenWrapper>
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 
 WorkspaceInviteMessagePage.displayName = 'WorkspaceInviteMessagePage';
 
 export default withPolicyAndFullscreenLoading(
-    withOnyx<WorkspaceInviteMessagePageProps, WorkspaceInviteMessagePageOnyxProps>({
-        allPersonalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-        invitedEmailsToAccountIDsDraft: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`,
-        },
-        workspaceInviteMessageDraft: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${route.params.policyID.toString()}`,
-        },
-    })(WorkspaceInviteMessagePage),
+    withCurrentUserPersonalDetails(
+        withOnyx<WorkspaceInviteMessagePageProps, WorkspaceInviteMessagePageOnyxProps>({
+            allPersonalDetails: {
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            },
+            invitedEmailsToAccountIDsDraft: {
+                key: ({route}) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`,
+            },
+            workspaceInviteMessageDraft: {
+                key: ({route}) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${route.params.policyID.toString()}`,
+            },
+        })(WorkspaceInviteMessagePage),
+    ),
 );

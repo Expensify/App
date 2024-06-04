@@ -44,7 +44,7 @@ type FormAlertWithSubmitButtonProps = {
     buttonStyles?: StyleProp<ViewStyle>;
 
     /** Whether to show the alert text */
-    isAlertVisible: boolean;
+    isAlertVisible?: boolean;
 
     /** Text for the button */
     buttonText: string;
@@ -54,6 +54,9 @@ type FormAlertWithSubmitButtonProps = {
 
     /** Style for the error message for submit button */
     errorMessageStyle?: StyleProp<ViewStyle>;
+
+    /** The priority to assign the enter key event listener to buttons. 0 is the highest priority. */
+    enterKeyEventListenerPriority?: number;
 };
 
 function FormAlertWithSubmitButton({
@@ -69,17 +72,18 @@ function FormAlertWithSubmitButton({
     footerContent,
     buttonStyles,
     buttonText,
-    isAlertVisible,
+    isAlertVisible = false,
     onSubmit,
     useSmallerSubmitButtonSize = false,
     errorMessageStyle,
+    enterKeyEventListenerPriority = 0,
 }: FormAlertWithSubmitButtonProps) {
     const styles = useThemeStyles();
     const style = [!footerContent ? {} : styles.mb3, buttonStyles];
 
     return (
         <FormAlertWrapper
-            containerStyles={[styles.mh5, styles.mb5, styles.justifyContentEnd, containerStyles]}
+            containerStyles={[styles.justifyContentEnd, containerStyles]}
             isAlertVisible={isAlertVisible}
             isMessageHtml={isMessageHtml}
             message={message}
@@ -102,6 +106,7 @@ function FormAlertWithSubmitButton({
                         <Button
                             success
                             pressOnEnter={!disablePressOnEnter}
+                            enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                             text={buttonText}
                             style={style}
                             onPress={onSubmit}

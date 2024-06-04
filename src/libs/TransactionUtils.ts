@@ -3,9 +3,8 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {RecentWaypoint, Report, TaxRate, TaxRates, TaxRatesWithDefault, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Policy, RecentWaypoint, Report, TaxRate, TaxRates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {IOURequestType} from './actions/IOU';
@@ -16,7 +15,6 @@ import * as NumberUtils from './NumberUtils';
 import {getCleanedTagName} from './PolicyUtils';
 
 let allTransactions: OnyxCollection<Transaction> = {};
-
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
     waitForCollectionCallback: true,
@@ -28,6 +26,13 @@ Onyx.connect({
     },
 });
 
+let allTransactionViolations: OnyxCollection<TransactionViolations> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+    waitForCollectionCallback: true,
+    callback: (value) => (allTransactionViolations = value),
+});
+
 let allReports: OnyxCollection<Report>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
@@ -36,7 +41,7 @@ Onyx.connect({
 });
 
 function isDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
-    // This is used during the request creation flow before the transaction has been saved to the server
+    // This is used during the expense creation flow before the transaction has been saved to the server
     if (lodashHas(transaction, 'iouRequestType')) {
         return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
     }
@@ -48,7 +53,7 @@ function isDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
 }
 
 function isScanRequest(transaction: OnyxEntry<Transaction>): boolean {
-    // This is used during the request creation flow before the transaction has been saved to the server
+    // This is used during the expense creation flow before the transaction has been saved to the server
     if (lodashHas(transaction, 'iouRequestType')) {
         return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN;
     }
@@ -68,7 +73,7 @@ function getRequestType(transaction: OnyxEntry<Transaction>): IOURequestType {
 }
 
 function isManualRequest(transaction: Transaction): boolean {
-    // This is used during the request creation flow before the transaction has been saved to the server
+    // This is used during the expense creation flow before the transaction has been saved to the server
     if (lodashHas(transaction, 'iouRequestType')) {
         return transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
     }
@@ -80,7 +85,7 @@ function isManualRequest(transaction: Transaction): boolean {
  * Optimistically generate a transaction.
  *
  * @param amount – in cents
- * @param [existingTransactionID] When creating a distance request, an empty transaction has already been created with a transactionID. In that case, the transaction here needs to have
+ * @param [existingTransactionID] When creating a distance expense, an empty transaction has already been created with a transactionID. In that case, the transaction here needs to have
  * it's transactionID match what was already generated.
  */
 function buildOptimisticTransaction(
@@ -97,6 +102,8 @@ function buildOptimisticTransaction(
     existingTransactionID: string | null = null,
     category = '',
     tag = '',
+    taxCode = '',
+    taxAmount = 0,
     billable = false,
     pendingFields: Partial<{[K in TransactionPendingFieldsKey]: ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION>}> | undefined = undefined,
     reimbursable = true,
@@ -127,6 +134,8 @@ function buildOptimisticTransaction(
         filename,
         category,
         tag,
+        taxCode,
+        taxAmount,
         billable,
         reimbursable,
     };
@@ -176,7 +185,7 @@ function areRequiredFieldsEmpty(transaction: OnyxEntry<Transaction>): boolean {
 }
 
 /**
- * Given the edit made to the money request, return an updated transaction object.
+ * Given the edit made to the expnse, return an updated transaction object.
  */
 function getUpdatedTransaction(transaction: Transaction, transactionChanges: TransactionChanges, isFromExpenseReport: boolean, shouldUpdateReceiptState = true): Transaction {
     // Only changing the first level fields so no need for deep clone now
@@ -215,12 +224,10 @@ function getUpdatedTransaction(transaction: Transaction, transactionChanges: Tra
 
     if (Object.hasOwn(transactionChanges, 'taxAmount') && typeof transactionChanges.taxAmount === 'number') {
         updatedTransaction.taxAmount = isFromExpenseReport ? -transactionChanges.taxAmount : transactionChanges.taxAmount;
-        shouldStopSmartscan = true;
     }
 
     if (Object.hasOwn(transactionChanges, 'taxCode') && typeof transactionChanges.taxCode === 'string') {
         updatedTransaction.taxCode = transactionChanges.taxCode;
-        shouldStopSmartscan = true;
     }
 
     if (Object.hasOwn(transactionChanges, 'billable') && typeof transactionChanges.billable === 'boolean') {
@@ -275,9 +282,9 @@ function getDescription(transaction: OnyxEntry<Transaction>): string {
 /**
  * Return the amount field from the transaction, return the modifiedAmount if present.
  */
-function getAmount(transaction: OnyxEntry<Transaction>, isFromExpenseReport = false): number {
+function getAmount(transaction: OnyxEntry<Transaction>, isFromExpenseReport = false, isFromTrackedExpense = false): number {
     // IOU requests cannot have negative values, but they can be stored as negative values, let's return absolute value
-    if (!isFromExpenseReport) {
+    if (!isFromExpenseReport || isFromTrackedExpense) {
         const amount = transaction?.modifiedAmount ?? 0;
         if (amount) {
             return Math.abs(amount);
@@ -359,8 +366,8 @@ function getMerchant(transaction: OnyxEntry<Transaction>): string {
     return transaction?.modifiedMerchant ? transaction.modifiedMerchant : transaction?.merchant ?? '';
 }
 
-function getDistance(transaction: Transaction): number {
-    return transaction?.routes?.route0?.distance ?? 0;
+function getDistance(transaction: Transaction | null): number {
+    return transaction?.comment?.customUnit?.quantity ?? 0;
 }
 
 /**
@@ -453,19 +460,6 @@ function getCreated(transaction: OnyxEntry<Transaction>, dateFormat: string = CO
 }
 
 /**
- * Returns the translation key to use for the header title
- */
-function getHeaderTitleTranslationKey(transaction: OnyxEntry<Transaction>): TranslationPaths {
-    const headerTitles: Record<IOURequestType, TranslationPaths> = {
-        [CONST.IOU.REQUEST_TYPE.DISTANCE]: 'tabSelector.distance',
-        [CONST.IOU.REQUEST_TYPE.MANUAL]: 'tabSelector.manual',
-        [CONST.IOU.REQUEST_TYPE.SCAN]: 'tabSelector.scan',
-    };
-
-    return headerTitles[getRequestType(transaction)];
-}
-
-/**
  * Determine whether a transaction is made with an Expensify card.
  */
 function isExpensifyCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
@@ -507,6 +501,10 @@ function isReceiptBeingScanned(transaction: OnyxEntry<Transaction>): boolean {
     return [CONST.IOU.RECEIPT_STATE.SCANREADY, CONST.IOU.RECEIPT_STATE.SCANNING].some((value) => value === transaction?.receipt?.state);
 }
 
+function didRceiptScanSucceed(transaction: OnyxEntry<Transaction>): boolean {
+    return [CONST.IOU.RECEIPT_STATE.SCANCOMPLETE].some((value) => value === transaction?.receipt?.state);
+}
+
 /**
  * Check if the transaction has a non-smartscanning receipt and is missing required fields
  */
@@ -515,10 +513,44 @@ function hasMissingSmartscanFields(transaction: OnyxEntry<Transaction>): boolean
 }
 
 /**
+ * Get all transaction violations of the transaction with given tranactionID.
+ */
+function getTransactionViolations(transactionID: string, transactionViolations: OnyxCollection<TransactionViolations> | null): TransactionViolations | null {
+    return transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID] ?? null;
+}
+
+/**
+ * Check if there is pending rter violation in transactionViolations.
+ */
+function hasPendingRTERViolation(transactionViolations?: TransactionViolations | null): boolean {
+    return Boolean(
+        transactionViolations?.some((transactionViolation: TransactionViolation) => transactionViolation.name === CONST.VIOLATIONS.RTER && transactionViolation.data?.pendingPattern),
+    );
+}
+
+/**
+ * Check if there is pending rter violation in all transactionViolations with given transactionIDs.
+ */
+function allHavePendingRTERViolation(transactionIds: string[]): boolean {
+    const transactionsWithRTERViolations = transactionIds.map((transactionId) => {
+        const transactionViolations = getTransactionViolations(transactionId, allTransactionViolations);
+        return hasPendingRTERViolation(transactionViolations);
+    });
+    return transactionsWithRTERViolations.length > 0 && transactionsWithRTERViolations.every((value) => value === true);
+}
+
+/**
+ * Check if the transaction is pending or has a pending rter violation.
+ */
+function hasPendingUI(transaction: OnyxEntry<Transaction>, transactionViolations?: TransactionViolations | null): boolean {
+    return isReceiptBeingScanned(transaction) || isPending(transaction) || (!!transaction && hasPendingRTERViolation(transactionViolations));
+}
+
+/**
  * Check if the transaction has a defined route
  */
-function hasRoute(transaction: OnyxEntry<Transaction>): boolean {
-    return !!transaction?.routes?.route0?.geometry?.coordinates;
+function hasRoute(transaction: OnyxEntry<Transaction>, isDistanceRequestType: boolean): boolean {
+    return !!transaction?.routes?.route0?.geometry?.coordinates || (isDistanceRequestType && !!transaction?.comment?.customUnit?.quantity);
 }
 
 function getAllReportTransactions(reportID?: string): Transaction[] {
@@ -573,12 +605,12 @@ function getValidWaypoints(waypoints: WaypointCollection | undefined, reArrangeI
             return acc;
         }
 
-        const validatedWaypoints: WaypointCollection = {...acc, [`waypoint${reArrangeIndexes ? waypointIndex + 1 : index}`]: currentWaypoint};
+        acc[`waypoint${reArrangeIndexes ? waypointIndex + 1 : index}`] = currentWaypoint;
 
         lastWaypointIndex = index;
         waypointIndex += 1;
 
-        return validatedWaypoints;
+        return acc;
     }, {});
 }
 
@@ -603,16 +635,30 @@ function isOnHold(transaction: OnyxEntry<Transaction>): boolean {
 }
 
 /**
+ * Check if transaction is on hold for the given transactionID
+ */
+function isOnHoldByTransactionID(transactionID: string): boolean {
+    if (!transactionID) {
+        return false;
+    }
+
+    return isOnHold(allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? null);
+}
+
+/**
  * Checks if any violations for the provided transaction are of type 'violation'
  */
-function hasViolation(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
+function hasViolation(transactionID: string, transactionViolations: OnyxCollection<TransactionViolations>): boolean {
     return Boolean(
         transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some((violation: TransactionViolation) => violation.type === CONST.VIOLATION_TYPES.VIOLATION),
     );
 }
 
-function getTransactionViolations(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): TransactionViolation[] | null {
-    return transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID] ?? null;
+/**
+ * Checks if any violations for the provided transaction are of type 'notice'
+ */
+function hasNoticeTypeViolation(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
+    return Boolean(transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some((violation: TransactionViolation) => violation.type === 'notice'));
 }
 
 /**
@@ -631,32 +677,86 @@ function getEnabledTaxRateCount(options: TaxRates) {
 }
 
 /**
- * Gets the default tax name
+ * Check if the customUnitRateID has a value default for P2P distance requests
  */
-function getDefaultTaxName(taxRates: TaxRatesWithDefault, transaction?: Transaction) {
-    const defaultTaxKey = taxRates.defaultExternalID;
-    const defaultTaxName = (defaultTaxKey && `${taxRates.taxes[defaultTaxKey]?.name} (${taxRates.taxes[defaultTaxKey]?.value}) • ${Localize.translateLocal('common.default')}`) || '';
-    return transaction?.taxRate?.text ?? defaultTaxName;
+function isCustomUnitRateIDForP2P(transaction: OnyxEntry<Transaction>): boolean {
+    return transaction?.comment?.customUnit?.customUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID;
+}
+
+/**
+ * Get rate ID from the transaction object
+ */
+function getRateID(transaction: OnyxEntry<Transaction>): string | undefined {
+    return transaction?.comment?.customUnit?.customUnitRateID?.toString();
+}
+
+/**
+ * Gets the tax code based on selected currency.
+ * Returns policy default tax rate if transaction is in policy default currency, otherwise returns foreign default tax rate
+ */
+function getDefaultTaxCode(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, currency?: string | undefined) {
+    const defaultExternalID = policy?.taxRates?.defaultExternalID;
+    const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
+    return policy?.outputCurrency === (currency ?? getCurrency(transaction)) ? defaultExternalID : foreignTaxDefault;
+}
+
+/**
+ * Transforms tax rates to a new object format - to add codes and new name with concatenated name and value.
+ *
+ * @param  policy - The policy which the user has access to and which the report is tied to.
+ * @returns The transformed tax rates object.g
+ */
+function transformedTaxRates(policy: OnyxEntry<Policy> | undefined, transaction?: OnyxEntry<Transaction>): Record<string, TaxRate> {
+    const taxRates = policy?.taxRates;
+    const defaultExternalID = taxRates?.defaultExternalID;
+
+    const defaultTaxCode = () => {
+        if (!transaction) {
+            return defaultExternalID;
+        }
+
+        return policy && getDefaultTaxCode(policy, transaction);
+    };
+
+    const getModifiedName = (data: TaxRate, code: string) =>
+        `${data.name} (${data.value})${defaultTaxCode() === code ? ` ${CONST.DOT_SEPARATOR} ${Localize.translateLocal('common.default')}` : ''}`;
+    const taxes = Object.fromEntries(Object.entries(taxRates?.taxes ?? {}).map(([code, data]) => [code, {...data, code, modifiedName: getModifiedName(data, code), name: data.name}]));
+    return taxes;
+}
+
+/**
+ * Gets the tax value of a selected tax
+ */
+function getTaxValue(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, taxCode: string) {
+    return Object.values(transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === taxCode)?.value;
+}
+
+/**
+ * Gets the tax name for Workspace Taxes Settings
+ */
+function getWorkspaceTaxesSettingsName(policy: OnyxEntry<Policy>, taxCode: string) {
+    return Object.values(transformedTaxRates(policy)).find((taxRate) => taxRate.code === taxCode)?.modifiedName;
 }
 
 /**
  * Gets the tax name
  */
-function getTaxName(taxes: TaxRates, transactionTaxCode: string) {
-    const taxName = taxes[transactionTaxCode]?.name ?? '';
-    const taxValue = taxes[transactionTaxCode]?.value ?? '';
-    return transactionTaxCode && taxName && taxValue ? `${taxName} (${taxValue})` : '';
+function getTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>) {
+    const defaultTaxCode = getDefaultTaxCode(policy, transaction);
+    return Object.values(transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === (transaction?.taxCode ?? defaultTaxCode))?.modifiedName;
 }
 
 export {
     buildOptimisticTransaction,
     calculateTaxAmount,
+    getWorkspaceTaxesSettingsName,
+    getDefaultTaxCode,
+    transformedTaxRates,
+    getTaxValue,
     getTaxName,
-    getDefaultTaxName,
     getEnabledTaxRateCount,
     getUpdatedTransaction,
     getDescription,
-    getHeaderTitleTranslationKey,
     getRequestType,
     isManualRequest,
     isScanRequest,
@@ -682,6 +782,7 @@ export {
     hasEReceipt,
     hasRoute,
     isReceiptBeingScanned,
+    didRceiptScanSucceed,
     getValidWaypoints,
     isDistanceRequest,
     isFetchingWaypointsFromServer,
@@ -690,6 +791,7 @@ export {
     isPending,
     isPosted,
     isOnHold,
+    isOnHoldByTransactionID,
     getWaypoints,
     isAmountMissing,
     isMerchantMissing,
@@ -697,10 +799,16 @@ export {
     isCreatedMissing,
     areRequiredFieldsEmpty,
     hasMissingSmartscanFields,
+    hasPendingRTERViolation,
+    allHavePendingRTERViolation,
+    hasPendingUI,
     getWaypointIndex,
     waypointHasValidAddress,
     getRecentTransactions,
     hasViolation,
+    hasNoticeTypeViolation,
+    isCustomUnitRateIDForP2P,
+    getRateID,
 };
 
 export type {TransactionChanges};

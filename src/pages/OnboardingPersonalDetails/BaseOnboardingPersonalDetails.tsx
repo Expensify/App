@@ -1,5 +1,6 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -8,45 +9,88 @@ import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import OfflineIndicator from '@components/OfflineIndicator';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useDisableModalDismissOnEscape from '@hooks/useDisableModalDismissOnEscape';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
+import variables from '@styles/variables';
 import * as PersonalDetails from '@userActions/PersonalDetails';
+import * as Report from '@userActions/Report';
+import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/DisplayNameForm';
+import type {BaseOnboardingPersonalDetailsOnyxProps, BaseOnboardingPersonalDetailsProps} from './types';
 
-type BaseOnboardingPersonalDetailsProps = {
-    /* Whether to use native styles tailored for native devices */
-    shouldUseNativeStyles: boolean;
-};
-
-function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNativeStyles}: WithCurrentUserPersonalDetailsProps & BaseOnboardingPersonalDetailsProps) {
-    const theme = useTheme();
+function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNativeStyles, onboardingPurposeSelected, onboardingAdminsChatReportID}: BaseOnboardingPersonalDetailsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useOnboardingLayout();
+    const {inputCallbackRef} = useAutoFocusInput();
+    const [shouldValidateOnChange, setShouldValidateOnChange] = useState(false);
 
-    const saveAndNavigate = useCallback((values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {
-        PersonalDetails.updateDisplayName(values.firstName.trim(), values.lastName.trim());
+    useDisableModalDismissOnEscape();
 
-        Navigation.navigate(ROUTES.ONBOARDING_PURPOSE);
-    }, []);
+    const completeEngagement = useCallback(
+        (values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {
+            const firstName = values.firstName.trim();
+            const lastName = values.lastName.trim();
+
+            PersonalDetails.setDisplayName(firstName, lastName);
+
+            if (!onboardingPurposeSelected) {
+                return;
+            }
+
+            Report.completeOnboarding(
+                onboardingPurposeSelected,
+                CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
+                {
+                    firstName,
+                    lastName,
+                },
+                onboardingAdminsChatReportID ?? undefined,
+            );
+
+            Welcome.setOnboardingAdminsChatReportID();
+            Welcome.setOnboardingPolicyID();
+
+            Navigation.dismissModal();
+
+            // Only navigate to concierge chat when central pane is visible
+            // Otherwise stay on the chats screen.
+            if (isSmallScreenWidth) {
+                Navigation.navigate(ROUTES.HOME);
+            } else {
+                Report.navigateToConciergeChat();
+            }
+
+            // Small delay purely due to design considerations,
+            // no special technical reasons behind that.
+            setTimeout(() => {
+                Navigation.navigate(ROUTES.WELCOME_VIDEO_ROOT);
+            }, variables.welcomeVideoDelay);
+        },
+        [isSmallScreenWidth, onboardingPurposeSelected, onboardingAdminsChatReportID],
+    );
 
     const validate = (values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {
+        if (!shouldValidateOnChange) {
+            setShouldValidateOnChange(true);
+        }
+
         const errors = {};
 
         // First we validate the first name field
-        if (values.firstName.length === 0) {
+        if (values.firstName.replace(CONST.REGEX.ANY_SPACE, '').length === 0) {
             ErrorUtils.addErrorMessage(errors, 'firstName', 'onboarding.error.requiredFirstName');
         }
         if (!ValidationUtils.isValidDisplayName(values.firstName)) {
@@ -59,9 +103,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
         }
 
         // Then we validate the last name field
-        if (values.lastName.length === 0) {
-            ErrorUtils.addErrorMessage(errors, 'lastName', 'onboarding.error.requiredLastName');
-        }
         if (!ValidationUtils.isValidDisplayName(values.lastName)) {
             ErrorUtils.addErrorMessage(errors, 'lastName', 'personalDetails.error.hasInvalidCharacter');
         } else if (values.lastName.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
@@ -79,34 +120,34 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     return (
         <View style={[styles.h100, styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}>
             <HeaderWithBackButton
-                shouldShowBackButton={false}
-                iconFill={theme.iconColorfulBackground}
-                progressBarPercentage={33.3}
+                shouldShowBackButton
+                progressBarPercentage={75}
+                onBackButtonPress={Navigation.goBack}
             />
             <KeyboardAvoidingView
                 style={[styles.flex1, styles.dFlex]}
                 behavior="padding"
             >
                 <FormProvider
-                    style={[styles.flexGrow1, shouldUseNarrowLayout && styles.mt5, shouldUseNarrowLayout ? styles.mh8 : styles.mh5]}
+                    style={[styles.flexGrow1, shouldUseNarrowLayout && styles.mt5, styles.mb5, shouldUseNarrowLayout ? styles.mh8 : styles.mh5]}
                     formID={ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM}
                     footerContent={isSmallScreenWidth && PersonalDetailsFooterInstance}
                     validate={validate}
-                    onSubmit={saveAndNavigate}
+                    onSubmit={completeEngagement}
                     submitButtonText={translate('common.continue')}
                     enabledWhenOffline
                     submitFlexEnabled
-                    shouldValidateOnBlur
-                    shouldValidateOnChange
+                    shouldValidateOnBlur={false}
+                    shouldValidateOnChange={shouldValidateOnChange}
                     shouldTrimValues={false}
                 >
                     <View style={[shouldUseNarrowLayout ? styles.flexRow : styles.flexColumn, styles.mb5]}>
-                        <Text style={[styles.textHeadlineH1, styles.textXXLarge]}>{translate('onboarding.welcome')} </Text>
-                        <Text style={[styles.textHeadlineH1, styles.textXXLarge]}>{translate('onboarding.whatsYourName')}</Text>
+                        <Text style={styles.textHeadlineH1}>{translate('onboarding.whatsYourName')}</Text>
                     </View>
                     <View style={styles.mb4}>
                         <InputWrapper
                             InputComponent={TextInput}
+                            ref={inputCallbackRef}
                             inputID={INPUT_IDS.FIRST_NAME}
                             name="fname"
                             label={translate('common.firstName')}
@@ -116,7 +157,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                             shouldSaveDraft
                             maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                             spellCheck={false}
-                            autoFocus
                         />
                     </View>
                     <View>
@@ -141,6 +181,13 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
 
 BaseOnboardingPersonalDetails.displayName = 'BaseOnboardingPersonalDetails';
 
-export default withCurrentUserPersonalDetails(BaseOnboardingPersonalDetails);
-
-export type {BaseOnboardingPersonalDetailsProps};
+export default withCurrentUserPersonalDetails(
+    withOnyx<BaseOnboardingPersonalDetailsProps, BaseOnboardingPersonalDetailsOnyxProps>({
+        onboardingPurposeSelected: {
+            key: ONYXKEYS.ONBOARDING_PURPOSE_SELECTED,
+        },
+        onboardingAdminsChatReportID: {
+            key: ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID,
+        },
+    })(BaseOnboardingPersonalDetails),
+);

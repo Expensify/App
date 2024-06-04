@@ -54,7 +54,7 @@ function IOURequestStepTag({
     policyTags,
     report,
     route: {
-        params: {action, tagIndex: rawTagIndex, transactionID, backTo, iouType, reportActionID},
+        params: {action, orderWeight: rawTagIndex, transactionID, backTo, iouType, reportActionID},
     },
     transaction,
     splitDraftTransaction,
@@ -77,7 +77,7 @@ function IOURequestStepTag({
     const canEditSplitBill = isSplitBill && reportAction && session?.accountID === reportAction.actorAccountID && TransactionUtils.areRequiredFieldsEmpty(transaction);
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
 
-    const shouldShowTag = ReportUtils.isGroupPolicy(report) && (transactionTag || OptionsListUtils.hasEnabledTags(policyTagLists));
+    const shouldShowTag = ReportUtils.isReportInGroupPolicy(report) && (transactionTag || OptionsListUtils.hasEnabledTags(policyTagLists));
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = !shouldShowTag || (isEditing && (isSplitBill ? !canEditSplitBill : reportAction && !canEditMoneyRequest(reportAction)));

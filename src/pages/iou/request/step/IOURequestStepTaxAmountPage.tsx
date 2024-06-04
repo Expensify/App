@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useCallback, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -8,14 +8,14 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import type {CurrentMoney} from '@pages/iou/steps/MoneyRequestAmountForm';
-import MoneyRequestAmountForm from '@pages/iou/steps/MoneyRequestAmountForm';
+import type {CurrentMoney} from '@pages/iou/MoneyRequestAmountForm';
+import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Policy, PolicyCategories, PolicyTagList, TaxRatesWithDefault, Transaction} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyTagList, Transaction} from '@src/types/onyx';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -34,22 +34,24 @@ type IOURequestStepTaxAmountPageProps = IOURequestStepTaxAmountPageOnyxProps &
         transaction: OnyxEntry<Transaction>;
     };
 
-function getTaxAmount(transaction: OnyxEntry<Transaction>, taxRates: TaxRatesWithDefault | undefined, isEditing: boolean): number | undefined {
-    if (!transaction?.amount) {
+function getTaxAmount(transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>, currency: string | undefined, isEditing: boolean): number | undefined {
+    if (!transaction?.amount && !transaction?.modifiedAmount) {
         return;
     }
     const transactionTaxAmount = TransactionUtils.getAmount(transaction);
     const transactionTaxCode = transaction?.taxCode ?? '';
-    const defaultTaxValue = taxRates?.defaultValue;
-    const editingTaxPercentage = (transactionTaxCode ? taxRates?.taxes[transactionTaxCode]?.value : taxRates?.defaultValue) ?? '';
-    const moneyRequestTaxPercentage = (transaction?.taxRate ? transaction?.taxRate?.data?.value : defaultTaxValue) ?? '';
+    const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction, currency) ?? '';
+    const getTaxValue = (taxCode: string) => TransactionUtils.getTaxValue(policy, transaction, taxCode);
+    const defaultTaxValue = getTaxValue(defaultTaxCode);
+    const moneyRequestTaxPercentage = (transactionTaxCode ? getTaxValue(transactionTaxCode) : defaultTaxValue) ?? '';
+    const editingTaxPercentage = (transactionTaxCode ? getTaxValue(transactionTaxCode) : moneyRequestTaxPercentage) ?? '';
     const taxPercentage = isEditing ? editingTaxPercentage : moneyRequestTaxPercentage;
     return CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(taxPercentage, transactionTaxAmount));
 }
 
 function IOURequestStepTaxAmountPage({
     route: {
-        params: {action, iouType, reportID, transactionID, backTo},
+        params: {action, iouType, reportID, transactionID, backTo, currency: selectedCurrency = ''},
     },
     transaction,
     report,
@@ -63,27 +65,8 @@ function IOURequestStepTaxAmountPage({
 
     const focusTimeoutRef = useRef<NodeJS.Timeout>();
 
-    const isSaveButtonPressed = useRef(false);
-    const originalCurrency = useRef<string>();
-
     const transactionDetails = ReportUtils.getTransactionDetails(transaction);
-    const taxRates = policy?.taxRates;
-
-    useEffect(() => {
-        if (transaction?.originalCurrency) {
-            originalCurrency.current = transaction.originalCurrency;
-        } else if (transaction?.currency) {
-            originalCurrency.current = transaction.currency;
-            IOU.setMoneyRequestOriginalCurrency_temporaryForRefactor(transactionID, transaction?.currency);
-        }
-        return () => {
-            if (isSaveButtonPressed.current || !originalCurrency.current) {
-                return;
-            }
-            IOU.setMoneyRequestCurrency_temporaryForRefactor(transactionID, originalCurrency.current, true);
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    const currency = CurrencyUtils.isValidCurrencyCode(selectedCurrency) ? selectedCurrency : transactionDetails?.currency;
 
     useFocusEffect(
         useCallback(() => {
@@ -102,16 +85,23 @@ function IOURequestStepTaxAmountPage({
     };
 
     const navigateToCurrencySelectionPage = () => {
-        // If the money request being created is a distance request, don't allow the user to choose the currency.
-        // Only USD is allowed for distance requests.
+        // If the expense being created is a distance expense, don't allow the user to choose the currency.
+        // Only USD is allowed for distance expenses.
         // Remove query from the route and encode it.
         Navigation.navigate(
-            ROUTES.MONEY_REQUEST_STEP_CURRENCY.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, backTo ? 'confirm' : '', Navigation.getActiveRouteWithoutParams()),
+            ROUTES.MONEY_REQUEST_STEP_CURRENCY.getRoute(
+                CONST.IOU.ACTION.CREATE,
+                iouType,
+                transactionID,
+                reportID,
+                backTo ? 'confirm' : '',
+                currency,
+                Navigation.getActiveRouteWithoutParams(),
+            ),
         );
     };
 
     const updateTaxAmount = (currentAmount: CurrentMoney) => {
-        isSaveButtonPressed.current = true;
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount.amount));
 
         if (isEditing) {
@@ -127,7 +117,7 @@ function IOURequestStepTaxAmountPage({
         IOU.setMoneyRequestTaxAmount(transactionID, amountInSmallestCurrencyUnits, true);
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        IOU.setMoneyRequestCurrency_temporaryForRefactor(transactionID, transaction?.currency || CONST.CURRENCY.USD, true);
+        IOU.setMoneyRequestCurrency(transactionID, currency || CONST.CURRENCY.USD);
 
         if (backTo) {
             Navigation.goBack(backTo);
@@ -159,12 +149,13 @@ function IOURequestStepTaxAmountPage({
         >
             <MoneyRequestAmountForm
                 isEditing={Boolean(backTo || isEditing)}
-                currency={transaction?.currency}
-                amount={transactionDetails?.taxAmount}
-                taxAmount={getTaxAmount(transaction, taxRates, Boolean(backTo || isEditing))}
+                currency={currency}
+                amount={Math.abs(transactionDetails?.taxAmount ?? 0)}
+                taxAmount={getTaxAmount(transaction, policy, currency, Boolean(backTo || isEditing))}
                 ref={(e) => (textInput.current = e)}
                 onCurrencyButtonPress={navigateToCurrencySelectionPage}
                 onSubmitButtonPress={updateTaxAmount}
+                isCurrencyPressable={false}
             />
         </StepScreenWrapper>
     );

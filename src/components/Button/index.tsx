@@ -115,6 +115,9 @@ type ButtonProps = Partial<ChildrenProps> & {
 
     /** Boolean whether to display the right icon */
     shouldShowRightIcon?: boolean;
+
+    /** Whether the button should use split style or not */
+    isSplitButton?: boolean;
 };
 
 type KeyboardShortcutComponentProps = Pick<ButtonProps, 'isDisabled' | 'isLoading' | 'onPress' | 'pressOnEnter' | 'allowBubble' | 'enterKeyEventListenerPriority'>;
@@ -198,9 +201,10 @@ function Button(
 
         id = '',
         accessibilityLabel = '',
+        isSplitButton = false,
         ...rest
     }: ButtonProps,
-    ref: ForwardedRef<View | HTMLDivElement>,
+    ref: ForwardedRef<View>,
 ) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -253,13 +257,22 @@ function Button(
                     </View>
                     {shouldShowRightIcon && (
                         <View style={[styles.justifyContentCenter, large ? styles.ml2 : styles.ml1, iconRightStyles]}>
-                            <Icon
-                                src={iconRight}
-                                fill={iconFill ?? (success || danger ? theme.textLight : theme.icon)}
-                                small={small}
-                                medium={medium}
-                                large={large}
-                            />
+                            {!isSplitButton ? (
+                                <Icon
+                                    src={iconRight}
+                                    fill={iconFill ?? (success || danger ? theme.textLight : theme.icon)}
+                                    small={medium}
+                                    medium={large}
+                                />
+                            ) : (
+                                <Icon
+                                    src={iconRight}
+                                    fill={iconFill ?? (success || danger ? theme.textLight : theme.icon)}
+                                    small={small}
+                                    medium={medium}
+                                    large={large}
+                                />
+                            )}
                         </View>
                     )}
                 </View>

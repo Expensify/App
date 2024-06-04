@@ -5,10 +5,13 @@ import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
 import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
 import MoneyRequestHeaderStatusBar from '@components/MoneyRequestHeaderStatusBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SplitDetailsNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -16,6 +19,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import withReportAndReportActionOrNotFound from '@pages/home/report/withReportAndReportActionOrNotFound';
 import type {WithReportAndReportActionOrNotFoundProps} from '@pages/home/report/withReportAndReportActionOrNotFound';
+import variables from '@styles/variables';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -57,10 +61,11 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
     const styles = useThemeStyles();
     const reportID = report?.reportID ?? '';
     const {translate} = useLocalize();
+    const theme = useTheme();
     const reportAction = useMemo(() => reportActions?.[route.params.reportActionID] ?? ({} as ReportAction), [reportActions, route.params.reportActionID]);
     const participantAccountIDs = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? reportAction?.originalMessage.participantAccountIDs ?? [] : [];
 
-    // In case this is workspace split bill, we manually add the workspace as the second participant of the split bill
+    // In case this is workspace split expense, we manually add the workspace as the second participant of the split expense
     // because we don't save any accountID in the report action's originalMessage other than the payee's accountID
     let participants: Array<Participant | ReportUtils.OptionData>;
     if (ReportUtils.isPolicyExpenseChat(report)) {
@@ -85,7 +90,6 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
         merchant: splitMerchant,
         created: splitCreated,
         category: splitCategory,
-        tag: splitTag,
         billable: splitBillable,
     } = ReportUtils.getTransactionDetails(isEditingSplitBill && draftTransaction ? draftTransaction : transaction) ?? {};
 
@@ -101,14 +105,21 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
                 <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                     {isScanning && (
                         <MoneyRequestHeaderStatusBar
-                            title={translate('iou.receiptStatusTitle')}
-                            description={translate('iou.receiptStatusText')}
+                            title={
+                                <Icon
+                                    src={Expensicons.ReceiptScan}
+                                    height={variables.iconSizeSmall}
+                                    width={variables.iconSizeSmall}
+                                    fill={theme.icon}
+                                />
+                            }
+                            description={translate('iou.receiptScanInProgressDescription')}
                             shouldShowBorderBottom
+                            shouldStyleFlexGrow={false}
                         />
                     )}
                     {!!participants.length && (
                         <MoneyRequestConfirmationList
-                            hasMultipleParticipants
                             payeePersonalDetails={payeePersonalDetails}
                             selectedParticipants={participantsExcludingPayee}
                             iouAmount={splitAmount ?? 0}
@@ -117,7 +128,6 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
                             iouCreated={splitCreated}
                             iouMerchant={splitMerchant}
                             iouCategory={splitCategory}
-                            iouTag={splitTag}
                             iouIsBillable={splitBillable}
                             iouType={CONST.IOU.TYPE.SPLIT}
                             isReadOnly={!isEditingSplitBill}
@@ -132,6 +142,7 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
                             onConfirm={onConfirm}
                             isPolicyExpenseChat={ReportUtils.isPolicyExpenseChat(report)}
                             policyID={ReportUtils.isPolicyExpenseChat(report) ? report?.policyID : undefined}
+                            action={isEditingSplitBill ? CONST.IOU.ACTION.EDIT : CONST.IOU.ACTION.CREATE}
                         />
                     )}
                 </View>

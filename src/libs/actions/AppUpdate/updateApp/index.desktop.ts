@@ -1,6 +1,5 @@
-import {Linking} from 'react-native';
-import CONST from '@src/CONST';
+import ELECTRON_EVENTS from '@desktop/ELECTRON_EVENTS';
 
 export default function updateApp() {
-    Linking.openURL(CONST.APP_DOWNLOAD_LINKS.DESKTOP);
+    window.electron.send(ELECTRON_EVENTS.SILENT_UPDATE);
 }

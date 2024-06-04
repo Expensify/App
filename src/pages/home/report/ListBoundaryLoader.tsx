@@ -1,7 +1,10 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import Button from '@components/Button';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
+import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -22,6 +25,12 @@ type ListBoundaryLoaderProps = {
 
     /** Name of the last report action */
     lastReportActionName?: string;
+
+    /** Shows if there was an error when loading report actions */
+    hasError?: boolean;
+
+    /** Function to retry if there was an error */
+    onRetry?: () => void;
 };
 
 function ListBoundaryLoader({
@@ -30,11 +39,47 @@ function ListBoundaryLoader({
     isLoadingInitialReportActions = false,
     lastReportActionName = '',
     isLoadingNewerReportActions = false,
+    hasError = false,
+    onRetry,
 }: ListBoundaryLoaderProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
+    const {translate} = useLocalize();
 
+    // When retrying we want to show the loading state in the retry button so we
+    // have this separate state to handle that.
+    const [isRetrying, setIsRetrying] = React.useState(false);
+
+    const retry = () => {
+        setIsRetrying(true);
+        onRetry?.();
+    };
+
+    // Reset the retrying state once loading is done.
+    useEffect(() => {
+        if (isLoadingNewerReportActions || isLoadingOlderReportActions) {
+            return;
+        }
+
+        setIsRetrying(false);
+    }, [isLoadingNewerReportActions, isLoadingOlderReportActions]);
+
+    if (hasError || isRetrying) {
+        return (
+            <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.listBoundaryError]}>
+                <Text style={styles.listBoundaryErrorText}>{translate('listBoundary.errorMessage')}</Text>
+                {!isOffline && (
+                    <Button
+                        small
+                        onPress={retry}
+                        text={translate('listBoundary.tryAgain')}
+                        isLoading={isRetrying}
+                    />
+                )}
+            </View>
+        );
+    }
     // We use two different loading components for the header and footer
     // to reduce the jumping effect when the user is scrolling to the newer report actions
     if (type === CONST.LIST_COMPONENTS.FOOTER) {
@@ -55,7 +100,7 @@ function ListBoundaryLoader({
         // applied for a header of the list, i.e. when you scroll to the bottom of the list
         // the styles for android and the rest components are different that's why we use two different components
         return (
-            <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.chatBottomLoader]}>
+            <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.listBoundaryLoader]}>
                 <ActivityIndicator
                     color={theme.spinner}
                     size="small"
