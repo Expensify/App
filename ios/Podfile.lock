@@ -281,10 +281,29 @@ PODS:
     - nanopb/encode (= 2.30908.0)
   - nanopb/decode (2.30908.0)
   - nanopb/encode (2.30908.0)
-  - Onfido (29.9.1)
-  - onfido-react-native-sdk (11.1.0):
-    - Onfido (~> 29.9.1)
-    - React
+  - Onfido (29.7.2)
+  - onfido-react-native-sdk (10.6.0):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - Onfido (~> 29.7.0)
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Codegen
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - Plaid (5.2.1)
   - PromisesObjC (2.4.0)
   - RCT-Folly (2024.01.01.00):
@@ -2628,8 +2647,8 @@ SPEC CHECKSUMS:
   MapboxMaps: 87ef0003e6db46e45e7a16939f29ae87e38e7ce2
   MapboxMobileEvents: de50b3a4de180dd129c326e09cd12c8adaaa46d6
   nanopb: a0ba3315591a9ae0a16a309ee504766e90db0c96
-  Onfido: fae2ed9a82372359a2c1f8fe3cf09a4e6964e19c
-  onfido-react-native-sdk: b7e420d71e0bd36d78b48ec94c2266ff7aa01174
+  Onfido: f3af62ea1c9a419589c133e3e511e5d2c4f3f8af
+  onfido-react-native-sdk: 9ac8a56253f0962f73430e55dd723a6ada046788
   Plaid: 7829e84db6d766a751c91a402702946d2977ddcb
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   RCT-Folly: 045d6ecaa59d826c5736dfba0b2f4083ff8d79df
