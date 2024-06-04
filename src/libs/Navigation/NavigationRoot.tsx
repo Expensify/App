@@ -6,6 +6,7 @@ import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useTheme from '@hooks/useTheme';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {FSPage} from '@libs/Fullstory';
 import Log from '@libs/Log';
 import {getPathFromURL} from '@libs/Url';
 import {updateLastVisitedPath} from '@userActions/App';
@@ -57,6 +58,12 @@ function parseAndLogRoute(state: NavigationState) {
     }
 
     Navigation.setIsNavigationReady();
+
+    // Fullstory Page navigation tracking
+    const focusedRouteName = focusedRoute?.name;
+    if (focusedRouteName) {
+        new FSPage(focusedRouteName, {path: currentPath}).start();
+    }
 }
 
 function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: NavigationRootProps) {

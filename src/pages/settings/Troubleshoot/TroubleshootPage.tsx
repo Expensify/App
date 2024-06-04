@@ -55,7 +55,7 @@ function TroubleshootPage({shouldStoreLogs}: TroubleshootPageProps) {
         const debugConsoleItem: BaseMenuItem = {
             translationKey: 'initialSettingsPage.troubleshoot.viewConsole',
             icon: Expensicons.Gear,
-            action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_CONSOLE)),
+            action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_CONSOLE.getRoute(ROUTES.SETTINGS_TROUBLESHOOT))),
         };
 
         const baseMenuItems: BaseMenuItem[] = [

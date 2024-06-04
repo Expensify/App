@@ -19,7 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as PaymentMethods from '@userActions/PaymentMethods';
-import * as PolicyActions from '@userActions/Policy';
+import * as PolicyActions from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/AddDebitCardForm';
