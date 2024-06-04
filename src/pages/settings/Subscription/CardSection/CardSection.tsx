@@ -36,11 +36,11 @@ function CardSection() {
                             <Icon
                                 src={Expensicons.CreditCard}
                                 additionalStyles={styles.subscriptionCardIcon}
-                                fill={theme.text}
+                                fill={theme.icon}
                                 medium
                             />
                             <View style={styles.flex1}>
-                                <Text>{translate('subscription.cardSection.cardEnding', {cardNumber: defaultCard?.accountData?.cardNumber})}</Text>
+                                <Text style={styles.textStrong}>{translate('subscription.cardSection.cardEnding', {cardNumber: defaultCard?.accountData?.cardNumber})}</Text>
                                 <Text style={styles.mutedNormalTextLabel}>
                                     {translate('subscription.cardSection.cardInfo', {
                                         name: defaultCard?.accountData?.addressName,
