@@ -22,15 +22,14 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import getPlatform from '@libs/getPlatform';
 import Navigation from '@libs/Navigation/Navigation';
 import * as App from '@userActions/App';
 import * as Report from '@userActions/Report';
-import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import getLightbulbIllustrationStyle from './getLightbulbIllustrationStyle';
 
 type BaseMenuItem = {
     translationKey: TranslationPaths;
@@ -52,6 +51,7 @@ function TroubleshootPage({shouldStoreLogs}: TroubleshootPageProps) {
     const [isConfirmationModalVisible, setIsConfirmationModalVisible] = useState(false);
     const waitForNavigate = useWaitForNavigation();
     const {isSmallScreenWidth} = useWindowDimensions();
+    const illustrationStyle = getLightbulbIllustrationStyle();
 
     const menuItems = useMemo(() => {
         const debugConsoleItem: BaseMenuItem = {
@@ -83,11 +83,6 @@ function TroubleshootPage({shouldStoreLogs}: TroubleshootPageProps) {
             .reverse();
     }, [shouldStoreLogs, translate, waitForNavigate, styles.sectionMenuItemTopDescription]);
 
-    const isNativePlatform = useMemo(() => {
-        const platform = getPlatform();
-        return platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
-    }, []);
-
     return (
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}
@@ -108,7 +103,7 @@ function TroubleshootPage({shouldStoreLogs}: TroubleshootPageProps) {
                         isCentralPane
                         subtitleMuted
                         illustration={LottieAnimations.Desk}
-                        illustrationStyle={!isNativePlatform && [styles.mt4, styles.mbn4]}
+                        illustrationStyle={illustrationStyle}
                         titleStyles={styles.accountSettingsSectionTitle}
                         illustrationBackgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.TROUBLESHOOT].backgroundColor}
                         renderSubtitle={() => (
