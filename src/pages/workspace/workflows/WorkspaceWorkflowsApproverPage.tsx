@@ -69,7 +69,7 @@ function WorkspaceWorkflowsApproverPage({policy, personalDetails, isLoadingRepor
                 return;
             }
             const searchValue = OptionsListUtils.getSearchValueForPhoneOrEmail(searchTerm);
-            if (searchValue.trim() && !OptionsListUtils.isUserMatchWithSearch(details, searchValue)) {
+            if (searchValue.trim() && !OptionsListUtils.isSearchStringMatchUserDetails(details, searchValue)) {
                 return;
             }
 

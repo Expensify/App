@@ -582,22 +582,22 @@ function getAlternateText(option: ReportUtils.OptionData, {showChatPreviewLine =
         : LocalePhoneNumber.formatPhoneNumber(option.participantsList && option.participantsList.length > 0 ? option.participantsList[0].login ?? '' : '');
 }
 
-function isUserMatchWithSearch(personalDetail: PersonalDetails, searchValue: string) {
+function isSearchStringMatchUserDetails(personalDetail: PersonalDetails, searchValue: string) {
     let memberDetails = '';
     if (personalDetail.login) {
-        memberDetails += ` ${personalDetail.login.toLowerCase()}`;
+        memberDetails += ` ${personalDetail.login}`.toLowerCase();
     }
     if (personalDetail.firstName) {
-        memberDetails += ` ${personalDetail.firstName.toLowerCase()}`;
+        memberDetails += ` ${personalDetail.firstName}`.toLowerCase();
     }
     if (personalDetail.lastName) {
-        memberDetails += ` ${personalDetail.lastName.toLowerCase()}`;
+        memberDetails += ` ${personalDetail.lastName}`.toLowerCase();
     }
     if (personalDetail.displayName) {
-        memberDetails += ` ${PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail).toLowerCase()}`;
+        memberDetails += ` ${PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail)}`.toLowerCase();
     }
     if (personalDetail.phoneNumber) {
-        memberDetails += ` ${personalDetail.phoneNumber.toLowerCase()}`;
+        memberDetails += ` ${personalDetail.phoneNumber}`.toLowerCase();
     }
     return isSearchStringMatch(searchValue.trim(), memberDetails);
 }
@@ -2456,7 +2456,7 @@ export {
     getPersonalDetailsForAccountIDs,
     getIOUConfirmationOptionsFromPayeePersonalDetail,
     getSearchText,
-    isUserMatchWithSearch,
+    isSearchStringMatchUserDetails,
     getAllReportErrors,
     getPolicyExpenseReportOption,
     getParticipantsOption,

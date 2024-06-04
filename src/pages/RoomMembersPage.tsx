@@ -183,7 +183,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                 }
 
                 // If search value is provided, filter out members that don't match the search value
-                if (searchValue.trim() && !OptionsListUtils.isUserMatchWithSearch(details, searchValue)) {
+                if (searchValue.trim() && !OptionsListUtils.isSearchStringMatchUserDetails(details, searchValue)) {
                     return;
                 }
                 const pendingChatMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
