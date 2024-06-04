@@ -36,7 +36,7 @@ function appleSignInRequest(): Promise<string | undefined> {
 function AppleSignIn() {
     const handleSignIn = () => {
         appleSignInRequest()
-            .then((token) => Session.beginAppleSignIn(token))
+            .then((token) => Session.beginAppleSignIn(token ?? null))
             .catch((error: Record<string, unknown>) => {
                 if (error.message === appleAuthAndroid.Error.SIGNIN_CANCELLED) {
                     return null;
