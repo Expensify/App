@@ -41,6 +41,7 @@ export default function useResponsiveLayout(): ResponsiveLayoutResult {
     // We are using these contexts directly instead of useNavigation/useNavigationState, because those will throw an error if used outside a navigator.
     // This hook can be used within or outside a navigator, so using useNavigationState does not work.
     // Furthermore, wrapping useNavigationState in a try/catch does not work either, because that breaks the rules of hooks.
+    // Note that these three lines are copied closely from the internal implementation of useNavigation: https://github.com/react-navigation/react-navigation/blob/52a3234b7aaf4d4fcc9c0155f44f3ea2233f0f40/packages/core/src/useNavigation.tsx#L18-L28
     const navigationContainerRef = useContext(NavigationContainerRefContext);
     const navigator = useContext(NavigationContext);
     const currentNavigator = navigator ?? navigationContainerRef;
