@@ -1,7 +1,6 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import Icon from '@components/Icon';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -10,14 +9,15 @@ import OptionsPicker from '@components/OptionsPicker';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useSubscriptionID from '@hooks/useSubscriptionID';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
+import * as Subscription from '@userActions/Subscription';
+import type {SubscriptionType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-type SubscriptionVariant = ValueOf<typeof CONST.SUBSCRIPTION.TYPE>;
-
-const options: Array<OptionsPickerItem<SubscriptionVariant>> = [
+const options: Array<OptionsPickerItem<SubscriptionType>> = [
     {
         key: CONST.SUBSCRIPTION.TYPE.ANNUAL,
         title: 'subscription.details.annual',
@@ -35,11 +35,14 @@ function SubscriptionDetails() {
     const styles = useThemeStyles();
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
 
-    const [selectedOption, setSelectedOption] = useState(privateSubscription?.type ?? CONST.SUBSCRIPTION.TYPE.ANNUAL);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const subscriptionID = useSubscriptionID();
 
-    const onOptionSelected = (option: SubscriptionVariant) => {
-        setSelectedOption(option);
+    const onOptionSelected = (option: SubscriptionType) => {
+        if (!subscriptionID) {
+            return;
+        }
+        Subscription.updateSubscriptionType(subscriptionID, option);
     };
 
     // This section is only shown when the subscription is annual
@@ -89,7 +92,7 @@ function SubscriptionDetails() {
                 <>
                     <OptionsPicker
                         options={options}
-                        selectedOption={selectedOption}
+                        selectedOption={privateSubscription?.type ?? CONST.SUBSCRIPTION.TYPE.ANNUAL}
                         onOptionSelected={onOptionSelected}
                         style={styles.mt5}
                     />
