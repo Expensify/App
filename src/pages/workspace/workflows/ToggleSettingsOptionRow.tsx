@@ -12,30 +12,43 @@ import type IconAsset from '@src/types/utils/IconAsset';
 type ToggleSettingOptionRowProps = {
     /** Icon to be shown for the option */
     icon?: IconAsset;
+
     /** Title of the option */
     title?: string;
+
     /** Custom title for the option */
     customTitle?: React.ReactNode;
+
     /** Subtitle of the option */
     subtitle?: string;
+
     /** Accessibility label for the switch */
     switchAccessibilityLabel: string;
+
     /** subtitle should show below switch and title */
     shouldPlaceSubtitleBelowSwitch?: boolean;
+
     /** Used to apply styles to the outermost container */
     wrapperStyle?: StyleProp<ViewStyle>;
+
     /** Whether the option is enabled or not */
     isActive: boolean;
+
     /** Callback to be called when the switch is toggled */
     onToggle: (isEnabled: boolean) => void;
+
     /** SubMenuItems will be shown when the option is enabled */
     subMenuItems?: React.ReactNode;
+
     /** If there is a pending action, we will grey out the option */
     pendingAction?: PendingAction;
+
     /** Any error message to show */
     errors?: Errors;
+
     /** Callback to close the error messages */
     onCloseError?: () => void;
+
     /** Whether the toggle should be disabled */
     disabled?: boolean;
 
