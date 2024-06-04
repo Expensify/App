@@ -4,7 +4,6 @@ import ReactNativeModal from 'react-native-modal';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import useKeyboardState from '@hooks/useKeyboardState';
 import usePrevious from '@hooks/usePrevious';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -17,6 +16,7 @@ import variables from '@styles/variables';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import ModalContent from './ModalContent';
+import ModalContext from './ModalContext';
 import type BaseModalProps from './types';
 
 function BaseModal(
@@ -55,8 +55,7 @@ function BaseModal(
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {windowWidth, windowHeight} = useWindowDimensions();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isSmallScreenWidth, windowWidth, windowHeight} = useWindowDimensions();
     const keyboardStateContextValue = useKeyboardState();
 
     const safeAreaInsets = useSafeAreaInsets();
@@ -164,13 +163,13 @@ function BaseModal(
                 {
                     windowWidth,
                     windowHeight,
-                    isSmallScreenWidth: shouldUseNarrowLayout,
+                    isSmallScreenWidth,
                 },
                 popoverAnchorPosition,
                 innerContainerStyle,
                 outerStyle,
             ),
-        [StyleUtils, type, windowWidth, windowHeight, shouldUseNarrowLayout, popoverAnchorPosition, innerContainerStyle, outerStyle],
+        [StyleUtils, type, windowWidth, windowHeight, isSmallScreenWidth, popoverAnchorPosition, innerContainerStyle, outerStyle],
     );
 
     const {
@@ -201,58 +200,67 @@ function BaseModal(
               paddingRight: safeAreaPaddingRight ?? 0,
           };
 
+    const modalContextValue = useMemo(
+        () => ({
+            activeModalType: isVisible ? type : undefined,
+        }),
+        [isVisible, type],
+    );
+
     return (
-        // this is a workaround for modal not being visible on the new arch in some cases
-        // it's necessary to have a non-collapseable view as a parent of the modal to prevent
-        // a conflict between RN core and Reanimated shadow tree operations
-        // position absolute is needed to prevent the view from interfering with flex layout
-        <View
-            collapsable={false}
-            style={[styles.pAbsolute]}
-        >
-            <ReactNativeModal
-                // Prevent the parent element to capture a click. This is useful when the modal component is put inside a pressable.
-                onClick={(e) => e.stopPropagation()}
-                onBackdropPress={handleBackdropPress}
-                // Note: Escape key on web/desktop will trigger onBackButtonPress callback
-                // eslint-disable-next-line react/jsx-props-no-multi-spaces
-                onBackButtonPress={Modal.closeTop}
-                onModalShow={handleShowModal}
-                propagateSwipe={propagateSwipe}
-                onModalWillShow={saveFocusState}
-                onSwipeComplete={() => onClose?.()}
-                swipeDirection={swipeDirection}
-                isVisible={isVisible}
-                backdropColor={theme.overlay}
-                backdropOpacity={!shouldUseCustomBackdrop && hideBackdrop ? 0 : variables.overlayOpacity}
-                backdropTransitionOutTiming={0}
-                hasBackdrop={fullscreen}
-                coverScreen={fullscreen}
-                style={modalStyle}
-                deviceHeight={windowHeight}
-                deviceWidth={windowWidth}
-                animationIn={animationIn ?? modalStyleAnimationIn}
-                animationOut={animationOut ?? modalStyleAnimationOut}
-                useNativeDriver={useNativeDriverProp && useNativeDriver}
-                useNativeDriverForBackdrop={useNativeDriverForBackdrop && useNativeDriver}
-                hideModalContentWhileAnimating={hideModalContentWhileAnimating}
-                animationInTiming={animationInTiming}
-                animationOutTiming={animationOutTiming}
-                statusBarTranslucent={statusBarTranslucent}
-                onLayout={onLayout}
-                avoidKeyboard={avoidKeyboard}
-                customBackdrop={shouldUseCustomBackdrop ? <Overlay onPress={handleBackdropPress} /> : undefined}
+        <ModalContext.Provider value={modalContextValue}>
+            <View
+                // this is a workaround for modal not being visible on the new arch in some cases
+                // it's necessary to have a non-collapseable view as a parent of the modal to prevent
+                // a conflict between RN core and Reanimated shadow tree operations
+                // position absolute is needed to prevent the view from interfering with flex layout
+                collapsable={false}
+                style={[styles.pAbsolute]}
             >
-                <ModalContent onDismiss={handleDismissModal}>
-                    <View
-                        style={[styles.defaultModalContainer, modalPaddingStyles, modalContainerStyle, !isVisible && styles.pointerEventsNone]}
-                        ref={ref}
-                    >
-                        <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
-                    </View>
-                </ModalContent>
-            </ReactNativeModal>
-        </View>
+                <ReactNativeModal
+                    // Prevent the parent element to capture a click. This is useful when the modal component is put inside a pressable.
+                    onClick={(e) => e.stopPropagation()}
+                    onBackdropPress={handleBackdropPress}
+                    // Note: Escape key on web/desktop will trigger onBackButtonPress callback
+                    // eslint-disable-next-line react/jsx-props-no-multi-spaces
+                    onBackButtonPress={Modal.closeTop}
+                    onModalShow={handleShowModal}
+                    propagateSwipe={propagateSwipe}
+                    onModalWillShow={saveFocusState}
+                    onSwipeComplete={() => onClose?.()}
+                    swipeDirection={swipeDirection}
+                    isVisible={isVisible}
+                    backdropColor={theme.overlay}
+                    backdropOpacity={!shouldUseCustomBackdrop && hideBackdrop ? 0 : variables.overlayOpacity}
+                    backdropTransitionOutTiming={0}
+                    hasBackdrop={fullscreen}
+                    coverScreen={fullscreen}
+                    style={modalStyle}
+                    deviceHeight={windowHeight}
+                    deviceWidth={windowWidth}
+                    animationIn={animationIn ?? modalStyleAnimationIn}
+                    animationOut={animationOut ?? modalStyleAnimationOut}
+                    useNativeDriver={useNativeDriverProp && useNativeDriver}
+                    useNativeDriverForBackdrop={useNativeDriverForBackdrop && useNativeDriver}
+                    hideModalContentWhileAnimating={hideModalContentWhileAnimating}
+                    animationInTiming={animationInTiming}
+                    animationOutTiming={animationOutTiming}
+                    statusBarTranslucent={statusBarTranslucent}
+                    onLayout={onLayout}
+                    avoidKeyboard={avoidKeyboard}
+                    customBackdrop={shouldUseCustomBackdrop ? <Overlay onPress={handleBackdropPress} /> : undefined}
+                >
+                    <ModalContent onDismiss={handleDismissModal}>
+                        <View
+                            style={[styles.defaultModalContainer, modalPaddingStyles, modalContainerStyle, !isVisible && styles.pointerEventsNone]}
+                            ref={ref}
+                        >
+                            <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
+                        </View>
+                    </ModalContent>
+                </ReactNativeModal>
+            </View>
+        </ModalContext.Provider>
     );
 }
 
