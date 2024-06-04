@@ -503,7 +503,9 @@ function ComposerWithSuggestions(
      */
     const replaceSelectionWithText = useCallback(
         (text: string) => {
-            updateComment(ComposerUtils.insertText(commentRef.current, selection, text));
+            // selection replacement should be debounced to avoid conflicts with text typing
+            // (f.e. when emoji is being picked and 1 second still did not pass after user finished typing)
+            updateComment(ComposerUtils.insertText(commentRef.current, selection, text), true);
         },
         [selection, updateComment],
     );
@@ -676,6 +678,12 @@ function ComposerWithSuggestions(
             // eslint-disable-next-line no-param-reassign
             isNextModalWillOpenRef.current = false;
         }
+
+        // We want to blur the input immediately when a screen is out of focus.
+        if (!isFocused) {
+            textInputRef.current?.blur();
+        }
+
         // We want to focus or refocus the input when a modal has been closed or the underlying screen is refocused.
         // We avoid doing this on native platforms since the software keyboard popping
         // open creates a jarring and broken UX.

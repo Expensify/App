@@ -1,6 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useMemo} from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -12,10 +12,10 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Tag from '@libs/actions/Policy/Tag';
 import Navigation from '@libs/Navigation/Navigation';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -33,12 +33,12 @@ type WorkspaceTagsSettingsPageProps = WorkspaceTagsSettingsPageOnyxProps & Stack
 
 function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPageProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate} = useLocalize();
     const [policyTagLists, isMultiLevelTags] = useMemo(() => [PolicyUtils.getTagLists(policyTags), PolicyUtils.isMultiLevelTags(policyTags)], [policyTags]);
     const isLoading = !PolicyUtils.getTagLists(policyTags)?.[0];
     const {isOffline} = useNetwork();
 
+    const hasEnabledOptions = OptionsListUtils.hasEnabledOptions(Object.values(policyTags ?? {}).flatMap(({tags}) => Object.values(tags)));
     const updateWorkspaceRequiresTag = useCallback(
         (value: boolean) => {
             Tag.setPolicyRequiresTag(route.params.policyID, value);
@@ -60,18 +60,12 @@ function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPag
                             isOn={policy?.requiresTag ?? false}
                             accessibilityLabel={translate('workspace.tags.requiresTag')}
                             onToggle={updateWorkspaceRequiresTag}
+                            disabled={!policy?.areTagsEnabled || !hasEnabledOptions}
                         />
                     </View>
                 </View>
             </OfflineWithFeedback>
-            {isLoading && (
-                <ActivityIndicator
-                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                    style={[styles.flex1]}
-                    color={theme.spinner}
-                />
-            )}
-            {!isMultiLevelTags && !isLoading && (
+            {!isMultiLevelTags && (
                 <OfflineWithFeedback
                     errors={policyTags?.[policyTagLists[0].name]?.errors}
                     pendingAction={policyTags?.[policyTagLists[0].name]?.pendingAction}
