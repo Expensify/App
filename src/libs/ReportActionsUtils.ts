@@ -1098,8 +1098,61 @@ function isOldDotReportAction(action: ReportAction): boolean {
  * Helper method to format message of OldDot Actions.
  * For now, we just concat all of the text elements of the message to create the full message.
  */
-function getMessageOfOldDotReportAction(reportAction: OnyxEntry<ReportAction>): string {
-    return reportAction?.message?.map((element) => element?.text).join('') ?? '';
+function getMessageOfOldDotReportAction(action: ReportAction, actionName: ActionName): string {
+    console.log('ACTION ', action);
+
+    switch (actionName) {
+        case CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD:
+            return Localize.translateLocal('report.actions.type.changeField', {value: '', oldValue: '', fieldName: ''});
+        case CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY:
+            return Localize.translateLocal('report.actions.type.changePolicy', {});
+        case CONST.REPORT.ACTIONS.TYPE.CHANGE_TYPE:
+            return Localize.translateLocal('report.actions.type.changeType', {});
+        case CONST.REPORT.ACTIONS.TYPE.DELEGATE_SUBMIT:
+            return Localize.translateLocal('report.actions.type.delegateSubmit', {});
+        case CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV:
+            return Localize.translateLocal('report.actions.type.exportedToCSV', {});
+        case CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION:
+            return Localize.translateLocal('report.actions.type.exportedToIntegration', {});
+        case CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_QUICK_BOOKS:
+            return Localize.translateLocal('report.actions.type.exportedToQuickBooks', {});
+        case CONST.REPORT.ACTIONS.TYPE.FORWARDED:
+            return Localize.translateLocal('report.actions.type.forwarded', {});
+        case CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE:
+            return Localize.translateLocal('report.actions.type.integrationsMessage', {});
+        case CONST.REPORT.ACTIONS.TYPE.MANAGER_ATTACH_RECEIPT:
+            return Localize.translateLocal('report.actions.type.managerAttachReceipt', {});
+        case CONST.REPORT.ACTIONS.TYPE.MANAGER_DETACH_RECEIPT:
+            return Localize.translateLocal('report.actions.type.managerDetachReceipt', {});
+        case CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED:
+            return Localize.translateLocal('report.actions.type.markedReimbursed', {});
+        case CONST.REPORT.ACTIONS.TYPE.MARK_REIMBURSED_FROM_INTEGRATION:
+            return Localize.translateLocal('report.actions.type.markedReimbursedFromIntegration', {});
+        case CONST.REPORT.ACTIONS.TYPE.OUTDATED_BANK_ACCOUNT:
+            return Localize.translateLocal('report.actions.type.outdatedBankAccount', {});
+        case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE:
+            return Localize.translateLocal('report.actions.type.reimbursementACHBounce', {});
+        case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELLED:
+            return Localize.translateLocal('report.actions.type.reimbursementACHCancelled', {});
+        case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACCOUNT_CHANGED:
+            return Localize.translateLocal('report.actions.type.reimbursementACHCancelled', {});
+        case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED:
+            return Localize.translateLocal('report.actions.type.reimbursementDelayed', {});
+        case CONST.REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT:
+            return Localize.translateLocal('report.actions.type.selectedForRandomAudit', {});
+        case CONST.REPORT.ACTIONS.TYPE.SHARE:
+            return Localize.translateLocal('report.actions.type.share', {});
+        case CONST.REPORT.ACTIONS.TYPE.UNSHARE:
+            return Localize.translateLocal('report.actions.type.unshare', {});
+        case CONST.REPORT.ACTIONS.TYPE.STRIPE_PAID:
+            return Localize.translateLocal('report.actions.type.stripePaid', {});
+        case CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL:
+            return Localize.translateLocal('report.actions.type.takeControl', {});
+        case CONST.REPORT.ACTIONS.TYPE.UNAPPROVED:
+            return Localize.translateLocal('report.actions.type.unapproved', {});
+        default:
+            return '';
+    }
 }
 
 function getMemberChangeMessagePlainText(reportAction: OnyxEntry<ReportAction>): string {

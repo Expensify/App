@@ -298,6 +298,26 @@ type DistanceRateOperationsParams = {count: number};
 
 type ReimbursementRateParams = {unit: Unit};
 
+type ModifyExpenseParams = {oldValue: string; value: string};
+
+type ChangeFieldParams = ModifyExpenseParams & {fieldName: string};
+
+type DelegateSubmitParams = {delegateUser: string; targetUser: string};
+
+type ForwardedParams = {amount: string};
+
+type IntegrationsMessageParams = {errorMessage: string};
+
+type MarkedReimbursedParams = {amount: string};
+
+type ReimbursementDelayedParams = {delayReason: string};
+
+type ShareParams = {user: string};
+
+type StripePaidParams = {amount: string};
+
+type UnapprovedParams = {amount: string};
+
 export type {
     AdminCanceledRequestParams,
     ApprovedAmountParams,
@@ -402,4 +422,14 @@ export type {
     HeldRequestParams,
     PaySomeoneParams,
     ReimbursementRateParams,
+    ModifyExpenseParams,
+    ChangeFieldParams,
+    DelegateSubmitParams,
+    ForwardedParams,
+    IntegrationsMessageParams,
+    MarkedReimbursedParams,
+    ReimbursementDelayedParams,
+    ShareParams,
+    StripePaidParams,
+    UnapprovedParams,
 };
