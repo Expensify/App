@@ -40,7 +40,7 @@ function WorkspaceReimburseView({policy, reimbursementAccount}: WorkspaceReimbur
     const [currentRatePerUnit, setCurrentRatePerUnit] = useState<string>('');
     const {isSmallScreenWidth} = useWindowDimensions();
     const viewAllReceiptsUrl = `expenses?policyIDList=${policy?.id ?? '-1'}&billableReimbursable=reimbursable&submitterEmail=%2B%2B`;
-    const distanceCustomUnit = Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+    const distanceCustomUnit = PolicyUtils.getCustomUnit(policy);
     const distanceCustomRate = Object.values(distanceCustomUnit?.rates ?? {}).find((rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE);
     const {translate, toLocaleDigit} = useLocalize();
     const {isOffline} = useNetwork();

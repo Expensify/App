@@ -11,7 +11,7 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import type {MileageRate} from '@libs/DistanceRequestUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {isTaxTrackingEnabled} from '@libs/PolicyUtils';
+import {getCustomUnit, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -50,7 +50,7 @@ function IOURequestStepDistanceRate({
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
-    const distanceUnit = Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+    const distanceUnit = getCustomUnit(policy);
     const customUnitID = distanceUnit?.customUnitID;
     const isPolicyExpenseChat = ReportUtils.isReportInGroupPolicy(report);
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest);
@@ -69,7 +69,7 @@ function IOURequestStepDistanceRate({
             alternateText: rate.name ? rateForDisplay : '',
             keyForList: rate.customUnitRateID,
             value: rate.customUnitRateID,
-            isSelected: lastSelectedRateID ? lastSelectedRateID === rate.customUnitRateID : Boolean(rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE),
+            isSelected: lastSelectedRateID ? lastSelectedRateID === rate.customUnitRateID : !!(rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE),
         };
     });
 
@@ -78,12 +78,10 @@ function IOURequestStepDistanceRate({
     const initiallyFocusedOption = sections.find((item) => item.isSelected)?.keyForList;
 
     function selectDistanceRate(customUnitRateID: string) {
-        if (transaction?.amount && policy?.customUnits && customUnitID && shouldShowTax) {
-            const taxClaimablePercentage = policy?.customUnits[customUnitID].rates[customUnitRateID].attributes?.taxClaimablePercentage ?? 0;
-            const taxRateExternalID = policy?.customUnits[customUnitID].rates[customUnitRateID].attributes?.taxRateExternalID ?? '-1';
-            const taxableAmount = -1 * transaction.amount * taxClaimablePercentage;
-            const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, taxRateExternalID) ?? '';
-            const taxAmount = CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(taxPercentage, taxableAmount));
+        if (policy?.customUnits && customUnitID && shouldShowTax) {
+            const policyCustomUnitRate = policy?.customUnits[customUnitID].rates[customUnitRateID];
+            const taxRateExternalID = policyCustomUnitRate.attributes?.taxRateExternalID ?? '-1';
+            const taxAmount = CurrencyUtils.convertToBackendAmount(DistanceRequestUtils.calculateTaxAmount(policy, transaction, customUnitRateID));
             IOU.setMoneyRequestTaxAmount(transactionID, taxAmount, true);
             IOU.setMoneyRequestTaxRate(transactionID, taxRateExternalID);
         }
@@ -95,7 +93,7 @@ function IOURequestStepDistanceRate({
         <StepScreenWrapper
             headerTitle={translate('common.rate')}
             onBackButtonPress={navigateBack}
-            shouldShowWrapper={Boolean(backTo)}
+            shouldShowWrapper={!!backTo}
             testID="rate"
         >
             <Text style={[styles.mh5, styles.mv4]}>{translate('iou.chooseARate', {unit})}</Text>

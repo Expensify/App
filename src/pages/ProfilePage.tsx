@@ -15,6 +15,8 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
+import type {PromotedAction} from '@components/PromotedActionsBar';
+import PromotedActionsBar, {PromotedActions} from '@components/PromotedActionsBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -92,7 +94,8 @@ function ProfilePage({route}: ProfilePageProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const accountID = Number(route.params?.accountID ?? -1);
     const isCurrentUser = session?.accountID === accountID;
-    const details: PersonalDetails | EmptyObject = personalDetails?.[accountID] ?? (ValidationUtils.isValidAccountRoute(accountID) ? {} : {accountID: 0});
+    const isValidAccountID = ValidationUtils.isValidAccountRoute(accountID);
+    const details: PersonalDetails | EmptyObject = personalDetails?.[accountID] ?? (isValidAccountID ? {} : {accountID: 0});
 
     const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(details, undefined, undefined, isCurrentUser);
     const fallbackIcon = details?.fallbackIcon ?? '';
@@ -116,6 +119,7 @@ function ProfilePage({route}: ProfilePageProps) {
 
     const hasAvatar = Boolean(details.avatar);
     const isLoading = Boolean(personalDetailsMetadata?.[accountID]?.isLoading) || isEmptyObject(details);
+    const shouldShowBlockingView = (!isValidAccountID && !isLoading) || CONST.RESTRICTED_ACCOUNT_IDS.includes(accountID);
 
     const statusEmojiCode = details?.status?.emojiCode ?? '';
     const statusText = details?.status?.text ?? '';
@@ -137,18 +141,30 @@ function ProfilePage({route}: ProfilePageProps) {
         }
     }, [accountID]);
 
+    const promotedActions = useMemo(() => {
+        const result: PromotedAction[] = [];
+        if (report) {
+            result.push(PromotedActions.pin(report));
+        }
+
+        if (!isCurrentUser && !SessionActions.isAnonymousUser()) {
+            result.push(PromotedActions.message(accountID));
+        }
+        return result;
+    }, [accountID, isCurrentUser, report]);
+
     return (
         <ScreenWrapper testID={ProfilePage.displayName}>
-            <FullPageNotFoundView shouldShow={CONST.RESTRICTED_ACCOUNT_IDS.includes(accountID)}>
+            <FullPageNotFoundView shouldShow={shouldShowBlockingView}>
                 <HeaderWithBackButton
                     title={translate('common.profile')}
                     onBackButtonPress={() => Navigation.goBack(navigateBackTo)}
                 />
                 <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                     <ScrollView>
-                        <View style={styles.avatarSectionWrapper}>
+                        <View style={[styles.avatarSectionWrapper, styles.pb0]}>
                             <PressableWithoutFocus
-                                style={[styles.noOutline]}
+                                style={[styles.noOutline, styles.mb4]}
                                 onPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(String(accountID)))}
                                 accessibilityLabel={translate('common.profile')}
                                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
@@ -156,7 +172,7 @@ function ProfilePage({route}: ProfilePageProps) {
                             >
                                 <OfflineWithFeedback pendingAction={details?.pendingFields?.avatar}>
                                     <Avatar
-                                        containerStyles={[styles.avatarXLarge, styles.mb3]}
+                                        containerStyles={[styles.avatarXLarge]}
                                         imageStyles={[styles.avatarXLarge]}
                                         source={details.avatar}
                                         avatarID={accountID}
@@ -167,12 +183,16 @@ function ProfilePage({route}: ProfilePageProps) {
                             </PressableWithoutFocus>
                             {Boolean(displayName) && (
                                 <Text
-                                    style={[styles.textHeadline, styles.pre, styles.mb6, styles.w100, styles.textAlignCenter]}
+                                    style={[styles.textHeadline, styles.pre, styles.mb8, styles.w100, styles.textAlignCenter]}
                                     numberOfLines={1}
                                 >
                                     {displayName}
                                 </Text>
                             )}
+                            <PromotedActionsBar
+                                promotedActions={promotedActions}
+                                containerStyle={[styles.ph0, styles.mb8]}
+                            />
                             {hasStatus && (
                                 <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.mw100]}>
                                     <Text
@@ -220,17 +240,6 @@ function ProfilePage({route}: ProfilePageProps) {
                                 title={notificationPreference}
                                 description={translate('notificationPreferencesPage.label')}
                                 onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.getRoute(report.reportID))}
-                                wrapperStyle={[styles.mtn6, styles.mb5]}
-                            />
-                        )}
-                        {!isCurrentUser && !SessionActions.isAnonymousUser() && (
-                            <MenuItem
-                                title={`${translate('common.message')}${displayName}`}
-                                titleStyle={styles.flex1}
-                                icon={Expensicons.ChatBubble}
-                                onPress={() => ReportActions.navigateToAndOpenReportWithAccountIDs([accountID])}
-                                wrapperStyle={styles.breakAll}
-                                shouldShowRightIcon
                             />
                         )}
                         {!isEmptyObject(report) && report.reportID && !isCurrentUser && (

@@ -45,7 +45,11 @@ function NamePage({
     const goBack = useCallback(() => Navigation.goBack(ROUTES.WORKSPACE_TAX_EDIT.getRoute(policyID ?? '-1', taxID)), [policyID, taxID]);
 
     const submit = () => {
-        renamePolicyTax(policyID, taxID, name);
+        const taxName = name.trim();
+        // Do not call the API if the edited tax name is the same as the current tag name
+        if (currentTaxRate?.name !== taxName) {
+            renamePolicyTax(policyID, taxID, taxName);
+        }
         goBack();
     };
 
