@@ -29,6 +29,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import * as Policy from '@userActions/Policy/Policy';
+import * as Member from '@userActions/Policy/Member';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -78,7 +79,7 @@ function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, poli
     useEffect(() => {
         setSearchTerm(SearchInputManager.searchInput);
         return () => {
-            Policy.setWorkspaceInviteMembersDraft(route.params.policyID, {});
+            Member.setWorkspaceInviteMembersDraft(route.params.policyID, {});
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [route.params.policyID]);
@@ -246,7 +247,7 @@ function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, poli
             }
             invitedEmailsToAccountIDs[login] = Number(accountID);
         });
-        Policy.setWorkspaceInviteMembersDraft(route.params.policyID, invitedEmailsToAccountIDs);
+        Member.setWorkspaceInviteMembersDraft(route.params.policyID, invitedEmailsToAccountIDs);
         Navigation.navigate(ROUTES.WORKSPACE_INVITE_MESSAGE.getRoute(route.params.policyID));
     }, [route.params.policyID, selectedOptions]);
 
