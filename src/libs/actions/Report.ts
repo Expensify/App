@@ -1158,8 +1158,11 @@ function expandURLPreview(reportID: string, reportActionID: string) {
     API.read(READ_COMMANDS.EXPAND_URL_PREVIEW, parameters);
 }
 
-/** Marks the new report actions as read */
-function readNewestAction(reportID: string) {
+/** Marks the new report actions as read
+ * @param shouldResetUnreadMarker Indicates whether the unread indicator should be reset.
+ * Currently, the unread indicator needs to be reset only when users mark a report as read.
+ */
+function readNewestAction(reportID: string, shouldResetUnreadMarker = false) {
     const lastReadTime = DateUtils.getDBTime();
 
     const optimisticData: OnyxUpdate[] = [
@@ -1178,7 +1181,9 @@ function readNewestAction(reportID: string) {
     };
 
     API.write(WRITE_COMMANDS.READ_NEWEST_ACTION, parameters, {optimisticData});
-    DeviceEventEmitter.emit(`readNewestAction_${reportID}`, lastReadTime);
+    if (shouldResetUnreadMarker) {
+        DeviceEventEmitter.emit(`readNewestAction_${reportID}`, lastReadTime);
+    }
 }
 
 /**
@@ -3206,8 +3211,7 @@ function completeOnboarding(
     }));
 
     const tasksForOptimisticData = tasksData.reduce<OnyxUpdate[]>((acc, {currentTask, taskCreatedAction, taskReportAction, taskDescription, completedTaskReportAction}) => {
-        const tasksForOptimisticDataAcc: OnyxUpdate[] = [
-            ...acc,
+        acc.push(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
@@ -3237,10 +3241,10 @@ function completeOnboarding(
                     [taskCreatedAction.reportActionID]: taskCreatedAction as ReportAction,
                 },
             },
-        ];
+        );
 
         if (completedTaskReportAction) {
-            tasksForOptimisticDataAcc.push({
+            acc.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentTask.reportID}`,
                 value: {
@@ -3248,7 +3252,7 @@ function completeOnboarding(
                 },
             });
 
-            tasksForOptimisticDataAcc.push({
+            acc.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${currentTask.reportID}`,
                 value: {
@@ -3258,12 +3262,11 @@ function completeOnboarding(
             });
         }
 
-        return tasksForOptimisticDataAcc;
+        return acc;
     }, []);
 
     const tasksForFailureData = tasksData.reduce<OnyxUpdate[]>((acc, {currentTask, taskReportAction}) => {
-        const tasksForFailureDataAcc: OnyxUpdate[] = [
-            ...acc,
+        acc.push(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
@@ -3283,9 +3286,9 @@ function completeOnboarding(
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentTask.reportID}`,
                 value: null,
             },
-        ];
+        );
 
-        return tasksForFailureDataAcc;
+        return acc;
     }, []);
 
     const optimisticData: OnyxUpdate[] = [
