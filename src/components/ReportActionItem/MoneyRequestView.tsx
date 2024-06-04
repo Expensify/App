@@ -27,6 +27,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
@@ -36,6 +37,7 @@ import * as IOU from '@userActions/IOU';
 import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import * as ReportActions from '@src/libs/actions/ReportActions';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -125,6 +127,7 @@ function MoneyRequestView({
     const cardProgramName = isCardTransaction && transactionCardID !== undefined ? CardUtils.getCardDescription(transactionCardID) : '';
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
     const isInvoice = ReportUtils.isInvoiceReport(moneyRequestReport);
+    const isPaidReport = ReportActionsUtils.isPayAction(parentReportAction);
     const taxRates = policy?.taxRates;
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transactionTaxAmount, transactionCurrency);
 
@@ -137,6 +140,8 @@ function MoneyRequestView({
 
     // Used for non-restricted fields such as: description, category, tag, billable, etc.
     const canEdit = ReportUtils.canEditMoneyRequest(parentReportAction);
+    const canEditTaxFields = canEdit && !isDistanceRequest;
+
     const canEditAmount = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.AMOUNT);
     const canEditMerchant = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.MERCHANT);
     const canEditDate = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DATE);
@@ -165,8 +170,7 @@ function MoneyRequestView({
     const shouldShowTag = isPolicyExpenseChat && (transactionTag || OptionsListUtils.hasEnabledTags(policyTagLists));
     const shouldShowBillable = isPolicyExpenseChat && (!!transactionBillable || !(policy?.disabledFields?.defaultBillable ?? true));
 
-    // A flag for showing tax rate
-    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy);
+    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest);
 
     const {getViolationsForField} = useViolations(transactionViolations ?? []);
     const hasViolations = useCallback(
@@ -228,7 +232,7 @@ function MoneyRequestView({
     }
 
     let receiptURIs;
-    const hasErrors = canEdit && TransactionUtils.hasMissingSmartscanFields(transaction);
+    const hasErrors = TransactionUtils.hasMissingSmartscanFields(transaction);
     if (hasReceipt) {
         receiptURIs = ReceiptUtils.getThumbnailAndImageURIs(transaction);
     }
@@ -313,51 +317,70 @@ function MoneyRequestView({
     );
 
     const shouldShowMapOrReceipt = showMapAsImage || hasReceipt;
-    const shouldShowReceiptEmptyState = !hasReceipt && !isInvoice && (canEditReceipt || isAdmin || isApprover);
-    const noticeTypeViolations = transactionViolations?.filter((violation) => violation.type === 'notice').map((v) => ViolationsUtils.getViolationTranslation(v, translate)) ?? [];
+    const isReceiptAllowed = !isPaidReport && !isInvoice;
+    const shouldShowReceiptEmptyState =
+        isReceiptAllowed && !hasReceipt && !isApproved && !isSettled && (canEditReceipt || isAdmin || isApprover) && (canEditReceipt || ReportUtils.isPaidGroupPolicy(report));
+    const receiptViolationNames: OnyxTypes.ViolationName[] = [
+        CONST.VIOLATIONS.RECEIPT_REQUIRED,
+        CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED,
+        CONST.VIOLATIONS.MODIFIED_DATE,
+        CONST.VIOLATIONS.CASH_EXPENSE_WITH_NO_RECEIPT,
+        CONST.VIOLATIONS.SMARTSCAN_FAILED,
+    ];
+    const receiptViolations =
+        transactionViolations?.filter((violation) => receiptViolationNames.includes(violation.name)).map((violation) => ViolationsUtils.getViolationTranslation(violation, translate)) ?? [];
     const shouldShowNotesViolations = !isReceiptBeingScanned && canUseViolations && ReportUtils.isPaidGroupPolicy(report);
+    const shouldShowReceiptHeader = isReceiptAllowed && (shouldShowReceiptEmptyState || shouldShowMapOrReceipt) && canUseViolations && ReportUtils.isPaidGroupPolicy(report);
+
+    const errors = {
+        ...(transaction?.errorFields?.route ?? transaction?.errors),
+        ...parentReportAction?.errors,
+    };
 
     return (
         <View style={styles.pRelative}>
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
             <>
-                {!isInvoice && (
+                {shouldShowReceiptHeader && (
                     <ReceiptAuditHeader
-                        notes={noticeTypeViolations}
+                        notes={receiptViolations}
                         shouldShowAuditMessage={Boolean(shouldShowNotesViolations && didRceiptScanSucceed)}
                     />
                 )}
-                {shouldShowMapOrReceipt && (
+                {(shouldShowMapOrReceipt || errors) && (
                     <OfflineWithFeedback
                         pendingAction={pendingAction}
-                        errors={transaction?.errorFields?.route ?? transaction?.errors}
+                        errors={errors}
                         errorRowStyles={[styles.mh4]}
                         onClose={() => {
                             if (!transaction?.transactionID) {
                                 return;
                             }
                             Transaction.clearError(transaction.transactionID);
+                            ReportActions.clearAllRelatedReportActionErrors(report.reportID, parentReportAction);
                         }}
                     >
-                        <View style={styles.moneyRequestViewImage}>
-                            {showMapAsImage ? (
-                                <ConfirmedRoute
-                                    transaction={transaction}
-                                    interactive={false}
-                                />
-                            ) : (
-                                <ReportActionItemImage
-                                    thumbnail={receiptURIs?.thumbnail}
-                                    fileExtension={receiptURIs?.fileExtension}
-                                    isThumbnail={receiptURIs?.isThumbnail}
-                                    image={receiptURIs?.image}
-                                    isLocalFile={receiptURIs?.isLocalFile}
-                                    filename={receiptURIs?.filename}
-                                    transaction={transaction}
-                                    enablePreviewModal
-                                />
-                            )}
-                        </View>
+                        {shouldShowMapOrReceipt && (
+                            <View style={styles.moneyRequestViewImage}>
+                                {showMapAsImage ? (
+                                    <ConfirmedRoute
+                                        transaction={transaction}
+                                        interactive={false}
+                                    />
+                                ) : (
+                                    <ReportActionItemImage
+                                        thumbnail={receiptURIs?.thumbnail}
+                                        fileExtension={receiptURIs?.fileExtension}
+                                        isThumbnail={receiptURIs?.isThumbnail}
+                                        image={receiptURIs?.image}
+                                        isLocalFile={receiptURIs?.isLocalFile}
+                                        filename={receiptURIs?.filename}
+                                        transaction={transaction}
+                                        enablePreviewModal
+                                    />
+                                )}
+                            </View>
+                        )}
                     </OfflineWithFeedback>
                 )}
                 {shouldShowReceiptEmptyState && (
@@ -378,8 +401,7 @@ function MoneyRequestView({
                     />
                 )}
                 {!shouldShowReceiptEmptyState && !shouldShowMapOrReceipt && <View style={{marginVertical: 6}} />}
-                {shouldShowNotesViolations && <ReceiptAuditMessages notes={noticeTypeViolations} />}
-                {canUseViolations && <ViolationMessages violations={getViolationsForField('receipt')} />}
+                {shouldShowNotesViolations && <ReceiptAuditMessages notes={receiptViolations} />}
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('amount')}>
                     <MenuItemWithTopDescription
                         title={amountTitle}
@@ -501,8 +523,8 @@ function MoneyRequestView({
                         <MenuItemWithTopDescription
                             title={taxRateTitle ?? ''}
                             description={taxRatesDescription}
-                            interactive={canEdit}
-                            shouldShowRightIcon={canEdit}
+                            interactive={canEditTaxFields}
+                            shouldShowRightIcon={canEditTaxFields}
                             titleStyle={styles.flex1}
                             onPress={() =>
                                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '', report.reportID))
@@ -518,8 +540,8 @@ function MoneyRequestView({
                         <MenuItemWithTopDescription
                             title={formattedTaxAmount ? formattedTaxAmount.toString() : ''}
                             description={translate('iou.taxAmount')}
-                            interactive={canEdit}
-                            shouldShowRightIcon={canEdit}
+                            interactive={canEditTaxFields}
+                            shouldShowRightIcon={canEditTaxFields}
                             titleStyle={styles.flex1}
                             onPress={() =>
                                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '', report.reportID))

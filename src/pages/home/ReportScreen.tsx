@@ -281,7 +281,7 @@ function ReportScreen({
 
     const {reportPendingAction, reportErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(report);
     const screenWrapperStyle: ViewStyle[] = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
-    const isEmptyChat = useMemo((): boolean => reportActions.length === 0, [reportActions]);
+    const isEmptyChat = useMemo(() => ReportUtils.isEmptyReport(report), [report]);
     const isOptimisticDelete = report.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
     const isLinkedMessageAvailable = useMemo(
         (): boolean => sortedAllReportActions.findIndex((obj) => String(obj.reportActionID) === String(reportActionIDFromRoute)) > -1,
