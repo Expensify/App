@@ -386,6 +386,11 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightNormal,
         },
 
+        textSmall: {
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
+            fontSize: variables.fontSizeSmall,
+        },
+
         textMicro: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeSmall,
@@ -1375,6 +1380,10 @@ const styles = (theme: ThemeColors) =>
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeSmall,
             color: theme.textSupporting,
+        },
+
+        lh14: {
+            lineHeight: variables.lineHeightSmall,
         },
 
         lh16: {
@@ -4934,6 +4943,15 @@ const styles = (theme: ThemeColors) =>
             ...headlineFont,
             fontSize: variables.fontSizeXLarge,
             flex: 1,
+        },
+
+        tripReservationIconContainer: {
+            width: variables.avatarSizeNormal,
+            height: variables.avatarSizeNormal,
+            backgroundColor: theme.border,
+            borderRadius: variables.componentBorderRadiusXLarge,
+            alignItems: 'center',
+            justifyContent: 'center',
         },
 
         textLineThrough: {

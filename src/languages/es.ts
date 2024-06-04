@@ -215,6 +215,7 @@ export default {
         tomorrowAt: 'Mañana a las',
         yesterdayAt: 'Ayer a las',
         conjunctionAt: 'a',
+        conjunctionTo: 'a',
         genericErrorMessage: 'Ups... algo no ha ido bien y la acción no se ha podido completar. Por favor, inténtalo más tarde.',
         error: {
             invalidAmount: 'Importe no válido.',
@@ -1914,6 +1915,13 @@ export default {
             agree: 'Acepto los ',
             error: 'Debes aceptar los Términos y condiciones para que el viaje continúe',
         },
+        flight: 'Vuelo',
+        hotel: 'Hotel',
+        car: 'Auto',
+        viewTrip: 'Ver viaje',
+        trip: 'Viaje',
+        tripSummary: 'Resumen del viaje',
+        departs: 'Sale',
     },
     workspace: {
         common: {
