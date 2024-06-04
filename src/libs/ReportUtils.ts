@@ -1889,7 +1889,7 @@ function getSecondaryAvatar(chatReport: OnyxEntry<Report>, iouReport: OnyxEntry<
             };
         }
     } else if (!isWorkspaceActor) {
-        const avatarIconIndex = chatReport?.isOwnPolicyExpenseChat || isPolicyExpenseChat(chatReport) ? 0 : 1;
+        const avatarIconIndex = !!chatReport?.isOwnPolicyExpenseChat || isPolicyExpenseChat(chatReport) ? 0 : 1;
         const reportIcons = getIcons(chatReport, {});
 
         secondaryAvatar = reportIcons[avatarIconIndex];
