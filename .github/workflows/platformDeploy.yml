@@ -352,6 +352,11 @@ jobs:
         env:
           CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
 
+  # Build a version of iOS and Android HybridApp if we are deploying to staging
+  hybridApp:
+    if: ${{ github.event_name == 'push' }}
+    uses: Expensify/Mobile-Deploy/.github/workflows/deploy.yml@main
+
   postSlackMessageOnFailure:
     name: Post a Slack message when any platform fails to build or deploy
     runs-on: ubuntu-latest
