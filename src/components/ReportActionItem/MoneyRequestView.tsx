@@ -555,7 +555,7 @@ function MoneyRequestView({
                 {shouldShowViewTripDetails && (
                     <MenuItem
                         title="View trip details"
-                        icon={Expensicons.Luggage}
+                        icon={Expensicons.Suitcase}
                         iconRight={Expensicons.NewWindow}
                         shouldShowRightIcon
                     />
