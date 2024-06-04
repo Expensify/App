@@ -585,21 +585,21 @@ function getAlternateText(option: ReportUtils.OptionData, {showChatPreviewLine =
 function isSearchStringMatchUserDetails(personalDetail: PersonalDetails, searchValue: string) {
     let memberDetails = '';
     if (personalDetail.login) {
-        memberDetails += ` ${personalDetail.login}`.toLowerCase();
+        memberDetails += ` ${personalDetail.login}`;
     }
     if (personalDetail.firstName) {
-        memberDetails += ` ${personalDetail.firstName}`.toLowerCase();
+        memberDetails += ` ${personalDetail.firstName}`;
     }
     if (personalDetail.lastName) {
-        memberDetails += ` ${personalDetail.lastName}`.toLowerCase();
+        memberDetails += ` ${personalDetail.lastName}`;
     }
     if (personalDetail.displayName) {
-        memberDetails += ` ${PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail)}`.toLowerCase();
+        memberDetails += ` ${PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail)}`;
     }
     if (personalDetail.phoneNumber) {
-        memberDetails += ` ${personalDetail.phoneNumber}`.toLowerCase();
+        memberDetails += ` ${personalDetail.phoneNumber}`;
     }
-    return isSearchStringMatch(searchValue.trim(), memberDetails);
+    return isSearchStringMatch(searchValue.trim(), memberDetails.toLowerCase());
 }
 
 /**
