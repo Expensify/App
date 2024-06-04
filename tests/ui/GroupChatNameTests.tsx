@@ -179,7 +179,7 @@ function signInAndGetApp(reportName = '', participantAccountIDs?: number[]): Pro
  * Note that limit of 5 names is only for the header.
  */
 describe('Tests for group chat name', () => {
-    afterEach(() => {
+    beforeEach(() => {
         jest.clearAllMocks();
         Onyx.clear();
 
