@@ -242,7 +242,7 @@ const foo: object = [1, 2, 3]; // TypeScript does not error
 
 If you know that the type of data is an object but don't know what properties or values it has beforehand, use `Record<string, unknown>`.
 
-> Even though `string` is specified as a key, `Record<string, unknown>` type can still accepts objects whose keys are numbers. This is because numbers are converted to strings when used as an object index. Note that you cannot use [symbols](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol) for `Record<string, unknown>`.
+> Even though `string` is specified as a key, `Record<string, unknown>` type can still accept objects whose keys are numbers. This is because numbers are converted to strings when used as an object index. Note that you cannot use [symbols](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol) for `Record<string, unknown>`.
 
 ```ts
 function logObject(object: Record<string, unknown>) {

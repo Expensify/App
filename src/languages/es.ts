@@ -400,7 +400,6 @@ export default {
     },
     moneyRequestConfirmationList: {
         paidBy: 'Pagado por',
-        splitAmounts: 'Importes a dividir',
         whatsItFor: '¿Para qué es?',
     },
     selectionList: {
@@ -533,6 +532,7 @@ export default {
         hereAlternateText: 'Notificar a todos en esta conversación',
     },
     newMessages: 'Mensajes nuevos',
+    youHaveBeenBanned: 'Nota: Se te ha prohibido comunicarte en este canal',
     reportTypingIndicator: {
         isTyping: 'está escribiendo...',
         areTyping: 'están escribiendo...',
@@ -687,7 +687,7 @@ export default {
         managerApprovedAmount: ({manager, amount}: ManagerApprovedAmountParams) => `${manager} aprobó ${amount}`,
         payerSettled: ({amount}: PayerSettledParams) => `pagó ${amount}`,
         approvedAmount: ({amount}: ApprovedAmountParams) => `aprobó ${amount}`,
-        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `inicio el pago, pero no se procesará hasta que ${submitterDisplayName} añada una cuenta bancaria`,
+        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `inició el pago, pero no se procesará hasta que ${submitterDisplayName} añada una cuenta bancaria`,
         adminCanceledRequest: ({manager, amount}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''}canceló el pago de ${amount}.`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `canceló el pago  ${amount}, porque ${submitterDisplayName} no habilitó tu billetera Expensify en un plazo de 30 días.`,
@@ -734,7 +734,7 @@ export default {
             splitExpenseMultipleParticipantsErrorMessage: 'Solo puedes dividir un gasto entre un único espacio de trabajo o con usuarios individuales. Por favor, actualiza tu selección.',
             invalidMerchant: 'Por favor, introduce un comerciante correcto.',
         },
-        waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `Inició el pago, pero no se procesará hasta que ${submitterDisplayName} active tu Billetera`,
+        waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `inició el pago, pero no se procesará hasta que ${submitterDisplayName} active tu billetera`,
         enableWallet: 'Habilitar Billetera',
         holdExpense: 'Bloquear gasto',
         unholdExpense: 'Desbloquear gasto',
@@ -941,6 +941,7 @@ export default {
             noLogsAvailable: 'No hay registros disponibles',
             logSizeTooLarge: ({size}: LogSizeParams) => `El tamaño del registro excede el límite de ${size} MB. Utilice "Guardar registro" para descargar el archivo de registro.`,
             logs: 'Logs',
+            viewConsole: 'Ver consola',
         },
         security: 'Seguridad',
         restoreStashed: 'Restablecer login guardado',
@@ -1080,7 +1081,7 @@ export default {
         addBankAccountToSendAndReceive: 'Añade una cuenta bancaria para enviar y recibir pagos directamente en la aplicación.',
         addBankAccount: 'Añadir cuenta bancaria',
         assignedCards: 'Tarjetas asignadas',
-        assignedCardsDescription: 'Son tarjetas asignadas por un administrador del Espacio de Trabajo para gestionar los gastos de la empresa.',
+        assignedCardsDescription: 'Son tarjetas asignadas por un administrador del espacio de trabajo para gestionar los gastos de la empresa.',
         expensifyCard: 'Tarjeta Expensify',
         walletActivationPending: 'Estamos revisando tu información, por favor vuelve en unos minutos.',
         walletActivationFailed: 'Lamentablemente, no podemos activar tu billetera en este momento. Chatea con Concierge para obtener más ayuda.',
@@ -1362,7 +1363,8 @@ export default {
         whereYouWork: '¿Dónde trabajas?',
         purpose: {
             title: '¿Qué quieres hacer hoy?',
-            error: 'Por favor, haga una selección antes de continuar.',
+            errorSelection: 'Por favor selecciona una opción para continuar.',
+            errorContinue: 'Por favor, haz click en continuar para configurar tu cuenta.',
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Cobrar de mi empresa',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Gestionar los gastos de mi equipo',
             [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: 'Controlar y presupuestar gastos',
@@ -1946,6 +1948,7 @@ export default {
             distanceRates: 'Tasas de distancia',
             welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
                 `¡Has sido invitado a ${workspaceName}! Descargue la aplicación móvil Expensify en use.expensify.com/download para comenzar a rastrear sus gastos.`,
+            subscription: 'Suscripción',
         },
         qbo: {
             importDescription: 'Elige que configuraciónes de codificación son importadas desde QuickBooks Online a Expensify.',
@@ -2074,10 +2077,8 @@ export default {
             accountsSwitchDescription: 'Las categorías activas estarán disponibles para ser escogidas cuando se crea un gasto.',
             trackingCategories: 'Categorías de seguimiento',
             trackingCategoriesDescription: 'Elige si deseas importar categorías de seguimiento y ver dónde se muestran.',
-            mapXeroCostCentersTo: 'Asignar centros de coste de Xero a',
-            mapXeroRegionsTo: 'Asignar regiones de Xero a',
-            mapXeroCostCentersToDescription: 'Elige dónde mapear los centros de coste al exportar a Xero.',
-            mapXeroRegionsToDescription: 'Elige dónde asignar las regiones de los empleados al exportar informes de gastos a Xero.',
+            mapTrackingCategoryTo: ({categoryName}) => `Asignar ${categoryName} de Xero a`,
+            mapTrackingCategoryToDescription: ({categoryName}) => `Elige dónde mapear ${categoryName} al exportar a Xero.`,
             customers: 'Volver a facturar a los clientes',
             customersDescription:
                 'Importar contactos de clientes. Los gastos facturables necesitan etiquetas para la exportación. Los gastos llevarán la información del cliente a Xero para las facturas de ventas.',
@@ -2137,10 +2138,12 @@ export default {
                 },
             },
             invoiceStatus: {
+                label: 'Estado de la factura de compra',
+                description: 'Qué estado deben tener las facturas de compra cuando se exportan a Xero.',
                 values: {
-                    [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_PAYMENT]: 'Autorizado',
                     [CONST.XERO_CONFIG.INVOICE_STATUS.DRAFT]: 'Borrador',
-                    [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_APPROVAL]: 'Enviado',
+                    [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_APPROVAL]: 'Pendiente de aprobación',
+                    [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_PAYMENT]: 'Pendiente de pago',
                 },
             },
             exportPreferredExporterNote:
@@ -2220,6 +2223,12 @@ export default {
                 title: 'Contabilidad',
                 subtitle: 'Sincroniza tu plan de cuentas y otras opciones.',
             },
+            connectionsWarningModal: {
+                featureEnabledTitle: 'No tan rápido...',
+                featureEnabledText: 'Para activar o desactivar esta función, cambia la configuración de importación contable.',
+                disconnectText: 'Desconecta tu conexión contable del espacio de trabajo si deseas desactivar la Contabilidad.',
+                manageSettings: 'Gestionar la configuración',
+            },
         },
         reportFields: {
             delete: 'Eliminar campos',
@@ -2275,6 +2284,7 @@ export default {
                 enable: 'Activar tasa',
                 enableMultiple: 'Activar tasas',
             },
+            importedFromAccountingSoftware: 'Impuestos importadas desde',
         },
         emptyWorkspace: {
             title: 'Crea un espacio de trabajo',
@@ -2343,6 +2353,17 @@ export default {
                     }
                 }
             },
+            syncError: (integration?: ConnectionName): string => {
+                switch (integration) {
+                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
+                        return 'No se puede conectar a QuickBooks Online.';
+                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
+                        return 'No se puede conectar a Xero';
+                    default: {
+                        return 'No se ha podido conectar a la integración.';
+                    }
+                }
+            },
             accounts: 'Plan de cuentas',
             taxes: 'Impuestos',
             imported: 'Importado',
@@ -2399,7 +2420,9 @@ export default {
                             return 'Revisando conexión a QuickBooks Online';
                         case 'quickbooksOnlineImportMain':
                             return 'Importando datos desde QuickBooks Online';
-                        case 'startingImport':
+                        case 'startingImportXero':
+                            return 'Importando datos desde Xero';
+                        case 'startingImportQBO':
                             return 'Importando datos desde QuickBooks Online';
                         case 'quickbooksOnlineSyncTitle':
                             return 'Sincronizando datos desde QuickBooks Online';
@@ -2744,6 +2767,7 @@ export default {
                 subtitle: 'Por favor intenta crear algo usando el botón verde.',
             },
         },
+        groupedExpenses: 'gastos agrupados',
     },
     genericErrorPage: {
         title: '¡Oh-oh, algo salió mal!',
@@ -3567,6 +3591,7 @@ export default {
         taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams) => `${taxName ?? 'El impuesto'} ya no es válido`,
         taxRateChanged: 'La tasa de impuesto fue modificada',
         taxRequired: 'Falta la tasa de impuesto',
+        hold: 'Bloqueada',
     },
     violationDismissal: {
         rter: {

@@ -8,7 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import navigateAfterJoinRequest from '@libs/navigateAfterJoinRequest';
 import Navigation from '@navigation/Navigation';
 import type {AuthScreensParamList} from '@navigation/types';
-import * as PolicyAction from '@userActions/Policy';
+import * as PolicyAction from '@userActions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';

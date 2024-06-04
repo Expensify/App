@@ -15,6 +15,7 @@ import ReportActionItemImages from '@components/ReportActionItem/ReportActionIte
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -63,7 +64,8 @@ function MoneyRequestPreviewContent({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
+    const {windowWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const sessionAccountID = session?.accountID;
     const managerID = iouReport?.managerID ?? -1;
@@ -285,7 +287,12 @@ function MoneyRequestPreviewContent({
                                                     style={[
                                                         styles.textHeadlineH1,
                                                         isBillSplit &&
-                                                            StyleUtils.getAmountFontSizeAndLineHeight(isSmallScreenWidth, windowWidth, displayAmount.length, sortedParticipantAvatars.length),
+                                                            StyleUtils.getAmountFontSizeAndLineHeight(
+                                                                shouldUseNarrowLayout,
+                                                                windowWidth,
+                                                                displayAmount.length,
+                                                                sortedParticipantAvatars.length,
+                                                            ),
                                                         isDeleted && styles.lineThrough,
                                                     ]}
                                                     numberOfLines={1}
