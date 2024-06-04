@@ -2799,13 +2799,13 @@ const styles = (theme: ThemeColors) =>
         borderedContentCard: {
             borderWidth: 1,
             borderColor: theme.border,
-            borderRadius: variables.componentBorderRadiusMedium,
+            borderRadius: variables.componentBorderRadiusNormal,
         },
 
         borderedContentCardFocused: {
             borderWidth: 1,
             borderColor: theme.borderFocus,
-            borderRadius: variables.componentBorderRadiusMedium,
+            borderRadius: variables.componentBorderRadiusNormal,
         },
 
         sectionMenuItem: {
