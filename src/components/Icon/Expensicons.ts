@@ -37,6 +37,8 @@ import ChatBubbleReply from '@assets/images/chatbubble-reply.svg';
 import ChatBubbleUnread from '@assets/images/chatbubble-unread.svg';
 import ChatBubble from '@assets/images/chatbubble.svg';
 import ChatBubbles from '@assets/images/chatbubbles.svg';
+import CheckCircle from '@assets/images/check-circle.svg';
+import CheckmarkCircle from '@assets/images/checkmark-circle.svg';
 import Checkmark from '@assets/images/checkmark.svg';
 import Close from '@assets/images/close.svg';
 import ClosedSign from '@assets/images/closed-sign.svg';
@@ -50,6 +52,7 @@ import Copy from '@assets/images/copy.svg';
 import CreditCardExclamation from '@assets/images/credit-card-exclamation.svg';
 import CreditCardHourglass from '@assets/images/credit-card-hourglass.svg';
 import CreditCard from '@assets/images/creditcard.svg';
+import Crosshair from '@assets/images/crosshair.svg';
 import DocumentPlus from '@assets/images/document-plus.svg';
 import DocumentSlash from '@assets/images/document-slash.svg';
 import Document from '@assets/images/document.svg';
@@ -213,6 +216,7 @@ export {
     Concierge,
     ConciergeAvatar,
     Connect,
+    Crosshair,
     ConnectionComplete,
     Copy,
     CreditCard,
@@ -348,4 +352,6 @@ export {
     Lightbulb,
     DocumentPlus,
     Clear,
+    CheckCircle,
+    CheckmarkCircle,
 };

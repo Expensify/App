@@ -1567,13 +1567,13 @@ function clearAvatarErrors(policyID: string) {
  */
 function updateGeneralSettings(policyID: string, name: string, currencyValue?: string) {
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-    const distanceUnit = Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
-    const customUnitID = distanceUnit?.customUnitID;
-    const currency = currencyValue ?? policy?.outputCurrency ?? CONST.CURRENCY.USD;
-
     if (!policy) {
         return;
     }
+
+    const distanceUnit = PolicyUtils.getCustomUnit(policy);
+    const customUnitID = distanceUnit?.customUnitID;
+    const currency = currencyValue ?? policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
     const currentRates = distanceUnit?.rates ?? {};
     const optimisticRates: Record<string, Rate> = {};
