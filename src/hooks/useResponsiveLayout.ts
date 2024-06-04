@@ -1,8 +1,8 @@
+import {NavigationContainerRefContext, NavigationContext} from '@react-navigation/native';
 import {useContext} from 'react';
 import ModalContext from '@components/Modal/ModalContext';
-import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
-import useRootNavigationState from './useRootNavigationState';
+import NAVIGATORS from '@src/NAVIGATORS';
 import useWindowDimensions from './useWindowDimensions';
 
 type ResponsiveLayoutResult = {
@@ -38,8 +38,15 @@ export default function useResponsiveLayout(): ResponsiveLayoutResult {
     // This means it will only be defined if the component calling this hook is a child of a modal component. See BaseModal for the provider.
     const {activeModalType} = useContext(ModalContext);
 
-    // This refers to the state of the root navigator, and is true if and only if the topmost navigator is the "left modal navigator" or the "right modal navigator"
-    const isDisplayedInModalNavigator = !!useRootNavigationState(Navigation.isModalNavigatorActive);
+    // We are using these contexts directly instead of useNavigation/useNavigationState, because those will throw an error if used outside a navigator.
+    // This hook can be used within or outside a navigator, so using useNavigationState does not work.
+    // Furthermore, wrapping useNavigationState in a try/catch does not work either, because that breaks the rules of hooks.
+    const navigationContainerRef = useContext(NavigationContainerRefContext);
+    const navigator = useContext(NavigationContext);
+    const currentNavigator = navigator ?? navigationContainerRef;
+
+    const isDisplayedInNarrowModalNavigator =
+        !!currentNavigator?.getParent(NAVIGATORS.RIGHT_MODAL_NAVIGATOR as unknown as undefined) || !!currentNavigator?.getParent(NAVIGATORS.LEFT_MODAL_NAVIGATOR as unknown as undefined);
 
     // The component calling this hook is in a "narrow pane modal" if:
     const isInNarrowPaneModal =
@@ -47,7 +54,7 @@ export default function useResponsiveLayout(): ResponsiveLayoutResult {
         activeModalType === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED ||
         // or there's a "right modal navigator" or "left modal navigator" on the top of the root navigation stack
         // and the component calling this hook is not the child of another modal type, such as a confirm modal
-        (isDisplayedInModalNavigator && !activeModalType);
+        (isDisplayedInNarrowModalNavigator && !activeModalType);
 
     const shouldUseNarrowLayout = isSmallScreenWidth || isInNarrowPaneModal;
 
