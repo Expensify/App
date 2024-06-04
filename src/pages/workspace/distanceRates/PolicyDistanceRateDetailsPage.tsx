@@ -9,6 +9,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -120,94 +121,96 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
                 includeSafeAreaPaddingBottom={false}
                 style={[styles.defaultModalContainer]}
             >
-                <HeaderWithBackButton
-                    title={`${rateValueToDisplay} / ${translate(`common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`)}`}
-                    shouldShowThreeDotsButton
-                    threeDotsMenuItems={threeDotsMenuItems}
-                    threeDotsAnchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
-                />
-                <View style={styles.flexGrow1}>
-                    <OfflineWithFeedback
-                        errors={ErrorUtils.getLatestErrorField(rate ?? {}, 'enabled')}
-                        pendingAction={rate?.pendingFields?.enabled}
-                        errorRowStyles={styles.mh5}
-                        onClose={() => clearErrorFields('enabled')}
-                    >
-                        <View style={[styles.flexRow, styles.justifyContentBetween, styles.p5]}>
-                            <Text>{translate('workspace.distanceRates.enableRate')}</Text>
-                            <Switch
-                                isOn={rate?.enabled ?? false}
-                                onToggle={toggleRate}
-                                accessibilityLabel={translate('workspace.distanceRates.enableRate')}
-                            />
-                        </View>
-                    </OfflineWithFeedback>
-                    <OfflineWithFeedback
-                        errors={ErrorUtils.getLatestErrorField(rate ?? {}, 'rate')}
-                        pendingAction={rate?.pendingFields?.rate ?? rate?.pendingFields?.currency}
-                        errorRowStyles={styles.mh5}
-                        onClose={() => clearErrorFields('rate')}
-                    >
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon
-                            title={`${rateValueToDisplay} / ${unitToDisplay}`}
-                            description={translate('workspace.distanceRates.rate')}
-                            descriptionTextStyle={styles.textNormal}
-                            onPress={editRateValue}
-                        />
-                    </OfflineWithFeedback>
-                    {isDistanceTrackTaxEnabled && (
+                <ScrollView contentContainerStyle={styles.flexGrow1}>
+                    <HeaderWithBackButton
+                        title={`${rateValueToDisplay} / ${translate(`common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`)}`}
+                        shouldShowThreeDotsButton
+                        threeDotsMenuItems={threeDotsMenuItems}
+                        threeDotsAnchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
+                    />
+                    <View style={styles.flexGrow1}>
                         <OfflineWithFeedback
-                            errors={ErrorUtils.getLatestErrorField(rate, 'attributes')}
-                            pendingAction={rate?.pendingFields?.attributes}
+                            errors={ErrorUtils.getLatestErrorField(rate ?? {}, 'enabled')}
+                            pendingAction={rate?.pendingFields?.enabled}
                             errorRowStyles={styles.mh5}
-                            onClose={() => clearErrorFields('attributes')}
+                            onClose={() => clearErrorFields('enabled')}
                         >
-                            <View style={styles.w100}>
-                                <MenuItemWithTopDescription
-                                    title={taxRate}
-                                    description={translate('workspace.taxes.taxRate')}
-                                    shouldShowRightIcon
-                                    onPress={editTaxRateValue}
+                            <View style={[styles.flexRow, styles.justifyContentBetween, styles.p5]}>
+                                <Text>{translate('workspace.distanceRates.enableRate')}</Text>
+                                <Switch
+                                    isOn={rate?.enabled ?? false}
+                                    onToggle={toggleRate}
+                                    accessibilityLabel={translate('workspace.distanceRates.enableRate')}
                                 />
                             </View>
                         </OfflineWithFeedback>
-                    )}
-                    {isDistanceTrackTaxEnabled && (
                         <OfflineWithFeedback
-                            errors={ErrorUtils.getLatestErrorField(rate, 'attributes')}
-                            pendingAction={rate?.pendingFields?.attributes}
+                            errors={ErrorUtils.getLatestErrorField(rate ?? {}, 'rate')}
+                            pendingAction={rate?.pendingFields?.rate ?? rate?.pendingFields?.currency}
                             errorRowStyles={styles.mh5}
-                            onClose={() => clearErrorFields('attributes')}
+                            onClose={() => clearErrorFields('rate')}
                         >
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon
-                                title={taxClaimableValueToDisplay}
-                                description={translate('workspace.taxes.taxReclaimableOn')}
+                                title={`${rateValueToDisplay} / ${unitToDisplay}`}
+                                description={translate('workspace.distanceRates.rate')}
                                 descriptionTextStyle={styles.textNormal}
-                                onPress={editTaxReclaimableValue}
+                                onPress={editRateValue}
                             />
                         </OfflineWithFeedback>
-                    )}
-                    <ConfirmModal
-                        onConfirm={() => setIsWarningModalVisible(false)}
-                        isVisible={isWarningModalVisible}
-                        title={translate('workspace.distanceRates.oopsNotSoFast')}
-                        prompt={translate('workspace.distanceRates.workspaceNeeds')}
-                        confirmText={translate('common.buttonConfirm')}
-                        shouldShowCancelButton={false}
-                    />
-                    <ConfirmModal
-                        title={translate('workspace.distanceRates.deleteDistanceRate')}
-                        isVisible={isDeleteModalVisible}
-                        onConfirm={deleteRate}
-                        onCancel={() => setIsDeleteModalVisible(false)}
-                        prompt={translate('workspace.distanceRates.areYouSureDelete', {count: 1})}
-                        confirmText={translate('common.delete')}
-                        cancelText={translate('common.cancel')}
-                        danger
-                    />
-                </View>
+                        {isDistanceTrackTaxEnabled && (
+                            <OfflineWithFeedback
+                                errors={ErrorUtils.getLatestErrorField(rate, 'attributes')}
+                                pendingAction={rate?.pendingFields?.attributes}
+                                errorRowStyles={styles.mh5}
+                                onClose={() => clearErrorFields('attributes')}
+                            >
+                                <View style={styles.w100}>
+                                    <MenuItemWithTopDescription
+                                        title={taxRate}
+                                        description={translate('workspace.taxes.taxRate')}
+                                        shouldShowRightIcon
+                                        onPress={editTaxRateValue}
+                                    />
+                                </View>
+                            </OfflineWithFeedback>
+                        )}
+                        {isDistanceTrackTaxEnabled && (
+                            <OfflineWithFeedback
+                                errors={ErrorUtils.getLatestErrorField(rate, 'attributes')}
+                                pendingAction={rate?.pendingFields?.attributes}
+                                errorRowStyles={styles.mh5}
+                                onClose={() => clearErrorFields('attributes')}
+                            >
+                                <MenuItemWithTopDescription
+                                    shouldShowRightIcon
+                                    title={taxClaimableValueToDisplay}
+                                    description={translate('workspace.taxes.taxReclaimableOn')}
+                                    descriptionTextStyle={styles.textNormal}
+                                    onPress={editTaxReclaimableValue}
+                                />
+                            </OfflineWithFeedback>
+                        )}
+                        <ConfirmModal
+                            onConfirm={() => setIsWarningModalVisible(false)}
+                            isVisible={isWarningModalVisible}
+                            title={translate('workspace.distanceRates.oopsNotSoFast')}
+                            prompt={translate('workspace.distanceRates.workspaceNeeds')}
+                            confirmText={translate('common.buttonConfirm')}
+                            shouldShowCancelButton={false}
+                        />
+                        <ConfirmModal
+                            title={translate('workspace.distanceRates.deleteDistanceRate')}
+                            isVisible={isDeleteModalVisible}
+                            onConfirm={deleteRate}
+                            onCancel={() => setIsDeleteModalVisible(false)}
+                            prompt={translate('workspace.distanceRates.areYouSureDelete', {count: 1})}
+                            confirmText={translate('common.delete')}
+                            cancelText={translate('common.cancel')}
+                            danger
+                        />
+                    </View>
+                </ScrollView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
