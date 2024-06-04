@@ -91,13 +91,12 @@ function StateSelectionPage() {
                 shouldShowBackButton
                 onBackButtonPress={() => {
                     const backTo = params?.backTo ?? '';
-                    let backToRoute = '';
+                    let backToRoute: Route | undefined;
 
                     if (backTo) {
                         backToRoute = appendParam(backTo, 'state', currentState ?? '');
                     }
 
-                    // @ts-expect-error Navigation.goBack does take a param
                     Navigation.goBack(backToRoute);
                 }}
             />
@@ -106,6 +105,7 @@ function StateSelectionPage() {
 
             <SelectionList
                 onSelectRow={selectCountryState}
+                shouldDebounceRowSelect
                 headerMessage={headerMessage}
                 // Label can be an empty string
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing

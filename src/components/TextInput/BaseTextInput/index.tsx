@@ -255,13 +255,14 @@ function BaseTextInput(
     ]);
     const isMultiline = multiline || autoGrowHeight;
 
-    /* To prevent text jumping caused by virtual DOM calculations on Safari and mobile Chrome,
-  make sure to include the `lineHeight`.
-  Reference: https://github.com/Expensify/App/issues/26735
-    For other platforms, explicitly remove `lineHeight` from single-line inputs
-  to prevent long text from disappearing once it exceeds the input space.
-  See https://github.com/Expensify/App/issues/13802 */
-
+    /**
+     * To prevent text jumping caused by virtual DOM calculations on Safari and mobile Chrome,
+     * make sure to include the `lineHeight`.
+     * Reference: https://github.com/Expensify/App/issues/26735
+     * For other platforms, explicitly remove `lineHeight` from single-line inputs
+     * to prevent long text from disappearing once it exceeds the input space.
+     * See https://github.com/Expensify/App/issues/13802
+     */
     const lineHeight = useMemo(() => {
         if (Browser.isSafari() || Browser.isMobileChrome()) {
             const lineHeightValue = StyleSheet.flatten(inputStyle).lineHeight;
@@ -370,7 +371,9 @@ function BaseTextInput(
 
                                     // Explicitly change boxSizing attribute for mobile chrome in order to apply line-height
                                     // for the issue mentioned here https://github.com/Expensify/App/issues/26735
-                                    !isMultiline && Browser.isMobileChrome() && {boxSizing: 'content-box', height: undefined},
+                                    // Set overflow property to enable the parent flexbox to shrink its size
+                                    // (See https://github.com/Expensify/App/issues/41766)
+                                    !isMultiline && Browser.isMobileChrome() && {boxSizing: 'content-box', height: undefined, ...styles.overflowAuto},
 
                                     // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
                                     ...(autoGrowHeight
@@ -396,7 +399,7 @@ function BaseTextInput(
                                 defaultValue={defaultValue}
                                 markdownStyle={markdownStyle}
                             />
-                            {isFocused && !isReadOnly && shouldShowClearButton && value && <TextInputClearButton onPressButton={() => setValue('')} />}
+                            {isFocused && !isReadOnly && shouldShowClearButton && !!value && <TextInputClearButton onPressButton={() => setValue('')} />}
                             {inputProps.isLoading && (
                                 <ActivityIndicator
                                     size="small"
@@ -419,7 +422,7 @@ function BaseTextInput(
                                     />
                                 </Checkbox>
                             )}
-                            {!inputProps.secureTextEntry && icon && (
+                            {!inputProps.secureTextEntry && !!icon && (
                                 <View style={[styles.textInputIconContainer, !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone]}>
                                     <Icon
                                         src={icon}

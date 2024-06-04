@@ -7,6 +7,11 @@ import type {WorkspaceTravelSettings} from './TravelSettings';
 
 type Unit = 'mi' | 'km';
 
+type TaxRateAttributes = {
+    taxClaimablePercentage?: number;
+    taxRateExternalID?: string;
+};
+
 type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     name?: string;
     rate?: number;
@@ -15,10 +20,12 @@ type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     enabled?: boolean;
     errors?: OnyxCommon.Errors;
     errorFields?: OnyxCommon.ErrorFields;
+    attributes?: TaxRateAttributes;
 }>;
 
 type Attributes = {
     unit: Unit;
+    taxEnabled?: boolean;
 };
 
 type CustomUnit = OnyxCommon.OnyxValueWithOfflineFeedback<{
@@ -60,6 +67,9 @@ type TaxRate = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Indicates if the tax rate is disabled. */
     isDisabled?: boolean;
+
+    /** Indicates if the tax rate is selected. */
+    isSelected?: boolean;
 
     /** An error message to display to the user */
     errors?: OnyxCommon.Errors;
@@ -205,8 +215,13 @@ type Tenant = {
     value: string;
 };
 
+type XeroTrackingCategory = {
+    id: string;
+    name: string;
+};
+
 type XeroConnectionData = {
-    bankAccounts: unknown[];
+    bankAccounts: Account[];
     countryCode: string;
     organisationID: string;
     revenueAccounts: Array<{
@@ -214,7 +229,13 @@ type XeroConnectionData = {
         name: string;
     }>;
     tenants: Tenant[];
-    trackingCategories: unknown[];
+    trackingCategories: XeroTrackingCategory[];
+};
+
+type XeroMappingType = {
+    customer: string;
+} & {
+    [key in `trackingCategory_${string}`]: string;
 };
 
 /**
@@ -242,9 +263,7 @@ type XeroConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     importTaxRates: boolean;
     importTrackingCategories: boolean;
     isConfigured: boolean;
-    mappings: {
-        customer: string;
-    };
+    mappings: XeroMappingType;
     sync: {
         hasChosenAutoSyncOption: boolean;
         hasChosenSyncReimbursedReportsOption: boolean;
@@ -259,7 +278,7 @@ type XeroConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
 type Connection<ConnectionData, ConnectionConfig> = {
     lastSync?: ConnectionLastSync;
-    data: ConnectionData;
+    data?: ConnectionData;
     config: ConnectionConfig;
 };
 
@@ -516,6 +535,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Indicates if the Policy is in loading state */
         isLoading?: boolean;
 
+        /** Indicates the Policy's SetWorkspaceReimbursement call loading state */
+        isLoadingWorkspaceReimbursement?: boolean;
+
         /** Indicates if the Policy ownership change is successful */
         isChangeOwnerSuccessful?: boolean;
 
@@ -561,4 +583,5 @@ export type {
     QBONonReimbursableExportAccountType,
     QBOReimbursableExportAccountType,
     QBOConnectionConfig,
+    XeroTrackingCategory,
 };

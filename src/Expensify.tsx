@@ -1,3 +1,4 @@
+import {Audio} from 'expo-av';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {NativeEventSubscription} from 'react-native';
 import {AppState, Linking} from 'react-native';
@@ -76,7 +77,9 @@ type ExpensifyOnyxProps = {
 
 type ExpensifyProps = ExpensifyOnyxProps;
 
-const SplashScreenHiddenContext = React.createContext({});
+type SplashScreenHiddenContextType = {isSplashHidden?: boolean};
+
+const SplashScreenHiddenContext = React.createContext<SplashScreenHiddenContextType>({});
 
 function Expensify({
     isCheckingPublicRoom = true,
@@ -105,6 +108,9 @@ function Expensify({
 
     const isAuthenticated = useMemo(() => !!(session?.authToken ?? null), [session]);
     const autoAuthState = useMemo(() => session?.autoAuthState ?? '', [session]);
+
+    const isAuthenticatedRef = useRef(false);
+    isAuthenticatedRef.current = isAuthenticated;
 
     const contextValue = useMemo(
         () => ({
@@ -140,8 +146,10 @@ function Expensify({
         // Initialize this client as being an active client
         ActiveClientManager.init();
 
-        // Used for the offline indicator appearing when someone is offline
-        NetworkConnection.subscribeToNetInfo();
+        // Used for the offline indicator appearing when someone is offline or backend is unreachable
+        const unsubscribeNetworkStatus = NetworkConnection.subscribeToNetworkStatus();
+
+        return () => unsubscribeNetworkStatus();
     }, []);
 
     useEffect(() => {
@@ -190,7 +198,8 @@ function Expensify({
 
         // Open chat report from a deep link (only mobile native)
         Linking.addEventListener('url', (state) => {
-            Report.openReportFromDeepLink(state.url);
+            // We need to pass 'isAuthenticated' to avoid loading a non-existing profile page twice
+            Report.openReportFromDeepLink(state.url, !isAuthenticatedRef.current);
         });
 
         return () => {
@@ -200,6 +209,11 @@ function Expensify({
             appStateChangeListener.current.remove();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
+    }, []);
+
+    // This is being done since we want to play sound even when iOS device is on silent mode, to align with other platforms.
+    useEffect(() => {
+        Audio.setAudioModeAsync({playsInSilentModeIOS: true});
     }, []);
 
     // Display a blank page until the onyx migration completes
@@ -254,6 +268,8 @@ function Expensify({
         </DeeplinkWrapper>
     );
 }
+
+Expensify.displayName = 'Expensify';
 
 export default withOnyx<ExpensifyProps, ExpensifyOnyxProps>({
     isCheckingPublicRoom: {

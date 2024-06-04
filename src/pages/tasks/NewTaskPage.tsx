@@ -5,12 +5,14 @@ import {withOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
+import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
+import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
@@ -52,7 +54,10 @@ function NewTaskPage({task, reports, personalDetails}: NewTaskPageProps) {
     const [errorMessage, setErrorMessage] = useState('');
     const [parentReport, setParentReport] = useState<OnyxEntry<Report>>(null);
 
+    const hasDestinationError = task?.skipConfirmation && !task?.parentReportID;
     const isAllowedToCreateTask = useMemo(() => isEmptyObject(parentReport) || ReportUtils.isAllowedToComment(parentReport), [parentReport]);
+
+    const {paddingBottom} = useStyledSafeAreaInsets();
 
     useEffect(() => {
         setErrorMessage('');
@@ -138,6 +143,14 @@ function NewTaskPage({task, reports, personalDetails}: NewTaskPageProps) {
                         Navigation.goBack(ROUTES.NEW_TASK_DETAILS);
                     }}
                 />
+                {hasDestinationError && (
+                    <FormHelpMessage
+                        style={[styles.ph4, styles.mb4]}
+                        isError={false}
+                        shouldShowRedDotIndicator={false}
+                        message={translate('quickAction.noLongerHaveReportAccess')}
+                    />
+                )}
                 <ScrollView
                     contentContainerStyle={styles.flexGrow1}
                     // on iOS, navigation animation sometimes cause the scrollbar to appear
@@ -191,7 +204,7 @@ function NewTaskPage({task, reports, personalDetails}: NewTaskPageProps) {
                             onSubmit={onSubmit}
                             enabledWhenOffline
                             buttonText={translate('newTaskPage.confirmTask')}
-                            containerStyles={[styles.mh0, styles.mt5, styles.flex1, styles.ph5]}
+                            containerStyles={[styles.mh0, styles.mt5, styles.flex1, styles.ph5, !paddingBottom ? styles.mb5 : null]}
                         />
                     </View>
                 </ScrollView>

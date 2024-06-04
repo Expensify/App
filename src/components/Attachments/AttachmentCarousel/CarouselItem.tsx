@@ -71,7 +71,7 @@ function CarouselItem({item, onPress, isFocused, isModalHovered}: CarouselItemPr
 
     return (
         <View style={[styles.flex1]}>
-            <View style={[styles.flex1]}>
+            <View style={[styles.imageModalImageCenterContainer]}>
                 <AttachmentView
                     source={item.source}
                     file={item.file}

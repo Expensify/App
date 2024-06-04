@@ -1,7 +1,6 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import lodashSortBy from 'lodash/sortBy';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -13,9 +12,8 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RightElementEnabledStatus from '@components/SelectionList/RightElementEnabledStatus';
+import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRightCaretWithLabel';
 import TableListItem from '@components/SelectionList/TableListItem';
-import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
@@ -28,33 +26,18 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
-import type {WorkspacesCentralPaneNavigatorParamList} from '@libs/Navigation/types';
+import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Policy from '@userActions/Policy';
+import * as Tag from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type * as OnyxTypes from '@src/types/onyx';
-import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import type {TagListItem} from './types';
 
-type PolicyForList = {
-    value: string;
-    text: string;
-    keyForList: string;
-    isSelected: boolean;
-    rightElement: React.ReactNode;
-    enabled: boolean;
-};
-
-type PolicyOption = ListItem & {
-    /** Tag name is used as a key for the selectedTags state */
-    keyForList: string;
-};
-
-type WorkspaceTagsPageProps = StackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS>;
+type WorkspaceTagsPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS>;
 
 function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -62,26 +45,24 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const theme = useTheme();
     const {translate} = useLocalize();
     const [selectedTags, setSelectedTags] = useState<Record<string, boolean>>({});
-    const dropdownButtonRef = useRef(null);
-    const [deleteTagsConfirmModalVisible, setDeleteTagsConfirmModalVisible] = useState(false);
+    const [isDeleteTagsConfirmModalVisible, setIsDeleteTagsConfirmModalVisible] = useState(false);
     const isFocused = useIsFocused();
     const policyID = route.params.policyID ?? '';
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const {environmentURL} = useEnvironment();
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
+    const isConnectedToQbo = Boolean(policy?.connections?.quickbooksOnline);
+    const [policyTagLists, isMultiLevelTags] = useMemo(() => [PolicyUtils.getTagLists(policyTags), PolicyUtils.isMultiLevelTags(policyTags)], [policyTags]);
+    const canSelectMultiple = !isMultiLevelTags;
 
     const fetchTags = useCallback(() => {
-        Policy.openPolicyTagsPage(policyID);
+        Tag.openPolicyTagsPage(policyID);
     }, [policyID]);
 
     const {isOffline} = useNetwork({onReconnect: fetchTags});
 
-    useFocusEffect(
-        useCallback(() => {
-            fetchTags();
-        }, [fetchTags]),
-    );
+    useFocusEffect(fetchTags);
 
     useEffect(() => {
         if (isFocused) {
@@ -90,38 +71,49 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         setSelectedTags({});
     }, [isFocused]);
 
-    // We currently don't support multi level tags, so let's only get the first level tags.
-    const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags).slice(0, 1), [policyTags]);
-    const tagList = useMemo<PolicyForList[]>(
+    const tagList = useMemo<TagListItem[]>(() => {
+        if (isMultiLevelTags) {
+            return policyTagLists.map((policyTagList) => ({
+                value: policyTagList.name,
+                orderWeight: policyTagList.orderWeight,
+                text: PolicyUtils.getCleanedTagName(policyTagList.name),
+                keyForList: String(policyTagList.orderWeight),
+                isSelected: selectedTags[policyTagList.name],
+                enabled: true,
+                required: policyTagList.required,
+                rightElement: (
+                    <ListItemRightCaretWithLabel
+                        labelText={policyTagList.required ? translate('common.required') : undefined}
+                        shouldShowCaret={false}
+                    />
+                ),
+            }));
+        }
+        return Object.values(policyTagLists[0]?.tags ?? {})
+            .sort((tagA, tagB) => localeCompare(tagA.name, tagB.name))
+            .map((tag) => ({
+                value: tag.name,
+                text: PolicyUtils.getCleanedTagName(tag.name),
+                keyForList: tag.name,
+                isSelected: selectedTags[tag.name],
+                pendingAction: tag.pendingAction,
+                errors: tag.errors ?? undefined,
+                enabled: tag.enabled,
+                isDisabled: tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                rightElement: <ListItemRightCaretWithLabel labelText={tag.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
+            }));
+    }, [isMultiLevelTags, policyTagLists, selectedTags, translate]);
+
+    const tagListKeyedByName = useMemo(
         () =>
-            policyTagLists
-                .map((policyTagList) =>
-                    lodashSortBy(Object.values(policyTagList.tags || []), 'name', localeCompare).map((value) => {
-                        const tag = value as OnyxCommon.OnyxValueWithOfflineFeedback<OnyxTypes.PolicyTag>;
-                        const isDisabled = tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-                        return {
-                            value: tag.name,
-                            text: PolicyUtils.getCleanedTagName(tag.name),
-                            keyForList: tag.name,
-                            isSelected: !!selectedTags[tag.name],
-                            pendingAction: tag.pendingAction,
-                            errors: tag.errors ?? undefined,
-                            enabled: tag.enabled,
-                            isDisabled,
-                            rightElement: <RightElementEnabledStatus enabled={tag.enabled} />,
-                        };
-                    }),
-                )
-                .flat(),
-        [policyTagLists, selectedTags],
+            tagList.reduce<Record<string, TagListItem>>((acc, tag) => {
+                acc[tag.value] = tag;
+                return acc;
+            }, {}),
+        [tagList],
     );
 
-    const tagListKeyedByName = tagList.reduce<Record<string, PolicyForList>>((acc, tag) => {
-        acc[tag.value] = tag;
-        return acc;
-    }, {});
-
-    const toggleTag = (tag: PolicyForList) => {
+    const toggleTag = (tag: TagListItem) => {
         setSelectedTags((prev) => ({
             ...prev,
             [tag.value]: !prev[tag.value],
@@ -129,16 +121,31 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     };
 
     const toggleAllTags = () => {
-        const isAllSelected = tagList.every((tag) => !!selectedTags[tag.value]);
-        setSelectedTags(isAllSelected ? {} : Object.fromEntries(tagList.map((item) => [item.value, true])));
+        const availableTags = tagList.filter((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        const isAllSelected = availableTags.length === Object.keys(selectedTags).length;
+        setSelectedTags(isAllSelected ? {} : Object.fromEntries(availableTags.map((item) => [item.value, true])));
     };
 
-    const getCustomListHeader = () => (
-        <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3, styles.pr9]}>
-            <Text style={styles.searchInputStyle}>{translate('common.name')}</Text>
-            <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{translate('statusPage.status')}</Text>
-        </View>
-    );
+    const getCustomListHeader = () => {
+        const header = (
+            <View
+                style={[
+                    styles.flex1,
+                    styles.flexRow,
+                    styles.justifyContentBetween,
+                    // Required padding accounting for the checkbox and the right arrow in multi-select mode
+                    canSelectMultiple && [styles.pl3, styles.pr9],
+                ]}
+            >
+                <Text style={styles.searchInputStyle}>{translate('common.name')}</Text>
+                <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{translate('statusPage.status')}</Text>
+            </View>
+        );
+        if (canSelectMultiple) {
+            return header;
+        }
+        return <View style={[styles.flexRow, styles.ph9, styles.pv3, styles.pb5]}>{header}</View>;
+    };
 
     const navigateToTagsSettings = () => {
         Navigation.navigate(ROUTES.WORKSPACE_TAGS_SETTINGS.getRoute(policyID));
@@ -148,116 +155,142 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         Navigation.navigate(ROUTES.WORKSPACE_TAG_CREATE.getRoute(policyID));
     };
 
-    const navigateToTagSettings = (tag: PolicyOption) => {
-        Navigation.navigate(ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, tag.keyForList));
+    const navigateToTagSettings = (tag: TagListItem) => {
+        if (tag.orderWeight !== undefined) {
+            Navigation.navigate(ROUTES.WORKSPACE_TAG_LIST_VIEW.getRoute(policyID, tag.orderWeight));
+            return;
+        }
+        Navigation.navigate(ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, 0, tag.value));
     };
 
     const selectedTagsArray = Object.keys(selectedTags).filter((key) => selectedTags[key]);
 
-    const handleDeleteTags = () => {
+    const deleteTags = () => {
         setSelectedTags({});
-        Policy.deletePolicyTags(policyID, selectedTagsArray);
-        setDeleteTagsConfirmModalVisible(false);
+        Tag.deletePolicyTags(policyID, selectedTagsArray);
+        setIsDeleteTagsConfirmModalVisible(false);
     };
 
     const isLoading = !isOffline && policyTags === undefined;
 
     const getHeaderButtons = () => {
-        const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.TAGS_BULK_ACTION_TYPES>>> = [];
-        const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
+        const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
 
-        if (selectedTagsArray.length > 0) {
-            if (!isThereAnyAccountingConnection) {
-                options.push({
-                    icon: Expensicons.Trashcan,
-                    text: translate(selectedTagsArray.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
-                    value: CONST.POLICY.TAGS_BULK_ACTION_TYPES.DELETE,
-                    onSelected: () => setDeleteTagsConfirmModalVisible(true),
-                });
-            }
-
-            const enabledTags = selectedTagsArray.filter((tagName) => tagListKeyedByName?.[tagName]?.enabled);
-            if (enabledTags.length > 0) {
-                const tagsToDisable = selectedTagsArray
-                    .filter((tagName) => tagListKeyedByName?.[tagName]?.enabled)
-                    .reduce<Record<string, {name: string; enabled: boolean}>>((acc, tagName) => {
-                        acc[tagName] = {
-                            name: tagName,
-                            enabled: false,
-                        };
-                        return acc;
-                    }, {});
-
-                options.push({
-                    icon: Expensicons.DocumentSlash,
-                    text: translate(enabledTags.length === 1 ? 'workspace.tags.disableTag' : 'workspace.tags.disableTags'),
-                    value: CONST.POLICY.TAGS_BULK_ACTION_TYPES.DISABLE,
-                    onSelected: () => {
-                        setSelectedTags({});
-                        Policy.setWorkspaceTagEnabled(policyID, tagsToDisable);
-                    },
-                });
-            }
-
-            const disabledTags = selectedTagsArray.filter((tagName) => !tagListKeyedByName?.[tagName]?.enabled);
-            if (disabledTags.length > 0) {
-                const tagsToEnable = selectedTagsArray
-                    .filter((tagName) => !tagListKeyedByName?.[tagName]?.enabled)
-                    .reduce<Record<string, {name: string; enabled: boolean}>>((acc, tagName) => {
-                        acc[tagName] = {
-                            name: tagName,
-                            enabled: true,
-                        };
-                        return acc;
-                    }, {});
-                options.push({
-                    icon: Expensicons.Document,
-                    text: translate(disabledTags.length === 1 ? 'workspace.tags.enableTag' : 'workspace.tags.enableTags'),
-                    value: CONST.POLICY.TAGS_BULK_ACTION_TYPES.ENABLE,
-                    onSelected: () => {
-                        setSelectedTags({});
-                        Policy.setWorkspaceTagEnabled(policyID, tagsToEnable);
-                    },
-                });
-            }
-
+        if (selectedTagsArray.length === 0) {
             return (
-                <ButtonWithDropdownMenu
-                    buttonRef={dropdownButtonRef}
-                    onPress={() => null}
-                    shouldAlwaysShowDropdownMenu
-                    pressOnEnter
-                    isSplitButton={false}
-                    buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                    customText={translate('workspace.common.selected', {selectedNumber: selectedTagsArray.length})}
-                    options={options}
-                    style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
-                />
+                <View style={[styles.w100, styles.flexRow, styles.gap2, isSmallScreenWidth && styles.mb3]}>
+                    {!hasAccountingConnections && !isMultiLevelTags && (
+                        <Button
+                            medium
+                            success
+                            onPress={navigateToCreateTagPage}
+                            icon={Expensicons.Plus}
+                            text={translate('workspace.tags.addTag')}
+                            style={[isSmallScreenWidth && styles.flex1]}
+                        />
+                    )}
+                    {policyTags && (
+                        <Button
+                            medium
+                            onPress={navigateToTagsSettings}
+                            icon={Expensicons.Gear}
+                            text={translate('common.settings')}
+                            style={[isSmallScreenWidth && styles.flex1]}
+                        />
+                    )}
+                </View>
             );
         }
 
+        const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.TAGS_BULK_ACTION_TYPES>>> = [];
+
+        if (!hasAccountingConnections) {
+            options.push({
+                icon: Expensicons.Trashcan,
+                text: translate(selectedTagsArray.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
+                value: CONST.POLICY.TAGS_BULK_ACTION_TYPES.DELETE,
+                onSelected: () => setIsDeleteTagsConfirmModalVisible(true),
+            });
+        }
+
+        let enabledTagCount = 0;
+        const tagsToDisable: Record<string, {name: string; enabled: boolean}> = {};
+        let disabledTagCount = 0;
+        const tagsToEnable: Record<string, {name: string; enabled: boolean}> = {};
+        for (const tagName of selectedTagsArray) {
+            if (tagListKeyedByName[tagName]?.enabled) {
+                enabledTagCount++;
+                tagsToDisable[tagName] = {
+                    name: tagName,
+                    enabled: false,
+                };
+            } else {
+                disabledTagCount++;
+                tagsToEnable[tagName] = {
+                    name: tagName,
+                    enabled: true,
+                };
+            }
+        }
+
+        if (enabledTagCount > 0) {
+            options.push({
+                icon: Expensicons.DocumentSlash,
+                text: translate(enabledTagCount === 1 ? 'workspace.tags.disableTag' : 'workspace.tags.disableTags'),
+                value: CONST.POLICY.TAGS_BULK_ACTION_TYPES.DISABLE,
+                onSelected: () => {
+                    setSelectedTags({});
+                    Tag.setWorkspaceTagEnabled(policyID, tagsToDisable, 0);
+                },
+            });
+        }
+
+        if (disabledTagCount > 0) {
+            options.push({
+                icon: Expensicons.Document,
+                text: translate(disabledTagCount === 1 ? 'workspace.tags.enableTag' : 'workspace.tags.enableTags'),
+                value: CONST.POLICY.TAGS_BULK_ACTION_TYPES.ENABLE,
+                onSelected: () => {
+                    setSelectedTags({});
+                    Tag.setWorkspaceTagEnabled(policyID, tagsToEnable, 0);
+                },
+            });
+        }
+
         return (
-            <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
-                <Button
-                    medium
-                    success
-                    onPress={navigateToCreateTagPage}
-                    icon={Expensicons.Plus}
-                    text={translate('workspace.tags.addTag')}
-                    style={[styles.mr3, isSmallScreenWidth && styles.w50]}
-                />
-                {policyTags && (
-                    <Button
-                        medium
-                        onPress={navigateToTagsSettings}
-                        icon={Expensicons.Gear}
-                        text={translate('common.settings')}
-                        style={[isSmallScreenWidth && styles.w50]}
-                    />
-                )}
-            </View>
+            <ButtonWithDropdownMenu
+                onPress={() => null}
+                shouldAlwaysShowDropdownMenu
+                pressOnEnter
+                isSplitButton={false}
+                buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                customText={translate('workspace.common.selected', {selectedNumber: selectedTagsArray.length})}
+                options={options}
+                style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
+            />
         );
     };
+
+    const getHeaderText = () => (
+        <View style={[styles.ph5, styles.pb5, styles.pt3]}>
+            {isConnectedToAccounting ? (
+                <Text>
+                    <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.tags.importedFromAccountingSoftware')} `}</Text>
+                    <TextLink
+                        style={[styles.textNormal, styles.link]}
+                        href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
+                    >
+                        {`${translate(isConnectedToQbo ? 'workspace.accounting.qbo' : 'workspace.accounting.xero')} ${translate('workspace.accounting.settings')}`}
+                    </TextLink>
+                    <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
+                </Text>
+            ) : (
+                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.tags.subtitle')}</Text>
+            )}
+        </View>
+    );
+
+    const hasVisibleTag = tagList.some((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
 
     return (
         <AccessOrNotFoundWrapper
@@ -279,32 +312,18 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 >
                     {!isSmallScreenWidth && getHeaderButtons()}
                 </HeaderWithBackButton>
+                {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                 <ConfirmModal
-                    isVisible={deleteTagsConfirmModalVisible}
-                    onConfirm={handleDeleteTags}
-                    onCancel={() => setDeleteTagsConfirmModalVisible(false)}
+                    isVisible={isDeleteTagsConfirmModalVisible}
+                    onConfirm={deleteTags}
+                    onCancel={() => setIsDeleteTagsConfirmModalVisible(false)}
                     title={translate(selectedTagsArray.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags')}
                     prompt={translate(selectedTagsArray.length === 1 ? 'workspace.tags.deleteTagConfirmation' : 'workspace.tags.deleteTagsConfirmation')}
                     confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}
                     danger
                 />
-                {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
-                <View style={[styles.ph5, styles.pb5, styles.pt3]}>
-                    {isConnectedToAccounting ? (
-                        <Text>
-                            <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.tags.importedFromAccountingSoftware')} `}</Text>
-                            <TextLink
-                                style={[styles.textNormal, styles.link]}
-                                href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
-                            >
-                                {`${translate('workspace.accounting.qbo')} ${translate('workspace.accounting.settings')}`}
-                            </TextLink>
-                        </Text>
-                    ) : (
-                        <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.tags.subtitle')}</Text>
-                    )}
-                </View>
+                {(!isSmallScreenWidth || tagList.length === 0 || isLoading) && getHeaderText()}
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -312,26 +331,28 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         color={theme.spinner}
                     />
                 )}
-                {tagList.length === 0 && !isLoading && (
+                {!hasVisibleTag && !isLoading && (
                     <WorkspaceEmptyStateSection
                         title={translate('workspace.tags.emptyTags.title')}
                         icon={Illustrations.EmptyStateExpenses}
                         subtitle={translate('workspace.tags.emptyTags.subtitle')}
                     />
                 )}
-                {tagList.length > 0 && !isLoading && (
+                {hasVisibleTag && !isLoading && (
                     <SelectionList
-                        canSelectMultiple
+                        canSelectMultiple={canSelectMultiple}
                         sections={[{data: tagList, isDisabled: false}]}
                         onCheckboxPress={toggleTag}
                         onSelectRow={navigateToTagSettings}
+                        shouldDebounceRowSelect={!canSelectMultiple}
                         onSelectAll={toggleAllTags}
-                        showScrollIndicator
                         ListItem={TableListItem}
                         customListHeader={getCustomListHeader()}
                         shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                        onDismissError={(item) => Policy.clearPolicyTagErrors(policyID, item.value)}
+                        onDismissError={(item) => Tag.clearPolicyTagErrors(policyID, item.value)}
+                        listHeaderContent={isSmallScreenWidth ? getHeaderText() : null}
+                        showScrollIndicator={false}
                     />
                 )}
             </ScreenWrapper>

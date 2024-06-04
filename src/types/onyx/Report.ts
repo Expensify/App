@@ -21,12 +21,13 @@ type Note = OnyxCommon.OnyxValueWithOfflineFeedback<{
 type PendingChatMember = {
     accountID: string;
     pendingAction: OnyxCommon.PendingAction;
+    errors?: OnyxCommon.Errors;
 };
 
-type Participant = {
+type Participant = OnyxCommon.OnyxValueWithOfflineFeedback<{
     hidden?: boolean;
     role?: 'admin' | 'member';
-};
+}>;
 
 type InvoiceReceiver =
     | {
@@ -156,8 +157,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         ownerAccountID?: number;
         ownerEmail?: string;
         participants?: Participants;
-        participantAccountIDs?: number[];
-        visibleChatMemberAccountIDs?: number[];
         total?: number;
         unheldTotal?: number;
         currency?: string;

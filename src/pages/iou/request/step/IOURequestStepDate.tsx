@@ -159,6 +159,7 @@ const IOURequestStepDateWithOnyx = withOnyx<IOURequestStepDateProps, IOURequestS
             }
             return `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID ?? '0'}`;
         },
+        canEvict: false,
     },
     policy: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
@@ -175,8 +176,8 @@ const IOURequestStepDateWithOnyx = withOnyx<IOURequestStepDateProps, IOURequestS
 })(IOURequestStepDate);
 
 // eslint-disable-next-line rulesdir/no-negated-variables
-const IOURequestStepDateWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDateWithOnyx);
+const IOURequestStepDateWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDateWithOnyx);
 // eslint-disable-next-line rulesdir/no-negated-variables
-const IOURequestStepDateWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDateWithWritableReportOrNotFound);
+const IOURequestStepDateWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDateWithFullTransactionOrNotFound);
 
-export default IOURequestStepDateWithFullTransactionOrNotFound;
+export default IOURequestStepDateWithWritableReportOrNotFound;
