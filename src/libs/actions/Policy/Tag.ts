@@ -438,6 +438,8 @@ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName:
 }
 
 function enablePolicyTags(policyID: string, enabled: boolean) {
+    const defaultTag: {name: string} = CONST.DEFAULT_TAG;
+    const doesPolicyTagListExist = !isEmpty(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`]);
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -475,6 +477,22 @@ function enablePolicyTags(policyID: string, enabled: boolean) {
             },
         ],
     };
+    if (enabled && !doesPolicyTagListExist) {
+        onyxData.optimisticData?.push({
+            key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+            onyxMethod: Onyx.METHOD.MERGE,
+            value: {
+                [defaultTag.name]: {
+                    ...defaultTag,
+                },
+            },
+        });
+        onyxData.failureData?.push({
+            key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+            onyxMethod: Onyx.METHOD.MERGE,
+            value: null,
+        });
+    }
 
     const parameters: EnablePolicyTagsParams = {policyID, enabled};
 
