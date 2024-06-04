@@ -119,6 +119,7 @@ export default {
         to: 'A',
         optional: 'Opcional',
         new: 'Nuevo',
+        center: 'Centrar',
         search: 'Buscar',
         find: 'Encontrar',
         searchWithThreeDots: 'Buscar...',
@@ -324,6 +325,9 @@ export default {
         action: 'Acción',
         expenses: 'Gastos',
         tax: 'Impuesto',
+        shared: 'Compartido',
+        drafts: 'Borradores',
+        finished: 'Finalizado',
     },
     connectionComplete: {
         title: 'Conexión Completa',
@@ -512,6 +516,7 @@ export default {
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' y ',
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' empieza aquí! 🎉 Este es el lugar donde chatear y presentar o pagar gastos.',
         beginningOfChatHistorySelfDM: 'Este es tu espacio personal. Úsalo para notas, tareas, borradores y recordatorios.',
+        beginningOfChatHistorySystemDM: '¡Bienvenido! Vamos a configurar tu cuenta.',
         chatWithAccountManager: 'Chatea con tu gestor de cuenta aquí',
         sayHello: '¡Saluda!',
         yourSpace: 'Tu espacio',
@@ -1892,6 +1897,7 @@ export default {
             alerts: 'Obtén actualizaciones y alertas en tiempo real',
         },
         bookTravel: 'Reservar viajes',
+        bookDemo: 'Pedir demostración',
         termsAndConditions: {
             header: 'Antes de continuar...',
             title: 'Por favor, lee los Términos y condiciones para reservar viajes',
@@ -3650,5 +3656,24 @@ export default {
     },
     systemMessage: {
         mergedWithCashTransaction: 'encontró un recibo para esta transacción.',
+    },
+    subscription: {
+        subscriptionSize: {
+            title: 'Tamaño de suscripción',
+            yourSize: 'El tamaño de tu suscripción es el número de plazas abiertas que puede ocupar cualquier miembro activo en un mes determinado.',
+            eachMonth:
+                'Cada mes, tu suscripción cubre hasta el número de miembros activos establecido anteriormente. Cada vez que aumentes el tamaño de tu suscripción, iniciarás una nueva suscripción de 12 meses con ese nuevo tamaño.',
+            note: 'Nota: Un miembro activo es cualquiera que haya creado, editado, enviado, aprobado, reembolsado, o exportado datos de gastos vinculados al espacio de trabajo de tu empresa.',
+            confirmDetails: 'Confirma los datos de tu nueva suscripción anual',
+            subscriptionSize: 'Tamaño de suscripción',
+            activeMembers: ({size}) => `${size} miembros activos/mes`,
+            subscriptionRenews: 'Renovación de la suscripción',
+            youCantDowngrade: 'No puedes bajar de categoría durante tu suscripción anual',
+            youAlreadyCommitted: ({size, date}) =>
+                `Ya se ha comprometido a un tamaño de suscripción anual de ${size} miembros activos al mes hasta el ${date}. Puede cambiar a una suscripción de pago por uso en ${date} desactivando la auto-renovación.`,
+            error: {
+                size: 'Por favor ingrese un tamaño de suscripción valido.',
+            },
+        },
     },
 } satisfies EnglishTranslation;

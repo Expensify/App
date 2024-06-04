@@ -101,6 +101,7 @@ const SCREENS = {
 
         SUBSCRIPTION: {
             ROOT: 'Settings_Subscription',
+            SIZE: 'Settings_Subscription_Size',
         },
     },
     SAVE_THE_WORLD: {
