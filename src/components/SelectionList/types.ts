@@ -127,6 +127,9 @@ type ListItem = {
     /** Whether the brick road indicator should be shown */
     brickRoadIndicator?: BrickRoad | '' | null;
 
+    /** Element to render below the ListItem */
+    footerContent?: ReactNode;
+
     /** Whether item pressable wrapper should be focusable */
     tabIndex?: 0 | -1;
 };
@@ -359,6 +362,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Custom content to display in the footer of list component. If present ShowMore button won't be displayed */
     listFooterContent?: React.JSX.Element | null;
 
+    /** Content to display if the list is empty */
+    listEmptyContent?: React.JSX.Element | null;
+
     /** Whether to use dynamic maxToRenderPerBatch depending on the visible number of elements */
     shouldUseDynamicMaxToRenderPerBatch?: boolean;
 
@@ -424,6 +430,7 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
 type SelectionListHandle = {
     scrollAndHighlightItem?: (items: string[], timeout: number) => void;
+    clearInputAfterSelect?: () => void;
 };
 
 type ItemLayout = {
