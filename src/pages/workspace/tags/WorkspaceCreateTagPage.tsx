@@ -66,7 +66,7 @@ function CreateTagPage({route, policyTags}: CreateTagPageProps) {
         },
         [route.params.policyID],
     );
-    const enabledWhenOffline = useMemo(() => !isEmpty(policyTags), [policyTags]);
+    const disableSubmit = useMemo(() => isEmpty(policyTags), [policyTags]);
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -88,8 +88,8 @@ function CreateTagPage({route, policyTags}: CreateTagPageProps) {
                     onSubmit={createTag}
                     submitButtonText={translate('common.save')}
                     validate={validate}
-                    style={[styles.mh5, styles.flex1]}
-                    enabledWhenOffline={enabledWhenOffline}
+                    style={[styles.mh5, styles.flex1]}     
+                    disableSubmit={disableSubmit}       
                 >
                     <InputWrapper
                         InputComponent={TextInput}

@@ -34,6 +34,9 @@ type FormAlertWithSubmitButtonProps = {
     /** Disable press on enter for submit button */
     disablePressOnEnter?: boolean;
 
+    /** Should the button be disabled */
+    disableSubmit?: boolean;
+
     /** Whether the form submit action is dangerous */
     isSubmitActionDangerous?: boolean;
 
@@ -77,6 +80,7 @@ function FormAlertWithSubmitButton({
     useSmallerSubmitButtonSize = false,
     errorMessageStyle,
     enterKeyEventListenerPriority = 0,
+    disableSubmit = false,
 }: FormAlertWithSubmitButtonProps) {
     const styles = useThemeStyles();
     const style = [!footerContent ? {} : styles.mb3, buttonStyles];
@@ -92,7 +96,7 @@ function FormAlertWithSubmitButton({
         >
             {(isOffline: boolean | undefined) => (
                 <View>
-                    {isOffline && !enabledWhenOffline ? (
+                    {(isOffline && !enabledWhenOffline) || disableSubmit ? (
                         <Button
                             success
                             isDisabled

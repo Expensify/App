@@ -86,6 +86,7 @@ function FormProvider(
         formState,
         network,
         enabledWhenOffline = false,
+        disableSubmit = false,
         draftValues,
         onSubmit,
         shouldTrimValues = true,
@@ -371,6 +372,7 @@ function FormProvider(
                 inputRefs={inputRefs}
                 errors={errors}
                 enabledWhenOffline={enabledWhenOffline}
+                disableSubmit={disableSubmit}
             >
                 {typeof children === 'function' ? children({inputValues}) : children}
             </FormWrapper>
