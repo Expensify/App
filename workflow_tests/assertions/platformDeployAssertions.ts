@@ -25,6 +25,18 @@ function assertDeployChecklistJobExecuted(workflowResult: Step[], didExecute = t
     });
 }
 
+function assertHybridAppJobExecuted(workflowResult: Step[], didExecute = true) {
+    const steps = [createStepAssertion('hybridApp', true, null, 'HYBRID_APP', 'Deploy HybridApp')] as const;
+
+    steps.forEach((expectedStep) => {
+        if (didExecute) {
+            expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
+        } else {
+            expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
+        }
+    });
+}
+
 function assertAndroidJobExecuted(workflowResult: Step[], didExecute = true, isProduction = true, isSuccessful = true) {
     const steps = [
         createStepAssertion('Checkout', true, null, 'ANDROID', 'Checking out'),
@@ -379,6 +391,7 @@ function assertPostGithubCommentJobExecuted(workflowResult: Step[], didExecute =
 export default {
     assertVerifyActorJobExecuted,
     assertDeployChecklistJobExecuted,
+    assertHybridAppJobExecuted,
     assertAndroidJobExecuted,
     assertDesktopJobExecuted,
     assertIOSJobExecuted,
