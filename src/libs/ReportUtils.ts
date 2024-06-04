@@ -1851,13 +1851,18 @@ function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = f
     return shouldUseShortForm ? shortName : longName;
 }
 
-function getParticipantAccountIDs(reportID: string) {
+function getParticipantAccountIDs(reportID: string, includeOnlyActiveMembers = false) {
     const report = getReport(reportID);
     if (!report || !report.participants) {
         return [];
     }
-
-    const accountIDStrings = Object.keys(report.participants);
+    const accountIDStrings = Object.keys(report.participants).filter((accountID) => {
+        if (!includeOnlyActiveMembers) {
+            return true;
+        }
+        const pendingMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
+        return !pendingMember || pendingMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    });
     return accountIDStrings.map((accountID) => Number(accountID));
 }
 
