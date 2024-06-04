@@ -1,5 +1,5 @@
 import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
+import {Linking, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmedRoute from '@components/ConfirmedRoute';
@@ -174,6 +174,13 @@ function MoneyRequestView({
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest);
     const shouldShowViewTripDetails = TransactionUtils.hasReservationList(transaction);
     const tripID = ReportUtils.getTripIDFromTransactionParentReport(parentReport);
+
+    const navigateToTripID = () => {
+        if (!tripID) {
+            return;
+        }
+        Linking.openURL(CONST.TRIP_ID_URL(tripID));
+    };
 
     const {getViolationsForField} = useViolations(transactionViolations ?? []);
     const hasViolations = useCallback(
@@ -552,12 +559,13 @@ function MoneyRequestView({
                         />
                     </OfflineWithFeedback>
                 )}
-                {shouldShowViewTripDetails && (
+                {shouldShowViewTripDetails && tripID && (
                     <MenuItem
                         title="View trip details"
                         icon={Expensicons.Suitcase}
                         iconRight={Expensicons.NewWindow}
                         shouldShowRightIcon
+                        onPress={navigateToTripID}
                     />
                 )}
                 {shouldShowBillable && (
