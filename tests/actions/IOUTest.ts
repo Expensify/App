@@ -2958,8 +2958,9 @@ describe('actions/IOU', () => {
 
             mockFetch?.pause?.();
 
+            let navigateToAfterDelete;
             if (transaction && createIOUAction) {
-                IOU.deleteMoneyRequest(transaction.transactionID, createIOUAction, true);
+                navigateToAfterDelete = IOU.deleteMoneyRequest(transaction.transactionID, createIOUAction, true);
             }
             await waitForBatchedUpdates();
 
@@ -3001,16 +3002,17 @@ describe('actions/IOU', () => {
 
             // Then we expect to navigate to the iou report
 
-            expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(IOU_REPORT_ID));
+            expect(navigateToAfterDelete).toEqual(ROUTES.REPORT_WITH_ID.getRoute(IOU_REPORT_ID));
         });
 
         it('navigate the user correctly to the chat Report when appropriate', () => {
+            let navigateToAfterDelete;
             if (transaction && createIOUAction) {
                 // When we delete the expense and we should delete the IOU report
-                IOU.deleteMoneyRequest(transaction.transactionID, createIOUAction, false);
+                navigateToAfterDelete = IOU.deleteMoneyRequest(transaction.transactionID, createIOUAction, false);
             }
             // Then we expect to navigate to the chat report
-            expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(chatReport?.reportID ?? ''));
+            expect(navigateToAfterDelete).toEqual(ROUTES.REPORT_WITH_ID.getRoute(chatReport?.reportID ?? ''));
         });
     });
 
