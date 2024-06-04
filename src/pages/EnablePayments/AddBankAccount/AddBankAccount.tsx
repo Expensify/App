@@ -15,6 +15,7 @@ import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {PersonalBankAccountForm} from '@src/types/form';
 import type {PersonalBankAccount, PlaidData} from '@src/types/onyx';
 import SetupMethod from './SetupMethod';
@@ -74,6 +75,7 @@ function AddBankAccount({personalBankAccount, plaidData, personalBankAccountDraf
         if (screenIndex === 0) {
             BankAccounts.clearPersonalBankAccount();
             Wallet.updateCurrentStep(null);
+            Navigation.goBack(ROUTES.SETTINGS_WALLET);
             return;
         }
         prevScreen();
