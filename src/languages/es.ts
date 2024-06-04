@@ -1938,14 +1938,6 @@ export default {
             error: 'Debes aceptar los Términos y condiciones para que el viaje continúe',
         },
     },
-    subscription: {
-        paymentCard: {
-            addPaymentCard: 'Añade tarjeta de pago',
-            enterPaymentCardDetails: 'Introduce los datos de tu tarjeta de pago.',
-            security: 'Expensify es PCI-DSS obediente, utiliza cifrado a nivel bancario, y emplea infraestructura redundante para proteger tus datos.',
-            learnMoreAboutSecurity: 'Conozca más sobre nuestra seguridad.',
-        },
-    },
     workspace: {
         common: {
             card: 'Tarjetas',
@@ -3746,6 +3738,12 @@ export default {
             error: {
                 size: 'Por favor ingrese un tamaño de suscripción valido.',
             },
+        },
+        paymentCard: {
+            addPaymentCard: 'Añade tarjeta de pago',
+            enterPaymentCardDetails: 'Introduce los datos de tu tarjeta de pago.',
+            security: 'Expensify es PCI-DSS obediente, utiliza cifrado a nivel bancario, y emplea infraestructura redundante para proteger tus datos.',
+            learnMoreAboutSecurity: 'Conozca más sobre nuestra seguridad.',
         },
     },
 } satisfies EnglishTranslation;

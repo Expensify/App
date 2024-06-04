@@ -1914,14 +1914,6 @@ export default {
             error: 'You must accept the Terms & Conditions for travel to continue',
         },
     },
-    subscription: {
-        paymentCard: {
-            addPaymentCard: 'Add payment card',
-            enterPaymentCardDetails: 'Enter your payment card details.',
-            security: 'Expensify is PCI-DSS compliant, uses bank-level encryption, and utilizes redundant infrastructure to protect your data.',
-            learnMoreAboutSecurity: 'Learn more about our security.',
-        },
-    },
     workspace: {
         common: {
             card: 'Cards',
@@ -3240,6 +3232,12 @@ export default {
             error: {
                 size: 'Please enter a valid subscription size.',
             },
+        },
+        paymentCard: {
+            addPaymentCard: 'Add payment card',
+            enterPaymentCardDetails: 'Enter your payment card details.',
+            security: 'Expensify is PCI-DSS compliant, uses bank-level encryption, and utilizes redundant infrastructure to protect your data.',
+            learnMoreAboutSecurity: 'Learn more about our security.',
         },
     },
 } satisfies TranslationBase;
