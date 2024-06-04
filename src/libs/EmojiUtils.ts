@@ -1,4 +1,3 @@
-import {getUnixTime} from 'date-fns';
 import Str from 'expensify-common/lib/str';
 import memoize from 'lodash/memoize';
 import Onyx from 'react-native-onyx';
