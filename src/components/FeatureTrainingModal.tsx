@@ -203,7 +203,7 @@ function FeatureTrainingModal({
                                     <View style={[shouldUseNarrowLayout ? [styles.gap1, styles.mb8] : [styles.mb10]]}>
                                         <Text style={[styles.textHeadlineH1]}>{title}</Text>
                                         <Text style={styles.textSupporting}>{description}</Text>
-                                        <Text style={[styles.textSupporting, styles.mt4]}>{secondaryDescription}</Text>
+                                        {secondaryDescription.length > 0 && <Text style={[styles.textSupporting, styles.mt4]}>{secondaryDescription}</Text>}
                                     </View>
                                 )}
                                 {shouldShowDismissModalOption && (
