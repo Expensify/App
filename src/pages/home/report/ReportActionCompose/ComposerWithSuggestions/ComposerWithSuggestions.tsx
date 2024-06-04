@@ -182,11 +182,7 @@ type SwitchToCurrentReportProps = {
     callback: () => void;
 };
 
-type RNTextInputResetProps = {
-    resetKeyboardInput: (nodeHandle: number | null) => void;
-};
-
-const RNTextInputReset: RNTextInputResetProps = NativeModules.RNTextInputReset;
+const {RNTextInputReset} = NativeModules;
 
 const isIOSNative = getPlatform() === CONST.PLATFORM.IOS;
 
