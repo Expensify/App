@@ -88,7 +88,6 @@ function CreateTagPage({route, policyTags}: CreateTagPageProps) {
                     submitButtonText={translate('common.save')}
                     validate={validate}
                     style={[styles.mh5, styles.flex1]}
-                    enabledWhenOffline
                 >
                     <InputWrapper
                         InputComponent={TextInput}

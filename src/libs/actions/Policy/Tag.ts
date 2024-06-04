@@ -84,35 +84,12 @@ function openPolicyTagsPage(policyID: string) {
         Log.warn('openPolicyTasgPage invalid params', {policyID});
         return;
     }
-    const defaultTag: {name: string} = CONST.DEFAULT_TAG;
-    const doesPolicyTagListNotExist = isEmpty(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`]);
-    const onyxData: OnyxData = {};
-    if (doesPolicyTagListNotExist) {
-        onyxData.optimisticData = [
-            {
-                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
-                onyxMethod: Onyx.METHOD.MERGE,
-                value: {
-                    [defaultTag.name]: {
-                        ...defaultTag,
-                    },
-                },
-            },
-        ];
-        onyxData.failureData = [
-            {
-                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
-                onyxMethod: Onyx.METHOD.MERGE,
-                value: null,
-            },
-        ];
-    }
 
     const params: OpenPolicyTagsPageParams = {
         policyID,
     };
 
-    API.read(READ_COMMANDS.OPEN_POLICY_TAGS_PAGE, params, onyxData);
+    API.read(READ_COMMANDS.OPEN_POLICY_TAGS_PAGE, params);
 }
 
 function buildOptimisticPolicyRecentlyUsedTags(policyID?: string, transactionTags?: string): RecentlyUsedTags {
