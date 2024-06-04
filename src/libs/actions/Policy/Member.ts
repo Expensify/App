@@ -2,12 +2,7 @@ import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {
-    AddMembersToWorkspaceParams,
-    DeleteMembersFromWorkspaceParams,
-    OpenWorkspaceMembersPageParams,
-    UpdateWorkspaceMembersRoleParams,
-} from '@libs/API/parameters';
+import type {AddMembersToWorkspaceParams, DeleteMembersFromWorkspaceParams, OpenWorkspaceMembersPageParams, UpdateWorkspaceMembersRoleParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
@@ -16,17 +11,11 @@ import * as PhoneNumber from '@libs/PhoneNumber';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {
-    InvitedEmailsToAccountIDs,
-    PersonalDetailsList,
-    Policy,
-    PolicyEmployee,
-    Report,
-} from '@src/types/onyx';
+import type {InvitedEmailsToAccountIDs, PersonalDetailsList, Policy, PolicyEmployee, Report} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {Attributes, Rate} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getPolicy, createPolicyExpenseChats} from './Policy';
+import {createPolicyExpenseChats, getPolicy} from './Policy';
 
 type AnnounceRoomMembersOnyxData = {
     onyxOptimisticData: OnyxUpdate[];
