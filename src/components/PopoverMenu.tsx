@@ -98,7 +98,7 @@ function PopoverMenu({
     shouldEnableNewFocusManagement,
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const selectedItemIndex = useRef<number | null>(null);
 
     const [currentMenuItems, setCurrentMenuItems] = useState(menuItems);
@@ -198,7 +198,7 @@ function PopoverMenu({
             shouldSetModalVisibility={shouldSetModalVisibility}
             shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
         >
-            <View style={shouldUseNarrowLayout ? {} : styles.createMenuContainer}>
+            <View style={isSmallScreenWidth ? {} : styles.createMenuContainer}>
                 {!!headerText && <Text style={[styles.createMenuHeaderText, styles.ml3]}>{headerText}</Text>}
                 {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
                 {currentMenuItems.map((item, menuIndex) => (
