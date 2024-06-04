@@ -227,6 +227,7 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
 }>;
 
 type ReportAction<T extends ReportActionName = ReportActionName> = ReportActionBase & {
+    /** @deprecated Used in old report actions before migration. Replaced by using getOriginalMessage function. */
     originalMessage?: OriginalMessage<T>;
 
     /** report action message */

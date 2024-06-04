@@ -236,7 +236,8 @@ function BaseReportActionContextMenu({
                 {filteredContextMenuActions.map((contextAction, index) => {
                     const closePopup = !isMini;
                     const payload: ContextMenuActionPayload = {
-                        reportAction: reportAction as ReportAction,
+                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                        reportAction: reportAction!,
                         reportID,
                         draftMessage,
                         selection,
