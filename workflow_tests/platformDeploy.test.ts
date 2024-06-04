@@ -110,6 +110,10 @@ describe('test workflow platformDeploy', () => {
                         steps: mocks.PLATFORM_DEPLOY__DEPLOY_CHECKLIST__STEP_MOCKS,
                         runsOn: 'ubuntu-latest',
                     },
+                    hybridApp: {
+                        steps: mocks.PLATFORM_DEPLOY__HYBRID_APP__STEP_MOCKS,
+                        runsOn: 'ubuntu-latest',
+                    },
                 };
                 const result = await act.runEvent('push', {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'platformDeploy.yml'),
@@ -121,6 +125,7 @@ describe('test workflow platformDeploy', () => {
 
                 assertions.assertVerifyActorJobExecuted(result);
                 assertions.assertDeployChecklistJobExecuted(result, true);
+                assertions.assertHybridAppJobExecuted(result, true);
                 assertions.assertAndroidJobExecuted(result, true, false, true);
                 assertions.assertDesktopJobExecuted(result, true, false);
                 assertions.assertIOSJobExecuted(result, true, false, true);
@@ -194,6 +199,10 @@ describe('test workflow platformDeploy', () => {
                         steps: mocks.PLATFORM_DEPLOY__DEPLOY_CHECKLIST__STEP_MOCKS,
                         runsOn: 'ubuntu-latest',
                     },
+                    hybridApp: {
+                        steps: mocks.PLATFORM_DEPLOY__HYBRID_APP__STEP_MOCKS,
+                        runsOn: 'ubuntu-latest',
+                    },
                 };
                 const result = await act.runEvent('push', {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'platformDeploy.yml'),
@@ -205,6 +214,7 @@ describe('test workflow platformDeploy', () => {
 
                 assertions.assertVerifyActorJobExecuted(result);
                 assertions.assertDeployChecklistJobExecuted(result, true);
+                assertions.assertHybridAppJobExecuted(result, true);
                 assertions.assertAndroidJobExecuted(result, true, false, true);
                 assertions.assertDesktopJobExecuted(result, true, false);
                 assertions.assertIOSJobExecuted(result, true, false, true);
@@ -278,6 +288,10 @@ describe('test workflow platformDeploy', () => {
                         steps: mocks.PLATFORM_DEPLOY__DEPLOY_CHECKLIST__STEP_MOCKS,
                         runsOn: 'ubuntu-latest',
                     },
+                    hybridApp: {
+                        steps: mocks.PLATFORM_DEPLOY__HYBRID_APP__STEP_MOCKS,
+                        runsOn: 'ubuntu-latest',
+                    },
                 };
                 const result = await act.runEvent('push', {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'platformDeploy.yml'),
@@ -289,6 +303,7 @@ describe('test workflow platformDeploy', () => {
 
                 assertions.assertVerifyActorJobExecuted(result);
                 assertions.assertDeployChecklistJobExecuted(result, true);
+                assertions.assertHybridAppJobExecuted(result, true);
                 assertions.assertAndroidJobExecuted(result, false);
                 assertions.assertDesktopJobExecuted(result, false);
                 assertions.assertIOSJobExecuted(result, false);
