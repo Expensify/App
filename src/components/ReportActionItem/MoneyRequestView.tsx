@@ -13,6 +13,7 @@ import ReceiptEmptyState from '@components/ReceiptEmptyState';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import ViolationMessages from '@components/ViolationMessages';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
@@ -100,6 +101,8 @@ function MoneyRequestView({
     const session = useSession();
     const {isOffline} = useNetwork();
     const {translate, toLocaleDigit} = useLocalize();
+    const {isProduction} = useEnvironment();
+
     const parentReportAction = parentReportActions?.[report.parentReportActionID ?? ''] ?? null;
     const isTrackExpense = ReportUtils.isTrackExpenseReport(report);
     const {canUseViolations, canUseP2PDistanceRequests} = usePermissions(isTrackExpense ? CONST.IOU.TYPE.TRACK : undefined);
@@ -179,7 +182,7 @@ function MoneyRequestView({
         if (!tripID) {
             return;
         }
-        Linking.openURL(CONST.TRIP_ID_URL(tripID));
+        Linking.openURL(CONST.TRIP_ID_URL(tripID, isProduction));
     };
 
     const {getViolationsForField} = useViolations(transactionViolations ?? []);

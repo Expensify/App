@@ -3306,7 +3306,7 @@ const CONST = {
 
     CONCIERGE_TRAVEL_URL: 'https://community.expensify.com/discussion/7066/introducing-concierge-travel',
     BOOK_TRAVEL_DEMO_URL: 'https://calendly.com/d/ck2z-xsh-q97/expensify-travel-demo-travel-page',
-    TRIP_ID_URL: (tripID: string) => `https://travel.expensify.com/trips/${tripID}`,
+    TRIP_ID_URL: (tripID: string, isProduction: boolean) => (isProduction ? `https://travel.expensify.com/trips/${tripID}` : `https://staging.travel.expensify.com/trips/${tripID}`),
     SCREEN_READER_STATES: {
         ALL: 'all',
         ACTIVE: 'active',
