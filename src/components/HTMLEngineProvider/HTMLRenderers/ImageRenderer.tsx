@@ -93,7 +93,9 @@ function ImageRenderer({tnode}: ImageRendererProps) {
                                     Navigation.navigate(route);
                                 }
                             }}
-                            onLongPress={(event) => onShowContextMenu(() => showContextMenuForReport(event, anchor, report?.reportID ?? '', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report)))}
+                            onLongPress={(event) =>
+                                onShowContextMenu(() => showContextMenuForReport(event, anchor, report?.reportID ?? '', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report)))
+                            }
                             shouldUseHapticsOnLongPress
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                             accessibilityLabel={translate('accessibilityHints.viewAttachment')}
