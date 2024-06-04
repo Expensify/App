@@ -1,5 +1,6 @@
 import {format} from 'date-fns';
 import React, {useState} from 'react';
+import type {StyleProp, TextStyle} from 'react-native';
 import {View} from 'react-native';
 import Section from '@components/Section';
 import Text from '@components/Text';
@@ -37,7 +38,7 @@ function SubscriptionSettingsSection() {
         setAutoIncrease(!autoIncrease);
     };
 
-    const customTitleSecondSentenceStyles = [styles.textNormal, {color: theme.success}];
+    const customTitleSecondSentenceStyles: StyleProp<TextStyle> = [styles.textNormal, {color: theme.success}];
     const customTitle = (
         <View style={[styles.flexRow, styles.flex1, styles.alignItemsCenter]}>
             <Text style={[styles.mr1, styles.textNormalThemeText]}>{translate('subscription.subscriptionSettings.autoIncrease')}</Text>
@@ -48,10 +49,10 @@ function SubscriptionSettingsSection() {
     return (
         <Section
             title={translate('subscription.subscriptionSettings.title')}
-            titleStyles={[styles.textStrong]}
+            titleStyles={styles.textStrong}
             isCentralPane
         >
-            <View style={[styles.mt5]}>
+            <View style={styles.mt5}>
                 <ToggleSettingOptionRow
                     title={translate('subscription.subscriptionSettings.autoRenew')}
                     switchAccessibilityLabel={translate('subscription.subscriptionSettings.autoRenew')}
@@ -60,7 +61,7 @@ function SubscriptionSettingsSection() {
                 />
                 <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('subscription.subscriptionSettings.renewsOn', {date: expirationDate})}</Text>
             </View>
-            <View style={[styles.mt3]}>
+            <View style={styles.mt3}>
                 <ToggleSettingOptionRow
                     customTitle={customTitle}
                     switchAccessibilityLabel={translate('subscription.subscriptionSettings.autoRenew')}

@@ -1,5 +1,6 @@
 import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import React, {useState} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -38,7 +39,7 @@ function FeedbackSurvey({title, description, onSubmit}: FeedbackSurveyProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
 
-    const selectCircleStyles = {borderColor: theme.border};
+    const selectCircleStyles: StyleProp<ViewStyle> = {borderColor: theme.border};
     const [reason, setReason] = useState<Option>();
     const [shouldShowReasonError, setShouldShowReasonError] = useState(false);
 
@@ -58,13 +59,13 @@ function FeedbackSurvey({title, description, onSubmit}: FeedbackSurveyProps) {
 
     return (
         <View style={[styles.flexGrow1, styles.justifyContentBetween]}>
-            <View style={[styles.mh5]}>
-                <Text style={[styles.textHeadline]}>{title}</Text>
+            <View style={styles.mh5}>
+                <Text style={styles.textHeadline}>{title}</Text>
                 <Text style={[styles.mt1, styles.mb3, styles.textNormalThemeText]}>{description}</Text>
                 <SingleOptionSelector
                     options={OPTIONS}
-                    optionRowStyles={[styles.mb7]}
-                    selectCircleStyles={[selectCircleStyles]}
+                    optionRowStyles={styles.mb7}
+                    selectCircleStyles={selectCircleStyles}
                     selectedOptionKey={reason?.key}
                     onSelectOption={handleOptionSelect}
                 />
