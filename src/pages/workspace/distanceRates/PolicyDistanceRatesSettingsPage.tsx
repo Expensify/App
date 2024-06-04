@@ -47,8 +47,8 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
     const customUnits = policy?.customUnits ?? {};
     const customUnit = customUnits[Object.keys(customUnits)[0]];
     const customUnitID = customUnit?.customUnitID ?? '';
-    const isDistanceTrackTaxEnabled = Boolean(customUnit?.attributes?.taxEnabled);
-    const isPolicyTrackTaxEnabled = Boolean(policy?.tax?.trackingEnabled);
+    const isDistanceTrackTaxEnabled = !!customUnit?.attributes?.taxEnabled;
+    const isPolicyTrackTaxEnabled = !!policy?.tax?.trackingEnabled;
 
     const defaultCategory = customUnits[customUnitID]?.defaultCategory;
     const defaultUnit = customUnits[customUnitID]?.attributes.unit;
@@ -73,7 +73,7 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
         Policy.clearPolicyDistanceRatesErrorFields(policyID, customUnitID, {...errorFields, [fieldName]: null});
     };
 
-    const onToggleTrackTax = (isOn: boolean) => {
+    const onToggleTrackTax = (isOn: !! => {
         const attributes = {...customUnits[customUnitID].attributes, taxEnabled: isOn};
         Policy.enableDistanceRequestTax(policyID, customUnit.name, customUnitID, attributes);
     };
