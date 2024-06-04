@@ -53,7 +53,7 @@ describe('NetworkTests', () => {
         const TEST_USER_LOGIN = 'test@testguy.com';
         const TEST_USER_ACCOUNT_ID = 1;
 
-        let isOffline: boolean | null = null;
+        let isOffline: boolean | undefined;
 
         Onyx.connect({
             key: ONYXKEYS.NETWORK,

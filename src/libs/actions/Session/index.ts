@@ -414,7 +414,7 @@ function beginSignIn(email: string) {
  * Given an idToken from Sign in with Apple, checks the API to see if an account
  * exists for that email address and signs the user in if so.
  */
-function beginAppleSignIn(idToken: string | undefined) {
+function beginAppleSignIn(idToken: string | null) {
     const {optimisticData, successData, failureData} = signInAttemptState();
 
     const params: BeginAppleSignInParams = {idToken, preferredLocale};
@@ -426,7 +426,7 @@ function beginAppleSignIn(idToken: string | undefined) {
  * Shows Google sign-in process, and if an auth token is successfully obtained,
  * passes the token on to the Expensify API to sign in with
  */
-function beginGoogleSignIn(token: string | undefined) {
+function beginGoogleSignIn(token: string | null) {
     const {optimisticData, successData, failureData} = signInAttemptState();
 
     const params: BeginGoogleSignInParams = {token, preferredLocale};

@@ -35,7 +35,7 @@ function appleSignInRequest(): Promise<string | null | undefined> {
 function AppleSignIn() {
     const handleSignIn = () => {
         appleSignInRequest()
-            .then((token) => Session.beginAppleSignIn(token))
+            .then((token) => Session.beginAppleSignIn(token ?? null))
             .catch((error: {code: AppleError}) => {
                 if (error.code === appleAuth.Error.CANCELED) {
                     return null;
