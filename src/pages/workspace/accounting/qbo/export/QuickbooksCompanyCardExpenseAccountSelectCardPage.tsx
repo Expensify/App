@@ -101,6 +101,7 @@ function QuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: WithPolicyC
                         sections={sections}
                         ListItem={RadioListItem}
                         onSelectRow={selectExportCompanyCard}
+                        shouldDebounceRowSelect
                         initiallyFocusedOptionKey={sections[0].data.find((option) => option.isSelected)?.keyForList}
                         footerContent={
                             isLocationEnabled && <Text style={[styles.mutedNormalTextLabel, styles.pt2]}>{translate('workspace.qbo.companyCardsLocationEnabledDescription')}</Text>

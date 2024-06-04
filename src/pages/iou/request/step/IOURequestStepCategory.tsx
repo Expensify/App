@@ -1,19 +1,26 @@
 import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useEffect} from 'react';
+import {ActivityIndicator, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
+import BlockingView from '@components/BlockingViews/BlockingView';
+import Button from '@components/Button';
 import CategoryPicker from '@components/CategoryPicker';
+import FixedFooter from '@components/FixedFooter';
+import * as Illustrations from '@components/Icon/Illustrations';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import variables from '@styles/variables';
 import * as IOU from '@userActions/IOU';
-import * as PolicyActions from '@userActions/Policy';
+import * as PolicyActions from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -75,6 +82,7 @@ function IOURequestStepCategory({
     const policy = policyReal ?? policyDraft;
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {translate} = useLocalize();
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplitBill = isEditing && iouType === CONST.IOU.TYPE.SPLIT;
@@ -92,7 +100,7 @@ function IOURequestStepCategory({
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const canEditSplitBill = isSplitBill && reportAction && session?.accountID === reportAction.actorAccountID && TransactionUtils.areRequiredFieldsEmpty(transaction);
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = !shouldShowCategory || (isEditing && (isSplitBill ? !canEditSplitBill : !ReportUtils.canEditMoneyRequest(reportAction)));
+    const shouldShowNotFoundPage = isEditing && (isSplitBill ? !canEditSplitBill : !ReportUtils.canEditMoneyRequest(reportAction));
 
     const fetchData = () => {
         if (policy && policyCategories) {
@@ -101,8 +109,9 @@ function IOURequestStepCategory({
 
         PolicyActions.openDraftWorkspaceRequest(report?.policyID ?? '');
     };
-
-    useNetwork({onReconnect: fetchData});
+    const {isOffline} = useNetwork({onReconnect: fetchData});
+    const isLoading = !isOffline && policyCategories === undefined;
+    const shouldShowEmptyState = !isLoading && !shouldShowCategory;
 
     useEffect(() => {
         fetchData();
@@ -150,14 +159,53 @@ function IOURequestStepCategory({
             shouldShowWrapper
             shouldShowNotFoundPage={shouldShowNotFoundPage}
             testID={IOURequestStepCategory.displayName}
-            includeSafeAreaPaddingBottom={false}
         >
-            <Text style={[styles.ph5, styles.pv3]}>{translate('iou.categorySelection')}</Text>
-            <CategoryPicker
-                selectedCategory={transactionCategory}
-                policyID={report?.policyID ?? policy?.id ?? ''}
-                onSubmit={updateCategory}
-            />
+            {isLoading && (
+                <ActivityIndicator
+                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                    style={[styles.flex1]}
+                    color={theme.spinner}
+                />
+            )}
+            {shouldShowEmptyState && (
+                <View style={[styles.flex1]}>
+                    <BlockingView
+                        icon={Illustrations.EmptyStateExpenses}
+                        iconWidth={variables.modalTopIconWidth}
+                        iconHeight={variables.modalTopIconHeight}
+                        title={translate('workspace.categories.emptyCategories.title')}
+                        subtitle={translate('workspace.categories.emptyCategories.subtitle')}
+                        contentFitImage="contain"
+                    />
+                    <FixedFooter style={[styles.mtAuto, styles.pt5]}>
+                        <Button
+                            large
+                            success
+                            style={[styles.w100]}
+                            onPress={() =>
+                                Navigation.navigate(
+                                    ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(
+                                        policy?.id ?? '',
+                                        ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, report?.reportID ?? '', backTo, reportActionID),
+                                    ),
+                                )
+                            }
+                            text={translate('workspace.categories.editCategories')}
+                            pressOnEnter
+                        />
+                    </FixedFooter>
+                </View>
+            )}
+            {!shouldShowEmptyState && !isLoading && (
+                <>
+                    <Text style={[styles.ph5, styles.pv3]}>{translate('iou.categorySelection')}</Text>
+                    <CategoryPicker
+                        selectedCategory={transactionCategory}
+                        policyID={report?.policyID ?? policy?.id ?? ''}
+                        onSubmit={updateCategory}
+                    />
+                </>
+            )}
         </StepScreenWrapper>
     );
 }
