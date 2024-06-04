@@ -20,6 +20,8 @@ import type {SearchQuery} from '@src/types/onyx/SearchResults';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import * as ReportActions from '@libs/actions/Report';
+import * as ReportUtils from '@libs/ReportUtils';
 import SelectionList from './SelectionList';
 import SearchTableHeader from './SelectionList/SearchTableHeader';
 import type {ReportListItemType, TransactionListItemType} from './SelectionList/types';
@@ -136,6 +138,12 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
             onSelectRow={(item) => {
                 const reportID = isReportListItemType(item) ? item.reportID : item.transactionThreadReportID;
 
+                if (true) {
+                    const newThreadID = ReportUtils.generateReportID();
+                    ReportActions.openReport(newThreadID, '', ['cc2@cc.com'], {}, item.parentReportActionID);
+                    Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(query, newThreadID));
+                    return;
+                }
                 openReport(reportID);
             }}
             shouldDebounceRowSelect
