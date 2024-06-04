@@ -320,7 +320,7 @@ function getCombinedReportActions(reportActions: ReportAction[], transactionThre
 
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const isSelfDM = report?.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM;
-    // Filter out request actions because we don't want to show any preview actions for one transaction reports
+    // Filter out request money actions because we don't want to show any preview actions for one transaction reports
     const filteredReportActions = [...reportActions, ...filteredTransactionThreadReportActions].filter((action) => {
         const actionType = (action as OriginalMessageIOU).originalMessage?.type ?? '';
         if (isSelfDM) {
