@@ -154,8 +154,14 @@ type MenuItemBaseProps = {
     /** Error to display at the bottom of the component */
     errorText?: MaybePhraseKey;
 
+    /** Any additional styles to pass to error text. */
+    errorTextStyle?: StyleProp<ViewStyle>;
+
     /** Hint to display at the bottom of the component */
     hintText?: MaybePhraseKey;
+
+    /** Should the error text red dot indicator be shown */
+    shouldShowRedDotIndicator?: boolean;
 
     /** A boolean flag that gives the icon a green fill if true */
     success?: boolean;
@@ -321,6 +327,8 @@ function MenuItem(
         helperText,
         helperTextStyle,
         errorText,
+        errorTextStyle,
+        shouldShowRedDotIndicator,
         hintText,
         success = false,
         focused = false,
@@ -369,7 +377,7 @@ function MenuItem(
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const combinedStyle = [style, styles.popoverMenuItem];
+    const combinedStyle = [styles.popoverMenuItem, style];
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isExecuting, singleExecution, waitForNavigate} = useContext(MenuItemGroupContext) ?? {};
 
@@ -714,9 +722,9 @@ function MenuItem(
                                         {!!errorText && (
                                             <FormHelpMessage
                                                 isError
-                                                shouldShowRedDotIndicator={false}
+                                                shouldShowRedDotIndicator={!!shouldShowRedDotIndicator}
                                                 message={errorText}
-                                                style={styles.menuItemError}
+                                                style={[styles.menuItemError, errorTextStyle]}
                                             />
                                         )}
                                         {!!hintText && (

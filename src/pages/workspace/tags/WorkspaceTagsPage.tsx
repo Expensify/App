@@ -52,6 +52,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const {environmentURL} = useEnvironment();
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
+    const isConnectedToQbo = Boolean(policy?.connections?.quickbooksOnline);
     const [policyTagLists, isMultiLevelTags] = useMemo(() => [PolicyUtils.getTagLists(policyTags), PolicyUtils.isMultiLevelTags(policyTags)], [policyTags]);
     const canSelectMultiple = !isMultiLevelTags;
 
@@ -155,11 +156,11 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     };
 
     const navigateToTagSettings = (tag: TagListItem) => {
-        if (tag.orderWeight != null) {
+        if (tag.orderWeight !== undefined) {
             Navigation.navigate(ROUTES.WORKSPACE_TAG_LIST_VIEW.getRoute(policyID, tag.orderWeight));
             return;
         }
-        Navigation.navigate(ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, tag.value));
+        Navigation.navigate(ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, 0, tag.value));
     };
 
     const selectedTagsArray = Object.keys(selectedTags).filter((key) => selectedTags[key]);
@@ -173,12 +174,12 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const isLoading = !isOffline && policyTags === undefined;
 
     const getHeaderButtons = () => {
-        const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
+        const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
 
         if (selectedTagsArray.length === 0) {
             return (
                 <View style={[styles.w100, styles.flexRow, styles.gap2, isSmallScreenWidth && styles.mb3]}>
-                    {!isThereAnyAccountingConnection && !isMultiLevelTags && (
+                    {!hasAccountingConnections && !isMultiLevelTags && (
                         <Button
                             medium
                             success
@@ -203,7 +204,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.TAGS_BULK_ACTION_TYPES>>> = [];
 
-        if (!isThereAnyAccountingConnection) {
+        if (!hasAccountingConnections) {
             options.push({
                 icon: Expensicons.Trashcan,
                 text: translate(selectedTagsArray.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
@@ -239,7 +240,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 value: CONST.POLICY.TAGS_BULK_ACTION_TYPES.DISABLE,
                 onSelected: () => {
                     setSelectedTags({});
-                    Tag.setWorkspaceTagEnabled(policyID, tagsToDisable);
+                    Tag.setWorkspaceTagEnabled(policyID, tagsToDisable, 0);
                 },
             });
         }
@@ -251,7 +252,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 value: CONST.POLICY.TAGS_BULK_ACTION_TYPES.ENABLE,
                 onSelected: () => {
                     setSelectedTags({});
-                    Tag.setWorkspaceTagEnabled(policyID, tagsToEnable);
+                    Tag.setWorkspaceTagEnabled(policyID, tagsToEnable, 0);
                 },
             });
         }
@@ -279,14 +280,17 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         style={[styles.textNormal, styles.link]}
                         href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
                     >
-                        {`${translate('workspace.accounting.qbo')} ${translate('workspace.accounting.settings')}`}
+                        {`${translate(isConnectedToQbo ? 'workspace.accounting.qbo' : 'workspace.accounting.xero')} ${translate('workspace.accounting.settings')}`}
                     </TextLink>
+                    <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
                 </Text>
             ) : (
                 <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.tags.subtitle')}</Text>
             )}
         </View>
     );
+
+    const hasVisibleTag = tagList.some((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
 
     return (
         <AccessOrNotFoundWrapper
@@ -319,7 +323,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     cancelText={translate('common.cancel')}
                     danger
                 />
-                {!isSmallScreenWidth && getHeaderText()}
+                {(!isSmallScreenWidth || tagList.length === 0 || isLoading) && getHeaderText()}
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -327,14 +331,14 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         color={theme.spinner}
                     />
                 )}
-                {tagList.length === 0 && !isLoading && (
+                {!hasVisibleTag && !isLoading && (
                     <WorkspaceEmptyStateSection
                         title={translate('workspace.tags.emptyTags.title')}
                         icon={Illustrations.EmptyStateExpenses}
                         subtitle={translate('workspace.tags.emptyTags.subtitle')}
                     />
                 )}
-                {tagList.length > 0 && !isLoading && (
+                {hasVisibleTag && !isLoading && (
                     <SelectionList
                         canSelectMultiple={canSelectMultiple}
                         sections={[{data: tagList, isDisabled: false}]}
