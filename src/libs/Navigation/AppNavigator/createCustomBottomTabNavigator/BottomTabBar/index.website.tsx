@@ -70,7 +70,7 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
     const chatTabBrickRoad = getChatTabBrickRoad(activeWorkspaceID as string | undefined);
 
     const navigateToChats = useCallback(() => {
-        const route = activeWorkspaceID ? (`/w/${activeWorkspaceID}/r` as Route) : ROUTES.HOME;
+        const route = activeWorkspaceID ? (`/w/${activeWorkspaceID}/home` as Route) : ROUTES.HOME;
         Navigation.navigate(route);
     }, [activeWorkspaceID]);
 

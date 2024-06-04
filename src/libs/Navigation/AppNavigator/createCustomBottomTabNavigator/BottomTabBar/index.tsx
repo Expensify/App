@@ -1,5 +1,5 @@
 import {useNavigation, useNavigationState} from '@react-navigation/native';
-import React, {useEffect} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -24,6 +24,7 @@ import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
@@ -67,13 +68,16 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
 
     const chatTabBrickRoad = getChatTabBrickRoad(activeWorkspaceID);
 
+    const navigateToChats = useCallback(() => {
+        const route = activeWorkspaceID ? (`/w/${activeWorkspaceID}/home` as Route) : ROUTES.HOME;
+        Navigation.navigate(route);
+    }, [activeWorkspaceID]);
+
     return (
         <View style={styles.bottomTabBarContainer}>
             <Tooltip text={translate('common.chats')}>
                 <PressableWithFeedback
-                    onPress={() => {
-                        Navigation.navigate(ROUTES.HOME);
-                    }}
+                    onPress={navigateToChats}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('common.chats')}
                     wrapperStyle={styles.flex1}
