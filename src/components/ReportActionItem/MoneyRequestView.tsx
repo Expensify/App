@@ -132,7 +132,7 @@ function MoneyRequestView({
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transactionTaxAmount, transactionCurrency);
 
     const taxRatesDescription = taxRates?.name;
-    const taxRateTitle = TransactionUtils.getTaxName(policy, transaction);
+    const taxRateTitle = TransactionUtils.getTaxName(policy, transaction, isDistanceRequest);
 
     // Flags for allowing or disallowing editing an expense
     const isSettled = ReportUtils.isSettled(moneyRequestReport?.reportID);

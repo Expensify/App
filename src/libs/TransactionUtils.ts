@@ -13,6 +13,8 @@ import DateUtils from './DateUtils';
 import * as Localize from './Localize';
 import * as NumberUtils from './NumberUtils';
 import {getCleanedTagName} from './PolicyUtils';
+import * as PolicyUtils from "@libs/PolicyUtils";
+import DistanceRequestUtils from "@libs/DistanceRequestUtils";
 
 let allTransactions: OnyxCollection<Transaction> = {};
 Onyx.connect({
@@ -739,11 +741,18 @@ function getWorkspaceTaxesSettingsName(policy: OnyxEntry<Policy>, taxCode: strin
 }
 
 /**
- * Gets the tax name
+ * Gets the tax name for the given transaction.
+ * If it is distance request, then returns the tax name corresponding to the custom unit rate
  */
-function getTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>) {
-    const defaultTaxCode = getDefaultTaxCode(policy, transaction);
-    return Object.values(transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === (transaction?.taxCode ?? defaultTaxCode))?.modifiedName;
+function getTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, isDistanceRequest: boolean) {
+    let taxCode: string;
+    if (isDistanceRequest) {
+        const customUnitRateID = getRateID(transaction) ?? '';
+        taxCode = DistanceRequestUtils.getTaxCodeFromRateID(policy, customUnitRateID);
+    } else {
+        taxCode = getDefaultTaxCode(policy, transaction) ?? '';
+    }
+    return Object.values(transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === (transaction?.taxCode ?? taxCode))?.modifiedName;
 }
 
 export {

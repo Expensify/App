@@ -12,6 +12,7 @@ import * as CurrencyUtils from './CurrencyUtils';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportUtils from './ReportUtils';
 import * as TransactionUtils from './TransactionUtils';
+import {getRateID} from "./TransactionUtils";
 
 type MileageRate = {
     customUnitRateID?: string;
@@ -267,6 +268,19 @@ function getCustomUnitRateID(reportID: string) {
     return customUnitRateID;
 }
 
+/**
+ * Returns the taxCode associated with distance custom unit rate
+ */
+function getTaxCodeFromRateID(policy: OnyxEntry<Policy>, customUnitRateID: string) {
+    const distanceUnit = PolicyUtils.getCustomUnit(policy);
+    const customUnitID = distanceUnit?.customUnitID;
+    if (!policy?.customUnits || !customUnitID || !customUnitRateID) {
+        return '';
+    }
+    const policyCustomUnitRate = policy?.customUnits[customUnitID].rates[customUnitRateID];
+    return policyCustomUnitRate.attributes?.taxRateExternalID ?? '';
+}
+
 function calculateTaxAmount(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, customUnitRateID: string) {
     const distanceUnit = PolicyUtils.getCustomUnit(policy);
     const customUnitID = distanceUnit?.customUnitID;
@@ -296,6 +310,7 @@ export default {
     getCustomUnitRateID,
     convertToDistanceInMeters,
     calculateTaxAmount,
+    getTaxCodeFromRateID,
 };
 
 export type {MileageRate};
