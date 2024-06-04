@@ -128,7 +128,7 @@ function BaseReportActionContextMenu({
     const threedotRef = useRef<View>(null);
 
     const reportAction: OnyxEntry<ReportAction> = useMemo(() => {
-        if (isEmptyObject(reportActions) || reportActionID === '0') {
+        if (isEmptyObject(reportActions) || reportActionID === '0' || reportActionID === '-1') {
             return null;
         }
         return reportActions[reportActionID] ?? null;

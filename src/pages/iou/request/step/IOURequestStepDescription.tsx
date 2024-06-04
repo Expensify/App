@@ -212,7 +212,7 @@ const IOURequestStepDescriptionWithOnyx = withOnyx<IOURequestStepDescriptionProp
                 params: {action, iouType},
             },
         }) => {
-            let reportID = '0';
+            let reportID = '-1';
             if (action === CONST.IOU.ACTION.EDIT) {
                 reportID = iouType === CONST.IOU.TYPE.SPLIT ? report?.reportID ?? '-1' : report?.parentReportID ?? '-1';
             }

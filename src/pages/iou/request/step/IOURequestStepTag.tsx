@@ -153,7 +153,7 @@ export default withWritableReportOrNotFound(
                         params: {action, iouType},
                     },
                 }) => {
-                    let reportID: string | undefined = '0';
+                    let reportID: string | undefined = '-1';
                     if (action === CONST.IOU.ACTION.EDIT) {
                         reportID = iouType === CONST.IOU.TYPE.SPLIT ? report?.reportID : report?.parentReportID;
                     }

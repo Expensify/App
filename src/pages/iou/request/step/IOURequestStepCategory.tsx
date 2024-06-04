@@ -241,7 +241,7 @@ const IOURequestStepCategoryWithOnyx = withOnyx<IOURequestStepCategoryProps, IOU
                 params: {action, iouType},
             },
         }) => {
-            let reportID = '0';
+            let reportID = '-1';
             if (action === CONST.IOU.ACTION.EDIT && report) {
                 if (iouType === CONST.IOU.TYPE.SPLIT) {
                     reportID = report.reportID;
