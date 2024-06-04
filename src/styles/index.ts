@@ -2802,12 +2802,6 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusNormal,
         },
 
-        borderedContentCardFocused: {
-            borderWidth: 1,
-            borderColor: theme.borderFocus,
-            borderRadius: variables.componentBorderRadiusNormal,
-        },
-
         sectionMenuItem: {
             borderRadius: 8,
             paddingHorizontal: 8,

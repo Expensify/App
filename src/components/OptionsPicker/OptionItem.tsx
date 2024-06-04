@@ -44,7 +44,7 @@ function OptionItem({title, icon, onPress, isSelected = false, isDisabled, style
             disabled={isDisabled}
             wrapperStyle={[styles.flex1, style]}
         >
-            <View style={[isSelected ? styles.borderedContentCardFocused : styles.borderedContentCard, styles.p5]}>
+            <View style={[styles.borderedContentCard, isSelected && styles.borderColorFocus, styles.p5]}>
                 <View>
                     <View style={[styles.flexRow, styles.justifyContentBetween]}>
                         <Icon
