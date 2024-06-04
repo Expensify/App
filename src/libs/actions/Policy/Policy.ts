@@ -1403,7 +1403,9 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
 
             // Convert to object with each key containing the error. We don’t
             // need to remove the members since that is handled by onClose of OfflineWithFeedback.
-            value: failureMembersState,
+            value: {
+                employeeList: failureMembersState,
+            },
         },
         ...membersChats.onyxFailureData,
         ...announceRoomMembers.onyxFailureData,
