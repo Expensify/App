@@ -6,6 +6,14 @@ import {READ_COMMANDS} from '@libs/API/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as ReportActions from './Report';
 
+let currentUserEmail: string;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (val) => {
+        currentUserEmail = val?.email ?? '';
+    },
+});
+
 function search({hash, query, policyIDs, offset, sortBy, sortOrder}: SearchParams) {
     const optimisticData: OnyxUpdate[] = [
         {
@@ -35,7 +43,7 @@ function search({hash, query, policyIDs, offset, sortBy, sortOrder}: SearchParam
 }
 
 function createTransactionThread(hash: number, transactionID: string, reportID: string, moneyRequestReportActionID: string) {
-    ReportActions.openReport(reportID, '', ['cc2@cc.com'], {}, moneyRequestReportActionID);
+    ReportActions.openReport(reportID, '', [currentUserEmail], {}, moneyRequestReportActionID);
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {
         [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
