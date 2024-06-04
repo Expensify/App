@@ -9,6 +9,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+import {MouseProvider} from '@hooks/useMouseContext';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
@@ -1228,17 +1229,19 @@ function MoneyRequestConfirmationList({
     );
 
     return (
-        <SelectionList<MoneyRequestConfirmationListItem>
-            sections={sections}
-            ListItem={UserListItem}
-            onSelectRow={navigateToReportOrUserDetail}
-            shouldDebounceRowSelect
-            canSelectMultiple={false}
-            shouldPreventDefaultFocusOnSelectRow
-            footerContent={footerContent}
-            listFooterContent={listFooterContent}
-            containerStyle={[styles.flexBasisAuto]}
-        />
+        <MouseProvider>
+            <SelectionList<MoneyRequestConfirmationListItem>
+                sections={sections}
+                ListItem={UserListItem}
+                onSelectRow={navigateToReportOrUserDetail}
+                shouldDebounceRowSelect
+                canSelectMultiple={false}
+                shouldPreventDefaultFocusOnSelectRow
+                footerContent={footerContent}
+                listFooterContent={listFooterContent}
+                containerStyle={[styles.flexBasisAuto]}
+            />
+        </MouseProvider>
     );
 }
 
