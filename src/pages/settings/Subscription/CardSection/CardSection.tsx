@@ -35,8 +35,8 @@ function CardSection() {
                         <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
                             <Icon
                                 src={Expensicons.CreditCard}
-                                additionalStyles={styles.subscriptionCardIcon}
-                                fill={theme.icon}
+                                additionalStyles={styles.subscriptionAddedCardIcon}
+                                fill={theme.text}
                                 medium
                             />
                             <View style={styles.flex1}>

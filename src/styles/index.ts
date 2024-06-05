@@ -2827,6 +2827,14 @@ const styles = (theme: ThemeColors) =>
             width: 40,
         },
 
+        subscriptionAddedCardIcon: {
+            padding: 10,
+            backgroundColor: theme.icon,
+            borderRadius: variables.componentBorderRadius,
+            height: 40,
+            width: 40,
+        },
+
         selectCircle: {
             width: variables.componentSizeSmall,
             height: variables.componentSizeSmall,

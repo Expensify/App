@@ -8,6 +8,11 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
 
+const anchorAlignment = {
+    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+};
+
 function CardSectionActions() {
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
@@ -30,7 +35,7 @@ function CardSectionActions() {
         [translate],
     );
 
-    const handleIconPress = useCallback(() => {
+    const calculateAndSetThreeDotsMenuPosition = useCallback(() => {
         if (isSmallScreenWidth) {
             return;
         }
@@ -42,18 +47,10 @@ function CardSectionActions() {
         });
     }, [isSmallScreenWidth]);
 
-    const anchorAlignment = useMemo(
-        () => ({
-            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-        }),
-        [],
-    );
-
     return (
         <View ref={threeDotsMenuContainerRef}>
             <ThreeDotsMenu
-                onIconPress={handleIconPress}
+                onIconPress={calculateAndSetThreeDotsMenuPosition}
                 menuItems={overflowMenu}
                 anchorPosition={threeDotsMenuPosition}
                 anchorAlignment={anchorAlignment}
