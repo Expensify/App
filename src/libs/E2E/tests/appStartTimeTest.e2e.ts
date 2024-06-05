@@ -3,7 +3,6 @@ import type {PerformanceEntry} from 'react-native-performance';
 import E2ELogin from '@libs/E2E/actions/e2eLogin';
 import waitForAppLoaded from '@libs/E2E/actions/waitForAppLoaded';
 import E2EClient from '@libs/E2E/client';
-import {waitForActiveRequestsToBeEmpty} from '@libs/E2E/utils/NetworkInterceptor';
 import Performance from '@libs/Performance';
 
 const test = () => {
@@ -31,7 +30,6 @@ const test = () => {
                 }),
             ),
         )
-            .then(waitForActiveRequestsToBeEmpty)
             .then(() => {
                 console.debug('[E2E] Done, exiting…');
                 E2EClient.submitTestDone();

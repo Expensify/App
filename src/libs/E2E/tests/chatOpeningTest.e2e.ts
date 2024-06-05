@@ -5,7 +5,6 @@ import waitForAppLoaded from '@libs/E2E/actions/waitForAppLoaded';
 import E2EClient from '@libs/E2E/client';
 import getConfigValueOrThrow from '@libs/E2E/utils/getConfigValueOrThrow';
 import getPromiseWithResolve from '@libs/E2E/utils/getPromiseWithResolve';
-import {waitForActiveRequestsToBeEmpty} from '@libs/E2E/utils/NetworkInterceptor';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import CONST from '@src/CONST';
@@ -30,13 +29,11 @@ const test = (config: NativeConfig) => {
         const [renderChatPromise, renderChatResolve] = getPromiseWithResolve();
         const [chatTTIPromise, chatTTIResolve] = getPromiseWithResolve();
 
-        Promise.all([renderChatPromise, chatTTIPromise])
-            .then(waitForActiveRequestsToBeEmpty)
-            .then(() => {
-                console.debug(`[E2E] Submitting!`);
+        Promise.all([renderChatPromise, chatTTIPromise]).then(() => {
+            console.debug(`[E2E] Submitting!`);
 
-                E2EClient.submitTestDone();
-            });
+            E2EClient.submitTestDone();
+        });
 
         Performance.subscribeToMeasurements((entry) => {
             if (entry.name === CONST.TIMING.SIDEBAR_LOADED) {

@@ -3,7 +3,6 @@ import E2ELogin from '@libs/E2E/actions/e2eLogin';
 import waitForAppLoaded from '@libs/E2E/actions/waitForAppLoaded';
 import E2EClient from '@libs/E2E/client';
 import getPromiseWithResolve from '@libs/E2E/utils/getPromiseWithResolve';
-import {waitForActiveRequestsToBeEmpty} from '@libs/E2E/utils/NetworkInterceptor';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import CONST from '@src/CONST';
@@ -26,13 +25,11 @@ const test = () => {
         const [openSearchPagePromise, openSearchPageResolve] = getPromiseWithResolve();
         const [loadSearchOptionsPromise, loadSearchOptionsResolve] = getPromiseWithResolve();
 
-        Promise.all([openSearchPagePromise, loadSearchOptionsPromise])
-            .then(waitForActiveRequestsToBeEmpty)
-            .then(() => {
-                console.debug(`[E2E] Submitting!`);
+        Promise.all([openSearchPagePromise, loadSearchOptionsPromise]).then(() => {
+            console.debug(`[E2E] Submitting!`);
 
-                E2EClient.submitTestDone();
-            });
+            E2EClient.submitTestDone();
+        });
 
         Performance.subscribeToMeasurements((entry) => {
             if (entry.name === CONST.TIMING.SIDEBAR_LOADED) {

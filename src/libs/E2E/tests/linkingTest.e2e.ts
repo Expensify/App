@@ -6,7 +6,6 @@ import E2ELogin from '@libs/E2E/actions/e2eLogin';
 import waitForAppLoaded from '@libs/E2E/actions/waitForAppLoaded';
 import E2EClient from '@libs/E2E/client';
 import getConfigValueOrThrow from '@libs/E2E/utils/getConfigValueOrThrow';
-import {waitForActiveRequestsToBeEmpty} from '@libs/E2E/utils/NetworkInterceptor';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import CONST from '@src/CONST';
@@ -52,7 +51,6 @@ const test = (config: NativeConfig) => {
                             name: 'Comment linking',
                             duration: entry.duration,
                         })
-                            .then(waitForActiveRequestsToBeEmpty)
                             .then(() => {
                                 console.debug('[E2E] Test completed successfully, exiting…');
                                 E2EClient.submitTestDone();
