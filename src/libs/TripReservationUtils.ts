@@ -24,12 +24,4 @@ function getReservationsFromTripTransactions(transactions: Transaction[]): Reser
         .flat();
 }
 
-function getTripReservationTitle(reservation: Reservation) {
-    if (reservation.type === CONST.RESERVATION_TYPE.CAR) {
-        return reservation?.vendor ?? reservation.start?.location;
-    }
-
-    return reservation.start?.address;
-}
-
-export {getTripReservationIcon, getReservationsFromTripTransactions, getTripReservationTitle};
+export {getTripReservationIcon, getReservationsFromTripTransactions};

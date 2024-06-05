@@ -125,7 +125,7 @@ function ReservationView({reservation}: ReservationViewProps) {
             onSecondaryInteraction={() => {}}
             iconHeight={20}
             iconWidth={20}
-            iconStyles={[styles.tripReservationIconContainer, styles.mr3]}
+            iconStyles={[styles.tripReservationIconContainer(false), styles.mr3]}
             secondaryIconFill={theme.icon}
             hoverAndPressStyle={styles.hoveredComponentBG}
         />

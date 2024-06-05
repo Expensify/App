@@ -57,17 +57,17 @@ type TripRoomPreviewProps = TripRoomPreviewOnyxProps & {
     isHovered?: boolean;
 };
 
-type ReservationRowProps = {
+type ReservationViewProps = {
     reservation: Reservation;
 };
 
-function ReservationRow({reservation}: ReservationRowProps) {
+function ReservationView({reservation}: ReservationViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const reservationIcon = TripReservationUtils.getTripReservationIcon(reservation.type);
-    const title = TripReservationUtils.getTripReservationTitle(reservation);
+    const title = reservation.type === CONST.RESERVATION_TYPE.CAR ? reservation.carInfo?.name : reservation.start.longName;
 
     const titleComponent =
         reservation.type === CONST.RESERVATION_TYPE.FLIGHT ? (
@@ -106,7 +106,7 @@ function ReservationRow({reservation}: ReservationRowProps) {
             hoverAndPressStyle={false}
             iconHeight={variables.iconSizeSmall}
             iconWidth={variables.iconSizeSmall}
-            iconStyles={[styles.tripReservationIconContainer, styles.mr3]}
+            iconStyles={[styles.tripReservationIconContainer(true), styles.mr3]}
             secondaryIconFill={theme.icon}
             isSmallAvatarSubscriptMenu
         />
@@ -125,9 +125,9 @@ function TripRoomPreview({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const tripTransactions = ReportUtils.getTripTransactions(chatReport?.iouReportID);
+    const tripTransactions = ReportUtils.getTripTransactions(chatReport?.iouReportID, 'reportID');
 
-    const renderItem = ({item}: {item: Reservation}) => <ReservationRow reservation={item} />;
+    const renderItem = ({item}: {item: Reservation}) => <ReservationView reservation={item} />;
 
     const reservations: Reservation[] = TripReservationUtils.getReservationsFromTripTransactions(tripTransactions);
 

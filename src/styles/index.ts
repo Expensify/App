@@ -4961,23 +4961,14 @@ const styles = (theme: ThemeColors) =>
             flex: 1,
         },
 
-        tripReservationSmallIconContainer: {
+        tripReservationIconContainer: (isSmallIcon: boolean) => ({
+            width: isSmallIcon ? variables.avatarSizeSmallNormal : variables.avatarSizeNormal,
+            height: isSmallIcon ? variables.avatarSizeSmallNormal : variables.avatarSizeNormal,
+            borderRadius: isSmallIcon ? variables.avatarSizeSmallNormal : variables.componentBorderRadiusXLarge,
             backgroundColor: theme.border,
-            width: variables.avatarSizeSmallNormal,
-            height: variables.avatarSizeSmallNormal,
-            borderRadius: variables.avatarSizeSmallNormal,
             alignItems: 'center',
             justifyContent: 'center',
-        },
-
-        tripReservationIconContainer: {
-            width: variables.avatarSizeNormal,
-            height: variables.avatarSizeNormal,
-            backgroundColor: theme.border,
-            borderRadius: variables.componentBorderRadiusXLarge,
-            alignItems: 'center',
-            justifyContent: 'center',
-        },
+        }),
 
         tripReservationTitleGap: {
             gap: 2,
