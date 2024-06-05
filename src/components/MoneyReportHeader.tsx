@@ -105,7 +105,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const shouldDisableApproveButton = shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(moneyRequestReport);
 
-    const shouldShowSettlementButton = !ReportUtils.isInvoiceReport(moneyRequestReport) && (shouldShowPayButton || shouldShowApproveButton) && !allHavePendingRTERViolation;
+    const shouldShowSettlementButton = (shouldShowPayButton || shouldShowApproveButton) && !allHavePendingRTERViolation;
 
     const shouldShowSubmitButton = isDraft && reimbursableSpend !== 0 && !allHavePendingRTERViolation;
     const shouldDisableSubmitButton = shouldShowSubmitButton && !ReportUtils.isAllowedToSubmitDraftExpenseReport(moneyRequestReport);
@@ -121,14 +121,16 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const isMoreContentShown = shouldShowNextStep || hasScanningReceipt || (shouldShowAnyButton && shouldUseNarrowLayout);
 
     const confirmPayment = (type?: PaymentMethodType | undefined) => {
-        if (!type) {
+        if (!type || !chatReport) {
             return;
         }
         setPaymentType(type);
         setRequestType(CONST.IOU.REPORT_ACTION_TYPE.PAY);
         if (ReportUtils.hasHeldExpenses(moneyRequestReport.reportID)) {
             setIsHoldMenuVisible(true);
-        } else if (chatReport) {
+        } else if (ReportUtils.isInvoiceReport(moneyRequestReport)) {
+            IOU.payInvoice(type, chatReport, moneyRequestReport);
+        } else {
             IOU.payMoneyRequest(type, chatReport, moneyRequestReport, true);
         }
     };
