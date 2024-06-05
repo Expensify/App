@@ -157,7 +157,7 @@ function BaseSelectionList<TItem extends ListItem>(
                 itemLayouts.push({length: fullItemHeight, offset});
                 offset += fullItemHeight;
 
-                if (item.isSelected) {
+                if (item.isSelected && !selectedOptions.find((option) => option.text === item.text)) {
                     selectedOptions.push(item);
                 }
             });
