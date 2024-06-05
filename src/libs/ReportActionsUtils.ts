@@ -222,7 +222,7 @@ function isReimbursementQueuedAction(reportAction: OnyxEntry<ReportAction>): rep
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED);
 }
 
-function isMemberChangeAction(reportAction: OnyxEntry<ReportAction>) {
+function isMemberChangeAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG | typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>> {
     return isActionOfType(
         reportAction,
         CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM,
@@ -1059,7 +1059,7 @@ function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>): 
     const isInviteAction = isInviteMemberAction(reportAction);
     const isLeaveAction = isLeavePolicyAction(reportAction);
 
-    if (!isInviteAction && !isLeaveAction) {
+    if (!isMemberChangeAction(reportAction)) {
         return [];
     }
 
