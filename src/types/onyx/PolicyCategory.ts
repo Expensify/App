@@ -17,6 +17,9 @@ type PolicyCategory = OnyxCommon.OnyxValueWithOfflineFeedback<{
     // eslint-disable-next-line @typescript-eslint/naming-convention
     'GL Code'?: string;
 
+    /** Payroll code is used to keep track of taxes, deductions, and an employee’s earnings */
+    payrollCode?: string;
+
     /** An ID for this category from an external accounting system */
     externalID?: string;
 
