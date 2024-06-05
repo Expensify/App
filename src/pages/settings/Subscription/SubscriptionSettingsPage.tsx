@@ -12,8 +12,9 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as Subscription from '@userActions/Subscription';
-import CardSection from './CardSection/CardSection';
 import ReducedFunctionalityMessage from './ReducedFunctionalityMessage';
+import CardSection from './CardSection/CardSection';
+import SubscriptionDetails from './SubscriptionDetails';
 import SubscriptionPlan from './SubscriptionPlan';
 
 function SubscriptionSettingsPage() {
@@ -44,6 +45,7 @@ function SubscriptionSettingsPage() {
                     <ReducedFunctionalityMessage />
                     <CardSection />
                     <SubscriptionPlan />
+                    <SubscriptionDetails />
                 </View>
             </ScrollView>
         </ScreenWrapper>
