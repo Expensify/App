@@ -488,7 +488,7 @@ function enablePolicyTags(policyID: string, enabled: boolean) {
     }
 }
 
-function renamePolicyTaglist(policyID: string, policyTagListName: {oldName: string; newName: string}, policyTags: OnyxEntry<PolicyTagList>, tagListIndex?: number) {
+function renamePolicyTaglist(policyID: string, policyTagListName: {oldName: string; newName: string}, policyTags: OnyxEntry<PolicyTagList>, tagListIndex: number) {
     const newName = policyTagListName.newName;
     const oldName = policyTagListName.oldName;
     const oldPolicyTags = policyTags?.[oldName] ?? {};
