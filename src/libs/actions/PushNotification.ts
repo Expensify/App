@@ -35,7 +35,7 @@ function setPushNotificationOptInStatus(isOptingIn: boolean) {
                 value: isUserOptedInToPushNotifications,
             },
         ];
-        API.write(commandName, {deviceID: deviceID ?? null}, {optimisticData, failureData});
+        API.write(commandName, {deviceID: deviceID}, {optimisticData, failureData});
     });
 }
 
