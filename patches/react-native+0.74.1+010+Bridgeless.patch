@@ -1,3 +1,16 @@
+diff --git a/node_modules/react-native/Libraries/AppDelegate/RCTAppDelegate.mm b/node_modules/react-native/Libraries/AppDelegate/RCTAppDelegate.mm
+index 6d159ef..e254f50 100644
+--- a/node_modules/react-native/Libraries/AppDelegate/RCTAppDelegate.mm
++++ b/node_modules/react-native/Libraries/AppDelegate/RCTAppDelegate.mm
+@@ -163,7 +163,7 @@ - (BOOL)fabricEnabled
+ 
+ - (BOOL)bridgelessEnabled
+ {
+-  return [self newArchEnabled];
++  return NO;
+ }
+ 
+ - (NSURL *)bundleURL
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/defaults/DefaultNewArchitectureEntryPoint.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/defaults/DefaultNewArchitectureEntryPoint.kt
 index 59ffe9b..20eef64 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/defaults/DefaultNewArchitectureEntryPoint.kt
