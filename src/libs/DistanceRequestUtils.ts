@@ -12,7 +12,6 @@ import * as CurrencyUtils from './CurrencyUtils';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportUtils from './ReportUtils';
 import * as TransactionUtils from './TransactionUtils';
-import {getRateID} from "./TransactionUtils";
 
 type MileageRate = {
     customUnitRateID?: string;

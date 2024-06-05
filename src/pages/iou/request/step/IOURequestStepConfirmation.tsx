@@ -30,11 +30,11 @@ import type {Policy, PolicyCategories, PolicyTagList} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {Receipt} from '@src/types/onyx/Transaction';
+import DistanceRequestUtils from "@libs/DistanceRequestUtils";
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
-import DistanceRequestUtils from "@libs/DistanceRequestUtils";
 
 type IOURequestStepConfirmationOnyxProps = {
     /** The policy of the report */
@@ -89,6 +89,7 @@ function IOURequestStepConfirmation({
     const receiptPath = transaction?.receipt?.source;
     const receiptType = transaction?.receipt?.type;
     const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '';
+    console.debug(`~~Monil logs customUnitRateID ${customUnitRateID}`);
     const defaultTaxCode = isDistanceRequest ? DistanceRequestUtils.getTaxCodeFromRateID(policy, customUnitRateID) : TransactionUtils.getDefaultTaxCode(policy, transaction);
     const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
@@ -291,7 +292,7 @@ function IOURequestStepConfirmation({
     );
 
     const createDistanceRequest = useCallback(
-        (selectedParticipants: Participant[], trimmedComment: string, customUnitRateID: string) => {
+        (selectedParticipants: Participant[], trimmedComment: string) => {
             if (!transaction) {
                 return;
             }
@@ -315,7 +316,7 @@ function IOURequestStepConfirmation({
                 customUnitRateID,
             );
         },
-        [policy, policyCategories, policyTags, report, transaction, transactionTaxCode, transactionTaxAmount],
+        [policy, policyCategories, policyTags, report, transaction, transactionTaxCode, transactionTaxAmount, customUnitRateID],
     );
 
     const createTransaction = useCallback(
@@ -471,7 +472,7 @@ function IOURequestStepConfirmation({
             }
 
             if (isDistanceRequest && !IOUUtils.isMovingTransactionFromTrackExpense(action)) {
-                createDistanceRequest(selectedParticipants, trimmedComment, customUnitRateID);
+                createDistanceRequest(selectedParticipants, trimmedComment);
                 return;
             }
 
@@ -482,7 +483,7 @@ function IOURequestStepConfirmation({
             report,
             iouType,
             receiptFile,
-            requestType,
+            isDistanceRequest,
             requestMoney,
             currentUserPersonalDetails.login,
             currentUserPersonalDetails.accountID,

@@ -7,14 +7,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, RecentWaypoint, Report, TaxRate, TaxRates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import * as DistanceRequestUtils from './DistanceRequestUtils';
 import type {IOURequestType} from './actions/IOU';
 import {isCorporateCard, isExpensifyCard} from './CardUtils';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
 import * as NumberUtils from './NumberUtils';
 import {getCleanedTagName} from './PolicyUtils';
-import * as PolicyUtils from "@libs/PolicyUtils";
-import DistanceRequestUtils from "@libs/DistanceRequestUtils";
 
 let allTransactions: OnyxCollection<Transaction> = {};
 Onyx.connect({
@@ -744,9 +743,9 @@ function getWorkspaceTaxesSettingsName(policy: OnyxEntry<Policy>, taxCode: strin
  * Gets the tax name for the given transaction.
  * If it is distance request, then returns the tax name corresponding to the custom unit rate
  */
-function getTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, isDistanceRequest: boolean) {
+function getTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>) {
     let taxCode: string;
-    if (isDistanceRequest) {
+    if (isDistanceRequest(transaction)) {
         const customUnitRateID = getRateID(transaction) ?? '';
         taxCode = DistanceRequestUtils.getTaxCodeFromRateID(policy, customUnitRateID);
     } else {
