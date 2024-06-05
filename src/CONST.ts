@@ -50,6 +50,7 @@ const KEYBOARD_SHORTCUT_NAVIGATION_TYPE = 'NAVIGATION_SHORTCUT';
 const chatTypes = {
     POLICY_ANNOUNCE: 'policyAnnounce',
     POLICY_ADMINS: 'policyAdmins',
+    TRIP_ROOM: 'tripRoom',
     GROUP: 'group',
     DOMAIN_ALL: 'domainAll',
     POLICY_ROOM: 'policyRoom',
@@ -698,6 +699,7 @@ const CONST = {
                 TASK_COMPLETED: 'TASKCOMPLETED',
                 TASK_EDITED: 'TASKEDITED',
                 TASK_REOPENED: 'TASKREOPENED',
+                TRIPPREVIEW: 'TRIPPREVIEW',
                 UNAPPROVED: 'UNAPPROVED', // OldDot Action
                 UNHOLD: 'UNHOLD',
                 UNSHARE: 'UNSHARE', // OldDot Action
@@ -938,7 +940,7 @@ const CONST = {
         TO: 'to',
         CATEGORY: 'category',
         TAG: 'tag',
-        TOTAL: 'total',
+        TOTAL_AMOUNT: 'amount',
         TYPE: 'type',
         ACTION: 'action',
         TAX_AMOUNT: 'taxAmount',
@@ -1815,6 +1817,7 @@ const CONST = {
                 XERO_CHECK_CONNECTION: 'xeroCheckConnection',
                 XERO_SYNC_TITLE: 'xeroSyncTitle',
             },
+            SYNC_STAGE_TIMEOUT_MINUTES: 20,
         },
         ACCESS_VARIANTS: {
             PAID: 'paid',
@@ -4750,6 +4753,12 @@ const CONST = {
 
     SESSION_STORAGE_KEYS: {
         INITIAL_URL: 'INITIAL_URL',
+    },
+
+    RESERVATION_TYPE: {
+        CAR: 'car',
+        HOTEL: 'hotel',
+        FLIGHT: 'flight',
     },
 
     DOT_SEPARATOR: '•',

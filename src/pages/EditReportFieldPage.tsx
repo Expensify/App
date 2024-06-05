@@ -1,4 +1,4 @@
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import React, {useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';

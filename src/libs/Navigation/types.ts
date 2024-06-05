@@ -220,6 +220,14 @@ type SettingsNavigatorParamList = {
         policyID: string;
         rateID: string;
     };
+    [SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT]: {
+        policyID: string;
+        rateID: string;
+    };
+    [SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RATE_EDIT]: {
+        policyID: string;
+        rateID: string;
+    };
     [SCREENS.WORKSPACE.TAGS_SETTINGS]: {
         policyID: string;
     };
@@ -241,6 +249,7 @@ type SettingsNavigatorParamList = {
         orderWeight: number;
         tagName: string;
     };
+    [SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD]: undefined;
     [SCREENS.WORKSPACE.TAXES_SETTINGS]: {
         policyID: string;
     };
@@ -408,6 +417,7 @@ type SettingsNavigatorParamList = {
 
 type NewChatNavigatorParamList = {
     [SCREENS.NEW_CHAT.ROOT]: undefined;
+    [SCREENS.NEW_CHAT.NEW_CHAT_CONFIRM]: undefined;
     [SCREENS.NEW_CHAT.NEW_CHAT_EDIT_NAME]: undefined;
 };
 

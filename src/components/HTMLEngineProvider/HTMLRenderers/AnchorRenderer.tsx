@@ -1,4 +1,4 @@
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import React from 'react';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
