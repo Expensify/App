@@ -2312,7 +2312,7 @@ export default {
                 genericRemove: 'There was a problem removing that workspace member.',
             },
             addedWithPrimary: 'Some users were added with their primary logins.',
-            invitedBySecondaryLogin: ({secondaryLogin}) => `Added by secondary login ${secondaryLogin}.`,
+            invitedBySecondaryLogin: (secondaryLogin) => `Added by secondary login ${secondaryLogin}.`,
             membersListTitle: 'Directory of all workspace members.',
         },
         card: {
