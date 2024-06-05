@@ -1,3 +1,4 @@
+import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {BankName} from './Bank';
 import type * as OnyxCommon from './OnyxCommon';
@@ -20,7 +21,7 @@ type AccountData = {
 
     cardYear?: number;
     created?: string;
-    currency?: string;
+    currency?: ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>;
     fundID?: number;
     bank?: BankName;
 };

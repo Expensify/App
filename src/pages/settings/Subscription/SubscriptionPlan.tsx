@@ -7,7 +7,9 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
+import useSubscriptionPrice from '@hooks/useSubscriptionPrice';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
@@ -20,8 +22,14 @@ function SubscriptionPlan() {
     const styles = useThemeStyles();
     const theme = useTheme();
 
-    const subscriptionPlan = useSubscriptionPlan();
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
+
+    const subscriptionPlan = useSubscriptionPlan();
+    const subscriptionPrice = useSubscriptionPrice();
+    const preferredCurrency = usePreferredCurrency();
+
+    console.log('SUBSCRIPTION PRICE', subscriptionPrice);
+    console.log('PREFERRED CURRENCY', preferredCurrency);
 
     const isCollect = subscriptionPlan === CONST.POLICY.TYPE.TEAM;
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
@@ -59,7 +67,9 @@ function SubscriptionPlan() {
                 />
                 <Text style={[styles.headerText, styles.mt2]}>{translate(`subscription.yourPlan.${isCollect ? 'collect' : 'control'}.title`)}</Text>
                 <Text style={[styles.textLabelSupporting, styles.mb2]}>
-                    {translate(`subscription.yourPlan.${isCollect ? 'collect' : 'control'}.${isAnnual ? 'priceAnnual' : 'pricePayPerUse'}`)}
+                    {translate(`subscription.yourPlan.${isCollect ? 'collect' : 'control'}.${isAnnual ? 'priceAnnual' : 'pricePayPerUse'}`, {
+                        price: subscriptionPrice / 100,
+                    })}
                 </Text>
                 {benefitsList.map((benefit) => (
                     <View

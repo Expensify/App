@@ -4814,6 +4814,13 @@ const CONST = {
     },
 
     SUBSCRIPTION_SIZE_LIMIT: 20000,
+
+    PAYMENT_CARD_CURRENCY: {
+        USD: 'USD',
+        AUD: 'AUD',
+        GBP: 'GBP',
+        NZD: 'NZD',
+    },
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
