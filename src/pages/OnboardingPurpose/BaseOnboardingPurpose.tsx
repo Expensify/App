@@ -1,4 +1,5 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {useIsFocused} from '@react-navigation/native';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import {withOnyx} from 'react-native-onyx';
@@ -19,6 +20,8 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
+import OnboardingRefManager from '@libs/OnboardingRefManager';
+import type {TOnboardingRef} from '@libs/OnboardingRefManager';
 import variables from '@styles/variables';
 import * as Welcome from '@userActions/Welcome';
 import type {OnboardingPurposeType} from '@src/CONST';
@@ -41,7 +44,6 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
     const {shouldUseNarrowLayout} = useOnboardingLayout();
     const [selectedPurpose, setSelectedPurpose] = useState<OnboardingPurposeType | undefined>(undefined);
     const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
-    const [error, setError] = useState(false);
     const theme = useTheme();
 
     useDisableModalDismissOnEscape();
@@ -51,8 +53,6 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
     useEffect(() => {
         setSelectedPurpose(onboardingPurposeSelected ?? undefined);
     }, [onboardingPurposeSelected]);
-
-    const errorMessage = error ? 'onboarding.purpose.error' : '';
 
     const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
 
@@ -83,6 +83,8 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
         Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS);
     }, [selectedPurpose]);
 
+    const [errorMessage, setErrorMessage] = useState<'onboarding.purpose.errorSelection' | 'onboarding.purpose.errorContinue' | ''>('');
+
     const menuItems: MenuItemProps[] = Object.values(CONST.ONBOARDING_CHOICES).map((choice) => {
         const translationKey = `onboarding.purpose.${choice}` as const;
         const isSelected = selectedPurpose === choice;
@@ -100,10 +102,22 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
             shouldShowRightComponent: isSelected,
             onPress: () => {
                 Welcome.setOnboardingPurposeSelected(choice);
-                setError(false);
+                setErrorMessage('');
             },
         };
     });
+    const isFocused = useIsFocused();
+
+    const handleOuterClick = useCallback(() => {
+        if (!selectedPurpose) {
+            setErrorMessage('onboarding.purpose.errorSelection');
+        } else {
+            setErrorMessage('onboarding.purpose.errorContinue');
+        }
+    }, [selectedPurpose]);
+
+    const onboardingLocalRef = useRef<TOnboardingRef>(null);
+    useImperativeHandle(isFocused ? OnboardingRefManager.ref : onboardingLocalRef, () => ({handleOuterClick}), [handleOuterClick]);
 
     return (
         <SafeAreaConsumer>
@@ -133,14 +147,14 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
                         buttonText={translate('common.continue')}
                         onSubmit={() => {
                             if (!selectedPurpose) {
-                                setError(true);
+                                setErrorMessage('onboarding.purpose.errorSelection');
                                 return;
                             }
-                            setError(false);
+                            setErrorMessage('');
                             saveAndNavigate();
                         }}
                         message={errorMessage}
-                        isAlertVisible={error || Boolean(errorMessage)}
+                        isAlertVisible={Boolean(errorMessage)}
                         containerStyles={[styles.w100, styles.mb5, styles.mh0, paddingHorizontal]}
                     />
                 </View>
