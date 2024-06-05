@@ -608,8 +608,13 @@ function MenuItem(
                                                         </View>
                                                     )}
                                                     <View
-                                                style={[styles.justifyContentCenter, styles.flex1, StyleUtils.getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu), titleContainerStyle]}
-                                            >
+                                                        style={[
+                                                            styles.justifyContentCenter,
+                                                            styles.flex1,
+                                                            StyleUtils.getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu),
+                                                            titleContainerStyle,
+                                                        ]}
+                                                    >
                                                         {!!description && shouldShowDescriptionOnTop && (
                                                             <Text
                                                                 style={descriptionTextStyles}
@@ -618,7 +623,7 @@ function MenuItem(
                                                                 {description}
                                                             </Text>
                                                         )}
-                                                {(!!title || !!shouldShowTitleIcon) && (
+                                                        {(!!title || !!shouldShowTitleIcon) && (
                                                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                                                 {!!title && (shouldRenderAsHTML || (shouldParseTitle && !!html.length)) && (
                                                                     <View style={styles.renderHTMLTitle}>
@@ -643,7 +648,7 @@ function MenuItem(
                                                                     </View>
                                                                 )}
                                                             </View>
-                                                )}
+                                                        )}
                                                         {!!description && !shouldShowDescriptionOnTop && (
                                                             <Text
                                                                 style={descriptionTextStyles}
@@ -670,7 +675,7 @@ function MenuItem(
                                                                 </Text>
                                                             </View>
                                                         )}
-                                                {titleComponent}
+                                                        {titleComponent}
                                                     </View>
                                                 </View>
                                             </View>
