@@ -733,7 +733,7 @@ function getLastVisibleMessage(reportID: string, actionsToMerge: OnyxCollection<
         };
     }
 
-    let messageText = message?.text ?? '';
+    let messageText = getTextFromHtml(message?.html) ?? '';
     if (messageText) {
         messageText = StringUtils.lineBreaksToSpaces(String(messageText)).substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
     }
@@ -1192,9 +1192,9 @@ function isOldDotReportAction(action: ReportAction): boolean {
  */
 function getMessageOfOldDotReportAction(reportAction: OnyxEntry<ReportAction>): string {
     if (!Array.isArray(reportAction?.message)) {
-        return reportAction?.message?.text ?? '';
+        return getReportActionText(reportAction);
     }
-    return reportAction?.message?.map((element) => element?.text).join('') ?? '';
+    return reportAction?.message?.map((element) => getTextFromHtml(element?.html)).join('') ?? '';
 }
 
 function getMemberChangeMessagePlainText(reportAction: OnyxEntry<ReportAction>): string {
@@ -1422,6 +1422,7 @@ export {
     isChronosOOOListAction,
     isAddCommentAction,
     isPolicyChangeLogAction,
+    getTextFromHtml,
 };
 
 export type {LastVisibleMessage};

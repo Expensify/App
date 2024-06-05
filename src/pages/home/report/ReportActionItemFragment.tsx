@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import convertToLTR from '@libs/convertToLTR';
+import {getTextFromHtml} from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
@@ -141,7 +142,7 @@ function ReportActionItemFragment({
                         numberOfLines={isSingleLine ? 1 : undefined}
                         style={[styles.chatItemMessage, styles.colorMuted]}
                     >
-                        {isFragmentContainingDisplayName ? convertToLTR(fragment?.text ?? '') : fragment?.text}
+                        {isFragmentContainingDisplayName ? convertToLTR(getTextFromHtml(fragment?.html)) : getTextFromHtml(fragment?.html)}
                     </Text>
                 );
             }
@@ -152,7 +153,7 @@ function ReportActionItemFragment({
                         numberOfLines={isSingleLine ? 1 : undefined}
                         style={[styles.chatItemMessage]}
                     >
-                        {isFragmentContainingDisplayName ? convertToLTR(fragment?.text ?? '') : fragment?.text}
+                        {isFragmentContainingDisplayName ? convertToLTR(getTextFromHtml(fragment?.html)) : getTextFromHtml(fragment?.html)}
                     </Text>
                 );
             }
@@ -167,7 +168,7 @@ function ReportActionItemFragment({
                         numberOfLines={isSingleLine ? 1 : undefined}
                         style={[styles.chatItemMessageHeaderSender, isSingleLine ? styles.pre : styles.preWrap]}
                     >
-                        {fragment?.text}
+                        {getTextFromHtml(fragment?.html)}
                     </Text>
                 </UserDetailsTooltip>
             );
