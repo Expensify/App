@@ -81,6 +81,8 @@ import SendMoney from '@assets/images/simple-illustrations/simple-illustration__
 import ShieldYellow from '@assets/images/simple-illustrations/simple-illustration__shield.svg';
 import SmallRocket from '@assets/images/simple-illustrations/simple-illustration__smallrocket.svg';
 import SplitBill from '@assets/images/simple-illustrations/simple-illustration__splitbill.svg';
+import SubscriptionAnnual from '@assets/images/simple-illustrations/simple-illustration__subscription-annual.svg';
+import SubscriptionPPU from '@assets/images/simple-illustrations/simple-illustration__subscription-ppu.svg';
 import Tag from '@assets/images/simple-illustrations/simple-illustration__tag.svg';
 import TeachersUnite from '@assets/images/simple-illustrations/simple-illustration__teachers-unite.svg';
 import ThumbsUpStars from '@assets/images/simple-illustrations/simple-illustration__thumbsupstars.svg';
@@ -89,6 +91,8 @@ import TrashCan from '@assets/images/simple-illustrations/simple-illustration__t
 import TreasureChest from '@assets/images/simple-illustrations/simple-illustration__treasurechest.svg';
 import WalletAlt from '@assets/images/simple-illustrations/simple-illustration__wallet-alt.svg';
 import Workflows from '@assets/images/simple-illustrations/simple-illustration__workflows.svg';
+import ExpensifyApprovedLogoLight from '@assets/images/subscription-details__approvedlogo--light.svg';
+import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
 
 export {
     Abracadabra,
@@ -180,6 +184,10 @@ export {
     CarIce,
     Lightbulb,
     EmptyStateTravel,
+    SubscriptionAnnual,
+    SubscriptionPPU,
+    ExpensifyApprovedLogo,
+    ExpensifyApprovedLogoLight,
     SendMoney,
     CheckmarkCircle,
 };
