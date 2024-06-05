@@ -6615,14 +6615,14 @@ function setMoneyRequestTaxAmount(transactionID: string, taxAmount: number, isDr
 
 function dismissHoldUseExplanation() {
     const parameters: SetNameValuePairParams = {
-        name: ONYXKEYS.DISMISSED_HOLD_USE_EXPLANATION,
+        name: ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION,
         value: true,
     };
 
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.DISMISSED_HOLD_USE_EXPLANATION,
+            key: ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION,
             value: true,
         },
     ];
