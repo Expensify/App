@@ -30,7 +30,7 @@ import ReportActionItemFragment from './ReportActionItemFragment';
 
 type ReportActionItemSingleProps = Partial<ChildrenProps> & {
     /** All the data of the action */
-    action: OnyxEntry<ReportAction>;
+    action: OnyxEntry<ReportAction> | null;
 
     /** Styles for the outermost View */
     wrapperStyle?: StyleProp<ViewStyle>;
