@@ -69,6 +69,8 @@ function SubscriptionPlan() {
                         <Icon
                             src={Expensicons.Checkmark}
                             fill={theme.iconSuccessFill}
+                            width={variables.iconSizeSmall}
+                            height={variables.iconSizeSmall}
                         />
                         <Text style={[styles.textMicroSupporting, styles.ml2]}>{benefit}</Text>
                     </View>
