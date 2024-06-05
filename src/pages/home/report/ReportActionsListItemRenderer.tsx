@@ -15,7 +15,7 @@ type ReportActionsListItemRendererProps = {
     reportActions: ReportAction[];
 
     /** The report's parentReportAction */
-    parentReportAction: OnyxEntry<ReportAction>;
+    parentReportAction: OnyxEntry<ReportAction> | null;
 
     /** The transaction thread report's parentReportAction */
     parentReportActionForTransactionThread: OnyxEntry<ReportAction>;

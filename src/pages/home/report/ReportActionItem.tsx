@@ -125,7 +125,7 @@ type ReportActionItemProps = {
     reportActions: OnyxTypes.ReportAction[];
 
     /** Report action belonging to the report's parent */
-    parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
+    parentReportAction: OnyxEntry<OnyxTypes.ReportAction> | null;
 
     /** The transaction thread report's parentReportAction */
     /** It's used by withOnyx HOC */

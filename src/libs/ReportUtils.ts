@@ -668,7 +668,7 @@ function getPolicy(policyID: string | undefined): Policy | EmptyObject {
  * Get the policy type from a given report
  * @param policies must have Onyxkey prefix (i.e 'policy_') for keys
  */
-function getPolicyType(report: OnyxEntry<Report>, policies: OnyxCollection<Policy>): string {
+function getPolicyType(report: OnyxInputOrEntry<Report>, policies: OnyxCollection<Policy>): string {
     return policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.type ?? '';
 }
 
@@ -711,7 +711,7 @@ function isChatReport(report: OnyxEntry<Report> | EmptyObject): boolean {
     return report?.type === CONST.REPORT.TYPE.CHAT;
 }
 
-function isInvoiceReport(report: OnyxEntry<Report> | EmptyObject): boolean {
+function isInvoiceReport(report: OnyxInputOrEntry<Report> | EmptyObject): boolean {
     return report?.type === CONST.REPORT.TYPE.INVOICE;
 }
 
@@ -725,7 +725,7 @@ function isExpenseReport(report: OnyxInputOrEntry<Report> | EmptyObject): boolea
 /**
  * Checks if a report is an IOU report using report or reportID
  */
-function isIOUReport(reportOrID: OnyxEntry<Report> | string | EmptyObject): boolean {
+function isIOUReport(reportOrID: OnyxInputOrEntry<Report> | string | EmptyObject): boolean {
     const report = typeof reportOrID === 'string' ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] ?? null : reportOrID;
     return report?.type === CONST.REPORT.TYPE.IOU;
 }
@@ -739,7 +739,7 @@ function isIOUReportUsingReport(report: OnyxEntry<Report> | EmptyObject): report
 /**
  * Checks if a report is a task report.
  */
-function isTaskReport(report: OnyxEntry<Report>): boolean {
+function isTaskReport(report: OnyxInputOrEntry<Report>): boolean {
     return report?.type === CONST.REPORT.TYPE.TASK;
 }
 
@@ -750,7 +750,7 @@ function isTaskReport(report: OnyxEntry<Report>): boolean {
  * There's another situation where you don't have access to the parentReportAction (because it was created in a chat you don't have access to)
  * In this case, we have added the key to the report itself
  */
-function isCanceledTaskReport(report: OnyxEntry<Report> | EmptyObject = {}, parentReportAction: OnyxEntry<ReportAction> | EmptyObject = {}): boolean {
+function isCanceledTaskReport(report: OnyxInputOrEntry<Report> | EmptyObject = {}, parentReportAction: OnyxInputOrEntry<ReportAction> | EmptyObject = {}): boolean {
     if (!isEmptyObject(parentReportAction) && (parentReportAction?.message?.[0]?.isDeletedParentAction ?? false)) {
         return true;
     }
@@ -767,7 +767,7 @@ function isCanceledTaskReport(report: OnyxEntry<Report> | EmptyObject = {}, pare
  *
  * @param parentReportAction - The parent report action of the report (Used to check if the task has been canceled)
  */
-function isOpenTaskReport(report: OnyxEntry<Report>, parentReportAction: OnyxEntry<ReportAction> | EmptyObject = {}): boolean {
+function isOpenTaskReport(report: OnyxInputOrEntry<Report>, parentReportAction: OnyxInputOrEntry<ReportAction> | EmptyObject = {}): boolean {
     return (
         isTaskReport(report) && !isCanceledTaskReport(report, parentReportAction) && report?.stateNum === CONST.REPORT.STATE_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN
     );
@@ -790,7 +790,7 @@ function isReportManager(report: OnyxEntry<Report>): boolean {
 /**
  * Checks if the supplied report has been approved
  */
-function isReportApproved(reportOrID: OnyxEntry<Report> | string | EmptyObject): boolean {
+function isReportApproved(reportOrID: OnyxInputOrEntry<Report> | string | EmptyObject): boolean {
     const report = typeof reportOrID === 'string' ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] ?? null : reportOrID;
     return report?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report?.statusNum === CONST.REPORT.STATUS_NUM.APPROVED;
 }
@@ -798,7 +798,7 @@ function isReportApproved(reportOrID: OnyxEntry<Report> | string | EmptyObject):
 /**
  * Checks if the supplied report is an expense report in Open state and status.
  */
-function isOpenExpenseReport(report: OnyxEntry<Report> | EmptyObject): boolean {
+function isOpenExpenseReport(report: OnyxInputOrEntry<Report> | EmptyObject): boolean {
     return isExpenseReport(report) && report?.stateNum === CONST.REPORT.STATE_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN;
 }
 
@@ -898,7 +898,7 @@ function isUserCreatedPolicyRoom(report: OnyxEntry<Report>): boolean {
 /**
  * Whether the provided report is a Policy Expense chat.
  */
-function isPolicyExpenseChat(report: OnyxEntry<Report> | Participant | EmptyObject): boolean {
+function isPolicyExpenseChat(report: OnyxInputOrEntry<Report> | Participant | EmptyObject): boolean {
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT || (report?.isPolicyExpenseChat ?? false);
 }
 
@@ -938,7 +938,7 @@ function isGroupPolicy(policyType: string): boolean {
 /**
  * Whether the provided report belongs to a Free, Collect or Control policy
  */
-function isReportInGroupPolicy(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>): boolean {
+function isReportInGroupPolicy(report: OnyxInputOrEntry<Report>, policy?: OnyxInputOrEntry<Policy>): boolean {
     const policyType = policy?.type ?? getPolicyType(report, allPolicies);
     return isGroupPolicy(policyType);
 }
@@ -1244,7 +1244,7 @@ function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>): boolean
 /**
  * Whether the provided report is an archived room
  */
-function isArchivedRoom(report: OnyxEntry<Report> | EmptyObject, reportNameValuePairs?: OnyxEntry<ReportNameValuePairs> | EmptyObject): boolean {
+function isArchivedRoom(report: OnyxInputOrEntry<Report> | EmptyObject, reportNameValuePairs?: OnyxInputOrEntry<ReportNameValuePairs> | EmptyObject): boolean {
     if (reportNameValuePairs) {
         return reportNameValuePairs.isArchived;
     }
@@ -1422,7 +1422,7 @@ function isMoneyRequest(reportOrID: OnyxEntry<Report> | string): boolean {
 /**
  * Checks if a report is an IOU or expense report.
  */
-function isMoneyRequestReport(reportOrID: OnyxEntry<Report> | EmptyObject | string): boolean {
+function isMoneyRequestReport(reportOrID: OnyxInputOrEntry<Report> | EmptyObject | string): boolean {
     const report = typeof reportOrID === 'object' ? reportOrID : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] ?? undefined;
     return isIOUReport(report) || isExpenseReport(report);
 }
@@ -2347,7 +2347,7 @@ function hasNonReimbursableTransactions(iouReportID: string | undefined): boolea
     return transactions.filter((transaction) => transaction.reimbursable === false).length > 0;
 }
 
-function getMoneyRequestSpendBreakdown(report: OnyxEntry<Report>, allReportsDict?: OnyxCollection<Report>): SpendBreakdown {
+function getMoneyRequestSpendBreakdown(report: OnyxInputOrEntry<Report>, allReportsDict?: OnyxCollection<Report>): SpendBreakdown {
     const allAvailableReports = allReportsDict ?? allReports;
     let moneyRequestReport;
     if (isMoneyRequestReport(report) || isInvoiceReport(report)) {
@@ -2728,7 +2728,7 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxEntry<ReportAction>, field
  * - It's an expense where conditions for editability are defined in canEditMoneyRequest method
  * - It's not pending deletion
  */
-function canEditReportAction(reportAction: OnyxEntry<ReportAction>): boolean {
+function canEditReportAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
     const isCommentOrIOU = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU;
 
     return Boolean(
@@ -6390,7 +6390,7 @@ function shouldDisplayThreadReplies(reportAction: OnyxEntry<ReportAction>, repor
 /**
  * Check if money report has any transactions updated optimistically
  */
-function hasUpdatedTotal(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
+function hasUpdatedTotal(report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy>): boolean {
     if (!report) {
         return true;
     }
@@ -6406,7 +6406,7 @@ function hasUpdatedTotal(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): 
 /**
  * Return held and full amount formatted with used currency
  */
-function getNonHeldAndFullAmount(iouReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>): string[] {
+function getNonHeldAndFullAmount(iouReport: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy>): string[] {
     const transactions = TransactionUtils.getAllReportTransactions(iouReport?.reportID ?? '');
     const hasPendingTransaction = transactions.some((transaction) => !!transaction.pendingAction);
 
@@ -6560,7 +6560,7 @@ function getOptimisticDataForParentReportAction(reportID: string, lastVisibleAct
     });
 }
 
-function canBeAutoReimbursed(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> | EmptyObject): boolean {
+function canBeAutoReimbursed(report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy> | EmptyObject): boolean {
     if (isEmptyObject(policy)) {
         return false;
     }
@@ -6577,7 +6577,7 @@ function canBeAutoReimbursed(report: OnyxEntry<Report>, policy: OnyxEntry<Policy
 }
 
 /** Check if the current user is an owner of the report */
-function isReportOwner(report: OnyxEntry<Report>): boolean {
+function isReportOwner(report: OnyxInputOrEntry<Report>): boolean {
     return report?.ownerAccountID === currentUserPersonalDetails?.accountID;
 }
 
@@ -6647,14 +6647,14 @@ function hasActionsWithErrors(reportID: string): boolean {
     return Object.values(reportActions).some((action) => !isEmptyObject(action.errors));
 }
 
-function isNonAdminOrOwnerOfPolicyExpenseChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
+function isNonAdminOrOwnerOfPolicyExpenseChat(report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy>): boolean {
     return isPolicyExpenseChat(report) && !(PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPolicyOwner(policy, currentUserAccountID ?? -1) || isReportOwner(report));
 }
 
 /**
  * Whether the user can join a report
  */
-function canJoinChat(report: OnyxEntry<Report>, parentReportAction: OnyxEntry<ReportAction>, policy: OnyxEntry<Policy>): boolean {
+function canJoinChat(report: OnyxInputOrEntry<Report>, parentReportAction: OnyxInputOrEntry<ReportAction>, policy: OnyxInputOrEntry<Policy>): boolean {
     // We disabled thread functions for whisper action
     // So we should not show join option for existing thread on whisper message that has already been left, or manually leave it
     if (ReportActionsUtils.isWhisperAction(parentReportAction)) {

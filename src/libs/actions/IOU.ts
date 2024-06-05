@@ -1,7 +1,7 @@
 import {format} from 'date-fns';
 import fastMerge from 'expensify-common/lib/fastMerge';
 import Str from 'expensify-common/lib/str';
-import type {OnyxCollection, OnyxCollectionInput, OnyxEntry, OnyxInputValue, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
@@ -6044,7 +6044,11 @@ function sendMoneyWithWallet(report: OnyxEntry<OnyxTypes.Report>, amount: number
     Report.notifyNewAction(params.chatReportID, managerID);
 }
 
-function canApproveIOU(iouReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, chatReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, policy: OnyxEntry<OnyxTypes.Policy> | EmptyObject) {
+function canApproveIOU(
+    iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report> | EmptyObject,
+    chatReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report> | EmptyObject,
+    policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy> | EmptyObject,
+) {
     if (isEmptyObject(chatReport)) {
         return false;
     }
@@ -6071,7 +6075,11 @@ function canApproveIOU(iouReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, cha
     return isCurrentUserManager && !isOpenExpenseReport && !isApproved && !iouSettled && !isArchivedReport;
 }
 
-function canIOUBePaid(iouReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, chatReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, policy: OnyxEntry<OnyxTypes.Policy> | EmptyObject) {
+function canIOUBePaid(
+    iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report> | EmptyObject,
+    chatReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report> | EmptyObject,
+    policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy> | EmptyObject,
+) {
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
     const isChatReportArchived = ReportUtils.isArchivedRoom(chatReport);
     const iouSettled = ReportUtils.isSettled(iouReport?.reportID);
