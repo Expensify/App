@@ -1,7 +1,7 @@
 import {useIsFocused} from '@react-navigation/core';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {Platform, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import BigNumberPad from '@components/BigNumberPad';
 import Button from '@components/Button';
@@ -301,7 +301,7 @@ function MoneyRequestAmountForm(
             </View>
             <View
                 onMouseDown={(event) => onMouseDown(event, [NUM_PAD_CONTAINER_VIEW_ID, NUM_PAD_VIEW_ID])}
-                style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper, styles.pt0]}
+                style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper, styles.pt0, Platform.OS !== 'web' ? [styles.dBlock, styles.w100, {height: '40%'}] : {}]}
                 id={NUM_PAD_CONTAINER_VIEW_ID}
             >
                 {canUseTouchScreen ? (
@@ -311,7 +311,7 @@ function MoneyRequestAmountForm(
                         longPressHandlerStateChanged={updateLongPressHandlerState}
                     />
                 ) : null}
-                <View style={styles.w100}>
+                <View style={[styles.w100, Platform.OS !== 'web' ? {height: '40%'} : {}]}>
                     {iouType === CONST.IOU.TYPE.PAY && skipConfirmation ? (
                         <SettlementButton
                             pressOnEnter
