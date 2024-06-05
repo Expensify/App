@@ -1,5 +1,4 @@
-import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
-import Str from 'expensify-common/lib/str';
+import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {ConnectionName, PolicyConnectionSyncStage} from '@src/types/onyx/Policy';
@@ -125,6 +124,7 @@ export default {
         buttonConfirm: 'Got it',
         name: 'Name',
         attachment: 'Attachment',
+        center: 'Center',
         from: 'From',
         to: 'To',
         optional: 'Optional',
@@ -164,6 +164,7 @@ export default {
         continue: 'Continue',
         firstName: 'First name',
         lastName: 'Last name',
+        addCardTermsOfService: 'Expensify Terms of Service',
         phone: 'Phone',
         phoneNumber: 'Phone number',
         phoneNumberPlaceholder: '(xxx) xxx-xxxx',
@@ -171,6 +172,7 @@ export default {
         and: 'and',
         details: 'Details',
         privacy: 'Privacy',
+        privacyPolicy: 'Privacy Policy',
         hidden: 'Hidden',
         visible: 'Visible',
         delete: 'Delete',
@@ -186,7 +188,6 @@ export default {
         saveAndContinue: 'Save & continue',
         settings: 'Settings',
         termsOfService: 'Terms of Service',
-        expensifyTermsOfService: 'Expensify Terms of Service',
         members: 'Members',
         invite: 'Invite',
         here: 'here',
@@ -224,6 +225,7 @@ export default {
         tomorrowAt: 'Tomorrow at',
         yesterdayAt: 'Yesterday at',
         conjunctionAt: 'at',
+        conjunctionTo: 'to',
         genericErrorMessage: 'Oops... something went wrong and your request could not be completed. Please try again later.',
         error: {
             invalidAmount: 'Invalid amount.',
@@ -334,6 +336,9 @@ export default {
         action: 'Action',
         expenses: 'Expenses',
         tax: 'Tax',
+        shared: 'Shared',
+        drafts: 'Drafts',
+        finished: 'Finished',
     },
     location: {
         useCurrent: 'Use current location',
@@ -351,7 +356,7 @@ export default {
         expensifyDoesntHaveAccessToCamera: "Expensify can't take photos without access to your camera. Tap Settings to update permissions.",
         attachmentError: 'Attachment error',
         errorWhileSelectingAttachment: 'An error occurred while selecting an attachment, please try again.',
-        errorWhileSelectingCorruptedImage: 'An error occurred while selecting a corrupted attachment, please try another file.',
+        errorWhileSelectingCorruptedAttachment: 'An error occurred while selecting a corrupted attachment, please try another file.',
         takePhoto: 'Take photo',
         chooseFromGallery: 'Choose from gallery',
         chooseDocument: 'Choose document',
@@ -409,7 +414,6 @@ export default {
     },
     moneyRequestConfirmationList: {
         paidBy: 'Paid by',
-        splitAmounts: 'Split amounts',
         whatsItFor: "What's it for?",
     },
     selectionList: {
@@ -520,6 +524,7 @@ export default {
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' and ',
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' starts here! 🎉 This is the place to chat, submit expenses and settle up.',
         beginningOfChatHistorySelfDM: 'This is your personal space. Use it for notes, tasks, drafts, and reminders.',
+        beginningOfChatHistorySystemDM: "Welcome! Let's get you set up.",
         chatWithAccountManager: 'Chat with your account manager here',
         sayHello: 'Say hello!',
         yourSpace: 'Your space',
@@ -673,7 +678,11 @@ export default {
         deleteConfirmation: 'Are you sure that you want to delete this expense?',
         settledExpensify: 'Paid',
         settledElsewhere: 'Paid elsewhere',
+        individual: 'Individual',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} with Expensify` : `Pay with Expensify`),
+        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} as an individual` : `Pay as an individual`),
+        settlePayment: ({formattedAmount}: SettleExpensifyCardParams) => `Pay ${formattedAmount}`,
+        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} as a business` : `Pay as a business`),
         payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} elsewhere` : `Pay elsewhere`),
         nextStep: 'Next Steps',
         finished: 'Finished',
@@ -702,7 +711,7 @@ export default {
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} added a bank account. The ${amount} payment has been made.`,
         paidElsewhereWithAmount: ({payer, amount}: PaidElsewhereWithAmountParams) => `${payer ? `${payer} ` : ''}paid ${amount} elsewhere`,
-        paidWithExpensifyWithAmount: ({payer, amount}: PaidWithExpensifyWithAmountParams) => `${payer ? `${payer} ` : ''}paid ${amount} using Expensify`,
+        paidWithExpensifyWithAmount: ({payer, amount}: PaidWithExpensifyWithAmountParams) => `${payer ? `${payer} ` : ''}paid ${amount} with Expensify`,
         noReimbursableExpenses: 'This report has an invalid amount',
         pendingConversionMessage: "Total will update when you're back online",
         changedTheExpense: 'changed the expense',
@@ -726,6 +735,8 @@ export default {
             other: 'Unexpected error, please try again later.',
             genericCreateFailureMessage: 'Unexpected error submitting this expense. Please try again later.',
             genericCreateInvoiceFailureMessage: 'Unexpected error sending invoice, please try again later.',
+            genericHoldExpenseFailureMessage: 'Unexpected error while holding the expense. Please try again later.',
+            genericUnholdExpenseFailureMessage: 'Unexpected error while taking the expense off hold. Please try again later.',
             receiptDeleteFailureError: 'Unexpected error deleting this receipt. Please try again later.',
             // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             receiptFailureMessage: "The receipt didn't upload. ",
@@ -947,6 +958,7 @@ export default {
             noLogsAvailable: 'No logs available',
             logSizeTooLarge: ({size}: LogSizeParams) => `Log size exceeds the limit of ${size} MB. Please use "Save log" to download the log file instead.`,
             logs: 'Logs',
+            viewConsole: 'View console',
         },
         security: 'Security',
         signOut: 'Sign out',
@@ -1050,6 +1062,29 @@ export default {
             invalidName: 'Name can only include letters.',
             addressZipCode: 'Please enter a valid zip code.',
             debitCardNumber: 'Please enter a valid debit card number.',
+            expirationDate: 'Please select a valid expiration date.',
+            securityCode: 'Please enter a valid security code.',
+            addressStreet: 'Please enter a valid billing address that is not a PO Box.',
+            addressState: 'Please select a state.',
+            addressCity: 'Please enter a city.',
+            genericFailureMessage: 'An error occurred while adding your card, please try again.',
+            password: 'Please enter your Expensify password.',
+        },
+    },
+    addPaymentCardPage: {
+        addAPaymentCard: 'Add payment card',
+        nameOnCard: 'Name on card',
+        paymentCardNumber: 'Card number',
+        expiration: 'Expiration date',
+        expirationDate: 'MMYY',
+        cvv: 'CVV',
+        billingAddress: 'Billing address',
+        growlMessageOnSave: 'Your payment card was successfully added',
+        expensifyPassword: 'Expensify password',
+        error: {
+            invalidName: 'Name can only include letters.',
+            addressZipCode: 'Please enter a valid zip code.',
+            paymentCardNumber: 'Please enter a valid card number.',
             expirationDate: 'Please select a valid expiration date.',
             securityCode: 'Please enter a valid security code.',
             addressStreet: 'Please enter a valid billing address that is not a PO Box.',
@@ -1866,6 +1901,7 @@ export default {
             alerts: 'Get realtime updates and alerts',
         },
         bookTravel: 'Book travel',
+        bookDemo: 'Book demo',
         termsAndConditions: {
             header: 'Before we continue...',
             title: 'Please read the Terms & Conditions for travel',
@@ -1878,6 +1914,13 @@ export default {
             agree: 'I agree to the travel ',
             error: 'You must accept the Terms & Conditions for travel to continue',
         },
+        flight: 'Flight',
+        hotel: 'Hotel',
+        car: 'Car',
+        viewTrip: 'View trip',
+        trip: 'Trip',
+        tripSummary: 'Trip summary',
+        departs: 'Departs',
     },
     workspace: {
         common: {
@@ -1924,6 +1967,7 @@ export default {
             distanceRates: 'Distance rates',
             welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
                 `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
+            subscription: 'Subscription',
         },
         qbo: {
             importDescription: 'Choose which coding configurations are imported from QuickBooks Online to Expensify.',
@@ -1937,10 +1981,11 @@ export default {
             customersDescription: 'Choose whether to import customers/projects and see where customers/projects are displayed.',
             locationsDescription: 'Choose whether to import locations, and see where locations are displayed.',
             taxesDescription: 'Choose whether to import tax rates and tax defaults from your accounting integration.',
+            locationsAdditionalDescription: `QuickBooks Online does not support adding a location to vendor bills or checks. Update your export preference to journal entry if you'd like to import locations as tags.`,
+            outOfPocketLocationEnabledDescription:
+                'Note: QuickBooks Online does not support a field for locations on vendor bill or check exports. As you have locations enabled on your workspace, this export option is unavailable.',
             taxesJournalEntrySwitchNote:
                 'Note: QuickBooks Online does not support a field for tax on Journal Entry exports. Change your export preference to Vendor Bill or Check to import taxes.',
-            locationsAdditionalDescription:
-                'Locations are imported as Tags. This limits exporting expense reports as Vendor Bills or Checks to QuickBooks Online. To unlock these export options, either disable Locations import or upgrade to the Control Plan to export Locations encoded as a Report Field.',
             export: 'Export',
             exportAs: 'Export as',
             exportDescription: 'Configure how data in Expensify gets exported to QuickBooks Online.',
@@ -1980,20 +2025,23 @@ export default {
             exportPreferredExporterNote: 'This can be any workspace admin, but must be a Domain Admin if you set different export accounts for individual company cards in Domain Settings.',
             exportPreferredExporterSubNote: 'Once set, the preferred exporter will see reports for export in their account.',
             exportOutOfPocketExpensesDescription: 'Set how out-of-pocket expenses export to QuickBooks Online.',
+            exportCheckDescription: "We'll create a single itemized check for each Expensify report. You can write the check from your bank account of choice (below).",
+            exportJournalEntryDescription: "We'll create a single itemized journal entry for each Expensify report. You can post the offset entry to your account of choice (below).",
             exportVendorBillDescription:
                 "We'll create a single itemized vendor bill for each Expensify report. If the period of the bill is closed, we'll post to the 1st of the next open period. You can add the vendor bill to your A/P account of choice (below).",
-            accountsPayable: 'Accounts payable',
             account: 'Account',
+            accountDescription: 'This is your chosen account to post the journal entry offset for each report.',
+            accountsPayable: 'Accounts payable',
             accountsPayableDescription: 'This is your chosen A/P account, against which vendor bills for each report are created.',
+            bankAccount: 'Bank account',
+            bankAccountDescription: 'This is your chosen bank account to write checks from.',
             optionBelow: 'Choose an option below:',
             companyCardsLocationEnabledDescription:
-                'Note: QuickBooks Online does not support a field for Locations as Tags on Vendor Bills exports. As you import Locations from, this this export option is unavailable.',
+                'Note: QuickBooks Online does not support a field for locations on vendor bill exports. As you have locations enabled on your workspace, this export option is unavailable.',
             outOfPocketTaxEnabledDescription:
                 "Note: QuickBooks Online doesn't support a field for tax on Journal Entry exports. Because you have tax tracking enabled on your workspace, this export option is unavailable.",
             outOfPocketTaxEnabledError: 'Journal entry is not available when taxes enabled. please select a different export option.',
             outOfPocketLocationEnabledError: 'Vendor Bills are not available when locations are enabled. Please select a different export option.',
-            outOfPocketLocationEnabledDescription:
-                'Note: QuickBooks Online does not support a field for Locations as Tags on Vendor Bills exports. As you import Locations as Tags, this export option is unavailable.',
             advancedConfig: {
                 advanced: 'Advanced',
                 autoSync: 'Auto-sync',
@@ -2034,6 +2082,8 @@ export default {
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK}Error`]: 'Check is not available when locations are enabled. Please select a different export option.',
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY}Error`]: 'Journal entry is not available when taxes enabled. please select a different export option.',
             },
+            noAccountsFound: 'No accounts found',
+            noAccountsFoundDescription: 'Add the account in Quickbooks Online and sync the connection again',
         },
         xero: {
             organization: 'Xero organization',
@@ -2044,10 +2094,8 @@ export default {
             accountsSwitchDescription: 'Enabled categories are available for members to select when creating their expenses.',
             trackingCategories: 'Tracking categories',
             trackingCategoriesDescription: 'Choose whether to import tracking categories and see where they are displayed.',
-            mapXeroCostCentersTo: 'Map Xero cost centers to',
-            mapXeroRegionsTo: 'Map Xero regions to',
-            mapXeroCostCentersToDescription: 'Choose where to map cost centers to when exporting to Xero.',
-            mapXeroRegionsToDescription: 'Choose where to map employee regions when exporting expense reports to Xero.',
+            mapTrackingCategoryTo: ({categoryName}) => `Map Xero ${categoryName} to`,
+            mapTrackingCategoryToDescription: ({categoryName}) => `Choose where to map ${categoryName} to when exporting to Xero.`,
             customers: 'Re-bill customers',
             customersDescription: 'Import customer contacts. Billable expenses need tags for export. Expenses will carry the customer information to Xero for sales invoices.',
             taxesDescription: 'Choose whether to import tax rates and tax defaults from your accounting integration.',
@@ -2104,14 +2152,18 @@ export default {
                 },
             },
             invoiceStatus: {
+                label: 'Purchase bill status',
+                description: 'When exported to Xero what state should purchase bills have.',
                 values: {
-                    [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_PAYMENT]: 'Authorised',
                     [CONST.XERO_CONFIG.INVOICE_STATUS.DRAFT]: 'Draft',
-                    [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_APPROVAL]: 'Submitted',
+                    [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_APPROVAL]: 'Awaiting approval',
+                    [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_PAYMENT]: 'Awaiting payment',
                 },
             },
             exportPreferredExporterNote: 'This can be any workspace admin, but must be a domain admin if you set different export accounts for individual company cards in domain settings.',
             exportPreferredExporterSubNote: 'Once set, the preferred exporter will see reports for export in their account.',
+            noAccountsFound: 'No accounts found',
+            noAccountsFoundDescription: 'Add the account in Xero and sync the connection again',
         },
         type: {
             free: 'Free',
@@ -2140,6 +2192,7 @@ export default {
             createFailureMessage: 'An error occurred while creating the category, please try again.',
             addCategory: 'Add category',
             editCategory: 'Edit category',
+            editCategories: 'Edit categories',
             categoryRequiredError: 'Category name is required.',
             existingCategoryError: 'A category with this name already exists.',
             invalidCategoryName: 'Invalid category name.',
@@ -2186,6 +2239,12 @@ export default {
                 title: 'Accounting',
                 subtitle: 'Sync your chart of accounts and more.',
             },
+            connectionsWarningModal: {
+                featureEnabledTitle: 'Not so fast...',
+                featureEnabledText: 'To enable or disable this feature change your accounting import settings.',
+                disconnectText: 'Disconnect your accounting connection from the workspace if you want to disable Accounting.',
+                manageSettings: 'Manage settings',
+            },
         },
         reportFields: {
             delete: 'Delete field',
@@ -2223,6 +2282,8 @@ export default {
             foreignDefault: 'Foreign currency default',
             customTaxName: 'Custom tax name',
             value: 'Value',
+            taxReclaimableOn: 'Tax reclaimable on',
+            taxRate: 'Tax rate',
             error: {
                 taxRateAlreadyExists: 'This tax name is already in use.',
                 valuePercentageRange: 'Please enter a valid percentage between 0 and 100.',
@@ -2230,6 +2291,7 @@ export default {
                 deleteFailureMessage: 'An error occurred while deleting the tax rate. Please try again or ask Concierge for help.',
                 updateFailureMessage: 'An error occurred while updating the tax rate. Please try again or ask Concierge for help.',
                 createFailureMessage: 'An error occurred while creating the tax rate. Please try again or ask Concierge for help.',
+                updateTaxClaimableFailureMessage: 'The reclaimable portion must be less than the distance rate amount.',
             },
             deleteTaxConfirmation: 'Are you sure you want to delete this tax?',
             deleteMultipleTaxConfirmation: ({taxAmount}) => `Are you sure you want to delete ${taxAmount} taxes?`,
@@ -2241,6 +2303,7 @@ export default {
                 enable: 'Enable rate',
                 enableMultiple: 'Enable rates',
             },
+            importedFromAccountingSoftware: 'The taxes below are imported from your',
         },
         emptyWorkspace: {
             title: 'Create a workspace',
@@ -2341,6 +2404,17 @@ export default {
                     }
                 }
             },
+            syncError: (integration?: ConnectionName): string => {
+                switch (integration) {
+                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
+                        return "Couldn't connect to QuickBooks Online.";
+                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
+                        return "Couldn't connect to Xero.";
+                    default: {
+                        return "Couldn't connect to integration.";
+                    }
+                }
+            },
             accounts: 'Chart of accounts',
             taxes: 'Taxes',
             imported: 'Imported',
@@ -2397,7 +2471,9 @@ export default {
                             return 'Checking QuickBooks Online connection';
                         case 'quickbooksOnlineImportMain':
                             return 'Importing your QuickBooks Online data';
-                        case 'startingImport':
+                        case 'startingImportXero':
+                            return 'Importing your Xero data';
+                        case 'startingImportQBO':
                             return 'Importing your QuickBooks Online data';
                         case 'quickbooksOnlineSyncTitle':
                             return 'Synchronizing QuickBooks Online data';
@@ -2461,6 +2537,14 @@ export default {
             viewUnpaidInvoices: 'View unpaid invoices',
             sendInvoice: 'Send invoice',
             sendFrom: 'Send from',
+            paymentMethods: {
+                personal: 'Personal',
+                business: 'Business',
+                chooseInvoiceMethod: 'Choose a payment method below:',
+                addBankAccount: 'Add bank account',
+                payingAsIndividual: 'Paying as an individual',
+                payingAsBusiness: 'Paying as a business',
+            },
         },
         travel: {
             unlockConciergeBookingTravel: 'Unlock Concierge travel booking',
@@ -2497,12 +2581,15 @@ export default {
             centrallyManage: 'Centrally manage rates, choose to track in miles or kilometers, and set a default category.',
             rate: 'Rate',
             addRate: 'Add rate',
+            trackTax: 'Track tax',
             deleteRates: ({count}: DistanceRateOperationsParams) => `Delete ${Str.pluralize('rate', 'rates', count)}`,
             enableRates: ({count}: DistanceRateOperationsParams) => `Enable ${Str.pluralize('rate', 'rates', count)}`,
             disableRates: ({count}: DistanceRateOperationsParams) => `Disable ${Str.pluralize('rate', 'rates', count)}`,
             enableRate: 'Enable rate',
             status: 'Status',
             unit: 'Unit',
+            taxFeatureNotEnabledMessage: 'Taxes must be enabled on the workspace to use this feature. Head over to ',
+            changePromptMessage: ' to make that change.',
             defaultCategory: 'Default category',
             deleteDistanceRate: 'Delete distance rate',
             areYouSureDelete: ({count}: DistanceRateOperationsParams) => `Are you sure you want to delete ${Str.pluralize('this rate', 'these rates', count)}?`,
@@ -3112,5 +3199,69 @@ export default {
     },
     systemMessage: {
         mergedWithCashTransaction: 'matched a receipt to this transaction.',
+    },
+    subscription: {
+        yourPlan: {
+            title: 'Your plan',
+            collect: {
+                title: 'Collect',
+                priceAnnual: 'From $5/active member with the Expensify Card, $10/active member without the Expensify Card.',
+                pricePayPerUse: 'From $10/active member with the Expensify Card, $20/active member without the Expensify Card.',
+                benefit1: 'Unlimited SmartScans and distance tracking',
+                benefit2: 'Expensify Cards with Smart Limits',
+                benefit3: 'Bill pay and invoicing',
+                benefit4: 'Expense approvals',
+                benefit5: 'ACH reimbursement',
+                benefit6: 'QuickBooks and Xero integrations',
+                benefit7: 'Custom insights and reporting',
+            },
+            control: {
+                title: 'Control',
+                priceAnnual: 'From $9/active member with the Expensify Card, $18/active member without the Expensify Card.',
+                pricePayPerUse: 'From $18/active member with the Expensify Card, $36/active member without the Expensify Card.',
+                benefit1: 'Everything in Collect, plus:',
+                benefit2: 'NetSuite and Sage Intacct integrations',
+                benefit3: 'Certinia and Workday sync',
+                benefit4: 'Multiple expense approvers',
+                benefit5: 'SAML/SSO',
+                benefit6: 'Budgeting',
+            },
+            saveWithExpensifyTitle: 'Save with the Expensify Card',
+            saveWithExpensifyDescription: 'Use our savings calculator to see how cash back from the Expensify Card can reduce your Expensify bill.',
+            saveWithExpensifyButton: 'Learn more',
+        },
+        details: {
+            title: 'Subscription details',
+            annual: 'Annual subscription',
+            payPerUse: 'Pay-per-use',
+            subscriptionSize: 'Subscription size',
+            headsUpTitle: 'Heads up: ',
+            headsUpBody:
+                "If you don’t set your subscription size now, we’ll set it automatically to your first month's active member count. You’ll then be committed to paying for at least this number of members for the next 12 months. You can increase your subscription size at any time, but you can’t decrease it until your subscription is over.",
+            zeroCommitment: 'Zero commitment at the discounted annual subscription rate',
+        },
+        subscriptionSize: {
+            title: 'Subscription size',
+            yourSize: 'Your subscription size is the number of open seats that can be filled by any active member in a given month.',
+            eachMonth:
+                'Each month, your subscription covers up to the number of active members set above. Any time you increase your subscription size, you’ll start a new 12-month subscription at that new size.',
+            note: 'Note: An active member is anyone who has created, edited, submitted, approved, reimbursed, or exported expense data tied to your company workspace.',
+            confirmDetails: 'Confirm your new annual subscription details',
+            subscriptionSize: 'Subscription size',
+            activeMembers: ({size}) => `${size} active members/month`,
+            subscriptionRenews: 'Subscription renews',
+            youCantDowngrade: 'You can’t downgrade during your annual subscription',
+            youAlreadyCommitted: ({size, date}) =>
+                `You already committed to an annual subscription size of ${size} active members per month until ${date}. You can switch to a pay-per-use subscription on ${date} by disabling auto-renew.`,
+            error: {
+                size: 'Please enter a valid subscription size.',
+            },
+        },
+        paymentCard: {
+            addPaymentCard: 'Add payment card',
+            enterPaymentCardDetails: 'Enter your payment card details.',
+            security: 'Expensify is PCI-DSS compliant, uses bank-level encryption, and utilizes redundant infrastructure to protect your data.',
+            learnMoreAboutSecurity: 'Learn more about our security.',
+        },
     },
 } satisfies TranslationBase;

@@ -18,6 +18,48 @@ import ExpenseItemHeaderNarrow from './ExpenseItemHeaderNarrow';
 import TransactionListItem from './TransactionListItem';
 import TransactionListItemRow from './TransactionListItemRow';
 
+type CellProps = {
+    // eslint-disable-next-line react/no-unused-prop-types
+    showTooltip: boolean;
+    // eslint-disable-next-line react/no-unused-prop-types
+    isLargeScreenWidth: boolean;
+};
+
+type ReportCellProps = {
+    reportItem: ReportListItemType;
+} & CellProps;
+
+type ActionCellProps = {
+    onButtonPress: () => void;
+} & CellProps;
+
+function TotalCell({showTooltip, isLargeScreenWidth, reportItem}: ReportCellProps) {
+    const styles = useThemeStyles();
+
+    return (
+        <TextWithTooltip
+            shouldShowTooltip={showTooltip}
+            text={CurrencyUtils.convertToDisplayString((reportItem?.type === CONST.REPORT.TYPE.EXPENSE ? -1 : 1) * (reportItem?.total ?? 0), reportItem?.currency)}
+            style={[styles.optionDisplayName, styles.textNewKansasNormal, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? undefined : styles.textAlignRight]}
+        />
+    );
+}
+
+function ActionCell({onButtonPress}: ActionCellProps) {
+    const {translate} = useLocalize();
+    const styles = useThemeStyles();
+
+    return (
+        <Button
+            text={translate('common.view')}
+            onPress={onButtonPress}
+            small
+            pressOnEnter
+            style={[styles.p0]}
+        />
+    );
+}
+
 function ReportListItem<TItem extends ListItem>({
     item,
     isFocused,
@@ -45,27 +87,9 @@ function ReportListItem<TItem extends ListItem>({
 
     const openReportInRHP = (transactionItem: TransactionListItemType) => {
         const searchParams = getSearchParams();
-        const currentQuery = searchParams && `query` in searchParams ? (searchParams?.query as string) : CONST.TAB_SEARCH.ALL;
+        const currentQuery = searchParams?.query ?? CONST.TAB_SEARCH.ALL;
         Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(currentQuery, transactionItem.transactionThreadReportID));
     };
-
-    const totalCell = (
-        <TextWithTooltip
-            shouldShowTooltip={showTooltip}
-            text={CurrencyUtils.convertToDisplayString(reportItem?.total, reportItem?.currency)}
-            style={[styles.optionDisplayName, styles.textNewKansasNormal, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? undefined : styles.textAlignRight]}
-        />
-    );
-
-    const actionCell = (
-        <Button
-            text={translate('common.view')}
-            onPress={handleOnButtonPress}
-            small
-            pressOnEnter
-            style={[styles.p0]}
-        />
-    );
 
     if (!reportItem?.reportName && reportItem.transactions.length > 1) {
         return null;
@@ -73,6 +97,11 @@ function ReportListItem<TItem extends ListItem>({
 
     const participantFrom = reportItem.transactions[0].from;
     const participantTo = reportItem.transactions[0].to;
+
+    // These values should come as part of the item via SearchUtils.getSections() but ReportListItem is not yet 100% handled
+    // This will be simplified in future once sorting of ReportListItem is done
+    const participantFromDisplayName = participantFrom?.name ?? participantFrom?.displayName ?? participantFrom?.login ?? '';
+    const participantToDisplayName = participantTo?.name ?? participantTo?.displayName ?? participantTo?.login ?? '';
 
     if (reportItem.transactions.length === 1) {
         const transactionItem = reportItem.transactions[0];
@@ -118,12 +147,14 @@ function ReportListItem<TItem extends ListItem>({
                     {!isLargeScreenWidth && (
                         <ExpenseItemHeaderNarrow
                             participantFrom={participantFrom}
+                            participantFromDisplayName={participantFromDisplayName}
                             participantTo={participantTo}
+                            participantToDisplayName={participantToDisplayName}
                             buttonText={translate('common.view')}
                             onButtonPress={handleOnButtonPress}
                         />
                     )}
-                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                         <View style={[styles.flexRow, styles.flex1, styles.alignItemsCenter, styles.justifyContentBetween]}>
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex2]}>
                                 <View style={[styles.flexShrink1]}>
@@ -131,11 +162,26 @@ function ReportListItem<TItem extends ListItem>({
                                     <Text style={[styles.textMicroSupporting]}>{`${reportItem.transactions.length} ${translate('search.groupedExpenses')}`}</Text>
                                 </View>
                             </View>
-                            <View style={[styles.flexRow, styles.flex1, styles.justifyContentEnd]}>{totalCell}</View>
+                            <View style={[styles.flexRow, styles.flex1, styles.justifyContentEnd]}>
+                                <TotalCell
+                                    showTooltip={showTooltip}
+                                    isLargeScreenWidth={isLargeScreenWidth}
+                                    reportItem={reportItem}
+                                />
+                            </View>
                         </View>
-                        {/** styles.reportListItemActionButtonMargin added here to move the action button by the type column distance */}
                         {isLargeScreenWidth && (
-                            <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.ACTION), styles.reportListItemActionButtonMargin]}>{actionCell}</View>
+                            <>
+                                {/** We add an empty view with type style to align the total with the table header */}
+                                <View style={StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TYPE)} />
+                                <View style={StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.ACTION)}>
+                                    <ActionCell
+                                        showTooltip={showTooltip}
+                                        isLargeScreenWidth={isLargeScreenWidth}
+                                        onButtonPress={handleOnButtonPress}
+                                    />
+                                </View>
+                            </>
                         )}
                     </View>
                     <View style={[styles.mt3, styles.reportListItemSeparator]} />
@@ -149,6 +195,7 @@ function ReportListItem<TItem extends ListItem>({
                             showItemHeaderOnNarrowLayout={false}
                             containerStyle={styles.mt3}
                             isHovered={hovered}
+                            isChildListItem
                         />
                     ))}
                 </View>
