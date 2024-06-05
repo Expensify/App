@@ -25,7 +25,7 @@ import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import {isTaxTrackingEnabled} from '@libs/PolicyUtils';
+import {getCustomUnitRate, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
@@ -180,12 +180,19 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
 type MoneyRequestConfirmationListItem = Participant | ReportUtils.OptionData;
 
 const getTaxAmount = (transaction: OnyxEntry<OnyxTypes.Transaction>, policy: OnyxEntry<OnyxTypes.Policy>, isDistanceRequest: boolean) => {
+    let taxableAmount: number;
+    let taxCode: string;
     if (isDistanceRequest) {
-        return DistanceRequestUtils.calculateTaxAmount(policy, transaction, TransactionUtils.getRateID(transaction) ?? '');
+        const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '';
+        const customUnitRate = getCustomUnitRate(policy, customUnitRateID);
+        taxCode = customUnitRate?.attributes?.taxRateExternalID ?? '';
+        taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, TransactionUtils.getDistance(transaction));
+    } else {
+        taxableAmount = transaction?.amount ?? 0;
+        taxCode = transaction?.taxCode ?? TransactionUtils.getDefaultTaxCode(policy, transaction) ?? '';
     }
-    const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction) ?? '';
-    const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, transaction?.taxCode ?? defaultTaxCode) ?? '';
-    return TransactionUtils.calculateTaxAmount(taxPercentage, transaction?.amount ?? 0);
+    const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, taxCode) ?? '';
+    return TransactionUtils.calculateTaxAmount(taxPercentage, taxableAmount);
 };
 
 function MoneyRequestConfirmationList({

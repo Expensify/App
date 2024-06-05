@@ -30,7 +30,6 @@ import type {Policy, PolicyCategories, PolicyTagList} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {Receipt} from '@src/types/onyx/Transaction';
-import DistanceRequestUtils from "@libs/DistanceRequestUtils";
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
@@ -89,8 +88,7 @@ function IOURequestStepConfirmation({
     const receiptPath = transaction?.receipt?.source;
     const receiptType = transaction?.receipt?.type;
     const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '';
-    console.debug(`~~Monil logs customUnitRateID ${customUnitRateID}`);
-    const defaultTaxCode = isDistanceRequest ? DistanceRequestUtils.getTaxCodeFromRateID(policy, customUnitRateID) : TransactionUtils.getDefaultTaxCode(policy, transaction);
+    const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction);
     const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
     const isSharingTrackExpense = action === CONST.IOU.ACTION.SHARE;

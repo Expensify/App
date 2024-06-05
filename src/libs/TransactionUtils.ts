@@ -7,13 +7,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, RecentWaypoint, Report, TaxRate, TaxRates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import * as DistanceRequestUtils from './DistanceRequestUtils';
 import type {IOURequestType} from './actions/IOU';
 import {isCorporateCard, isExpensifyCard} from './CardUtils';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
 import * as NumberUtils from './NumberUtils';
-import {getCleanedTagName} from './PolicyUtils';
+import {getCleanedTagName, getCustomUnitRate} from './PolicyUtils';
 
 let allTransactions: OnyxCollection<Transaction> = {};
 Onyx.connect({
@@ -663,7 +662,7 @@ function hasNoticeTypeViolation(transactionID: string, transactionViolations: On
 }
 
 /**
- * this is the formulae to calculate tax
+ * Calculates tax amount from the given expense amount and tax percentage
  */
 function calculateTaxAmount(percentage: string, amount: number) {
     const divisor = Number(percentage.slice(0, -1)) / 100 + 1;
@@ -696,6 +695,11 @@ function getRateID(transaction: OnyxEntry<Transaction>): string | undefined {
  * Returns policy default tax rate if transaction is in policy default currency, otherwise returns foreign default tax rate
  */
 function getDefaultTaxCode(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, currency?: string | undefined) {
+    if (isDistanceRequest(transaction)) {
+        const customUnitRateID = getRateID(transaction) ?? '';
+        const customUnitRate = getCustomUnitRate(policy, customUnitRateID);
+        return customUnitRate?.attributes?.taxRateExternalID ?? '';
+    }
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
     const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
     return policy?.outputCurrency === (currency ?? getCurrency(transaction)) ? defaultExternalID : foreignTaxDefault;
@@ -744,13 +748,7 @@ function getWorkspaceTaxesSettingsName(policy: OnyxEntry<Policy>, taxCode: strin
  * If it is distance request, then returns the tax name corresponding to the custom unit rate
  */
 function getTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>) {
-    let taxCode: string;
-    if (isDistanceRequest(transaction)) {
-        const customUnitRateID = getRateID(transaction) ?? '';
-        taxCode = DistanceRequestUtils.getTaxCodeFromRateID(policy, customUnitRateID);
-    } else {
-        taxCode = getDefaultTaxCode(policy, transaction) ?? '';
-    }
+    const taxCode = getDefaultTaxCode(policy, transaction) ?? '';
     return Object.values(transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === (transaction?.taxCode ?? taxCode))?.modifiedName;
 }
 

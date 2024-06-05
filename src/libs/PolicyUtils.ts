@@ -97,6 +97,14 @@ function getCustomUnit(policy: OnyxEntry<Policy> | EmptyObject) {
     return Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
 }
 
+/**
+ * Retrieves custom unit rate object from the given customUnitRateID
+ */
+function getCustomUnitRate(policy: OnyxEntry<Policy> | EmptyObject, customUnitRateID: string): Rate | EmptyObject {
+    const distanceUnit = getCustomUnit(policy);
+    return distanceUnit?.rates[customUnitRateID] ?? {};
+}
+
 function getRateDisplayValue(value: number, toLocaleDigit: (arg: string) => string): string {
     const numValue = getNumericValue(value, toLocaleDigit);
     if (Number.isNaN(numValue)) {
@@ -513,6 +521,7 @@ export {
     getCurrentXeroOrganizationName,
     getXeroBankAccountsWithDefaultSelect,
     getCustomUnit,
+    getCustomUnitRate,
     sortWorkspacesBySelected,
 };
 
