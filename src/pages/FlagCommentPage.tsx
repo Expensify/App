@@ -109,7 +109,7 @@ function FlagCommentPage({parentReportAction, route, report, parentReport, repor
         },
     ];
 
-    const getActionToFlag = useCallback((): OnyxTypes.ReportAction | undefined => {
+    const getActionToFlag = useCallback((): OnyxTypes.ReportAction | null => {
         let reportAction = reportActions?.[`${route.params.reportActionID.toString()}`];
 
         // Handle threads if needed
@@ -118,7 +118,7 @@ function FlagCommentPage({parentReportAction, route, report, parentReport, repor
         }
 
         if (!reportAction) {
-            return;
+            return null;
         }
 
         return reportAction;

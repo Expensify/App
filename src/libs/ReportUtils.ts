@@ -1036,7 +1036,7 @@ function isThread(report: OnyxInputOrEntry<Report>): boolean {
 /**
  * Returns true if report is of type chat and has a parent and is therefore a Thread.
  */
-function isChatThread(report: OnyxEntry<Report>): boolean {
+function isChatThread(report: OnyxInputOrEntry<Report>): boolean {
     return isThread(report) && report?.type === CONST.REPORT.TYPE.CHAT;
 }
 
@@ -1059,7 +1059,7 @@ function isSystemChat(report: OnyxEntry<Report>): boolean {
 /**
  * Only returns true if this is our main 1:1 DM report with Concierge
  */
-function isConciergeChatReport(report: OnyxEntry<Report>): boolean {
+function isConciergeChatReport(report: OnyxInputOrEntry<Report>): boolean {
     const participantAccountIDs = Object.keys(report?.participants ?? {})
         .map(Number)
         .filter((accountID) => accountID !== currentUserAccountID);
@@ -5170,7 +5170,11 @@ function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string): b
 /**
  * Checks to see if a report's parentAction is an expense that contains a violation
  */
-function doesTransactionThreadHaveViolations(report: OnyxInputOrEntry<Report>, transactionViolations: OnyxCollection<TransactionViolation[]>, parentReportAction: OnyxInputOrEntry<ReportAction>): boolean {
+function doesTransactionThreadHaveViolations(
+    report: OnyxInputOrEntry<Report>,
+    transactionViolations: OnyxCollection<TransactionViolation[]>,
+    parentReportAction: OnyxInputOrEntry<ReportAction>,
+): boolean {
     if (parentReportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
         return false;
     }
@@ -5407,7 +5411,7 @@ function getAllPolicyReports(policyID: string): Array<OnyxEntry<Report>> {
 /**
  * Returns true if Chronos is one of the chat participants (1:1)
  */
-function chatIncludesChronos(report: OnyxEntry<Report> | EmptyObject): boolean {
+function chatIncludesChronos(report: OnyxInputOrEntry<Report> | EmptyObject): boolean {
     const participantAccountIDs = Object.keys(report?.participants ?? {}).map(Number);
     return participantAccountIDs.includes(CONST.ACCOUNT_ID.CHRONOS);
 }
@@ -5419,7 +5423,7 @@ function chatIncludesChronos(report: OnyxEntry<Report> | EmptyObject): boolean {
  * - It's a welcome message whisper
  * - It's an ADD_COMMENT that is not an attachment
  */
-function canFlagReportAction(reportAction: OnyxEntry<ReportAction>, reportID: string | undefined): boolean {
+function canFlagReportAction(reportAction: OnyxInputOrEntry<ReportAction>, reportID: string | undefined): boolean {
     let report = getReport(reportID);
 
     // If the childReportID exists in reportAction and is equal to the reportID,
@@ -5452,7 +5456,7 @@ function canFlagReportAction(reportAction: OnyxEntry<ReportAction>, reportID: st
 /**
  * Whether flag comment page should show
  */
-function shouldShowFlagComment(reportAction: OnyxEntry<ReportAction>, report: OnyxEntry<Report>): boolean {
+function shouldShowFlagComment(reportAction: OnyxInputOrEntry<ReportAction>, report: OnyxInputOrEntry<Report>): boolean {
     return (
         canFlagReportAction(reportAction, report?.reportID) &&
         !isArchivedRoom(report) &&
