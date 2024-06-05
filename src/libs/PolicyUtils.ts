@@ -34,7 +34,7 @@ Onyx.connect({
  * Filter out the active policies, which will exclude policies with pending deletion
  * These are policies that we can use to create reports with in NewDot.
  */
-function getActivePolicies(policies: OnyxCollection<Policy>): Policy[] {
+function getActivePolicies(policies: OnyxCollection<Policy> | null): Policy[] {
     return Object.values(policies ?? {}).filter<Policy>(
         (policy): policy is Policy => !!policy && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !!policy.name && !!policy.id,
     );
@@ -406,13 +406,13 @@ function getPolicy(policyID: string | undefined): Policy | EmptyObject {
 }
 
 /** Return active policies where current user is an admin */
-function getActiveAdminWorkspaces(policies: OnyxCollection<Policy>): Policy[] {
+function getActiveAdminWorkspaces(policies: OnyxCollection<Policy> | null): Policy[] {
     const activePolicies = getActivePolicies(policies);
     return activePolicies.filter((policy) => shouldShowPolicy(policy, NetworkStore.isOffline()) && isPolicyAdmin(policy));
 }
 
 /** Whether the user can send invoice */
-function canSendInvoice(policies: OnyxCollection<Policy>): boolean {
+function canSendInvoice(policies: OnyxCollection<Policy> | null): boolean {
     return getActiveAdminWorkspaces(policies).length > 0;
 }
 

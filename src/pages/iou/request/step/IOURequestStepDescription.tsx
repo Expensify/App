@@ -138,7 +138,7 @@ function IOURequestStepDescription({
     };
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing doesn't achieve the same result in this case
-    const reportAction = reportActions?.[report?.parentReportActionID || reportActionID];
+    const reportAction = reportActions?.[report?.parentReportActionID || reportActionID] ?? null;
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const canEditSplitBill = isSplitBill && reportAction && session?.accountID === reportAction.actorAccountID && TransactionUtils.areRequiredFieldsEmpty(transaction);

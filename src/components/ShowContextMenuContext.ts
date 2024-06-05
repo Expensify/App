@@ -18,7 +18,7 @@ type ShowContextMenuContextProps = {
 };
 
 const ShowContextMenuContext = createContext<ShowContextMenuContextProps>({
-    anchor: undefined,
+    anchor: null,
     report: undefined,
     action: undefined,
     transactionThreadReport: undefined,

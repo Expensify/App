@@ -32,7 +32,7 @@ type OnyxProps = {
     reportActions: OnyxEntry<OnyxTypes.ReportActions>;
 
     /** The report's parentReportAction */
-    parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
+    parentReportAction: NonNullable<OnyxEntry<OnyxTypes.ReportAction>> | null;
 
     /** The policies which the user has access to */
     policies: OnyxCollection<OnyxTypes.Policy>;
@@ -129,12 +129,12 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
             },
             parentReportAction: {
                 key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : 0}`,
-                selector: (parentReportActions: OnyxEntry<OnyxTypes.ReportActions>, props?: WithOnyxState<OnyxProps>): OnyxEntry<OnyxTypes.ReportAction> => {
+                selector: (parentReportActions: OnyxEntry<OnyxTypes.ReportActions>, props?: WithOnyxState<OnyxProps>): NonNullable<OnyxEntry<OnyxTypes.ReportAction>> | null => {
                     const parentReportActionID = props?.report?.parentReportActionID;
                     if (!parentReportActionID) {
-                        return;
+                        return null;
                     }
-                    return parentReportActions?.[parentReportActionID];
+                    return parentReportActions?.[parentReportActionID] ?? null;
                 },
                 canEvict: false,
             },

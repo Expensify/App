@@ -89,7 +89,7 @@ function IOURequestStepCategory({
     const transactionCategory = ReportUtils.getTransactionDetails(isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction)?.category;
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const reportAction = reportActions?.[report?.parentReportActionID || reportActionID];
+    const reportAction = reportActions?.[report?.parentReportActionID || reportActionID] ?? null;
 
     const shouldShowCategory =
         (ReportUtils.isReportInGroupPolicy(report) || ReportUtils.isGroupPolicy(policy?.type ?? '')) &&
