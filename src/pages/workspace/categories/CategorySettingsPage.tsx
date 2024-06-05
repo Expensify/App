@@ -138,6 +138,14 @@ function CategorySettingsPage({route, policyCategories, navigation}: CategorySet
                             shouldShowRightIcon
                         />
                     </OfflineWithFeedback>
+                    <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.payrollCode}>
+                        <MenuItemWithTopDescription
+                            title={policyCategory.payrollCode}
+                            description={translate(`workspace.categories.payrollCode`)}
+                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.getRoute(route.params.policyID, policyCategory.name))}
+                            shouldShowRightIcon
+                        />
+                    </OfflineWithFeedback>
                 </View>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
