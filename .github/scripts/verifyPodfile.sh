@@ -62,6 +62,11 @@ FORMATTED_PODS=$( \
   )"
 )
 
+if [ $? -ne 0 ]; then
+    error "Error: could not parse pods from react-native config command"
+    exit 1
+fi
+
 # Check for uncommitted package removals
 # If they are listed in Podfile.lock but the directories don't exist they have been removed
 while read -r DIR; do
