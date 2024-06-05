@@ -177,6 +177,7 @@ describe('actions/Policy', () => {
                             newName: newTagListName,
                         },
                         fakePolicyTags,
+                        Object.values(fakePolicyTags)[0].orderWeight,
                     );
                     return waitForBatchedUpdates();
                 })
@@ -244,6 +245,7 @@ describe('actions/Policy', () => {
                             newName: newTagListName,
                         },
                         fakePolicyTags,
+                        Object.values(fakePolicyTags)[0].orderWeight,
                     );
                     return waitForBatchedUpdates();
                 })
