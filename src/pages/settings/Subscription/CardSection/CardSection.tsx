@@ -8,18 +8,21 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import DateUtils from '@libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import CardSectionActions from './CardSectionActions';
 import CardSectionDataEmpty from './CardSectionDataEmpty';
 
 function CardSection() {
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
 
     const defaultCard = useMemo(() => Object.values(fundList ?? {}).find((card) => card.isDefault), [fundList]);
+
+    const cardMonth = useMemo(() => DateUtils.getMonthNames(preferredLocale)[(defaultCard?.accountData?.cardMonth ?? 1) - 1], [defaultCard, preferredLocale]);
 
     return (
         <Section
@@ -44,7 +47,7 @@ function CardSection() {
                                 <Text style={styles.mutedNormalTextLabel}>
                                     {translate('subscription.cardSection.cardInfo', {
                                         name: defaultCard?.accountData?.addressName,
-                                        expiration: `${defaultCard?.accountData?.cardMonth}/${defaultCard?.accountData?.cardYear}`,
+                                        expiration: `${cardMonth} ${defaultCard?.accountData?.cardYear}`,
                                         currency: defaultCard?.accountData?.currency,
                                     })}
                                 </Text>
