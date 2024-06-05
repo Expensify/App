@@ -29,7 +29,7 @@ function CardSection() {
             titleStyles={styles.textStrong}
             subtitleMuted
         >
-            <View style={[styles.mt5, styles.flexRow]}>
+            <View style={[styles.mt8, styles.mb3, styles.flexRow]}>
                 {!isEmptyObject(defaultCard?.accountData) && (
                     <>
                         <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
