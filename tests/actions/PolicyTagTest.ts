@@ -514,10 +514,14 @@ describe('actions/Policy', () => {
                     Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
                 })
                 .then(() => {
-                    Tag.renamePolicyTag(fakePolicy.id, {
-                        oldName: oldTagName,
-                        newName: newTagName,
-                    });
+                    Tag.renamePolicyTag(
+                        fakePolicy.id,
+                        {
+                            oldName: oldTagName,
+                            newName: newTagName,
+                        },
+                        0,
+                    );
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -580,10 +584,14 @@ describe('actions/Policy', () => {
                 .then(() => {
                     mockFetch?.fail?.();
 
-                    Tag.renamePolicyTag(fakePolicy.id, {
-                        oldName: oldTagName,
-                        newName: newTagName,
-                    });
+                    Tag.renamePolicyTag(
+                        fakePolicy.id,
+                        {
+                            oldName: oldTagName,
+                            newName: newTagName,
+                        },
+                        0,
+                    );
                     return waitForBatchedUpdates();
                 })
                 .then(mockFetch?.resume)

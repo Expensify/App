@@ -434,6 +434,7 @@ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName:
         policyID,
         oldName: oldTagName,
         newName: newTagName,
+        tagListIndex,
     };
 
     API.write(WRITE_COMMANDS.RENAME_POLICY_TAG, parameters, onyxData);
