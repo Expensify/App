@@ -1,5 +1,5 @@
 import {findFocusedRoute} from '@react-navigation/core';
-import type {EventArg, NavigationContainerEventMap, NavigationState} from '@react-navigation/native';
+import type {EventArg, NavigationContainerEventMap} from '@react-navigation/native';
 import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
 import Log from '@libs/Log';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -356,17 +356,6 @@ function navigateWithSwitchPolicyID(params: SwitchPolicyIDParams) {
     return switchPolicyID(navigationRef.current, params);
 }
 
-/**
- * Check if the modal is being displayed.
- *
- * @param state - MUST be the state of the root navigator for this to work. Do not use a child navigator state.
- */
-function isModalNavigatorActive(state: NavigationState) {
-    const lastRoute = state?.routes?.at(-1);
-    const lastRouteName = lastRoute?.name;
-    return lastRouteName === NAVIGATORS.LEFT_MODAL_NAVIGATOR || lastRouteName === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
-}
-
 export default {
     setShouldPopAllStateOnUP,
     navigate,
@@ -386,7 +375,6 @@ export default {
     parseHybridAppUrl,
     navigateWithSwitchPolicyID,
     resetToHome,
-    isModalNavigatorActive,
     closeRHPFlow,
     setNavigationActionToMicrotaskQueue,
 };
