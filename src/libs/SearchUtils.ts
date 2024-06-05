@@ -8,7 +8,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchAccountDetails, SearchDataTypes, SearchTypeToItemMap, SectionsType} from '@src/types/onyx/SearchResults';
 import getTopmostCentralPaneRoute from './Navigation/getTopmostCentralPaneRoute';
 import navigationRef from './Navigation/navigationRef';
-import type {RootStackParamList, State} from './Navigation/types';
+import type {CentralPaneNavigatorParamList, RootStackParamList, State} from './Navigation/types';
 import * as TransactionUtils from './TransactionUtils';
 import * as UserUtils from './UserUtils';
 
@@ -221,7 +221,7 @@ function getSortedTransactionData(data: TransactionListItemType[], sortBy?: Sear
 
 function getSearchParams() {
     const topmostCentralPaneRoute = getTopmostCentralPaneRoute(navigationRef.getRootState() as State<RootStackParamList>);
-    return topmostCentralPaneRoute?.params as Record<string, string | undefined>;
+    return topmostCentralPaneRoute?.params as CentralPaneNavigatorParamList['Search_Central_Pane'];
 }
 
 export {getListItem, getQueryHash, getSections, getSortedSections, getShouldShowColumn, getShouldShowMerchant, getSearchType, getSearchParams};
