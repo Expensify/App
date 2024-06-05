@@ -418,7 +418,9 @@ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName:
                             [oldTagName]: {
                                 ...tag,
                                 pendingAction: null,
-                                pendingFields: null,
+                                pendingFields: {
+                                    name: null,
+                                },
                                 errors: ErrorUtils.getMicroSecondOnyxError('workspace.tags.genericFailureMessage'),
                             },
                         },
