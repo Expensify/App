@@ -242,7 +242,7 @@ function MoneyRequestView({
     }
 
     let receiptURIs;
-    const hasErrors = canEdit && TransactionUtils.hasMissingSmartscanFields(transaction);
+    const hasErrors = TransactionUtils.hasMissingSmartscanFields(transaction);
     if (hasReceipt) {
         receiptURIs = ReceiptUtils.getThumbnailAndImageURIs(transaction);
     }
@@ -617,8 +617,8 @@ export default withOnyx<MoneyRequestViewPropsWithoutTransaction, MoneyRequestVie
         canEvict: false,
     },
     distanceRates: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? ''}`,
-        selector: DistanceRequestUtils.getMileageRates,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`,
+        selector: (policy: OnyxEntry<OnyxTypes.Policy>) => DistanceRequestUtils.getMileageRates(policy, true),
     },
 })(
     withOnyx<MoneyRequestViewProps, MoneyRequestViewTransactionOnyxProps>({

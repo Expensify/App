@@ -9,7 +9,7 @@ import {abandonReviewDuplicateTransactions} from '@libs/actions/Transaction';
 import ModalNavigatorScreenOptions from '@libs/Navigation/AppNavigator/ModalNavigatorScreenOptions';
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
 import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigation/types';
-import type NAVIGATORS from '@src/NAVIGATORS';
+import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import Overlay from './Overlay';
 
@@ -48,6 +48,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             abandonReviewDuplicateTransactions();
                         },
                     }}
+                    id={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
                 >
                     <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.SETTINGS}

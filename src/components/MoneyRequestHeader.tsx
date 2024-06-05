@@ -93,7 +93,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
 
     const isDeletedParentAction = ReportActionsUtils.isDeletedAction(parentReportAction);
-    const canHoldOrUnholdRequest = !isSettled && !isApproved && !isDeletedParentAction;
+    const canHoldOrUnholdRequest = !isSettled && !isApproved && !isDeletedParentAction && !ReportUtils.isArchivedRoom(parentReport);
 
     // If the report supports adding transactions to it, then it also supports deleting transactions from it.
     const canDeleteRequest = isActionOwner && (ReportUtils.canAddOrDeleteTransactions(moneyRequestReport) || ReportUtils.isTrackExpenseReport(report)) && !isDeletedParentAction;
@@ -258,6 +258,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}
                 danger
+                shouldEnableNewFocusManagement
             />
             {isSmallScreenWidth && shouldShowHoldMenu && (
                 <ProcessMoneyRequestHoldMenu
