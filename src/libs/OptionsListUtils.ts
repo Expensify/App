@@ -144,7 +144,6 @@ type GetOptionsConfig = {
     maxRecentReportsToShow?: number;
     excludeLogins?: string[];
     includeMultipleParticipantReports?: boolean;
-    includePersonalDetails?: boolean;
     includeRecentReports?: boolean;
     includeSelfDM?: boolean;
     sortByReportTypeInSearch?: boolean;
@@ -521,21 +520,24 @@ function getSearchText(
 function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): OnyxCommon.Errors {
     const reportErrors = report?.errors ?? {};
     const reportErrorFields = report?.errorFields ?? {};
-    const reportActionErrors: OnyxCommon.ErrorFields = Object.values(reportActions ?? {}).reduce(
-        (prevReportActionErrors, action) => (!action || isEmptyObject(action.errors) ? prevReportActionErrors : {...prevReportActionErrors, ...action.errors}),
-        {},
-    );
+    const reportActionErrors: OnyxCommon.ErrorFields = Object.values(reportActions ?? {}).reduce((prevReportActionErrors, action) => {
+        if (!action || isEmptyObject(action.errors)) {
+            return prevReportActionErrors;
+        }
+
+        return Object.assign(prevReportActionErrors, action.errors);
+    }, {});
     const parentReportAction: OnyxEntry<ReportAction> =
         !report?.parentReportID || !report?.parentReportActionID ? null : allReportActions?.[report.parentReportID ?? '']?.[report.parentReportActionID ?? ''] ?? null;
 
-    if (parentReportAction?.actorAccountID === currentUserAccountID && ReportActionUtils.isTransactionThread(parentReportAction)) {
+    if (ReportActionUtils.wasActionTakenByCurrentUser(parentReportAction) && ReportActionUtils.isTransactionThread(parentReportAction)) {
         const transactionID = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction?.originalMessage?.IOUTransactionID : null;
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         if (TransactionUtils.hasMissingSmartscanFields(transaction ?? null) && !ReportUtils.isSettled(transaction?.reportID)) {
             reportActionErrors.smartscan = ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage');
         }
     } else if ((ReportUtils.isIOUReport(report) || ReportUtils.isExpenseReport(report)) && report?.ownerAccountID === currentUserAccountID) {
-        if (ReportUtils.hasMissingSmartscanFields(report?.reportID ?? '') && !ReportUtils.isSettled(report?.reportID)) {
+        if (ReportUtils.shouldShowRBRForMissingSmartscanFields(report?.reportID ?? '') && !ReportUtils.isSettled(report?.reportID)) {
             reportActionErrors.smartscan = ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage');
         }
     } else if (ReportUtils.hasSmartscanError(Object.values(reportActions ?? {}))) {
@@ -548,7 +550,13 @@ function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<
         ...reportActionErrors,
     };
     // Combine all error messages keyed by microtime into one object
-    const allReportErrors = Object.values(errorSources)?.reduce((prevReportErrors, errors) => (isEmptyObject(errors) ? prevReportErrors : {...prevReportErrors, ...errors}), {});
+    const allReportErrors = Object.values(errorSources)?.reduce((prevReportErrors, errors) => {
+        if (isEmptyObject(errors)) {
+            return prevReportErrors;
+        }
+
+        return Object.assign(prevReportErrors, errors);
+    }, {});
 
     return allReportErrors;
 }
@@ -567,12 +575,22 @@ function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | nu
  * Update alternate text for the option when applicable
  */
 function getAlternateText(option: ReportUtils.OptionData, {showChatPreviewLine = false, forcePolicyNamePreview = false}: PreviewConfig) {
+    const report = ReportUtils.getReport(option.reportID);
+    const isAdminRoom = ReportUtils.isAdminRoom(report);
+    const isAnnounceRoom = ReportUtils.isAnnounceRoom(report);
+
     if (!!option.isThread || !!option.isMoneyRequestReport) {
         return option.lastMessageText ? option.lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
     }
-    if (!!option.isChatRoom || !!option.isPolicyExpenseChat) {
+
+    if (option.isChatRoom && !isAdminRoom && !isAnnounceRoom) {
+        return showChatPreviewLine && option.lastMessageText ? option.lastMessageText : option.subtitle;
+    }
+
+    if ((option.isPolicyExpenseChat ?? false) || isAdminRoom || isAnnounceRoom) {
         return showChatPreviewLine && !forcePolicyNamePreview && option.lastMessageText ? option.lastMessageText : option.subtitle;
     }
+
     if (option.isTaskReport) {
         return showChatPreviewLine && option.lastMessageText ? option.lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
     }
@@ -1520,7 +1538,8 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
                 .map(Number)
                 .filter((accountID) => accountID !== currentUserAccountID || !isOneOnOneChat);
 
-            if (!accountIDs || accountIDs.length === 0) {
+            const isChatRoom = ReportUtils.isChatRoom(report);
+            if ((!accountIDs || accountIDs.length === 0) && !isChatRoom) {
                 return;
             }
 
@@ -1573,6 +1592,9 @@ function orderOptions(options: ReportUtils.OptionData[], searchValue: string | u
         options,
         [
             (option) => {
+                if (option.isSelfDM) {
+                    return 0;
+                }
                 if (preferChatroomsOverThreads && option.isThread) {
                     return 4;
                 }
@@ -1675,7 +1697,6 @@ function getOptions(
         maxRecentReportsToShow = 0,
         excludeLogins = [],
         includeMultipleParticipantReports = false,
-        includePersonalDetails = false,
         includeRecentReports = false,
         // When sortByReportTypeInSearch flag is true, recentReports will include the personalDetails options as well.
         sortByReportTypeInSearch = false,
@@ -1792,11 +1813,16 @@ function getOptions(
 
     // Sorting the reports works like this:
     // - Order everything by the last message timestamp (descending)
+    // - When searching, self DM is put at the top
     // - All archived reports should remain at the bottom
     const orderedReportOptions = lodashSortBy(filteredReportOptions, (option) => {
         const report = option.item;
         if (option.isArchivedRoom) {
             return CONST.DATE.UNIX_EPOCH;
+        }
+
+        if (searchValue) {
+            return [option.isSelfDM, report?.lastVisibleActionCreated];
         }
 
         return report?.lastVisibleActionCreated;
@@ -1816,6 +1842,7 @@ function getOptions(
         const isMoneyRequestReport = option.isMoneyRequestReport;
         const isSelfDM = option.isSelfDM;
         const isOneOnOneChat = option.isOneOnOneChat;
+        const isChatRoom = option.isChatRoom;
 
         // For 1:1 chat, we don't want to include currentUser as participants in order to not mark 1:1 chats as having multiple participants
         const accountIDs = Object.keys(report.participants ?? {})
@@ -1852,14 +1879,14 @@ function getOptions(
             return;
         }
 
-        if (!accountIDs || accountIDs.length === 0) {
+        if ((!accountIDs || accountIDs.length === 0) && !isChatRoom) {
             return;
         }
 
         return option;
     });
 
-    const havingLoginPersonalDetails = options.personalDetails.filter((detail) => !!detail?.login && !!detail.accountID && !detail?.isOptimisticPersonalDetail);
+    const havingLoginPersonalDetails = includeP2P ? options.personalDetails.filter((detail) => !!detail?.login && !!detail.accountID && !detail?.isOptimisticPersonalDetail) : [];
     let allPersonalDetailsOptions = havingLoginPersonalDetails;
 
     if (sortPersonalDetailsByAlphaAsc) {
@@ -1867,7 +1894,7 @@ function getOptions(
         allPersonalDetailsOptions = lodashOrderBy(allPersonalDetailsOptions, [(personalDetail) => personalDetail.text?.toLowerCase()], 'asc');
     }
 
-    const optionsToExclude: Option[] = [{login: CONST.EMAIL.NOTIFICATIONS}];
+    const optionsToExclude: Option[] = [];
 
     // If we're including selected options from the search results, we only want to exclude them if the search input is empty
     // This is because on certain pages, we show the selected options at the top when the search input is empty
@@ -1945,22 +1972,20 @@ function getOptions(
         }
     }
 
-    if (includePersonalDetails) {
-        const personalDetailsOptionsToExclude = [...optionsToExclude, {login: currentUserLogin}];
-        // Next loop over all personal details removing any that are selectedUsers or recentChats
-        allPersonalDetailsOptions.forEach((personalDetailOption) => {
-            if (personalDetailsOptionsToExclude.some((optionToExclude) => optionToExclude.login === personalDetailOption.login)) {
-                return;
-            }
-            const {searchText, participantsList, isChatRoom} = personalDetailOption;
-            const participantNames = getParticipantNames(participantsList);
-            if (searchValue && !isSearchStringMatch(searchValue, searchText, participantNames, isChatRoom)) {
-                return;
-            }
+    const personalDetailsOptionsToExclude = [...optionsToExclude, {login: currentUserLogin}];
+    // Next loop over all personal details removing any that are selectedUsers or recentChats
+    allPersonalDetailsOptions.forEach((personalDetailOption) => {
+        if (personalDetailsOptionsToExclude.some((optionToExclude) => optionToExclude.login === personalDetailOption.login)) {
+            return;
+        }
+        const {searchText, participantsList, isChatRoom} = personalDetailOption;
+        const participantNames = getParticipantNames(participantsList);
+        if (searchValue && !isSearchStringMatch(searchValue, searchText, participantNames, isChatRoom)) {
+            return;
+        }
 
-            personalDetailsOptions.push(personalDetailOption);
-        });
-    }
+        personalDetailsOptions.push(personalDetailOption);
+    });
 
     let currentUserOption = allPersonalDetailsOptions.find((personalDetailsOption) => personalDetailsOption.login === currentUserLogin);
     if (searchValue && currentUserOption && !isSearchStringMatch(searchValue, currentUserOption.searchText)) {
@@ -2018,7 +2043,7 @@ function getSearchOptions(options: OptionList, searchValue = '', betas: Beta[] =
         maxRecentReportsToShow: 0, // Unlimited
         sortByReportTypeInSearch: true,
         showChatPreviewLine: true,
-        includePersonalDetails: true,
+        includeP2P: true,
         forcePolicyNamePreview: true,
         includeOwnedWorkspaceChats: true,
         includeThreads: true,
@@ -2039,7 +2064,7 @@ function getShareLogOptions(options: OptionList, searchValue = '', betas: Beta[]
         includeRecentReports: true,
         includeMultipleParticipantReports: true,
         sortByReportTypeInSearch: true,
-        includePersonalDetails: true,
+        includeP2P: true,
         forcePolicyNamePreview: true,
         includeOwnedWorkspaceChats: true,
         includeSelfDM: true,
@@ -2096,7 +2121,6 @@ function getFilteredOptions(
     includePolicyReportFieldOptions = false,
     policyReportFieldOptions: string[] = [],
     recentlyUsedPolicyReportFieldOptions: string[] = [],
-    includePersonalDetails = true,
     maxRecentReportsToShow = 5,
 ) {
     return getOptions(
@@ -2106,7 +2130,6 @@ function getFilteredOptions(
             searchInputValue: searchValue.trim(),
             selectedOptions,
             includeRecentReports: true,
-            includePersonalDetails,
             maxRecentReportsToShow,
             excludeLogins,
             includeOwnedWorkspaceChats,
@@ -2152,7 +2175,6 @@ function getShareDestinationOptions(
             maxRecentReportsToShow: 0, // Unlimited
             includeRecentReports: true,
             includeMultipleParticipantReports: true,
-            includePersonalDetails: false,
             showChatPreviewLine: true,
             forcePolicyNamePreview: true,
             includeThreads: true,
@@ -2209,7 +2231,7 @@ function getMemberInviteOptions(
         {
             betas,
             searchInputValue: searchValue.trim(),
-            includePersonalDetails: true,
+            includeP2P: true,
             excludeLogins,
             sortPersonalDetailsByAlphaAsc: true,
             includeSelectedOptions,

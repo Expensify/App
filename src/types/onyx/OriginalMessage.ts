@@ -31,6 +31,7 @@ type OriginalMessageActionName =
     | 'ACTIONABLEMENTIONWHISPER'
     | 'ACTIONABLEREPORTMENTIONWHISPER'
     | 'ACTIONABLETRACKEXPENSEWHISPER'
+    | 'TRIPPREVIEW'
     | ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>;
 
 /** Model of `approved` report action */
@@ -489,6 +490,15 @@ type OriginalMessageDismissedViolation = {
     };
 };
 
+type OriginalMessageTripRoomPreview = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.TRIPPREVIEW;
+    originalMessage: {
+        linkedReportID: string;
+        lastModified?: string;
+        whisperedTo?: number[];
+    };
+};
+
 /** Model of report action */
 type OriginalMessage =
     | OriginalMessageApproved
@@ -514,6 +524,7 @@ type OriginalMessage =
     | OriginalMessageReimbursementDequeued
     | OriginalMessageMoved
     | OriginalMessageMarkedReimbursed
+    | OriginalMessageTripRoomPreview
     | OriginalMessageActionableTrackedExpenseWhisper
     | OriginalMessageMergedWithCashTransaction
     | OriginalMessageDismissedViolation;
