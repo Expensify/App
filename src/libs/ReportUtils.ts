@@ -2895,7 +2895,7 @@ function getReportPreviewMessage(
             }
 
             const transactionDetails = getTransactionDetails(linkedTransaction);
-            const formattedAmount = CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency ?? '');
+            const formattedAmount = CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency);
             return Localize.translateLocal('iou.didSplitAmount', {formattedAmount, comment: transactionDetails?.comment ?? ''});
         }
     }
@@ -2917,7 +2917,7 @@ function getReportPreviewMessage(
             }
 
             const transactionDetails = getTransactionDetails(linkedTransaction);
-            const formattedAmount = CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency ?? '');
+            const formattedAmount = CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency);
             return Localize.translateLocal('iou.trackedAmount', {formattedAmount, comment: transactionDetails?.comment ?? ''});
         }
     }
@@ -6412,12 +6412,12 @@ function getNonHeldAndFullAmount(iouReport: OnyxEntry<Report>, policy: OnyxEntry
     if (hasUpdatedTotal(iouReport, policy) && hasPendingTransaction) {
         const unheldTotal = transactions.reduce((currentVal, transaction) => currentVal - (!TransactionUtils.isOnHold(transaction) ? transaction.amount : 0), 0);
 
-        return [CurrencyUtils.convertToDisplayString(unheldTotal, iouReport?.currency ?? ''), CurrencyUtils.convertToDisplayString((iouReport?.total ?? 0) * -1, iouReport?.currency ?? '')];
+        return [CurrencyUtils.convertToDisplayString(unheldTotal, iouReport?.currency), CurrencyUtils.convertToDisplayString((iouReport?.total ?? 0) * -1, iouReport?.currency)];
     }
 
     return [
-        CurrencyUtils.convertToDisplayString((iouReport?.unheldTotal ?? 0) * -1, iouReport?.currency ?? ''),
-        CurrencyUtils.convertToDisplayString((iouReport?.total ?? 0) * -1, iouReport?.currency ?? ''),
+        CurrencyUtils.convertToDisplayString((iouReport?.unheldTotal ?? 0) * -1, iouReport?.currency),
+        CurrencyUtils.convertToDisplayString((iouReport?.total ?? 0) * -1, iouReport?.currency),
     ];
 }
 
