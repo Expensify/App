@@ -940,7 +940,7 @@ const CONST = {
         TO: 'to',
         CATEGORY: 'category',
         TAG: 'tag',
-        TOTAL: 'total',
+        TOTAL_AMOUNT: 'amount',
         TYPE: 'type',
         ACTION: 'action',
         TAX_AMOUNT: 'taxAmount',
