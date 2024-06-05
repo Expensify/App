@@ -2198,6 +2198,7 @@ export default {
             invalidCategoryName: 'Invalid category name.',
             importedFromAccountingSoftware: 'The categories below are imported from your',
             payrollCode: 'Payroll code',
+            updatePayrollCodeFailureMessage: 'An error occurred while updating the payroll code, please try again.',
         },
         moreFeatures: {
             spendSection: {
