@@ -330,14 +330,6 @@ type OriginalMessageMoved = {
     };
 };
 
-type OriginalMessageTripRoomPreview = {
-    actionName: typeof CONST.REPORT.ACTIONS.TYPE.TRIPPREVIEW;
-    originalMessage: {
-        lastModified: string;
-        linkedReportID: string;
-    };
-};
-
 type OriginalMessageMergedWithCashTransaction = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION;
     originalMessage: Record<string, never>; // No data is sent with this action
@@ -387,8 +379,7 @@ type OriginalMessage =
     | OriginalMessageTripRoomPreview
     | OriginalMessageActionableTrackedExpenseWhisper
     | OriginalMessageMergedWithCashTransaction
-    | OriginalMessageDismissedViolation
-    | OriginalMessageTripRoomPreview;
+    | OriginalMessageDismissedViolation;
 
 export default OriginalMessage;
 export type {
