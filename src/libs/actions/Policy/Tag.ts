@@ -161,7 +161,7 @@ function createPolicyTag(policyID: string, tagName: string) {
                         tags: {
                             [newTagName]: {
                                 errors: ErrorUtils.getMicroSecondOnyxError('workspace.tags.genericFailureMessage'),
-                                pendingFields: null,
+                                pendingAction: null,
                             },
                         },
                     },
