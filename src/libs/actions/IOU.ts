@@ -3514,7 +3514,7 @@ function sendInvoice(
     const {senderWorkspaceID, receiver, invoiceRoom, createdChatReportActionID, invoiceReportID, reportPreviewReportActionID, transactionID, transactionThreadReportID, onyxData} =
         getSendInvoiceInformation(transaction, currentUserAccountID, invoiceChatReport, receiptFile, policy, policyTagList, policyCategories);
 
-    let parameters: SendInvoiceParams = {
+    const parameters: SendInvoiceParams = {
         senderWorkspaceID,
         accountID: currentUserAccountID,
         amount: transaction?.amount ?? 0,
@@ -3529,19 +3529,8 @@ function sendInvoice(
         reportPreviewReportActionID,
         transactionID,
         transactionThreadReportID,
+        ...(invoiceChatReport?.reportID ? {receiverInvoiceRoomID: invoiceChatReport.reportID} : {receiverEmail: receiver.login ?? ''}),
     };
-
-    if (invoiceChatReport) {
-        parameters = {
-            ...parameters,
-            receiverInvoiceRoomID: invoiceChatReport.reportID,
-        };
-    } else {
-        parameters = {
-            ...parameters,
-            receiverEmail: receiver.login,
-        };
-    }
 
     API.write(WRITE_COMMANDS.SEND_INVOICE, parameters, onyxData);
 
