@@ -88,8 +88,7 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
     };
 
     const rateValueToDisplay = CurrencyUtils.convertAmountToDisplayString(rate?.rate, currency);
-    const taxClaimableValueToDisplay =
-        taxClaimablePercentage && rate.rate ? `${CurrencyUtils.getLocalizedCurrencySymbol(currency)}${((taxClaimablePercentage * rate.rate) / 100).toFixed(1)}` : '';
+    const taxClaimableValueToDisplay = taxClaimablePercentage && rate.rate ? CurrencyUtils.convertAmountToDisplayString(taxClaimablePercentage * rate.rate, currency) : '';
     const unitToDisplay = translate(`common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`);
 
     const threeDotsMenuItems = [
