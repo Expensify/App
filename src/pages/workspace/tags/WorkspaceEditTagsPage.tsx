@@ -47,7 +47,7 @@ function WorkspaceEditTagsPage({route, policyTags}: WorkspaceEditTagsPageProps) 
     const updateTaglistName = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM>) => {
             if (values[INPUT_IDS.POLICY_TAGS_NAME] !== taglistName) {
-                Tag.renamePolicyTaglist(route.params.policyID, {oldName: taglistName, newName: values[INPUT_IDS.POLICY_TAGS_NAME]}, policyTags);
+                Tag.renamePolicyTaglist(route.params.policyID, {oldName: taglistName, newName: values[INPUT_IDS.POLICY_TAGS_NAME]}, policyTags, route.params.orderWeight);
             }
             Navigation.goBack();
         },
