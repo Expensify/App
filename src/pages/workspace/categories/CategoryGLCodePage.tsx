@@ -2,9 +2,13 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import TextInput from '@components/TextInput';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -15,52 +19,33 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PolicyCategories} from '@src/types/onyx';
+import INPUT_IDS from '@src/types/form/WorkspaceCategoryForm';
+import type {PolicyCategories, PolicyCategory} from '@src/types/onyx';
 import CategoryForm from './CategoryForm';
 
 type WorkspaceEditCategoryGLCodePageOnyxProps = {
-    /** All policy categories */
+    /** Policy category */
     policyCategories: OnyxEntry<PolicyCategories>;
 };
 
-type EditCategoryPageProps = WorkspaceEditCategoryGLCodePageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_EDIT>;
+type EditCategoryPageProps = WorkspaceEditCategoryGLCodePageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_GLCODE>;
 
 function CategoryGLCodePage({route, policyCategories}: EditCategoryPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const currentCategoryName = route.params.categoryName;
-    const backTo = route.params?.backTo;
+    const categoryName = route.params.categoryName;
+    const glCode = policyCategories?.[categoryName]?.glCode;
+    const {inputCallbackRef} = useAutoFocusInput();
 
-    const validate = useCallback(
+    const editGLCode = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM> = {};
-            const newCategoryName = values.categoryName.trim();
-
-            if (!newCategoryName) {
-                errors.categoryName = 'workspace.categories.categoryRequiredError';
-            } else if (policyCategories?.[newCategoryName] && currentCategoryName !== newCategoryName) {
-                errors.categoryName = 'workspace.categories.existingCategoryError';
-            }
-
-            return errors;
-        },
-        [policyCategories, currentCategoryName],
-    );
-
-    const editCategory = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
-            const newCategoryName = values.categoryName.trim();
-            // Do not call the API if the edited category name is the same as the current category name
-            if (currentCategoryName !== newCategoryName) {
-                Category.renamePolicyCategory(route.params.policyID, {oldName: currentCategoryName, newName: values.categoryName});
-            }
-            if (backTo) {
-                Navigation.goBack(ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName, backTo));
-                return;
+            const newGLCode = values.glCode.trim();
+            if (newGLCode !== glCode) {
+                Category.setPolicyCategoryGLCode(route.params.policyID, categoryName, newGLCode);
             }
             Navigation.goBack();
         },
-        [backTo, currentCategoryName, route.params.categoryName, route.params.policyID],
+        [categoryName, glCode, route.params.policyID],
     );
 
     return (
@@ -76,19 +61,26 @@ function CategoryGLCodePage({route, policyCategories}: EditCategoryPageProps) {
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
-                    title={translate('workspace.categories.editCategory')}
-                    onBackButtonPress={() =>
-                        backTo
-                            ? Navigation.goBack(ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName, backTo))
-                            : Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName))
-                    }
+                    title={translate('workspace.categories.glCode')}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName))}
                 />
-                <CategoryForm
-                    onSubmit={editCategory}
-                    validateEdit={validate}
-                    categoryName={currentCategoryName}
-                    policyCategories={policyCategories}
-                />
+                <FormProvider
+                    formID={ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM}
+                    onSubmit={editGLCode}
+                    submitButtonText={translate('common.save')}
+                    style={[styles.mh5, styles.flex1]}
+                    enabledWhenOffline
+                >
+                    <InputWrapper
+                        ref={inputCallbackRef}
+                        InputComponent={TextInput}
+                        defaultValue={glCode}
+                        label={translate('workspace.categories.glCode')}
+                        accessibilityLabel={translate('workspace.categories.glCode')}
+                        inputID={INPUT_IDS.GL_CODE}
+                        role={CONST.ROLE.PRESENTATION}
+                    />
+                </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
