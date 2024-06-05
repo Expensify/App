@@ -12,6 +12,7 @@ type WorkspaceCategoryForm = Form<
     InputID,
     {
         [INPUT_IDS.CATEGORY_NAME]: string;
+        [INPUT_IDS.PAYROLL_CODE]: string;
     }
 >;
 
