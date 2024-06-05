@@ -243,6 +243,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.OWNER_CHANGE_ERROR]: () => require('../../../../pages/workspace/members/WorkspaceOwnerChangeErrorPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.CATEGORY_CREATE]: () => require('../../../../pages/workspace/categories/CreateCategoryPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.CATEGORY_EDIT]: () => require('../../../../pages/workspace/categories/EditCategoryPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.CATEGORY_PAYROLL_CODE]: () => require('../../../../pages/workspace/categories/CategoryPayrollCodePage').default as React.ComponentType,
     [SCREENS.WORKSPACE.CREATE_DISTANCE_RATE]: () => require('../../../../pages/workspace/distanceRates/CreateDistanceRatePage').default as React.ComponentType,
     [SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS]: () => require('../../../../pages/workspace/distanceRates/PolicyDistanceRatesSettingsPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.DISTANCE_RATE_DETAILS]: () => require('../../../../pages/workspace/distanceRates/PolicyDistanceRateDetailsPage').default as React.ComponentType,
