@@ -381,16 +381,16 @@ function getCombinedReportActions(reportActions: ReportAction[], transactionThre
 
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const isSelfDM = report?.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM;
-    // Filter out request and send money request actions because we don't want to show any preview actions for one transaction reports
+    // Filter out request money actions because we don't want to show any preview actions for one transaction reports
     const filteredReportActions = [...reportActions, ...filteredTransactionThreadReportActions].filter((action) => {
         if (!isMoneyRequestAction(action)) {
             return true;
         }
         const actionType = getOriginalMessage(action)?.type ?? '';
         if (isSelfDM) {
-            return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && !isSentMoneyReportAction(action);
+            return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE;
         }
-        return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && actionType !== CONST.IOU.REPORT_ACTION_TYPE.TRACK && !isSentMoneyReportAction(action);
+        return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && actionType !== CONST.IOU.REPORT_ACTION_TYPE.TRACK;
     });
 
     return getSortedReportActions(filteredReportActions, true);
@@ -1194,7 +1194,7 @@ function isOldDotReportAction(action: ReportAction): boolean {
  */
 function getMessageOfOldDotReportAction(reportAction: OnyxEntry<ReportAction>): string {
     if (!Array.isArray(reportAction?.message)) {
-        return '';
+        return reportAction?.message?.text ?? '';
     }
     return reportAction?.message?.map((element) => element?.text).join('') ?? '';
 }

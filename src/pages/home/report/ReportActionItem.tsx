@@ -29,6 +29,7 @@ import ReportPreview from '@components/ReportActionItem/ReportPreview';
 import TaskAction from '@components/ReportActionItem/TaskAction';
 import TaskPreview from '@components/ReportActionItem/TaskPreview';
 import TaskView from '@components/ReportActionItem/TaskView';
+import TripDetailsView from '@components/ReportActionItem/TripDetailsView';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
@@ -91,6 +92,9 @@ const getDraftMessage = (drafts: OnyxCollection<OnyxTypes.ReportActionsDrafts>, 
 };
 
 type ReportActionItemOnyxProps = {
+    /** Get modal status */
+    modal: OnyxEntry<OnyxTypes.Modal>;
+
     /** IOU report for this action, if any */
     iouReport: OnyxEntry<OnyxTypes.Report>;
 
@@ -162,6 +166,7 @@ type ReportActionItemProps = {
 } & ReportActionItemOnyxProps;
 
 function ReportActionItem({
+    modal,
     action,
     report,
     transactionThreadReport,
@@ -520,7 +525,7 @@ function ReportActionItem({
             (ReportActionsUtils.getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE ||
                 ReportActionsUtils.getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT ||
                 ReportActionsUtils.getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK ||
-                isSendingMoney)
+                (isSendingMoney && !transactionThreadReport?.reportID))
         ) {
             // There is no single iouReport for bill splits, so only 1:1 requests require an iouReportID
             const iouReportID = ReportActionsUtils.getOriginalMessage(action)?.IOUReportID ? ReportActionsUtils.getOriginalMessage(action)?.IOUReportID?.toString() ?? '0' : '0';
@@ -783,6 +788,19 @@ function ReportActionItem({
         return <ReportActionItemGrouped wrapperStyle={isWhisper ? styles.pt1 : {}}>{content}</ReportActionItemGrouped>;
     };
 
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.TRIPPREVIEW) {
+        if (ReportUtils.isTripRoom(report)) {
+            return (
+                <OfflineWithFeedback pendingAction={action.pendingAction}>
+                    <TripDetailsView
+                        tripRoomReportID={report.reportID}
+                        shouldShowHorizontalRule={false}
+                    />
+                </OfflineWithFeedback>
+            );
+        }
+    }
+
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
         if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
             const isReversedTransaction = ReportActionsUtils.isReversedTransaction(parentReportAction);
@@ -849,6 +867,7 @@ function ReportActionItem({
                 </View>
             );
         }
+
         if (ReportUtils.isExpenseReport(report) || ReportUtils.isIOUReport(report) || ReportUtils.isInvoiceReport(report)) {
             return (
                 <OfflineWithFeedback pendingAction={action.pendingAction}>
@@ -958,6 +977,7 @@ function ReportActionItem({
             accessible
         >
             <Hoverable
+                shouldFreezeCapture={modal?.willAlertModalBecomeVisible}
                 shouldHandleScroll
                 isDisabled={draftMessage !== undefined}
             >
@@ -1065,11 +1085,15 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
         key: ({action}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${ReportActionsUtils.isMoneyRequestAction(action) ? ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID ?? 0 : 0}`,
         selector: (transaction: OnyxEntry<OnyxTypes.Transaction>) => transaction?.errorFields?.route ?? null,
     },
+    modal: {
+        key: ONYXKEYS.MODAL,
+    },
 })(
     memo(ReportActionItem, (prevProps, nextProps) => {
         const prevParentReportAction = prevProps.parentReportAction;
         const nextParentReportAction = nextProps.parentReportAction;
         return (
+            prevProps.modal?.willAlertModalBecomeVisible === nextProps.modal?.willAlertModalBecomeVisible &&
             prevProps.displayAsGroup === nextProps.displayAsGroup &&
             prevProps.isMostRecentIOUReportAction === nextProps.isMostRecentIOUReportAction &&
             prevProps.shouldDisplayNewMarker === nextProps.shouldDisplayNewMarker &&
@@ -1100,7 +1124,8 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
             lodashIsEqual(prevProps.reportActions, nextProps.reportActions) &&
             lodashIsEqual(prevProps.transaction, nextProps.transaction) &&
             lodashIsEqual(prevProps.linkedTransactionRouteError, nextProps.linkedTransactionRouteError) &&
-            lodashIsEqual(prevParentReportAction, nextParentReportAction)
+            lodashIsEqual(prevParentReportAction, nextParentReportAction) &&
+            prevProps.modal?.willAlertModalBecomeVisible === nextProps.modal?.willAlertModalBecomeVisible
         );
     }),
 );
