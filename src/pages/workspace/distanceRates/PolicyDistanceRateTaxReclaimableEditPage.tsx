@@ -21,9 +21,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PolicyDistanceRateTaxReclaimableOnEditForm';
 
-type PolicyDistanceRateTaxReclaimableOnEditPageProps = WithPolicyOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT>;
+type PolicyDistanceRateTaxReclaimableEditPageProps = WithPolicyOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT>;
 
-function PolicyDistanceRateTaxReclaimableOnEditPage({route, policy}: PolicyDistanceRateTaxReclaimableOnEditPageProps) {
+function PolicyDistanceRateTaxReclaimableEditPage({route, policy}: PolicyDistanceRateTaxReclaimableEditPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -59,7 +59,7 @@ function PolicyDistanceRateTaxReclaimableOnEditPage({route, policy}: PolicyDista
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
                 style={[styles.defaultModalContainer]}
-                testID={PolicyDistanceRateTaxReclaimableOnEditPage.displayName}
+                testID={PolicyDistanceRateTaxReclaimableEditPage.displayName}
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -93,6 +93,6 @@ function PolicyDistanceRateTaxReclaimableOnEditPage({route, policy}: PolicyDista
     );
 }
 
-PolicyDistanceRateTaxReclaimableOnEditPage.displayName = 'PolicyDistanceRateTaxReclaimableOnEditPage';
+PolicyDistanceRateTaxReclaimableEditPage.displayName = 'PolicyDistanceRateTaxReclaimableEditPage';
 
-export default withPolicy(PolicyDistanceRateTaxReclaimableOnEditPage);
+export default withPolicy(PolicyDistanceRateTaxReclaimableEditPage);
