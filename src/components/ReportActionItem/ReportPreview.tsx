@@ -180,7 +180,11 @@ function ReportPreview({
         if (ReportUtils.hasHeldExpenses(iouReport?.reportID)) {
             setIsHoldMenuVisible(true);
         } else if (chatReport && iouReport) {
-            IOU.payMoneyRequest(type, chatReport, iouReport, false);
+            if (ReportUtils.isInvoiceReport(iouReport)) {
+                IOU.payInvoice(type, chatReport, iouReport);
+            } else {
+                IOU.payMoneyRequest(type, chatReport, iouReport);
+            }
         }
     };
 
@@ -310,17 +314,6 @@ function ReportPreview({
             }),
         };
     }, [formattedMerchant, formattedDescription, moneyRequestComment, translate, numberOfRequests, numberOfScanningReceipts, numberOfPendingRequests]);
-
-    const confirmPayment = (paymentMethodType?: PaymentMethodType) => {
-        if (!paymentMethodType || !chatReport || !iouReport) {
-            return;
-        }
-        if (ReportUtils.isInvoiceReport(iouReport)) {
-            IOU.payInvoice(paymentMethodType, chatReport, iouReport);
-        } else {
-            IOU.payMoneyRequest(paymentMethodType, chatReport, iouReport);
-        }
-    };
 
     return (
         <OfflineWithFeedback
