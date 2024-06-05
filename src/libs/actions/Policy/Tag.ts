@@ -360,6 +360,16 @@ function clearPolicyTagErrors(policyID: string, tagName: string) {
     });
 }
 
+function clearPolicyTagListError(policyID: string, tagListName: string, errorField: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {
+        [tagListName]: {
+            errorFields: {
+                [errorField]: null,
+            },
+        },
+    });
+}
+
 function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName: string}) {
     const tagListName = Object.keys(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})[0];
     const oldTagName = policyTag.oldName;
@@ -648,6 +658,7 @@ export {
     createPolicyTag,
     renamePolicyTag,
     clearPolicyTagErrors,
+    clearPolicyTagListError,
     deletePolicyTags,
     setWorkspaceTagEnabled,
 };
