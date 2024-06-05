@@ -581,7 +581,7 @@ function shouldHideNewMarker(reportAction: OnyxEntry<ReportAction>): boolean {
  * Checks whether an action is actionable track expense.
  *
  */
-function isActionableTrackExpense(reportAction: OnyxEntry<ReportAction>): reportAction is ReportActionBase & OriginalMessageActionableTrackedExpenseWhisper {
+function isActionableTrackExpense(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportActionBase & OriginalMessageActionableTrackedExpenseWhisper {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER;
 }
 
@@ -838,7 +838,7 @@ function isCreatedTaskReportAction(reportAction: OnyxEntry<ReportAction>): boole
 /**
  * A helper method to identify if the message is deleted or not.
  */
-function isMessageDeleted(reportAction: OnyxEntry<ReportAction>): boolean {
+function isMessageDeleted(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
     return reportAction?.message?.[0]?.isDeletedParentAction ?? false;
 }
 
@@ -849,7 +849,7 @@ function getNumberOfMoneyRequests(reportPreviewAction: OnyxEntry<ReportAction>):
     return reportPreviewAction?.childMoneyRequestCount ?? 0;
 }
 
-function isSplitBillAction(reportAction: OnyxEntry<ReportAction>): boolean {
+function isSplitBillAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && reportAction.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
 }
 
@@ -953,7 +953,7 @@ function getAllReportActions(reportID: string): ReportActions {
  * Check whether a report action is an attachment (a file, such as an image or a zip).
  *
  */
-function isReportActionAttachment(reportAction: OnyxEntry<ReportAction>): boolean {
+function isReportActionAttachment(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
     const message = reportAction?.message?.[0];
 
     if (reportAction && ('isAttachment' in reportAction || 'attachmentInfo' in reportAction)) {
