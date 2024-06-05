@@ -138,6 +138,14 @@ function CategorySettingsPage({route, policyCategories, navigation}: CategorySet
                             shouldShowRightIcon
                         />
                     </OfflineWithFeedback>
+                    <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.glCode}>
+                        <MenuItemWithTopDescription
+                            title={policyCategory.glCode}
+                            description={translate(`workspace.categories.glCode`)}
+                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_GLCODE.getRoute(route.params.policyID, policyCategory.name))}
+                            shouldShowRightIcon
+                        />
+                    </OfflineWithFeedback>
                 </View>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
