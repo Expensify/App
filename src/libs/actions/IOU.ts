@@ -4938,7 +4938,7 @@ function editRegularMoneyRequest(
             '',
             false,
         );
-        updatedMoneyRequestReport.lastMessageText = lastMessage[0].text;
+        updatedMoneyRequestReport.lastMessageText = ReportActionsUtils.getTextFromHtml(lastMessage[0].html);
         updatedMoneyRequestReport.lastMessageHtml = lastMessage[0].html;
 
         // Update the last message of the chat report
