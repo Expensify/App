@@ -219,6 +219,7 @@ const WRITE_COMMANDS = {
     LEAVE_POLICY: 'LeavePolicy',
     ACCEPT_SPOTNANA_TERMS: 'AcceptSpotnanaTerms',
     SEND_INVOICE: 'SendInvoice',
+    PAY_INVOICE: 'PayInvoice',
     MARK_AS_CASH: 'MarkAsCash',
 } as const;
 
@@ -439,6 +440,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.LEAVE_POLICY]: Parameters.LeavePolicyParams;
     [WRITE_COMMANDS.ACCEPT_SPOTNANA_TERMS]: EmptyObject;
     [WRITE_COMMANDS.SEND_INVOICE]: Parameters.SendInvoiceParams;
+    [WRITE_COMMANDS.PAY_INVOICE]: Parameters.PayInvoiceParams;
     [WRITE_COMMANDS.MARK_AS_CASH]: Parameters.MarkAsCashParams;
 };
 
@@ -485,6 +487,7 @@ const READ_COMMANDS = {
     OPEN_POLICY_MORE_FEATURES_PAGE: 'OpenPolicyMoreFeaturesPage',
     OPEN_POLICY_ACCOUNTING_PAGE: 'OpenPolicyAccountingPage',
     SEARCH: 'Search',
+    OPEN_SUBSCRIPTION_PAGE: 'OpenSubscriptionPage',
 } as const;
 
 type ReadCommand = ValueOf<typeof READ_COMMANDS>;
@@ -532,6 +535,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_POLICY_MORE_FEATURES_PAGE]: Parameters.OpenPolicyMoreFeaturesPageParams;
     [READ_COMMANDS.OPEN_POLICY_ACCOUNTING_PAGE]: Parameters.OpenPolicyAccountingPageParams;
     [READ_COMMANDS.SEARCH]: Parameters.SearchParams;
+    [READ_COMMANDS.OPEN_SUBSCRIPTION_PAGE]: null;
 };
 
 const SIDE_EFFECT_REQUEST_COMMANDS = {

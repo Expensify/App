@@ -154,6 +154,9 @@ const ONYXKEYS = {
     /** Whether the user has been shown the hold educational interstitial yet */
     NVP_HOLD_USE_EXPLAINED: 'holdUseExplained',
 
+    /** Store the state of the subscription */
+    NVP_PRIVATE_SUBSCRIPTION: 'nvp_private_subscription',
+
     /** Store preferred skintone for emoji */
     PREFERRED_EMOJI_SKIN_TONE: 'nvp_expensify_preferredEmojiSkinTone',
 
@@ -646,6 +649,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_ACTIVE_POLICY_ID]: string;
     [ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS]: OnyxTypes.DismissedReferralBanners;
     [ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING]: boolean;
+    [ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION]: OnyxTypes.PrivateSubscription;
     [ONYXKEYS.USER_WALLET]: OnyxTypes.UserWallet;
     [ONYXKEYS.WALLET_ONFIDO]: OnyxTypes.WalletOnfido;
     [ONYXKEYS.WALLET_ADDITIONAL_DETAILS]: OnyxTypes.WalletAdditionalDetails;

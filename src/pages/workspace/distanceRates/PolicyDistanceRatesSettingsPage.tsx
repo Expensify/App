@@ -20,6 +20,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as Category from '@userActions/Policy/Category';
+import * as DistanceRate from '@userActions/Policy/DistanceRate';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -55,7 +56,7 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
     const errorFields = customUnits[customUnitID]?.errorFields;
 
     const setNewUnit = (unit: UnitItemType) => {
-        Policy.setPolicyDistanceRatesUnit(policyID, customUnit, {...customUnit, attributes: {unit: unit.value}});
+        DistanceRate.setPolicyDistanceRatesUnit(policyID, customUnit, {...customUnit, attributes: {unit: unit.value}});
     };
 
     const setNewCategory = (category: ListItem) => {
@@ -70,7 +71,7 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
     };
 
     const clearErrorFields = (fieldName: keyof CustomUnit) => {
-        Policy.clearPolicyDistanceRatesErrorFields(policyID, customUnitID, {...errorFields, [fieldName]: null});
+        DistanceRate.clearPolicyDistanceRatesErrorFields(policyID, customUnitID, {...errorFields, [fieldName]: null});
     };
 
     const onToggleTrackTax = (isOn: boolean) => {

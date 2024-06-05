@@ -21,7 +21,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Policy from '@userActions/Policy/Policy';
+import * as DistanceRate from '@userActions/Policy/DistanceRate';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -75,7 +75,7 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
 
     const toggleRate = () => {
         if (!rate?.enabled || canDisableOrDeleteRate) {
-            Policy.setPolicyDistanceRatesEnabled(policyID, customUnit, [{...rate, enabled: !rate?.enabled}]);
+            DistanceRate.setPolicyDistanceRatesEnabled(policyID, customUnit, [{...rate, enabled: !rate?.enabled}]);
         } else {
             setIsWarningModalVisible(true);
         }
@@ -83,7 +83,7 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
 
     const deleteRate = () => {
         Navigation.goBack();
-        Policy.deletePolicyDistanceRates(policyID, customUnit, [rateID]);
+        DistanceRate.deletePolicyDistanceRates(policyID, customUnit, [rateID]);
         setIsDeleteModalVisible(false);
     };
 
@@ -107,7 +107,7 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
     ];
 
     const clearErrorFields = (fieldName: keyof Rate) => {
-        Policy.clearPolicyDistanceRateErrorFields(policyID, customUnit.customUnitID, rateID, {...errorFields, [fieldName]: null});
+        DistanceRate.clearPolicyDistanceRateErrorFields(policyID, customUnit.customUnitID, rateID, {...errorFields, [fieldName]: null});
     };
 
     return (

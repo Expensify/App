@@ -11,7 +11,7 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
-import * as Policy from '@userActions/Policy/Policy';
+import * as DistanceRate from '@userActions/Policy/DistanceRate';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -46,7 +46,7 @@ function PolicyDistanceRateTaxRateEditPage({route, policy}: PolicyDistanceRateTa
     }, [policy, taxRateExternalID]);
 
     const onTaxRateChange = (newTaxRate: ListItemType) => {
-        Policy.updateDistanceTaxRate(policyID, customUnit, [
+        DistanceRate.updateDistanceTaxRate(policyID, customUnit, [
             {
                 ...rate,
                 attributes: {

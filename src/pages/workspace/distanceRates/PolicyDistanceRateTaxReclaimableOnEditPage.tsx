@@ -15,7 +15,7 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
-import * as Policy from '@userActions/Policy/Policy';
+import * as DistanceRate from '@userActions/Policy/DistanceRate';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -36,7 +36,7 @@ function PolicyDistanceRateTaxReclaimableOnEditPage({route, policy}: PolicyDista
     const currency = rate.currency ?? CONST.CURRENCY.USD;
     const currentTaxReclaimableOnValue = rate.attributes?.taxClaimablePercentage && rate.rate ? (rate.attributes.taxClaimablePercentage * rate.rate) / 100 : '';
     const submitTaxReclaimableOn = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT_FORM>) => {
-        Policy.updateDistanceTaxClaimableValue(policyID, customUnit, [
+        DistanceRate.updateDistanceTaxClaimableValue(policyID, customUnit, [
             {
                 ...rate,
                 attributes: {
