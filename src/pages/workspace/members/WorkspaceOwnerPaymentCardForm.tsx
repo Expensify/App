@@ -80,7 +80,6 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
             shouldShowPaymentCardForm={shouldShowPaymentCardForm}
             addPaymentCard={addPaymentCard}
             showCurrencyField
-            isDebitCard
             submitButtonText={translate('workspace.changeOwner.addPaymentCardButtonText')}
             headerContent={<Text style={[styles.textHeadline, styles.mt3, styles.mb2, styles.ph5]}>{translate('workspace.changeOwner.addPaymentCardTitle')}</Text>}
             footerContent={
