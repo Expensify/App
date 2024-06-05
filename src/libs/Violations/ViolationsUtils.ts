@@ -9,6 +9,13 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyCategories, PolicyTagList, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
 
+const TRANSACTION_VIOLATIONS_FILTER = [
+    CONST.VIOLATIONS.SOME_TAG_LEVELS_REQUIRED,
+    CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
+    CONST.VIOLATIONS.MISSING_TAG,
+    CONST.VIOLATIONS.ALL_TAG_LEVELS_REQUIRED,
+] as ViolationName[];
+
 /**
  * Calculates tag out of policy and missing tag violations for the given transaction
  */
@@ -52,7 +59,7 @@ function getTagViolationsForSingleLevelTags(
  * Calculates missing tag violations for policies with dependent tags,
  * by returning one per tag with its corresponding tagName in the data
  */
-function getTagViolationsForDependentTags(policyTagList: PolicyTagList, transactionViolations: TransactionViolation[], tagName: string | undefined) {
+function getTagViolationsForDependentTags(policyTagList: PolicyTagList, transactionViolations: TransactionViolation[], tagName: string) {
     const tagViolations = [...transactionViolations];
 
     if (!tagName) {
@@ -138,7 +145,7 @@ function getTagViolationForIndependentTags(policyTagList: PolicyTagList, transac
 }
 
 /**
- * Calculates some tag levels required and missing tag violations for the given transaction
+ * Calculates tag violations for a transaction on a policy with multi level tags
  */
 function getTagViolationsForMultiLevelTags(
     updatedTransaction: Transaction,
@@ -147,15 +154,10 @@ function getTagViolationsForMultiLevelTags(
     policyTagList: PolicyTagList,
     hasDependentTags: boolean,
 ): TransactionViolation[] {
-    const filteredTransactionViolations = transactionViolations.filter(
-        (violation) =>
-            !(
-                [CONST.VIOLATIONS.SOME_TAG_LEVELS_REQUIRED, CONST.VIOLATIONS.TAG_OUT_OF_POLICY, CONST.VIOLATIONS.MISSING_TAG, CONST.VIOLATIONS.ALL_TAG_LEVELS_REQUIRED] as ViolationName[]
-            ).includes(violation.name),
-    );
+    const filteredTransactionViolations = transactionViolations.filter((violation) => !TRANSACTION_VIOLATIONS_FILTER.includes(violation.name));
 
     if (hasDependentTags) {
-        return getTagViolationsForDependentTags(policyTagList, filteredTransactionViolations, updatedTransaction.tag);
+        return getTagViolationsForDependentTags(policyTagList, filteredTransactionViolations, updatedTransaction.tag ?? '');
     }
 
     return getTagViolationForIndependentTags(policyTagList, filteredTransactionViolations, updatedTransaction);

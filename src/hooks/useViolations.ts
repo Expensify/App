@@ -62,7 +62,7 @@ function useViolations(violations: TransactionViolation[]) {
     }, [violations]);
 
     const getViolationsForField = useCallback(
-        (field: ViolationField, data?: TransactionViolation['data']) => {
+        (field: ViolationField, data?: TransactionViolation['data'], policyHasDependentTags?: boolean) => {
             const currentViolations = violationsByField.get(field) ?? [];
 
             // someTagLevelsRequired has special logic becase data.errorIndexes is a bit unique in how it denotes the tag list that has the violation
@@ -81,7 +81,7 @@ function useViolations(violations: TransactionViolation[]) {
 
             // missingTag has special logic for policies with dependent tags, because only one violation is returned for all tags
             // when no tags are present, so the tag name isn't set in the violation data. That's why we add it here
-            if (data?.policyHasDependentTags && currentViolations[0]?.name === CONST.VIOLATIONS.MISSING_TAG && data?.tagListName) {
+            if (!!policyHasDependentTags && currentViolations[0]?.name === CONST.VIOLATIONS.MISSING_TAG && data?.tagListName) {
                 return [
                     {
                         ...currentViolations[0],
@@ -98,7 +98,8 @@ function useViolations(violations: TransactionViolation[]) {
                 return currentViolations.filter((violation) => violation.data?.tagName === data?.tagListName);
             }
 
-            // allTagLevelsRequired has special logic because we have to account for tags that are already filled
+            // allTagLevelsRequired has special logic because it is returned when one but not all the tags are set,
+            // so we need to return the violation for the tag fields without a tag set
             if (currentViolations[0]?.name === CONST.VIOLATIONS.ALL_TAG_LEVELS_REQUIRED && data?.tagListValue) {
                 return currentViolations.filter((violation) => violation.data?.tagName === data?.tagListName);
             }

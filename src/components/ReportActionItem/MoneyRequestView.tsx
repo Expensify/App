@@ -174,7 +174,8 @@ function MoneyRequestView({
 
     const {getViolationsForField} = useViolations(transactionViolations ?? []);
     const hasViolations = useCallback(
-        (field: ViolationField, data?: OnyxTypes.TransactionViolation['data']): boolean => !!canUseViolations && getViolationsForField(field, data).length > 0,
+        (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags?: boolean): boolean =>
+            !!canUseViolations && getViolationsForField(field, data, policyHasDependentTags).length > 0,
         [canUseViolations, getViolationsForField],
     );
 
@@ -241,7 +242,7 @@ function MoneyRequestView({
     const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => transaction?.pendingFields?.[fieldPath] ?? pendingAction;
 
     const getErrorForField = useCallback(
-        (field: ViolationField, data?: OnyxTypes.TransactionViolation['data']) => {
+        (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags?: boolean) => {
             // Checks applied when creating a new expense
             // NOTE: receipt field can return multiple violations, so we need to handle it separately
             const fieldChecks: Partial<Record<ViolationField, {isError: boolean; translationPath: TranslationPaths}>> = {
@@ -267,14 +268,14 @@ function MoneyRequestView({
             }
 
             // Return violations if there are any
-            if (canUseViolations && hasViolations(field, data)) {
-                const violations = getViolationsForField(field, data);
+            if (hasViolations(field, data, policyHasDependentTags)) {
+                const violations = getViolationsForField(field, data, policyHasDependentTags);
                 return ViolationsUtils.getViolationTranslation(violations[0], translate);
             }
 
             return '';
         },
-        [transactionAmount, isSettled, isCancelled, isPolicyExpenseChat, isEmptyMerchant, transactionDate, hasErrors, canUseViolations, hasViolations, translate, getViolationsForField],
+        [transactionAmount, isSettled, isCancelled, isPolicyExpenseChat, isEmptyMerchant, transactionDate, hasErrors, hasViolations, translate, getViolationsForField],
     );
 
     const distanceRequestFields = canUseP2PDistanceRequests ? (
@@ -497,21 +498,27 @@ function MoneyRequestView({
                                     )
                                 }
                                 brickRoadIndicator={
-                                    getErrorForField('tag', {
-                                        tagListIndex: index,
-                                        tagListName: name,
-                                        tagListValue: TransactionUtils.getTagForDisplay(transaction, index),
-                                        policyHasDependentTags: PolicyUtils.hasDependentTags(policy, policyTagList),
-                                    })
+                                    getErrorForField(
+                                        'tag',
+                                        {
+                                            tagListIndex: index,
+                                            tagListName: name,
+                                            tagListValue: TransactionUtils.getTagForDisplay(transaction, index),
+                                        },
+                                        PolicyUtils.hasDependentTags(policy, policyTagList),
+                                    )
                                         ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                                         : undefined
                                 }
-                                errorText={getErrorForField('tag', {
-                                    tagListIndex: index,
-                                    tagListName: name,
-                                    tagListValue: TransactionUtils.getTagForDisplay(transaction, index),
-                                    policyHasDependentTags: PolicyUtils.hasDependentTags(policy, policyTagList),
-                                })}
+                                errorText={getErrorForField(
+                                    'tag',
+                                    {
+                                        tagListIndex: index,
+                                        tagListName: name,
+                                        tagListValue: TransactionUtils.getTagForDisplay(transaction, index),
+                                    },
+                                    PolicyUtils.hasDependentTags(policy, policyTagList),
+                                )}
                             />
                         </OfflineWithFeedback>
                     ))}
