@@ -18,7 +18,7 @@ type ReportActionsListItemRendererProps = {
     parentReportAction: OnyxEntry<ReportAction> | null;
 
     /** The transaction thread report's parentReportAction */
-    parentReportActionForTransactionThread: OnyxEntry<ReportAction>;
+    parentReportActionForTransactionThread: OnyxEntry<ReportAction> | null;
 
     /** Position index of the report action in the overall report FlatList view */
     index: number;

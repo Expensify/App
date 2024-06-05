@@ -51,7 +51,7 @@ type ReportActionsListProps = WithCurrentUserPersonalDetailsProps & {
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction> | null;
 
     /** The transaction thread report's parentReportAction */
-    parentReportActionForTransactionThread: OnyxEntry<OnyxTypes.ReportAction>;
+    parentReportActionForTransactionThread: OnyxEntry<OnyxTypes.ReportAction> | null;
 
     /** Sorted actions prepared for display */
     sortedReportActions: OnyxTypes.ReportAction[];
