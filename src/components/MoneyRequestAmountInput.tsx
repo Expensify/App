@@ -197,7 +197,7 @@ function MoneyRequestAmountInput(
     }));
 
     useEffect(() => {
-        if (!currency || typeof amount !== 'number' || (formatAmountOnBlur && isAnimatedTextInputFocused(textInput)) || shouldKeepUserInput) {
+        if ((!currency || typeof amount !== 'number' || (formatAmountOnBlur && isAnimatedTextInputFocused(textInput))) ?? shouldKeepUserInput) {
             return;
         }
         const frontendAmount = onFormatAmount(amount, currency);
