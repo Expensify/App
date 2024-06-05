@@ -434,7 +434,6 @@ function reopenTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
 function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task) {
     // Create the EditedReportAction on the task
     const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskFieldReportAction({title, description});
-    console.log({editTaskReportAction, len: description?.length});
     // Sometimes title or description is undefined, so we need to check for that, and we provide it to multiple functions
     const reportName = (title ?? report?.reportName)?.trim();
 
