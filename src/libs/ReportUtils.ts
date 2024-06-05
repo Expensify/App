@@ -1362,7 +1362,7 @@ function isWorkspaceThread(report: OnyxEntry<Report>): boolean {
 /**
  * Returns true if reportAction is the first chat preview of a Thread
  */
-function isThreadFirstChat(reportAction: OnyxEntry<ReportAction>, reportID: string): boolean {
+function isThreadFirstChat(reportAction: OnyxInputOrEntry<ReportAction>, reportID: string): boolean {
     return reportAction?.childReportID?.toString() === reportID;
 }
 
@@ -5935,7 +5935,7 @@ function canUserPerformWriteAction(report: OnyxEntry<Report>, reportNameValuePai
 /**
  * Returns ID of the original report from which the given reportAction is first created.
  */
-function getOriginalReportID(reportID: string, reportAction: OnyxEntry<ReportAction>): string | undefined {
+function getOriginalReportID(reportID: string, reportAction: OnyxInputOrEntry<ReportAction>): string | undefined {
     const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
     const currentReportAction = reportActions?.[reportAction?.reportActionID ?? ''] ?? null;
     const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(reportID, reportActions ?? ([] as ReportAction[]));

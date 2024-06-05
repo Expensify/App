@@ -127,11 +127,11 @@ function BaseReportActionContextMenu({
     const {isOffline} = useNetwork();
     const threedotRef = useRef<View>(null);
 
-    const reportAction: OnyxEntry<ReportAction> = useMemo(() => {
+    const reportAction: NonNullable<OnyxEntry<ReportAction>> | null = useMemo(() => {
         if (isEmptyObject(reportActions) || reportActionID === '0') {
-            return;
+            return null;
         }
-        return reportActions[reportActionID];
+        return reportActions[reportActionID] ?? null;
     }, [reportActions, reportActionID]);
 
     const shouldEnableArrowNavigation = !isMini && (isVisible || shouldKeepOpen);
