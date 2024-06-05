@@ -1,7 +1,7 @@
 import * as core from '@actions/core';
 import fs from 'fs';
 
-type RegressionEntryProps = {
+type RegressionEntry = {
     metadata?: {
         creationDate: string;
     };
@@ -33,7 +33,7 @@ const run = () => {
         }
 
         try {
-            const current: RegressionEntryProps = JSON.parse(entry);
+            const current: RegressionEntry = JSON.parse(entry);
 
             // Extract timestamp, Graphite accepts timestamp in seconds
             if (current.metadata?.creationDate) {

@@ -19,7 +19,7 @@ type CustomWebpackConfig = {
     };
 };
 
-type CustomWebpackFunctionProps = ({file, platform}: Environment) => CustomWebpackConfig;
+type CustomWebpackFunction = ({file, platform}: Environment) => CustomWebpackConfig;
 
 let envFile: string;
 switch (process.env.ENV) {
@@ -34,7 +34,7 @@ switch (process.env.ENV) {
 }
 
 const env = dotenv.config({path: path.resolve(__dirname, `../${envFile}`)});
-const customFunction: CustomWebpackFunctionProps = require('../config/webpack/webpack.common');
+const customFunction: CustomWebpackFunction = require('../config/webpack/webpack.common');
 
 const custom: CustomWebpackConfig = customFunction({file: envFile});
 
