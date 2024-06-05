@@ -215,7 +215,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport, reportID, isPinnedChat, isUnreadChat) =>
             type === CONST.CONTEXT_MENU_TYPES.REPORT && isUnreadChat,
         onPress: (closePopover, {reportID}) => {
-            Report.readNewestAction(reportID);
+            Report.readNewestAction(reportID, true);
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }

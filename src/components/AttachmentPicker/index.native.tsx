@@ -212,7 +212,7 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
      * An attachment error dialog when user selected malformed images
      */
     const showImageCorruptionAlert = useCallback(() => {
-        Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedImage'));
+        Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
     }, [translate]);
 
     /**
