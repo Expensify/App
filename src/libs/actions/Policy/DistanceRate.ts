@@ -659,8 +659,6 @@ function updateDistanceTaxRate(policyID: string, customUnit: CustomUnit, customU
         customUnitRateArray: JSON.stringify(prepareCustomUnitRatesArray(customUnitRates)),
     };
 
-    console.log(optimisticData);
-
     API.write(WRITE_COMMANDS.UPDATE_POLICY_DISTANCE_TAX_RATE_VALUE, params, {optimisticData, successData, failureData});
 }
 
