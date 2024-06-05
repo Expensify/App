@@ -105,15 +105,29 @@ describe('CurrencyUtils', () => {
         });
     });
 
-    describe('convertToFrontendAmount', () => {
+    describe('convertToFrontendAmountAsInteger', () => {
         test.each([
             [2500, 25],
             [2550, 25.5],
             [25, 0.25],
             [2500, 25],
             [2500.5, 25], // The backend should never send a decimal .5 value
-        ])('Correctly converts %s to amount in units handled in frontend', (amount, expectedResult) => {
-            expect(CurrencyUtils.convertToFrontendAmount(amount)).toBe(expectedResult);
+        ])('Correctly converts %s to amount in units handled in frontend as an integer', (amount, expectedResult) => {
+            expect(CurrencyUtils.convertToFrontendAmountAsInteger(amount)).toBe(expectedResult);
+        });
+    });
+
+    describe('convertToFrontendAmountAsString', () => {
+        test.each([
+            [2500, '25.00'],
+            [2550, '25.50'],
+            [25, '0.25'],
+            [2500.5, '25.00'],
+            [null, ''],
+            [undefined, ''],
+            [0, '0.00'],
+        ])('Correctly converts %s to amount in units handled in frontend as a string', (input, expectedResult) => {
+            expect(CurrencyUtils.convertToFrontendAmountAsString(input)).toBe(expectedResult);
         });
     });
 

@@ -21,6 +21,7 @@ import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
 import type {CurrentReportIDContextValue} from '@components/withCurrentReportID';
 import withCurrentReportID from '@components/withCurrentReportID';
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
+import useDeepCompareRef from '@hooks/useDeepCompareRef';
 import useIsReportOpenInRHP from '@hooks/useIsReportOpenInRHP';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -153,6 +154,7 @@ function ReportScreen({
     });
 
     const isLoadingReportOnyx = isLoadingOnyxValue(reportResult);
+    const permissions = useDeepCompareRef(reportOnyx?.permissions);
 
     /**
      * Create a lightweight Report so as to keep the re-rendering as light as possible by
@@ -201,7 +203,7 @@ function ReportScreen({
             isOptimisticReport: reportOnyx?.isOptimisticReport,
             lastMentionedTime: reportOnyx?.lastMentionedTime,
             avatarUrl: reportOnyx?.avatarUrl,
-            permissions: reportOnyx?.permissions,
+            permissions,
             invoiceReceiver: reportOnyx?.invoiceReceiver,
         }),
         [
@@ -242,7 +244,7 @@ function ReportScreen({
             reportOnyx?.isOptimisticReport,
             reportOnyx?.lastMentionedTime,
             reportOnyx?.avatarUrl,
-            reportOnyx?.permissions,
+            permissions,
             reportOnyx?.invoiceReceiver,
         ],
     );
@@ -711,6 +713,7 @@ function ReportScreen({
                                         onComposerFocus={() => setIsComposerFocus(true)}
                                         onComposerBlur={() => setIsComposerFocus(false)}
                                         report={report}
+                                        reportMetadata={reportMetadata}
                                         reportNameValuePairs={reportNameValuePairs}
                                         pendingAction={reportPendingAction}
                                         isComposerFullSize={!!isComposerFullSize}

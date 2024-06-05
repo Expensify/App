@@ -408,6 +408,7 @@ type SettingsNavigatorParamList = {
 
 type NewChatNavigatorParamList = {
     [SCREENS.NEW_CHAT.ROOT]: undefined;
+    [SCREENS.NEW_CHAT.NEW_CHAT_CONFIRM]: undefined;
     [SCREENS.NEW_CHAT.NEW_CHAT_EDIT_NAME]: undefined;
 };
 
