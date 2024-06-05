@@ -17,13 +17,13 @@ function getCurrentUserAccountIDFromOnyx(): Promise<number> {
     });
 }
 
-function getCurrentUserPersonalDetailsFromOnyx(currentUserAccountID: number): Promise<OnyxEntry<TPersonalDetails>> {
+function getCurrentUserPersonalDetailsFromOnyx(currentUserAccountID: number): Promise<NonNullable<OnyxEntry<TPersonalDetails>> | null> {
     return new Promise((resolve) => {
         const connectionID = Onyx.connect({
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             callback: (val) => {
                 Onyx.disconnect(connectionID);
-                return resolve(val?.[currentUserAccountID] ?? undefined);
+                return resolve(val?.[currentUserAccountID] ?? null);
             },
         });
     });
@@ -35,7 +35,7 @@ function getCurrentUserPersonalDetailsFromOnyx(currentUserAccountID: number): Pr
 export default function (): Promise<void | void[]> {
     return getCurrentUserAccountIDFromOnyx()
         .then(getCurrentUserPersonalDetailsFromOnyx)
-        .then((currentUserPersonalDetails: OnyxEntry<TPersonalDetails>) => {
+        .then((currentUserPersonalDetails) => {
             if (!currentUserPersonalDetails) {
                 return;
             }
