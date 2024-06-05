@@ -695,8 +695,9 @@ function getRateID(transaction: OnyxEntry<Transaction>): string | undefined {
 }
 
 /**
- * Gets the tax code based on selected currency.
- * Returns policy default tax rate if transaction is in policy default currency, otherwise returns foreign default tax rate
+ * Gets the tax code based on the type of transaction and selected currency.
+ * If it is distance request, then returns the tax code corresponding to the custom unit rate
+ * Else returns policy default tax rate if transaction is in policy default currency, otherwise foreign default tax rate
  */
 function getDefaultTaxCode(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, currency?: string | undefined) {
     if (isDistanceRequest(transaction)) {
@@ -748,12 +749,11 @@ function getWorkspaceTaxesSettingsName(policy: OnyxEntry<Policy>, taxCode: strin
 }
 
 /**
- * Gets the tax name for the given transaction.
- * If it is distance request, then returns the tax name corresponding to the custom unit rate
+ * Gets the name corresponding to the taxCode that is displayed to the user
  */
 function getTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>) {
-    const taxCode = getDefaultTaxCode(policy, transaction) ?? '';
-    return Object.values(transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === (transaction?.taxCode ?? taxCode))?.modifiedName;
+    const defaultTaxCode = getDefaultTaxCode(policy, transaction);
+    return Object.values(transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === (transaction?.taxCode ?? defaultTaxCode))?.modifiedName;
 }
 
 export {
