@@ -114,12 +114,10 @@ function convertToFrontendAmountAsString(amountAsInt: number | null | undefined)
 function convertToDisplayString(amountInCents = 0, currency: keyof CurrencyList | undefined = CONST.CURRENCY.USD): string {
     const convertedAmount = convertToFrontendAmountAsInteger(amountInCents);
     /**
-     * Handle currency empty which can break the application.
-     * We're doing validation here so that we never send the value which will break the application.
-     * More: https://github.com/Expensify/App/issues/43004
+     * Fallback currency to USD if it empty string or undefined
      */
     let validatedCurrency = currency;
-    if (!currency || currency.length === 0 || currency.length > 3) {
+    if (!currency || currency.length === 0) {
         validatedCurrency = CONST.CURRENCY.USD;
     }
     return NumberFormatUtils.format(BaseLocaleListener.getPreferredLocale(), convertedAmount, {
