@@ -1,7 +1,7 @@
 import lodashIsEqual from 'lodash/isEqual';
 import React, {memo, useCallback} from 'react';
 import {Keyboard, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import AnonymousReportFooter from '@components/AnonymousReportFooter';
 import ArchivedReportFooter from '@components/ArchivedReportFooter';
@@ -25,18 +25,7 @@ import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import ReportActionCompose from './ReportActionCompose/ReportActionCompose';
 import SystemChatReportFooterMessage from './SystemChatReportFooterMessage';
 
-type ReportFooterOnyxProps = {
-    /** Whether to show the compose input */
-    shouldShowComposeInput: OnyxEntry<boolean>;
-
-    /** Session info for the currently logged in user. */
-    session: OnyxEntry<OnyxTypes.Session>;
-
-    /** Whether user is blocked from chat. */
-    blockedFromChat: OnyxEntry<string>;
-};
-
-type ReportFooterProps = ReportFooterOnyxProps & {
+type ReportFooterProps = {
     /** Report object for the current report */
     report?: OnyxTypes.Report;
 
@@ -70,27 +59,40 @@ type ReportFooterProps = ReportFooterOnyxProps & {
 function ReportFooter({
     lastReportAction,
     pendingAction,
-    session,
     report = {reportID: '0'},
     reportNameValuePairs,
-    shouldShowComposeInput = false,
     isEmptyChat = true,
     isReportReadyForDisplay = true,
     listHeight = 0,
     isComposerFullSize = false,
-    blockedFromChat,
     onComposerBlur,
     onComposerFocus,
 }: ReportFooterProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
+
+    const [shouldShowComposeInput] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {initialValue: false});
+    const [isAnonymousUser] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
+    const [isBlockedFromChat] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CHAT, {
+        selector: (dateString) => {
+            if (!dateString) {
+                return false;
+            }
+            try {
+                return new Date(dateString) < new Date();
+            } catch (error) {
+                // If the NVP is malformed, we'll assume the user is not blocked from chat
+                return false;
+            }
+        },
+    });
+
     const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
     const isArchivedRoom = ReportUtils.isArchivedRoom(report, reportNameValuePairs);
-    const isAnonymousUser = session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
 
     const isSmallSizeLayout = windowWidth - (isSmallScreenWidth ? 0 : variables.sideBarWidth) < variables.anonymousReportFooterBreakpoint;
-    const hideComposer = !ReportUtils.canUserPerformWriteAction(report, reportNameValuePairs) || blockedFromChat;
+    const shouldHideComposer = !ReportUtils.canUserPerformWriteAction(report, reportNameValuePairs) || isBlockedFromChat;
     const canWriteInReport = ReportUtils.canWriteInReport(report);
     const isSystemChat = ReportUtils.isSystemChat(report);
 
@@ -149,7 +151,7 @@ function ReportFooter({
 
     return (
         <>
-            {hideComposer && (
+            {shouldHideComposer && (
                 <View style={[styles.chatFooter, isArchivedRoom || isAnonymousUser || !canWriteInReport ? styles.mt4 : {}, isSmallScreenWidth ? styles.mb5 : null]}>
                     {isAnonymousUser && !isArchivedRoom && (
                         <AnonymousReportFooter
@@ -158,12 +160,14 @@ function ReportFooter({
                         />
                     )}
                     {isArchivedRoom && <ArchivedReportFooter report={report} />}
-                    {!isArchivedRoom && blockedFromChat && <BlockedReportFooter />}
+                    {!isArchivedRoom && isBlockedFromChat && <BlockedReportFooter />}
                     {!isAnonymousUser && !canWriteInReport && isSystemChat && <SystemChatReportFooterMessage />}
-                    {!isSmallScreenWidth && <View style={styles.offlineIndicatorRow}>{hideComposer && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}</View>}
+                    {!isSmallScreenWidth && (
+                        <View style={styles.offlineIndicatorRow}>{shouldHideComposer && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}</View>
+                    )}
                 </View>
             )}
-            {!hideComposer && (!!shouldShowComposeInput || !isSmallScreenWidth) && (
+            {!shouldHideComposer && (shouldShowComposeInput || !isSmallScreenWidth) && (
                 <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
                     <SwipeableView onSwipeDown={Keyboard.dismiss}>
                         <ReportActionCompose
@@ -188,29 +192,14 @@ function ReportFooter({
 
 ReportFooter.displayName = 'ReportFooter';
 
-export default withOnyx<ReportFooterProps, ReportFooterOnyxProps>({
-    shouldShowComposeInput: {
-        key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
-        initialValue: false,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-    blockedFromChat: {
-        key: ONYXKEYS.NVP_BLOCKED_FROM_CHAT,
-    },
-})(
-    memo(
-        ReportFooter,
-        (prevProps, nextProps) =>
-            lodashIsEqual(prevProps.report, nextProps.report) &&
-            prevProps.pendingAction === nextProps.pendingAction &&
-            prevProps.listHeight === nextProps.listHeight &&
-            prevProps.isComposerFullSize === nextProps.isComposerFullSize &&
-            prevProps.isEmptyChat === nextProps.isEmptyChat &&
-            prevProps.lastReportAction === nextProps.lastReportAction &&
-            prevProps.shouldShowComposeInput === nextProps.shouldShowComposeInput &&
-            prevProps.isReportReadyForDisplay === nextProps.isReportReadyForDisplay &&
-            lodashIsEqual(prevProps.session, nextProps.session),
-    ),
+export default memo(
+    ReportFooter,
+    (prevProps, nextProps) =>
+        lodashIsEqual(prevProps.report, nextProps.report) &&
+        prevProps.pendingAction === nextProps.pendingAction &&
+        prevProps.listHeight === nextProps.listHeight &&
+        prevProps.isComposerFullSize === nextProps.isComposerFullSize &&
+        prevProps.isEmptyChat === nextProps.isEmptyChat &&
+        prevProps.lastReportAction === nextProps.lastReportAction &&
+        prevProps.isReportReadyForDisplay === nextProps.isReportReadyForDisplay,
 );
