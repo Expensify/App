@@ -93,7 +93,11 @@ function MoneyRequestPreviewContent({
     const isSettlementOrApprovalPartial = !!iouReport?.pendingFields?.partial;
     const isPartialHold = isSettlementOrApprovalPartial && isOnHold;
     const hasViolations = TransactionUtils.hasViolation(transaction?.transactionID ?? '', transactionViolations);
-    const hasNoticeTypeViolations = !!(TransactionUtils.hasNoticeTypeViolation(transaction?.transactionID ?? '', transactionViolations) && ReportUtils.isPaidGroupPolicy(iouReport) && canUseViolations);
+    const hasNoticeTypeViolations = !!(
+        TransactionUtils.hasNoticeTypeViolation(transaction?.transactionID ?? '', transactionViolations) &&
+        ReportUtils.isPaidGroupPolicy(iouReport) &&
+        canUseViolations
+    );
     const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(transaction);
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
     const isFetchingWaypointsFromServer = TransactionUtils.isFetchingWaypointsFromServer(transaction);

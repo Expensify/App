@@ -1674,12 +1674,14 @@ function canShowReportRecipientLocalTime(personalDetails: OnyxCollection<Persona
     const reportRecipient = personalDetails?.[reportRecipientAccountIDs[0]];
     const reportRecipientTimezone = reportRecipient?.timezone ?? CONST.DEFAULT_TIME_ZONE;
     const isReportParticipantValidated = reportRecipient?.validated ?? false;
-    return !!(!hasMultipleParticipants &&
-            !isChatRoom(report) &&
-            !isPolicyExpenseChat(getRootParentReport(report)) &&
-            reportRecipient &&
-            reportRecipientTimezone?.selected &&
-            isReportParticipantValidated);
+    return !!(
+        !hasMultipleParticipants &&
+        !isChatRoom(report) &&
+        !isPolicyExpenseChat(getRootParentReport(report)) &&
+        reportRecipient &&
+        reportRecipientTimezone?.selected &&
+        isReportParticipantValidated
+    );
 }
 
 /**
@@ -2728,14 +2730,16 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxEntry<ReportAction>, field
 function canEditReportAction(reportAction: OnyxEntry<ReportAction>): boolean {
     const isCommentOrIOU = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU;
 
-    return !!(reportAction?.actorAccountID === currentUserAccountID &&
-            isCommentOrIOU &&
-            canEditMoneyRequest(reportAction) && // Returns true for non-IOU actions
-            !isReportMessageAttachment(reportAction?.message?.[0]) &&
-            (isEmptyObject(reportAction.attachmentInfo) || !reportAction.isOptimisticAction) &&
-            !ReportActionsUtils.isDeletedAction(reportAction) &&
-            !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
-            reportAction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    return !!(
+        reportAction?.actorAccountID === currentUserAccountID &&
+        isCommentOrIOU &&
+        canEditMoneyRequest(reportAction) && // Returns true for non-IOU actions
+        !isReportMessageAttachment(reportAction?.message?.[0]) &&
+        (isEmptyObject(reportAction.attachmentInfo) || !reportAction.isOptimisticAction) &&
+        !ReportActionsUtils.isDeletedAction(reportAction) &&
+        !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
+        reportAction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
+    );
 }
 
 /**
@@ -5433,13 +5437,15 @@ function canFlagReportAction(reportAction: OnyxEntry<ReportAction>, reportID: st
         return false;
     }
 
-    return !!(!isCurrentUserAction &&
-            reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT &&
-            !ReportActionsUtils.isDeletedAction(reportAction) &&
-            !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
-            !isEmptyObject(report) &&
-            report &&
-            isAllowedToComment(report));
+    return !!(
+        !isCurrentUserAction &&
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT &&
+        !ReportActionsUtils.isDeletedAction(reportAction) &&
+        !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
+        !isEmptyObject(report) &&
+        report &&
+        isAllowedToComment(report)
+    );
 }
 
 /**
@@ -6208,16 +6214,18 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
  *
  */
 function isDeprecatedGroupDM(report: OnyxEntry<Report>): boolean {
-    return !!(report &&
-            !isChatThread(report) &&
-            !isTaskReport(report) &&
-            !isInvoiceReport(report) &&
-            !isMoneyRequestReport(report) &&
-            !isArchivedRoom(report) &&
-            !Object.values(CONST.REPORT.CHAT_TYPE).some((chatType) => chatType === getChatType(report)) &&
-            Object.keys(report.participants ?? {})
-                .map(Number)
-                .filter((accountID) => accountID !== currentUserAccountID).length > 1);
+    return !!(
+        report &&
+        !isChatThread(report) &&
+        !isTaskReport(report) &&
+        !isInvoiceReport(report) &&
+        !isMoneyRequestReport(report) &&
+        !isArchivedRoom(report) &&
+        !Object.values(CONST.REPORT.CHAT_TYPE).some((chatType) => chatType === getChatType(report)) &&
+        Object.keys(report.participants ?? {})
+            .map(Number)
+            .filter((accountID) => accountID !== currentUserAccountID).length > 1
+    );
 }
 
 /**
