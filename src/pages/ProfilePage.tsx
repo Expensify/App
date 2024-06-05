@@ -95,6 +95,8 @@ function ProfilePage({route}: ProfilePageProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const accountID = Number(route.params?.accountID ?? 0);
     const isCurrentUser = session?.accountID === accountID;
+
+    const isValidAccountID = ValidationUtils.isValidAccountRoute(accountID);
     const loginParams = route.params?.login;
 
     const details = useMemo((): PersonalDetails | EmptyObject => {
@@ -104,7 +106,7 @@ function ProfilePage({route}: ProfilePageProps) {
         }
         // Check if we have the login param
         if (!loginParams) {
-            return {};
+            return isValidAccountID ? {} : {accountID: 0};
         }
         // Look up the personal details by login
         const foundDetails = Object.values(personalDetails ?? {}).find((personalDetail) => personalDetail?.login === loginParams?.toLowerCase());
@@ -114,7 +116,7 @@ function ProfilePage({route}: ProfilePageProps) {
         // If we don't have the personal details in Onyx, we can create an optimistic account
         const optimisticAccountID = UserUtils.generateAccountID(loginParams);
         return {accountID: optimisticAccountID, login: loginParams, displayName: loginParams};
-    }, [accountID, personalDetails, loginParams]);
+    }, [personalDetails, accountID, loginParams, isValidAccountID]);
 
     const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(details, undefined, undefined, isCurrentUser);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -140,6 +142,7 @@ function ProfilePage({route}: ProfilePageProps) {
 
     const hasAvatar = Boolean(details.avatar);
     const isLoading = Boolean(personalDetailsMetadata?.[accountID]?.isLoading) || isEmptyObject(details);
+    const shouldShowBlockingView = (!isValidAccountID && !isLoading) || CONST.RESTRICTED_ACCOUNT_IDS.includes(accountID);
 
     const statusEmojiCode = details?.status?.emojiCode ?? '';
     const statusText = details?.status?.text ?? '';
@@ -175,7 +178,7 @@ function ProfilePage({route}: ProfilePageProps) {
 
     return (
         <ScreenWrapper testID={ProfilePage.displayName}>
-            <FullPageNotFoundView shouldShow={CONST.RESTRICTED_ACCOUNT_IDS.includes(accountID)}>
+            <FullPageNotFoundView shouldShow={shouldShowBlockingView}>
                 <HeaderWithBackButton
                     title={translate('common.profile')}
                     onBackButtonPress={() => Navigation.goBack(navigateBackTo)}
