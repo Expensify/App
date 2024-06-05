@@ -14,7 +14,7 @@ To require workspace members to add tags and/or categories to their expenses,
 3. Select a workspace. 
 4. Click **Tags** or **Categories** in the left menu.
 5. Click **Settings** at the top right of the page. 
-6. Enable the “Members must tag/categorize all spend” toggle. 
+6. Enable the “Members must tag/categorize all expenses" toggle. 
 7. If desired, repeat steps 4-6 for tags or categories (whichever you haven’t done yet).
 {% include end-option.html %}
 
@@ -24,7 +24,7 @@ To require workspace members to add tags and/or categories to their expenses,
 3. Select a workspace. 
 4. Tap **Tags** or **Categories**.
 5. Tap **Settings** at the top right of the page. 
-6. Enable the “Members must tag/categorize all spend” toggle. 
+6. Enable the “Members must tag/categorize all expenses" toggle. 
 7. If desired, repeat steps 4-6 for tags or categories (whichever you haven’t done yet).
 {% include end-option.html %}
 

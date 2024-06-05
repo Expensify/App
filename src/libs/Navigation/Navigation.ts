@@ -19,6 +19,7 @@ import originalGetTopmostReportId from './getTopmostReportId';
 import linkingConfig from './linkingConfig';
 import linkTo from './linkTo';
 import navigationRef from './navigationRef';
+import setNavigationActionToMicrotaskQueue from './setNavigationActionToMicrotaskQueue';
 import switchPolicyID from './switchPolicyID';
 import type {NavigationStateRoute, State, StateOrRoute, SwitchPolicyIDParams} from './types';
 
@@ -225,7 +226,7 @@ function goBack(fallbackRoute?: Route, shouldEnforceFallback = false, shouldPopT
 
     // Allow CentralPane to use UP with fallback route if the path is not found in root navigator.
     if (isCentralPaneFocused && fallbackRoute && distanceFromPathInRootNavigator === -1) {
-        navigate(fallbackRoute, CONST.NAVIGATION.TYPE.FORCED_UP);
+        navigate(fallbackRoute, CONST.NAVIGATION.TYPE.UP);
         return;
     }
 
@@ -355,14 +356,6 @@ function navigateWithSwitchPolicyID(params: SwitchPolicyIDParams) {
     return switchPolicyID(navigationRef.current, params);
 }
 
-/** Check if the modal is being displayed */
-function isDisplayedInModal() {
-    const state = navigationRef?.current?.getRootState();
-    const lastRoute = state?.routes?.at(-1);
-    const lastRouteName = lastRoute?.name;
-    return lastRouteName === NAVIGATORS.LEFT_MODAL_NAVIGATOR || lastRouteName === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
-}
-
 export default {
     setShouldPopAllStateOnUP,
     navigate,
@@ -382,8 +375,8 @@ export default {
     parseHybridAppUrl,
     navigateWithSwitchPolicyID,
     resetToHome,
-    isDisplayedInModal,
     closeRHPFlow,
+    setNavigationActionToMicrotaskQueue,
 };
 
 export {navigationRef};
