@@ -37,6 +37,9 @@ type PolicyTagList<T extends string = string> = Record<
 
         /** A list of errors keyed by microtime */
         errors?: OnyxCommon.Errors;
+
+        /** Error objects keyed by field name containing errors keyed by microtime */
+        errorFields?: OnyxCommon.ErrorFields;
     }>
 >;
 
