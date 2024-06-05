@@ -54,15 +54,13 @@ info "Comparing Podfile.lock with node packages..."
 SPEC_DIRS=$(yq '.["EXTERNAL SOURCES"].[].":path" | select( . == "*node_modules*")' < ios/Podfile.lock)
 
 # Format a list of Pods based on the output of the config command
-FORMATTED_PODS=$( \
-  jq --raw-output --slurp 'map((.name + " (" + .version + ")")) | .[]' <<< "$( \
-    npx react-native config | \
-    jq '.dependencies[].platforms.ios.podspecPath | select( . != null )' | \
-    xargs -L 1 pod ipc spec --silent
-  )"
-)
-
-if [ $? -ne 0 ]; then
+if ! FORMATTED_PODS=$( \
+ jq --raw-output --slurp 'map((.name + " (" + .version + ")")) | .[]' <<< "$( \
+   npx react-native config | \
+   jq '.dependencies[].platforms.ios.podspecPath | select( . != null )' | \
+   xargs -L 1 pod ipc spec --silent
+ )"
+); then
     error "Error: could not parse pods from react-native config command"
     exit 1
 fi
