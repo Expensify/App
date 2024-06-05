@@ -107,13 +107,13 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
                         <View style={[styles.ph5, styles.pb3, styles.borderBottom]}>
                             <MoneyRequestHeaderStatusBar
                                 title={
-                                <Icon
-                                    src={Expensicons.ReceiptScan}
-                                    height={variables.iconSizeSmall}
-                                    width={variables.iconSizeSmall}
-                                    fill={theme.icon}
-                                />
-                            }
+                                    <Icon
+                                        src={Expensicons.ReceiptScan}
+                                        height={variables.iconSizeSmall}
+                                        width={variables.iconSizeSmall}
+                                        fill={theme.icon}
+                                    />
+                                }
                                 description={translate('iou.receiptScanInProgressDescription')}
                                 shouldStyleFlexGrow={false}
                             />
