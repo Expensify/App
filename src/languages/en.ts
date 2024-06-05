@@ -2175,6 +2175,7 @@ export default {
             invalidCategoryName: 'Invalid category name.',
             importedFromAccountingSoftware: 'The categories below are imported from your',
             glCode: 'GL code',
+            updateGLCodeFailureMessage: 'An error occurred while updating the GL code, please try again.',
             payrollCode: 'Payroll code',
         },
         moreFeatures: {
