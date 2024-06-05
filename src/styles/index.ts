@@ -1696,7 +1696,7 @@ const styles = (theme: ThemeColors) =>
         createMenuHeaderText: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeLabel,
-            color: theme.heading,
+            color: theme.textSupporting,
         },
 
         popoverMenuItem: {
@@ -2794,6 +2794,12 @@ const styles = (theme: ThemeColors) =>
         accountSettingsSectionTitle: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             fontWeight: FontUtils.fontWeight.bold,
+        },
+
+        borderedContentCard: {
+            borderWidth: 1,
+            borderColor: theme.border,
+            borderRadius: variables.componentBorderRadiusMedium,
         },
 
         sectionMenuItem: {

@@ -901,7 +901,7 @@ function isPolicyExpenseChat(report: OnyxEntry<Report> | Participant | EmptyObje
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT || (report?.isPolicyExpenseChat ?? false);
 }
 
-function isInvoiceRoom(report: OnyxEntry<Report>): boolean {
+function isInvoiceRoom(report: OnyxEntry<Report> | EmptyObject): boolean {
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.INVOICE;
 }
 
@@ -3194,7 +3194,7 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
             if (isArchivedRoom(report)) {
                 formattedName += ` (${Localize.translateLocal('common.archived')})`;
             }
-            return formattedName;
+            return formatReportLastMessageText(formattedName);
         }
 
         if (parentReportAction?.message?.[0]?.isDeletedParentAction) {
@@ -3266,7 +3266,7 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
     }
 
     if (formattedName) {
-        return formattedName;
+        return formatReportLastMessageText(formattedName);
     }
 
     // Not a room or PolicyExpenseChat, generate title from first 5 other participants
