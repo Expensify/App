@@ -129,6 +129,8 @@ type Receipt = {
 
     /** Type of the receipt file */
     type?: string;
+
+    /** Collection of reservations */
     reservationList?: Reservation[];
 };
 
@@ -177,49 +179,114 @@ type TaxRate = {
     data?: TaxRateData;
 };
 
+/** Model of reservation */
 type Reservation = {
+    /** ID of the reservation */
     reservationID?: string;
+
+    /** Details about the start of the reservation */
     start: ReservationTimeDetails;
+
+    /** Details about the end of the reservation */
     end: ReservationTimeDetails;
+
+    /** Type of reservation */
     type: ReservationType;
+
+    /** In flight reservations, this represents the details of the airline company */
     company?: Company;
+
+    /** TODO: To be confirmed */
+    /** Collection of passenger confirmations */
     confirmations?: ReservationConfirmation[];
+
+    /** TODO: To be confirmed */
+    /** In flight and car reservations, this represents the number of passengers */
     numPassengers?: number;
+
+    /** In hotel reservations, this represents the number of rooms reserved */
     numberOfRooms?: number;
+
+    /** In flight reservations, this represents the details of the route */
     route?: {
+        /** Route airline code */
         airlineCode: string;
+
+        /** TODO: To be confirmed */
+        /** Passenger class */
         class?: string;
+
+        /** TODO: To be confirmed */
+        /** Passenger seat number */
         number: string;
     };
+
+    /** TODO: To be confirmed */
+    /** In car reservations, this represents the car dealership name */
     vendor?: string;
+
+    /** In car reservations, this represents the details of the car */
     carInfo?: CarInfo;
 };
 
+/** Model of trip reservation time details */
 type ReservationTimeDetails = {
+    /** Date timestamp */
     date: string;
+
+    /** In hotel reservations, this is the address of the hotel */
     address?: string;
+
+    /** TODO: To be confirmed */
+    /** In car reservations, this is the location of the car dealership */
     location?: string;
+
+    /** In flight reservations, this is the long name of the airport */
     longName?: string;
+
+    /** In flight reservations, this is the short name of the airport */
     shortName?: string;
+
+    /** Timezone offset */
     timezoneOffset?: string;
 };
 
+/** Model of airline company details */
 type Company = {
+    /** Long name of airline company */
     longName: string;
+
+    /** Short name of airline company */
     shortName?: string;
+
+    /** TODO: To be confirmed */
+    /** Phone number of airline company support */
     phone?: string;
 };
 
+/** Model of reservation confirmation */
 type ReservationConfirmation = {
+    /** TODO: To be confirmed */
+    /** Passenger name */
     name: string;
+
+    /** TODO: To be confirmed */
+    /** Reservation code */
     value: string;
 };
 
+/** Model of car details */
 type CarInfo = {
+    /** TODO: To be confirmed */
+    /** Name of the car */
     name?: string;
+
+    /** TODO: To be confirmed */
+    /** Engine type */
     engine?: string;
 };
 
+/** Types of reservations */
 type ReservationType = ValueOf<typeof CONST.RESERVATION_TYPE>;
 
 /** Participant split data */

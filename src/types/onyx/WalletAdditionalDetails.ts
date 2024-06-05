@@ -12,15 +12,33 @@ type WalletAdditionalQuestionDetails = {
     answer: string[];
 };
 
+/** Model of wallet personal details */
 type WalletPersonalDetails = {
+    /** Legal first name */
     legalFirstName: string;
+
+    /** Legal last name */
     legalLastName: string;
+
+    /** Date of birth */
     dob: string;
+
+    /** Social Security Number (SSN) */
     ssn: string;
+
+    /** Street address */
     addressStreet: string;
+
+    /** City */
     addressCity: string;
+
+    /** State */
     addressState: string;
+
+    /** ZIP code */
     addressZipCode: string;
+
+    /** Phone number */
     phoneNumber: string;
 };
 

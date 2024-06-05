@@ -40,6 +40,7 @@ type ReportFooterProps = ReportFooterOnyxProps & {
     /** Report object for the current report */
     report?: OnyxTypes.Report;
 
+    /** Additional report details */
     reportNameValuePairs?: OnyxEntry<OnyxTypes.ReportNameValuePairs>;
 
     /** The last report action */

@@ -42,6 +42,12 @@ type OnyxUpdatesFromServer = {
     updates?: OnyxUpdateEvent[];
 };
 
+/**
+ * Helper function to determine if onyx update received from server is valid
+ *
+ * @param value - represent the onyx update received from the server
+ * @returns boolean indicating if the onyx update received from the server is valid
+ */
 function isValidOnyxUpdateFromServer(value: unknown): value is OnyxUpdatesFromServer {
     if (!value || typeof value !== 'object') {
         return false;

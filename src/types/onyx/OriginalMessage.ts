@@ -338,27 +338,65 @@ type ChronosOOOEvent = {
 
 /** Model of modified expense */
 type ModifiedExpense = {
+    /** Old content of the comment */
     oldComment?: string;
+
+    /** Edited content of the comment */
     newComment?: string;
-    comment?: string;
+
+    /** Edited merchant name */
     merchant?: string;
+
+    /** Old creation date timestamp */
     oldCreated?: string;
+
+    /** Edited creation date timestamp */
     created?: string;
+
+    /** Old merchant name */
     oldMerchant?: string;
+
+    /** Old expense amount */
     oldAmount?: number;
+
+    /** Edited expense amount */
     amount?: number;
+
+    /** Old expense amount currency  */
     oldCurrency?: string;
+
+    /** Edited expense amount currency */
     currency?: string;
+
+    /** Edited expense category */
     category?: string;
+
+    /** Old expense category */
     oldCategory?: string;
+
+    /** Edited expense tag */
     tag?: string;
+
+    /** Old expense tag */
     oldTag?: string;
+
     billable?: string;
+
     oldBillable?: string;
+
+    /** Old expense tag amount */
     oldTaxAmount?: number;
+
+    /** Edited expense tax amount */
     taxAmount?: number;
+
+    /** Edited expense tax rate */
     taxRate?: string;
+
+    /** Old expense tax rate */
     oldTaxRate?: string;
+
+    /** Collection of accountIDs of users mentioned in expense report */
     whisperedTo?: number[];
 };
 
@@ -490,11 +528,17 @@ type OriginalMessageDismissedViolation = {
     };
 };
 
+/** Model of `trip room preview` report action */
 type OriginalMessageTripRoomPreview = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.TRIPPREVIEW;
     originalMessage: {
+        /** ID of the report to be previewed */
         linkedReportID: string;
+
+        /** When was report action last modified */
         lastModified?: string;
+
+        /** Collection of accountIDs of users mentioned in report */
         whisperedTo?: number[];
     };
 };
