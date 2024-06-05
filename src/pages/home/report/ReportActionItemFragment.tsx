@@ -142,7 +142,7 @@ function ReportActionItemFragment({
                         numberOfLines={isSingleLine ? 1 : undefined}
                         style={[styles.chatItemMessage, styles.colorMuted]}
                     >
-                        {isFragmentContainingDisplayName ? convertToLTR(getTextFromHtml(fragment?.html)) : getTextFromHtml(fragment?.html)}
+                        {isFragmentContainingDisplayName ? convertToLTR(fragment?.text ?? '') : fragment?.text}
                     </Text>
                 );
             }
@@ -153,7 +153,7 @@ function ReportActionItemFragment({
                         numberOfLines={isSingleLine ? 1 : undefined}
                         style={[styles.chatItemMessage]}
                     >
-                        {isFragmentContainingDisplayName ? convertToLTR(getTextFromHtml(fragment?.html)) : getTextFromHtml(fragment?.html)}
+                        {isFragmentContainingDisplayName ? convertToLTR(fragment?.text ?? '') : fragment?.text}
                     </Text>
                 );
             }
@@ -168,7 +168,7 @@ function ReportActionItemFragment({
                         numberOfLines={isSingleLine ? 1 : undefined}
                         style={[styles.chatItemMessageHeaderSender, isSingleLine ? styles.pre : styles.preWrap]}
                     >
-                        {getTextFromHtml(fragment?.html)}
+                        {fragment?.text}
                     </Text>
                 </UserDetailsTooltip>
             );
