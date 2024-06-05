@@ -47,13 +47,15 @@ function init() {
 }
 
 type PluralFormValue = string | ((count: number) => string);
-type PhraseParameters<T> = T extends (count: number) => string
-    ? [number]
+type PhraseParameters<T> = T extends (args: number | Record<string, any>) => string
+    ? [number | Record<string, any>]
     : T extends (...args: infer A) => unknown
     ? [...A]
     : [];
 
-type Phrase<TKey extends TranslationPaths> = TranslationFlatObject[TKey] extends (...args: infer A) => unknown ? (...args: A) => string : string;
+type Phrase<TKey extends TranslationPaths> = TranslationFlatObject[TKey] extends (...args: infer A) => unknown
+    ? (...args: A) => string
+    : string;
 
 /**
  * Map to store translated values for each locale.
@@ -133,7 +135,7 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
         }
 
         const count = phraseParameters[0];
-        if (typeof translatedPhrase === 'object' && count) {
+        if (typeof translatedPhrase === 'object' && typeof count === 'number') {
             const pluralForm = pluralRules.select(count);
             const pluralFormValue = translatedPhrase[pluralForm] as PluralFormValue;
 
