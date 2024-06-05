@@ -52,7 +52,7 @@ function ReportListItem<TItem extends ListItem>({
     const totalCell = (
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
-            text={CurrencyUtils.convertToDisplayString(reportItem?.total, reportItem?.currency)}
+            text={CurrencyUtils.convertToDisplayString((reportItem?.type === CONST.REPORT.TYPE.EXPENSE ? -1 : 1) * (reportItem?.total ?? 0), reportItem?.currency)}
             style={[styles.optionDisplayName, styles.textNewKansasNormal, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? undefined : styles.textAlignRight]}
         />
     );
@@ -130,7 +130,7 @@ function ReportListItem<TItem extends ListItem>({
                             onButtonPress={handleOnButtonPress}
                         />
                     )}
-                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                         <View style={[styles.flexRow, styles.flex1, styles.alignItemsCenter, styles.justifyContentBetween]}>
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex2]}>
                                 <View style={[styles.flexShrink1]}>
@@ -140,9 +140,12 @@ function ReportListItem<TItem extends ListItem>({
                             </View>
                             <View style={[styles.flexRow, styles.flex1, styles.justifyContentEnd]}>{totalCell}</View>
                         </View>
-                        {/** styles.reportListItemActionButtonMargin added here to move the action button by the type column distance */}
                         {isLargeScreenWidth && (
-                            <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.ACTION), styles.reportListItemActionButtonMargin]}>{actionCell}</View>
+                            <>
+                                {/** We add an empty view with type style to align the total with the table header */}
+                                <View style={StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TYPE)} />
+                                <View style={StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.ACTION)}>{actionCell}</View>
+                            </>
                         )}
                     </View>
                     <View style={[styles.mt3, styles.reportListItemSeparator]} />
@@ -156,6 +159,7 @@ function ReportListItem<TItem extends ListItem>({
                             showItemHeaderOnNarrowLayout={false}
                             containerStyle={styles.mt3}
                             isHovered={hovered}
+                            isChildListItem
                         />
                     ))}
                 </View>
