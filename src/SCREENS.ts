@@ -107,6 +107,7 @@ const SCREENS = {
         SUBSCRIPTION: {
             ROOT: 'Settings_Subscription',
             SIZE: 'Settings_Subscription_Size',
+            ADD_PAYMENT_CARD: 'Settings_Subscription_Add_Payment_Card',
         },
     },
     SAVE_THE_WORLD: {

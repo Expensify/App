@@ -22,12 +22,12 @@ const CARD_LAYOUT = {
     ICON_ON_RIGHT: 'iconOnRight',
 } as const;
 
-type SectionProps = ChildrenProps & {
+type SectionProps = Partial<ChildrenProps> & {
     /** An array of props that are passed to individual MenuItem components */
     menuItems?: MenuItemWithLink[];
 
     /** The text to display in the title of the section */
-    title: string;
+    title?: string;
 
     /** The text to display in the subtitle of the section */
     subtitle?: string;
@@ -76,6 +76,15 @@ type SectionProps = ChildrenProps & {
 
     /** The component to display in the title of the section */
     renderSubtitle?: () => ReactNode;
+
+    /** The component to display custom title */
+    renderTitle?: () => ReactNode;
+
+    /** The width of the icon. */
+    iconWidth?: number;
+
+    /** The height of the icon. */
+    iconHeight?: number;
 };
 
 function Section({
@@ -90,6 +99,7 @@ function Section({
     subtitleStyles,
     subtitleMuted = false,
     title,
+    renderTitle,
     titleStyles,
     isCentralPane = false,
     illustration,
@@ -97,6 +107,8 @@ function Section({
     illustrationStyle,
     contentPaddingOnLargeScreens,
     overlayContent,
+    iconWidth,
+    iconHeight,
     renderSubtitle,
 }: SectionProps) {
     const styles = useThemeStyles();
@@ -110,6 +122,8 @@ function Section({
         <View style={[styles.pageWrapper, styles.cardSectionContainer, containerStyles, (isCentralPane || !!illustration) && styles.p0]}>
             {cardLayout === CARD_LAYOUT.ICON_ON_TOP && (
                 <IconSection
+                    width={iconWidth}
+                    height={iconHeight}
                     icon={icon}
                     iconContainerStyles={[iconContainerStyles, styles.alignSelfStart, styles.mb3]}
                 />
@@ -132,15 +146,17 @@ function Section({
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, cardLayout === CARD_LAYOUT.ICON_ON_TOP && styles.mh1]}>
                     {cardLayout === CARD_LAYOUT.ICON_ON_LEFT && (
                         <IconSection
+                            width={iconWidth}
+                            height={iconHeight}
                             icon={icon}
                             iconContainerStyles={[styles.flexGrow0, styles.justifyContentStart, iconContainerStyles]}
                         />
                     )}
-                    <View style={[styles.flexShrink1]}>
-                        <Text style={[styles.textHeadline, styles.cardSectionTitle, titleStyles]}>{title}</Text>
-                    </View>
+                    <View style={[styles.flexShrink1]}>{renderTitle ? renderTitle() : <Text style={[styles.textHeadline, styles.cardSectionTitle, titleStyles]}>{title}</Text>}</View>
                     {cardLayout === CARD_LAYOUT.ICON_ON_RIGHT && (
                         <IconSection
+                            width={iconWidth}
+                            height={iconHeight}
                             icon={icon}
                             iconContainerStyles={iconContainerStyles}
                         />
