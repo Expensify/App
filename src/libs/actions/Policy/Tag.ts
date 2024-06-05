@@ -360,9 +360,11 @@ function clearPolicyTagErrors(policyID: string, tagName: string) {
     });
 }
 
-function clearPolicyTagListError(policyID: string, tagListName: string, errorField: string) {
+function clearPolicyTagListError(policyID: string, tagListIndex: number, errorField: string) {
+    const policyTag = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.[tagListIndex] ?? {};
+
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {
-        [tagListName]: {
+        [policyTag.name]: {
             errorFields: {
                 [errorField]: null,
             },
