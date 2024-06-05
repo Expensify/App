@@ -215,6 +215,7 @@ export default {
         tomorrowAt: 'Mañana a las',
         yesterdayAt: 'Ayer a las',
         conjunctionAt: 'a',
+        conjunctionTo: 'a',
         genericErrorMessage: 'Ups... algo no ha ido bien y la acción no se ha podido completar. Por favor, inténtalo más tarde.',
         error: {
             invalidAmount: 'Importe no válido.',
@@ -325,9 +326,9 @@ export default {
         action: 'Acción',
         expenses: 'Gastos',
         tax: 'Impuesto',
-        shared: 'Compartido',
+        shared: 'Compartidos',
         drafts: 'Borradores',
-        finished: 'Finalizado',
+        finished: 'Finalizados',
     },
     connectionComplete: {
         title: 'Conexión Completa',
@@ -349,7 +350,7 @@ export default {
         expensifyDoesntHaveAccessToCamera: 'Expensify no puede tomar fotos sin acceso a la cámara. Haz click en Configuración para actualizar los permisos.',
         attachmentError: 'Error al adjuntar archivo',
         errorWhileSelectingAttachment: 'Ha ocurrido un error al seleccionar un archivo adjunto. Por favor, inténtalo de nuevo.',
-        errorWhileSelectingCorruptedImage: 'Ha ocurrido un error al seleccionar un archivo adjunto corrupto. Por favor, inténtalo con otro archivo.',
+        errorWhileSelectingCorruptedAttachment: 'Ha ocurrido un error al seleccionar un archivo adjunto corrupto. Por favor, inténtalo con otro archivo.',
         takePhoto: 'Hacer una foto',
         chooseFromGallery: 'Elegir de la galería',
         chooseDocument: 'Elegir documento',
@@ -731,6 +732,8 @@ export default {
             invalidSplit: 'La suma de las partes debe ser igual al importe total.',
             invalidSplitParticipants: 'Introduce un importe superior a cero para al menos dos participantes.',
             other: 'Error inesperado, por favor inténtalo más tarde.',
+            genericHoldExpenseFailureMessage: 'Error inesperado al bloquear el gasto, por favor inténtalo de nuevo más tarde.',
+            genericUnholdExpenseFailureMessage: 'Error inesperado al desbloquear el gasto, por favor inténtalo de nuevo más tarde.',
             genericCreateFailureMessage: 'Error inesperado al enviar este gasto. Por favor, inténtalo más tarde.',
             genericCreateInvoiceFailureMessage: 'Error inesperado al enviar la factura, inténtalo de nuevo más tarde.',
             receiptDeleteFailureError: 'Error inesperado al borrar este recibo. Vuelve a intentarlo más tarde.',
@@ -1916,6 +1919,13 @@ export default {
             agree: 'Acepto los ',
             error: 'Debes aceptar los Términos y condiciones para que el viaje continúe',
         },
+        flight: 'Vuelo',
+        hotel: 'Hotel',
+        car: 'Auto',
+        viewTrip: 'Ver viaje',
+        trip: 'Viaje',
+        tripSummary: 'Resumen del viaje',
+        departs: 'Sale',
     },
     workspace: {
         common: {
@@ -3700,6 +3710,16 @@ export default {
             saveWithExpensifyTitle: 'Ahorra con la Tarjeta Expensify',
             saveWithExpensifyDescription: 'Utiliza nuestra calculadora de ahorro para ver cómo el reembolso en efectivo de la Tarjeta Expensify puede reducir tu factura de Expensify',
             saveWithExpensifyButton: 'Más información',
+        },
+        details: {
+            title: 'Datos de suscripción',
+            annual: 'Suscripción anual',
+            payPerUse: 'Pago por uso',
+            subscriptionSize: 'Tamaño de suscripción',
+            headsUpTitle: 'Atención: ',
+            headsUpBody:
+                'Si no estableces ahora el tamaño de tu suscripción, lo haremos automáticamente con el número de suscriptores activos del primer mes. A partir de ese momento, estarás suscrito para pagar al menos por ese número de afiliados durante los 12 meses siguientes. Puedes aumentar el tamaño de tu suscripción en cualquier momento, pero no puedes reducirlo hasta que finalice tu suscripción.',
+            zeroCommitment: 'Compromiso cero con la tarifa de suscripción anual reducida',
         },
         subscriptionSize: {
             title: 'Tamaño de suscripción',

@@ -5,7 +5,7 @@ import {READ_COMMANDS} from '@libs/API/types';
  * Fetches data when the user opens the SubscriptionSettingsPage
  */
 function openSubscriptionPage() {
-    API.read(READ_COMMANDS.OPEN_SUBSCRIPTION_PAGE, {});
+    API.read(READ_COMMANDS.OPEN_SUBSCRIPTION_PAGE, null);
 }
 
 export {
