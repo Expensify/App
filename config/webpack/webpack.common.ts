@@ -18,13 +18,13 @@ type Options = {
     include: string;
 };
 
-type PreloadWebpackPluginProps = {
-    new (options?: Options): PreloadWebpackPluginProps;
+type PreloadWebpackPluginClass = {
+    new (options?: Options): PreloadWebpackPluginClass;
     apply: (compiler: Compiler) => void;
 };
 
 // require is necessary, there are no types for this package and the declaration file can't be seen by the build process which causes an error.
-const PreloadWebpackPlugin: PreloadWebpackPluginProps = require('@vue/preload-webpack-plugin');
+const PreloadWebpackPlugin: PreloadWebpackPluginClass = require('@vue/preload-webpack-plugin');
 
 const includeModules = [
     'react-native-animatable',
