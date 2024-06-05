@@ -1,6 +1,7 @@
 import '@formatjs/intl-locale/polyfill';
 import '@formatjs/intl-pluralrules/locale-data/es';
 import '@formatjs/intl-pluralrules/polyfill';
+import {Str} from 'expensify-common';
 import CONST from '@src/CONST';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {
@@ -152,6 +153,8 @@ export default {
         preferences: 'Preferencias',
         view: 'Ver',
         not: 'No',
+        privacyPolicy: 'la Política de Privacidad de Expensify',
+        addCardTermsOfService: 'Términos de Servicio',
         signIn: 'Conectarse',
         signInWithGoogle: 'Iniciar sesión con Google',
         signInWithApple: 'Iniciar sesión con Apple',
@@ -181,7 +184,6 @@ export default {
         saveAndContinue: 'Guardar y continuar',
         settings: 'Configuración',
         termsOfService: 'Términos de Servicio',
-        expensifyTermsOfService: 'Términos de Servicio de Expensify',
         members: 'Miembros',
         invite: 'Invitar',
         here: 'aquí',
@@ -219,6 +221,7 @@ export default {
         tomorrowAt: 'Mañana a las',
         yesterdayAt: 'Ayer a las',
         conjunctionAt: 'a',
+        conjunctionTo: 'a',
         genericErrorMessage: 'Ups... algo no ha ido bien y la acción no se ha podido completar. Por favor, inténtalo más tarde.',
         error: {
             invalidAmount: 'Importe no válido.',
@@ -329,9 +332,9 @@ export default {
         action: 'Acción',
         expenses: 'Gastos',
         tax: 'Impuesto',
-        shared: 'Compartido',
+        shared: 'Compartidos',
         drafts: 'Borradores',
-        finished: 'Finalizado',
+        finished: 'Finalizados',
     },
     connectionComplete: {
         title: 'Conexión Completa',
@@ -353,7 +356,7 @@ export default {
         expensifyDoesntHaveAccessToCamera: 'Expensify no puede tomar fotos sin acceso a la cámara. Haz click en Configuración para actualizar los permisos.',
         attachmentError: 'Error al adjuntar archivo',
         errorWhileSelectingAttachment: 'Ha ocurrido un error al seleccionar un archivo adjunto. Por favor, inténtalo de nuevo.',
-        errorWhileSelectingCorruptedImage: 'Ha ocurrido un error al seleccionar un archivo adjunto corrupto. Por favor, inténtalo con otro archivo.',
+        errorWhileSelectingCorruptedAttachment: 'Ha ocurrido un error al seleccionar un archivo adjunto corrupto. Por favor, inténtalo con otro archivo.',
         takePhoto: 'Hacer una foto',
         chooseFromGallery: 'Elegir de la galería',
         chooseDocument: 'Elegir documento',
@@ -730,6 +733,8 @@ export default {
             invalidSplit: 'La suma de las partes debe ser igual al importe total.',
             invalidSplitParticipants: 'Introduce un importe superior a cero para al menos dos participantes.',
             other: 'Error inesperado, por favor inténtalo más tarde.',
+            genericHoldExpenseFailureMessage: 'Error inesperado al bloquear el gasto, por favor inténtalo de nuevo más tarde.',
+            genericUnholdExpenseFailureMessage: 'Error inesperado al desbloquear el gasto, por favor inténtalo de nuevo más tarde.',
             genericCreateFailureMessage: 'Error inesperado al enviar este gasto. Por favor, inténtalo más tarde.',
             genericCreateInvoiceFailureMessage: 'Error inesperado al enviar la factura, inténtalo de nuevo más tarde.',
             receiptDeleteFailureError: 'Error inesperado al borrar este recibo. Vuelve a intentarlo más tarde.',
@@ -1058,6 +1063,29 @@ export default {
             invalidName: 'El nombre sólo puede incluir letras.',
             addressZipCode: 'Por favor, introduce un código postal válido.',
             debitCardNumber: 'Por favor, introduce un número de tarjeta de débito válido.',
+            expirationDate: 'Por favor, selecciona una fecha de vencimiento válida.',
+            securityCode: 'Por favor, introduce un código de seguridad válido.',
+            addressStreet: 'Por favor, introduce una dirección de facturación válida que no sea un apartado postal.',
+            addressState: 'Por favor, selecciona un estado.',
+            addressCity: 'Por favor, introduce una ciudad.',
+            genericFailureMessage: 'Se produjo un error al añadir tu tarjeta. Vuelva a intentarlo.',
+            password: 'Por favor, introduce tu contraseña de Expensify.',
+        },
+    },
+    addPaymentCardPage: {
+        addAPaymentCard: 'Añade tarjeta de pago',
+        nameOnCard: 'Nombre en la tarjeta',
+        paymentCardNumber: 'Número de la tarjeta',
+        expiration: 'Fecha de vencimiento',
+        expirationDate: 'MMAA',
+        cvv: 'CVV',
+        billingAddress: 'Dirección de envio',
+        growlMessageOnSave: 'Tu tarjeta de pago se añadió correctamente',
+        expensifyPassword: 'Contraseña de Expensify',
+        error: {
+            invalidName: 'El nombre sólo puede incluir letras.',
+            addressZipCode: 'Por favor, introduce un código postal válido.',
+            paymentCardNumber: 'Por favor, introduce un número de tarjeta de pago válido.',
             expirationDate: 'Por favor, selecciona una fecha de vencimiento válida.',
             securityCode: 'Por favor, introduce un código de seguridad válido.',
             addressStreet: 'Por favor, introduce una dirección de facturación válida que no sea un apartado postal.',
@@ -1915,6 +1943,13 @@ export default {
             agree: 'Acepto los ',
             error: 'Debes aceptar los Términos y condiciones para que el viaje continúe',
         },
+        flight: 'Vuelo',
+        hotel: 'Hotel',
+        car: 'Auto',
+        viewTrip: 'Ver viaje',
+        trip: 'Viaje',
+        tripSummary: 'Resumen del viaje',
+        departs: 'Sale',
     },
     workspace: {
         common: {
@@ -2294,6 +2329,8 @@ export default {
             foreignDefault: 'Moneda extranjera por defecto',
             customTaxName: 'Nombre del impuesto',
             value: 'Valor',
+            taxRate: 'Tasa de impuesto',
+            taxReclaimableOn: 'Impuesto recuperable en',
             error: {
                 taxRateAlreadyExists: 'Ya existe un impuesto con este nombre.',
                 customNameRequired: 'El nombre del impuesto es obligatorio.',
@@ -2301,6 +2338,7 @@ export default {
                 deleteFailureMessage: 'Se ha producido un error al intentar eliminar la tasa de impuesto. Por favor, inténtalo más tarde.',
                 updateFailureMessage: 'Se ha producido un error al intentar modificar la tasa de impuesto. Por favor, inténtalo más tarde.',
                 createFailureMessage: 'Se ha producido un error al intentar crear la tasa de impuesto. Por favor, inténtalo más tarde.',
+                updateTaxClaimableFailureMessage: 'La porción recuperable debe ser menor al monto del importe por distancia.',
             },
             deleteTaxConfirmation: '¿Estás seguro de que quieres eliminar este impuesto?',
             deleteMultipleTaxConfirmation: ({taxAmount}) => `¿Estás seguro de que quieres eliminar ${taxAmount} impuestos?`,
@@ -2591,29 +2629,14 @@ export default {
             centrallyManage: 'Gestiona centralizadamente las tasas, elige si contabilizar en millas o kilómetros, y define una categoría por defecto',
             rate: 'Tasa',
             addRate: 'Agregar tasa',
-            deleteRates: (count: number) => ({
-                zero: `Eliminar ${count} tasas`,
-                one: `Eliminar ${count} tasa`,
-                other: `Eliminar ${count} tasas`,
-            }),
-            enableRates: (count: number) => ({
-                zero: `Activar ${count} tasas`,
-                one: `Activar ${count} tasa`,
-                other: `Activar ${count} tasas`,
-            }),
-            disableRates: (count: number) => ({
-                zero: `Desactivar ${count} tasas`,
-                one: `Desactivar ${count} tasa`,
-                other: `Desactivar ${count} tasas`,
-            }),
-            areYouSureDelete: (count: number) => ({
-                zero: `¿Estás seguro de que quieres eliminar estas ${count} tasas?`,
-                one: `¿Estás seguro de que quieres eliminar esta ${count} tasa?`,
-                other: `¿Estás seguro de que quieres eliminar estas ${count} tasas?`,
-            }),
+            deleteRates: ({count}: DistanceRateOperationsParams) => `Eliminar ${Str.pluralize('tasa', 'tasas', count)}`,
+            enableRates: ({count}: DistanceRateOperationsParams) => `Activar ${Str.pluralize('tasa', 'tasas', count)}`,
+            disableRates: ({count}: DistanceRateOperationsParams) => `Desactivar ${Str.pluralize('tasa', 'tasas', count)}`,
             enableRate: 'Activar tasa',
             status: 'Estado',
             unit: 'Unidad',
+            taxFeatureNotEnabledMessage: 'Los impuestos deben estar activados en el área de trabajo para poder utilizar esta función. Dirígete a ',
+            changePromptMessage: ' para hacer ese cambio.',
             defaultCategory: 'Categoría predeterminada',
             deleteDistanceRate: 'Eliminar tasa de distancia',
         },
@@ -3720,6 +3743,16 @@ export default {
             saveWithExpensifyDescription: 'Utiliza nuestra calculadora de ahorro para ver cómo el reembolso en efectivo de la Tarjeta Expensify puede reducir tu factura de Expensify',
             saveWithExpensifyButton: 'Más información',
         },
+        details: {
+            title: 'Datos de suscripción',
+            annual: 'Suscripción anual',
+            payPerUse: 'Pago por uso',
+            subscriptionSize: 'Tamaño de suscripción',
+            headsUpTitle: 'Atención: ',
+            headsUpBody:
+                'Si no estableces ahora el tamaño de tu suscripción, lo haremos automáticamente con el número de suscriptores activos del primer mes. A partir de ese momento, estarás suscrito para pagar al menos por ese número de afiliados durante los 12 meses siguientes. Puedes aumentar el tamaño de tu suscripción en cualquier momento, pero no puedes reducirlo hasta que finalice tu suscripción.',
+            zeroCommitment: 'Compromiso cero con la tarifa de suscripción anual reducida',
+        },
         subscriptionSize: {
             title: 'Tamaño de suscripción',
             yourSize: 'El tamaño de tu suscripción es el número de plazas abiertas que puede ocupar cualquier miembro activo en un mes determinado.',
@@ -3736,6 +3769,12 @@ export default {
             error: {
                 size: 'Por favor ingrese un tamaño de suscripción valido.',
             },
+        },
+        paymentCard: {
+            addPaymentCard: 'Añade tarjeta de pago',
+            enterPaymentCardDetails: 'Introduce los datos de tu tarjeta de pago.',
+            security: 'Expensify es PCI-DSS obediente, utiliza cifrado a nivel bancario, y emplea infraestructura redundante para proteger tus datos.',
+            learnMoreAboutSecurity: 'Conozca más sobre nuestra seguridad.',
         },
     },
 } satisfies EnglishTranslation;
