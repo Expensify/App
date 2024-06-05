@@ -117,7 +117,7 @@ const IOURequestStepDistanceRateWithOnyx = withOnyx<IOURequestStepDistanceRatePr
     },
     rates: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? '0'}`,
-        selector: DistanceRequestUtils.getMileageRates,
+        selector: (policy: OnyxEntry<Policy>) => DistanceRequestUtils.getMileageRates(policy),
     },
 })(IOURequestStepDistanceRate);
 

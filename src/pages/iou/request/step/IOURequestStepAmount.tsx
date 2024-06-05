@@ -54,6 +54,9 @@ type IOURequestStepAmountProps = IOURequestStepAmountOnyxProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_AMOUNT | typeof SCREENS.MONEY_REQUEST.CREATE> & {
         /** The transaction object being modified in Onyx */
         transaction: OnyxEntry<OnyxTypes.Transaction>;
+
+        /** Whether the user input should be kept or not */
+        shouldKeepUserInput?: boolean;
     };
 
 function IOURequestStepAmount({
@@ -66,8 +69,9 @@ function IOURequestStepAmount({
     personalDetails,
     currentUserPersonalDetails,
     splitDraftTransaction,
-    draftTransaction,
     skipConfirmation,
+    draftTransaction,
+    shouldKeepUserInput = false,
 }: IOURequestStepAmountProps) {
     const {translate} = useLocalize();
     const textInput = useRef<BaseTextInputRef | null>(null);
@@ -164,7 +168,7 @@ function IOURequestStepAmount({
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        IOU.setMoneyRequestAmount(transactionID, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD);
+        IOU.setMoneyRequestAmount(transactionID, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD, shouldKeepUserInput);
 
         // Initially when we're creating money request, we do not know the participant and hence if the request is with workspace with tax tracking enabled
         // So, we reset the taxAmount here and calculate it in the hook in MoneyRequestConfirmationList component
@@ -314,6 +318,7 @@ function IOURequestStepAmount({
                 policyID={policy?.id ?? ''}
                 bankAccountRoute={ReportUtils.getBankAccountRoute(report)}
                 ref={(e) => (textInput.current = e)}
+                shouldKeepUserInput={transaction?.shouldShowOriginalAmount}
                 onCurrencyButtonPress={navigateToCurrencySelectionPage}
                 onSubmitButtonPress={saveAmountAndCurrency}
                 selectedTab={iouRequestType}
