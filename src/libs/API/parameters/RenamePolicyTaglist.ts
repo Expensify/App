@@ -2,7 +2,7 @@ type RenamePolicyTaglist = {
     policyID: string;
     oldName: string;
     newName: string;
-    tagListIndex?: number;
+    tagListIndex: number;
 };
 
 export default RenamePolicyTaglist;
