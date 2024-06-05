@@ -38,7 +38,7 @@ function SignUpWelcomeForm({account}: SignUpWelcomeFormProps) {
                     pressOnEnter
                     style={[styles.mb2]}
                 />
-                <ChangeExpensifyLoginLink onPress={() => redirectToSignIn()} />
+                <ChangeExpensifyLoginLink onPress={() => {redirectToSignIn();}} />
             </View>
             <View style={[styles.mt4, styles.signInPageWelcomeTextContainer]}>
                 <Terms />

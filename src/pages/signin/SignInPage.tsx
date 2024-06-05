@@ -249,7 +249,7 @@ function SignInPageInner({credentials, account, activeClients = [], preferredLoc
     } else if (shouldShouldSignUpWelcomeForm) {
         welcomeHeader = shouldUseNarrowLayout ? headerText : translate('welcomeText.welcome');
         welcomeText = shouldUseNarrowLayout
-            ? `${translate('welcomeText.welcome')} ${translate('welcomeText.welcomeNewFace', {login: userLoginToDisplay})}`
+            ? `${translate('welcomeText.welcomeWithoutExclamation')} ${translate('welcomeText.welcomeNewFace', {login: userLoginToDisplay})}`
             : translate('welcomeText.welcomeNewFace', {login: userLoginToDisplay});
     } else if (!shouldInitiateSAMLLogin && !hasInitiatedSAMLLogin) {
         Log.warn('SignInPage in unexpected state!');
