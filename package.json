@@ -201,6 +201,7 @@
     "@babel/runtime": "^7.20.0",
     "@babel/traverse": "^7.22.20",
     "@babel/types": "^7.22.19",
+    "@callstack/reassure-compare": "^1.0.0-rc.4",
     "@dword-design/eslint-plugin-import-alias": "^4.0.8",
     "@electron/notarize": "^2.1.0",
     "@jest/globals": "^29.5.0",
