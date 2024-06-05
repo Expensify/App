@@ -607,7 +607,7 @@ function setPolicyTagsRequired(policyID: string, requiresTag: boolean, tagListIn
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
                     [policyTag.name]: {
-                        pendingFields: null,
+                        pendingFields: {required: null},
                     },
                 },
             },
