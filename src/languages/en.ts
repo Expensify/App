@@ -189,7 +189,6 @@ export default {
         saveAndContinue: 'Save & continue',
         settings: 'Settings',
         termsOfService: 'Terms of Service',
-        expensifyTermsOfService: 'Expensify Terms of Service',
         members: 'Members',
         invite: 'Invite',
         here: 'here',

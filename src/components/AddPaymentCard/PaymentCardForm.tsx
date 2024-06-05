@@ -37,7 +37,7 @@ type PaymentCardFormProps = {
     submitButtonText: string;
     /** Custom content to display in the footer after card form */
     footerContent?: ReactNode;
-    /** Custom content to display in the footer before card form */
+    /** Custom content to display in the header before card form */
     headerContent?: ReactNode;
 };
 
@@ -49,17 +49,6 @@ function IAcceptTheLabel() {
             {`${translate('common.iAcceptThe')}`}
             <TextLink href={CONST.TERMS_URL}>{`${translate('common.addCardTermsOfService')}`}</TextLink> {`${translate('common.and')}`}
             <TextLink href={CONST.PRIVACY_URL}> {` ${translate('common.privacyPolicy')} `}</TextLink>
-        </Text>
-    );
-}
-
-function IAcceptDebitTheLabel() {
-    const {translate} = useLocalize();
-
-    return (
-        <Text>
-            {`${translate('common.iAcceptThe')}`}
-            <TextLink href={CONST.TERMS_URL}>{`${translate('common.expensifyTermsOfService')}`}</TextLink>
         </Text>
     );
 }
@@ -226,7 +215,7 @@ function PaymentCardForm({
                     spellCheck={false}
                 />
                 <View style={[styles.flexRow, styles.mt5]}>
-                    <View style={styles.mr2}>
+                    <View style={[styles.mr2, styles.flex1]}>
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.EXPIRATION_DATE}
@@ -304,12 +293,12 @@ function PaymentCardForm({
                     <View style={[styles.mt4, styles.ml1]}>
                         <InputWrapper
                             InputComponent={CheckboxWithLabel}
-                            accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('common.expensifyTermsOfService')} ${translate('common.and')} ${translate(
-                                'common.termsOfService',
+                            accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('common.addCardTermsOfService')} ${translate('common.and')} ${translate(
+                                'common.privacyPolicy',
                             )}`}
                             inputID={INPUT_IDS.ACCEPT_TERMS}
                             defaultValue={false}
-                            LabelComponent={isDebitCard ? IAcceptDebitTheLabel : IAcceptTheLabel}
+                            LabelComponent={IAcceptTheLabel}
                         />
                     </View>
                 )}
