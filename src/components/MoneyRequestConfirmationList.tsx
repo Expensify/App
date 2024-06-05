@@ -344,7 +344,7 @@ function MoneyRequestConfirmationList({
     }, [isEditingSplitBill, hasSmartScanFailed, transaction, didConfirmSplit]);
 
     const isMerchantEmpty = useMemo(() => !iouMerchant || TransactionUtils.isMerchantMissing(transaction), [transaction, iouMerchant]);
-    const isMerchantRequired = isPolicyExpenseChat && (!isScanRequest || isEditingSplitBill) && shouldShowMerchant;
+    const isMerchantRequired = (isPolicyExpenseChat || isTypeInvoice) && (!isScanRequest || isEditingSplitBill) && shouldShowMerchant;
     const shouldDisplayMerchantError = isMerchantRequired && (shouldDisplayFieldError || formError === 'iou.error.invalidMerchant') && isMerchantEmpty;
 
     const isCategoryRequired = !!policy?.requiresCategory;
