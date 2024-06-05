@@ -6,10 +6,10 @@ import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react
 import {View} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import ControlSelection from '@libs/ControlSelection';
 import convertToLTR from '@libs/convertToLTR';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
@@ -153,8 +153,14 @@ type MenuItemBaseProps = {
     /** Error to display at the bottom of the component */
     errorText?: MaybePhraseKey;
 
+    /** Any additional styles to pass to error text. */
+    errorTextStyle?: StyleProp<ViewStyle>;
+
     /** Hint to display at the bottom of the component */
     hintText?: MaybePhraseKey;
+
+    /** Should the error text red dot indicator be shown */
+    shouldShowRedDotIndicator?: boolean;
 
     /** A boolean flag that gives the icon a green fill if true */
     success?: boolean;
@@ -265,6 +271,9 @@ type MenuItemBaseProps = {
 
     /** Handles what to do when the item is focused */
     onFocus?: () => void;
+
+    /** Optional account id if it's user avatar or policy id if it's workspace avatar */
+    avatarID?: number | string;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -305,6 +314,8 @@ function MenuItem(
         helperText,
         helperTextStyle,
         errorText,
+        errorTextStyle,
+        shouldShowRedDotIndicator,
         hintText,
         success = false,
         focused = false,
@@ -342,14 +353,15 @@ function MenuItem(
         isPaneMenu = false,
         shouldPutLeftPaddingWhenNoIcon = false,
         onFocus,
+        avatarID,
     }: MenuItemProps,
     ref: PressableRef,
 ) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const combinedStyle = [style, styles.popoverMenuItem];
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const combinedStyle = [styles.popoverMenuItem, style];
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isExecuting, singleExecution, waitForNavigate} = useContext(MenuItemGroupContext) ?? {};
 
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
@@ -448,7 +460,7 @@ function MenuItem(
                 {(isHovered) => (
                     <PressableWithSecondaryInteraction
                         onPress={shouldCheckActionAllowedOnPress ? Session.checkIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction}
-                        onPressIn={() => shouldBlockSelection && isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+                        onPressIn={() => shouldBlockSelection && shouldUseNarrowLayout && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                         onPressOut={ControlSelection.unblock}
                         onSecondaryInteraction={onSecondaryInteraction}
                         wrapperStyle={outerWrapperStyle}
@@ -472,8 +484,8 @@ function MenuItem(
                         onFocus={onFocus}
                     >
                         {({pressed}) => (
-                            <View style={[styles.flexColumn, styles.flex1]}>
-                                <View style={[styles.flexRow, styles.flex1]}>
+                            <View style={[styles.flex1]}>
+                                <View style={[styles.flexRow]}>
                                     <View style={[styles.flexColumn, styles.flex1]}>
                                         {!!label && isLabelHoverable && (
                                             <View style={[icon ? styles.mb2 : null, labelStyle]}>
@@ -523,16 +535,18 @@ function MenuItem(
                                                         <Avatar
                                                             imageStyles={[styles.alignSelfCenter]}
                                                             size={CONST.AVATAR_SIZE.DEFAULT}
-                                                            source={icon as AvatarSource}
+                                                            source={icon}
                                                             fallbackIcon={fallbackIcon}
                                                             name={title}
+                                                            avatarID={avatarID}
                                                             type={CONST.ICON_TYPE_WORKSPACE}
                                                         />
                                                     )}
                                                     {iconType === CONST.ICON_TYPE_AVATAR && (
                                                         <Avatar
                                                             imageStyles={[styles.alignSelfCenter]}
-                                                            source={icon as AvatarSource}
+                                                            source={icon}
+                                                            avatarID={avatarID}
                                                             fallbackIcon={fallbackIcon}
                                                             size={avatarSize}
                                                         />
@@ -678,9 +692,9 @@ function MenuItem(
                                 {!!errorText && (
                                     <FormHelpMessage
                                         isError
-                                        shouldShowRedDotIndicator={false}
+                                        shouldShowRedDotIndicator={!!shouldShowRedDotIndicator}
                                         message={errorText}
-                                        style={styles.menuItemError}
+                                        style={[styles.menuItemError, errorTextStyle]}
                                     />
                                 )}
                                 {!!hintText && (

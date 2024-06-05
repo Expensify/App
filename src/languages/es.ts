@@ -119,6 +119,7 @@ export default {
         to: 'A',
         optional: 'Opcional',
         new: 'Nuevo',
+        center: 'Centrar',
         search: 'Buscar',
         find: 'Encontrar',
         searchWithThreeDots: 'Buscar...',
@@ -260,7 +261,9 @@ export default {
         your: 'tu',
         conciergeHelp: 'Por favor, contacta con Concierge para obtener ayuda.',
         youAppearToBeOffline: 'Parece que estás desconectado.',
+        weMightHaveProblem: 'Peude que te tengamos un problema. Echa un vistazo a ',
         thisFeatureRequiresInternet: 'Esta función requiere una conexión a Internet activa para ser utilizada.',
+        attachementWillBeAvailableOnceBackOnline: 'El archivo adjunto estará disponible cuando vuelvas a estar en línea.',
         areYouSure: '¿Estás seguro?',
         verify: 'Verifique',
         yesContinue: 'Sí, continuar',
@@ -322,6 +325,9 @@ export default {
         action: 'Acción',
         expenses: 'Gastos',
         tax: 'Impuesto',
+        shared: 'Compartidos',
+        drafts: 'Borradores',
+        finished: 'Finalizados',
     },
     connectionComplete: {
         title: 'Conexión Completa',
@@ -398,10 +404,9 @@ export default {
     },
     moneyRequestConfirmationList: {
         paidBy: 'Pagado por',
-        splitAmounts: 'Importes a dividir',
         whatsItFor: '¿Para qué es?',
     },
-    optionsSelector: {
+    selectionList: {
         nameEmailOrPhoneNumber: 'Nombre, email o número de teléfono',
         findMember: 'Encuentra un miembro',
     },
@@ -511,6 +516,7 @@ export default {
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' y ',
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' empieza aquí! 🎉 Este es el lugar donde chatear y presentar o pagar gastos.',
         beginningOfChatHistorySelfDM: 'Este es tu espacio personal. Úsalo para notas, tareas, borradores y recordatorios.',
+        beginningOfChatHistorySystemDM: '¡Bienvenido! Vamos a configurar tu cuenta.',
         chatWithAccountManager: 'Chatea con tu gestor de cuenta aquí',
         sayHello: '¡Saluda!',
         yourSpace: 'Tu espacio',
@@ -531,6 +537,7 @@ export default {
         hereAlternateText: 'Notificar a todos en esta conversación',
     },
     newMessages: 'Mensajes nuevos',
+    youHaveBeenBanned: 'Nota: Se te ha prohibido comunicarte en este canal',
     reportTypingIndicator: {
         isTyping: 'está escribiendo...',
         areTyping: 'están escribiendo...',
@@ -638,6 +645,10 @@ export default {
         canceled: 'Canceló',
         posted: 'Contabilizado',
         deleteReceipt: 'Eliminar recibo',
+        pendingMatchWithCreditCard: 'Recibo pendiente de adjuntar con la tarjeta de crédito.',
+        pendingMatchWithCreditCardDescription: 'Recibo pendiente de adjuntar con tarjeta de crédito. Marca como efectivo para ignorar y solicitar pago.',
+        markAsCash: 'Marcar como efectivo',
+        routePending: 'Ruta pendiente...',
         receiptIssuesFound: (count: number) => `${count === 1 ? 'Problema encontrado' : 'Problemas encontrados'}`,
         fieldPending: 'Pendiente...',
         receiptScanning: 'Escaneando recibo...',
@@ -659,7 +670,11 @@ export default {
         deleteConfirmation: '¿Estás seguro de que quieres eliminar esta solicitud?',
         settledExpensify: 'Pagado',
         settledElsewhere: 'Pagado de otra forma',
+        individual: 'Individual',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} con Expensify` : `Pagar con Expensify`),
+        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pago ${formattedAmount} como individuo` : `Pago individual`),
+        settlePayment: ({formattedAmount}: SettleExpensifyCardParams) => `Pagar ${formattedAmount}`,
+        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} como negocio` : `Pagar como empresa`),
         payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} de otra forma` : `Pagar de otra forma`),
         nextStep: 'Pasos Siguientes',
         finished: 'Finalizado',
@@ -681,7 +696,7 @@ export default {
         managerApprovedAmount: ({manager, amount}: ManagerApprovedAmountParams) => `${manager} aprobó ${amount}`,
         payerSettled: ({amount}: PayerSettledParams) => `pagó ${amount}`,
         approvedAmount: ({amount}: ApprovedAmountParams) => `aprobó ${amount}`,
-        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `inicio el pago, pero no se procesará hasta que ${submitterDisplayName} añada una cuenta bancaria`,
+        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `inició el pago, pero no se procesará hasta que ${submitterDisplayName} añada una cuenta bancaria`,
         adminCanceledRequest: ({manager, amount}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''}canceló el pago de ${amount}.`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `canceló el pago  ${amount}, porque ${submitterDisplayName} no habilitó tu billetera Expensify en un plazo de 30 días.`,
@@ -712,6 +727,8 @@ export default {
             invalidSplit: 'La suma de las partes debe ser igual al importe total.',
             invalidSplitParticipants: 'Introduce un importe superior a cero para al menos dos participantes.',
             other: 'Error inesperado, por favor inténtalo más tarde.',
+            genericHoldExpenseFailureMessage: 'Error inesperado al bloquear el gasto, por favor inténtalo de nuevo más tarde.',
+            genericUnholdExpenseFailureMessage: 'Error inesperado al desbloquear el gasto, por favor inténtalo de nuevo más tarde.',
             genericCreateFailureMessage: 'Error inesperado al enviar este gasto. Por favor, inténtalo más tarde.',
             genericCreateInvoiceFailureMessage: 'Error inesperado al enviar la factura, inténtalo de nuevo más tarde.',
             receiptDeleteFailureError: 'Error inesperado al borrar este recibo. Vuelve a intentarlo más tarde.',
@@ -728,7 +745,7 @@ export default {
             splitExpenseMultipleParticipantsErrorMessage: 'Solo puedes dividir un gasto entre un único espacio de trabajo o con usuarios individuales. Por favor, actualiza tu selección.',
             invalidMerchant: 'Por favor, introduce un comerciante correcto.',
         },
-        waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `Inició el pago, pero no se procesará hasta que ${submitterDisplayName} active tu Billetera`,
+        waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `inició el pago, pero no se procesará hasta que ${submitterDisplayName} active tu billetera`,
         enableWallet: 'Habilitar Billetera',
         holdExpense: 'Bloquear gasto',
         unholdExpense: 'Desbloquear gasto',
@@ -738,10 +755,10 @@ export default {
         reason: 'Razón',
         holdReasonRequired: 'Se requiere una razón para bloquear.',
         expenseOnHold: 'Este gasto está bloqueado. Revisa los comentarios para saber como proceder.',
-        confirmApprove: 'Confirma que quieres aprobar',
-        confirmApprovalAmount: 'Aprobar el total o solo la parte no bloqueada.',
-        confirmPay: 'Confirma que quieres pagar',
-        confirmPayAmount: 'Pagar todos los gastos por cuenta propia o solo el monto no bloqueado.',
+        confirmApprove: 'Confirmar importe a aprobar',
+        confirmApprovalAmount: 'Aprueba lo que no está bloqueado, o aprueba todo el informe.',
+        confirmPay: 'Confirmar importe de pago',
+        confirmPayAmount: 'Paga lo que no está bloqueado, o paga todos los gastos por cuenta propia.',
         payOnly: 'Solo pagar',
         approveOnly: 'Solo aprobar',
         hold: 'Bloqueada',
@@ -935,6 +952,7 @@ export default {
             noLogsAvailable: 'No hay registros disponibles',
             logSizeTooLarge: ({size}: LogSizeParams) => `El tamaño del registro excede el límite de ${size} MB. Utilice "Guardar registro" para descargar el archivo de registro.`,
             logs: 'Logs',
+            viewConsole: 'Ver consola',
         },
         security: 'Seguridad',
         restoreStashed: 'Restablecer login guardado',
@@ -1018,7 +1036,7 @@ export default {
     privateNotes: {
         title: 'Notas privadas',
         personalNoteMessage: 'Guarda notas sobre este chat aquí. Usted es la única persona que puede añadir, editar o ver estas notas.',
-        sharedNoteMessage: 'Guarda notas sobre este chat aquí. Los empleados de Expensify y otros usuarios del dominio team.expensify.com pueden ver estas notas.',
+        sharedNoteMessage: 'Guarda notas sobre este chat aquí. Los empleados de Expensify y otros miembros del dominio team.expensify.com pueden ver estas notas.',
         composerLabel: 'Notas',
         myNote: 'Mi nota',
         error: {
@@ -1074,7 +1092,7 @@ export default {
         addBankAccountToSendAndReceive: 'Añade una cuenta bancaria para enviar y recibir pagos directamente en la aplicación.',
         addBankAccount: 'Añadir cuenta bancaria',
         assignedCards: 'Tarjetas asignadas',
-        assignedCardsDescription: 'Son tarjetas asignadas por un administrador del Espacio de Trabajo para gestionar los gastos de la empresa.',
+        assignedCardsDescription: 'Son tarjetas asignadas por un administrador del espacio de trabajo para gestionar los gastos de la empresa.',
         expensifyCard: 'Tarjeta Expensify',
         walletActivationPending: 'Estamos revisando tu información, por favor vuelve en unos minutos.',
         walletActivationFailed: 'Lamentablemente, no podemos activar tu billetera en este momento. Chatea con Concierge para obtener más ayuda.',
@@ -1356,7 +1374,8 @@ export default {
         whereYouWork: '¿Dónde trabajas?',
         purpose: {
             title: '¿Qué quieres hacer hoy?',
-            error: 'Por favor, haga una selección antes de continuar.',
+            errorSelection: 'Por favor selecciona una opción para continuar.',
+            errorContinue: 'Por favor, haz click en continuar para configurar tu cuenta.',
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Cobrar de mi empresa',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Gestionar los gastos de mi equipo',
             [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: 'Controlar y presupuestar gastos',
@@ -1882,6 +1901,7 @@ export default {
             alerts: 'Obtén actualizaciones y alertas en tiempo real',
         },
         bookTravel: 'Reservar viajes',
+        bookDemo: 'Pedir demostración',
         termsAndConditions: {
             header: 'Antes de continuar...',
             title: 'Por favor, lee los Términos y condiciones para reservar viajes',
@@ -1940,6 +1960,7 @@ export default {
             distanceRates: 'Tasas de distancia',
             welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
                 `¡Has sido invitado a ${workspaceName}! Descargue la aplicación móvil Expensify en use.expensify.com/download para comenzar a rastrear sus gastos.`,
+            subscription: 'Suscripción',
         },
         qbo: {
             importDescription: 'Elige que configuraciónes de codificación son importadas desde QuickBooks Online a Expensify.',
@@ -1953,8 +1974,10 @@ export default {
             customersDescription: 'Elige si queres importar clientes/proyectos y donde los clientes/proyectos son mostrados.',
             locationsDescription: 'Elige si quieres importar lugares y donde los lugares son mostrados.',
             taxesDescription: 'Elige si quires importar las tasas de impuestos y  los impuestos por defecto de tu integración de contaduría.',
+            taxesJournalEntrySwitchNote:
+                'Nota: QuickBooks Online no admite un campo para impuestos al exportar entradas en el libro diario. Cambia tu preferencia de exportación a Factura de Proveedor o Cheque para importar impuestos.',
             locationsAdditionalDescription:
-                'Los lugares son importados como Etiquegas. Esto limita a exportar los informes de gastos como Factura del Proveedor o Cheques a Quicbooks Online. Para desbloquear estas opciones de exportación desactiva la importación de Lugares o cambia al Plan Control para exportar Lugares como Campos de Informes.',
+                'QuickBooks Online no permite añadir una ubicación a las facturas de proveedores o a los cheques. Actualice su preferencia de exportación a asiento contable si desea importar ubicaciones como etiquetas.',
             export: 'Exportar',
             exportAs: 'Exportar cómo',
             exportExpenses: 'Exportar gastos de bolsillo como',
@@ -1989,11 +2012,14 @@ export default {
             exportInvoicesDescription: 'Las facturas se exportarán a esta cuenta en QuickBooks Online.',
             exportCompanyCardsDescription: 'Establece cómo se exportan las compras con tarjeta de empresa a QuickBooks Online.',
             account: 'Cuenta',
+            accountDescription: 'Esta es la cuenta elegida para contabilizar la compensación de la entrada de diario de cada informe.',
             vendor: 'Proveedor',
             defaultVendor: 'Proveedor predeterminado',
             defaultVendorDescription: 'Establece un proveedor predeterminado que se aplicará a todas las transacciones con tarjeta de crédito al momento de exportarlas.',
             accountsPayable: 'Cuentas por pagar',
             accountsPayableDescription: 'Esta es la cuenta de cuentas por pagar elegida, contra la cual se crean las facturas de proveedores para cada informe.',
+            bankAccount: 'Cuenta bancaria',
+            bankAccountDescription: 'Esta es la cuenta bancaria elegida para emitir cheques.',
             optionBelow: 'Elija una opción a continuación:',
             companyCardsLocationEnabledDescription:
                 'Nota: QuickBooks Online no admite un campo para Ubicaciones como etiquetas en las exportaciones de facturas de proveedores. A medida que importa ubicaciones, esta opción de exportación no está disponible.',
@@ -2001,6 +2027,9 @@ export default {
                 'Puede ser cualquier administrador del espacio de trabajo, pero debe ser un administrador de dominio si configura diferentes cuentas de exportación para tarjetas de empresa individuales en la configuración del dominio.',
             exportPreferredExporterSubNote: 'Una vez configurado, el exportador preferido verá los informes para exportar en tu cuenta.',
             exportOutOfPocketExpensesDescription: 'Establezca cómo se exportan los gastos de bolsillo a QuickBooks Online.',
+            exportCheckDescription: 'Crearemos un único cheque desglosado para cada informe de Expensify. Puedes emitir el cheque desde la cuenta bancaria que elijas (más abajo).',
+            exportJournalEntryDescription:
+                'Crearemos una única entrada de diario desglosada para cada informe de Expensify. Puedes enviar la compensación de la entrada de diario a la cuenta que elijas (más abajo).',
             exportVendorBillDescription:
                 'Crearemos una única factura de proveedor detallada para cada informe de Expensify. Si el período de la factura está cerrado, lo publicaremos en el día 1 del siguiente período abierto. Puede agregar la factura del proveedor a la cuenta A/P de tu elección (a continuación).',
             outOfPocketTaxEnabledDescription:
@@ -2008,7 +2037,7 @@ export default {
             outOfPocketTaxEnabledError: 'La Anotacion en el diario no está disponible cuando los impuestos están activados. Por favor, selecciona una opción de exportación diferente.',
             outOfPocketLocationEnabledError: 'Las facturas de proveedores no están disponibles cuando las ubicaciones están activadas. Seleccione otra opción de exportación.',
             outOfPocketLocationEnabledDescription:
-                'Nota: QuickBooks Online no admite un campo para Ubicaciones como Etiquetas en las exportaciones de Facturas de Proveedor. Al importar Ubicaciones como Etiquetas, esta opción de exportación no está disponible.',
+                'Nota: QuickBooks Online no permite añadir una ubicación a las facturas de proveedores o a los cheques. Al importar ubicaciones como etiquetas, esta opción de exportación no está disponible.',
 
             advancedConfig: {
                 advanced: 'Avanzado',
@@ -2056,6 +2085,8 @@ export default {
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY}Error`]:
                     'El asiento de diario no está disponible cuando los impuestos están habilitados. seleccione una opción de exportación diferente.',
             },
+            noAccountsFound: 'No se ha encontrado ninguna cuenta',
+            noAccountsFoundDescription: 'Añade la cuenta en Quickbooks Online y sincroniza de nuevo la conexión',
         },
         xero: {
             organization: 'Organización Xero',
@@ -2066,10 +2097,8 @@ export default {
             accountsSwitchDescription: 'Las categorías activas estarán disponibles para ser escogidas cuando se crea un gasto.',
             trackingCategories: 'Categorías de seguimiento',
             trackingCategoriesDescription: 'Elige si deseas importar categorías de seguimiento y ver dónde se muestran.',
-            mapXeroCostCentersTo: 'Asignar centros de coste de Xero a',
-            mapXeroRegionsTo: 'Asignar regiones de Xero a',
-            mapXeroCostCentersToDescription: 'Elige dónde mapear los centros de coste al exportar a Xero.',
-            mapXeroRegionsToDescription: 'Elige dónde asignar las regiones de los empleados al exportar informes de gastos a Xero.',
+            mapTrackingCategoryTo: ({categoryName}) => `Asignar ${categoryName} de Xero a`,
+            mapTrackingCategoryToDescription: ({categoryName}) => `Elige dónde mapear ${categoryName} al exportar a Xero.`,
             customers: 'Volver a facturar a los clientes',
             customersDescription:
                 'Importar contactos de clientes. Los gastos facturables necesitan etiquetas para la exportación. Los gastos llevarán la información del cliente a Xero para las facturas de ventas.',
@@ -2129,15 +2158,19 @@ export default {
                 },
             },
             invoiceStatus: {
+                label: 'Estado de la factura de compra',
+                description: 'Qué estado deben tener las facturas de compra cuando se exportan a Xero.',
                 values: {
-                    [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_PAYMENT]: 'Autorizado',
                     [CONST.XERO_CONFIG.INVOICE_STATUS.DRAFT]: 'Borrador',
-                    [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_APPROVAL]: 'Enviado',
+                    [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_APPROVAL]: 'Pendiente de aprobación',
+                    [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_PAYMENT]: 'Pendiente de pago',
                 },
             },
             exportPreferredExporterNote:
                 'Puede ser cualquier administrador del espacio de trabajo, pero debe ser un administrador de dominio si configura diferentes cuentas de exportación para tarjetas de empresa individuales en la configuración del dominio.',
             exportPreferredExporterSubNote: 'Una vez configurado, el exportador preferido verá los informes para exportar en su cuenta.',
+            noAccountsFound: 'No se ha encontrado ninguna cuenta',
+            noAccountsFoundDescription: 'Añade la cuenta en Xero y sincroniza de nuevo la conexión',
         },
         type: {
             free: 'Gratis',
@@ -2166,6 +2199,7 @@ export default {
             createFailureMessage: 'Se ha producido un error al intentar crear la categoría. Por favor, inténtalo más tarde.',
             addCategory: 'Añadir categoría',
             editCategory: 'Editar categoría',
+            editCategories: 'Editar categorías',
             categoryRequiredError: 'Lo nombre de la categoría es obligatorio.',
             existingCategoryError: 'Ya existe una categoría con este nombre.',
             invalidCategoryName: 'Lo nombre de la categoría es invalido.',
@@ -2211,6 +2245,12 @@ export default {
             connections: {
                 title: 'Contabilidad',
                 subtitle: 'Sincroniza tu plan de cuentas y otras opciones.',
+            },
+            connectionsWarningModal: {
+                featureEnabledTitle: 'No tan rápido...',
+                featureEnabledText: 'Para activar o desactivar esta función, cambia la configuración de importación contable.',
+                disconnectText: 'Desconecta tu conexión contable del espacio de trabajo si deseas desactivar la Contabilidad.',
+                manageSettings: 'Gestionar la configuración',
             },
         },
         reportFields: {
@@ -2267,6 +2307,7 @@ export default {
                 enable: 'Activar tasa',
                 enableMultiple: 'Activar tasas',
             },
+            importedFromAccountingSoftware: 'Impuestos importadas desde',
         },
         emptyWorkspace: {
             title: 'Crea un espacio de trabajo',
@@ -2335,6 +2376,17 @@ export default {
                     }
                 }
             },
+            syncError: (integration?: ConnectionName): string => {
+                switch (integration) {
+                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
+                        return 'No se puede conectar a QuickBooks Online.';
+                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
+                        return 'No se puede conectar a Xero';
+                    default: {
+                        return 'No se ha podido conectar a la integración.';
+                    }
+                }
+            },
             accounts: 'Plan de cuentas',
             taxes: 'Impuestos',
             imported: 'Importado',
@@ -2391,7 +2443,9 @@ export default {
                             return 'Revisando conexión a QuickBooks Online';
                         case 'quickbooksOnlineImportMain':
                             return 'Importando datos desde QuickBooks Online';
-                        case 'startingImport':
+                        case 'startingImportXero':
+                            return 'Importando datos desde Xero';
+                        case 'startingImportQBO':
                             return 'Importando datos desde QuickBooks Online';
                         case 'quickbooksOnlineSyncTitle':
                             return 'Sincronizando datos desde QuickBooks Online';
@@ -2488,6 +2542,14 @@ export default {
             viewUnpaidInvoices: 'Ver facturas emitidas pendientes',
             sendInvoice: 'Enviar factura',
             sendFrom: 'Enviar desde',
+            paymentMethods: {
+                personal: 'Personal',
+                business: 'Empresas',
+                chooseInvoiceMethod: 'Elija un método de pago:',
+                addBankAccount: 'Añadir cuenta bancaria',
+                payingAsIndividual: 'Pago individual',
+                payingAsBusiness: 'Pagar como una empresa',
+            },
         },
         travel: {
             unlockConciergeBookingTravel: 'Desbloquea la reserva de viajes con Concierge',
@@ -2675,6 +2737,9 @@ export default {
         memberNotFound: 'Miembro no encontrado. Para invitar a un nuevo miembro a la sala de chat, por favor, utiliza el botón Invitar que está más arriba.',
         notAuthorized: `No tienes acceso a esta página. ¿Estás tratando de unirte a la sala de chat? Comunícate con el propietario de esta sala de chat para que pueda añadirte como miembro. ¿Necesitas algo más? Comunícate con ${CONST.EMAIL.CONCIERGE}`,
         removeMembersPrompt: '¿Estás seguro de que quieres eliminar a los miembros seleccionados de la sala de chat?',
+        error: {
+            genericAdd: 'Hubo un problema al añadir este miembro a la sala de chat.',
+        },
     },
     newTaskPage: {
         assignTask: 'Asignar tarea',
@@ -2733,6 +2798,7 @@ export default {
                 subtitle: 'Por favor intenta crear algo usando el botón verde.',
             },
         },
+        groupedExpenses: 'gastos agrupados',
     },
     genericErrorPage: {
         title: '¡Oh-oh, algo salió mal!',
@@ -3473,7 +3539,7 @@ export default {
             body: `¡Gana dinero por hablar con tus amigos! Inicia un chat con una cuenta nueva de Expensify y recibe $${CONST.REFERRAL_PROGRAM.REVENUE} cuando se conviertan en clientes.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
-            buttonText1: 'Presentar gasto, ',
+            buttonText1: 'Presenta un gasto, ',
             buttonText2: `recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             header: `Presenta un gasto y consigue $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             body: `¡Vale la pena cobrar! Envia un gasto a una cuenta nueva de Expensify y recibe $${CONST.REFERRAL_PROGRAM.REVENUE} cuando se conviertan en clientes.`,
@@ -3556,6 +3622,7 @@ export default {
         taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams) => `${taxName ?? 'El impuesto'} ya no es válido`,
         taxRateChanged: 'La tasa de impuesto fue modificada',
         taxRequired: 'Falta la tasa de impuesto',
+        hold: 'Bloqueada',
     },
     violationDismissal: {
         rter: {
@@ -3601,5 +3668,63 @@ export default {
     },
     systemMessage: {
         mergedWithCashTransaction: 'encontró un recibo para esta transacción.',
+    },
+    subscription: {
+        yourPlan: {
+            title: 'Tu plan',
+            collect: {
+                title: 'Recolectar',
+                priceAnnual: 'Desde $5/miembro activo con la Tarjeta Expensify, $10/miembro activo sin la Tarjeta Expensify.',
+                pricePayPerUse: 'Desde $10/miembro activo con la Tarjeta Expensify, $20/miembro activo sin la Tarjeta Expensify.',
+                benefit1: 'SmartScans ilimitados y seguimiento de la distancia',
+                benefit2: 'Tarjetas Expensify con Límites Inteligentes',
+                benefit3: 'Pago de facturas y facturación',
+                benefit4: 'Aprobación de gastos',
+                benefit5: 'Reembolso ACH',
+                benefit6: 'Integraciones con QuickBooks y Xero',
+                benefit7: 'Reportes e informes personalizados',
+            },
+            control: {
+                title: 'Control',
+                priceAnnual: 'Desde $9/miembro activo con la Tarjeta Expensify, $18/miembro activo sin la Tarjeta Expensify.',
+                pricePayPerUse: 'Desde $18/miembro activo con la Tarjeta Expensify, $36/miembro activo sin la Tarjeta Expensify.',
+                benefit1: 'Todo en Recolectar, más:',
+                benefit2: 'Integraciones con NetSuite y Sage Intacct',
+                benefit3: 'Sincronización de Certinia y Workday',
+                benefit4: 'Varios aprobadores de gastos',
+                benefit5: 'SAML/SSO',
+                benefit6: 'Presupuestos',
+            },
+            saveWithExpensifyTitle: 'Ahorra con la Tarjeta Expensify',
+            saveWithExpensifyDescription: 'Utiliza nuestra calculadora de ahorro para ver cómo el reembolso en efectivo de la Tarjeta Expensify puede reducir tu factura de Expensify',
+            saveWithExpensifyButton: 'Más información',
+        },
+        details: {
+            title: 'Datos de suscripción',
+            annual: 'Suscripción anual',
+            payPerUse: 'Pago por uso',
+            subscriptionSize: 'Tamaño de suscripción',
+            headsUpTitle: 'Atención: ',
+            headsUpBody:
+                'Si no estableces ahora el tamaño de tu suscripción, lo haremos automáticamente con el número de suscriptores activos del primer mes. A partir de ese momento, estarás suscrito para pagar al menos por ese número de afiliados durante los 12 meses siguientes. Puedes aumentar el tamaño de tu suscripción en cualquier momento, pero no puedes reducirlo hasta que finalice tu suscripción.',
+            zeroCommitment: 'Compromiso cero con la tarifa de suscripción anual reducida',
+        },
+        subscriptionSize: {
+            title: 'Tamaño de suscripción',
+            yourSize: 'El tamaño de tu suscripción es el número de plazas abiertas que puede ocupar cualquier miembro activo en un mes determinado.',
+            eachMonth:
+                'Cada mes, tu suscripción cubre hasta el número de miembros activos establecido anteriormente. Cada vez que aumentes el tamaño de tu suscripción, iniciarás una nueva suscripción de 12 meses con ese nuevo tamaño.',
+            note: 'Nota: Un miembro activo es cualquiera que haya creado, editado, enviado, aprobado, reembolsado, o exportado datos de gastos vinculados al espacio de trabajo de tu empresa.',
+            confirmDetails: 'Confirma los datos de tu nueva suscripción anual',
+            subscriptionSize: 'Tamaño de suscripción',
+            activeMembers: ({size}) => `${size} miembros activos/mes`,
+            subscriptionRenews: 'Renovación de la suscripción',
+            youCantDowngrade: 'No puedes bajar de categoría durante tu suscripción anual',
+            youAlreadyCommitted: ({size, date}) =>
+                `Ya se ha comprometido a un tamaño de suscripción anual de ${size} miembros activos al mes hasta el ${date}. Puede cambiar a una suscripción de pago por uso en ${date} desactivando la auto-renovación.`,
+            error: {
+                size: 'Por favor ingrese un tamaño de suscripción valido.',
+            },
+        },
     },
 } satisfies EnglishTranslation;

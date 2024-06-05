@@ -38,6 +38,9 @@ type Waypoint = {
 
     /** Address street line 2 */
     street2?: string;
+
+    /** A unique key for waypoint is required for correct draggable list rendering */
+    keyForList?: string;
 };
 
 type WaypointCollection = Record<string, RecentWaypoint | Waypoint>;
@@ -238,6 +241,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Holds the accountIDs of accounts who paid the split, for now only supports a single payer */
         splitPayerAccountIDs?: number[];
 
+        /** Whether the user input should be kept */
+        shouldShowOriginalAmount?: boolean;
+
         /** The actionable report action ID associated with the transaction */
         actionableWhisperReportActionID?: string;
 
@@ -269,6 +275,7 @@ export type {
     Comment,
     Receipt,
     Waypoint,
+    Routes,
     ReceiptError,
     ReceiptErrors,
     TransactionPendingFieldsKey,

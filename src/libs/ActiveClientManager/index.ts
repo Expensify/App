@@ -45,7 +45,30 @@ Onyx.connect({
     },
 });
 
+let isPromotingNewLeader = false;
+
+/**
+ * The last GUID is the most recent GUID, so that should be the leader
+ */
+const isClientTheLeader: IsClientTheLeader = () => {
+    /**
+     * When a new leader is being promoted, there is a brief period during which the current leader's clientID
+     * is removed from the activeClients list due to asynchronous operations, but the new leader has not officially
+     * taken over yet. This can result in a situation where, upon page refresh, multiple leaders are being reported.
+     * This early return statement here will prevent that from happening by maintaining the current leader as
+     * the 'active leader' until the other leader is fully promoted.
+     */
+    if (isPromotingNewLeader) {
+        return true;
+    }
+
+    const lastActiveClient = activeClients.length && activeClients[activeClients.length - 1];
+
+    return lastActiveClient === clientID;
+};
+
 const cleanUpClientId = () => {
+    isPromotingNewLeader = isClientTheLeader();
     activeClients = activeClients.filter((id) => id !== clientID);
     ActiveClients.setActiveClients(activeClients);
 };
@@ -60,15 +83,6 @@ const init: Init = () => {
     ActiveClients.setActiveClients(activeClients).then(resolveSavedSelfPromise);
 
     window.addEventListener('beforeunload', cleanUpClientId);
-};
-
-/**
- * The last GUID is the most recent GUID, so that should be the leader
- */
-const isClientTheLeader: IsClientTheLeader = () => {
-    const lastActiveClient = activeClients.length && activeClients[activeClients.length - 1];
-
-    return lastActiveClient === clientID;
 };
 
 export {init, isClientTheLeader, isReady};

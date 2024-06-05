@@ -99,16 +99,17 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
                 <>
                     <HeaderWithBackButton
                         title={translate('initialSettingsPage.debugConsole.shareLog')}
-                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONSOLE)}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONSOLE.getRoute())}
                     />
                     <SelectionList
                         ListItem={UserListItem}
                         sections={didScreenTransitionEnd ? sections : CONST.EMPTY_ARRAY}
                         onSelectRow={attachLogToReport}
+                        shouldDebounceRowSelect
                         onChangeText={setSearchValue}
                         textInputValue={searchValue}
                         headerMessage={searchOptions.headerMessage}
-                        textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+                        textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
                         textInputHint={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
                         showLoadingPlaceholder={!didScreenTransitionEnd}
                         isLoadingNewOptions={!!isSearchingForReports}

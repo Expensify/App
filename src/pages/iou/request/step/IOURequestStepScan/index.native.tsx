@@ -36,7 +36,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import CameraPermission from './CameraPermission';
-import NavigationAwareCamera from './NavigationAwareCamera';
+import NavigationAwareCamera from './NavigationAwareCamera/Camera';
 import type {IOURequestStepOnyxProps, IOURequestStepScanProps} from './types';
 
 function IOURequestStepScan({
@@ -105,11 +105,11 @@ function IOURequestStepScan({
             return;
         }
 
-        camera.current.focus(point).catch((ex) => {
-            if (ex.message === '[unknown/unknown] Cancelled by another startFocusAndMetering()') {
+        camera.current.focus(point).catch((error: Record<string, unknown>) => {
+            if (error.message === '[unknown/unknown] Cancelled by another startFocusAndMetering()') {
                 return;
             }
-            Log.warn('Error focusing camera', ex);
+            Log.warn('Error focusing camera', error);
         });
     };
 
@@ -480,8 +480,7 @@ function IOURequestStepScan({
                             <NavigationAwareCamera
                                 ref={camera}
                                 device={device}
-                                // @ts-expect-error The HOC are not migrated to TypeScript yet
-                                style={[styles.flex1]}
+                                style={styles.flex1}
                                 zoom={device.neutralZoom}
                                 photo
                                 cameraTabIndex={1}

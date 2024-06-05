@@ -3,12 +3,14 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
+import CaretWrapper from '@components/CaretWrapper';
 import ConfirmModal from '@components/ConfirmModal';
 import DisplayNames from '@components/DisplayNames';
 import type {ThreeDotsMenuItem} from '@components/HeaderWithBackButton/types';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MultipleAvatars from '@components/MultipleAvatars';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
@@ -89,11 +91,12 @@ function HeaderView({
     const isSelfDM = ReportUtils.isSelfDM(report);
     const isGroupChat = ReportUtils.isGroupChat(report) || ReportUtils.isDeprecatedGroupDM(report);
     const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
+    const isSystemChat = ReportUtils.isSystemChat(report);
 
     // For 1:1 chat, we don't want to include currentUser as participants in order to not mark 1:1 chats as having multiple participants
     const participants = Object.keys(report?.participants ?? {})
         .map(Number)
-        .filter((accountID) => accountID !== session?.accountID || !isOneOnOneChat)
+        .filter((accountID) => accountID !== session?.accountID || (!isOneOnOneChat && !isSystemChat))
         .slice(0, 5);
     const isMultipleParticipant = participants.length > 1;
 
@@ -145,7 +148,7 @@ function HeaderView({
         }
 
         // Task is not closed
-        if (ReportUtils.canWriteInReport(report) && report.stateNum !== CONST.REPORT.STATE_NUM.APPROVED && report.statusNum !== CONST.REPORT.STATUS_NUM.CLOSED && canModifyTask) {
+        if (ReportUtils.canWriteInReport(report) && report.stateNum !== CONST.REPORT.STATE_NUM.APPROVED && !ReportUtils.isClosedReport(report) && canModifyTask) {
             threeDotMenuItems.push({
                 icon: Expensicons.Trashcan,
                 text: translate('common.delete'),
@@ -263,21 +266,25 @@ function HeaderView({
                                             size={defaultSubscriptSize}
                                         />
                                     ) : (
-                                        <MultipleAvatars
-                                            icons={icons}
-                                            shouldShowTooltip={!isChatRoom || isChatThread}
-                                        />
+                                        <OfflineWithFeedback pendingAction={report.pendingFields?.avatar}>
+                                            <MultipleAvatars
+                                                icons={icons}
+                                                shouldShowTooltip={!isChatRoom || isChatThread}
+                                            />
+                                        </OfflineWithFeedback>
                                     )}
                                     <View style={[styles.flex1, styles.flexColumn]}>
-                                        <DisplayNames
-                                            fullTitle={title}
-                                            displayNamesWithTooltips={displayNamesWithTooltips}
-                                            tooltipEnabled
-                                            numberOfLines={1}
-                                            textStyles={[styles.headerText, styles.pre]}
-                                            shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isChatThread || isTaskReport || shouldUseGroupTitle}
-                                            renderAdditionalText={renderAdditionalText}
-                                        />
+                                        <CaretWrapper>
+                                            <DisplayNames
+                                                fullTitle={title}
+                                                displayNamesWithTooltips={displayNamesWithTooltips}
+                                                tooltipEnabled
+                                                numberOfLines={1}
+                                                textStyles={[styles.headerText, styles.pre]}
+                                                shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isChatThread || isTaskReport || shouldUseGroupTitle}
+                                                renderAdditionalText={renderAdditionalText}
+                                            />
+                                        </CaretWrapper>
                                         {!isEmptyObject(parentNavigationSubtitleData) && (
                                             <ParentNavigationSubtitle
                                                 parentNavigationSubtitleData={parentNavigationSubtitleData}
@@ -368,6 +375,7 @@ function HeaderView({
                                 confirmText={translate('common.delete')}
                                 cancelText={translate('common.cancel')}
                                 danger
+                                shouldEnableNewFocusManagement
                             />
                         </>
                     )}

@@ -14,6 +14,7 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 jest.mock('@libs/Permissions');
 jest.mock('@hooks/usePermissions.ts');
 jest.mock('@components/Icon/Expensicons');
+jest.mock('@src/hooks/useActiveWorkspaceFromNavigationState');
 
 const ONYXKEYS = {
     PERSONAL_DETAILS_LIST: 'personalDetailsList',

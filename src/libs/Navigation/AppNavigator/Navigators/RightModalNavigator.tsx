@@ -66,6 +66,10 @@ function RightModalNavigator({navigation}: RightModalNavigatorProps) {
                         component={ModalStackNavigators.ReportDescriptionModalStackNavigator}
                     />
                     <Stack.Screen
+                        name={SCREENS.RIGHT_MODAL.SETTINGS_CATEGORIES}
+                        component={ModalStackNavigators.CategoriesModalStackNavigator}
+                    />
+                    <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.PARTICIPANTS}
                         component={ModalStackNavigators.ReportParticipantsModalStackNavigator}
                     />

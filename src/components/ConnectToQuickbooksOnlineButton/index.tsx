@@ -3,10 +3,12 @@ import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {removePolicyConnection} from '@libs/actions/connections';
-import {getQuickBooksOnlineSetupLink} from '@libs/actions/connections/QuickBooksOnline';
+import getQuickBooksOnlineSetupLink from '@libs/actions/connections/QuickBooksOnline';
 import * as Link from '@userActions/Link';
+import * as PolicyAction from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import type {ConnectToQuickbooksOnlineButtonProps} from './types';
 
@@ -14,6 +16,7 @@ function ConnectToQuickbooksOnlineButton({policyID, shouldDisconnectIntegrationB
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
+    const {isOffline} = useNetwork();
 
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
 
@@ -25,8 +28,11 @@ function ConnectToQuickbooksOnlineButton({policyID, shouldDisconnectIntegrationB
                         setIsDisconnectModalOpen(true);
                         return;
                     }
+                    // Since QBO doesn't support Taxes, we should disable them from the LHN when connecting to QBO
+                    PolicyAction.enablePolicyTaxes(policyID, false);
                     Link.openLink(getQuickBooksOnlineSetupLink(policyID), environmentURL);
                 }}
+                isDisabled={isOffline}
                 text={translate('workspace.accounting.setup')}
                 style={styles.justifyContentCenter}
                 small
