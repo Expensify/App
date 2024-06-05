@@ -100,6 +100,9 @@ function subscribeToBackendAndInternetReachability(): () => void {
     const intervalID = setInterval(() => {
         // Offline status also implies backend unreachability
         if (isOffline) {
+            // Periodically refresh internet reachability check
+            // More info: https://github.com/Expensify/App/issues/42988
+            NetInfo.refresh();
             return;
         }
         // Using the API url ensures reachability is tested over internet
