@@ -4968,6 +4968,11 @@ const styles = (theme: ThemeColors) =>
             textDecorationLine: 'line-through',
         },
 
+        tripIllustrationSize: {
+            width: 190,
+            height: 172,
+        },
+
         reportListItemSeparator: {
             borderBottomWidth: 1,
             borderBottomColor: theme.activeComponentBG,
