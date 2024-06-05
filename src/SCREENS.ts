@@ -310,6 +310,7 @@ const SCREENS = {
         NAME: 'Workspace_Profile_Name',
         CATEGORY_CREATE: 'Category_Create',
         CATEGORY_EDIT: 'Category_Edit',
+        CATEGORY_PAYROLL_CODE: 'Category_Payroll_Code',
         CATEGORY_SETTINGS: 'Category_Settings',
         CATEGORIES_SETTINGS: 'Categories_Settings',
         MORE_FEATURES: 'Workspace_More_Features',
