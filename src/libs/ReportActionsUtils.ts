@@ -96,7 +96,7 @@ function isDeletedAction(reportAction: OnyxEntry<ReportAction | OptimisticIOURep
     const message = reportAction?.message ?? [];
 
     if (!Array.isArray(message)) {
-        return !message;
+        return message?.html === '' ?? message?.deleted;
     }
 
     // A legacy deleted comment has either an empty array or an object with html field with empty string as value
@@ -171,13 +171,6 @@ function getOriginalMessage<T extends ReportActionName>(reportAction: ReportActi
     return reportAction.originalMessage;
 }
 
-function getMessage<T extends ReportActionName>(reportAction: OnyxEntry<ReportAction<T>>): OriginalMessage<T> | Message | undefined {
-    if (!Array.isArray(reportAction?.message)) {
-        return reportAction?.message ?? reportAction?.originalMessage;
-    }
-    return reportAction.originalMessage ?? reportAction.message?.[0];
-}
-
 /**
  * We are in the process of deprecating reportAction.originalMessage and will be setting the db version of "message" to reportAction.message in the future see: https://github.com/Expensify/App/issues/39797
  * In the interim, we must check to see if we have an object or array for the reportAction.message, if we have an array we will use the originalMessage as this means we have not yet migrated.
@@ -241,14 +234,12 @@ function isInviteMemberAction(
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM);
 }
 
-function isLeavePolicyAction(
-    reportAction: OnyxEntry<ReportAction>,
-): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM | typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM> {
+function isLeavePolicyAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_POLICY> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_POLICY);
 }
 
 function isReimbursementDeQueuedAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED> {
-    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED;
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED);
 }
 
 function isClosedAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CLOSED> {
@@ -1415,7 +1406,6 @@ export {
     getReportActionMessage,
     getOriginalMessage,
     isActionOfType,
-    getMessage,
     isActionableTrackExpense,
     getAllReportActions,
     isLinkedTransactionHeld,
