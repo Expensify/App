@@ -356,7 +356,7 @@ export default {
         expensifyDoesntHaveAccessToCamera: "Expensify can't take photos without access to your camera. Tap Settings to update permissions.",
         attachmentError: 'Attachment error',
         errorWhileSelectingAttachment: 'An error occurred while selecting an attachment, please try again.',
-        errorWhileSelectingCorruptedImage: 'An error occurred while selecting a corrupted attachment, please try another file.',
+        errorWhileSelectingCorruptedAttachment: 'An error occurred while selecting a corrupted attachment, please try another file.',
         takePhoto: 'Take photo',
         chooseFromGallery: 'Choose from gallery',
         chooseDocument: 'Choose document',

@@ -350,7 +350,7 @@ export default {
         expensifyDoesntHaveAccessToCamera: 'Expensify no puede tomar fotos sin acceso a la cámara. Haz click en Configuración para actualizar los permisos.',
         attachmentError: 'Error al adjuntar archivo',
         errorWhileSelectingAttachment: 'Ha ocurrido un error al seleccionar un archivo adjunto. Por favor, inténtalo de nuevo.',
-        errorWhileSelectingCorruptedImage: 'Ha ocurrido un error al seleccionar un archivo adjunto corrupto. Por favor, inténtalo con otro archivo.',
+        errorWhileSelectingCorruptedAttachment: 'Ha ocurrido un error al seleccionar un archivo adjunto corrupto. Por favor, inténtalo con otro archivo.',
         takePhoto: 'Hacer una foto',
         chooseFromGallery: 'Elegir de la galería',
         chooseDocument: 'Elegir documento',
