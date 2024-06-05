@@ -12,6 +12,7 @@ import SwipeableView from '@components/SwipeableView';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import Log from '@libs/Log';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
 import variables from '@styles/variables';
@@ -80,9 +81,10 @@ function ReportFooter({
                 return false;
             }
             try {
-                return new Date(dateString) < new Date();
+                return new Date(dateString) >= new Date();
             } catch (error) {
-                // If the NVP is malformed, we'll assume the user is not blocked from chat
+                // If the NVP is malformed, we'll assume the user is not blocked from chat. This is not expected, so if it happens we'll log an alert.
+                Log.alert(`[${CONST.ERROR.ENSURE_BUGBOT}] Found malformed ${ONYXKEYS.NVP_BLOCKED_FROM_CHAT} nvp`, dateString);
                 return false;
             }
         },
