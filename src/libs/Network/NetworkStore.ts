@@ -35,7 +35,7 @@ let isReadyPromise = new Promise((resolve) => {
  * If the values are undefined we haven't read them yet. If they are null or have a value then we have and the network is "ready".
  */
 function checkRequiredData() {
-    if (authToken === null || credentials === null) {
+    if (authToken === undefined || credentials === undefined) {
         return;
     }
 

@@ -59,7 +59,7 @@ Onyx.connect({
     },
 });
 
-let isInFocusMode: boolean;
+let isInFocusMode: boolean | undefined;
 Onyx.connect({
     key: ONYXKEYS.NVP_PRIORITY_MODE,
     callback: (priorityMode) => {
