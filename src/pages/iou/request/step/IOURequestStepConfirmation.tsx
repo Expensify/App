@@ -572,7 +572,7 @@ function IOURequestStepConfirmation({
                         iouMerchant={transaction?.merchant}
                         iouCreated={transaction?.created}
                         isDistanceRequest={isDistanceRequest}
-                        shouldShowSmartScanFields={isMovingTransactionFromTrackExpense  ? transaction?.amount !== 0 : requestType !== CONST.IOU.REQUEST_TYPE.SCAN}
+                        shouldShowSmartScanFields={isMovingTransactionFromTrackExpense ? transaction?.amount !== 0 : requestType !== CONST.IOU.REQUEST_TYPE.SCAN}
                         action={action}
                         payeePersonalDetails={payeePersonalDetails}
                     />
