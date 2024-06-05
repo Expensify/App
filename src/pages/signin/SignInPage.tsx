@@ -220,7 +220,7 @@ function SignInPageInner({credentials, account, activeClients = [], preferredLoc
     const userLogin = Str.removeSMSDomain(credentials?.login ?? '');
 
     // replacing spaces with "hard spaces" to prevent breaking the number
-    const userLoginToDisplay = Str.isSMSLogin(userLogin) ? formatPhoneNumber(userLogin).replace(/ /g, '\u00A0') : userLogin;
+    const userLoginToDisplay = Str.isSMSLogin(userLogin) ? formatPhoneNumber(userLogin) : userLogin;
 
     if (shouldShowAnotherLoginPageOpenedMessage) {
         welcomeHeader = translate('welcomeText.anotherLoginPageIsOpen');

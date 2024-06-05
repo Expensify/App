@@ -3,8 +3,6 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -12,6 +10,7 @@ import * as Session from '@userActions/Session';
 import redirectToSignIn from '@userActions/SignInRedirect';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account} from '@src/types/onyx';
+import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 import Terms from './Terms';
 
 type SignUpWelcomeFormOnyxProps = {
@@ -28,24 +27,20 @@ function SignUpWelcomeForm({account}: SignUpWelcomeFormProps) {
 
     return (
         <>
-            <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                <PressableWithFeedback
-                    accessibilityLabel={translate('common.back')}
-                    onPress={() => redirectToSignIn()}
-                >
-                    <Text style={[styles.link]}>{translate('common.back')}</Text>
-                </PressableWithFeedback>
+            <View style={[styles.mt3, styles.mb2]}>
                 <Button
-                    medium
+                    isDisabled={network.isOffline || !!account?.message}
                     success
+                    large
                     text={translate('welcomeSignUpForm.join')}
                     isLoading={account?.isLoading}
                     onPress={() => Session.signUpUser()}
-                    isDisabled={network.isOffline || !!account?.message}
                     pressOnEnter
+                    style={[styles.mb2]}
                 />
+                <ChangeExpensifyLoginLink onPress={() => redirectToSignIn()} />
             </View>
-            <View style={[styles.mt5, styles.signInPageWelcomeTextContainer]}>
+            <View style={[styles.mt4, styles.signInPageWelcomeTextContainer]}>
                 <Terms />
             </View>
         </>
