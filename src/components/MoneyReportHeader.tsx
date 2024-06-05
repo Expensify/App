@@ -104,7 +104,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const shouldDisableApproveButton = shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(moneyRequestReport);
 
-    const shouldShowSettlementButton = !ReportUtils.isInvoiceReport(moneyRequestReport) && (shouldShowPayButton || shouldShowApproveButton) && !allHavePendingRTERViolation;
+    const shouldShowSettlementButton = (shouldShowPayButton || shouldShowApproveButton) && !allHavePendingRTERViolation;
 
     const shouldShowSubmitButton = isDraft && reimbursableSpend !== 0 && !allHavePendingRTERViolation;
     const shouldDisableSubmitButton = shouldShowSubmitButton && !ReportUtils.isAllowedToSubmitDraftExpenseReport(moneyRequestReport);
@@ -120,14 +120,16 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const isMoreContentShown = shouldShowNextStep || hasScanningReceipt || (shouldShowAnyButton && shouldUseNarrowLayout);
 
     const confirmPayment = (type?: PaymentMethodType | undefined) => {
-        if (!type) {
+        if (!type || !chatReport) {
             return;
         }
         setPaymentType(type);
         setRequestType('pay');
         if (ReportUtils.hasHeldExpenses(moneyRequestReport.reportID)) {
             setIsHoldMenuVisible(true);
-        } else if (chatReport) {
+        } else if (ReportUtils.isInvoiceReport(moneyRequestReport)) {
+            IOU.payInvoice(type, chatReport, moneyRequestReport);
+        } else {
             IOU.payMoneyRequest(type, chatReport, moneyRequestReport, true);
         }
     };
@@ -357,6 +359,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 confirmText={translate('iou.cancelPayment')}
                 cancelText={translate('common.dismiss')}
                 danger
+                shouldEnableNewFocusManagement
             />
             <ConfirmModal
                 title={translate('iou.deleteExpense')}
@@ -367,6 +370,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}
                 danger
+                shouldEnableNewFocusManagement
             />
         </View>
     );

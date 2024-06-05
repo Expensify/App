@@ -61,7 +61,7 @@ function isScanRequest(transaction: OnyxEntry<Transaction>): boolean {
         return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN;
     }
 
-    return Boolean(transaction?.receipt?.source);
+    return Boolean(transaction?.receipt?.source) && transaction?.amount === 0;
 }
 
 function getRequestType(transaction: OnyxEntry<Transaction>): IOURequestType {
@@ -686,6 +686,10 @@ function isCustomUnitRateIDForP2P(transaction: OnyxEntry<Transaction>): boolean 
     return transaction?.comment?.customUnit?.customUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID;
 }
 
+function hasReservationList(transaction: Transaction | undefined | null): boolean {
+    return !!transaction?.receipt?.reservationList && transaction?.receipt?.reservationList.length > 0;
+}
+
 /**
  * Get rate ID from the transaction object
  */
@@ -907,6 +911,7 @@ export {
     getWaypointIndex,
     waypointHasValidAddress,
     getRecentTransactions,
+    hasReservationList,
     hasViolation,
     hasNoticeTypeViolation,
     isCustomUnitRateIDForP2P,
