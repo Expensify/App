@@ -35,6 +35,7 @@ function GenericPressable(
         onPressIn,
         onPressOut,
         accessible = true,
+        fullDisabled = false,
         ...rest
     }: PressableProps,
     ref: PressableRef,
@@ -136,6 +137,7 @@ function GenericPressable(
             hitSlop={shouldUseAutoHitSlop ? hitSlop : undefined}
             onLayout={shouldUseAutoHitSlop ? onLayout : undefined}
             ref={ref as ForwardedRef<View>}
+            disabled={fullDisabled}
             onPress={!isDisabled ? singleExecution(onPressHandler) : undefined}
             onLongPress={!isDisabled && onLongPress ? onLongPressHandler : undefined}
             onKeyDown={!isDisabled ? onKeyDown : undefined}
