@@ -20,6 +20,9 @@ type FeedbackSurveyProps = {
 
     /** Callback to be called when the survey is submitted */
     onSubmit: (reason: Option) => void;
+
+    /** Styles for the option row element */
+    optionRowStyles?: StyleProp<ViewStyle>;
 };
 
 type Option = {
@@ -34,7 +37,7 @@ const OPTIONS: Option[] = [
     {key: CONST.FEEDBACK_SURVEY_OPTIONS.BUSINESS_CLOSING.ID, label: CONST.FEEDBACK_SURVEY_OPTIONS.BUSINESS_CLOSING.TRANSLATION_KEY},
 ];
 
-function FeedbackSurvey({title, description, onSubmit}: FeedbackSurveyProps) {
+function FeedbackSurvey({title, description, onSubmit, optionRowStyles}: FeedbackSurveyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -64,7 +67,7 @@ function FeedbackSurvey({title, description, onSubmit}: FeedbackSurveyProps) {
                 <Text style={[styles.mt1, styles.mb3, styles.textNormalThemeText]}>{description}</Text>
                 <SingleOptionSelector
                     options={OPTIONS}
-                    optionRowStyles={styles.mb7}
+                    optionRowStyles={[styles.mb7, optionRowStyles]}
                     selectCircleStyles={selectCircleStyles}
                     selectedOptionKey={reason?.key}
                     onSelectOption={handleOptionSelect}

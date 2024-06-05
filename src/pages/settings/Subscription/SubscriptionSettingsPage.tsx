@@ -12,7 +12,7 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as Subscription from '@userActions/Subscription';
 import SubscriptionDetails from './SubscriptionDetails';
 import SubscriptionPlan from './SubscriptionPlan';
-import SubscriptionSettingsSection from './SubscriptionSettingsSection';
+import SubscriptionSettings from './SubscriptionSettings';
 
 function SubscriptionSettingsPage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -39,7 +39,7 @@ function SubscriptionSettingsPage() {
             <ScrollView style={styles.pt3}>
                 <SubscriptionPlan />
                 <SubscriptionDetails />
-                <SubscriptionSettingsSection />
+                <SubscriptionSettings />
             </ScrollView>
         </ScreenWrapper>
     );

@@ -12,7 +12,7 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-function SubscriptionSettingsSection() {
+function SubscriptionSettings() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -74,6 +74,6 @@ function SubscriptionSettingsSection() {
     );
 }
 
-SubscriptionSettingsSection.displayName = 'SubscriptionSettingsSection';
+SubscriptionSettings.displayName = 'SubscriptionSettings';
 
-export default SubscriptionSettingsSection;
+export default SubscriptionSettings;
