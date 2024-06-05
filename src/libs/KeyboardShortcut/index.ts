@@ -1,4 +1,4 @@
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import * as KeyCommand from 'react-native-key-command';
 import getOperatingSystem from '@libs/getOperatingSystem';
 import localeCompare from '@libs/LocaleCompare';

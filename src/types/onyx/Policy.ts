@@ -872,6 +872,7 @@ type PolicyConnectionSyncProgress = {
 
     /** Name of the connected service */
     connectionName: PolicyConnectionName;
+    timestamp: string;
 };
 
 export default Policy;
