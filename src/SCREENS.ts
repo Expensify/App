@@ -141,6 +141,7 @@ const SCREENS = {
         ROOM_INVITE: 'RoomInvite',
         REFERRAL: 'Referral',
         PROCESS_MONEY_REQUEST_HOLD: 'ProcessMoneyRequestHold',
+        TRANSACTION_DUPLICATE: 'TransactionDuplicate',
         TRAVEL: 'Travel',
         SEARCH_REPORT: 'SearchReport',
         SETTINGS_CATEGORIES: 'SettingsCategories',
@@ -180,6 +181,18 @@ const SCREENS = {
         EDIT_WAYPOINT: 'Money_Request_Edit_Waypoint',
         RECEIPT: 'Money_Request_Receipt',
         STATE_SELECTOR: 'Money_Request_State_Selector',
+    },
+
+    TRANSACTION_DUPLICATE: {
+        REVIEW: 'Transaction_Duplicate_Review',
+        MERCHANT: 'Transaction_Duplicate_Merchant',
+        CATEGORY: 'Transaction_Duplicate_Category',
+        TAG: 'Transaction_Duplicate_Tag',
+        DESCRIPTION: 'Transaction_Duplicate_Description',
+        TAX_CODE: 'Transaction_Duplicate_Tax_Code',
+        REIMBURSABLE: 'Transaction_Duplicate_Reimburable',
+        BILLABLE: 'Transaction_Duplicate_Billable',
+        CONFIRM: 'Transaction_Duplicate_Confirm',
     },
 
     IOU_SEND: {

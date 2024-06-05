@@ -27,6 +27,7 @@ import type {
     SplitDetailsNavigatorParamList,
     TaskDetailsNavigatorParamList,
     TeachersUniteNavigatorParamList,
+    TransactionDuplicateNavigatorParamList,
     TravelNavigatorParamList,
     WalletStatementNavigatorParamList,
 } from '@navigation/types';
@@ -373,6 +374,18 @@ const ProcessMoneyRequestHoldStackNavigator = createModalStackNavigator({
     [SCREENS.PROCESS_MONEY_REQUEST_HOLD_ROOT]: () => require('../../../../pages/ProcessMoneyRequestHoldPage').default as React.ComponentType,
 });
 
+const TransactionDuplicateStackNavigator = createModalStackNavigator<TransactionDuplicateNavigatorParamList>({
+    [SCREENS.TRANSACTION_DUPLICATE.REVIEW]: () => require('../../../../pages/TransactionDuplicate/Review').default as React.ComponentType,
+    [SCREENS.TRANSACTION_DUPLICATE.MERCHANT]: () => require('../../../../pages/TransactionDuplicate/ReviewMerchant').default as React.ComponentType,
+    [SCREENS.TRANSACTION_DUPLICATE.CATEGORY]: () => require('../../../../pages/TransactionDuplicate/ReviewCategory').default as React.ComponentType,
+    [SCREENS.TRANSACTION_DUPLICATE.TAG]: () => require('../../../../pages/TransactionDuplicate/ReviewTag').default as React.ComponentType,
+    [SCREENS.TRANSACTION_DUPLICATE.DESCRIPTION]: () => require('../../../../pages/TransactionDuplicate/ReviewDescription').default as React.ComponentType,
+    [SCREENS.TRANSACTION_DUPLICATE.TAX_CODE]: () => require('../../../../pages/TransactionDuplicate/ReviewTaxCode').default as React.ComponentType,
+    [SCREENS.TRANSACTION_DUPLICATE.BILLABLE]: () => require('../../../../pages/TransactionDuplicate/ReviewBillable').default as React.ComponentType,
+    [SCREENS.TRANSACTION_DUPLICATE.REIMBURSABLE]: () => require('../../../../pages/TransactionDuplicate/ReviewReimbursable').default as React.ComponentType,
+    [SCREENS.TRANSACTION_DUPLICATE.CONFIRM]: () => require('../../../../pages/TransactionDuplicate/Confirm').default as React.ComponentType,
+});
+
 const SearchReportModalStackNavigator = createModalStackNavigator<SearchReportParamList>({
     [SCREENS.SEARCH.REPORT_RHP]: () => require('../../../../pages/home/ReportScreen').default as React.ComponentType,
 });
@@ -405,5 +418,6 @@ export {
     SplitDetailsModalStackNavigator,
     TaskModalStackNavigator,
     WalletStatementStackNavigator,
+    TransactionDuplicateStackNavigator,
     SearchReportModalStackNavigator,
 };

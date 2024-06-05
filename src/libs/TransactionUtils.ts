@@ -1,18 +1,22 @@
 import lodashHas from 'lodash/has';
+import lodashIsEqual from 'lodash/isEqual';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, RecentWaypoint, Report, TaxRate, TaxRates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {Policy, RecentWaypoint, Report, ReviewDuplicates, TaxRate, TaxRates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {IOURequestType} from './actions/IOU';
+import type {TransactionMergeParams} from './API/parameters';
 import {isCorporateCard, isExpensifyCard} from './CardUtils';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
 import * as NumberUtils from './NumberUtils';
 import {getCleanedTagName} from './PolicyUtils';
+// eslint-disable-next-line import/no-cycle
+import * as ReportActionsUtils from './ReportActionsUtils';
 
 let allTransactions: OnyxCollection<Transaction> = {};
 Onyx.connect({
@@ -750,6 +754,134 @@ function getTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transactio
     return Object.values(transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === (transaction?.taxCode ?? defaultTaxCode))?.modifiedName;
 }
 
+function getTransaction(transactionID: string): OnyxEntry<Transaction> {
+    return allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? null;
+}
+
+type FieldsToCompare = Record<string, Array<keyof Transaction>>;
+type FieldsToChange = {
+    category?: Array<string | undefined>;
+    merchant?: Array<string | undefined>;
+    tag?: Array<string | undefined>;
+    description?: Array<Comment | undefined>;
+    taxCode?: Array<string | undefined>;
+    billable?: Array<boolean | undefined>;
+    reimbursable?: Array<boolean | undefined>;
+};
+
+/**
+ * This function compares fields of duplicate transactions and determines which fields should be kept and which should be changed.
+ *
+ * @returns An object with two properties: 'keep' and 'change'.
+ * 'keep' is an object where each key is a field name and the value is the value of that field in the transaction that should be kept.
+ * 'change' is an object where each key is a field name and the value is an array of different values of that field in the duplicate transactions.
+ *
+ * The function works as follows:
+ * 1. It fetches the transaction violations for the given transaction ID.
+ * 2. It finds the duplicate transactions.
+ * 3. It creates two empty objects, 'keep' and 'change'.
+ * 4. It defines the fields to compare in the transactions.
+ * 5. It iterates over the fields to compare. For each field:
+ *    - If the field is 'description', it checks if all comments are equal, exist, or are empty. If so, it keeps the first transaction's comment. Otherwise, it finds the different values and adds them to 'change'.
+ *    - For other fields, it checks if all fields are equal. If so, it keeps the first transaction's field value. Otherwise, it finds the different values and adds them to 'change'.
+ * 6. It returns the 'keep' and 'change' objects.
+ */
+
+function compareDuplicateTransactionFields(transactionID: string): {keep: Partial<ReviewDuplicates>; change: FieldsToChange} {
+    const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+    const duplicates = transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [];
+    const transactions = [transactionID, ...duplicates].map((item) => getTransaction(item));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const keep: Record<string, any> = {};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const change: Record<string, any[]> = {};
+
+    const fieldsToCompare: FieldsToCompare = {
+        merchant: ['modifiedMerchant', 'merchant'],
+        category: ['category'],
+        tag: ['tag'],
+        description: ['comment'],
+        taxCode: ['taxCode'],
+        billable: ['billable'],
+        reimbursable: ['reimbursable'],
+    };
+
+    const getDifferentValues = (items: Array<OnyxEntry<Transaction>>, keys: Array<keyof Transaction>) => [...new Set(items.map((item) => keys.map((key) => item?.[key])).flat())];
+
+    for (const fieldName in fieldsToCompare) {
+        if (Object.prototype.hasOwnProperty.call(fieldsToCompare, fieldName)) {
+            const keys = fieldsToCompare[fieldName];
+            const firstTransaction = transactions[0];
+            const isFirstTransactionCommentEmptyObject = typeof firstTransaction?.comment === 'object' && firstTransaction?.comment.comment === '';
+
+            if (fieldName === 'description') {
+                const allCommentsAreEqual = transactions.every((item) => lodashIsEqual(item?.comment, firstTransaction?.comment));
+                const allCommentsExist = transactions.every((item) => Boolean(item?.comment.comment) === Boolean(firstTransaction?.comment.comment));
+                const allCommentsAreEmpty = isFirstTransactionCommentEmptyObject && transactions.every((item) => item?.comment === undefined);
+
+                if (allCommentsAreEqual || allCommentsExist || allCommentsAreEmpty) {
+                    keep[fieldName] = firstTransaction?.comment.comment ?? firstTransaction?.comment;
+                } else {
+                    const differentValues = getDifferentValues(transactions, keys);
+                    if (differentValues.length > 0) {
+                        change[fieldName] = differentValues;
+                    }
+                }
+            } else {
+                const allFieldsAreEqual = transactions.every((item) => keys.every((key) => item?.[key] === firstTransaction?.[key]));
+
+                if (allFieldsAreEqual) {
+                    keep[fieldName] = firstTransaction?.[keys[0]];
+                } else {
+                    const differentValues = getDifferentValues(transactions, keys);
+                    if (differentValues.length > 0) {
+                        change[fieldName] = differentValues;
+                    }
+                }
+            }
+        }
+    }
+
+    return {keep, change};
+}
+
+function getTransactionID(threadReportID: string): string {
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`] ?? null;
+    const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
+    const transactionID = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction?.originalMessage.IOUTransactionID ?? '0' : '0';
+
+    return transactionID;
+}
+
+function buildNewTransactionAfterReviewingDuplicates(reviewDuplicateTransaction: OnyxEntry<ReviewDuplicates>): OnyxEntry<Transaction> {
+    const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${reviewDuplicateTransaction?.transactionID}`] ?? null;
+    const {duplicates, ...restReviewDuplicateTransaction} = reviewDuplicateTransaction ?? {};
+
+    if (!originalTransaction) {
+        return null;
+    }
+
+    return {...originalTransaction, ...restReviewDuplicateTransaction, modifiedMerchant: reviewDuplicateTransaction?.merchant};
+}
+
+function buildTransactionsMergeParams(reviewDuplicates: OnyxEntry<ReviewDuplicates>, originalTransaction: OnyxEntry<Transaction>): TransactionMergeParams {
+    return {
+        transactionID: reviewDuplicates?.transactionID ?? '',
+        transactionIDList: reviewDuplicates?.duplicates ?? [],
+        amount: originalTransaction?.modifiedAmount ?? 0,
+        reportID: originalTransaction?.reportID ?? '',
+        billable: reviewDuplicates?.billable ?? false,
+        reimbursable: reviewDuplicates?.reimbursable ?? false,
+        category: reviewDuplicates?.category ?? '',
+        tag: reviewDuplicates?.tag ?? '',
+        merchant: reviewDuplicates?.merchant ?? '',
+        comment: reviewDuplicates?.description ?? '',
+        receiptID: originalTransaction?.receipt?.receiptID ?? 0,
+        created: originalTransaction?.created ?? '',
+        currency: originalTransaction?.currency ?? '',
+    };
+}
+
 export {
     buildOptimisticTransaction,
     calculateTaxAmount,
@@ -814,6 +946,11 @@ export {
     hasNoticeTypeViolation,
     isCustomUnitRateIDForP2P,
     getRateID,
+    getTransaction,
+    compareDuplicateTransactionFields,
+    getTransactionID,
+    buildNewTransactionAfterReviewingDuplicates,
+    buildTransactionsMergeParams,
 };
 
 export type {TransactionChanges};

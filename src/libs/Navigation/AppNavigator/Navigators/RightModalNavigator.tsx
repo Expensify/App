@@ -5,6 +5,7 @@ import {View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {abandonReviewDuplicateTransactions} from '@libs/actions/Transaction';
 import ModalNavigatorScreenOptions from '@libs/Navigation/AppNavigator/ModalNavigatorScreenOptions';
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
 import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigation/types';
@@ -16,7 +17,7 @@ type RightModalNavigatorProps = StackScreenProps<AuthScreensParamList, typeof NA
 
 const Stack = createStackNavigator<RightModalNavigatorParamList>();
 
-function RightModalNavigator({navigation}: RightModalNavigatorProps) {
+function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
     const screenOptions = useMemo(() => ModalNavigatorScreenOptions(styles), [styles]);
@@ -38,6 +39,15 @@ function RightModalNavigator({navigation}: RightModalNavigatorProps) {
             <View style={styles.RHPNavigatorContainer(isSmallScreenWidth)}>
                 <Stack.Navigator
                     screenOptions={screenOptions}
+                    screenListeners={{
+                        blur: () => {
+                            if (route.params?.screen !== SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE) {
+                                return;
+                            }
+
+                            abandonReviewDuplicateTransactions();
+                        },
+                    }}
                     id={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
                 >
                     <Stack.Screen
@@ -139,6 +149,10 @@ function RightModalNavigator({navigation}: RightModalNavigatorProps) {
                     <Stack.Screen
                         name="ProcessMoneyRequestHold"
                         component={ModalStackNavigators.ProcessMoneyRequestHoldStackNavigator}
+                    />
+                    <Stack.Screen
+                        name={SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE}
+                        component={ModalStackNavigators.TransactionDuplicateStackNavigator}
                     />
                     <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.TRAVEL}
