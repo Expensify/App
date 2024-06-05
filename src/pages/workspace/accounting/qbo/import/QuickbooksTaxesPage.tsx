@@ -51,7 +51,7 @@ function QuickbooksTaxesPage({policy}: WithPolicyProps) {
                             </View>
                         </OfflineWithFeedback>
                     </View>
-                    {isJournalExportEntity && <Text style={[styles.mutedNormalTextLabel, styles.pt2]}>{translate('workspace.qbo.taxesJournalEntrySwitchNote')}</Text>}
+                    {!syncTax && isJournalExportEntity && <Text style={[styles.mutedNormalTextLabel, styles.pt2]}>{translate('workspace.qbo.taxesJournalEntrySwitchNote')}</Text>}
                 </ScrollView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
