@@ -352,16 +352,6 @@ jobs:
         env:
           CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
 
-  # Build a version of iOS and Android HybridApp if we are deploying to staging
-  hybridApp:
-    runs-on: ubuntu-latest
-    needs: validateActor
-    if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
-    steps:
-      - name: 'Deploy HybridApp'
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        uses: Expensify/Mobile-Deploy/.github/workflows/deploy.yml@main
-
   postSlackMessageOnFailure:
     name: Post a Slack message when any platform fails to build or deploy
     runs-on: ubuntu-latest

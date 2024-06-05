@@ -1,6 +1,6 @@
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import type {ImageContentFit} from 'expo-image';
-import type {ReactNode} from 'react';
+import type {ReactElement, ReactNode} from 'react';
 import React, {forwardRef, useContext, useMemo} from 'react';
 import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -105,6 +105,9 @@ type MenuItemBaseProps = {
     /** The fill color to pass into the secondary icon. */
     secondaryIconFill?: string;
 
+    /** Whether the secondary icon should have hover style */
+    isSecondaryIconHoverable?: boolean;
+
     /** Icon Width */
     iconWidth?: number;
 
@@ -181,6 +184,12 @@ type MenuItemBaseProps = {
 
     /** Text to display for the item */
     title?: string;
+
+    /** Component to display as the title */
+    titleComponent?: ReactElement;
+
+    /** Any additional styles to apply to the container for title components */
+    titleContainerStyle?: StyleProp<ViewStyle>;
 
     /** A right-aligned subtitle for this menu option */
     subtitle?: string | number;
@@ -300,6 +309,7 @@ function MenuItem(
         secondaryIcon,
         secondaryIconFill,
         iconType = CONST.ICON_TYPE_ICON,
+        isSecondaryIconHoverable = false,
         iconWidth,
         iconHeight,
         iconStyles,
@@ -321,6 +331,8 @@ function MenuItem(
         focused = false,
         disabled = false,
         title,
+        titleComponent,
+        titleContainerStyle,
         subtitle,
         shouldShowBasicTitle,
         label,
@@ -554,7 +566,7 @@ function MenuItem(
                                                 </View>
                                             )}
                                             {secondaryIcon && (
-                                                <View style={[styles.popoverMenuIcon, iconStyles]}>
+                                                <View style={[styles.popoverMenuIcon, iconStyles, isSecondaryIconHoverable && StyleUtils.getBackgroundAndBorderStyle(theme.border)]}>
                                                     <Icon
                                                         contentFit={contentFit}
                                                         src={secondaryIcon}
@@ -567,7 +579,9 @@ function MenuItem(
                                                     />
                                                 </View>
                                             )}
-                                            <View style={[styles.justifyContentCenter, styles.flex1, StyleUtils.getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu)]}>
+                                            <View
+                                                style={[styles.justifyContentCenter, styles.flex1, StyleUtils.getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu), titleContainerStyle]}
+                                            >
                                                 {!!description && shouldShowDescriptionOnTop && (
                                                     <Text
                                                         style={descriptionTextStyles}
@@ -576,30 +590,32 @@ function MenuItem(
                                                         {description}
                                                     </Text>
                                                 )}
-                                                <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                                    {!!title && (shouldRenderAsHTML || (shouldParseTitle && !!html.length)) && (
-                                                        <View style={styles.renderHTMLTitle}>
-                                                            <RenderHTML html={processedTitle} />
-                                                        </View>
-                                                    )}
-                                                    {!shouldRenderAsHTML && !shouldParseTitle && !!title && (
-                                                        <Text
-                                                            style={combinedTitleTextStyle}
-                                                            numberOfLines={numberOfLinesTitle || undefined}
-                                                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: interactive && disabled}}
-                                                        >
-                                                            {renderTitleContent()}
-                                                        </Text>
-                                                    )}
-                                                    {shouldShowTitleIcon && titleIcon && (
-                                                        <View style={[styles.ml2]}>
-                                                            <Icon
-                                                                src={titleIcon}
-                                                                fill={theme.iconSuccessFill}
-                                                            />
-                                                        </View>
-                                                    )}
-                                                </View>
+                                                {(!!title || !!shouldShowTitleIcon) && (
+                                                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                                        {!!title && (shouldRenderAsHTML || (shouldParseTitle && !!html.length)) && (
+                                                            <View style={styles.renderHTMLTitle}>
+                                                                <RenderHTML html={processedTitle} />
+                                                            </View>
+                                                        )}
+                                                        {!shouldRenderAsHTML && !shouldParseTitle && !!title && (
+                                                            <Text
+                                                                style={combinedTitleTextStyle}
+                                                                numberOfLines={numberOfLinesTitle || undefined}
+                                                                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: interactive && disabled}}
+                                                            >
+                                                                {renderTitleContent()}
+                                                            </Text>
+                                                        )}
+                                                        {shouldShowTitleIcon && titleIcon && (
+                                                            <View style={[styles.ml2]}>
+                                                                <Icon
+                                                                    src={titleIcon}
+                                                                    fill={theme.iconSuccessFill}
+                                                                />
+                                                            </View>
+                                                        )}
+                                                    </View>
+                                                )}
                                                 {!!description && !shouldShowDescriptionOnTop && (
                                                     <Text
                                                         style={descriptionTextStyles}
@@ -626,6 +642,7 @@ function MenuItem(
                                                         </Text>
                                                     </View>
                                                 )}
+                                                {titleComponent}
                                             </View>
                                         </View>
                                     </View>
