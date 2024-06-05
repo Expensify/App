@@ -70,11 +70,11 @@ Onyx.connect({
     },
 });
 
-let hasTriedFocusMode: boolean | undefined;
+let hasTriedFocusMode: boolean | null | undefined;
 Onyx.connect({
     key: ONYXKEYS.NVP_TRY_FOCUS_MODE,
     callback: (val) => {
-        hasTriedFocusMode = val;
+        hasTriedFocusMode = val ?? null;
 
         // eslint-disable-next-line @typescript-eslint/no-use-before-define
         checkRequiredData();
