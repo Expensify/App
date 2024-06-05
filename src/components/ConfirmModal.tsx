@@ -1,13 +1,13 @@
 import type {ReactNode} from 'react';
 import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
-import BaseModalProps from '@components/Modal/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import ConfirmContent from './ConfirmContent';
 import Modal from './Modal';
+import type BaseModalProps from './Modal/types';
 
 type ConfirmModalProps = {
     /** Title of the modal */
@@ -77,7 +77,7 @@ type ConfirmModalProps = {
     shouldEnableNewFocusManagement?: boolean;
 
     /** How to re-focus after the modal is dismissed */
-    restoreFocusType: BaseModalProps['restoreFocusType'];
+    restoreFocusType?: BaseModalProps['restoreFocusType'];
 };
 
 function ConfirmModal({
