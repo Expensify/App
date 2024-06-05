@@ -23,7 +23,7 @@ import INPUT_IDS from '@src/types/form/WorkspaceCategoryForm';
 import type {PolicyCategories} from '@src/types/onyx';
 
 type WorkspaceEditCategoryGLCodePageOnyxProps = {
-    /** Policy category */
+    /** Collection of categories attached to a policy */
     policyCategories: OnyxEntry<PolicyCategories>;
 };
 
