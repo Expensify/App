@@ -122,25 +122,20 @@ type Reservation = {
     numberOfRooms?: number;
     route?: {
         airlineCode: string;
+        class?: string;
         number: string;
     };
     vendor?: string;
     carInfo?: CarInfo;
 };
 
-type CarInfo = {
-    engine: string;
-    name: string;
-};
-
 type ReservationTimeDetails = {
     date: string;
     address?: string;
+    location?: string;
     longName?: string;
     shortName?: string;
-    cityName?: string;
-    timezoneOffset?: number;
-    location?: string;
+    timezoneOffset?: string;
 };
 
 type Company = {
@@ -154,7 +149,13 @@ type ReservationConfirmation = {
     value: string;
 };
 
+type CarInfo = {
+    name?: string;
+    engine?: string;
+};
+
 type ReservationType = ValueOf<typeof CONST.RESERVATION_TYPE>;
+
 type SplitShare = {
     amount: number;
     isModified?: boolean;
@@ -286,6 +287,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Holds the accountIDs of accounts who paid the split, for now only supports a single payer */
         splitPayerAccountIDs?: number[];
 
+        /** Whether the user input should be kept */
+        shouldShowOriginalAmount?: boolean;
+
         /** The actionable report action ID associated with the transaction */
         actionableWhisperReportActionID?: string;
 
@@ -323,6 +327,7 @@ export type {
     TransactionPendingFieldsKey,
     TransactionChanges,
     TaxRate,
+    ReservationTimeDetails,
     ReceiptSource,
     Reservation,
     ReservationType,

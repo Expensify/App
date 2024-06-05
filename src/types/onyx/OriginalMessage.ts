@@ -351,6 +351,15 @@ type OriginalMessageDismissedViolation = {
     };
 };
 
+type OriginalMessageTripRoomPreview = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.TRIPPREVIEW;
+    originalMessage: {
+        linkedReportID: string;
+        lastModified?: string;
+        whisperedTo?: number[];
+    };
+};
+
 type OriginalMessage =
     | OriginalMessageApproved
     | OriginalMessageIOU
@@ -375,6 +384,7 @@ type OriginalMessage =
     | OriginalMessageReimbursementDequeued
     | OriginalMessageMoved
     | OriginalMessageMarkedReimbursed
+    | OriginalMessageTripRoomPreview
     | OriginalMessageActionableTrackedExpenseWhisper
     | OriginalMessageMergedWithCashTransaction
     | OriginalMessageDismissedViolation

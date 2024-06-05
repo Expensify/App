@@ -12,13 +12,16 @@ function getTripReservationIcon(reservationType: ReservationType): IconAsset {
             return Expensicons.Bed;
         case CONST.RESERVATION_TYPE.CAR:
             return Expensicons.CarWithKey;
-        case CONST.RESERVATION_TYPE.MISC:
-            return Expensicons.Luggage;
-        case CONST.RESERVATION_TYPE.RAIL:
-            return Expensicons.Train;
         default:
-            return Expensicons.CarWithKey;
+            return Expensicons.Luggage;
     }
+}
+
+function getReservationsFromTripTransactions(transactions: Transaction[]): Reservation[] {
+    return transactions
+        .map((item) => item?.receipt?.reservationList ?? [])
+        .filter((item) => item.length > 0)
+        .flat();
 }
 
 function getTripReservationTitle(reservation: Reservation) {
@@ -27,13 +30,6 @@ function getTripReservationTitle(reservation: Reservation) {
     }
 
     return reservation.start?.address;
-}
-
-function getReservationsFromTripTransactions(transactions: Transaction[]): Reservation[] {
-    return transactions
-        .map((item) => item?.receipt?.reservationList ?? [])
-        .filter((item) => item.length > 0)
-        .flat();
 }
 
 export {getTripReservationIcon, getReservationsFromTripTransactions, getTripReservationTitle};

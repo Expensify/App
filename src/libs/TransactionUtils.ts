@@ -58,7 +58,7 @@ function isScanRequest(transaction: OnyxEntry<Transaction>): boolean {
         return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN;
     }
 
-    return Boolean(transaction?.receipt?.source);
+    return Boolean(transaction?.receipt?.source) && transaction?.amount === 0;
 }
 
 function getRequestType(transaction: OnyxEntry<Transaction>): IOURequestType {
@@ -366,7 +366,7 @@ function getMerchant(transaction: OnyxEntry<Transaction>): string {
     return transaction?.modifiedMerchant ? transaction.modifiedMerchant : transaction?.merchant ?? '';
 }
 
-function getDistance(transaction: OnyxEntry<Transaction>): number {
+function getDistance(transaction: Transaction | null): number {
     return transaction?.comment?.customUnit?.quantity ?? 0;
 }
 
@@ -605,12 +605,12 @@ function getValidWaypoints(waypoints: WaypointCollection | undefined, reArrangeI
             return acc;
         }
 
-        const validatedWaypoints: WaypointCollection = {...acc, [`waypoint${reArrangeIndexes ? waypointIndex + 1 : index}`]: currentWaypoint};
+        acc[`waypoint${reArrangeIndexes ? waypointIndex + 1 : index}`] = currentWaypoint;
 
         lastWaypointIndex = index;
         waypointIndex += 1;
 
-        return validatedWaypoints;
+        return acc;
     }, {});
 }
 
@@ -676,14 +676,15 @@ function getEnabledTaxRateCount(options: TaxRates) {
     return Object.values(options).filter((option: TaxRate) => !option.isDisabled).length;
 }
 
-function hasReservationList(transaction: Transaction | undefined | null): boolean {
-    return !!transaction?.receipt?.reservationList && transaction?.receipt?.reservationList?.length > 0;
-}
 /**
  * Check if the customUnitRateID has a value default for P2P distance requests
  */
 function isCustomUnitRateIDForP2P(transaction: OnyxEntry<Transaction>): boolean {
     return transaction?.comment?.customUnit?.customUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID;
+}
+
+function hasReservationList(transaction: Transaction | undefined | null): boolean {
+    return !!transaction?.receipt?.reservationList && transaction?.receipt?.reservationList.length > 0;
 }
 
 /**
@@ -808,8 +809,8 @@ export {
     getWaypointIndex,
     waypointHasValidAddress,
     getRecentTransactions,
-    hasViolation,
     hasReservationList,
+    hasViolation,
     hasNoticeTypeViolation,
     isCustomUnitRateIDForP2P,
     getRateID,
