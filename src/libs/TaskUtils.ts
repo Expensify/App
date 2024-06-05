@@ -6,7 +6,7 @@ import type {Report} from '@src/types/onyx';
 import type {Message} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import * as Localize from './Localize';
-import {getReportActionMessage, getReportActionText} from './ReportActionsUtils';
+import {getReportActionHtml, getReportActionText} from './ReportActionsUtils';
 
 let allReports: OnyxCollection<Report> = {};
 Onyx.connect({
@@ -31,7 +31,7 @@ function getTaskReportActionMessage(action: OnyxEntry<ReportAction>): Pick<Messa
         case CONST.REPORT.ACTIONS.TYPE.TASK_EDITED:
             return {
                 text: getReportActionText(action),
-                html: getReportActionMessage(action)?.html,
+                html: getReportActionHtml(action),
             };
         default:
             return {text: Localize.translateLocal('task.task')};

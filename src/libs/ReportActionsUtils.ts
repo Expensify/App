@@ -143,7 +143,7 @@ function isModifiedExpenseAction(reportAction: OnyxEntry<ReportAction>): reportA
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE);
 }
 
-function isPolicyChangelLogAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>> {
+function isPolicyChangeLogAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>> {
     return isActionOfType(reportAction, ...Object.values(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG));
 }
 
@@ -470,7 +470,7 @@ function getMostRecentIOURequestActionID(reportActions: ReportAction[] | null): 
  * Returns array of links inside a given report action
  */
 function extractLinksFromMessageHtml(reportAction: OnyxEntry<ReportAction>): string[] {
-    const htmlContent = getReportActionMessage(reportAction)?.html;
+    const htmlContent = getReportActionHtml(reportAction);
 
     const regex = CONST.REGEX_LINK_IN_ANCHOR;
 
@@ -688,7 +688,7 @@ function shouldReportActionBeVisibleAsLastAction(reportAction: OnyxEntry<ReportA
  * which includes a baseURL placeholder that's replaced in the client.
  */
 function replaceBaseURLInPolicyChangeLogAction(reportAction: ReportAction): ReportAction {
-    if (!reportAction?.message || !isPolicyChangelLogAction(reportAction)) {
+    if (!reportAction?.message || !isPolicyChangeLogAction(reportAction)) {
         return reportAction;
     }
 
@@ -699,7 +699,7 @@ function replaceBaseURLInPolicyChangeLogAction(reportAction: ReportAction): Repo
     }
 
     if (Array.isArray(updatedReportAction.message) && updatedReportAction.message[0]) {
-        updatedReportAction.message[0].html = getReportActionMessage(reportAction)?.html?.replace('%baseURL', environmentURL);
+        updatedReportAction.message[0].html = getReportActionHtml(reportAction)?.replace('%baseURL', environmentURL);
     }
 
     return updatedReportAction;
@@ -1126,6 +1126,11 @@ function getReportActionText(reportAction: PartialReportAction): string {
     return html ? parser.htmlToText(html) : '';
 }
 
+function getTextFromHtml(html?: string): string {
+    const parser = new ExpensiMark();
+    return html ? parser.htmlToText(html) : '';
+}
+
 function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>): Message {
     const messageElements: readonly MemberChangeMessageElement[] = getMemberChangeMessageElements(reportAction);
     const html = messageElements
@@ -1311,9 +1316,9 @@ function isApprovedOrSubmittedReportAction(action: OnyxEntry<ReportAction> | Emp
  */
 function getReportActionMessageText(reportAction: OnyxEntry<ReportAction> | EmptyObject): string {
     if (!Array.isArray(reportAction?.message)) {
-        return '';
+        return getReportActionText(reportAction);
     }
-    return reportAction?.message?.reduce((acc, curr) => `${acc}${curr?.text}`, '') ?? '';
+    return reportAction?.message?.reduce((acc, curr) => `${acc}${getTextFromHtml(curr?.html)}`, '') ?? '';
 }
 
 function getDismissedViolationMessageText(originalMessage: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION>['originalMessage']): string {
@@ -1416,7 +1421,7 @@ export {
     isRoomChangeLogAction,
     isChronosOOOListAction,
     isAddCommentAction,
-    isPolicyChangelLogAction,
+    isPolicyChangeLogAction,
 };
 
 export type {LastVisibleMessage};

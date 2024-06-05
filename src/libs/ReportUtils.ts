@@ -2733,7 +2733,7 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxEntry<ReportAction>, field
  */
 function canEditReportAction(reportAction: OnyxEntry<ReportAction>): boolean {
     const isCommentOrIOU = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU;
-    const message = Array.isArray(reportAction?.message) ? reportAction?.message?.[0] : reportAction?.message;
+    const message = reportAction ? ReportActionsUtils.getReportActionMessage(reportAction) : undefined;
 
     return Boolean(
         reportAction?.actorAccountID === currentUserAccountID &&
@@ -2875,7 +2875,7 @@ function getReportPreviewMessage(
     isForListPreview = false,
     originalReportAction: OnyxEntry<ReportAction> | EmptyObject = iouReportAction,
 ): string {
-    const reportActionMessage = ReportActionsUtils.getReportActionMessage(iouReportAction)?.html ?? '';
+    const reportActionMessage = ReportActionsUtils.getReportActionHtml(iouReportAction);
 
     if (isEmptyObject(report) || !report?.reportID || isEmptyObject(iouReportAction)) {
         // The iouReport is not found locally after SignIn because the OpenApp API won't return iouReports if they're settled
@@ -3113,7 +3113,7 @@ function getAdminRoomInvitedParticipants(parentReportAction: ReportAction | Empt
     if (!ReportActionsUtils.getOriginalMessage(parentReportAction)) {
         return parentReportActionMessage || Localize.translateLocal('parentReportAction.deletedMessage');
     }
-    if (!ReportActionsUtils.isPolicyChangelLogAction(parentReportAction) || !ReportActionsUtils.isRoomChangeLogAction(parentReportAction)) {
+    if (!ReportActionsUtils.isPolicyChangeLogAction(parentReportAction) || !ReportActionsUtils.isRoomChangeLogAction(parentReportAction)) {
         return parentReportActionMessage || Localize.translateLocal('parentReportAction.deletedMessage');
     }
 
@@ -3677,7 +3677,7 @@ function buildOptimisticTaskCommentReportAction(
     // These parameters are not saved on the reportAction, but are used to display the task in the UI
     // Added when we fetch the reportActions on a report
     reportAction.reportAction.originalMessage = {
-        html: ReportActionsUtils.getReportActionMessage(reportAction.reportAction)?.html ?? '',
+        html: ReportActionsUtils.getReportActionHtml(reportAction.reportAction),
         taskReportID: ReportActionsUtils.getReportActionMessage(reportAction.reportAction)?.taskReportID,
         whisperedTo: [],
     };
@@ -6634,7 +6634,7 @@ function isAllowedToSubmitDraftExpenseReport(report: OnyxEntry<Report>): boolean
  */
 function getIndicatedMissingPaymentMethod(userWallet: OnyxEntry<UserWallet>, reportId: string, reportAction: ReportAction): MissingPaymentMethod | undefined {
     const isSubmitterOfUnsettledReport = isCurrentUserSubmitter(reportId) && !isSettled(reportId);
-    if (!isSubmitterOfUnsettledReport || !ReportActionsUtils.isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED)) {
+    if (!isSubmitterOfUnsettledReport || !ReportActionsUtils.isReimbursementQueuedAction(reportAction)) {
         return undefined;
     }
     const paymentType = ReportActionsUtils.getOriginalMessage(reportAction)?.paymentType;
