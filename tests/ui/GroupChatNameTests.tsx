@@ -55,12 +55,11 @@ const createAddListenerMock = (): ListenerMock => {
         transitionEndListeners.forEach((transitionEndListener) => transitionEndListener());
     };
 
-    const addListener: jest.Mock = jest.fn().mockImplementation((listener, callback) => {
+    const addListener: jest.Mock = jest.fn().mockImplementation((listener, callback: () => void) => {
         if (listener === 'transitionEnd') {
             transitionEndListeners.push(callback);
         }
         return () => {
-            // eslint-disable-next-line rulesdir/prefer-underscore-method
             transitionEndListeners.filter((cb) => cb !== callback);
         };
     });
