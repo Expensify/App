@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -24,7 +24,7 @@ export default function (): Promise<void> {
                     return resolve();
                 }
 
-                const newReportActionsDrafts: Record<ReportActionsDraftsKey, OnyxEntry<ReportActionsDrafts>> = {};
+                const newReportActionsDrafts: Record<ReportActionsDraftsKey, OnyxInputValue<ReportActionsDrafts>> = {};
                 Object.entries(allReportActionsDrafts).forEach(([onyxKey, reportActionDrafts]) => {
                     const newReportActionsDraftsForReport: Record<string, ReportActionsDraft> = {};
 
@@ -54,7 +54,7 @@ export default function (): Promise<void> {
                     if (isEmptyObject(newReportActionsDraftsForReport)) {
                         Log.info('[Migrate Onyx] NO REMAINING');
                         // Clear if there are no drafts remaining
-                        newReportActionsDrafts[onyxKey as ReportActionsDraftsKey] = undefined;
+                        newReportActionsDrafts[onyxKey as ReportActionsDraftsKey] = null;
                     } else if (hasUnmigratedDraft) {
                         // Only migrate if there are unmigrated drafts, there's no need to overwrite this onyx key with the same data
                         newReportActionsDrafts[onyxKey as ReportActionsDraftsKey] = newReportActionsDraftsForReport;
