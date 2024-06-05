@@ -386,6 +386,11 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightNormal,
         },
 
+        textSmall: {
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
+            fontSize: variables.fontSizeSmall,
+        },
+
         textMicro: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeSmall,
@@ -1377,6 +1382,10 @@ const styles = (theme: ThemeColors) =>
             color: theme.textSupporting,
         },
 
+        lh14: {
+            lineHeight: variables.lineHeightSmall,
+        },
+
         lh16: {
             lineHeight: 16,
         },
@@ -1696,7 +1705,7 @@ const styles = (theme: ThemeColors) =>
         createMenuHeaderText: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeLabel,
-            color: theme.heading,
+            color: theme.textSupporting,
         },
 
         popoverMenuItem: {
@@ -2796,11 +2805,21 @@ const styles = (theme: ThemeColors) =>
             fontWeight: FontUtils.fontWeight.bold,
         },
 
+        borderedContentCard: {
+            borderWidth: 1,
+            borderColor: theme.border,
+            borderRadius: variables.componentBorderRadiusNormal,
+        },
+
         sectionMenuItem: {
             borderRadius: 8,
             paddingHorizontal: 8,
             height: 56,
             alignItems: 'center',
+        },
+
+        sectionSelectCircle: {
+            backgroundColor: colors.productDark200,
         },
 
         qrShareSection: {
@@ -4422,6 +4441,7 @@ const styles = (theme: ThemeColors) =>
             borderWidth: variables.componentBorderWidth,
             borderColor: theme.appBG,
         },
+        currentPositionDot: {backgroundColor: colors.blue400, width: 16, height: 16, borderRadius: 16},
 
         mapViewOverlay: {
             flex: 1,
@@ -4925,6 +4945,15 @@ const styles = (theme: ThemeColors) =>
             flex: 1,
         },
 
+        tripReservationIconContainer: {
+            width: variables.avatarSizeNormal,
+            height: variables.avatarSizeNormal,
+            backgroundColor: theme.border,
+            borderRadius: variables.componentBorderRadiusXLarge,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+
         textLineThrough: {
             textDecorationLine: 'line-through',
         },
@@ -4938,10 +4967,6 @@ const styles = (theme: ThemeColors) =>
             color: theme.text,
             fontSize: variables.fontSizeNormal,
             fontWeight: FontUtils.fontWeight.bold,
-        },
-
-        reportListItemActionButtonMargin: {
-            marginLeft: variables.searchTypeColumnWidth,
         },
     } satisfies Styles);
 

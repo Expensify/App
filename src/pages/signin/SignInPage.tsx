@@ -145,7 +145,7 @@ function SignInPageInner({credentials, account, activeClients = [], preferredLoc
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
-    const {shouldUseNarrowLayout, isInModal} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
     const safeAreaInsets = useSafeAreaInsets();
     const signInPageLayoutRef = useRef<SignInPageLayoutRef>(null);
     const loginFormRef = useRef<InputHandle>(null);
@@ -266,7 +266,7 @@ function SignInPageInner({credentials, account, activeClients = [], preferredLoc
         <ScreenWrapper
             shouldShowOfflineIndicator={false}
             shouldEnableMaxHeight={shouldEnableMaxHeight}
-            style={[styles.signInPage, StyleUtils.getSafeAreaPadding({...safeAreaInsets, bottom: 0, top: isInModal ? 0 : safeAreaInsets.top}, 1)]}
+            style={[styles.signInPage, StyleUtils.getSafeAreaPadding({...safeAreaInsets, bottom: 0, top: isInNarrowPaneModal ? 0 : safeAreaInsets.top}, 1)]}
             testID={SignInPageInner.displayName}
         >
             <SignInPageLayout
