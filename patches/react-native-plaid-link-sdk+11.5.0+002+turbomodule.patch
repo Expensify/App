@@ -4,7 +4,7 @@ index 93ebca6..b685c93 100644
 +++ b/node_modules/react-native-plaid-link-sdk/README.md
 @@ -49,7 +49,6 @@ cd ios && bundle install && bundle exec pod install
  
- AutoLinking should handle all of the Android setup.
+ AutoLinking should handle all of the Android setup. 
  
 -
  ### React Native Setup
@@ -191,7 +191,7 @@ index 6c0b863..0000000
 -</project>
 \ No newline at end of file
 diff --git a/node_modules/react-native-plaid-link-sdk/android/build.gradle b/node_modules/react-native-plaid-link-sdk/android/build.gradle
-index 2d9e2ce..e88208b 100644
+index 2d9e2ce..44b40e1 100644
 --- a/node_modules/react-native-plaid-link-sdk/android/build.gradle
 +++ b/node_modules/react-native-plaid-link-sdk/android/build.gradle
 @@ -12,7 +12,12 @@ allprojects {
@@ -241,6 +241,15 @@ index 2d9e2ce..e88208b 100644
      def agpVersion = com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION.tokenize('.')[0].toInteger()
      if (agpVersion >= 7) {
        namespace 'com.plaid'
+@@ -36,7 +63,7 @@ android {
+     compileSdkVersion 31
+ 
+     defaultConfig {
+-        minSdkVersion 21
++        minSdkVersion 23
+         targetSdkVersion 31
+         versionCode 1
+         versionName "0.0.1"
 @@ -52,6 +79,14 @@ android {
        }
      }
