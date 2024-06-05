@@ -2252,9 +2252,9 @@ function getTrackExpenseInformation(
         createdReportActionIDForThread: optimisticCreatedActionForTransactionThread.reportActionID,
         actionableWhisperReportActionIDParam: actionableTrackExpenseWhisper?.reportActionID ?? '',
         onyxData: {
-            optimisticData: [...optimisticData, ...trackExpenseOnyxData[0]],
-            successData: [...successData, ...trackExpenseOnyxData[1]],
-            failureData: [...failureData, ...trackExpenseOnyxData[2]],
+            optimisticData: optimisticData.concat(trackExpenseOnyxData[0]),
+            successData: successData.concat(trackExpenseOnyxData[1]),
+            failureData: failureData.concat(trackExpenseOnyxData[2]),
         },
     };
 }
