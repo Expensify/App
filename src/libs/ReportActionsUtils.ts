@@ -749,16 +749,16 @@ function getFirstVisibleReportActionID(sortedReportActions: ReportAction[] = [],
 /**
  * @returns The latest report action in the `onyxData` or `null` if one couldn't be found
  */
-function getLatestReportActionFromOnyxData(onyxData: OnyxUpdate[] | undefined): OnyxEntry<ReportAction> {
+function getLatestReportActionFromOnyxData(onyxData: OnyxUpdate[] | null): NonNullable<OnyxEntry<ReportAction>> | null {
     const reportActionUpdate = onyxData?.find((onyxUpdate) => onyxUpdate.key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS));
 
     if (!reportActionUpdate) {
-        return undefined;
+        return null;
     }
 
     const reportActions = Object.values((reportActionUpdate.value as ReportActions) ?? {});
     const sortedReportActions = getSortedReportActions(reportActions);
-    return sortedReportActions.at(-1);
+    return sortedReportActions.at(-1) ?? null;
 }
 
 /**
@@ -1239,7 +1239,7 @@ function isLinkedTransactionHeld(reportActionID: string, reportID: string): bool
 /**
  * Check if the current user is the requestor of the action
  */
-function wasActionTakenByCurrentUser(reportAction: OnyxEntry<ReportAction>): boolean {
+function wasActionTakenByCurrentUser(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
     return currentUserAccountID === reportAction?.actorAccountID;
 }
 

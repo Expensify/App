@@ -675,7 +675,7 @@ function getPolicyType(report: OnyxInputOrEntry<Report>, policies: OnyxCollectio
 /**
  * Get the policy name from a given report
  */
-function getPolicyName(report: OnyxEntry<Report> | undefined | EmptyObject, returnEmptyIfNotFound = false, policy?: OnyxEntry<Policy>): string {
+function getPolicyName(report: OnyxInputOrEntry<Report> | undefined | EmptyObject, returnEmptyIfNotFound = false, policy?: OnyxInputOrEntry<Policy>): string {
     const noPolicyFound = returnEmptyIfNotFound ? '' : Localize.translateLocal('workspace.common.unavailable');
     if (isEmptyObject(report)) {
         return noPolicyFound;
@@ -1753,7 +1753,7 @@ function getDefaultGroupAvatar(reportID?: string): IconAsset {
  * Returns the appropriate icons for the given chat report using the stored personalDetails.
  * The Avatar sources can be URLs or Icon components according to the chat type.
  */
-function getIconsForParticipants(participants: number[], personalDetails: OnyxEntry<PersonalDetailsList>): Icon[] {
+function getIconsForParticipants(participants: number[], personalDetails: OnyxInputOrEntry<PersonalDetailsList>): Icon[] {
     const participantDetails: ParticipantDetails[] = [];
     const participantsList = participants || [];
 
@@ -1796,7 +1796,7 @@ function getIconsForParticipants(participants: number[], personalDetails: OnyxEn
 /**
  * Given a report, return the associated workspace icon.
  */
-function getWorkspaceIcon(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>): Icon {
+function getWorkspaceIcon(report: OnyxInputOrEntry<Report>, policy?: OnyxInputOrEntry<Policy>): Icon {
     const workspaceName = getPolicyName(report, false, policy);
     const policyExpenseChatAvatarSource = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.avatarURL
         ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.avatarURL
@@ -1942,12 +1942,12 @@ function getParticipants(reportID: string) {
  * The Avatar sources can be URLs or Icon components according to the chat type.
  */
 function getIcons(
-    report: OnyxEntry<Report>,
-    personalDetails: OnyxEntry<PersonalDetailsList>,
+    report: OnyxInputOrEntry<Report>,
+    personalDetails: OnyxInputOrEntry<PersonalDetailsList>,
     defaultIcon: AvatarSource | null = null,
     defaultName = '',
     defaultAccountID = -1,
-    policy?: OnyxEntry<Policy>,
+    policy?: OnyxInputOrEntry<Policy>,
 ): Icon[] {
     if (isEmptyObject(report)) {
         const fallbackIcon: Icon = {
@@ -2863,13 +2863,13 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction | Optimis
  *     from a report preview action. Otherwise, it will be the same as `iouReportAction`.
  */
 function getReportPreviewMessage(
-    report: OnyxEntry<Report> | EmptyObject,
-    iouReportAction: OnyxEntry<ReportAction> | EmptyObject = {},
+    report: OnyxInputOrEntry<Report> | EmptyObject,
+    iouReportAction: OnyxInputOrEntry<ReportAction> | EmptyObject = {},
     shouldConsiderScanningReceiptOrPendingRoute = false,
     isPreviewMessageForParentChatReport = false,
-    policy?: OnyxEntry<Policy>,
+    policy?: OnyxInputOrEntry<Policy>,
     isForListPreview = false,
-    originalReportAction: OnyxEntry<ReportAction> | EmptyObject = iouReportAction,
+    originalReportAction: OnyxInputOrEntry<ReportAction> | EmptyObject = iouReportAction,
 ): string {
     const reportActionMessage = iouReportAction?.message?.[0]?.html ?? '';
 
@@ -5170,7 +5170,7 @@ function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string): b
 /**
  * Checks to see if a report's parentAction is an expense that contains a violation
  */
-function doesTransactionThreadHaveViolations(report: OnyxEntry<Report>, transactionViolations: OnyxCollection<TransactionViolation[]>, parentReportAction: OnyxEntry<ReportAction>): boolean {
+function doesTransactionThreadHaveViolations(report: OnyxInputOrEntry<Report>, transactionViolations: OnyxCollection<TransactionViolation[]>, parentReportAction: OnyxInputOrEntry<ReportAction>): boolean {
     if (parentReportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
         return false;
     }

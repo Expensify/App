@@ -508,7 +508,7 @@ function didRceiptScanSucceed(transaction: OnyxEntry<Transaction>): boolean {
 /**
  * Check if the transaction has a non-smartscanning receipt and is missing required fields
  */
-function hasMissingSmartscanFields(transaction: OnyxEntry<Transaction>): boolean {
+function hasMissingSmartscanFields(transaction: OnyxInputOrEntry<Transaction>): boolean {
     return Boolean(transaction && !isDistanceRequest(transaction) && !isReceiptBeingScanned(transaction) && areRequiredFieldsEmpty(transaction));
 }
 

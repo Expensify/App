@@ -15,6 +15,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     Beta,
     Login,
+    OnyxInputOrEntry,
     PersonalDetails,
     PersonalDetailsList,
     Policy,
@@ -361,7 +362,7 @@ function getAvatarsForAccountIDs(accountIDs: number[], personalDetails: OnyxEntr
  * Returns the personal details for an array of accountIDs
  * @returns keys of the object are emails, values are PersonalDetails objects.
  */
-function getPersonalDetailsForAccountIDs(accountIDs: number[] | undefined, personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetailsList {
+function getPersonalDetailsForAccountIDs(accountIDs: number[] | undefined, personalDetails: OnyxInputOrEntry<PersonalDetailsList>): PersonalDetailsList {
     const personalDetailsForAccountIDs: PersonalDetailsList = {};
     if (!personalDetails) {
         return personalDetailsForAccountIDs;
@@ -478,7 +479,7 @@ function uniqFast(items: string[]): string[] {
  * Array.prototype.push.apply is faster than using the spread operator.
  */
 function getSearchText(
-    report: OnyxEntry<Report>,
+    report: OnyxInputOrEntry<Report>,
     reportName: string,
     personalDetailList: Array<Partial<PersonalDetails>>,
     isChatRoomOrPolicyExpenseChat: boolean,
@@ -527,13 +528,13 @@ function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<
 
         return Object.assign(prevReportActionErrors, action.errors);
     }, {});
-    const parentReportAction: OnyxEntry<ReportAction> =
-        !report?.parentReportID || !report?.parentReportActionID ? undefined : allReportActions?.[report.parentReportID ?? '']?.[report.parentReportActionID ?? ''];
+    const parentReportAction: OnyxEntry<ReportAction> | null =
+        !report?.parentReportID || !report?.parentReportActionID ? null : allReportActions?.[report.parentReportID ?? '']?.[report.parentReportActionID ?? ''] ?? null;
 
     if (ReportActionUtils.wasActionTakenByCurrentUser(parentReportAction) && ReportActionUtils.isTransactionThread(parentReportAction)) {
-        const transactionID = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction?.originalMessage?.IOUTransactionID : undefined;
+        const transactionID = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction?.originalMessage?.IOUTransactionID : null;
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-        if (TransactionUtils.hasMissingSmartscanFields(transaction) && !ReportUtils.isSettled(transaction?.reportID)) {
+        if (TransactionUtils.hasMissingSmartscanFields(transaction ?? null) && !ReportUtils.isSettled(transaction?.reportID)) {
             reportActionErrors.smartscan = ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage');
         }
     } else if ((ReportUtils.isIOUReport(report) || ReportUtils.isExpenseReport(report)) && report?.ownerAccountID === currentUserAccountID) {
@@ -628,7 +629,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
             }
         }
     } else if (ReportActionUtils.isMoneyRequestAction(lastReportAction)) {
-        const properSchemaForMoneyRequestMessage = ReportUtils.getReportPreviewMessage(report, lastReportAction, true, false, undefined, true);
+        const properSchemaForMoneyRequestMessage = ReportUtils.getReportPreviewMessage(report, lastReportAction, true, false, null, true);
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForMoneyRequestMessage);
     } else if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
         const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
@@ -639,11 +640,11 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
                 ReportActionUtils.isMoneyRequestAction(reportAction),
         );
         const reportPreviewMessage = ReportUtils.getReportPreviewMessage(
-            !isEmptyObject(iouReport) ? iouReport : undefined,
+            !isEmptyObject(iouReport) ? iouReport : null,
             lastIOUMoneyReportAction,
             true,
             ReportUtils.isChatReport(report),
-            undefined,
+            null,
             true,
             lastReportAction,
         );
@@ -678,8 +679,8 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
  */
 function createOption(
     accountIDs: number[],
-    personalDetails: OnyxEntry<PersonalDetailsList>,
-    report: OnyxEntry<Report>,
+    personalDetails: OnyxInputOrEntry<PersonalDetailsList>,
+    report: OnyxInputOrEntry<Report>,
     reportActions: ReportActions,
     config?: PreviewConfig,
 ): ReportUtils.OptionData {
@@ -806,7 +807,7 @@ function createOption(
     // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     result.searchText = getSearchText(report, reportName, personalDetailList, !!result.isChatRoom || !!result.isPolicyExpenseChat, !!result.isThread);
-    result.icons = ReportUtils.getIcons(report, personalDetails, personalDetail?.avatar, personalDetail?.login, personalDetail?.accountID, undefined);
+    result.icons = ReportUtils.getIcons(report, personalDetails, personalDetail?.avatar, personalDetail?.login, personalDetail?.accountID, null);
     result.subtitle = subtitle;
 
     return result;
@@ -856,7 +857,7 @@ function getReportOption(participant: Participant): ReportUtils.OptionData {
  * Get the option for a policy expense report.
  */
 function getPolicyExpenseReportOption(participant: Participant | ReportUtils.OptionData): ReportUtils.OptionData {
-    const expenseReport = ReportUtils.isPolicyExpenseChat(participant) ? ReportUtils.getReport(participant.reportID) : undefined;
+    const expenseReport = ReportUtils.isPolicyExpenseChat(participant) ? ReportUtils.getReport(participant.reportID) : null;
 
     const visibleParticipantAccountIDs = Object.entries(expenseReport?.participants ?? {})
         .filter(([, reportParticipant]) => reportParticipant && !reportParticipant.hidden)
@@ -865,7 +866,7 @@ function getPolicyExpenseReportOption(participant: Participant | ReportUtils.Opt
     const option = createOption(
         visibleParticipantAccountIDs,
         allPersonalDetails ?? {},
-        !isEmptyObject(expenseReport) ? expenseReport : undefined,
+        !isEmptyObject(expenseReport) ? expenseReport : null,
         {},
         {
             showChatPreviewLine: false,
@@ -1662,7 +1663,7 @@ function getUserToInviteOption({
             login: searchValue,
         },
     };
-    const userToInvite = createOption([optimisticAccountID], personalDetailsExtended, undefined, reportActions, {
+    const userToInvite = createOption([optimisticAccountID], personalDetailsExtended, null, reportActions, {
         showChatPreviewLine,
     });
     userToInvite.isOptimisticAccount = true;
@@ -1795,7 +1796,7 @@ function getOptions(
         const {parentReportID, parentReportActionID} = report ?? {};
         const canGetParentReport = parentReportID && parentReportActionID && allReportActions;
         const parentReportActions = allReportActions ? allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`] ?? {} : {};
-        const parentReportAction = canGetParentReport ? parentReportActions[parentReportActionID] : undefined;
+        const parentReportAction = canGetParentReport ? parentReportActions[parentReportActionID] ?? null : null;
         const doesReportHaveViolations =
             (betas?.includes(CONST.BETAS.VIOLATIONS) && ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction)) ?? false;
 
