@@ -241,7 +241,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         isActive={Boolean(currentPolicyTag?.required)}
                         onToggle={(on) => Tag.setPolicyTagsRequired(policyID, on, route.params.orderWeight)}
                         pendingAction={currentPolicyTag.pendingFields?.required}
-                        errors={currentPolicyTag.errors}
+                        errors={currentPolicyTag?.errorFields?.required ?? undefined}
                         disabled={!currentPolicyTag?.required && !Object.values(currentPolicyTag?.tags ?? {}).some((tag) => tag.enabled)}
                     />
                 </View>
