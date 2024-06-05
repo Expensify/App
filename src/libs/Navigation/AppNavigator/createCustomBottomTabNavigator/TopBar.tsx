@@ -1,7 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Breadcrumbs from '@components/Breadcrumbs';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -17,20 +16,15 @@ import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Session as SessionType} from '@src/types/onyx';
 
-type TopBarOnyxProps = {
-    policy: OnyxEntry<Policy>;
-    session: OnyxEntry<Pick<SessionType, 'authTokenType'>>;
-};
+type TopBarProps = {breadcrumbLabel: string; activeWorkspaceID?: string; shouldDisplaySearch?: boolean};
 
-// eslint-disable-next-line react/no-unused-prop-types
-type TopBarProps = {breadcrumbLabel: string; activeWorkspaceID?: string; shouldDisplaySearch?: boolean} & TopBarOnyxProps;
-
-function TopBar({policy, session, breadcrumbLabel, shouldDisplaySearch = true}: TopBarProps) {
+function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true}: TopBarProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activeWorkspaceID}`);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: (sessionValue) => sessionValue && {authTokenType: sessionValue.authTokenType}});
     const isAnonymousUser = Session.isAnonymousUser(session);
 
     const headerBreadcrumb = policy?.name
@@ -84,12 +78,4 @@ function TopBar({policy, session, breadcrumbLabel, shouldDisplaySearch = true}: 
 
 TopBar.displayName = 'TopBar';
 
-export default withOnyx<TopBarProps, TopBarOnyxProps>({
-    policy: {
-        key: ({activeWorkspaceID}) => `${ONYXKEYS.COLLECTION.POLICY}${activeWorkspaceID}`,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
-        selector: (session) => session && {authTokenType: session.authTokenType},
-    },
-})(TopBar);
+export default TopBar;
