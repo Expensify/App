@@ -3,7 +3,7 @@ import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
 import {escapeRegExp} from 'lodash';
 import lodashClone from 'lodash/clone';
-import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
@@ -798,12 +798,12 @@ function removeMembers(accountIDs: number[], policyID: string) {
 
     const announceRoomMembers = removeOptimisticAnnounceRoomMembers(policy.id, policy.name, accountIDs);
 
-    const optimisticMembersState: OnyxCollection<PolicyEmployee> = {};
-    const successMembersState: OnyxCollection<PolicyEmployee> = {};
-    const failureMembersState: OnyxCollection<PolicyEmployee> = {};
+    const optimisticMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
+    const successMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
+    const failureMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
     emailList.forEach((email) => {
         optimisticMembersState[email] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
-        successMembersState[email] = undefined;
+        successMembersState[email] = null;
         failureMembersState[email] = {errors: ErrorUtils.getMicroSecondOnyxError('workspace.people.error.genericRemove')};
     });
 
