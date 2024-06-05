@@ -95,7 +95,7 @@ function ReportFooter({
     const isSmallSizeLayout = windowWidth - (isSmallScreenWidth ? 0 : variables.sideBarWidth) < variables.anonymousReportFooterBreakpoint;
 
     // If a user just signed in and is viewing a public report, optimistically show the composer while loading the report, since they will have write access when the response comes back.
-    const showComposerOptimistically = ReportUtils.isPublicRoom(report) && reportMetadata?.isLoadingInitialReportActions;
+    const showComposerOptimistically = !isAnonymousUser && ReportUtils.isPublicRoom(report) && reportMetadata?.isLoadingInitialReportActions;
     const hideComposer = (!ReportUtils.canUserPerformWriteAction(report, reportNameValuePairs) && !showComposerOptimistically) || blockedFromChat;
     const canWriteInReport = ReportUtils.canWriteInReport(report);
     const isSystemChat = ReportUtils.isSystemChat(report);
