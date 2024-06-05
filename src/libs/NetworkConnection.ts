@@ -102,7 +102,9 @@ function subscribeToBackendAndInternetReachability(): () => void {
         if (isOffline) {
             // Periodically refresh internet reachability check
             // More info: https://github.com/Expensify/App/issues/42988
-            NetInfo.refresh();
+            NetInfo.refresh().then(() => {
+                Log.info(`[NetworkStatus] Refreshing NetInfo's network status with "isOffline" set to "true" to double-check internet reachability.`);
+            });
             return;
         }
         // Using the API url ensures reachability is tested over internet
