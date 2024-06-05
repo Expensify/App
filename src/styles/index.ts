@@ -2836,16 +2836,16 @@ const styles = (theme: ThemeColors) =>
             padding: 10,
             backgroundColor: theme.border,
             borderRadius: variables.componentBorderRadius,
-            height: 40,
-            width: 40,
+            height: variables.iconSizeExtraLarge,
+            width: variables.iconSizeExtraLarge,
         },
 
         subscriptionAddedCardIcon: {
             padding: 10,
             backgroundColor: theme.icon,
             borderRadius: variables.componentBorderRadius,
-            height: 40,
-            width: 40,
+            height: variables.iconSizeExtraLarge,
+            width: variables.iconSizeExtraLarge,
         },
 
         selectCircle: {
