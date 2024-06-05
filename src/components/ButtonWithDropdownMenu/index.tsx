@@ -4,6 +4,7 @@ import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
+import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -33,6 +34,7 @@ function ButtonWithDropdownMenu<IValueType>({
     onOptionSelected,
     enterKeyEventListenerPriority = 0,
     wrapperStyle,
+    useKeyboardShortcuts = false,
 }: ButtonWithDropdownMenuProps<IValueType>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -65,6 +67,18 @@ function ButtonWithDropdownMenu<IValueType>({
             });
         }
     }, [windowWidth, windowHeight, isMenuVisible, anchorAlignment.vertical]);
+
+    useKeyboardShortcut(
+        CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER,
+        (e) => {
+            onPress(e, selectedItem.value);
+        },
+        {
+            captureOnInputs: true,
+            shouldBubble: false,
+            isActive: useKeyboardShortcuts,
+        },
+    );
     return (
         <View style={wrapperStyle}>
             {shouldAlwaysShowDropdownMenu || options.length > 1 ? (

@@ -77,6 +77,8 @@ type ButtonWithDropdownMenuProps<TValueType> = {
 
     /** Whether the button should use split style or not */
     isSplitButton?: boolean;
+
+    useKeyboardShortcuts?: boolean;
 };
 
 export type {PaymentType, WorkspaceMemberBulkActionType, WorkspaceDistanceRatesBulkActionType, DropdownOption, ButtonWithDropdownMenuProps, WorkspaceTaxRatesBulkActionType};
