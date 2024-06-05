@@ -304,7 +304,10 @@
   "overrides": {
     "expo": "51.0.0-beta.0",
     "react-native": "0.74.0",
-    "react-native-svg": "$react-native-svg"
+    "react-native-svg": "$react-native-svg",
+    "@react-native-community/cli": "13.6.4",
+    "@react-native-community/cli-platform-android": "13.6.4",
+    "@react-native-community/cli-platform-ios": "13.6.4"
   },
   "expo": {
     "autolinking": {
