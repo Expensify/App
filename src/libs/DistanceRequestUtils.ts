@@ -4,13 +4,15 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {RateAndUnit} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {LastSelectedDistanceRates, Report} from '@src/types/onyx';
+import type {LastSelectedDistanceRates, Report, Transaction} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CurrencyUtils from './CurrencyUtils';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportUtils from './ReportUtils';
+import * as TransactionUtils from './TransactionUtils';
 
 type MileageRate = {
     customUnitRateID?: string;
@@ -38,6 +40,35 @@ Onyx.connect({
 const METERS_TO_KM = 0.001; // 1 kilometer is 1000 meters
 const METERS_TO_MILES = 0.000621371; // There are approximately 0.000621371 miles in a meter
 
+function getMileageRates(policy: OnyxEntry<Policy>, includeDisabledRates = false): Record<string, MileageRate> {
+    const mileageRates: Record<string, MileageRate> = {};
+
+    if (!policy || !policy?.customUnits) {
+        return mileageRates;
+    }
+
+    const distanceUnit = PolicyUtils.getCustomUnit(policy);
+    if (!distanceUnit?.rates) {
+        return mileageRates;
+    }
+
+    Object.entries(distanceUnit.rates).forEach(([rateID, rate]) => {
+        if (!includeDisabledRates && !rate.enabled) {
+            return;
+        }
+
+        mileageRates[rateID] = {
+            rate: rate.rate,
+            currency: rate.currency,
+            unit: distanceUnit.attributes.unit,
+            name: rate.name,
+            customUnitRateID: rate.customUnitRateID,
+        };
+    });
+
+    return mileageRates;
+}
+
 /**
  * Retrieves the default mileage rate based on a given policy.
  *
@@ -49,16 +80,17 @@ const METERS_TO_MILES = 0.000621371; // There are approximately 0.000621371 mile
  * @returns [unit] - The unit of measurement for the distance.
  */
 function getDefaultMileageRate(policy: OnyxEntry<Policy> | EmptyObject): MileageRate | undefined {
-    if (!policy?.customUnits) {
-        return;
+    if (isEmptyObject(policy) || !policy?.customUnits) {
+        return undefined;
     }
 
-    const distanceUnit = Object.values(policy.customUnits).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+    const distanceUnit = PolicyUtils.getCustomUnit(policy);
     if (!distanceUnit?.rates) {
         return;
     }
+    const mileageRates = getMileageRates(policy);
 
-    const distanceRate = Object.values(distanceUnit.rates).find((rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE) ?? Object.values(distanceUnit.rates)[0];
+    const distanceRate = Object.values(mileageRates).find((rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE) ?? Object.values(mileageRates)[0];
 
     return {
         customUnitRateID: distanceRate.customUnitRateID,
@@ -180,38 +212,6 @@ function getDistanceMerchant(
 }
 
 /**
- * Retrieves the mileage rates for given policy.
- *
- * @param policy - The policy from which to extract the mileage rates.
- *
- * @returns An array of mileage rates or an empty array if not found.
- */
-function getMileageRates(policy: OnyxEntry<Policy>): Record<string, MileageRate> {
-    const mileageRates: Record<string, MileageRate> = {};
-
-    if (!policy || !policy?.customUnits) {
-        return mileageRates;
-    }
-
-    const distanceUnit = Object.values(policy.customUnits).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
-    if (!distanceUnit?.rates) {
-        return mileageRates;
-    }
-
-    Object.entries(distanceUnit.rates).forEach(([rateID, rate]) => {
-        mileageRates[rateID] = {
-            rate: rate.rate,
-            currency: rate.currency,
-            unit: distanceUnit.attributes.unit,
-            name: rate.name,
-            customUnitRateID: rate.customUnitRateID,
-        };
-    });
-
-    return mileageRates;
-}
-
-/**
  * Retrieves the rate and unit for a P2P distance expense for a given currency.
  *
  * @param currency
@@ -256,14 +256,38 @@ function getCustomUnitRateID(reportID: string) {
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
     const policy = PolicyUtils.getPolicy(report?.policyID ?? parentReport?.policyID ?? '');
-
     let customUnitRateID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
 
     if (ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isPolicyExpenseChat(parentReport)) {
-        customUnitRateID = lastSelectedDistanceRates?.[policy?.id ?? ''] ?? getDefaultMileageRate(policy)?.customUnitRateID ?? '';
+        const distanceUnit = Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+        const lastSelectedDistanceRateID = lastSelectedDistanceRates?.[policy?.id ?? ''] ?? '';
+        const lastSelectedDistanceRate = distanceUnit?.rates[lastSelectedDistanceRateID] ?? {};
+        if (lastSelectedDistanceRate.enabled && lastSelectedDistanceRateID) {
+            customUnitRateID = lastSelectedDistanceRateID;
+        } else {
+            customUnitRateID = getDefaultMileageRate(policy)?.customUnitRateID ?? '';
+        }
     }
 
     return customUnitRateID;
+}
+
+function calculateTaxAmount(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, customUnitRateID: string) {
+    const distanceUnit = PolicyUtils.getCustomUnit(policy);
+    const customUnitID = distanceUnit?.customUnitID;
+    if (!policy?.customUnits || !customUnitID) {
+        return 0;
+    }
+    const policyCustomUnitRate = policy?.customUnits[customUnitID].rates[customUnitRateID];
+    const unit = policy?.customUnits[customUnitID]?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
+    const rate = policyCustomUnitRate?.rate ?? 0;
+    const distance = TransactionUtils.getDistance(transaction);
+    const amount = getDistanceRequestAmount(distance, unit, rate);
+    const taxClaimablePercentage = policyCustomUnitRate.attributes?.taxClaimablePercentage ?? 0;
+    const taxRateExternalID = policyCustomUnitRate.attributes?.taxRateExternalID ?? '';
+    const taxableAmount = amount * taxClaimablePercentage;
+    const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, taxRateExternalID) ?? '';
+    return TransactionUtils.calculateTaxAmount(taxPercentage, taxableAmount);
 }
 
 export default {
@@ -276,6 +300,7 @@ export default {
     getRateForP2P,
     getCustomUnitRateID,
     convertToDistanceInMeters,
+    calculateTaxAmount,
 };
 
 export type {MileageRate};

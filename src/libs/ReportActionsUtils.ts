@@ -320,13 +320,13 @@ function getCombinedReportActions(reportActions: ReportAction[], transactionThre
 
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const isSelfDM = report?.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM;
-    // Filter out request and send money request actions because we don't want to show any preview actions for one transaction reports
+    // Filter out request money actions because we don't want to show any preview actions for one transaction reports
     const filteredReportActions = [...reportActions, ...filteredTransactionThreadReportActions].filter((action) => {
         const actionType = (action as OriginalMessageIOU).originalMessage?.type ?? '';
         if (isSelfDM) {
-            return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && !isSentMoneyReportAction(action);
+            return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE;
         }
-        return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && actionType !== CONST.IOU.REPORT_ACTION_TYPE.TRACK && !isSentMoneyReportAction(action);
+        return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && actionType !== CONST.IOU.REPORT_ACTION_TYPE.TRACK;
     });
 
     return getSortedReportActions(filteredReportActions, true);
@@ -1231,6 +1231,13 @@ function isLinkedTransactionHeld(reportActionID: string, reportID: string): bool
     return TransactionUtils.isOnHoldByTransactionID(getLinkedTransactionID(reportActionID, reportID) ?? '');
 }
 
+/**
+ * Check if the current user is the requestor of the action
+ */
+function wasActionTakenByCurrentUser(reportAction: OnyxEntry<ReportAction>): boolean {
+    return currentUserAccountID === reportAction?.actorAccountID;
+}
+
 export {
     extractLinksFromMessageHtml,
     getDismissedViolationMessageText,
@@ -1297,7 +1304,9 @@ export {
     isActionableJoinRequest,
     isActionableJoinRequestPending,
     isActionableTrackExpense,
+    getAllReportActions,
     isLinkedTransactionHeld,
+    wasActionTakenByCurrentUser,
     isResolvedActionTrackExpense,
 };
 

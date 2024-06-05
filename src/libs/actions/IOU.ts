@@ -14,6 +14,7 @@ import type {
     DeleteMoneyRequestParams,
     DetachReceiptParams,
     EditMoneyRequestParams,
+    PayInvoiceParams,
     PayMoneyRequestParams,
     ReplaceReceiptParams,
     RequestMoneyParams,
@@ -374,8 +375,8 @@ function startMoneyRequest(iouType: ValueOf<typeof CONST.IOU.TYPE>, reportID: st
     }
 }
 
-function setMoneyRequestAmount(transactionID: string, amount: number, currency: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {amount, currency});
+function setMoneyRequestAmount(transactionID: string, amount: number, currency: string, shouldShowOriginalAmount = false) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {amount, currency, shouldShowOriginalAmount});
 }
 
 function setMoneyRequestCreated(transactionID: string, created: string, isDraft: boolean) {
@@ -2390,7 +2391,7 @@ function calculateAmountForUpdatedWaypoint(
     let updatedMerchant = Localize.translateLocal('iou.fieldPending');
     if (!isEmptyObject(transactionChanges?.routes)) {
         const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '';
-        const mileageRates = DistanceRequestUtils.getMileageRates(policy);
+        const mileageRates = DistanceRequestUtils.getMileageRates(policy, true);
         const policyCurrency = policy?.outputCurrency ?? PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
         const mileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction)
             ? DistanceRequestUtils.getRateForP2P(policyCurrency)
@@ -5848,6 +5849,8 @@ function getPayMoneyRequestParams(
     paymentMethodType: PaymentMethodType,
     full: boolean,
 ): PayMoneyRequestData {
+    const isInvoiceReport = ReportUtils.isInvoiceReport(iouReport);
+
     let total = (iouReport.total ?? 0) - (iouReport.nonReimbursableTotal ?? 0);
     if (ReportUtils.hasHeldExpenses(iouReport.reportID) && !full && !!iouReport.unheldTotal) {
         total = iouReport.unheldTotal;
@@ -5872,9 +5875,12 @@ function getPayMoneyRequestParams(
     if (reportPreviewAction) {
         optimisticReportPreviewAction = ReportUtils.updateReportPreview(iouReport, reportPreviewAction as ReportPreviewAction, true);
     }
-
-    const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`] ?? null;
-    const optimisticNextStep = NextStepUtils.buildNextStep(iouReport, CONST.REPORT.STATUS_NUM.REIMBURSED, {isPaidWithExpensify: paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA});
+    let currentNextStep = null;
+    let optimisticNextStep = null;
+    if (!isInvoiceReport) {
+        currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`];
+        optimisticNextStep = NextStepUtils.buildNextStep(iouReport, CONST.REPORT.STATUS_NUM.REIMBURSED, {isPaidWithExpensify: paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA});
+    }
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -6062,6 +6068,7 @@ function canApproveIOU(iouReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, cha
 function canIOUBePaid(iouReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, chatReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, policy: OnyxEntry<OnyxTypes.Policy> | EmptyObject) {
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
     const isChatReportArchived = ReportUtils.isArchivedRoom(chatReport);
+    const iouSettled = ReportUtils.isSettled(iouReport?.reportID);
 
     if (isEmptyObject(iouReport)) {
         return false;
@@ -6072,10 +6079,12 @@ function canIOUBePaid(iouReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, chat
     }
 
     if (ReportUtils.isInvoiceReport(iouReport)) {
+        if (iouSettled) {
+            return false;
+        }
         if (chatReport?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
             return chatReport?.invoiceReceiver?.accountID === userAccountID;
         }
-
         return PolicyUtils.getPolicy(chatReport?.invoiceReceiver?.policyID).role === CONST.POLICY.ROLE.ADMIN;
     }
 
@@ -6088,7 +6097,6 @@ function canIOUBePaid(iouReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, chat
     );
 
     const isOpenExpenseReport = isPolicyExpenseChat && ReportUtils.isOpenExpenseReport(iouReport);
-    const iouSettled = ReportUtils.isSettled(iouReport?.reportID);
 
     const {reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(iouReport);
     const isAutoReimbursable = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES ? false : ReportUtils.canBeAutoReimbursed(iouReport, policy);
@@ -6485,6 +6493,24 @@ function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.R
     Navigation.dismissModalWithReport(chatReport);
 }
 
+function payInvoice(paymentMethodType: PaymentMethodType, chatReport: OnyxTypes.Report, invoiceReport: OnyxTypes.Report) {
+    const recipient = {accountID: invoiceReport.ownerAccountID};
+    const {
+        optimisticData,
+        successData,
+        failureData,
+        params: {reportActionID},
+    } = getPayMoneyRequestParams(chatReport, invoiceReport, recipient, paymentMethodType, true);
+
+    const params: PayInvoiceParams = {
+        reportID: invoiceReport.reportID,
+        reportActionID,
+        paymentMethodType,
+    };
+
+    API.write(WRITE_COMMANDS.PAY_INVOICE, params, {optimisticData, successData, failureData});
+}
+
 function detachReceipt(transactionID: string) {
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const newTransaction = transaction ? {...transaction, filename: '', receipt: {}} : null;
@@ -6741,6 +6767,7 @@ function putOnHold(transactionID: string, comment: string, reportID: string) {
                 comment: {
                     hold: null,
                 },
+                errors: ErrorUtils.getMicroSecondOnyxError('iou.genericHoldExpenseFailureMessage'),
             },
         },
     ];
@@ -6802,6 +6829,7 @@ function unholdRequest(transactionID: string, reportID: string) {
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
                 pendingAction: null,
+                errors: ErrorUtils.getMicroSecondOnyxError('iou.genericUnholdExpenseFailureMessage'),
             },
         },
     ];
@@ -6869,6 +6897,7 @@ export {
     initMoneyRequest,
     navigateToStartStepIfScanFileCannotBeRead,
     payMoneyRequest,
+    payInvoice,
     putOnHold,
     replaceReceipt,
     requestMoney,
