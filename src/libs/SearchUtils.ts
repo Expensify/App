@@ -21,7 +21,7 @@ const columnNamesToSortingProperty = {
     [CONST.SEARCH_TABLE_COLUMNS.DATE]: 'date' as const,
     [CONST.SEARCH_TABLE_COLUMNS.TAG]: 'tag' as const,
     [CONST.SEARCH_TABLE_COLUMNS.MERCHANT]: 'formattedMerchant' as const,
-    [CONST.SEARCH_TABLE_COLUMNS.TOTAL]: 'formattedTotal' as const,
+    [CONST.SEARCH_TABLE_COLUMNS.TOTAL_AMOUNT]: 'formattedTotal' as const,
     [CONST.SEARCH_TABLE_COLUMNS.CATEGORY]: 'category' as const,
     [CONST.SEARCH_TABLE_COLUMNS.TYPE]: 'type' as const,
     [CONST.SEARCH_TABLE_COLUMNS.ACTION]: 'action' as const,

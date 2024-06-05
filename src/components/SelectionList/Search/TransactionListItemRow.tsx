@@ -362,7 +362,7 @@ function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeade
                     </View>
                 )}
 
-                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TOTAL)]}>
+                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TOTAL_AMOUNT)]}>
                     <TotalCell
                         showTooltip={showTooltip}
                         transactionItem={item}
