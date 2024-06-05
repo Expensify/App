@@ -2174,6 +2174,8 @@ export default {
             existingCategoryError: 'A category with this name already exists.',
             invalidCategoryName: 'Invalid category name.',
             importedFromAccountingSoftware: 'The categories below are imported from your',
+            glCode: 'GL code',
+            payrollCode: 'Payroll code',
         },
         moreFeatures: {
             spendSection: {
