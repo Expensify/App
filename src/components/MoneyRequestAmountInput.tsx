@@ -79,6 +79,9 @@ type MoneyRequestAmountInputProps = {
     /** Hide the focus styles on TextInput */
     hideFocusedState?: boolean;
 
+    /** Whether the user input should be kept or not */
+    shouldKeepUserInput?: boolean;
+
     /**
      * Autogrow input container length based on the entered text.
      */
@@ -98,7 +101,7 @@ const getNewSelection = (oldSelection: Selection, prevLength: number, newLength:
     return {start: cursorPosition, end: cursorPosition};
 };
 
-const defaultOnFormatAmount = (amount: number) => CurrencyUtils.convertToFrontendAmount(amount).toString();
+const defaultOnFormatAmount = (amount: number) => CurrencyUtils.convertToFrontendAmountAsString(amount);
 
 function MoneyRequestAmountInput(
     {
@@ -116,6 +119,7 @@ function MoneyRequestAmountInput(
         formatAmountOnBlur,
         maxLength,
         hideFocusedState = true,
+        shouldKeepUserInput = false,
         autoGrow = true,
         ...props
     }: MoneyRequestAmountInputProps,
@@ -192,7 +196,7 @@ function MoneyRequestAmountInput(
     }));
 
     useEffect(() => {
-        if (!currency || typeof amount !== 'number' || (formatAmountOnBlur && textInput.current?.isFocused())) {
+        if (!currency || typeof amount !== 'number' || (formatAmountOnBlur && textInput.current?.isFocused()) || shouldKeepUserInput) {
             return;
         }
         const frontendAmount = onFormatAmount(amount, currency);
@@ -209,7 +213,7 @@ function MoneyRequestAmountInput(
 
         // we want to re-initialize the state only when the amount changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [amount]);
+    }, [amount, shouldKeepUserInput]);
 
     // Modifies the amount to match the decimals for changed currency.
     useEffect(() => {
