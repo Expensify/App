@@ -22,6 +22,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {
     Beta,
+    OnyxInputOrEntry,
     PersonalDetails,
     PersonalDetailsList,
     Policy,
@@ -596,7 +597,7 @@ function getCurrentUserDisplayNameOrEmail(): string | undefined {
     return currentUserPersonalDetails?.displayName ?? currentUserEmail;
 }
 
-function getChatType(report: OnyxEntry<Report> | Participant | EmptyObject): ValueOf<typeof CONST.REPORT.CHAT_TYPE> | undefined {
+function getChatType(report: OnyxInputOrEntry<Report> | Participant | EmptyObject): ValueOf<typeof CONST.REPORT.CHAT_TYPE> | undefined {
     return report?.chatType;
 }
 
@@ -717,7 +718,7 @@ function isInvoiceReport(report: OnyxEntry<Report> | EmptyObject): boolean {
 /**
  * Checks if a report is an Expense report.
  */
-function isExpenseReport(report: OnyxEntry<Report> | EmptyObject): boolean {
+function isExpenseReport(report: OnyxInputOrEntry<Report> | EmptyObject): boolean {
     return report?.type === CONST.REPORT.TYPE.EXPENSE;
 }
 
@@ -1028,7 +1029,7 @@ function isWorkspaceTaskReport(report: OnyxEntry<Report>): boolean {
 /**
  * Returns true if report has a parent
  */
-function isThread(report: OnyxEntry<Report>): boolean {
+function isThread(report: OnyxInputOrEntry<Report>): boolean {
     return Boolean(report?.parentReportID && report?.parentReportActionID);
 }
 
@@ -1043,7 +1044,7 @@ function isDM(report: OnyxEntry<Report>): boolean {
     return isChatReport(report) && !getChatType(report) && !isThread(report);
 }
 
-function isSelfDM(report: OnyxEntry<Report>): boolean {
+function isSelfDM(report: OnyxInputOrEntry<Report>): boolean {
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.SELF_DM;
 }
 
@@ -1402,7 +1403,7 @@ function isIOURequest(report: OnyxEntry<Report>): boolean {
  * A Track Expense Report is a thread where the parent the parentReportAction is a transaction, and
  * parentReportAction has type of track.
  */
-function isTrackExpenseReport(report: OnyxEntry<Report>): boolean {
+function isTrackExpenseReport(report: OnyxInputOrEntry<Report>): boolean {
     if (isThread(report)) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
         return !isEmptyObject(parentReportAction) && ReportActionsUtils.isTrackExpenseAction(parentReportAction);
@@ -2573,7 +2574,7 @@ function getMoneyRequestReportName(report: OnyxEntry<Report>, policy?: OnyxEntry
  * into a flat object. Used for displaying transactions and sending them in API commands
  */
 
-function getTransactionDetails(transaction: OnyxEntry<Transaction>, createdDateFormat: string = CONST.DATE.FNS_FORMAT_STRING): TransactionDetails | undefined {
+function getTransactionDetails(transaction: OnyxInputOrEntry<Transaction>, createdDateFormat: string = CONST.DATE.FNS_FORMAT_STRING): TransactionDetails | undefined {
     if (!transaction) {
         return;
     }
@@ -3019,10 +3020,10 @@ function getReportPreviewMessage(
  * At the moment, we only allow changing one transaction field at a time.
  */
 function getModifiedExpenseOriginalMessage(
-    oldTransaction: OnyxEntry<Transaction>,
+    oldTransaction: OnyxInputOrEntry<Transaction>,
     transactionChanges: TransactionChanges,
     isFromExpenseReport: boolean,
-    policy: OnyxEntry<Policy>,
+    policy: OnyxInputOrEntry<Policy>,
 ): ExpenseOriginalMessage {
     const originalMessage: ExpenseOriginalMessage = {};
     // Remark: Comment field is the only one which has new/old prefixes for the keys (newComment/ oldComment),
@@ -4179,7 +4180,13 @@ function buildOptimisticSubmittedReportAction(amount: number, currency: string, 
  * @param [comment] - User comment for the IOU.
  * @param [transaction] - optimistic first transaction of preview
  */
-function buildOptimisticReportPreview(chatReport: OnyxEntry<Report>, iouReport: Report, comment = '', transaction?: OnyxEntry<Transaction>, childReportID?: string): ReportAction {
+function buildOptimisticReportPreview(
+    chatReport: OnyxInputOrEntry<Report>,
+    iouReport: Report,
+    comment = '',
+    transaction?: OnyxInputOrEntry<Transaction>,
+    childReportID?: string,
+): ReportAction {
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const isReceiptBeingScanned = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
     const message = getReportPreviewMessage(iouReport);
@@ -4255,11 +4262,11 @@ function buildOptimisticActionableTrackExpenseWhisper(iouAction: OptimisticIOURe
  * Builds an optimistic modified expense action with a randomly generated reportActionID.
  */
 function buildOptimisticModifiedExpenseReportAction(
-    transactionThread: OnyxEntry<Report>,
-    oldTransaction: OnyxEntry<Transaction>,
+    transactionThread: OnyxInputOrEntry<Report>,
+    oldTransaction: OnyxInputOrEntry<Transaction>,
     transactionChanges: TransactionChanges,
     isFromExpenseReport: boolean,
-    policy: OnyxEntry<Policy>,
+    policy: OnyxInputOrEntry<Policy>,
 ): OptimisticModifiedExpenseReportAction {
     const originalMessage = getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, isFromExpenseReport, policy);
     return {
@@ -5556,7 +5563,7 @@ function getReportPolicyID(reportID?: string): string | undefined {
 /**
  * Check if the chat report is linked to an iou that is waiting for the current user to add a credit bank account.
  */
-function hasIOUWaitingOnCurrentUserBankAccount(chatReport: OnyxEntry<Report>): boolean {
+function hasIOUWaitingOnCurrentUserBankAccount(chatReport: OnyxInputOrEntry<Report>): boolean {
     if (chatReport?.iouReportID) {
         const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport?.iouReportID}`];
         if (iouReport?.isWaitingOnBankAccount && iouReport?.ownerAccountID === currentUserAccountID) {
@@ -6621,7 +6628,7 @@ function hasMissingPaymentMethod(userWallet: OnyxEntry<UserWallet>, iouReportID:
  * - we have one, but it's waiting on the payee adding a bank account
  * - we have one, but we can't add more transactions to it due to: report is approved or settled, or report is processing and policy isn't on Instant submit reporting frequency
  */
-function shouldCreateNewMoneyRequestReport(existingIOUReport: OnyxEntry<Report> | undefined, chatReport: OnyxEntry<Report>): boolean {
+function shouldCreateNewMoneyRequestReport(existingIOUReport: OnyxInputOrEntry<Report> | undefined, chatReport: OnyxInputOrEntry<Report>): boolean {
     return !existingIOUReport || hasIOUWaitingOnCurrentUserBankAccount(chatReport) || !canAddOrDeleteTransactions(existingIOUReport);
 }
 
@@ -6772,7 +6779,7 @@ function createDraftTransactionAndNavigateToParticipantSelector(transactionID: s
 /**
  * @returns the object to update `report.hasOutstandingChildRequest`
  */
-function getOutstandingChildRequest(iouReport: OnyxEntry<Report> | EmptyObject): OutstandingChildRequest {
+function getOutstandingChildRequest(iouReport: OnyxInputOrEntry<Report> | EmptyObject): OutstandingChildRequest {
     if (!iouReport || isEmptyObject(iouReport)) {
         return {};
     }

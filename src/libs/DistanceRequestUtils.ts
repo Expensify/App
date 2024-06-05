@@ -4,7 +4,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {RateAndUnit} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {LastSelectedDistanceRates, Report, Transaction} from '@src/types/onyx';
+import type {LastSelectedDistanceRates, OnyxInputOrEntry, Report, Transaction} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
@@ -40,10 +40,10 @@ Onyx.connect({
 const METERS_TO_KM = 0.001; // 1 kilometer is 1000 meters
 const METERS_TO_MILES = 0.000621371; // There are approximately 0.000621371 miles in a meter
 
-function getMileageRates(policy: OnyxEntry<Policy>, includeDisabledRates = false): Record<string, MileageRate> {
+function getMileageRates(policy: OnyxInputOrEntry<Policy>, includeDisabledRates = false): Record<string, MileageRate> {
     const mileageRates: Record<string, MileageRate> = {};
 
-    if (!policy || !policy?.customUnits) {
+    if (!policy?.customUnits) {
         return mileageRates;
     }
 
@@ -79,7 +79,7 @@ function getMileageRates(policy: OnyxEntry<Policy>, includeDisabledRates = false
  * @returns [currency] - The currency associated with the rate.
  * @returns [unit] - The unit of measurement for the distance.
  */
-function getDefaultMileageRate(policy: OnyxEntry<Policy> | EmptyObject): MileageRate | undefined {
+function getDefaultMileageRate(policy: OnyxInputOrEntry<Policy> | EmptyObject): MileageRate | undefined {
     if (isEmptyObject(policy) || !policy?.customUnits) {
         return undefined;
     }

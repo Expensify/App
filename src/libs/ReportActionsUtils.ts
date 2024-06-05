@@ -1,12 +1,13 @@
 import fastMerge from 'expensify-common/lib/fastMerge';
 import _ from 'lodash';
 import lodashFindLast from 'lodash/findLast';
-import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxCollectionInput, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {OnyxInputOrEntry} from '@src/types/onyx';
 import type {
     ActionName,
     ChangeLog,
@@ -100,11 +101,11 @@ Onyx.connect({
 let environmentURL: string;
 Environment.getEnvironmentURL().then((url: string) => (environmentURL = url));
 
-function isCreatedAction(reportAction: OnyxEntry<ReportAction>): boolean {
+function isCreatedAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
 }
 
-function isDeletedAction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>): boolean {
+function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | OptimisticIOUReportAction>): boolean {
     const message = reportAction?.message ?? [];
 
     // A legacy deleted comment has either an empty array or an object with html field with empty string as value
@@ -113,34 +114,34 @@ function isDeletedAction(reportAction: OnyxEntry<ReportAction | OptimisticIOURep
     return isLegacyDeletedComment || !!message[0]?.deleted;
 }
 
-function isDeletedParentAction(reportAction: OnyxEntry<ReportAction>): boolean {
+function isDeletedParentAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
     return (reportAction?.message?.[0]?.isDeletedParentAction ?? false) && (reportAction?.childVisibleActionCount ?? 0) > 0;
 }
 
-function isReversedTransaction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>) {
+function isReversedTransaction(reportAction: OnyxInputOrEntry<ReportAction | OptimisticIOUReportAction>) {
     return (reportAction?.message?.[0]?.isReversedTransaction ?? false) && ((reportAction as ReportAction)?.childVisibleActionCount ?? 0) > 0;
 }
 
-function isPendingRemove(reportAction: OnyxEntry<ReportAction> | EmptyObject): boolean {
+function isPendingRemove(reportAction: OnyxInputOrEntry<ReportAction> | EmptyObject): boolean {
     if (isEmptyObject(reportAction)) {
         return false;
     }
     return reportAction?.message?.[0]?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE;
 }
 
-function isMoneyRequestAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction & OriginalMessageIOU {
+function isMoneyRequestAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction & OriginalMessageIOU {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU;
 }
 
-function isReportPreviewAction(reportAction: OnyxEntry<ReportAction>): boolean {
+function isReportPreviewAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
 }
 
-function isReportActionSubmitted(reportAction: OnyxEntry<ReportAction>): boolean {
+function isReportActionSubmitted(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED;
 }
 
-function isModifiedExpenseAction(reportAction: OnyxEntry<ReportAction> | ReportAction | Record<string, never>): boolean {
+function isModifiedExpenseAction(reportAction: OnyxInputOrEntry<ReportAction> | ReportAction | Record<string, never>): boolean {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE;
 }
 
@@ -148,7 +149,7 @@ function isModifiedExpenseAction(reportAction: OnyxEntry<ReportAction> | ReportA
  * We are in the process of deprecating reportAction.originalMessage and will be setting the db version of "message" to reportAction.message in the future see: https://github.com/Expensify/App/issues/39797
  * In the interim, we must check to see if we have an object or array for the reportAction.message, if we have an array we will use the originalMessage as this means we have not yet migrated.
  */
-function getWhisperedTo(reportAction: OnyxEntry<ReportAction> | EmptyObject): number[] {
+function getWhisperedTo(reportAction: OnyxInputOrEntry<ReportAction> | EmptyObject): number[] {
     const originalMessage = reportAction?.originalMessage;
     const message = reportAction?.message;
 
@@ -163,25 +164,25 @@ function getWhisperedTo(reportAction: OnyxEntry<ReportAction> | EmptyObject): nu
     return [];
 }
 
-function isWhisperAction(reportAction: OnyxEntry<ReportAction> | EmptyObject): boolean {
+function isWhisperAction(reportAction: OnyxInputOrEntry<ReportAction> | EmptyObject): boolean {
     return getWhisperedTo(reportAction).length > 0;
 }
 
 /**
  * Checks whether the report action is a whisper targeting someone other than the current user.
  */
-function isWhisperActionTargetedToOthers(reportAction: OnyxEntry<ReportAction>): boolean {
+function isWhisperActionTargetedToOthers(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
     if (!isWhisperAction(reportAction)) {
         return false;
     }
     return !getWhisperedTo(reportAction).includes(currentUserAccountID ?? 0);
 }
 
-function isReimbursementQueuedAction(reportAction: OnyxEntry<ReportAction>) {
+function isReimbursementQueuedAction(reportAction: OnyxInputOrEntry<ReportAction>) {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED;
 }
 
-function isMemberChangeAction(reportAction: OnyxEntry<ReportAction>) {
+function isMemberChangeAction(reportAction: OnyxInputOrEntry<ReportAction>) {
     return (
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.REMOVE_FROM_ROOM ||
@@ -216,7 +217,7 @@ function isThreadParentMessage(reportAction: OnyxEntry<ReportAction>, reportID: 
  *
  * @deprecated Use Onyx.connect() or withOnyx() instead
  */
-function getParentReportAction(report: OnyxEntry<Report> | EmptyObject): ReportAction | EmptyObject {
+function getParentReportAction(report: OnyxInputOrEntry<Report> | EmptyObject): ReportAction | EmptyObject {
     if (!report?.parentReportID || !report.parentReportActionID) {
         return {};
     }
@@ -597,7 +598,7 @@ function isResolvedActionTrackExpense(reportAction: OnyxEntry<ReportAction>): bo
  * Checks if a reportAction is fit for display as report last action, meaning that
  * it satisfies shouldReportActionBeVisible, it's not whisper action and not deleted.
  */
-function shouldReportActionBeVisibleAsLastAction(reportAction: OnyxEntry<ReportAction>): boolean {
+function shouldReportActionBeVisibleAsLastAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
     if (!reportAction) {
         return false;
     }
@@ -638,8 +639,8 @@ function replaceBaseURLInPolicyChangeLogAction(reportAction: ReportAction): Repo
     return updatedReportAction;
 }
 
-function getLastVisibleAction(reportID: string, actionsToMerge: OnyxCollection<ReportAction> = {}): OnyxEntry<ReportAction> {
-    const reportActions = Object.values(fastMerge(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {}, actionsToMerge ?? {}, true));
+function getLastVisibleAction(reportID: string, actionsToMerge: OnyxCollection<ReportAction> | OnyxCollectionInput<ReportAction> = {}): OnyxEntry<ReportAction> {
+    const reportActions = Object.values(fastMerge(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {}, actionsToMerge ?? {}, true)) as Array<ReportAction | null>;
     const visibleReportActions = Object.values(reportActions ?? {}).filter((action): action is ReportAction => shouldReportActionBeVisibleAsLastAction(action));
     const sortedReportActions = getSortedReportActions(visibleReportActions, true);
     if (sortedReportActions.length === 0) {
@@ -648,7 +649,11 @@ function getLastVisibleAction(reportID: string, actionsToMerge: OnyxCollection<R
     return sortedReportActions[0];
 }
 
-function getLastVisibleMessage(reportID: string, actionsToMerge: OnyxCollection<ReportAction> = {}, reportAction: OnyxEntry<ReportAction> | undefined = undefined): LastVisibleMessage {
+function getLastVisibleMessage(
+    reportID: string,
+    actionsToMerge: OnyxCollection<ReportAction> | OnyxCollectionInput<ReportAction> = {},
+    reportAction: OnyxInputOrEntry<ReportAction> | undefined = undefined,
+): LastVisibleMessage {
     const lastVisibleAction = reportAction ?? getLastVisibleAction(reportID, actionsToMerge);
     const message = lastVisibleAction?.message?.[0];
 
