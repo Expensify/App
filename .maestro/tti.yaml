@@ -1,0 +1,8 @@
+appId: com.expensify.chat
+---
+- launchApp
+- assertVisible:
+    id: android:id/alertTitle
+- copyTextFrom:
+    id: "android:id/message"
+- evalScript: ${console.log('TTI:', maestro.copiedText)}
