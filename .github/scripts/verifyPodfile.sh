@@ -8,7 +8,12 @@ source scripts/shellUtils.sh
 
 title "Verifying that Podfile.lock is synced with the project"
 
-declare EXIT_CODE=0
+# Cleanup and exit
+# param - status code
+function cleanupAndExit {
+  cd "$START_DIR" || exit 1
+  exit "$1"
+}
 
 # Check Provisioning Style. If automatic signing is enabled, iOS builds will fail, so ensure we always have the proper profile specified
 info "Verifying that automatic signing is not enabled"
@@ -16,7 +21,7 @@ if grep -q 'PROVISIONING_PROFILE_SPECIFIER = "(NewApp) AppStore"' ios/NewExpensi
   success "Automatic signing not enabled"
 else
   error "Error: Automatic provisioning style is not allowed!"
-  EXIT_CODE=1
+  cleanupAndExit 1
 fi
 
 PODFILE_SHA=$(openssl sha1 ios/Podfile | awk '{print $2}')
@@ -29,7 +34,7 @@ if [[ "$PODFILE_SHA" == "$PODFILE_LOCK_SHA" ]]; then
   success "Podfile checksum verified!"
 else
   error "Podfile.lock checksum mismatch. Did you forget to run \`npx pod-install\`?"
-  EXIT_CODE=1
+  cleanupAndExit 1
 fi
 
 info "Ensuring correct version of cocoapods is used..."
@@ -45,13 +50,16 @@ if [[ "$POD_VERSION_FROM_GEMFILE" == "$POD_VERSION_FROM_PODFILE_LOCK" ]]; then
   success "Cocoapods version from Podfile.lock matches cocoapods version from Gemfile"
 else
   error "Cocoapods version from Podfile.lock does not match cocoapods version from Gemfile. Please use \`npm run pod-install\` or \`bundle exec pod install\` instead of \`pod install\` to install pods."
-  EXIT_CODE=1
+  cleanupAndExit 1
 fi
 
 info "Comparing Podfile.lock with node packages..."
 
 # Retrieve a list of podspec directories as listed in the Podfile.lock
-SPEC_DIRS=$(yq '.["EXTERNAL SOURCES"].[].":path" | select( . == "*node_modules*")' < ios/Podfile.lock)
+if ! SPEC_DIRS=$(yq '.["EXTERNAL SOURCES"].[].":path" | select( . == "*node_modules*")' < ios/Podfile.lock); then
+  error "Error: Could not parse podspec directories from Podfile.lock"
+  cleanupAndExit 1
+fi
 
 # Format a list of Pods based on the output of the config command
 if ! FORMATTED_PODS=$( \
@@ -61,8 +69,8 @@ if ! FORMATTED_PODS=$( \
    xargs -L 1 pod ipc spec --silent
  )"
 ); then
-    error "Error: could not parse pods from react-native config command"
-    exit 1
+  error "Error: could not parse pods from react-native config command"
+  cleanupAndExit 1
 fi
 
 # Check for uncommitted package removals
@@ -70,7 +78,7 @@ fi
 while read -r DIR; do
   if [[ ! -d "${DIR#../}" ]]; then
     error "Directory \`${DIR#../node_modules/}\` not found in node_modules. Did you forget to run \`npx pod-install\` after removing the package?"
-    EXIT_CODE=1
+    cleanupAndExit 1
   fi
 done <<< "$SPEC_DIRS"
 
@@ -78,15 +86,9 @@ done <<< "$SPEC_DIRS"
 while read -r POD; do
   if ! grep -q "$POD" ./ios/Podfile.lock; then
     error "$POD not found in Podfile.lock. Did you forget to run \`npx pod-install\`?"
-    EXIT_CODE=1
+    cleanupAndExit 1
   fi
 done <<< "$FORMATTED_PODS"
 
-if [[ "$EXIT_CODE" == 0 ]]; then
-  success "Podfile.lock is up to date."
-fi
-
-# Cleanup
-cd "$START_DIR" || exit 1
-
-exit $EXIT_CODE
+success "Podfile.lock is up to date."
+cleanupAndExit 0
