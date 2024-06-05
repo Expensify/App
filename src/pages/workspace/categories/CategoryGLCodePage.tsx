@@ -20,8 +20,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceCategoryForm';
-import type {PolicyCategories, PolicyCategory} from '@src/types/onyx';
-import CategoryForm from './CategoryForm';
+import type {PolicyCategories} from '@src/types/onyx';
 
 type WorkspaceEditCategoryGLCodePageOnyxProps = {
     /** Policy category */
