@@ -1,19 +1,21 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import Pdf from 'react-native-pdf';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+import PDFThumbnailError from './PDFThumbnailError';
 import type PDFThumbnailProps from './types';
 
-function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, enabled = true, onPassword}: PDFThumbnailProps) {
+function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, enabled = true, onPassword, onLoadError}: PDFThumbnailProps) {
     const styles = useThemeStyles();
     const sizeStyles = [styles.w100, styles.h100];
+    const [failedToLoad, setFailedToLoad] = useState(false);
 
     return (
         <View style={[style, styles.overflowHidden]}>
-            <View style={[sizeStyles, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                {enabled && (
+            <View style={[sizeStyles, !failedToLoad && styles.alignItemsCenter, styles.justifyContentCenter]}>
+                {enabled && !failedToLoad && (
                     <Pdf
                         fitPolicy={0}
                         trustAllCerts={false}
@@ -22,16 +24,18 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ena
                         singlePage
                         style={sizeStyles}
                         onError={(error) => {
-                            if (!('message' in error && typeof error.message === 'string' && error.message.match(/password/i))) {
+                            if (onLoadError) {
+                                onLoadError();
+                            }
+                            if ('message' in error && typeof error.message === 'string' && error.message.match(/password/i) && onPassword) {
+                                onPassword();
                                 return;
                             }
-                            if (!onPassword) {
-                                return;
-                            }
-                            onPassword();
+                            setFailedToLoad(true);
                         }}
                     />
                 )}
+                {failedToLoad && <PDFThumbnailError />}
             </View>
         </View>
     );

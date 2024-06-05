@@ -30,6 +30,8 @@ type ReportFooterProps = {
     /** Report object for the current report */
     report?: OnyxTypes.Report;
 
+    reportMetadata?: OnyxEntry<OnyxTypes.ReportMetadata>;
+
     reportNameValuePairs?: OnyxEntry<OnyxTypes.ReportNameValuePairs>;
 
     /** The last report action */
@@ -61,6 +63,7 @@ function ReportFooter({
     lastReportAction,
     pendingAction,
     report = {reportID: '0'},
+    reportMetadata,
     reportNameValuePairs,
     isEmptyChat = true,
     isReportReadyForDisplay = true,
@@ -94,7 +97,10 @@ function ReportFooter({
     const isArchivedRoom = ReportUtils.isArchivedRoom(report, reportNameValuePairs);
 
     const isSmallSizeLayout = windowWidth - (isSmallScreenWidth ? 0 : variables.sideBarWidth) < variables.anonymousReportFooterBreakpoint;
-    const shouldHideComposer = !ReportUtils.canUserPerformWriteAction(report, reportNameValuePairs) || isBlockedFromChat;
+
+    // If a user just signed in and is viewing a public report, optimistically show the composer while loading the report, since they will have write access when the response comes back.
+    const shouldShowComposerOptimistically = !isAnonymousUser && ReportUtils.isPublicRoom(report) && !!reportMetadata?.isLoadingInitialReportActions;
+    const shouldHideComposer = (!ReportUtils.canUserPerformWriteAction(report, reportNameValuePairs) && !shouldShowComposerOptimistically) || isBlockedFromChat;
     const canWriteInReport = ReportUtils.canWriteInReport(report);
     const isSystemChat = ReportUtils.isSystemChat(report);
 
@@ -203,5 +209,6 @@ export default memo(
         prevProps.isComposerFullSize === nextProps.isComposerFullSize &&
         prevProps.isEmptyChat === nextProps.isEmptyChat &&
         prevProps.lastReportAction === nextProps.lastReportAction &&
-        prevProps.isReportReadyForDisplay === nextProps.isReportReadyForDisplay,
+        prevProps.isReportReadyForDisplay === nextProps.isReportReadyForDisplay &&
+        lodashIsEqual(prevProps.reportMetadata, nextProps.reportMetadata),,
 );

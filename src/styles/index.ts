@@ -4419,6 +4419,16 @@ const styles = (theme: ThemeColors) =>
             maxWidth: 400,
         },
 
+        pdfErrorPlaceholder: {
+            overflow: 'hidden',
+            borderWidth: 2,
+            borderColor: theme.cardBG,
+            borderRadius: variables.componentBorderRadiusLarge,
+            maxWidth: 400,
+            height: '100%',
+            backgroundColor: theme.highlightBG,
+        },
+
         moneyRequestAttachReceipt: {
             backgroundColor: theme.highlightBG,
             borderColor: theme.border,
