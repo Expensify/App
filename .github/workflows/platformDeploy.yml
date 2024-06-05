@@ -370,10 +370,9 @@ jobs:
   hybridApp:
     runs-on: ubuntu-latest
     needs: validateActor
-    if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
+    if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) && github.event_name == 'push' }}
     steps:
       - name: 'Deploy HybridApp'
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: gh workflow run --repo Expensify/Mobile-Deploy deploy.yml -f force_build=true
         env:
             GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
