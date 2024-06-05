@@ -310,8 +310,6 @@ type IntegrationsMessageParams = {errorMessage: string};
 
 type MarkedReimbursedParams = {amount: string; currency: string};
 
-type ReimbursementDelayedParams = {delayReason: string};
-
 type ShareParams = {user: string};
 
 type StripePaidParams = {amount: string; currency: string};
@@ -428,7 +426,6 @@ export type {
     ForwardedParams,
     IntegrationsMessageParams,
     MarkedReimbursedParams,
-    ReimbursementDelayedParams,
     ShareParams,
     StripePaidParams,
     UnapprovedParams,

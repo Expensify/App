@@ -1152,7 +1152,7 @@ function getMessageOfOldDotReportAction({originalMessage}: ReportAction, actionN
         case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACCOUNT_CHANGED:
             return Localize.translateLocal('report.actions.type.reimbursementAccountChanged');
         case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED:
-            return Localize.translateLocal('report.actions.type.reimbursementDelayed', {delayReason: originalMessage.delayReason});
+            return Localize.translateLocal('report.actions.type.reimbursementDelayed');
         case CONST.REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT:
             return Localize.translateLocal('report.actions.type.selectedForRandomAudit');
         case CONST.REPORT.ACTIONS.TYPE.SHARE:
