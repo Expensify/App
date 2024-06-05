@@ -90,6 +90,13 @@ function getNumericValue(value: number | string, toLocaleDigit: (arg: string) =>
     return numValue.toFixed(CONST.CUSTOM_UNITS.RATE_DECIMALS);
 }
 
+/**
+ * Retrieves the distance custom unit object for the given policy
+ */
+function getCustomUnit(policy: OnyxEntry<Policy> | EmptyObject) {
+    return Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+}
+
 function getRateDisplayValue(value: number, toLocaleDigit: (arg: string) => string): string {
     const numValue = getNumericValue(value, toLocaleDigit);
     if (Number.isNaN(numValue)) {
@@ -278,7 +285,7 @@ function isPaidGroupPolicy(policy: OnyxEntry<Policy> | EmptyObject): boolean {
 }
 
 function isTaxTrackingEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Policy>, isDistanceRequest: boolean): boolean {
-    const distanceUnit = Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+    const distanceUnit = getCustomUnit(policy);
     const customUnitID = distanceUnit?.customUnitID ?? 0;
     const isPolicyTaxTrackingEnabled = isPolicyExpenseChat && policy?.tax?.trackingEnabled;
     const isTaxEnabledForDistance = isPolicyTaxTrackingEnabled && policy?.customUnits?.[customUnitID]?.attributes?.taxEnabled;
@@ -505,6 +512,7 @@ export {
     findCurrentXeroOrganization,
     getCurrentXeroOrganizationName,
     getXeroBankAccountsWithDefaultSelect,
+    getCustomUnit,
     sortWorkspacesBySelected,
 };
 
