@@ -507,6 +507,7 @@ function buildOnyxDataForMoneyRequest(
                 ...iouReport,
                 lastMessageText: iouAction.message?.[0]?.text,
                 lastMessageHtml: iouAction.message?.[0]?.html,
+                lastVisibleActionCreated: iouAction.created,
                 pendingFields: {
                     ...(shouldCreateNewMoneyRequestReport ? {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : {preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
                 },
@@ -1989,10 +1990,6 @@ function getMoneyRequestInformation(
         // Generated ReportPreview action is a parent report action of the iou report.
         // We are setting the iou report's parentReportActionID to display subtitle correctly in IOU page when offline.
         iouReport.parentReportActionID = reportPreviewAction.reportActionID;
-    }
-
-    if (iouAction) {
-        iouReport.lastVisibleActionCreated = iouAction.created;
     }
 
     const shouldCreateOptimisticPersonalDetails = isNewChatReport && !allPersonalDetails[payerAccountID];
