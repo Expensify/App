@@ -34,7 +34,7 @@ switch (process.env.ENV) {
 }
 
 const env = dotenv.config({path: path.resolve(__dirname, `../${envFile}`)});
-const customFunction: CustomWebpackFunction = require('../config/webpack/webpack.common');
+const customFunction: CustomWebpackFunction = require('../config/webpack/webpack.common').default;
 
 const custom: CustomWebpackConfig = customFunction({file: envFile});
 
