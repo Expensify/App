@@ -5,7 +5,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Credentials from '@src/types/onyx/Credentials';
 
-let credentials: Credentials | undefined;
+let credentials: Credentials | null;
 let authToken: string | null = null;
 let authTokenType: ValueOf<typeof CONST.AUTH_TOKEN_TYPES> | null;
 let currentUserEmail: string | null = null;
@@ -35,7 +35,7 @@ let isReadyPromise = new Promise((resolve) => {
  * If the values are undefined we haven't read them yet. If they are null or have a value then we have and the network is "ready".
  */
 function checkRequiredData() {
-    if (authToken === undefined || credentials === undefined) {
+    if (authToken === null || credentials === null) {
         return;
     }
 
@@ -62,7 +62,7 @@ Onyx.connect({
 Onyx.connect({
     key: ONYXKEYS.CREDENTIALS,
     callback: (val) => {
-        credentials = val;
+        credentials = val ?? null;
         checkRequiredData();
     },
 });
@@ -85,7 +85,7 @@ Onyx.connect({
     },
 });
 
-function getCredentials(): Credentials | undefined {
+function getCredentials(): Credentials | null {
     return credentials;
 }
 
