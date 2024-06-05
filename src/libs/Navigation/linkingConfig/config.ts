@@ -277,6 +277,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: {
                             path: ROUTES.SETTINGS_STATUS_CLEAR_AFTER_TIME,
                         },
+                        [SCREENS.SETTINGS.SUBSCRIPTION.SIZE]: {
+                            path: ROUTES.SETTINGS_SUBSCRIPTION_SIZE,
+                        },
                         [SCREENS.WORKSPACE.CURRENCY]: {
                             path: ROUTES.WORKSPACE_PROFILE_CURRENCY.route,
                         },
@@ -412,6 +415,12 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.DISTANCE_RATE_EDIT]: {
                             path: ROUTES.WORKSPACE_DISTANCE_RATE_EDIT.route,
+                        },
+                        [SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT]: {
+                            path: ROUTES.WORKSPACE_DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT.route,
+                        },
+                        [SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RATE_EDIT]: {
+                            path: ROUTES.WORKSPACE_DISTANCE_RATE_TAX_RATE_EDIT.route,
                         },
                         [SCREENS.WORKSPACE.TAGS_SETTINGS]: {
                             path: ROUTES.WORKSPACE_TAGS_SETTINGS.route,

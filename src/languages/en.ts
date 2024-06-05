@@ -1,5 +1,4 @@
-import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
-import Str from 'expensify-common/lib/str';
+import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {ConnectionName, PolicyConnectionSyncStage} from '@src/types/onyx/Policy';
@@ -125,6 +124,7 @@ export default {
         buttonConfirm: 'Got it',
         name: 'Name',
         attachment: 'Attachment',
+        center: 'Center',
         from: 'From',
         to: 'To',
         optional: 'Optional',
@@ -224,6 +224,7 @@ export default {
         tomorrowAt: 'Tomorrow at',
         yesterdayAt: 'Yesterday at',
         conjunctionAt: 'at',
+        conjunctionTo: 'to',
         genericErrorMessage: 'Oops... something went wrong and your request could not be completed. Please try again later.',
         error: {
             invalidAmount: 'Invalid amount.',
@@ -334,6 +335,9 @@ export default {
         action: 'Action',
         expenses: 'Expenses',
         tax: 'Tax',
+        shared: 'Shared',
+        drafts: 'Drafts',
+        finished: 'Finished',
     },
     location: {
         useCurrent: 'Use current location',
@@ -351,7 +355,7 @@ export default {
         expensifyDoesntHaveAccessToCamera: "Expensify can't take photos without access to your camera. Tap Settings to update permissions.",
         attachmentError: 'Attachment error',
         errorWhileSelectingAttachment: 'An error occurred while selecting an attachment, please try again.',
-        errorWhileSelectingCorruptedImage: 'An error occurred while selecting a corrupted attachment, please try another file.',
+        errorWhileSelectingCorruptedAttachment: 'An error occurred while selecting a corrupted attachment, please try another file.',
         takePhoto: 'Take photo',
         chooseFromGallery: 'Choose from gallery',
         chooseDocument: 'Choose document',
@@ -519,6 +523,7 @@ export default {
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' and ',
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' starts here! 🎉 This is the place to chat, submit expenses and settle up.',
         beginningOfChatHistorySelfDM: 'This is your personal space. Use it for notes, tasks, drafts, and reminders.',
+        beginningOfChatHistorySystemDM: "Welcome! Let's get you set up.",
         chatWithAccountManager: 'Chat with your account manager here',
         sayHello: 'Say hello!',
         yourSpace: 'Your space',
@@ -672,7 +677,11 @@ export default {
         deleteConfirmation: 'Are you sure that you want to delete this expense?',
         settledExpensify: 'Paid',
         settledElsewhere: 'Paid elsewhere',
+        individual: 'Individual',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} with Expensify` : `Pay with Expensify`),
+        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} as an individual` : `Pay as an individual`),
+        settlePayment: ({formattedAmount}: SettleExpensifyCardParams) => `Pay ${formattedAmount}`,
+        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} as a business` : `Pay as a business`),
         payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} elsewhere` : `Pay elsewhere`),
         nextStep: 'Next Steps',
         finished: 'Finished',
@@ -725,6 +734,8 @@ export default {
             other: 'Unexpected error, please try again later.',
             genericCreateFailureMessage: 'Unexpected error submitting this expense. Please try again later.',
             genericCreateInvoiceFailureMessage: 'Unexpected error sending invoice, please try again later.',
+            genericHoldExpenseFailureMessage: 'Unexpected error while holding the expense. Please try again later.',
+            genericUnholdExpenseFailureMessage: 'Unexpected error while taking the expense off hold. Please try again later.',
             receiptDeleteFailureError: 'Unexpected error deleting this receipt. Please try again later.',
             // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             receiptFailureMessage: "The receipt didn't upload. ",
@@ -1866,6 +1877,7 @@ export default {
             alerts: 'Get realtime updates and alerts',
         },
         bookTravel: 'Book travel',
+        bookDemo: 'Book demo',
         termsAndConditions: {
             header: 'Before we continue...',
             title: 'Please read the Terms & Conditions for travel',
@@ -1878,6 +1890,13 @@ export default {
             agree: 'I agree to the travel ',
             error: 'You must accept the Terms & Conditions for travel to continue',
         },
+        flight: 'Flight',
+        hotel: 'Hotel',
+        car: 'Car',
+        viewTrip: 'View trip',
+        trip: 'Trip',
+        tripSummary: 'Trip summary',
+        departs: 'Departs',
     },
     workspace: {
         common: {
@@ -2239,6 +2258,8 @@ export default {
             foreignDefault: 'Foreign currency default',
             customTaxName: 'Custom tax name',
             value: 'Value',
+            taxReclaimableOn: 'Tax reclaimable on',
+            taxRate: 'Tax rate',
             error: {
                 taxRateAlreadyExists: 'This tax name is already in use.',
                 valuePercentageRange: 'Please enter a valid percentage between 0 and 100.',
@@ -2246,6 +2267,7 @@ export default {
                 deleteFailureMessage: 'An error occurred while deleting the tax rate. Please try again or ask Concierge for help.',
                 updateFailureMessage: 'An error occurred while updating the tax rate. Please try again or ask Concierge for help.',
                 createFailureMessage: 'An error occurred while creating the tax rate. Please try again or ask Concierge for help.',
+                updateTaxClaimableFailureMessage: 'The reclaimable portion must be less than the distance rate amount.',
             },
             deleteTaxConfirmation: 'Are you sure you want to delete this tax?',
             deleteMultipleTaxConfirmation: ({taxAmount}) => `Are you sure you want to delete ${taxAmount} taxes?`,
@@ -2491,6 +2513,14 @@ export default {
             viewUnpaidInvoices: 'View unpaid invoices',
             sendInvoice: 'Send invoice',
             sendFrom: 'Send from',
+            paymentMethods: {
+                personal: 'Personal',
+                business: 'Business',
+                chooseInvoiceMethod: 'Choose a payment method below:',
+                addBankAccount: 'Add bank account',
+                payingAsIndividual: 'Paying as an individual',
+                payingAsBusiness: 'Paying as a business',
+            },
         },
         travel: {
             unlockConciergeBookingTravel: 'Unlock Concierge travel booking',
@@ -2527,12 +2557,15 @@ export default {
             centrallyManage: 'Centrally manage rates, choose to track in miles or kilometers, and set a default category.',
             rate: 'Rate',
             addRate: 'Add rate',
+            trackTax: 'Track tax',
             deleteRates: ({count}: DistanceRateOperationsParams) => `Delete ${Str.pluralize('rate', 'rates', count)}`,
             enableRates: ({count}: DistanceRateOperationsParams) => `Enable ${Str.pluralize('rate', 'rates', count)}`,
             disableRates: ({count}: DistanceRateOperationsParams) => `Disable ${Str.pluralize('rate', 'rates', count)}`,
             enableRate: 'Enable rate',
             status: 'Status',
             unit: 'Unit',
+            taxFeatureNotEnabledMessage: 'Taxes must be enabled on the workspace to use this feature. Head over to ',
+            changePromptMessage: ' to make that change.',
             defaultCategory: 'Default category',
             deleteDistanceRate: 'Delete distance rate',
             areYouSureDelete: ({count}: DistanceRateOperationsParams) => `Are you sure you want to delete ${Str.pluralize('this rate', 'these rates', count)}?`,
@@ -3142,5 +3175,63 @@ export default {
     },
     systemMessage: {
         mergedWithCashTransaction: 'matched a receipt to this transaction.',
+    },
+    subscription: {
+        yourPlan: {
+            title: 'Your plan',
+            collect: {
+                title: 'Collect',
+                priceAnnual: 'From $5/active member with the Expensify Card, $10/active member without the Expensify Card.',
+                pricePayPerUse: 'From $10/active member with the Expensify Card, $20/active member without the Expensify Card.',
+                benefit1: 'Unlimited SmartScans and distance tracking',
+                benefit2: 'Expensify Cards with Smart Limits',
+                benefit3: 'Bill pay and invoicing',
+                benefit4: 'Expense approvals',
+                benefit5: 'ACH reimbursement',
+                benefit6: 'QuickBooks and Xero integrations',
+                benefit7: 'Custom insights and reporting',
+            },
+            control: {
+                title: 'Control',
+                priceAnnual: 'From $9/active member with the Expensify Card, $18/active member without the Expensify Card.',
+                pricePayPerUse: 'From $18/active member with the Expensify Card, $36/active member without the Expensify Card.',
+                benefit1: 'Everything in Collect, plus:',
+                benefit2: 'NetSuite and Sage Intacct integrations',
+                benefit3: 'Certinia and Workday sync',
+                benefit4: 'Multiple expense approvers',
+                benefit5: 'SAML/SSO',
+                benefit6: 'Budgeting',
+            },
+            saveWithExpensifyTitle: 'Save with the Expensify Card',
+            saveWithExpensifyDescription: 'Use our savings calculator to see how cash back from the Expensify Card can reduce your Expensify bill.',
+            saveWithExpensifyButton: 'Learn more',
+        },
+        details: {
+            title: 'Subscription details',
+            annual: 'Annual subscription',
+            payPerUse: 'Pay-per-use',
+            subscriptionSize: 'Subscription size',
+            headsUpTitle: 'Heads up: ',
+            headsUpBody:
+                "If you don’t set your subscription size now, we’ll set it automatically to your first month's active member count. You’ll then be committed to paying for at least this number of members for the next 12 months. You can increase your subscription size at any time, but you can’t decrease it until your subscription is over.",
+            zeroCommitment: 'Zero commitment at the discounted annual subscription rate',
+        },
+        subscriptionSize: {
+            title: 'Subscription size',
+            yourSize: 'Your subscription size is the number of open seats that can be filled by any active member in a given month.',
+            eachMonth:
+                'Each month, your subscription covers up to the number of active members set above. Any time you increase your subscription size, you’ll start a new 12-month subscription at that new size.',
+            note: 'Note: An active member is anyone who has created, edited, submitted, approved, reimbursed, or exported expense data tied to your company workspace.',
+            confirmDetails: 'Confirm your new annual subscription details',
+            subscriptionSize: 'Subscription size',
+            activeMembers: ({size}) => `${size} active members/month`,
+            subscriptionRenews: 'Subscription renews',
+            youCantDowngrade: 'You can’t downgrade during your annual subscription',
+            youAlreadyCommitted: ({size, date}) =>
+                `You already committed to an annual subscription size of ${size} active members per month until ${date}. You can switch to a pay-per-use subscription on ${date} by disabling auto-renew.`,
+            error: {
+                size: 'Please enter a valid subscription size.',
+            },
+        },
     },
 } satisfies TranslationBase;
