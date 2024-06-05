@@ -3,6 +3,7 @@ import type Form from './Form';
 
 const INPUT_IDS = {
     CATEGORY_NAME: 'categoryName',
+    PAYROLL_CODE: 'payrollCode',
 } as const;
 
 type InputID = ValueOf<typeof INPUT_IDS>;
