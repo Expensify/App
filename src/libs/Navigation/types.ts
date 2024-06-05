@@ -200,6 +200,10 @@ type SettingsNavigatorParamList = {
         categoryName: string;
         backTo?: Routes;
     };
+    [SCREENS.WORKSPACE.CATEGORY_PAYROLL_CODE]: {
+        policyID: string;
+        categoryName: string;
+    };
     [SCREENS.WORKSPACE.CATEGORY_SETTINGS]: {
         policyID: string;
         categoryName: string;
