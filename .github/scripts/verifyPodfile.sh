@@ -34,14 +34,20 @@ fi
 
 info "Ensuring correct version of cocoapods is used..."
 
-POD_VERSION_REGEX='([[:digit:]]+\.[[:digit:]]+)(\.[[:digit:]]+)?';
-POD_VERSION_FROM_GEMFILE="$(sed -nr "s/gem \"cocoapods\", \"~> $POD_VERSION_REGEX\"/\1/p" Gemfile)"
-info "Pod version from Gemfile: $POD_VERSION_FROM_GEMFILE"
+# Extract versions from Gemfile
+POD_VERSION_REQUIREMENTS=$(grep 'cocoapods' Gemfile | grep -o "'.*'" | tr -d "'" | tr -d ',' | awk '{print $2, $3}')
+POD_VERSION_REQUIREMENTS_2=$(grep 'cocoapods' Gemfile | grep -o "'.*'" | tr -d "'" | tr -d ',' | awk '{print $4, $5}')
+info "Pod version requirements from Gemfile: $POD_VERSION_REQUIREMENTS, $POD_VERSION_REQUIREMENTS_2"
 
-POD_VERSION_FROM_PODFILE_LOCK="$(sed -nr "s/COCOAPODS: $POD_VERSION_REGEX/\1/p" ios/Podfile.lock)"
+# Extract version from Podfile.lock
+POD_VERSION_FROM_PODFILE_LOCK=$(grep 'COCOAPODS' ios/Podfile.lock | awk '{print $2}')
 info "Pod version from Podfile.lock: $POD_VERSION_FROM_PODFILE_LOCK"
 
-if [[ "$POD_VERSION_FROM_GEMFILE" == "$POD_VERSION_FROM_PODFILE_LOCK" ]]; then
+# Use Ruby to compare versions
+IS_VERSION_OK_1=$(ruby -r rubygems -e "puts (Gem::Requirement.new('$POD_VERSION_REQUIREMENTS').satisfied_by?(Gem::Version.new('$POD_VERSION_FROM_PODFILE_LOCK')) ? 1 : 0)")
+IS_VERSION_OK_2=$(ruby -r rubygems -e "puts (Gem::Requirement.new('$POD_VERSION_REQUIREMENTS_2').satisfied_by?(Gem::Version.new('$POD_VERSION_FROM_PODFILE_LOCK')) ? 1 : 0)")
+
+if [ "$IS_VERSION_OK_1" -eq "1" ] && [ "$IS_VERSION_OK_2" -eq "1" ]; then
   success "Cocoapods version from Podfile.lock matches cocoapods version from Gemfile"
 else
   error "Cocoapods version from Podfile.lock does not match cocoapods version from Gemfile. Please use \`npm run pod-install\` or \`bundle exec pod install\` instead of \`pod install\` to install pods."
