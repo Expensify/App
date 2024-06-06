@@ -64,9 +64,10 @@ const FS = {
                 FS.onReady().then(() => {
                     FS.consent(true);
                     if (value) {
-                        value.environment = envName;
+                        let localMetadata = value;
+                        localMetadata.environment = envName;
+                        FS.fsIdentify(value);
                     }
-                    FS.fsIdentify(value);
                 });
             });
         } catch (e) {
