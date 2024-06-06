@@ -631,6 +631,8 @@ function ReportScreen({
         };
     }, [reportActionIDFromRoute, sortedAllReportActions]);
 
+    // If user redirects to an inaccessible whisper via a deeplink, on a report they have access to
+    // Then we set reportActionID as empty string, so we display them the report and not the "Not found page".
     useEffect(() => {
         if (!isInaccessibleWhisper) {
             return;
