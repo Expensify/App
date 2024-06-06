@@ -3,6 +3,7 @@ import type {MutableRefObject} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
 import type {AddPaymentCardParams, DeletePaymentCardParams, MakeDefaultPaymentMethodParams, PaymentCardParams, TransferWalletBalanceParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -199,6 +200,64 @@ function addPaymentCard(params: PaymentCardParams) {
 }
 
 /**
+ * Calls the API to add a new card.
+ *
+ */
+function addSubscriptionPaymentCard(cardData: {
+    cardNumber: string;
+    cardYear: string;
+    cardMonth: string;
+    cardCVV: string;
+    addressName: string;
+    addressZip: string;
+    currency: ValueOf<typeof CONST.CURRENCY>;
+}) {
+    const {cardNumber, cardYear, cardMonth, cardCVV, addressName, addressZip, currency} = cardData;
+
+    const parameters: AddPaymentCardParams = {
+        cardNumber,
+        cardYear,
+        cardMonth,
+        cardCVV,
+        addressName,
+        addressZip,
+        currency,
+        isP2PDebitCard: false,
+    };
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+            value: {isLoading: true},
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+            value: {isLoading: false},
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+            value: {isLoading: false},
+        },
+    ];
+
+    // TODO integrate API for subscription card as a follow up
+    API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+}
+
+/**
  * Resets the values for the add debit card form back to their initial states
  */
 function clearDebitCardFormErrorAndSubmit() {
@@ -373,6 +432,7 @@ export {
     makeDefaultPaymentMethod,
     kycWallRef,
     continueSetup,
+    addSubscriptionPaymentCard,
     clearDebitCardFormErrorAndSubmit,
     dismissSuccessfulTransferBalancePage,
     transferWalletBalance,
