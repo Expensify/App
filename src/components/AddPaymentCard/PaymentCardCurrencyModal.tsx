@@ -6,9 +6,10 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 
-type WorkspaceOwnerPaymentCardCurrencyModalProps = {
+type PaymentCardCurrencyModalProps = {
     /** Whether the modal is visible */
     isVisible: boolean;
 
@@ -25,7 +26,8 @@ type WorkspaceOwnerPaymentCardCurrencyModalProps = {
     onClose?: () => void;
 };
 
-function WorkspaceOwnerPaymentCardCurrencyModal({isVisible, currencies, currentCurrency = CONST.CURRENCY.USD, onCurrencyChange, onClose}: WorkspaceOwnerPaymentCardCurrencyModalProps) {
+function PaymentCardCurrencyModal({isVisible, currencies, currentCurrency = CONST.CURRENCY.USD, onCurrencyChange, onClose}: PaymentCardCurrencyModalProps) {
+    const {isSmallScreenWidth} = useWindowDimensions();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {sections} = useMemo(
@@ -51,13 +53,14 @@ function WorkspaceOwnerPaymentCardCurrencyModal({isVisible, currencies, currentC
             onClose={() => onClose?.()}
             onModalHide={onClose}
             hideModalContentWhileAnimating
+            innerContainerStyle={styles.RHPNavigatorContainer(isSmallScreenWidth)}
             useNativeDriver
         >
             <ScreenWrapper
                 style={[styles.pb0]}
                 includePaddingTop={false}
                 includeSafeAreaPaddingBottom={false}
-                testID={WorkspaceOwnerPaymentCardCurrencyModal.displayName}
+                testID={PaymentCardCurrencyModal.displayName}
             >
                 <HeaderWithBackButton
                     title={translate('common.currency')}
@@ -79,6 +82,6 @@ function WorkspaceOwnerPaymentCardCurrencyModal({isVisible, currencies, currentC
     );
 }
 
-WorkspaceOwnerPaymentCardCurrencyModal.displayName = 'WorkspaceOwnerPaymentCardCurrencyModal';
+PaymentCardCurrencyModal.displayName = 'PaymentCardCurrencyModal';
 
-export default WorkspaceOwnerPaymentCardCurrencyModal;
+export default PaymentCardCurrencyModal;
