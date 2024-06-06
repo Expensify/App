@@ -347,7 +347,7 @@ function setPolicyCategoryGLCode(policyID: string, categoryName: string, glCode:
                         ...policyCategoryToUpdate,
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         pendingFields: {
-                            name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            glCode: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         },
                         glCode,
                     },
@@ -363,7 +363,7 @@ function setPolicyCategoryGLCode(policyID: string, categoryName: string, glCode:
                         ...policyCategoryToUpdate,
                         pendingAction: null,
                         pendingFields: {
-                            name: null,
+                            glCode: null,
                         },
                         glCode,
                     },
