@@ -1303,7 +1303,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-keyboard-controller (1.11.7):
+  - react-native-keyboard-controller (1.12.2):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -1961,7 +1961,7 @@ PODS:
     - React-Codegen
     - React-Core
     - ReactCommon/turbomodule/core
-  - RNReanimated (3.7.2):
+  - RNReanimated (3.8.1):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -2563,7 +2563,7 @@ SPEC CHECKSUMS:
   react-native-geolocation: f9e92eb774cb30ac1e099f34b3a94f03b4db7eb3
   react-native-image-picker: f8a13ff106bcc7eb00c71ce11fdc36aac2a44440
   react-native-key-command: 28ccfa09520e7d7e30739480dea4df003493bfe8
-  react-native-keyboard-controller: 7ac0083f3f16b3587d1d305e9ed75e4d759a84b8
+  react-native-keyboard-controller: 47c01b0741ae5fc84e53cf282e61cfa5c2edb19b
   react-native-launch-arguments: 5f41e0abf88a15e3c5309b8875d6fd5ac43df49d
   react-native-netinfo: 02d31de0e08ab043d48f2a1a8baade109d7b6ca5
   react-native-pager-view: ccd4bbf9fc7effaf8f91f8dae43389844d9ef9fa
@@ -2617,7 +2617,7 @@ SPEC CHECKSUMS:
   rnmapbox-maps: df8fe93dbd251f25022f4023d31bc04160d4d65c
   RNPermissions: 0b61d30d21acbeafe25baaa47d9bae40a0c65216
   RNReactNativeHapticFeedback: 616c35bdec7d20d4c524a7949ca9829c09e35f37
-  RNReanimated: 51db0fff543694d931bd3b7cab1a3b36bd86c738
+  RNReanimated: 323436b1a5364dca3b5f8b1a13458455e0de9efe
   RNScreens: 9ec969a95987a6caae170ef09313138abf3331e1
   RNShare: 2a4cdfc0626ad56b0ef583d424f2038f772afe58
   RNSound: 6c156f925295bdc83e8e422e7d8b38d33bc71852
@@ -2629,7 +2629,7 @@ SPEC CHECKSUMS:
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Turf: 13d1a92d969ca0311bbc26e8356cca178ce95da2
   VisionCamera: 1394a316c7add37e619c48d7aa40b38b954bf055
-  Yoga: 64cd2a583ead952b0315d5135bf39e053ae9be70
+  Yoga: 1b901a6d6eeba4e8a2e8f308f708691cdb5db312
 
 PODFILE CHECKSUM: 66a5c97ae1059e4da1993a4ad95abe5d819f555b
 
