@@ -3662,7 +3662,7 @@ const styles = (theme: ThemeColors) =>
 
         cardSectionContainer: {
             backgroundColor: theme.cardBG,
-            borderRadius: variables.componentBorderRadiusCard,
+            borderRadius: variables.componentBorderRadiusLarge,
             width: 'auto',
             textAlign: 'left',
             overflow: 'hidden',
@@ -4966,6 +4966,11 @@ const styles = (theme: ThemeColors) =>
 
         textLineThrough: {
             textDecorationLine: 'line-through',
+        },
+
+        tripIllustrationSize: {
+            width: 190,
+            height: 172,
         },
 
         reportListItemSeparator: {

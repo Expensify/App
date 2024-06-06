@@ -940,7 +940,7 @@ const CONST = {
         TO: 'to',
         CATEGORY: 'category',
         TAG: 'tag',
-        TOTAL: 'total',
+        TOTAL_AMOUNT: 'amount',
         TYPE: 'type',
         ACTION: 'action',
         TAX_AMOUNT: 'taxAmount',
@@ -1817,6 +1817,7 @@ const CONST = {
                 XERO_CHECK_CONNECTION: 'xeroCheckConnection',
                 XERO_SYNC_TITLE: 'xeroSyncTitle',
             },
+            SYNC_STAGE_TIMEOUT_MINUTES: 20,
         },
         ACCESS_VARIANTS: {
             PAID: 'paid',
