@@ -28,6 +28,9 @@ type PrivateSubscription = {
 
     /** Pending action */
     pendingAction?: OnyxCommon.PendingAction;
+
+    /** An error message */
+    errors?: OnyxCommon.Errors;
 };
 
 export default PrivateSubscription;

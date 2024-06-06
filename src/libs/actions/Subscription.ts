@@ -22,11 +22,24 @@ function updateSubscriptionType(type: SubscriptionType) {
             value: {
                 type,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                errors: null,
             },
         },
     ];
 
-    const finallyData: OnyxUpdate[] = [
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION,
+            value: {
+                type,
+                pendingAction: null,
+                errors: null,
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION,
@@ -43,7 +56,8 @@ function updateSubscriptionType(type: SubscriptionType) {
 
     API.write(WRITE_COMMANDS.UPDATE_SUBSCRIPTION_TYPE, parameters, {
         optimisticData,
-        finallyData,
+        successData,
+        failureData,
     });
 }
 
