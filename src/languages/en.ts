@@ -2391,7 +2391,7 @@ export default {
             subtitle: 'Connect to your accounting system to code transactions with your chart of accounts, auto-match payments, and keep your finances in sync.',
             qbo: 'Quickbooks Online',
             xero: 'Xero',
-            setup: 'Set up',
+            setup: 'Connect',
             lastSync: 'Last synced just now',
             import: 'Import',
             export: 'Export',
