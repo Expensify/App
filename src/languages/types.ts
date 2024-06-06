@@ -1,5 +1,6 @@
 import type {ReportAction} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
+import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 import type en from './en';
 
 type AddressLineParams = {
@@ -222,7 +223,7 @@ type ViolationsMaxAgeParams = {maxAge: number};
 
 type ViolationsMissingTagParams = {tagName?: string};
 
-type ViolationsModifiedAmountParams = {type: string; displayPercentVariance?: number};
+type ViolationsModifiedAmountParams = {type?: ViolationDataType; displayPercentVariance?: number};
 
 type ViolationsOverAutoApprovalLimitParams = {formattedLimit?: string};
 

@@ -5,6 +5,7 @@ import type CONST from '@src/CONST';
  * Derived from `CONST.VIOLATIONS` to maintain a single source of truth.
  */
 type ViolationName = (typeof CONST.VIOLATIONS)[keyof typeof CONST.VIOLATIONS];
+type ViolationDataType = (typeof CONST.VIOLATION_DATA_TYPES)[keyof typeof CONST.VIOLATION_DATA_TYPES];
 
 type TransactionViolation = {
     type: string;
@@ -30,11 +31,12 @@ type TransactionViolation = {
         tagListName?: string;
         errorIndexes?: number[];
         pendingPattern?: boolean;
+        type?: ViolationDataType;
     };
     displayPercentVariance?: number;
 };
 
 type TransactionViolations = TransactionViolation[];
 
-export type {TransactionViolation, ViolationName};
+export type {TransactionViolation, ViolationName, ViolationDataType};
 export default TransactionViolations;

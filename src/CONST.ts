@@ -3657,6 +3657,15 @@ const CONST = {
     },
 
     /**
+     * Constants for types of violation data.
+     */
+    VIOLATION_DATA_TYPES: {
+        DISTANCE: 'distance',
+        CARD: 'card',
+        SMARTSCAN: 'smartscan',
+    },
+
+    /**
      * Constants for types of violation names.
      * Defined here because they need to be referenced by the type system to generate the
      * ViolationNames type.
