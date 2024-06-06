@@ -1,7 +1,7 @@
 type UpdatePolicyCategoryPayrollCodeParams = {
     policyID: string;
     categoryName: string;
-    payroll: string;
+    payrollCode: string;
 };
 
 export default UpdatePolicyCategoryPayrollCodeParams;
