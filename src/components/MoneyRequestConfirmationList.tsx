@@ -381,10 +381,10 @@ function MoneyRequestConfirmationList({
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount));
 
         if (transaction?.taxAmount && previousTransactionAmount === transaction?.amount && previousTransactionCurrency === transaction?.currency) {
-            return IOU.setMoneyRequestTaxAmount(transactionID, transaction?.taxAmount ?? 0, true);
+            return IOU.setMoneyRequestTaxAmount(transactionID, transaction?.taxAmount ?? 0);
         }
 
-        IOU.setMoneyRequestTaxAmount(transactionID, amountInSmallestCurrencyUnits, true);
+        IOU.setMoneyRequestTaxAmount(transactionID, amountInSmallestCurrencyUnits);
     }, [policy, transaction, transactionID, previousTransactionAmount, previousTransactionCurrency, isDistanceRequest]);
 
     // If completing a split expense fails, set didConfirm to false to allow the user to edit the fields again
