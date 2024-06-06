@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -64,7 +64,7 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
     const firstBlurred = useRef(false);
     const isFocused = useIsFocused();
     const isLoading = useRef(false);
-    const {shouldUseNarrowLayout, isInModal} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
 
     /**
      * Validate the input value and set the error for formError
@@ -167,7 +167,7 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
             return;
         }
         let focusTimeout: NodeJS.Timeout;
-        if (isInModal) {
+        if (isInNarrowPaneModal) {
             focusTimeout = setTimeout(() => input.current?.focus(), CONST.ANIMATED_TRANSITION);
         } else {
             input.current.focus();

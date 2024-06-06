@@ -137,6 +137,7 @@ function syncConnection(policyID: string, connectionName: PolicyConnectionName |
             value: {
                 stageInProgress: isQBOConnection ? CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.STARTING_IMPORT_QBO : CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.STARTING_IMPORT_XERO,
                 connectionName,
+                timestamp: new Date().toISOString(),
             },
         },
     ];
@@ -178,7 +179,7 @@ function updateManyPolicyConnectionConfigs<TConnectionName extends ConnectionNam
                 connections: {
                     [connectionName]: {
                         config: {
-                            configUpdate,
+                            ...configUpdate,
                             pendingFields: Object.fromEntries(Object.keys(configUpdate).map((settingName) => [settingName, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE])),
                             errorFields: Object.fromEntries(Object.keys(configUpdate).map((settingName) => [settingName, null])),
                         },
@@ -196,7 +197,7 @@ function updateManyPolicyConnectionConfigs<TConnectionName extends ConnectionNam
                 connections: {
                     [connectionName]: {
                         config: {
-                            configCurrentData,
+                            ...configCurrentData,
                             pendingFields: Object.fromEntries(Object.keys(configUpdate).map((settingName) => [settingName, null])),
                             errorFields: Object.fromEntries(Object.keys(configUpdate).map((settingName) => [settingName, ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')])),
                         },
@@ -232,8 +233,8 @@ function updateManyPolicyConnectionConfigs<TConnectionName extends ConnectionNam
     API.write(WRITE_COMMANDS.UPDATE_MANY_POLICY_CONNECTION_CONFIGS, parameters, {optimisticData, failureData, successData});
 }
 
-function hasSynchronizationError(policy: OnyxEntry<Policy>, connectionName: PolicyConnectionName): boolean {
-    return policy?.connections?.[connectionName]?.lastSync?.isSuccessful === false;
+function hasSynchronizationError(policy: OnyxEntry<Policy>, connectionName: PolicyConnectionName, isSyncInProgress: boolean): boolean {
+    return !isSyncInProgress && policy?.connections?.[connectionName]?.lastSync?.isSuccessful === false;
 }
 
 export {removePolicyConnection, updatePolicyConnectionConfig, updateManyPolicyConnectionConfigs, hasSynchronizationError, syncConnection};

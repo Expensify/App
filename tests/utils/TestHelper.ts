@@ -1,4 +1,4 @@
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import * as Session from '@src/libs/actions/Session';
@@ -236,7 +236,12 @@ function buildTestReportComment(created: string, actorAccountID: number, actionI
 }
 
 function assertFormDataMatchesObject(formData: FormData, obj: Report) {
-    expect(Array.from(formData.entries()).reduce((memo, x) => ({...memo, [x[0]]: x[1]}), {})).toEqual(expect.objectContaining(obj));
+    expect(
+        Array.from(formData.entries()).reduce((acc, [key, val]) => {
+            acc[key] = val;
+            return acc;
+        }, {} as Record<string, string | Blob>),
+    ).toEqual(expect.objectContaining(obj));
 }
 
 /**
