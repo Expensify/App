@@ -350,7 +350,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         customListHeader={getCustomListHeader()}
                         shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                        onDismissError={(item) => Tag.clearPolicyTagErrors(policyID, item.value)}
+                        onDismissError={(item) => Tag.clearPolicyTagErrors(policyID, item.value, item.orderWeight ?? 0)}
                         listHeaderContent={isSmallScreenWidth ? getHeaderText() : null}
                         showScrollIndicator={false}
                     />
