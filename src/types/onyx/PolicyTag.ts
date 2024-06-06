@@ -11,8 +11,7 @@ type PolicyTag = OnyxCommon.OnyxValueWithOfflineFeedback<{
     previousTagName?: string;
 
     /** "General Ledger code" that corresponds to this tag in an accounting system. Similar to an ID. */
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    'GL Code'?: string;
+    glCode?: string;
 
     /** A list of errors keyed by microtime */
     errors?: OnyxCommon.Errors | null;
