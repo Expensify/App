@@ -276,8 +276,8 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         customListHeader={getCustomListHeader()}
                         shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                        onDismissError={() => {
-                            Tag.clearPolicyTagListError(policyID, route.params.orderWeight, 'required');
+                        onDismissError={(item) => {
+                            Tag.clearPolicyTagErrors(policyID, item.value, item.orderWeight ?? 0);
                         }}
                     />
                 )}

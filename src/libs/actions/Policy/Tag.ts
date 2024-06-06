@@ -330,8 +330,8 @@ function deletePolicyTags(policyID: string, tagsToDelete: string[]) {
     API.write(WRITE_COMMANDS.DELETE_POLICY_TAGS, parameters, onyxData);
 }
 
-function clearPolicyTagErrors(policyID: string, tagName: string) {
-    const tagListName = Object.keys(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})[0];
+function clearPolicyTagErrors(policyID: string, tagName: string, tagListIndex: number) {
+    const tagListName = Object.keys(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})[tagListIndex];
     const tag = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`]?.[tagListName].tags?.[tagName];
     if (!tag) {
         return;
