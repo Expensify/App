@@ -30,7 +30,7 @@ export default function () {
         currentTimezone = tzLinks[currentTimezone];
     }
 
-    require('@formatjs/intl-datetimeformat/polyfill-force');
+    require('@formatjs/intl-datetimeformat/polyfill');
     require('@formatjs/intl-datetimeformat/locale-data/en');
     require('@formatjs/intl-datetimeformat/locale-data/es');
     require('@formatjs/intl-datetimeformat/add-all-tz');
