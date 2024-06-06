@@ -53,26 +53,6 @@ function OptionsListContextProvider({reports, children}: OptionsListProviderProp
 
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const prevPersonalDetails = usePrevious(personalDetails);
-    const prevReports = usePrevious(reports);
-
-    /**
-     * This effect is used to update the options list when a report is updated.
-     */
-    useEffect(() => {
-        // there is no need to update the options if the options are not initialized
-        if (!areOptionsInitialized.current) {
-            return;
-        }
-
-        const newReports = OptionsListUtils.createOptionList(personalDetails, reports).reports;
-
-        setOptions((prevOptions) => {
-            const newOptions = {...prevOptions};
-            newOptions.reports = newReports;
-            return newOptions;
-        });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reports]);
 
     /**
      * This effect is used to add a new report option or remove a report option from the list of options when a new report is added to/removed from the collection.
@@ -81,21 +61,14 @@ function OptionsListContextProvider({reports, children}: OptionsListProviderProp
         if (!areOptionsInitialized.current || !reports) {
             return;
         }
-        const missingReportIds = Object.keys(reports).filter((key) => prevReports && !(key in prevReports));
+        const newReports = OptionsListUtils.createOptionList(personalDetails, reports).reports;
 
         setOptions((prevOptions) => {
             const newOptions = {
                 ...prevOptions,
-                reports: prevOptions.reports.filter((report) => reports[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] !== null),
+                reports: newReports,
             };
-            missingReportIds.forEach((missingReportId) => {
-                const report = missingReportId ? reports[missingReportId] : null;
-                if (!missingReportId || !report) {
-                    return;
-                }
-                const reportOption = OptionsListUtils.createOptionFromReport(report, personalDetails);
-                newOptions.reports.push(reportOption);
-            });
+
             return newOptions;
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -154,6 +127,7 @@ function OptionsListContextProvider({reports, children}: OptionsListProviderProp
 
     const loadOptions = useCallback(() => {
         const optionLists = OptionsListUtils.createOptionList(personalDetails, reports);
+        console.log('[CHATFINDERPAGE-CONTEXT] Loading options: ', optionLists);
         setOptions({
             reports: optionLists.reports,
             personalDetails: optionLists.personalDetails,
@@ -187,7 +161,7 @@ const useOptionsList = (options?: {shouldInitialize: boolean}) => {
         if (!shouldInitialize || areOptionsInitialized) {
             return;
         }
-
+        console.log('[CHATFINDERPAGE-CONTEXT]Initializing options');
         initializeOptions();
     }, [shouldInitialize, initializeOptions, areOptionsInitialized]);
 
