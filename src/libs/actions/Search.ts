@@ -44,7 +44,7 @@ function search({hash, query, policyIDs, offset, sortBy, sortOrder}: SearchParam
 }
 
 function createTransactionThread(hash: number, transactionID: string, reportID: string, moneyRequestReportActionID: string) {
-    ReportActions.openReport(reportID, '', [currentUserEmail], {}, moneyRequestReportActionID);
+    Report.openReport(reportID, '', [currentUserEmail], {}, moneyRequestReportActionID);
 
     const onyxUpdate: Record<string, Record<string, Partial<SearchTransaction>>> = {
         data: {
