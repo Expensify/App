@@ -8,12 +8,12 @@ import type {SearchAccountDetails} from '@src/types/onyx/SearchResults';
 
 type UserInfoCellProps = {
     participant: SearchAccountDetails;
+    displayName: string;
 };
 
-function UserInfoCell({participant}: UserInfoCellProps) {
+function UserInfoCell({participant, displayName}: UserInfoCellProps) {
     const styles = useThemeStyles();
 
-    const displayName = participant?.name ?? participant?.displayName ?? participant?.login;
     const avatarURL = participant?.avatarURL ?? participant?.avatar;
     const isWorkspace = participant?.avatarURL !== undefined;
     const iconType = isWorkspace ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR;

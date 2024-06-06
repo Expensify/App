@@ -1,8 +1,8 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import ControlSelection from '@libs/ControlSelection';
 import Button from './Button';
 
@@ -32,7 +32,7 @@ function BigNumberPad({numberPressed, longPressHandlerStateChanged = () => {}, i
 
     const styles = useThemeStyles();
     const [timer, setTimer] = useState<NodeJS.Timeout | null>(null);
-    const {isExtraSmallScreenHeight} = useWindowDimensions();
+    const {isExtraSmallScreenHeight} = useResponsiveLayout();
     const numberPressedRef = useRef(numberPressed);
 
     useEffect(() => {

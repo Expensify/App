@@ -8,6 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
+import {getXeroBankAccountsWithDefaultSelect} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
@@ -18,20 +19,9 @@ function XeroBillPaymentAccountSelectorPage({policy}: WithPolicyConnectionsProps
     const {translate} = useLocalize();
 
     const policyID = policy?.id ?? '';
-    const {bankAccounts} = policy?.connections?.xero?.data ?? {};
 
     const {reimbursementAccountID, syncReimbursedReports} = policy?.connections?.xero?.config.sync ?? {};
-
-    const xeroSelectorOptions = useMemo<SelectorType[]>(
-        () =>
-            (bankAccounts ?? []).map(({id, name}) => ({
-                value: id,
-                text: name,
-                keyForList: id,
-                isSelected: reimbursementAccountID === id,
-            })),
-        [reimbursementAccountID, bankAccounts],
-    );
+    const xeroSelectorOptions = useMemo<SelectorType[]>(() => getXeroBankAccountsWithDefaultSelect(policy ?? undefined, reimbursementAccountID), [reimbursementAccountID, policy]);
 
     const listHeaderComponent = useMemo(
         () => (
@@ -62,6 +52,7 @@ function XeroBillPaymentAccountSelectorPage({policy}: WithPolicyConnectionsProps
             displayName={XeroBillPaymentAccountSelectorPage.displayName}
             sections={[{data: xeroSelectorOptions}]}
             listItem={RadioListItem}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
             shouldBeBlocked={!syncReimbursedReports}
             onSelectRow={updateAccount}
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}

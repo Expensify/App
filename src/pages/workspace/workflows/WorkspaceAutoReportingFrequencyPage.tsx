@@ -1,12 +1,12 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useState} from 'react';
-import {FlatList} from 'react-native-gesture-handler';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
+import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -33,6 +33,7 @@ type WorkspaceAutoReportingFrequencyPageItem = {
     text: string;
     keyForList: string;
     isSelected: boolean;
+    footerComponent?: React.ReactNode | null;
 };
 
 type AutoReportingFrequencyDisplayNames = Record<AutoReportingFrequencyKey, string>;
@@ -50,16 +51,6 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
     const {translate, preferredLocale, toLocaleOrdinal} = useLocalize();
     const styles = useThemeStyles();
     const [isMonthlyFrequency, setIsMonthlyFrequency] = useState(policy?.autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY);
-
-    const autoReportingFrequencyItems: WorkspaceAutoReportingFrequencyPageItem[] = Object.keys(getAutoReportingFrequencyDisplayNames(preferredLocale)).map((frequencyKey) => {
-        const isSelected = policy?.autoReportingFrequency === frequencyKey;
-
-        return {
-            text: getAutoReportingFrequencyDisplayNames(preferredLocale)[frequencyKey as AutoReportingFrequencyKey] || '',
-            keyForList: frequencyKey,
-            isSelected,
-        };
-    });
 
     const onSelectAutoReportingFrequency = (item: WorkspaceAutoReportingFrequencyPageItem) => {
         Policy.setWorkspaceAutoReportingFrequency(policy?.id ?? '', item.keyForList as AutoReportingFrequencyKey);
@@ -106,16 +97,16 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
         </OfflineWithFeedback>
     );
 
-    const renderItem = ({item}: {item: WorkspaceAutoReportingFrequencyPageItem}) => (
-        <>
-            <RadioListItem
-                item={item}
-                onSelectRow={() => onSelectAutoReportingFrequency(item)}
-                showTooltip={false}
-            />
-            {isMonthlyFrequency && item.keyForList === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY ? monthlyFrequencyDetails() : null}
-        </>
-    );
+    const autoReportingFrequencyItems: WorkspaceAutoReportingFrequencyPageItem[] = Object.keys(getAutoReportingFrequencyDisplayNames(preferredLocale)).map((frequencyKey) => {
+        const isSelected = policy?.autoReportingFrequency === frequencyKey;
+
+        return {
+            text: getAutoReportingFrequencyDisplayNames(preferredLocale)[frequencyKey as AutoReportingFrequencyKey] || '',
+            keyForList: frequencyKey,
+            isSelected,
+            footerContent: isMonthlyFrequency && frequencyKey === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY ? monthlyFrequencyDetails() : null,
+        };
+    });
 
     return (
         <AccessOrNotFoundWrapper
@@ -140,11 +131,14 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
                         pendingAction={policy?.pendingFields?.autoReportingFrequency}
                         errors={ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_FREQUENCY)}
                         onClose={() => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_FREQUENCY)}
+                        style={styles.flex1}
+                        contentContainerStyle={styles.flex1}
                     >
-                        <FlatList
-                            data={autoReportingFrequencyItems}
-                            renderItem={renderItem}
-                            keyExtractor={(item: WorkspaceAutoReportingFrequencyPageItem) => item.text}
+                        <SelectionList
+                            ListItem={RadioListItem}
+                            sections={[{data: autoReportingFrequencyItems}]}
+                            onSelectRow={onSelectAutoReportingFrequency}
+                            initiallyFocusedOptionKey={policy?.autoReportingFrequency}
                         />
                     </OfflineWithFeedback>
                 </FullPageNotFoundView>

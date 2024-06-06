@@ -2,6 +2,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import {Polygon, Svg} from 'react-native-svg';
+import {ImageBehaviorContextProvider} from '@components/Image/ImageBehaviorContextProvider';
 import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -65,28 +66,30 @@ function ReportActionItemImages({images, size, total, isHovered = false}: Report
     return (
         <View style={styles.reportActionItemImagesContainer}>
             <View style={[styles.reportActionItemImages, hoverStyle, heightStyle]}>
-                {shownImages.map(({thumbnail, isThumbnail, image, transaction, isLocalFile, fileExtension, filename}, index) => {
-                    // Show a border to separate multiple images. Shown to the right for each except the last.
-                    const shouldShowBorder = shownImages.length > 1 && index < shownImages.length - 1;
-                    const borderStyle = shouldShowBorder ? styles.reportActionItemImageBorder : {};
-                    return (
-                        <View
-                            key={`${index}-${image}`}
-                            style={[styles.reportActionItemImage, borderStyle, hoverStyle]}
-                        >
-                            <ReportActionItemImage
-                                thumbnail={thumbnail}
-                                fileExtension={fileExtension}
-                                image={image}
-                                isLocalFile={isLocalFile}
-                                filename={filename}
-                                transaction={transaction}
-                                isThumbnail={isThumbnail}
-                                isSingleImage={numberOfShownImages === 1}
-                            />
-                        </View>
-                    );
-                })}
+                <ImageBehaviorContextProvider shouldSetAspectRatioInStyle={false}>
+                    {shownImages.map(({thumbnail, isThumbnail, image, transaction, isLocalFile, fileExtension, filename}, index) => {
+                        // Show a border to separate multiple images. Shown to the right for each except the last.
+                        const shouldShowBorder = shownImages.length > 1 && index < shownImages.length - 1;
+                        const borderStyle = shouldShowBorder ? styles.reportActionItemImageBorder : {};
+                        return (
+                            <View
+                                key={`${index}-${image}`}
+                                style={[styles.reportActionItemImage, borderStyle, hoverStyle]}
+                            >
+                                <ReportActionItemImage
+                                    thumbnail={thumbnail}
+                                    fileExtension={fileExtension}
+                                    image={image}
+                                    isLocalFile={isLocalFile}
+                                    filename={filename}
+                                    transaction={transaction}
+                                    isThumbnail={isThumbnail}
+                                    isSingleImage={numberOfShownImages === 1}
+                                />
+                            </View>
+                        );
+                    })}
+                </ImageBehaviorContextProvider>
             </View>
             {remaining > 0 && (
                 <View style={[styles.reportActionItemImagesMoreContainer]}>

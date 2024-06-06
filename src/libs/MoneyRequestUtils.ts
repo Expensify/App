@@ -40,10 +40,10 @@ function addLeadingZero(amount: string): string {
 /**
  * Calculate the length of the amount with leading zeroes
  */
-function calculateAmountLength(amount: string): number {
+function calculateAmountLength(amount: string, decimals: number): number {
     const leadingZeroes = amount.match(/^0+/);
     const leadingZeroesLength = leadingZeroes?.[0]?.length ?? 0;
-    const absAmount = parseFloat((Number(stripCommaFromAmount(amount)) * 100).toFixed(2)).toString();
+    const absAmount = parseFloat((Number(stripCommaFromAmount(amount)) * 10 ** decimals).toFixed(2)).toString();
 
     if (/\D/.test(absAmount)) {
         return CONST.IOU.AMOUNT_MAX_LENGTH + 1;
@@ -61,7 +61,7 @@ function validateAmount(amount: string, decimals: number, amountMaxLength: numbe
             ? `^\\d+(,\\d*)*$` // Don't allow decimal point if decimals === 0
             : `^\\d+(,\\d*)*(\\.\\d{0,${decimals}})?$`; // Allow the decimal point and the desired number of digits after the point
     const decimalNumberRegex = new RegExp(regexString, 'i');
-    return amount === '' || (decimalNumberRegex.test(amount) && calculateAmountLength(amount) <= amountMaxLength);
+    return amount === '' || (decimalNumberRegex.test(amount) && calculateAmountLength(amount, decimals) <= amountMaxLength);
 }
 
 /**

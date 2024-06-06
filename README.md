@@ -663,7 +663,38 @@ Sometimes it might be beneficial to generate a local production version instead 
 In order to generate a production web build, run `npm run build`, this will generate a production javascript build in the `dist/` folder.
 
 #### Local production build of the MacOS desktop app
-In order to compile a production desktop build, run `npm run desktop-build`, this will generate a production app in the `dist/Mac` folder named `Chat.app`.
+The commands used to compile a production or staging desktop build are `npm run desktop-build` and `npm run desktop-build-staging`, respectively. These will product an app in the `dist/Mac` folder named NewExpensify.dmg that you can install like a normal app.
+
+HOWEVER, by default those commands will try to notarize the build (signing it as Expensify) and publish it to the S3 bucket where it's hosted for users. In most cases you won't actually need or want to do that for your local testing. To get around that and disable those behaviors for your local build, apply the following diff:
+
+```diff
+diff --git a/config/electronBuilder.config.js b/config/electronBuilder.config.js
+index e4ed685f65..4c7c1b3667 100644
+--- a/config/electronBuilder.config.js
++++ b/config/electronBuilder.config.js
+@@ -42,9 +42,6 @@ module.exports = {
+         entitlements: 'desktop/entitlements.mac.plist',
+         entitlementsInherit: 'desktop/entitlements.mac.plist',
+         type: 'distribution',
+-        notarize: {
+-            teamId: '368M544MTT',
+-        },
+     },
+     dmg: {
+         title: 'New Expensify',
+diff --git a/scripts/build-desktop.sh b/scripts/build-desktop.sh
+index 791f59d733..526306eec1 100755
+--- a/scripts/build-desktop.sh
++++ b/scripts/build-desktop.sh
+@@ -35,4 +35,4 @@ npx webpack --config config/webpack/webpack.desktop.ts --env file=$ENV_FILE
+ title "Building Desktop App Archive Using Electron"
+ info ""
+ shift 1
+-npx electron-builder --config config/electronBuilder.config.js --publish always "$@"
++npx electron-builder --config config/electronBuilder.config.js --publish never "$@"
+```
+
+There may be some cases where you need to test a signed and published build, such as when testing the update flows. Instructions on setting that up can be found in [Testing Electron Auto-Update](https://github.com/Expensify/App/blob/main/desktop/README.md#testing-electron-auto-update). Good luck 🙃
 
 #### Local production build the iOS app
 In order to compile a production iOS build, run `npm run ios-build`, this will generate a `Chat.ipa` in the root directory of this project.

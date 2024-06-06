@@ -1,36 +1,8 @@
-import PropTypes from 'prop-types';
 import type {ComponentType, ForwardedRef, ReactElement, RefAttributes} from 'react';
 import React, {forwardRef} from 'react';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import type {LocaleContextProps} from './LocaleContextProvider';
 import {LocaleContext} from './LocaleContextProvider';
-
-const withLocalizePropTypes = {
-    /** Returns translated string for given locale and phrase */
-    translate: PropTypes.func.isRequired,
-
-    /** Formats number formatted according to locale and options */
-    numberFormat: PropTypes.func.isRequired,
-
-    /** Converts a datetime into a localized string representation that's relative to current moment in time */
-    datetimeToRelative: PropTypes.func.isRequired,
-
-    /** Formats a datetime to local date and time string */
-    datetimeToCalendarTime: PropTypes.func.isRequired,
-
-    /** Updates date-fns internal locale */
-    updateLocale: PropTypes.func.isRequired,
-
-    /** Returns a locally converted phone number for numbers from the same region
-     * and an internationally converted phone number with the country code for numbers from other regions */
-    formatPhoneNumber: PropTypes.func.isRequired,
-
-    /** Gets the standard digit corresponding to a locale digit */
-    fromLocaleDigit: PropTypes.func.isRequired,
-
-    /** Gets the locale digit corresponding to a standard digit */
-    toLocaleDigit: PropTypes.func.isRequired,
-};
 
 type WithLocalizeProps = LocaleContextProps;
 
@@ -57,5 +29,4 @@ export default function withLocalize<TProps extends WithLocalizeProps, TRef>(
     return forwardRef(WithLocalize);
 }
 
-export {withLocalizePropTypes};
 export type {WithLocalizeProps};

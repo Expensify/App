@@ -7,9 +7,9 @@ import VideoPlayer from '@components/VideoPlayer';
 import IconButton from '@components/VideoPlayer/IconButton';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThumbnailDimensions from '@hooks/useThumbnailDimensions';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import VideoPlayerThumbnail from './VideoPlayerThumbnail';
 
 type VideoDimensions = {
@@ -44,7 +44,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {currentlyPlayingURL, currentlyPlayingURLReportID, updateCurrentlyPlayingURL} = usePlaybackContext();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [isThumbnail, setIsThumbnail] = useState(true);
     const [measuredDimensions, setMeasuredDimensions] = useState(videoDimensions);
     const {thumbnailDimensionsStyles} = useThumbnailDimensions(measuredDimensions.width, measuredDimensions.height);
@@ -57,7 +57,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
 
     const handleOnPress = () => {
         updateCurrentlyPlayingURL(videoUrl);
-        if (isSmallScreenWidth) {
+        if (shouldUseNarrowLayout) {
             onShowModalPress();
         }
     };
@@ -71,7 +71,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
 
     return (
         <View style={[styles.webViewStyles.tagStyles.video, thumbnailDimensionsStyles]}>
-            {isSmallScreenWidth || isThumbnail ? (
+            {shouldUseNarrowLayout || isThumbnail ? (
                 <VideoPlayerThumbnail
                     thumbnailUrl={thumbnailUrl}
                     onPress={handleOnPress}

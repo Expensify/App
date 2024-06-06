@@ -13,6 +13,7 @@ export type {default as CloseAccountParams} from './CloseAccountParams';
 export type {default as ConnectBankAccountParams} from './ConnectBankAccountParams';
 export type {default as ConnectPolicyToAccountingIntegrationParams} from './ConnectPolicyToAccountingIntegrationParams';
 export type {default as SyncPolicyToQuickbooksOnlineParams} from './SyncPolicyToQuickbooksOnlineParams';
+export type {default as SyncPolicyToXeroParams} from './SyncPolicyToXeroParams';
 export type {default as DeleteContactMethodParams} from './DeleteContactMethodParams';
 export type {default as DeletePaymentBankAccountParams} from './DeletePaymentBankAccountParams';
 export type {default as DeletePaymentCardParams} from './DeletePaymentCardParams';

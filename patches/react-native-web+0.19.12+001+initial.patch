@@ -1,9 +1,9 @@
 diff --git a/node_modules/react-native-web/dist/vendor/react-native/VirtualizedList/index.js b/node_modules/react-native-web/dist/vendor/react-native/VirtualizedList/index.js
-index c879838..0c9dfcb 100644
+index e137def..c3e5054 100644
 --- a/node_modules/react-native-web/dist/vendor/react-native/VirtualizedList/index.js
 +++ b/node_modules/react-native-web/dist/vendor/react-native/VirtualizedList/index.js
 @@ -285,7 +285,7 @@ class VirtualizedList extends StateSafePureComponent {
-   // $FlowFixMe[missing-local-annot]
+   // REACT-NATIVE-WEB patch to preserve during future RN merges: Support inverted wheel scroller.
  
    constructor(_props) {
 -    var _this$props$updateCel;
@@ -243,7 +243,7 @@ index c879838..0c9dfcb 100644
      });
      this._hasMore = this.state.cellsAroundViewport.last < itemCount - 1;
      var innerRet = /*#__PURE__*/React.createElement(VirtualizedListContextProvider, {
-@@ -1307,8 +1360,12 @@ class VirtualizedList extends StateSafePureComponent {
+@@ -1317,8 +1370,12 @@ class VirtualizedList extends StateSafePureComponent {
        onStartReached = _this$props8.onStartReached,
        onStartReachedThreshold = _this$props8.onStartReachedThreshold,
        onEndReached = _this$props8.onEndReached,
@@ -258,7 +258,7 @@ index c879838..0c9dfcb 100644
      var _this$_scrollMetrics2 = this._scrollMetrics,
        contentLength = _this$_scrollMetrics2.contentLength,
        visibleLength = _this$_scrollMetrics2.visibleLength,
-@@ -1348,16 +1405,10 @@ class VirtualizedList extends StateSafePureComponent {
+@@ -1358,16 +1415,10 @@ class VirtualizedList extends StateSafePureComponent {
      // and call onStartReached only once for a given content length,
      // and only if onEndReached is not being executed
      else if (onStartReached != null && this.state.cellsAroundViewport.first === 0 && isWithinStartThreshold && this._scrollMetrics.contentLength !== this._sentStartForContentLength) {
@@ -279,9 +279,9 @@ index c879838..0c9dfcb 100644
      }
  
      // If the user scrolls away from the start or end and back again,
-@@ -1412,6 +1463,11 @@ class VirtualizedList extends StateSafePureComponent {
-     }
-   }
+@@ -1433,6 +1484,11 @@ class VirtualizedList extends StateSafePureComponent {
+    */
+ 
    _updateViewableItems(props, cellsAroundViewport) {
 +    // If we have any pending scroll updates it means that the scroll metrics
 +    // are out of date and we should not call any of the visibility callbacks.
@@ -292,7 +292,7 @@ index c879838..0c9dfcb 100644
        tuple.viewabilityHelper.onUpdate(props, this._scrollMetrics.offset, this._scrollMetrics.visibleLength, this._getFrameMetrics, this._createViewToken, tuple.onViewableItemsChanged, cellsAroundViewport);
      });
 diff --git a/node_modules/react-native-web/src/vendor/react-native/VirtualizedList/index.js b/node_modules/react-native-web/src/vendor/react-native/VirtualizedList/index.js
-index c7d68bb..43f9653 100644
+index c7d68bb..459f017 100644
 --- a/node_modules/react-native-web/src/vendor/react-native/VirtualizedList/index.js
 +++ b/node_modules/react-native-web/src/vendor/react-native/VirtualizedList/index.js
 @@ -75,6 +75,10 @@ type ViewabilityHelperCallbackTuple = {

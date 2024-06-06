@@ -20,8 +20,6 @@ const hasHoverSupport = DeviceCapabilities.hasHoverSupport();
 /**
  * A component used to wrap an element intended for displaying a tooltip. The term "tooltip's target" refers to the
  * wrapped element, which, upon hover, triggers the tooltip to be shown.
- * @param {propTypes} props
- * @returns {ReactNodeLike}
  */
 
 /**
@@ -30,10 +28,10 @@ const hasHoverSupport = DeviceCapabilities.hasHoverSupport();
  * so we need to find the correct part (the one that the user is hovering
  * over) and show the tooltip there.
  *
- * @param {Element} target The DOM element being hovered over.
- * @param {number} clientX The X position from the MouseEvent.
- * @param {number} clientY The Y position from the MouseEvent.
- * @return {DOMRect} The chosen bounding box.
+ * @param target The DOM element being hovered over.
+ * @param clientX The X position from the MouseEvent.
+ * @param clientY The Y position from the MouseEvent.
+ * @return The chosen bounding box.
  */
 
 function chooseBoundingBox(target: HTMLElement, clientX: number, clientY: number): DOMRect {

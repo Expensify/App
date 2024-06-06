@@ -8,6 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
+import {getXeroBankAccountsWithDefaultSelect} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
@@ -18,20 +19,9 @@ function XeroBankAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
 
     const policyID = policy?.id ?? '';
-    const {bankAccounts} = policy?.connections?.xero?.data ?? {};
 
     const {nonReimbursableAccount: nonReimbursableAccountID} = policy?.connections?.xero?.config.export ?? {};
-
-    const xeroSelectorOptions = useMemo<SelectorType[]>(
-        () =>
-            (bankAccounts ?? []).map(({id, name}) => ({
-                value: id,
-                text: name,
-                keyForList: id,
-                isSelected: nonReimbursableAccountID === id,
-            })),
-        [nonReimbursableAccountID, bankAccounts],
-    );
+    const xeroSelectorOptions = useMemo<SelectorType[]>(() => getXeroBankAccountsWithDefaultSelect(policy ?? undefined, nonReimbursableAccountID), [nonReimbursableAccountID, policy]);
 
     const listHeaderComponent = useMemo(
         () => (
@@ -69,6 +59,7 @@ function XeroBankAccountSelectPage({policy}: WithPolicyConnectionsProps) {
             headerContent={listHeaderComponent}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID))}
             title="workspace.xero.xeroBankAccount"
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
         />
     );
 }

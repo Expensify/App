@@ -6,9 +6,6 @@ import type {ViewStyle} from 'react-native';
  * https://getbootstrap.com/docs/5.0/utilities/sizing/
  */
 export default {
-    h0: {
-        height: 0,
-    },
     h100: {
         height: '100%',
     },
