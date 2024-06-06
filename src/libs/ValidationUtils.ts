@@ -1,6 +1,5 @@
 import {addYears, endOfMonth, format, isAfter, isBefore, isSameDay, isValid, isWithinInterval, parse, parseISO, startOfDay, subYears} from 'date-fns';
-import Str from 'expensify-common/lib/str';
-import {URL_REGEX_WITH_REQUIRED_PROTOCOL} from 'expensify-common/lib/Url';
+import {Str, Url} from 'expensify-common';
 import isDate from 'lodash/isDate';
 import isEmpty from 'lodash/isEmpty';
 import isObject from 'lodash/isObject';
@@ -241,7 +240,7 @@ function getDatePassedError(inputDate: string): string {
  */
 function isValidWebsite(url: string): boolean {
     const isLowerCase = url === url.toLowerCase();
-    return new RegExp(`^${URL_REGEX_WITH_REQUIRED_PROTOCOL}$`, 'i').test(url) && isLowerCase;
+    return new RegExp(`^${Url.URL_REGEX_WITH_REQUIRED_PROTOCOL}$`, 'i').test(url) && isLowerCase;
 }
 
 function validateIdentity(identity: Record<string, string>): Record<string, boolean> {

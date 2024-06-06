@@ -104,19 +104,20 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
                 <HeaderWithBackButton title={translate('common.details')} />
                 <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                     {isScanning && (
-                        <MoneyRequestHeaderStatusBar
-                            title={
-                                <Icon
-                                    src={Expensicons.ReceiptScan}
-                                    height={variables.iconSizeSmall}
-                                    width={variables.iconSizeSmall}
-                                    fill={theme.icon}
-                                />
-                            }
-                            description={translate('iou.receiptScanInProgressDescription')}
-                            shouldShowBorderBottom
-                            shouldStyleFlexGrow={false}
-                        />
+                        <View style={[styles.ph5, styles.pb3, styles.borderBottom]}>
+                            <MoneyRequestHeaderStatusBar
+                                title={
+                                    <Icon
+                                        src={Expensicons.ReceiptScan}
+                                        height={variables.iconSizeSmall}
+                                        width={variables.iconSizeSmall}
+                                        fill={theme.icon}
+                                    />
+                                }
+                                description={translate('iou.receiptScanInProgressDescription')}
+                                shouldStyleFlexGrow={false}
+                            />
+                        </View>
                     )}
                     {!!participants.length && (
                         <MoneyRequestConfirmationList

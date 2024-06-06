@@ -1,4 +1,4 @@
-import type {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
+import type {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useCallback, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
