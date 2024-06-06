@@ -391,7 +391,7 @@ function setPolicyCategoryPayrollCode(policyID: string, categoryName: string, pa
         payrollCode,
     };
 
-    API.write(WRITE_COMMANDS.UPDATE_POLICY_CATEGORY_GL_CODE, parameters, onyxData);
+    API.write(WRITE_COMMANDS.UPDATE_POLICY_CATEGORY_PAYROLL_CODE, parameters, onyxData);
 }
 
 function setWorkspaceRequiresCategory(policyID: string, requiresCategory: boolean) {
