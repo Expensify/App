@@ -52,6 +52,7 @@ import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import MoneyRequestAmountInput from './MoneyRequestAmountInput';
 import PDFThumbnail from './PDFThumbnail';
 import {PressableWithFeedback} from './Pressable';
+import PressableWithoutFocus from './Pressable/PressableWithoutFocus';
 import ReceiptEmptyState from './ReceiptEmptyState';
 import ReceiptImage from './ReceiptImage';
 import SelectionList from './SelectionList';
@@ -161,6 +162,9 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     /** Whether we're editing a split expense */
     isEditingSplitBill?: boolean;
 
+    /** Whether we can navigate to receipt page */
+    shouldDisplayReceipt?: boolean;
+
     /** Whether we should show the amount, date, and merchant fields. */
     shouldShowSmartScanFields?: boolean;
 
@@ -217,6 +221,7 @@ function MoneyRequestConfirmationList({
     allPolicies,
     action = CONST.IOU.ACTION.CREATE,
     currencyList,
+    shouldDisplayReceipt = false,
 }: MoneyRequestConfirmationListProps) {
     const policy = policyReal ?? policyDraft;
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
@@ -1097,33 +1102,49 @@ function MoneyRequestConfirmationList({
         () => (
             <View style={styles.moneyRequestImage}>
                 {isLocalFile && Str.isPDF(receiptFilename) ? (
-                    <PDFThumbnail
-                        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                        previewSourceURL={resolvedReceiptImage as string}
-                        // We don't support scanning password protected PDF receipt
-                        enabled={!isAttachmentInvalid}
-                        onPassword={() => {
-                            setIsAttachmentInvalid(true);
-                            setInvalidAttachmentPromt(translate('attachmentPicker.protectedPDFNotSupported'));
-                        }}
-                        onLoadError={() => {
-                            setInvalidAttachmentPromt(translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
-                            setIsAttachmentInvalid(true);
-                        }}
-                    />
+                    <PressableWithoutFocus
+                        onPress={() => Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(reportID ?? '', transactionID ?? ''))}
+                        accessibilityRole={CONST.ROLE.BUTTON}
+                        accessibilityLabel={translate('accessibilityHints.viewAttachment')}
+                        disabled={!shouldDisplayReceipt}
+                        disabledStyle={styles.cursorDefault}
+                    >
+                        <PDFThumbnail
+                            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+                            previewSourceURL={resolvedReceiptImage as string}
+                            // We don't support scanning password protected PDF receipt
+                            enabled={!isAttachmentInvalid}
+                            onPassword={() => {
+                                setIsAttachmentInvalid(true);
+                                setInvalidAttachmentPromt(translate('attachmentPicker.protectedPDFNotSupported'));
+                            }}
+                            onLoadError={() => {
+                                setInvalidAttachmentPromt(translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
+                                setIsAttachmentInvalid(true);
+                            }}
+                        />
+                    </PressableWithoutFocus>
                 ) : (
-                    <ReceiptImage
-                        isThumbnail={isThumbnail}
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                        source={resolvedThumbnail || resolvedReceiptImage || ''}
-                        // AuthToken is required when retrieving the image from the server
-                        // but we don't need it to load the blob:// or file:// image when starting an expense/split
-                        // So if we have a thumbnail, it means we're retrieving the image from the server
-                        isAuthTokenRequired={!!receiptThumbnail && !isLocalFile}
-                        fileExtension={fileExtension}
-                        shouldUseThumbnailImage
-                        shouldUseInitialObjectPosition={isDistanceRequest}
-                    />
+                    <PressableWithoutFocus
+                        onPress={() => Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(reportID ?? '', transactionID ?? ''))}
+                        disabled={!shouldDisplayReceipt || isThumbnail}
+                        accessibilityRole={CONST.ROLE.BUTTON}
+                        accessibilityLabel={translate('accessibilityHints.viewAttachment')}
+                        disabledStyle={styles.cursorDefault}
+                    >
+                        <ReceiptImage
+                            isThumbnail={isThumbnail}
+                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                            source={resolvedThumbnail || resolvedReceiptImage || ''}
+                            // AuthToken is required when retrieving the image from the server
+                            // but we don't need it to load the blob:// or file:// image when starting an expense/split
+                            // So if we have a thumbnail, it means we're retrieving the image from the server
+                            isAuthTokenRequired={!!receiptThumbnail && !isLocalFile}
+                            fileExtension={fileExtension}
+                            shouldUseThumbnailImage
+                            shouldUseInitialObjectPosition={isDistanceRequest}
+                        />
+                    </PressableWithoutFocus>
                 )}
             </View>
         ),
@@ -1138,7 +1159,11 @@ function MoneyRequestConfirmationList({
             receiptThumbnail,
             fileExtension,
             isDistanceRequest,
+            reportID,
+            transactionID,
             translate,
+            styles.cursorDefault,
+            shouldDisplayReceipt,
         ],
     );
 
