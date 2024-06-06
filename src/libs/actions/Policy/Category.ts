@@ -347,7 +347,7 @@ function setPolicyCategoryPayrollCode(policyID: string, categoryName: string, pa
                         ...policyCategoryToUpdate,
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         pendingFields: {
-                            name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            payrollCode: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         },
                         payrollCode,
                     },
@@ -363,7 +363,7 @@ function setPolicyCategoryPayrollCode(policyID: string, categoryName: string, pa
                         ...policyCategoryToUpdate,
                         pendingAction: null,
                         pendingFields: {
-                            name: null,
+                            payrollCode: null,
                         },
                         payrollCode,
                     },
