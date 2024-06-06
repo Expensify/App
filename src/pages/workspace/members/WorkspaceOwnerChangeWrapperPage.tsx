@@ -12,7 +12,7 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
-import * as PolicyActions from '@userActions/Policy';
+import * as PolicyActions from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -67,7 +67,7 @@ function WorkspaceOwnerChangeWrapperPage({route, policy}: WorkspaceOwnerChangeWr
                         Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
                     }}
                 />
-                <View style={[styles.containerWithSpaceBetween, styles.ph5, error === CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD ? styles.pb0 : styles.pb5]}>
+                <View style={[styles.containerWithSpaceBetween, error !== CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD ? styles.ph5 : styles.ph0, styles.pb0]}>
                     {policy?.isLoading && <FullScreenLoadingIndicator />}
                     {!policy?.isLoading &&
                         (error === CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD ? (

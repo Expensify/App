@@ -1,5 +1,5 @@
 import {useNavigation, useRoute} from '@react-navigation/native';
-import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
+import {CONST as COMMON_CONST} from 'expensify-common';
 import _ from 'lodash';
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -105,6 +105,7 @@ function StateSelectionPage() {
 
             <SelectionList
                 onSelectRow={selectCountryState}
+                shouldDebounceRowSelect
                 headerMessage={headerMessage}
                 // Label can be an empty string
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing

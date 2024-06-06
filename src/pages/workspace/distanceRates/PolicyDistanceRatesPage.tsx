@@ -26,7 +26,7 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import type {FullScreenNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Policy from '@userActions/Policy';
+import * as DistanceRate from '@userActions/Policy/DistanceRate';
 import ButtonWithDropdownMenu from '@src/components/ButtonWithDropdownMenu';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -68,17 +68,17 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
     );
 
     const fetchDistanceRates = useCallback(() => {
-        Policy.openPolicyDistanceRatesPage(policyID);
+        DistanceRate.openPolicyDistanceRatesPage(policyID);
     }, [policyID]);
 
     const dismissError = useCallback(
         (item: RateForList) => {
             if (customUnitRates[item.value].errors) {
-                Policy.clearDeleteDistanceRateError(policyID, customUnit?.customUnitID ?? '', item.value);
+                DistanceRate.clearDeleteDistanceRateError(policyID, customUnit?.customUnitID ?? '', item.value);
                 return;
             }
 
-            Policy.clearCreateDistanceRateItemAndError(policyID, customUnit?.customUnitID ?? '', item.value);
+            DistanceRate.clearCreateDistanceRateItemAndError(policyID, customUnit?.customUnitID ?? '', item.value);
         },
         [customUnit?.customUnitID, customUnitRates, policyID],
     );
@@ -132,7 +132,7 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
             return;
         }
 
-        Policy.setPolicyDistanceRatesEnabled(
+        DistanceRate.setPolicyDistanceRatesEnabled(
             policyID,
             customUnit,
             selectedDistanceRates.filter((rate) => rate.enabled).map((rate) => ({...rate, enabled: false})),
@@ -145,7 +145,7 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
             return;
         }
 
-        Policy.setPolicyDistanceRatesEnabled(
+        DistanceRate.setPolicyDistanceRatesEnabled(
             policyID,
             customUnit,
             selectedDistanceRates.filter((rate) => !rate.enabled).map((rate) => ({...rate, enabled: true})),
@@ -158,7 +158,7 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
             return;
         }
 
-        Policy.deletePolicyDistanceRates(
+        DistanceRate.deletePolicyDistanceRates(
             policyID,
             customUnit,
             selectedDistanceRates.map((rate) => rate.customUnitRateID ?? ''),
@@ -226,14 +226,14 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
     const isLoading = !isOffline && customUnit === undefined;
 
     const headerButtons = (
-        <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
+        <View style={[styles.w100, styles.flexRow, styles.gap2, isSmallScreenWidth && styles.mb3]}>
             {selectedDistanceRates.length === 0 ? (
                 <>
                     <Button
                         medium
                         text={translate('workspace.distanceRates.addRate')}
                         onPress={addRate}
-                        style={[styles.mr3, isSmallScreenWidth && styles.flexGrow1]}
+                        style={[isSmallScreenWidth && styles.flex1]}
                         icon={Expensicons.Plus}
                         success
                     />
@@ -242,7 +242,7 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
                         medium
                         text={translate('workspace.common.settings')}
                         onPress={openSettings}
-                        style={[isSmallScreenWidth && styles.flexGrow1]}
+                        style={[isSmallScreenWidth && styles.flex1]}
                         icon={Expensicons.Gear}
                     />
                 </>
@@ -259,6 +259,12 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
                     isSplitButton={false}
                 />
             )}
+        </View>
+    );
+
+    const getHeaderText = () => (
+        <View style={[styles.ph5, styles.pb5, styles.pt3]}>
+            <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.distanceRates.centrallyManage')}</Text>
         </View>
     );
 
@@ -282,9 +288,7 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
                     {!isSmallScreenWidth && headerButtons}
                 </HeaderWithBackButton>
                 {isSmallScreenWidth && <View style={[styles.ph5]}>{headerButtons}</View>}
-                <View style={[styles.ph5, styles.pb5, styles.pt3]}>
-                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.distanceRates.centrallyManage')}</Text>
-                </View>
+                {!isSmallScreenWidth && getHeaderText()}
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -304,6 +308,7 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
                         shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                         customListHeader={getCustomListHeader()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                        listHeaderContent={isSmallScreenWidth ? getHeaderText() : null}
                         showScrollIndicator={false}
                     />
                 )}

@@ -9,6 +9,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -20,7 +21,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Policy from '@userActions/Policy';
+import * as DistanceRate from '@userActions/Policy/DistanceRate';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -41,16 +42,19 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
     const {windowWidth} = useWindowDimensions();
     const [isWarningModalVisible, setIsWarningModalVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
-
     const policyID = route.params.policyID;
     const rateID = route.params.rateID;
     const customUnits = policy?.customUnits ?? {};
     const customUnit = customUnits[Object.keys(customUnits)[0]];
     const rate = customUnit?.rates[rateID];
     const currency = rate?.currency ?? CONST.CURRENCY.USD;
+    const taxClaimablePercentage = rate.attributes?.taxClaimablePercentage;
+    const taxRateExternalID = rate.attributes?.taxRateExternalID;
 
+    const isDistanceTrackTaxEnabled = !!customUnit?.attributes?.taxEnabled;
+    const taxRate = taxRateExternalID ? `${policy?.taxRates?.taxes[taxRateExternalID].name} (${policy?.taxRates?.taxes[taxRateExternalID].value})` : '';
     // Rates can be disabled or deleted as long as in the remaining rates there is always at least one enabled rate and there are no pending delete action
-    const canDisableOrDeleteRate = Object.values(customUnit?.rates).some(
+    const canDisableOrDeleteRate = Object.values(customUnit?.rates ?? {}).some(
         (distanceRate: Rate) => distanceRate?.enabled && rateID !== distanceRate?.customUnitRateID && distanceRate?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
     );
     const errorFields = rate?.errorFields;
@@ -62,10 +66,16 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
     const editRateValue = () => {
         Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATE_EDIT.getRoute(policyID, rateID));
     };
+    const editTaxReclaimableValue = () => {
+        Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT.getRoute(policyID, rateID));
+    };
+    const editTaxRateValue = () => {
+        Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATE_TAX_RATE_EDIT.getRoute(policyID, rateID));
+    };
 
     const toggleRate = () => {
         if (!rate?.enabled || canDisableOrDeleteRate) {
-            Policy.setPolicyDistanceRatesEnabled(policyID, customUnit, [{...rate, enabled: !rate?.enabled}]);
+            DistanceRate.setPolicyDistanceRatesEnabled(policyID, customUnit, [{...rate, enabled: !rate?.enabled}]);
         } else {
             setIsWarningModalVisible(true);
         }
@@ -73,11 +83,12 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
 
     const deleteRate = () => {
         Navigation.goBack();
-        Policy.deletePolicyDistanceRates(policyID, customUnit, [rateID]);
+        DistanceRate.deletePolicyDistanceRates(policyID, customUnit, [rateID]);
         setIsDeleteModalVisible(false);
     };
 
     const rateValueToDisplay = CurrencyUtils.convertAmountToDisplayString(rate?.rate, currency);
+    const taxClaimableValueToDisplay = taxClaimablePercentage && rate.rate ? CurrencyUtils.convertAmountToDisplayString(taxClaimablePercentage * rate.rate, currency) : '';
     const unitToDisplay = translate(`common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`);
 
     const threeDotsMenuItems = [
@@ -95,7 +106,7 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
     ];
 
     const clearErrorFields = (fieldName: keyof Rate) => {
-        Policy.clearPolicyDistanceRateErrorFields(policyID, customUnit.customUnitID, rateID, {...errorFields, [fieldName]: null});
+        DistanceRate.clearPolicyDistanceRateErrorFields(policyID, customUnit.customUnitID, rateID, {...errorFields, [fieldName]: null});
     };
 
     return (
@@ -108,7 +119,6 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
                 testID={PolicyDistanceRateDetailsPage.displayName}
                 includeSafeAreaPaddingBottom={false}
                 style={[styles.defaultModalContainer]}
-                shouldShowOfflineIndicatorInWideScreen
             >
                 <HeaderWithBackButton
                     title={`${rateValueToDisplay} / ${translate(`common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`)}`}
@@ -116,7 +126,7 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
                     threeDotsMenuItems={threeDotsMenuItems}
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
                 />
-                <View style={styles.flexGrow1}>
+                <ScrollView contentContainerStyle={styles.flexGrow1}>
                     <OfflineWithFeedback
                         errors={ErrorUtils.getLatestErrorField(rate ?? {}, 'enabled')}
                         pendingAction={rate?.pendingFields?.enabled}
@@ -146,6 +156,39 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
                             onPress={editRateValue}
                         />
                     </OfflineWithFeedback>
+                    {isDistanceTrackTaxEnabled && (
+                        <OfflineWithFeedback
+                            errors={ErrorUtils.getLatestErrorField(rate, 'attributes')}
+                            pendingAction={rate?.pendingFields?.attributes}
+                            errorRowStyles={styles.mh5}
+                            onClose={() => clearErrorFields('attributes')}
+                        >
+                            <View style={styles.w100}>
+                                <MenuItemWithTopDescription
+                                    title={taxRate}
+                                    description={translate('workspace.taxes.taxRate')}
+                                    shouldShowRightIcon
+                                    onPress={editTaxRateValue}
+                                />
+                            </View>
+                        </OfflineWithFeedback>
+                    )}
+                    {isDistanceTrackTaxEnabled && (
+                        <OfflineWithFeedback
+                            errors={ErrorUtils.getLatestErrorField(rate, 'attributes')}
+                            pendingAction={rate?.pendingFields?.attributes}
+                            errorRowStyles={styles.mh5}
+                            onClose={() => clearErrorFields('attributes')}
+                        >
+                            <MenuItemWithTopDescription
+                                shouldShowRightIcon
+                                title={taxClaimableValueToDisplay}
+                                description={translate('workspace.taxes.taxReclaimableOn')}
+                                descriptionTextStyle={styles.textNormal}
+                                onPress={editTaxReclaimableValue}
+                            />
+                        </OfflineWithFeedback>
+                    )}
                     <ConfirmModal
                         onConfirm={() => setIsWarningModalVisible(false)}
                         isVisible={isWarningModalVisible}
@@ -164,7 +207,7 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
                         cancelText={translate('common.cancel')}
                         danger
                     />
-                </View>
+                </ScrollView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
