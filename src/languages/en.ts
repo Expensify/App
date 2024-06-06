@@ -3217,7 +3217,7 @@ export default {
             eachMonth:
                 'Each month, your subscription covers up to the number of active members set above. Any time you increase your subscription size, you’ll start a new 12-month subscription at that new size.',
             note: 'Note: An active member is anyone who has created, edited, submitted, approved, reimbursed, or exported expense data tied to your company workspace.',
-            confirmDetails: 'Confirm your new annual subscription details',
+            confirmDetails: 'Confirm your new annual subscription details:',
             subscriptionSize: 'Subscription size',
             activeMembers: ({size}) => `${size} active members/month`,
             subscriptionRenews: 'Subscription renews',

@@ -54,10 +54,7 @@ function OptionItem({title, icon, onPress, isSelected = false, isDisabled, style
                         />
                         {!isDisabled && (
                             <View>
-                                <SelectCircle
-                                    isChecked={isSelected}
-                                    selectCircleStyles={styles.sectionSelectCircle}
-                                />
+                                <SelectCircle isChecked={isSelected} />
                             </View>
                         )}
                     </View>
