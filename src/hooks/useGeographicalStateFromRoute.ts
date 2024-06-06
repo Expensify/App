@@ -1,6 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import type {ParamListBase, RouteProp} from '@react-navigation/native';
-import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
+import {CONST as COMMON_CONST} from 'expensify-common';
 
 type CustomParamList = ParamListBase & Record<string, Record<string, string>>;
 type State = keyof typeof COMMON_CONST.STATES;
