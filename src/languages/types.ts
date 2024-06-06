@@ -254,7 +254,6 @@ type PaySomeoneParams = {name?: string};
 type TaskCreatedActionParams = {title: string};
 
 /* Translation Object types */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type PluralFormValue = {
     zero?: string;
     one?: string;
@@ -263,6 +262,8 @@ type PluralFormValue = {
     many?: string;
     other: string;
 }
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type TranslationBaseValue = string | string[] | ((...args: any[]) => string | PluralFormValue);
 
 type TranslationBase = {[key: string]: TranslationBaseValue | TranslationBase};
