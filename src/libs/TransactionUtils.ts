@@ -699,7 +699,7 @@ function getRateID(transaction: OnyxEntry<Transaction>): string | undefined {
  * If it is distance request, then returns the tax code corresponding to the custom unit rate
  * Else returns policy default tax rate if transaction is in policy default currency, otherwise foreign default tax rate
  */
-function getDefaultTaxCode(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, currency?: string | undefined) {
+function getDefaultTaxCode(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, currency?: string | undefined): string | undefined {
     if (isDistanceRequest(transaction)) {
         const customUnitRateID = getRateID(transaction) ?? '';
         const customUnitRate = getCustomUnitRate(policy, customUnitRateID);

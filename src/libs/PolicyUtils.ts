@@ -7,7 +7,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyCategories, PolicyEmployeeList, PolicyTagList, PolicyTags, TaxRate} from '@src/types/onyx';
-import type {PolicyFeatureName, Rate, Tenant} from '@src/types/onyx/Policy';
+import type {CustomUnit, PolicyFeatureName, Rate, Tenant} from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Navigation from './Navigation/Navigation';
@@ -92,16 +92,16 @@ function getNumericValue(value: number | string, toLocaleDigit: (arg: string) =>
 /**
  * Retrieves the distance custom unit object for the given policy
  */
-function getCustomUnit(policy: OnyxEntry<Policy>) {
+function getCustomUnit(policy: OnyxEntry<Policy>): CustomUnit | undefined {
     return Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
 }
 
 /**
  * Retrieves custom unit rate object from the given customUnitRateID
  */
-function getCustomUnitRate(policy: OnyxEntry<Policy> | EmptyObject, customUnitRateID: string): Rate | EmptyObject {
+function getCustomUnitRate(policy: OnyxEntry<Policy>, customUnitRateID: string): Rate | undefined {
     const distanceUnit = getCustomUnit(policy);
-    return distanceUnit?.rates[customUnitRateID] ?? {};
+    return distanceUnit?.rates[customUnitRateID];
 }
 
 function getRateDisplayValue(value: number, toLocaleDigit: (arg: string) => string): string {
