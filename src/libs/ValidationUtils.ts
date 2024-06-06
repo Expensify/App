@@ -337,7 +337,7 @@ function isValidCompanyName(name: string) {
 }
 
 function isValidReportName(name: string) {
-    return name.trim().length < CONST.REPORT_NAME_LIMIT;
+    return name.trim().length <= CONST.REPORT_NAME_LIMIT;
 }
 
 /**
@@ -480,6 +480,14 @@ function isExistingTaxName(taxName: string, taxRates: TaxRates): boolean {
     return !!Object.values(taxRates).find((taxRate) => taxRate.name === trimmedTaxName);
 }
 
+/**
+ * Validates the given value if it is correct subscription size.
+ */
+function isValidSubscriptionSize(subscriptionSize: string): boolean {
+    const parsedSubscriptionSize = Number(subscriptionSize);
+    return !Number.isNaN(parsedSubscriptionSize) && parsedSubscriptionSize > 0 && parsedSubscriptionSize <= CONST.SUBSCRIPTION_SIZE_LIMIT;
+}
+
 export {
     meetsMinimumAgeRequirement,
     meetsMaximumAgeRequirement,
@@ -521,4 +529,5 @@ export {
     isValidPercentage,
     isValidReportName,
     isExistingTaxName,
+    isValidSubscriptionSize,
 };

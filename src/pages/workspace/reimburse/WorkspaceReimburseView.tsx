@@ -17,7 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as Link from '@userActions/Link';
-import * as Policy from '@userActions/Policy';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -40,7 +40,7 @@ function WorkspaceReimburseView({policy, reimbursementAccount}: WorkspaceReimbur
     const [currentRatePerUnit, setCurrentRatePerUnit] = useState<string>('');
     const {isSmallScreenWidth} = useWindowDimensions();
     const viewAllReceiptsUrl = `expenses?policyIDList=${policy?.id ?? ''}&billableReimbursable=reimbursable&submitterEmail=%2B%2B`;
-    const distanceCustomUnit = Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+    const distanceCustomUnit = PolicyUtils.getCustomUnit(policy);
     const distanceCustomRate = Object.values(distanceCustomUnit?.rates ?? {}).find((rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE);
     const {translate, toLocaleDigit} = useLocalize();
     const {isOffline} = useNetwork();

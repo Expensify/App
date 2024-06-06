@@ -14,7 +14,8 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Policy from '@userActions/Policy';
+import * as Category from '@userActions/Policy/Category';
+import * as DistanceRate from '@userActions/Policy/DistanceRate';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -47,7 +48,7 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
     const errorFields = customUnits[customUnitID]?.errorFields;
 
     const setNewUnit = (unit: UnitItemType) => {
-        Policy.setPolicyDistanceRatesUnit(policyID, customUnit, {...customUnit, attributes: {unit: unit.value}});
+        DistanceRate.setPolicyDistanceRatesUnit(policyID, customUnit, {...customUnit, attributes: {unit: unit.value}});
     };
 
     const setNewCategory = (category: ListItem) => {
@@ -55,14 +56,14 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
             return;
         }
 
-        Policy.setPolicyDistanceRatesDefaultCategory(policyID, customUnit, {
+        Category.setPolicyDistanceRatesDefaultCategory(policyID, customUnit, {
             ...customUnit,
             defaultCategory: defaultCategory === category.searchText ? '' : category.searchText,
         });
     };
 
     const clearErrorFields = (fieldName: keyof CustomUnit) => {
-        Policy.clearPolicyDistanceRatesErrorFields(policyID, customUnitID, {...errorFields, [fieldName]: null});
+        DistanceRate.clearPolicyDistanceRatesErrorFields(policyID, customUnitID, {...errorFields, [fieldName]: null});
     };
 
     return (
