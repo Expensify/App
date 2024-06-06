@@ -114,3 +114,4 @@ const createDownloadQueue = () => {
 };
 
 export default createDownloadQueue;
+export type {DownloadItem};
