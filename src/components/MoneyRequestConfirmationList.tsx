@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import {format} from 'date-fns';
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useReducer, useState} from 'react';
 import type {TextStyle} from 'react-native';
 import {View} from 'react-native';
@@ -9,6 +9,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+import {MouseProvider} from '@hooks/useMouseContext';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
@@ -179,9 +180,11 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
 
 type MoneyRequestConfirmationListItem = Participant | ReportUtils.OptionData;
 
-const getTaxAmount = (transaction: OnyxEntry<OnyxTypes.Transaction>, policy: OnyxEntry<OnyxTypes.Policy>) => {
+const getTaxAmount = (transaction: OnyxEntry<OnyxTypes.Transaction>, policy: OnyxEntry<OnyxTypes.Policy>, isDistanceRequest: boolean) => {
+    if (isDistanceRequest) {
+        return DistanceRequestUtils.calculateTaxAmount(policy, transaction, TransactionUtils.getRateID(transaction) ?? '');
+    }
     const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, TransactionUtils.getCurrency(transaction)) ?? '';
-
     const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, transaction?.taxCode ?? defaultTaxCode) ?? '';
     return TransactionUtils.calculateTaxAmount(taxPercentage, transaction?.amount ?? 0);
 };
@@ -335,6 +338,7 @@ function MoneyRequestConfirmationList({
     const [didConfirmSplit, setDidConfirmSplit] = useState(false);
 
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
+    const [invalidAttachmentPromt, setInvalidAttachmentPromt] = useState(translate('attachmentPicker.protectedPDFNotSupported'));
 
     const navigateBack = useCallback(
         () => Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID)),
@@ -350,18 +354,19 @@ function MoneyRequestConfirmationList({
     }, [isEditingSplitBill, hasSmartScanFailed, transaction, didConfirmSplit]);
 
     const isMerchantEmpty = useMemo(() => !iouMerchant || TransactionUtils.isMerchantMissing(transaction), [transaction, iouMerchant]);
-    const isMerchantRequired = isPolicyExpenseChat && (!isScanRequest || isEditingSplitBill) && shouldShowMerchant;
+    const isMerchantRequired = (isPolicyExpenseChat || isTypeInvoice) && (!isScanRequest || isEditingSplitBill) && shouldShowMerchant;
     const shouldDisplayMerchantError = isMerchantRequired && (shouldDisplayFieldError || formError === 'iou.error.invalidMerchant') && isMerchantEmpty;
 
     const isCategoryRequired = !!policy?.requiresCategory;
 
     useEffect(() => {
-        if (shouldDisplayFieldError && hasSmartScanFailed) {
-            setFormError('iou.receiptScanningFailed');
-            return;
-        }
         if (shouldDisplayFieldError && didConfirmSplit) {
             setFormError('iou.error.genericSmartscanFailureMessage');
+            return;
+        }
+
+        if (shouldDisplayFieldError && hasSmartScanFailed) {
+            setFormError('iou.receiptScanningFailed');
             return;
         }
         // reset the form error whenever the screen gains or loses focus
@@ -381,7 +386,7 @@ function MoneyRequestConfirmationList({
 
     // Calculate and set tax amount in transaction draft
     useEffect(() => {
-        const taxAmount = getTaxAmount(transaction, policy).toString();
+        const taxAmount = getTaxAmount(transaction, policy, isDistanceRequest).toString();
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount));
 
         if (transaction?.taxAmount && previousTransactionAmount === transaction?.amount && previousTransactionCurrency === transaction?.currency) {
@@ -389,7 +394,7 @@ function MoneyRequestConfirmationList({
         }
 
         IOU.setMoneyRequestTaxAmount(transactionID, amountInSmallestCurrencyUnits, true);
-    }, [policy, transaction, transactionID, previousTransactionAmount, previousTransactionCurrency]);
+    }, [policy, transaction, transactionID, previousTransactionAmount, previousTransactionCurrency, isDistanceRequest]);
 
     // If completing a split expense fails, set didConfirm to false to allow the user to edit the fields again
     if (isEditingSplitBill && didConfirm) {
@@ -715,21 +720,7 @@ function MoneyRequestConfirmationList({
                 setFormError('iou.error.invalidCategoryLength');
                 return;
             }
-
-            if (formError) {
-                return;
-            }
-
-            if (iouType === CONST.IOU.TYPE.PAY) {
-                if (!paymentMethod) {
-                    return;
-                }
-
-                setDidConfirm(true);
-
-                Log.info(`[IOU] Sending money via: ${paymentMethod}`);
-                onSendMoney?.(paymentMethod);
-            } else {
+            if (iouType !== CONST.IOU.TYPE.PAY) {
                 // validate the amount for distance expenses
                 const decimals = CurrencyUtils.getCurrencyDecimals(iouCurrencyCode);
                 if (isDistanceRequest && !isDistanceRequestWithPendingRoute && !MoneyRequestUtils.validateAmount(String(iouAmount), decimals)) {
@@ -746,6 +737,18 @@ function MoneyRequestConfirmationList({
                 playSound(SOUNDS.DONE);
                 setDidConfirm(true);
                 onConfirm?.(selectedParticipants);
+            } else {
+                if (formError) {
+                    return;
+                }
+                if (!paymentMethod) {
+                    return;
+                }
+
+                setDidConfirm(true);
+
+                Log.info(`[IOU] Sending money via: ${paymentMethod}`);
+                onSendMoney?.(paymentMethod);
             }
         },
         [
@@ -1108,7 +1111,14 @@ function MoneyRequestConfirmationList({
                         previewSourceURL={resolvedReceiptImage as string}
                         // We don't support scanning password protected PDF receipt
                         enabled={!isAttachmentInvalid}
-                        onPassword={() => setIsAttachmentInvalid(true)}
+                        onPassword={() => {
+                            setIsAttachmentInvalid(true);
+                            setInvalidAttachmentPromt(translate('attachmentPicker.protectedPDFNotSupported'));
+                        }}
+                        onLoadError={() => {
+                            setInvalidAttachmentPromt(translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
+                            setIsAttachmentInvalid(true);
+                        }}
                     />
                 ) : (
                     <ReceiptImage
@@ -1137,6 +1147,7 @@ function MoneyRequestConfirmationList({
             receiptThumbnail,
             fileExtension,
             isDistanceRequest,
+            translate,
         ],
     );
 
@@ -1194,11 +1205,11 @@ function MoneyRequestConfirmationList({
                 )}
                 <View style={[styles.mb5]}>{shouldShowAllFields && supplementaryFields}</View>
                 <ConfirmModal
-                    title={translate('attachmentPicker.wrongFileType')}
+                    title={translate('attachmentPicker.attachmentError')}
                     onConfirm={navigateBack}
                     onCancel={navigateBack}
                     isVisible={isAttachmentInvalid}
-                    prompt={translate('attachmentPicker.protectedPDFNotSupported')}
+                    prompt={invalidAttachmentPromt}
                     confirmText={translate('common.close')}
                     shouldShowCancelButton={false}
                 />
@@ -1234,21 +1245,24 @@ function MoneyRequestConfirmationList({
             transaction,
             transactionID,
             translate,
+            invalidAttachmentPromt,
         ],
     );
 
     return (
-        <SelectionList<MoneyRequestConfirmationListItem>
-            sections={sections}
-            ListItem={UserListItem}
-            onSelectRow={navigateToReportOrUserDetail}
-            shouldDebounceRowSelect
-            canSelectMultiple={false}
-            shouldPreventDefaultFocusOnSelectRow
-            footerContent={footerContent}
-            listFooterContent={listFooterContent}
-            containerStyle={[styles.flexBasisAuto]}
-        />
+        <MouseProvider>
+            <SelectionList<MoneyRequestConfirmationListItem>
+                sections={sections}
+                ListItem={UserListItem}
+                onSelectRow={navigateToReportOrUserDetail}
+                shouldDebounceRowSelect
+                canSelectMultiple={false}
+                shouldPreventDefaultFocusOnSelectRow
+                footerContent={footerContent}
+                listFooterContent={listFooterContent}
+                containerStyle={[styles.flexBasisAuto]}
+            />
+        </MouseProvider>
     );
 }
 
@@ -1270,7 +1284,7 @@ export default withOnyx<MoneyRequestConfirmationListProps, MoneyRequestConfirmat
     },
     mileageRates: {
         key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-        selector: DistanceRequestUtils.getMileageRates,
+        selector: (policy: OnyxEntry<OnyxTypes.Policy>) => DistanceRequestUtils.getMileageRates(policy),
     },
     policy: {
         key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
