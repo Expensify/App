@@ -46,7 +46,7 @@ function init() {
     }, {});
 }
 
-type PluralFormValue = string | ((count: number) => string);
+type PluralFormPhrase = Record<string, string>;
 type PhraseParameters<T> = T extends (args: number | Record<string, string | number | undefined>) => string
     ? [number | Record<string, string | number | undefined>]
     : T extends (...args: infer A) => unknown
@@ -62,19 +62,15 @@ type Phrase<TKey extends TranslationPaths> = TranslationFlatObject[TKey] extends
  * The data is stored in the following format:
  *
  * {
- *  "en": {
- *   "name": "Name",
- *   "pluralExample": ({count}) => {
- *     const pluralForm = enPluralRules.select(count);
- *     switch (pluralForm) {
- *      case 'one':
- *          return `You have one item`;
- *      case 'other':
- *         return `You have ${count} items`;
- *      default:
- *          throw new Error(`Unsupported plural form ${pluralForm}`);
- *      }
- *   }
+ *  en: {
+ *   name: "Name",
+ *   simpleExample: "Simple Example",
+ *   pluralExample: (count: number) => ({
+ *     zero: `You have no items`,
+ *     one: `You have one item`,
+ *     other: `You have ${count} items`
+ *   }),
+ *   paramExample: (exampleParams: ExampleParamsType) => `Hello ${exampleParams.name}`,
  * }
  *
  * Note: We are not storing any translated values for phrases with variables,
@@ -134,16 +130,16 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
 
         const count = phraseParameters[0];
         if (typeof translatedPhrase === 'object' && typeof count === 'number') {
+            const pluralFormPhrase = translatedPhrase as PluralFormPhrase;
             const pluralForm = pluralRules.select(count);
-            const pluralFormValue = translatedPhrase[pluralForm] as PluralFormValue;
+            const pluralTranslatedPhrase = pluralFormPhrase[pluralForm];
 
-            if (typeof pluralFormValue === 'string') {
-                return pluralFormValue;
+            if (!pluralTranslatedPhrase) {
+                Log.alert(`Plural form ${pluralForm} not found for ${phraseKey} in ${language}`);
+                return pluralFormPhrase.other;
             }
 
-            if (typeof pluralFormValue === 'function') {
-                return pluralFormValue(count);
-            }
+            return pluralTranslatedPhrase;
         }
 
         // We set the translated value in the cache only for the phrases without parameters.
