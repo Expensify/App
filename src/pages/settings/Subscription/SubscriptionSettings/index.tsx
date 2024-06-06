@@ -2,6 +2,7 @@ import {format} from 'date-fns';
 import React, {useState} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -10,12 +11,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 function SubscriptionSettings() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
+    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
 
     // TODO these default state values will come from API in next phase
     const [autoRenew, setAutoRenew] = useState(true);
@@ -37,6 +40,10 @@ function SubscriptionSettings() {
         // TODO make API call to toggle auto increase here
         setAutoIncrease(!autoIncrease);
     };
+
+    if (privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.PAYPERUSE) {
+        return null;
+    }
 
     const customTitleSecondSentenceStyles: StyleProp<TextStyle> = [styles.textNormal, {color: theme.success}];
     const customTitle = (
