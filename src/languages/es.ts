@@ -1,7 +1,6 @@
 import '@formatjs/intl-locale/polyfill';
 import '@formatjs/intl-pluralrules/locale-data/es';
 import '@formatjs/intl-pluralrules/polyfill';
-import {Str} from 'expensify-common';
 import CONST from '@src/CONST';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {
@@ -2627,9 +2626,26 @@ export default {
             centrallyManage: 'Gestiona centralizadamente las tasas, elige si contabilizar en millas o kilómetros, y define una categoría por defecto',
             rate: 'Tasa',
             addRate: 'Agregar tasa',
-            deleteRates: (count: number) => `Eliminar ${Str.pluralize('tasa', 'tasas', count)}`,
-            enableRates: (count: number) => `Activar ${Str.pluralize('tasa', 'tasas', count)}`,
-            disableRates: (count: number) => `Desactivar ${Str.pluralize('tasa', 'tasas', count)}`,
+            deleteRates: (count: number) => ({
+                zero: `Eliminar ${count} tasas`,
+                one: `Eliminar ${count} tasa`,
+                other: `Eliminar ${count} tasas`,
+            }),
+            enableRates: (count: number) => ({
+                zero: `Activar ${count} tasas`,
+                one: `Activar ${count} tasa`,
+                other: `Activar ${count} tasas`,
+            }),
+            disableRates: (count: number) => ({
+                zero: `Desactivar ${count} tasas`,
+                one: `Desactivar ${count} tasa`,
+                other: `Desactivar ${count} tasas`,
+            }),
+            areYouSureDelete: (count: number) => ({
+                zero: `¿Estás seguro de que quieres eliminar ${count} tasas?`,
+                one: `¿Estás seguro de que quieres eliminar ${count} tasa?`,
+                other: `¿Estás seguro de que quieres eliminar ${count} tasas?`,
+            }),
             enableRate: 'Activar tasa',
             status: 'Estado',
             unit: 'Unidad',

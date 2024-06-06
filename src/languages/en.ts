@@ -1,5 +1,4 @@
 import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
-import Str from 'expensify-common/lib/str';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {ConnectionName} from '@src/types/onyx/Policy';
@@ -2600,6 +2599,11 @@ export default {
                 zero: `Disable ${count} rates`,
                 one: `Disable ${count} rate`,
                 other: `Disable ${count} rates`,
+            }),
+            areYouSureDelete: (count: number) => ({
+                zero: `Are you sure you want to delete ${count} rates?`,
+                one: `Are you sure you want to delete ${count} rate?`,
+                other: `Are you sure you want to delete ${count} rates?`,
             }),
             enableRate: 'Enable rate',
             status: 'Status',
