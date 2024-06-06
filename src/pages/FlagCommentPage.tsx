@@ -19,7 +19,6 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import withReportAndReportActionOrNotFound from './home/report/withReportAndReportActionOrNotFound';
@@ -160,14 +159,7 @@ function FlagCommentPage({parentReportAction, route, report, parentReport, repor
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={!ReportUtils.shouldShowFlagComment(getActionToFlag(), report)}>
-                    <HeaderWithBackButton
-                        title={translate('reportActionContextMenu.flagAsOffensive')}
-                        shouldNavigateToTopMostReport
-                        onBackButtonPress={() => {
-                            Navigation.goBack();
-                            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report?.reportID ?? '-1'));
-                        }}
-                    />
+                    <HeaderWithBackButton title={translate('reportActionContextMenu.flagAsOffensive')} />
                     <ScrollView
                         contentContainerStyle={safeAreaPaddingBottomStyle}
                         style={styles.settingsPageBackground}

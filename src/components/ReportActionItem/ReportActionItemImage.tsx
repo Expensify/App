@@ -1,5 +1,5 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import React from 'react';
 import type {ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
