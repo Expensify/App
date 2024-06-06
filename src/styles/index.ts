@@ -2818,6 +2818,10 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
+        sectionSelectCircle: {
+            backgroundColor: theme.highlightBG,
+        },
+
         qrShareSection: {
             width: 264,
         },
