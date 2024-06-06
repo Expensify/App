@@ -87,8 +87,10 @@ type MoneyRequestAmountInputProps = {
      */
     autoGrow?: boolean;
 
-    /** Flag indicating if the reset button was clicked to reset the amount */
-    resetClicked?: boolean;
+    shouldResetAmount?: boolean;
+
+    onResetAmount?: (resetValue: boolean) => void;
+
 };
 
 type Selection = {
@@ -124,7 +126,8 @@ function MoneyRequestAmountInput(
         hideFocusedState = true,
         shouldKeepUserInput = false,
         autoGrow = true,
-        resetClicked = false,
+        shouldResetAmount,
+        onResetAmount,
         ...props
     }: MoneyRequestAmountInputProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
@@ -144,7 +147,6 @@ function MoneyRequestAmountInput(
     });
 
     const forwardDeletePressedRef = useRef(false);
-    const resetFlag = useRef(false);
 
     /**
      * Sets the selection and the amount accordingly to the value passed to the input
@@ -175,14 +177,11 @@ function MoneyRequestAmountInput(
                     hasSelectionBeenSet = true;
                     setSelection((prevSelection) => getNewSelection(prevSelection, isForwardDelete ? strippedAmount.length : prevAmount.length, strippedAmount.length));
                 }
-                const resultAmount = resetFlag.current ? selectedAmountAsString : strippedAmount;
-                onAmountChange?.(resultAmount);
-
-                resetFlag.current = false; // Reset the flag after handling
-                return resultAmount;
+                onAmountChange?.(strippedAmount);
+                return strippedAmount;
             });
         },
-        [decimals, onAmountChange, selectedAmountAsString],
+        [decimals, onAmountChange],
     );
 
     useImperativeHandle(moneyRequestAmountInputRef, () => ({
@@ -204,10 +203,21 @@ function MoneyRequestAmountInput(
     }));
 
     useEffect(() => {
-        if (!currency || typeof amount !== 'number' || (formatAmountOnBlur && textInput.current?.isFocused()) || shouldKeepUserInput) {
+        const shouldExitEarly = !currency || typeof amount !== 'number' || (formatAmountOnBlur && textInput.current?.isFocused()) || shouldKeepUserInput;
+        const frontendAmount = onFormatAmount(amount, currency);
+
+        if (shouldResetAmount) {
+            setCurrentAmount(frontendAmount);
+            setSelection({
+                start: frontendAmount.length,
+                end: frontendAmount.length,
+            });
+            onResetAmount?.(false);
             return;
         }
-        const frontendAmount = onFormatAmount(amount, currency);
+
+        if (shouldExitEarly) return;
+        
         setCurrentAmount(frontendAmount);
 
         // Only update selection if the amount prop was changed from the outside and is not the same as the current amount we just computed
@@ -218,7 +228,7 @@ function MoneyRequestAmountInput(
                 end: frontendAmount.length,
             });
         }
-
+       
         // we want to re-initialize the state only when the amount changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [amount, shouldKeepUserInput]);
