@@ -4498,7 +4498,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         mapPendingView: {
-            backgroundColor: theme.highlightBG,
+            backgroundColor: theme.hoverComponentBG,
             ...flex.flex1,
             borderRadius: variables.componentBorderRadiusLarge,
         },
