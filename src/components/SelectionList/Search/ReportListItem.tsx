@@ -79,6 +79,10 @@ function ReportListItem<TItem extends ListItem>({
     const {isLargeScreenWidth} = useWindowDimensions();
     const StyleUtils = useStyleUtils();
 
+    if (reportItem.transactions.length === 0) {
+        return;
+    }
+
     const listItemPressableStyle = [styles.selectionListPressableItemWrapper, styles.pv3, item.isSelected && styles.activeComponentBG, isFocused && styles.sidebarLinkActive];
 
     const handleOnButtonPress = () => {
@@ -95,17 +99,13 @@ function ReportListItem<TItem extends ListItem>({
         return null;
     }
 
-    const participantFrom = reportItem.transactions[0]?.from;
-    const participantTo = reportItem.transactions[0]?.to;
+    const participantFrom = reportItem.transactions[0].from;
+    const participantTo = reportItem.transactions[0].to;
 
     // These values should come as part of the item via SearchUtils.getSections() but ReportListItem is not yet 100% handled
     // This will be simplified in future once sorting of ReportListItem is done
     const participantFromDisplayName = participantFrom?.name ?? participantFrom?.displayName ?? participantFrom?.login ?? '';
     const participantToDisplayName = participantTo?.name ?? participantTo?.displayName ?? participantTo?.login ?? '';
-
-    if (reportItem.transactions.length === 0) {
-        return;
-    }
 
     if (reportItem.transactions.length === 1) {
         const transactionItem = reportItem.transactions[0];
