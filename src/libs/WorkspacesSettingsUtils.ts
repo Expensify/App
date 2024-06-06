@@ -262,7 +262,7 @@ function getOwnershipChecksDisplayText(
         case CONST.POLICY.OWNERSHIP_ERRORS.DUPLICATE_SUBSCRIPTION:
             title = translate('workspace.changeOwner.duplicateSubscriptionTitle');
             text = translate('workspace.changeOwner.duplicateSubscriptionText', {
-                email: changeOwner?.duplicateSubscription,
+                email: changeOwner?.duplicateSubscription as string,
                 workspaceName: policy?.name,
             });
             buttonText = translate('workspace.changeOwner.duplicateSubscriptionButtonText');

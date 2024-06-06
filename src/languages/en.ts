@@ -1,4 +1,4 @@
-import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
+import {CONST as COMMON_CONST} from 'expensify-common';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {ConnectionName} from '@src/types/onyx/Policy';

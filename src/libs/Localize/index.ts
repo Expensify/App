@@ -47,8 +47,8 @@ function init() {
 }
 
 type PluralFormValue = string | ((count: number) => string);
-type PhraseParameters<T> = T extends (args: number | Record<string, any>) => string
-    ? [number | Record<string, any>]
+type PhraseParameters<T> = T extends (args: number | Record<string, string | number | undefined>) => string
+    ? [number | Record<string, string | number | undefined>]
     : T extends (...args: infer A) => unknown
     ? [...A]
     : [];
