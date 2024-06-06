@@ -112,7 +112,7 @@ function getRenderOptions({
     }
 
     // Show the Welcome form if a user is signing up for a new account in a domain that is not controlled
-    const shouldShouldSignUpWelcomeForm = Boolean(credentials?.login) && !account?.validated && !account?.accountExists && !account?.domainControlled;
+    const shouldShouldSignUpWelcomeForm = !!credentials?.login && !account?.validated && !account?.accountExists && !account?.domainControlled;
     const shouldShowLoginForm = !shouldShowAnotherLoginPageOpenedMessage && !hasLogin && !hasValidateCode;
     const shouldShowEmailDeliveryFailurePage = hasLogin && hasEmailDeliveryFailure && !shouldShowChooseSSOOrMagicCode && !shouldInitiateSAMLLogin;
     const isUnvalidatedSecondaryLogin = hasLogin && !isPrimaryLogin && !account?.validated && !hasEmailDeliveryFailure;
