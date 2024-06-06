@@ -90,7 +90,6 @@ type MoneyRequestAmountInputProps = {
     shouldResetAmount?: boolean;
 
     onResetAmount?: (resetValue: boolean) => void;
-
 };
 
 type Selection = {
@@ -216,8 +215,10 @@ function MoneyRequestAmountInput(
             return;
         }
 
-        if (shouldExitEarly) {return};
-        
+        if (shouldExitEarly) {
+            return;
+        }
+
         setCurrentAmount(frontendAmount);
 
         // Only update selection if the amount prop was changed from the outside and is not the same as the current amount we just computed
@@ -228,7 +229,7 @@ function MoneyRequestAmountInput(
                 end: frontendAmount.length,
             });
         }
-       
+
         // we want to re-initialize the state only when the amount changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [amount, shouldKeepUserInput]);
