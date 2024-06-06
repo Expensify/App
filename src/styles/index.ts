@@ -2819,7 +2819,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         sectionSelectCircle: {
-            backgroundColor: colors.productDark200,
+            backgroundColor: theme.cardBG,
         },
 
         qrShareSection: {
