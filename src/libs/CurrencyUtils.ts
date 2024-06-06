@@ -111,18 +111,18 @@ function convertToFrontendAmountAsString(amountAsInt: number | null | undefined)
  * @param amountInCents – should be an integer. Anything after a decimal place will be dropped.
  * @param currency - IOU currency
  */
-function convertToDisplayString(amountInCents = 0, currency: keyof CurrencyList | undefined = CONST.CURRENCY.USD): string {
+function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURRENCY.USD): string {
     const convertedAmount = convertToFrontendAmountAsInteger(amountInCents);
     /**
      * Fallback currency to USD if it empty string or undefined
      */
-    let validatedCurrency = currency;
-    if (!currency || currency.length === 0) {
-        validatedCurrency = CONST.CURRENCY.USD;
+    let currencyWithFallback = currency;
+    if (!currency) {
+        currencyWithFallback = CONST.CURRENCY.USD;
     }
     return NumberFormatUtils.format(BaseLocaleListener.getPreferredLocale(), convertedAmount, {
         style: 'currency',
-        currency: validatedCurrency,
+        currency: currencyWithFallback,
 
         // We are forcing the number of decimals because we override the default number of decimals in the backend for RSD
         // See: https://github.com/Expensify/PHP-Libs/pull/834
