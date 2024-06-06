@@ -33,6 +33,8 @@ type SearchProps = {
     sortOrder?: SortOrder;
 };
 
+const sortableSearchTabs: SearchQuery[] = [CONST.TAB_SEARCH.ALL];
+
 function isTransactionListItemType(item: TransactionListItemType | ReportListItemType): item is TransactionListItemType {
     const transactionListItem = item as TransactionListItemType;
     return transactionListItem.transactionID !== undefined;
