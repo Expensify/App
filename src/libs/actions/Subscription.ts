@@ -4,6 +4,7 @@ import * as API from '@libs/API';
 import type {UpdateSubscriptionTypeParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import type {SubscriptionType} from '@src/CONST';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 /**
@@ -20,6 +21,18 @@ function updateSubscriptionType(type: SubscriptionType) {
             key: ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION,
             value: {
                 type,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            },
+        },
+    ];
+
+    const finallyData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION,
+            value: {
+                type,
+                pendingAction: null,
             },
         },
     ];
@@ -30,6 +43,7 @@ function updateSubscriptionType(type: SubscriptionType) {
 
     API.write(WRITE_COMMANDS.UPDATE_SUBSCRIPTION_TYPE, parameters, {
         optimisticData,
+        finallyData,
     });
 }
 

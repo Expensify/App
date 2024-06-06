@@ -1,4 +1,5 @@
 import type {SubscriptionType} from '@src/CONST';
+import type * as OnyxCommon from './OnyxCommon';
 
 type PrivateSubscription = {
     /** "auto increase annual seats" setting */
@@ -24,6 +25,9 @@ type PrivateSubscription = {
 
     /** Subscription size */
     userCount?: number;
+
+    /** Pending action */
+    pendingAction?: OnyxCommon.PendingAction;
 };
 
 export default PrivateSubscription;

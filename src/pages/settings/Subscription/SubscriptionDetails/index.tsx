@@ -4,6 +4,7 @@ import {useOnyx} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import type {OptionsPickerItem} from '@components/OptionsPicker';
 import OptionsPicker from '@components/OptionsPicker';
 import Section from '@components/Section';
@@ -85,7 +86,7 @@ function SubscriptionDetails() {
                     <Text style={[styles.textLabelSupporting, styles.mt2]}>{translate('subscription.details.zeroCommitment')}</Text>
                 </View>
             ) : (
-                <>
+                <OfflineWithFeedback pendingAction={privateSubscription?.pendingAction}>
                     <OptionsPicker
                         options={options}
                         selectedOption={privateSubscription?.type ?? CONST.SUBSCRIPTION.TYPE.ANNUAL}
@@ -93,7 +94,7 @@ function SubscriptionDetails() {
                         style={styles.mt5}
                     />
                     {subscriptionSizeSection}
-                </>
+                </OfflineWithFeedback>
             )}
         </Section>
     );
