@@ -445,6 +445,13 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                                 tagName: (tagName: string) => decodeURIComponent(tagName),
                             },
                         },
+                        [SCREENS.WORKSPACE.TAG_GL_CODE]: {
+                            path: ROUTES.WORKSPACE_TAG_GL_CODE.route,
+                            parse: {
+                                orderWeight: Number,
+                                tagName: (tagName: string) => decodeURIComponent(tagName),
+                            },
+                        },
                         [SCREENS.WORKSPACE.TAG_SETTINGS]: {
                             path: ROUTES.WORKSPACE_TAG_SETTINGS.route,
                             parse: {
