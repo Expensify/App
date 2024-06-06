@@ -52,7 +52,7 @@ function SubscriptionDetails() {
 
     // This section is only shown when the subscription is annual
     const subscriptionSizeSection: React.JSX.Element | null =
-        privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL ? (
+        selectedOption === CONST.SUBSCRIPTION.TYPE.ANNUAL ? (
             <>
                 <MenuItemWithTopDescription
                     description={translate('subscription.details.subscriptionSize')}
