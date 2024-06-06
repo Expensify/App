@@ -374,7 +374,6 @@ function MoneyRequestConfirmationList({
         let taxableAmount: number;
         let taxCode: string;
         if (isDistanceRequest) {
-            const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '';
             const customUnitRate = getCustomUnitRate(policy, customUnitRateID);
             taxCode = customUnitRate?.attributes?.taxRateExternalID ?? '';
             taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, TransactionUtils.getDistance(transaction));
@@ -386,7 +385,7 @@ function MoneyRequestConfirmationList({
         const taxAmount = TransactionUtils.calculateTaxAmount(taxPercentage, taxableAmount);
         const taxAmountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount.toString()));
         IOU.setMoneyRequestTaxAmount(transaction?.transactionID ?? '', taxAmountInSmallestCurrencyUnits);
-    }, [policy, shouldShowTax, previousTransactionAmount, previousTransactionCurrency, transaction, isDistanceRequest]);
+    }, [policy, shouldShowTax, previousTransactionAmount, previousTransactionCurrency, transaction, isDistanceRequest, customUnitRateID]);
 
     // If completing a split expense fails, set didConfirm to false to allow the user to edit the fields again
     if (isEditingSplitBill && didConfirm) {
