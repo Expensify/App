@@ -64,7 +64,7 @@ const FS = {
                 FS.onReady().then(() => {
                     FS.consent(true);
                     if (value) {
-                        let localMetadata = value;
+                        const localMetadata = value;
                         localMetadata.environment = envName;
                         FS.fsIdentify(localMetadata);
                     }
