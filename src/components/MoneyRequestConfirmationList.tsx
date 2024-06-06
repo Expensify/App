@@ -45,6 +45,7 @@ import type {SplitShares} from '@src/types/onyx/Transaction';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {DropdownOption} from './ButtonWithDropdownMenu/types';
 import ConfirmedRoute from './ConfirmedRoute';
+import ConfirmModal from './ConfirmModal';
 import FormHelpMessage from './FormHelpMessage';
 import MenuItem from './MenuItem';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
@@ -1233,6 +1234,7 @@ function MoneyRequestConfirmationList({
             transactionID,
             translate,
             invalidAttachmentPromt,
+            isAttachmentInvalid,
         ],
     );
 
