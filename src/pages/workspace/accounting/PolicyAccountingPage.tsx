@@ -1,4 +1,4 @@
-import {formatDistanceToNow} from 'date-fns';
+import {differenceInMinutes, formatDistanceToNow, isValid, parseISO} from 'date-fns';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -117,7 +117,12 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
     const [datetimeToRelative, setDateTimeToRelative] = useState('');
     const threeDotsMenuContainerRef = useRef<View>(null);
 
-    const isSyncInProgress = !!connectionSyncProgress?.stageInProgress && connectionSyncProgress.stageInProgress !== CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE;
+    const lastSyncProgressDate = parseISO(connectionSyncProgress?.timestamp ?? '');
+    const isSyncInProgress =
+        !!connectionSyncProgress?.stageInProgress &&
+        connectionSyncProgress.stageInProgress !== CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE &&
+        isValid(lastSyncProgressDate) &&
+        differenceInMinutes(new Date(), lastSyncProgressDate) < CONST.POLICY.CONNECTIONS.SYNC_STAGE_TIMEOUT_MINUTES;
 
     const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME).filter((name) => !(name === CONST.POLICY.CONNECTIONS.NAME.XERO && !canUseXeroIntegration));
     const connectedIntegration = accountingIntegrations.find((integration) => !!policy?.connections?.[integration]) ?? connectionSyncProgress?.connectionName;

@@ -339,7 +339,7 @@ function MoneyRequestPreviewContent({
                                             </View>
                                             {splitShare && (
                                                 <Text style={[styles.textLabel, styles.colorMuted, styles.ml1, styles.amountSplitPadding]}>
-                                                    {translate('iou.yourSplit', {amount: CurrencyUtils.convertToDisplayString(splitShare ?? 0, requestCurrency ?? '')})}
+                                                    {translate('iou.yourSplit', {amount: CurrencyUtils.convertToDisplayString(splitShare ?? 0, requestCurrency)})}
                                                 </Text>
                                             )}
                                         </View>

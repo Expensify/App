@@ -94,7 +94,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
 
     const isDeletedParentAction = ReportActionsUtils.isDeletedAction(parentReportAction);
-    const canHoldOrUnholdRequest = !isSettled && !isApproved && !isDeletedParentAction;
+    const canHoldOrUnholdRequest = !isSettled && !isApproved && !isDeletedParentAction && !ReportUtils.isArchivedRoom(parentReport);
 
     // If the report supports adding transactions to it, then it also supports deleting transactions from it.
     const canDeleteRequest = isActionOwner && (ReportUtils.canAddOrDeleteTransactions(moneyRequestReport) || ReportUtils.isTrackExpenseReport(report)) && !isDeletedParentAction;
@@ -121,21 +121,17 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
 
     const getStatusBarProps: () => MoneyRequestHeaderStatusBarProps | undefined = () => {
         if (isOnHold) {
-            return {title: translate('iou.hold'), description: isDuplicate ? translate('iou.expenseDuplicate') : translate('iou.expenseOnHold'), danger: true, shouldShowBorderBottom: true};
+            return {title: translate('iou.hold'), description: isDuplicate ? translate('iou.expenseDuplicate') : translate('iou.expenseOnHold'), danger: true};
         }
 
         if (TransactionUtils.isExpensifyCardTransaction(transaction) && TransactionUtils.isPending(transaction)) {
-            return {title: getStatusIcon(Expensicons.CreditCardHourglass), description: translate('iou.transactionPendingDescription'), shouldShowBorderBottom: true};
+            return {title: getStatusIcon(Expensicons.CreditCardHourglass), description: translate('iou.transactionPendingDescription')};
         }
         if (TransactionUtils.hasPendingRTERViolation(TransactionUtils.getTransactionViolations(transaction?.transactionID ?? '', transactionViolations))) {
-            return {
-                title: getStatusIcon(Expensicons.Hourglass),
-                description: translate('iou.pendingMatchWithCreditCardDescription'),
-                shouldShowBorderBottom: true,
-            };
+            return {title: getStatusIcon(Expensicons.Hourglass), description: translate('iou.pendingMatchWithCreditCardDescription')};
         }
         if (isScanning) {
-            return {title: getStatusIcon(Expensicons.ReceiptScan), description: translate('iou.receiptScanInProgressDescription'), shouldShowBorderBottom: true};
+            return {title: getStatusIcon(Expensicons.ReceiptScan), description: translate('iou.receiptScanInProgressDescription')};
         }
     };
 
@@ -260,12 +256,13 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
                     </View>
                 )}
                 {statusBarProps && (
-                    <MoneyRequestHeaderStatusBar
-                        title={statusBarProps.title}
-                        description={statusBarProps.description}
-                        danger={statusBarProps.danger}
-                        shouldShowBorderBottom={statusBarProps.shouldShowBorderBottom}
-                    />
+                    <View style={[styles.ph5, styles.pb3, styles.borderBottom]}>
+                        <MoneyRequestHeaderStatusBar
+                            title={statusBarProps.title}
+                            description={statusBarProps.description}
+                            danger={statusBarProps.danger}
+                        />
+                    </View>
                 )}
             </View>
             <ConfirmModal
@@ -277,6 +274,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}
                 danger
+                shouldEnableNewFocusManagement
             />
             {isSmallScreenWidth && shouldShowHoldMenu && (
                 <ProcessMoneyRequestHoldMenu

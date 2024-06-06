@@ -12,7 +12,7 @@ import {isCorporateCard, isExpensifyCard} from './CardUtils';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
 import * as NumberUtils from './NumberUtils';
-import {getCleanedTagName} from './PolicyUtils';
+import {getCleanedTagName, getCustomUnitRate} from './PolicyUtils';
 
 let allTransactions: OnyxCollection<Transaction> = {};
 Onyx.connect({
@@ -68,7 +68,7 @@ function isScanRequest(transaction: OnyxEntry<Transaction>): boolean {
         return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN;
     }
 
-    return Boolean(transaction?.receipt?.source);
+    return Boolean(transaction?.receipt?.source) && transaction?.amount === 0;
 }
 
 function getRequestType(transaction: OnyxEntry<Transaction>): IOURequestType {
@@ -563,12 +563,12 @@ function hasRoute(transaction: OnyxEntry<Transaction>, isDistanceRequestType: bo
     return !!transaction?.routes?.route0?.geometry?.coordinates || (isDistanceRequestType && !!transaction?.comment?.customUnit?.quantity);
 }
 
-function getAllReportTransactions(reportID?: string): Transaction[] {
+function getAllReportTransactions(reportID?: string, transactions?: OnyxCollection<Transaction>): Transaction[] {
     // `reportID` from the `/CreateDistanceRequest` endpoint return's number instead of string for created `transaction`.
     // For reference, https://github.com/Expensify/App/pull/26536#issuecomment-1703573277.
     // We will update this in a follow-up Issue. According to this comment: https://github.com/Expensify/App/pull/26536#issuecomment-1703591019.
-    const transactions: Transaction[] = Object.values(allTransactions ?? {}).filter((transaction): transaction is Transaction => transaction !== null);
-    return transactions.filter((transaction) => `${transaction.reportID}` === `${reportID}`);
+    const nonNullableTransactions: Transaction[] = Object.values(transactions ?? allTransactions ?? {}).filter((transaction): transaction is Transaction => transaction !== null);
+    return nonNullableTransactions.filter((transaction) => `${transaction.reportID}` === `${reportID}`);
 }
 
 function waypointHasValidAddress(waypoint: RecentWaypoint | Waypoint): boolean {
@@ -615,12 +615,12 @@ function getValidWaypoints(waypoints: WaypointCollection | undefined, reArrangeI
             return acc;
         }
 
-        const validatedWaypoints: WaypointCollection = {...acc, [`waypoint${reArrangeIndexes ? waypointIndex + 1 : index}`]: currentWaypoint};
+        acc[`waypoint${reArrangeIndexes ? waypointIndex + 1 : index}`] = currentWaypoint;
 
         lastWaypointIndex = index;
         waypointIndex += 1;
 
-        return validatedWaypoints;
+        return acc;
     }, {});
 }
 
@@ -698,7 +698,7 @@ function hasWarningTypeViolation(transactionID: string, transactionViolations: O
 }
 
 /**
- * this is the formulae to calculate tax
+ * Calculates tax amount from the given expense amount and tax percentage
  */
 function calculateTaxAmount(percentage: string, amount: number) {
     const divisor = Number(percentage.slice(0, -1)) / 100 + 1;
@@ -719,6 +719,10 @@ function isCustomUnitRateIDForP2P(transaction: OnyxEntry<Transaction>): boolean 
     return transaction?.comment?.customUnit?.customUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID;
 }
 
+function hasReservationList(transaction: Transaction | undefined | null): boolean {
+    return !!transaction?.receipt?.reservationList && transaction?.receipt?.reservationList.length > 0;
+}
+
 /**
  * Get rate ID from the transaction object
  */
@@ -727,10 +731,16 @@ function getRateID(transaction: OnyxEntry<Transaction>): string | undefined {
 }
 
 /**
- * Gets the tax code based on selected currency.
- * Returns policy default tax rate if transaction is in policy default currency, otherwise returns foreign default tax rate
+ * Gets the tax code based on the type of transaction and selected currency.
+ * If it is distance request, then returns the tax code corresponding to the custom unit rate
+ * Else returns policy default tax rate if transaction is in policy default currency, otherwise foreign default tax rate
  */
 function getDefaultTaxCode(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, currency?: string | undefined) {
+    if (isDistanceRequest(transaction)) {
+        const customUnitRateID = getRateID(transaction) ?? '';
+        const customUnitRate = getCustomUnitRate(policy, customUnitRateID);
+        return customUnitRate?.attributes?.taxRateExternalID ?? '';
+    }
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
     const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
     return policy?.outputCurrency === (currency ?? getCurrency(transaction)) ? defaultExternalID : foreignTaxDefault;
@@ -775,7 +785,7 @@ function getWorkspaceTaxesSettingsName(policy: OnyxEntry<Policy>, taxCode: strin
 }
 
 /**
- * Gets the tax name
+ * Gets the name corresponding to the taxCode that is displayed to the user
  */
 function getTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>) {
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
@@ -842,6 +852,7 @@ export {
     getWaypointIndex,
     waypointHasValidAddress,
     getRecentTransactions,
+    hasReservationList,
     hasViolation,
     hasNoticeTypeViolation,
     hasWarningTypeViolation,
