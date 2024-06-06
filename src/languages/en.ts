@@ -2585,6 +2585,7 @@ export default {
             centrallyManage: 'Centrally manage rates, choose to track in miles or kilometers, and set a default category.',
             rate: 'Rate',
             addRate: 'Add rate',
+            trackTax: 'Track tax',
             deleteRates: (count: number) => ({
                 zero: `Delete ${count} rates`,
                 one: `Delete ${count} rate`,

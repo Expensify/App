@@ -2626,6 +2626,7 @@ export default {
             centrallyManage: 'Gestiona centralizadamente las tasas, elige si contabilizar en millas o kilómetros, y define una categoría por defecto',
             rate: 'Tasa',
             addRate: 'Agregar tasa',
+            trackTax: 'Impuesto de seguimiento',
             deleteRates: (count: number) => ({
                 zero: `Eliminar ${count} tasas`,
                 one: `Eliminar ${count} tasa`,
