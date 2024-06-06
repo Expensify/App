@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -70,7 +70,6 @@ function DetailsPage({personalDetails, route, session}: DetailsPageProps) {
             accountID: optimisticAccountID,
             login,
             displayName: login,
-            avatar: UserUtils.getDefaultAvatar(optimisticAccountID),
         };
     }
 
@@ -115,7 +114,8 @@ function DetailsPage({personalDetails, route, session}: DetailsPageProps) {
                                                 <Avatar
                                                     containerStyles={[styles.avatarLarge, styles.mb3]}
                                                     imageStyles={[styles.avatarLarge]}
-                                                    source={UserUtils.getAvatar(details?.avatar, details?.accountID)}
+                                                    source={details?.avatar}
+                                                    avatarID={details?.accountID}
                                                     size={CONST.AVATAR_SIZE.LARGE}
                                                     fallbackIcon={details?.fallbackIcon}
                                                 />

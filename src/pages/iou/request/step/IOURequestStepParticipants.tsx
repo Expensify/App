@@ -4,7 +4,9 @@ import {withOnyx} from 'react-native-onyx';
 import FormHelpMessage from '@components/FormHelpMessage';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {READ_COMMANDS} from '@libs/API/types';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import HttpUtils from '@libs/HttpUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -41,7 +43,9 @@ function IOURequestStepParticipants({
     const participants = transaction?.participants;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const selectedReportID = useRef<string>(reportID);
+
+    // We need to set selectedReportID if user has navigated back from confirmation page and navigates to confirmation page with already selected participant
+    const selectedReportID = useRef<string>(participants?.length === 1 ? participants[0]?.reportID ?? reportID : reportID);
     const numberOfParticipants = useRef(participants?.length ?? 0);
     const iouRequestType = TransactionUtils.getRequestType(transaction);
     const isSplitRequest = iouType === CONST.IOU.TYPE.SPLIT;
@@ -84,6 +88,7 @@ function IOURequestStepParticipants({
 
     const addParticipant = useCallback(
         (val: Participant[]) => {
+            HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
             IOU.setMoneyRequestParticipants(transactionID, val);
             const rateID = DistanceRequestUtils.getCustomUnitRateID(val[0]?.reportID ?? '');
             IOU.setCustomUnitRateID(transactionID, rateID);

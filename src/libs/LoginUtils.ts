@@ -1,5 +1,4 @@
-import {PUBLIC_DOMAINS} from 'expensify-common/lib/CONST';
-import Str from 'expensify-common/lib/str';
+import {PUBLIC_DOMAINS, Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
