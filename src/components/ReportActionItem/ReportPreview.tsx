@@ -229,7 +229,7 @@ function ReportPreview({
 
     const shouldDisableApproveButton = shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(iouReport);
 
-    const shouldShowSettlementButton = !ReportUtils.isInvoiceReport(iouReport) && (shouldShowPayButton || shouldShowApproveButton) && !showRTERViolationMessage;
+    const shouldShowSettlementButton = (shouldShowPayButton || shouldShowApproveButton) && !showRTERViolationMessage;
 
     const shouldPromptUserToAddBankAccount = ReportUtils.hasMissingPaymentMethod(userWallet, iouReportID);
     const shouldShowRBR = !iouSettled && hasErrors;
@@ -281,6 +281,17 @@ function ReportPreview({
             }),
         };
     }, [formattedMerchant, formattedDescription, moneyRequestComment, translate, numberOfRequests, numberOfScanningReceipts, numberOfPendingRequests]);
+
+    const confirmPayment = (paymentMethodType?: PaymentMethodType) => {
+        if (!paymentMethodType || !chatReport || !iouReport) {
+            return;
+        }
+        if (ReportUtils.isInvoiceReport(iouReport)) {
+            IOU.payInvoice(paymentMethodType, chatReport, iouReport);
+        } else {
+            IOU.payMoneyRequest(paymentMethodType, chatReport, iouReport);
+        }
+    };
 
     return (
         <OfflineWithFeedback
@@ -366,11 +377,12 @@ function ReportPreview({
                                 </View>
                                 {shouldShowSettlementButton && (
                                     <SettlementButton
+                                        formattedAmount={getDisplayAmount() ?? ''}
                                         currency={iouReport?.currency}
                                         policyID={policyID}
                                         chatReportID={chatReportID}
                                         iouReport={iouReport}
-                                        onPress={(paymentType?: PaymentMethodType) => chatReport && iouReport && paymentType && IOU.payMoneyRequest(paymentType, chatReport, iouReport)}
+                                        onPress={confirmPayment}
                                         enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                                         addBankAccountRoute={bankAccountRoute}
                                         shouldHidePaymentOptions={!shouldShowPayButton}
