@@ -27,7 +27,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Policy from '@userActions/Policy';
+import * as Tag from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -53,7 +53,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     const currentPolicyTag = policyTags?.[currentTagListName];
 
     const fetchTags = useCallback(() => {
-        Policy.openPolicyTagsPage(policyID);
+        Tag.openPolicyTagsPage(policyID);
     }, [policyID]);
 
     const {isOffline} = useNetwork({onReconnect: fetchTags});
@@ -117,14 +117,14 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     );
 
     const navigateToTagSettings = (tag: TagListItem) => {
-        Navigation.navigate(ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, tag.value));
+        Navigation.navigate(ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, route.params.orderWeight, tag.value));
     };
 
     const selectedTagsArray = Object.keys(selectedTags).filter((key) => selectedTags[key]);
 
     const deleteTags = () => {
         setSelectedTags({});
-        Policy.deletePolicyTags(policyID, selectedTagsArray);
+        Tag.deletePolicyTags(policyID, selectedTagsArray);
         setIsDeleteTagsConfirmModalVisible(false);
     };
 
@@ -175,7 +175,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 value: CONST.POLICY.TAGS_BULK_ACTION_TYPES.DISABLE,
                 onSelected: () => {
                     setSelectedTags({});
-                    Policy.setWorkspaceTagEnabled(policyID, tagsToDisable);
+                    Tag.setWorkspaceTagEnabled(policyID, tagsToDisable, route.params.orderWeight);
                 },
             });
         }
@@ -187,7 +187,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 value: CONST.POLICY.TAGS_BULK_ACTION_TYPES.ENABLE,
                 onSelected: () => {
                     setSelectedTags({});
-                    Policy.setWorkspaceTagEnabled(policyID, tagsToEnable);
+                    Tag.setWorkspaceTagEnabled(policyID, tagsToEnable, route.params.orderWeight);
                 },
             });
         }
@@ -264,7 +264,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         customListHeader={getCustomListHeader()}
                         shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                        onDismissError={(item) => Policy.clearPolicyTagErrors(policyID, item.value)}
+                        onDismissError={(item) => Tag.clearPolicyTagErrors(policyID, item.value)}
                     />
                 )}
             </ScreenWrapper>

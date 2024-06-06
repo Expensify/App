@@ -1,4 +1,4 @@
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -68,13 +68,10 @@ function BeneficialOwnersStep({reimbursementAccount, reimbursementAccountDraft, 
     const submit = () => {
         const beneficialOwnerFields = ['firstName', 'lastName', 'dob', 'ssnLast4', 'street', 'city', 'state', 'zipCode'];
         const beneficialOwners = beneficialOwnerKeys.map((ownerKey) =>
-            beneficialOwnerFields.reduce(
-                (acc, fieldName) => ({
-                    ...acc,
-                    [fieldName]: reimbursementAccountDraft ? reimbursementAccountDraft[`beneficialOwner_${ownerKey}_${fieldName}`] : undefined,
-                }),
-                {},
-            ),
+            beneficialOwnerFields.reduce((acc, fieldName) => {
+                acc[fieldName] = reimbursementAccountDraft ? reimbursementAccountDraft[`beneficialOwner_${ownerKey}_${fieldName}`] : undefined;
+                return acc;
+            }, {} as Record<string, string | undefined>),
         );
 
         BankAccounts.updateBeneficialOwnersForBankAccount(

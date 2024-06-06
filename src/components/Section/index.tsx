@@ -1,17 +1,18 @@
-import React from 'react';
 import type {ReactNode} from 'react';
+import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import ImageSVG from '@components/ImageSVG';
 import Lottie from '@components/Lottie';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import type {MenuItemWithLink} from '@components/MenuItemList';
 import MenuItemList from '@components/MenuItemList';
 import Text from '@components/Text';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
 import IconSection from './IconSection';
@@ -22,12 +23,12 @@ const CARD_LAYOUT = {
     ICON_ON_RIGHT: 'iconOnRight',
 } as const;
 
-type SectionProps = ChildrenProps & {
+type SectionProps = Partial<ChildrenProps> & {
     /** An array of props that are passed to individual MenuItem components */
     menuItems?: MenuItemWithLink[];
 
     /** The text to display in the title of the section */
-    title: string;
+    title?: string;
 
     /** The text to display in the subtitle of the section */
     subtitle?: string;
@@ -59,8 +60,8 @@ type SectionProps = ChildrenProps & {
     /** Whether the section is in the central pane of the layout */
     isCentralPane?: boolean;
 
-    /** The illustration to display in the header. Can be a JSON object representing a Lottie animation. */
-    illustration?: DotLottieAnimation;
+    /** The illustration to display in the header. Can be an image or a JSON object representing a Lottie animation. */
+    illustration?: DotLottieAnimation | IconAsset;
 
     /** The background color to apply in the upper half of the screen. */
     illustrationBackgroundColor?: string;
@@ -76,7 +77,24 @@ type SectionProps = ChildrenProps & {
 
     /** The component to display in the title of the section */
     renderSubtitle?: () => ReactNode;
+
+    /** The component to display custom title */
+    renderTitle?: () => ReactNode;
+
+    /** The width of the icon. */
+    iconWidth?: number;
+
+    /** The height of the icon. */
+    iconHeight?: number;
 };
+
+function isIllustrationLottieAnimation(illustration: DotLottieAnimation | IconAsset | undefined): illustration is DotLottieAnimation {
+    if (typeof illustration === 'number' || !illustration) {
+        return false;
+    }
+
+    return 'file' in illustration && 'w' in illustration && 'h' in illustration;
+}
 
 function Section({
     children,
@@ -90,6 +108,7 @@ function Section({
     subtitleStyles,
     subtitleMuted = false,
     title,
+    renderTitle,
     titleStyles,
     isCentralPane = false,
     illustration,
@@ -97,19 +116,27 @@ function Section({
     illustrationStyle,
     contentPaddingOnLargeScreens,
     overlayContent,
+    iconWidth,
+    iconHeight,
     renderSubtitle,
 }: SectionProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const illustrationContainerStyle: StyleProp<ViewStyle> = StyleUtils.getBackgroundColorStyle(illustrationBackgroundColor ?? illustration?.backgroundColor ?? theme.appBG);
+    const isLottie = isIllustrationLottieAnimation(illustration);
+
+    const lottieIllustration = isLottie ? illustration : undefined;
+
+    const illustrationContainerStyle: StyleProp<ViewStyle> = StyleUtils.getBackgroundColorStyle(illustrationBackgroundColor ?? lottieIllustration?.backgroundColor ?? theme.appBG);
 
     return (
         <View style={[styles.pageWrapper, styles.cardSectionContainer, containerStyles, (isCentralPane || !!illustration) && styles.p0]}>
             {cardLayout === CARD_LAYOUT.ICON_ON_TOP && (
                 <IconSection
+                    width={iconWidth}
+                    height={iconHeight}
                     icon={icon}
                     iconContainerStyles={[iconContainerStyles, styles.alignSelfStart, styles.mb3]}
                 />
@@ -117,30 +144,39 @@ function Section({
             {!!illustration && (
                 <View style={[styles.w100, styles.dFlex, styles.alignItemsCenter, styles.justifyContentCenter, illustrationContainerStyle]}>
                     <View style={[styles.cardSectionIllustration, illustrationStyle]}>
-                        <Lottie
-                            source={illustration}
-                            style={styles.h100}
-                            webStyle={styles.h100}
-                            autoPlay
-                            loop
-                        />
+                        {isLottie ? (
+                            <Lottie
+                                source={illustration}
+                                style={styles.h100}
+                                webStyle={styles.h100}
+                                autoPlay
+                                loop
+                            />
+                        ) : (
+                            <ImageSVG
+                                src={illustration}
+                                contentFit="contain"
+                            />
+                        )}
                     </View>
                     {overlayContent?.()}
                 </View>
             )}
-            <View style={[styles.w100, isCentralPane && (isSmallScreenWidth ? styles.p5 : contentPaddingOnLargeScreens ?? styles.p8)]}>
+            <View style={[styles.w100, isCentralPane && (shouldUseNarrowLayout ? styles.p5 : contentPaddingOnLargeScreens ?? styles.p8)]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, cardLayout === CARD_LAYOUT.ICON_ON_TOP && styles.mh1]}>
                     {cardLayout === CARD_LAYOUT.ICON_ON_LEFT && (
                         <IconSection
+                            width={iconWidth}
+                            height={iconHeight}
                             icon={icon}
                             iconContainerStyles={[styles.flexGrow0, styles.justifyContentStart, iconContainerStyles]}
                         />
                     )}
-                    <View style={[styles.flexShrink1]}>
-                        <Text style={[styles.textHeadline, styles.cardSectionTitle, titleStyles]}>{title}</Text>
-                    </View>
+                    <View style={[styles.flexShrink1]}>{renderTitle ? renderTitle() : <Text style={[styles.textHeadline, styles.cardSectionTitle, titleStyles]}>{title}</Text>}</View>
                     {cardLayout === CARD_LAYOUT.ICON_ON_RIGHT && (
                         <IconSection
+                            width={iconWidth}
+                            height={iconHeight}
                             icon={icon}
                             iconContainerStyles={iconContainerStyles}
                         />

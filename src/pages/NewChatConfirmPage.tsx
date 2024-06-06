@@ -1,4 +1,4 @@
-import React, {useMemo, useRef} from 'react';
+import React, {useCallback, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -34,6 +34,14 @@ type NewChatConfirmPageOnyxProps = {
 };
 
 type NewChatConfirmPageProps = NewChatConfirmPageOnyxProps;
+
+function navigateBack() {
+    Navigation.goBack(ROUTES.NEW_CHAT);
+}
+
+function navigateToEditChatName() {
+    Navigation.navigate(ROUTES.NEW_CHAT_EDIT_NAME);
+}
 
 function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmPageProps) {
     const optimisticReportID = useRef<string>(ReportUtils.generateReportID());
@@ -79,30 +87,25 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
     /**
      * Removes a selected option from list if already selected.
      */
-    const unselectOption = (option: ListItem) => {
-        if (!newGroupDraft) {
-            return;
-        }
-        const newSelectedParticipants = (newGroupDraft.participants ?? []).filter((participant) => participant.login !== option.login);
-        Report.setGroupDraft({participants: newSelectedParticipants});
-    };
+    const unselectOption = useCallback(
+        (option: ListItem) => {
+            if (!newGroupDraft) {
+                return;
+            }
+            const newSelectedParticipants = (newGroupDraft.participants ?? []).filter((participant) => participant.login !== option.login);
+            Report.setGroupDraft({participants: newSelectedParticipants});
+        },
+        [newGroupDraft],
+    );
 
-    const createGroup = () => {
+    const createGroup = useCallback(() => {
         if (!newGroupDraft) {
             return;
         }
 
         const logins: string[] = (newGroupDraft.participants ?? []).map((participant) => participant.login);
         Report.navigateToAndOpenReport(logins, true, newGroupDraft.reportName ?? '', newGroupDraft.avatarUri ?? '', fileRef.current, optimisticReportID.current, true);
-    };
-
-    const navigateBack = () => {
-        Navigation.goBack(ROUTES.NEW_CHAT);
-    };
-
-    const navigateToEditChatName = () => {
-        Navigation.navigate(ROUTES.NEW_CHAT_EDIT_NAME);
-    };
+    }, [newGroupDraft]);
 
     const stashedLocalAvatarImage = newGroupDraft?.avatarUri;
     return (
@@ -129,6 +132,7 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
                     editIcon={Expensicons.Camera}
                     editIconStyle={styles.smallEditIconAccount}
                     shouldUseStyleUtilityForAnchorPosition
+                    style={styles.w100}
                 />
             </View>
             <MenuItemWithTopDescription
