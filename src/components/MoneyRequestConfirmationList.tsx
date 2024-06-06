@@ -255,9 +255,7 @@ function MoneyRequestConfirmationList({
 
     const policyCurrency = policy?.outputCurrency ?? PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
 
-    const mileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction)
-        ? DistanceRequestUtils.getRateForP2P(policyCurrency)
-        : mileageRates?.[customUnitRateID] ?? DistanceRequestUtils.getDefaultMileageRate(policy);
+    const mileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction) ? DistanceRequestUtils.getRateForP2P(policyCurrency) : mileageRates?.[customUnitRateID] ?? defaultMileageRate;
 
     const {unit, rate} = mileageRate ?? {};
 
