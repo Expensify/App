@@ -2,7 +2,6 @@ import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CurrencyList} from '@src/types/onyx';
 import BaseLocaleListener from './Localize/LocaleListener/BaseLocaleListener';
 import * as NumberFormatUtils from './NumberFormatUtils';
 
