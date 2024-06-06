@@ -1,4 +1,4 @@
-import fastMerge from 'expensify-common/lib/fastMerge';
+import {fastMerge} from 'expensify-common';
 import _ from 'lodash';
 import lodashFindLast from 'lodash/findLast';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
@@ -320,13 +320,13 @@ function getCombinedReportActions(reportActions: ReportAction[], transactionThre
 
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const isSelfDM = report?.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM;
-    // Filter out request and send money request actions because we don't want to show any preview actions for one transaction reports
+    // Filter out request money actions because we don't want to show any preview actions for one transaction reports
     const filteredReportActions = [...reportActions, ...filteredTransactionThreadReportActions].filter((action) => {
         const actionType = (action as OriginalMessageIOU).originalMessage?.type ?? '';
         if (isSelfDM) {
-            return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && !isSentMoneyReportAction(action);
+            return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE;
         }
-        return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && actionType !== CONST.IOU.REPORT_ACTION_TYPE.TRACK && !isSentMoneyReportAction(action);
+        return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && actionType !== CONST.IOU.REPORT_ACTION_TYPE.TRACK;
     });
 
     return getSortedReportActions(filteredReportActions, true);
@@ -854,6 +854,10 @@ function isTrackExpenseAction(reportAction: OnyxEntry<ReportAction | OptimisticI
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && (reportAction.originalMessage as IOUMessage).type === CONST.IOU.REPORT_ACTION_TYPE.TRACK;
 }
 
+function isPayAction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>): boolean {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && (reportAction.originalMessage as IOUMessage).type === CONST.IOU.REPORT_ACTION_TYPE.PAY;
+}
+
 function isTaskAction(reportAction: OnyxEntry<ReportAction>): boolean {
     const reportActionName = reportAction?.actionName;
     return (
@@ -1229,6 +1233,13 @@ function isLinkedTransactionHeld(reportActionID: string, reportID: string): bool
     return TransactionUtils.isOnHoldByTransactionID(getLinkedTransactionID(reportActionID, reportID) ?? '');
 }
 
+/**
+ * Check if the current user is the requestor of the action
+ */
+function wasActionTakenByCurrentUser(reportAction: OnyxEntry<ReportAction>): boolean {
+    return currentUserAccountID === reportAction?.actorAccountID;
+}
+
 export {
     extractLinksFromMessageHtml,
     getDismissedViolationMessageText,
@@ -1268,6 +1279,7 @@ export {
     isSentMoneyReportAction,
     isSplitBillAction,
     isTrackExpenseAction,
+    isPayAction,
     isTaskAction,
     doesReportHaveVisibleActions,
     isThreadParentMessage,
@@ -1294,7 +1306,9 @@ export {
     isActionableJoinRequest,
     isActionableJoinRequestPending,
     isActionableTrackExpense,
+    getAllReportActions,
     isLinkedTransactionHeld,
+    wasActionTakenByCurrentUser,
     isResolvedActionTrackExpense,
 };
 
