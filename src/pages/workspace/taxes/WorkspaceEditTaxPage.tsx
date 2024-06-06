@@ -39,6 +39,8 @@ function WorkspaceEditTaxPage({
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const canEdit = policy && PolicyUtils.canEditTaxRate(policy, taxID);
     const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
+    
+    const shouldShowDeleteMenuItem = canEdit && !hasAccountingConnections;
 
     const toggleTaxRate = () => {
         if (!currentTaxRate) {
@@ -120,7 +122,7 @@ function WorkspaceEditTaxPage({
                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAX_VALUE.getRoute(`${policyID}`, taxID))}
                         />
                     </OfflineWithFeedback>
-                    {canEdit && !hasAccountingConnections && (
+                    {shouldShowDeleteMenuItem && (
                         <MenuItem
                             icon={Expensicons.Trashcan}
                             title={translate('common.delete')}

@@ -74,6 +74,8 @@ function TagSettingsPage({route, policyTags, navigation}: TagSettingsPageProps) 
     const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
     const isMultiLevelTags = PolicyUtils.isMultiLevelTags(policyTags);
 
+    const shouldShowDeleteMenuItem = !isThereAnyAccountingConnection && !isMultiLevelTags;
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -126,7 +128,7 @@ function TagSettingsPage({route, policyTags, navigation}: TagSettingsPageProps) 
                             shouldShowRightIcon
                         />
                     </OfflineWithFeedback>
-                    {!isThereAnyAccountingConnection && !isMultiLevelTags && (
+                    {shouldShowDeleteMenuItem && (
                         <MenuItem
                             icon={Expensicons.Trashcan}
                             title={translate('common.delete')}
