@@ -37,7 +37,7 @@ function dismissModalWithReport(targetReport: OnyxEntry<Report>, navigationRef: 
         case NAVIGATORS.LEFT_MODAL_NAVIGATOR:
         case NAVIGATORS.RIGHT_MODAL_NAVIGATOR:
         case SCREENS.NOT_FOUND:
-        case SCREENS.REPORT_ATTACHMENTS:
+        case SCREENS.ATTACHMENTS:
         case SCREENS.TRANSACTION_RECEIPT:
         case SCREENS.PROFILE_AVATAR:
         case SCREENS.WORKSPACE_AVATAR:

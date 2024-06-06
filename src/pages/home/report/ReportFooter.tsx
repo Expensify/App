@@ -39,6 +39,8 @@ type ReportFooterProps = ReportFooterOnyxProps & {
     /** Report object for the current report */
     report?: OnyxTypes.Report;
 
+    reportMetadata?: OnyxEntry<OnyxTypes.ReportMetadata>;
+
     reportNameValuePairs?: OnyxEntry<OnyxTypes.ReportNameValuePairs>;
 
     /** The last report action */
@@ -71,6 +73,7 @@ function ReportFooter({
     pendingAction,
     session,
     report = {reportID: '0'},
+    reportMetadata,
     reportNameValuePairs,
     shouldShowComposeInput = false,
     isEmptyChat = true,
@@ -89,7 +92,10 @@ function ReportFooter({
     const isAnonymousUser = session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
 
     const isSmallSizeLayout = windowWidth - (isSmallScreenWidth ? 0 : variables.sideBarWidth) < variables.anonymousReportFooterBreakpoint;
-    const hideComposer = !ReportUtils.canUserPerformWriteAction(report, reportNameValuePairs) || blockedFromChat;
+
+    // If a user just signed in and is viewing a public report, optimistically show the composer while loading the report, since they will have write access when the response comes back.
+    const showComposerOptimistically = !isAnonymousUser && ReportUtils.isPublicRoom(report) && reportMetadata?.isLoadingInitialReportActions;
+    const hideComposer = (!ReportUtils.canUserPerformWriteAction(report, reportNameValuePairs) && !showComposerOptimistically) || blockedFromChat;
     const canWriteInReport = ReportUtils.canWriteInReport(report);
     const isSystemChat = ReportUtils.isSystemChat(report);
 
@@ -210,6 +216,7 @@ export default withOnyx<ReportFooterProps, ReportFooterOnyxProps>({
             prevProps.lastReportAction === nextProps.lastReportAction &&
             prevProps.shouldShowComposeInput === nextProps.shouldShowComposeInput &&
             prevProps.isReportReadyForDisplay === nextProps.isReportReadyForDisplay &&
-            lodashIsEqual(prevProps.session, nextProps.session),
+            lodashIsEqual(prevProps.session, nextProps.session) &&
+            lodashIsEqual(prevProps.reportMetadata, nextProps.reportMetadata),
     ),
 );

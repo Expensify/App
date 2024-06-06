@@ -58,7 +58,7 @@ function isScanRequest(transaction: OnyxEntry<Transaction>): boolean {
         return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN;
     }
 
-    return Boolean(transaction?.receipt?.source);
+    return Boolean(transaction?.receipt?.source) && transaction?.amount === 0;
 }
 
 function getRequestType(transaction: OnyxEntry<Transaction>): IOURequestType {
@@ -553,12 +553,12 @@ function hasRoute(transaction: OnyxEntry<Transaction>, isDistanceRequestType: bo
     return !!transaction?.routes?.route0?.geometry?.coordinates || (isDistanceRequestType && !!transaction?.comment?.customUnit?.quantity);
 }
 
-function getAllReportTransactions(reportID?: string): Transaction[] {
+function getAllReportTransactions(reportID?: string, transactions?: OnyxCollection<Transaction>): Transaction[] {
     // `reportID` from the `/CreateDistanceRequest` endpoint return's number instead of string for created `transaction`.
     // For reference, https://github.com/Expensify/App/pull/26536#issuecomment-1703573277.
     // We will update this in a follow-up Issue. According to this comment: https://github.com/Expensify/App/pull/26536#issuecomment-1703591019.
-    const transactions: Transaction[] = Object.values(allTransactions ?? {}).filter((transaction): transaction is Transaction => transaction !== null);
-    return transactions.filter((transaction) => `${transaction.reportID}` === `${reportID}`);
+    const nonNullableTransactions: Transaction[] = Object.values(transactions ?? allTransactions ?? {}).filter((transaction): transaction is Transaction => transaction !== null);
+    return nonNullableTransactions.filter((transaction) => `${transaction.reportID}` === `${reportID}`);
 }
 
 function waypointHasValidAddress(waypoint: RecentWaypoint | Waypoint): boolean {
@@ -605,12 +605,12 @@ function getValidWaypoints(waypoints: WaypointCollection | undefined, reArrangeI
             return acc;
         }
 
-        const validatedWaypoints: WaypointCollection = {...acc, [`waypoint${reArrangeIndexes ? waypointIndex + 1 : index}`]: currentWaypoint};
+        acc[`waypoint${reArrangeIndexes ? waypointIndex + 1 : index}`] = currentWaypoint;
 
         lastWaypointIndex = index;
         waypointIndex += 1;
 
-        return validatedWaypoints;
+        return acc;
     }, {});
 }
 
@@ -681,6 +681,10 @@ function getEnabledTaxRateCount(options: TaxRates) {
  */
 function isCustomUnitRateIDForP2P(transaction: OnyxEntry<Transaction>): boolean {
     return transaction?.comment?.customUnit?.customUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID;
+}
+
+function hasReservationList(transaction: Transaction | undefined | null): boolean {
+    return !!transaction?.receipt?.reservationList && transaction?.receipt?.reservationList.length > 0;
 }
 
 /**
@@ -805,6 +809,7 @@ export {
     getWaypointIndex,
     waypointHasValidAddress,
     getRecentTransactions,
+    hasReservationList,
     hasViolation,
     hasNoticeTypeViolation,
     isCustomUnitRateIDForP2P,

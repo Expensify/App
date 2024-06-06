@@ -1,4 +1,4 @@
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent, StyleProp, TextInputFocusEventData, ViewStyle} from 'react-native';
@@ -399,7 +399,7 @@ function BaseTextInput(
                                 defaultValue={defaultValue}
                                 markdownStyle={markdownStyle}
                             />
-                            {isFocused && !isReadOnly && shouldShowClearButton && value && <TextInputClearButton onPressButton={() => setValue('')} />}
+                            {isFocused && !isReadOnly && shouldShowClearButton && !!value && <TextInputClearButton onPressButton={() => setValue('')} />}
                             {inputProps.isLoading && (
                                 <ActivityIndicator
                                     size="small"
@@ -422,7 +422,7 @@ function BaseTextInput(
                                     />
                                 </Checkbox>
                             )}
-                            {!inputProps.secureTextEntry && icon && (
+                            {!inputProps.secureTextEntry && !!icon && (
                                 <View style={[styles.textInputIconContainer, !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone]}>
                                     <Icon
                                         src={icon}

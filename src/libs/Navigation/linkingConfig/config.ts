@@ -19,7 +19,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
         [SCREENS.SIGN_IN_WITH_GOOGLE_DESKTOP]: ROUTES.GOOGLE_SIGN_IN,
         [SCREENS.SAML_SIGN_IN]: ROUTES.SAML_SIGN_IN,
         [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: ROUTES.DESKTOP_SIGN_IN_REDIRECT,
-        [SCREENS.REPORT_ATTACHMENTS]: ROUTES.REPORT_ATTACHMENTS.route,
+        [SCREENS.ATTACHMENTS]: ROUTES.ATTACHMENTS.route,
         [SCREENS.PROFILE_AVATAR]: ROUTES.PROFILE_AVATAR.route,
         [SCREENS.WORKSPACE_AVATAR]: ROUTES.WORKSPACE_AVATAR.route,
         [SCREENS.REPORT_AVATAR]: ROUTES.REPORT_AVATAR.route,
@@ -124,6 +124,10 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.PREFERENCES.LANGUAGE]: {
                             path: ROUTES.SETTINGS_LANGUAGE,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD]: {
+                            path: ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.PREFERENCES.THEME]: {
@@ -277,6 +281,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: {
                             path: ROUTES.SETTINGS_STATUS_CLEAR_AFTER_TIME,
                         },
+                        [SCREENS.SETTINGS.SUBSCRIPTION.SIZE]: {
+                            path: ROUTES.SETTINGS_SUBSCRIPTION_SIZE,
+                        },
                         [SCREENS.WORKSPACE.CURRENCY]: {
                             path: ROUTES.WORKSPACE_PROFILE_CURRENCY.route,
                         },
@@ -413,6 +420,12 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.DISTANCE_RATE_EDIT]: {
                             path: ROUTES.WORKSPACE_DISTANCE_RATE_EDIT.route,
                         },
+                        [SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT]: {
+                            path: ROUTES.WORKSPACE_DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT.route,
+                        },
+                        [SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RATE_EDIT]: {
+                            path: ROUTES.WORKSPACE_DISTANCE_RATE_TAX_RATE_EDIT.route,
+                        },
                         [SCREENS.WORKSPACE.TAGS_SETTINGS]: {
                             path: ROUTES.WORKSPACE_TAGS_SETTINGS.route,
                         },
@@ -520,11 +533,8 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.REPORT_SETTINGS.ROOT]: {
                             path: ROUTES.REPORT_SETTINGS.route,
                         },
-                        [SCREENS.REPORT_SETTINGS.ROOM_NAME]: {
-                            path: ROUTES.REPORT_SETTINGS_ROOM_NAME.route,
-                        },
-                        [SCREENS.REPORT_SETTINGS.GROUP_NAME]: {
-                            path: ROUTES.REPORT_SETTINGS_GROUP_NAME.route,
+                        [SCREENS.REPORT_SETTINGS.NAME]: {
+                            path: ROUTES.REPORT_SETTINGS_NAME.route,
                         },
                         [SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES]: {
                             path: ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.route,
@@ -534,6 +544,28 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.REPORT_SETTINGS.VISIBILITY]: {
                             path: ROUTES.REPORT_SETTINGS_VISIBILITY.route,
+                        },
+                    },
+                },
+                [SCREENS.RIGHT_MODAL.SETTINGS_CATEGORIES]: {
+                    screens: {
+                        [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS]: {
+                            path: ROUTES.SETTINGS_CATEGORY_SETTINGS.route,
+                            parse: {
+                                categoryName: (categoryName: string) => decodeURIComponent(categoryName),
+                            },
+                        },
+                        [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_SETTINGS]: {
+                            path: ROUTES.SETTINGS_CATEGORIES_SETTINGS.route,
+                        },
+                        [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_CREATE]: {
+                            path: ROUTES.SETTINGS_CATEGORY_CREATE.route,
+                        },
+                        [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_EDIT]: {
+                            path: ROUTES.SETTINGS_CATEGORY_EDIT.route,
+                            parse: {
+                                categoryName: (categoryName: string) => decodeURIComponent(categoryName),
+                            },
                         },
                     },
                 },
@@ -634,6 +666,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                                 },
                             },
                         },
+                        [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_ROOT]: ROUTES.SETTINGS_CATEGORIES_ROOT.route,
                         [SCREENS.MONEY_REQUEST.STEP_SEND_FROM]: ROUTES.MONEY_REQUEST_STEP_SEND_FROM.route,
                         [SCREENS.MONEY_REQUEST.STEP_AMOUNT]: ROUTES.MONEY_REQUEST_STEP_AMOUNT.route,
                         [SCREENS.MONEY_REQUEST.STEP_CATEGORY]: ROUTES.MONEY_REQUEST_STEP_CATEGORY.route,

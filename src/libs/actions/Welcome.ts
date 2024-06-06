@@ -6,7 +6,6 @@ import type Onboarding from '@src/types/onyx/Onboarding';
 import type OnyxPolicy from '@src/types/onyx/Policy';
 
 let onboarding: Onboarding | [] | undefined;
-let hasDismissedModal: boolean | undefined;
 let isLoadingReportData = true;
 
 type HasCompletedOnboardingFlowProps = {
@@ -57,7 +56,7 @@ function checkOnboardingDataReady() {
  * Check if user dismissed modal and if report data are loaded
  */
 function checkServerDataReady() {
-    if (isLoadingReportData || hasDismissedModal === undefined) {
+    if (isLoadingReportData) {
         return;
     }
 
@@ -87,16 +86,6 @@ Onyx.connect({
         onboarding = value;
 
         checkOnboardingDataReady();
-    },
-});
-
-Onyx.connect({
-    key: ONYXKEYS.NVP_HAS_DISMISSED_IDLE_PANEL,
-    initWithStoredValues: true,
-    callback: (value) => {
-        hasDismissedModal = value ?? false;
-
-        checkServerDataReady();
     },
 });
 
