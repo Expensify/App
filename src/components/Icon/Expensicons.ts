@@ -139,6 +139,7 @@ import QuestionMark from '@assets/images/question-mark-circle.svg';
 import ReceiptPlus from '@assets/images/receipt-plus.svg';
 import ReceiptScan from '@assets/images/receipt-scan.svg';
 import ReceiptSearch from '@assets/images/receipt-search.svg';
+import ReceiptSlash from '@assets/images/receipt-slash.svg';
 import Receipt from '@assets/images/receipt.svg';
 import RemoveMembers from '@assets/images/remove-members.svg';
 import Rotate from '@assets/images/rotate-image.svg';
@@ -313,6 +314,7 @@ export {
     Receipt,
     ReceiptPlus,
     ReceiptScan,
+    ReceiptSlash,
     RemoveMembers,
     ReceiptSearch,
     Rotate,

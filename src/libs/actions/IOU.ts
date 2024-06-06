@@ -1,6 +1,5 @@
 import {format} from 'date-fns';
-import fastMerge from 'expensify-common/lib/fastMerge';
-import Str from 'expensify-common/lib/str';
+import {fastMerge, Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -2255,9 +2254,9 @@ function getTrackExpenseInformation(
         createdReportActionIDForThread: optimisticCreatedActionForTransactionThread.reportActionID,
         actionableWhisperReportActionIDParam: actionableTrackExpenseWhisper?.reportActionID ?? '',
         onyxData: {
-            optimisticData: [...optimisticData, ...trackExpenseOnyxData[0]],
-            successData: [...successData, ...trackExpenseOnyxData[1]],
-            failureData: [...failureData, ...trackExpenseOnyxData[2]],
+            optimisticData: optimisticData.concat(trackExpenseOnyxData[0]),
+            successData: successData.concat(trackExpenseOnyxData[1]),
+            failureData: failureData.concat(trackExpenseOnyxData[2]),
         },
     };
 }
@@ -3516,7 +3515,7 @@ function sendInvoice(
     const {senderWorkspaceID, receiver, invoiceRoom, createdChatReportActionID, invoiceReportID, reportPreviewReportActionID, transactionID, transactionThreadReportID, onyxData} =
         getSendInvoiceInformation(transaction, currentUserAccountID, invoiceChatReport, receiptFile, policy, policyTagList, policyCategories);
 
-    let parameters: SendInvoiceParams = {
+    const parameters: SendInvoiceParams = {
         senderWorkspaceID,
         accountID: currentUserAccountID,
         amount: transaction?.amount ?? 0,
@@ -3531,19 +3530,8 @@ function sendInvoice(
         reportPreviewReportActionID,
         transactionID,
         transactionThreadReportID,
+        ...(invoiceChatReport?.reportID ? {receiverInvoiceRoomID: invoiceChatReport.reportID} : {receiverEmail: receiver.login ?? ''}),
     };
-
-    if (invoiceChatReport) {
-        parameters = {
-            ...parameters,
-            receiverInvoiceRoomID: invoiceChatReport.reportID,
-        };
-    } else {
-        parameters = {
-            ...parameters,
-            receiverEmail: receiver.login,
-        };
-    }
 
     API.write(WRITE_COMMANDS.SEND_INVOICE, parameters, onyxData);
 

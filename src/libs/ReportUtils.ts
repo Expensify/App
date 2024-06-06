@@ -1,6 +1,5 @@
 import {format} from 'date-fns';
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import Str from 'expensify-common/lib/str';
+import {ExpensiMark, Str} from 'expensify-common';
 import {isEmpty} from 'lodash';
 import lodashEscape from 'lodash/escape';
 import lodashFindLastIndex from 'lodash/findLastIndex';
@@ -3867,7 +3866,7 @@ function getIOUSubmittedMessage(report: OnyxEntry<Report>) {
         ];
     }
 
-    const submittedToPersonalDetail = getPersonalDetailsForAccountID(policy?.submitsTo ?? 0);
+    const submittedToPersonalDetail = getPersonalDetailsForAccountID(PolicyUtils.getSubmitToAccountID(policy, report?.ownerAccountID ?? 0));
     let submittedToDisplayName = `${submittedToPersonalDetail.displayName ?? ''}${
         submittedToPersonalDetail.displayName !== submittedToPersonalDetail.login ? ` (${submittedToPersonalDetail.login})` : ''
     }`;
@@ -6373,9 +6372,9 @@ function hasHeldExpenses(iouReportID?: string): boolean {
 /**
  * Check if all expenses in the Report are on hold
  */
-function hasOnlyHeldExpenses(iouReportID: string): boolean {
-    const transactions = TransactionUtils.getAllReportTransactions(iouReportID);
-    return !transactions.some((transaction) => !TransactionUtils.isOnHold(transaction));
+function hasOnlyHeldExpenses(iouReportID: string, transactions?: OnyxCollection<Transaction>): boolean {
+    const reportTransactions = TransactionUtils.getAllReportTransactions(iouReportID, transactions);
+    return !reportTransactions.some((transaction) => !TransactionUtils.isOnHold(transaction));
 }
 
 /**
