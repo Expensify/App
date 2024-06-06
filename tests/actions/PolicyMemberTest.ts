@@ -48,7 +48,7 @@ describe('actions/PolicyMember', () => {
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fakeReport.reportID}`, {
                 [fakeReportAction.reportActionID]: fakeReportAction,
             });
-            Policy.acceptJoinRequest(fakeReport.reportID, fakeReportAction);
+            Member.acceptJoinRequest(fakeReport.reportID, fakeReportAction);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connectionID = Onyx.connect({
