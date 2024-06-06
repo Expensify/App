@@ -1,7 +1,7 @@
 import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {EnablePolicyTagsParams, OpenPolicyTagsPageParams, RenamePolicyTagsParams, SetPolicyTagsEnabled} from '@libs/API/parameters';
+import type {EnablePolicyTagsParams, OpenPolicyTagsPageParams, RenamePolicyTaglistParams, RenamePolicyTagsParams, SetPolicyTagsEnabled} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
@@ -528,7 +528,7 @@ function renamePolicyTaglist(policyID: string, policyTagListName: {oldName: stri
             },
         ],
     };
-    const parameters = {
+    const parameters: RenamePolicyTaglistParams = {
         policyID,
         oldName,
         newName,
