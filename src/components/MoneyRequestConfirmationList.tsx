@@ -1209,9 +1209,11 @@ function MoneyRequestConfirmationList({
             canUpdateSenderWorkspace,
             didConfirm,
             iouType,
+            isAttachmentInvalid,
             isDistanceRequest,
             isReadOnly,
             isTypeInvoice,
+            navigateBack,
             policy,
             primaryFields,
             receiptImage,
@@ -1234,7 +1236,6 @@ function MoneyRequestConfirmationList({
             transactionID,
             translate,
             invalidAttachmentPromt,
-            isAttachmentInvalid,
         ],
     );
 
