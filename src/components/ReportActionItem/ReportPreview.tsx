@@ -141,7 +141,7 @@ function ReportPreview({
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const hasErrors = hasMissingSmartscanFields || (canUseViolations && ReportUtils.hasViolations(iouReportID, transactionViolations)) || ReportUtils.hasActionsWithErrors(iouReportID);
     const lastThreeTransactionsWithReceipts = transactionsWithReceipts.slice(-3);
-    const lastThreeReceipts = lastThreeTransactionsWithReceipts.map((transaction) => ReceiptUtils.getThumbnailAndImageURIs(transaction));
+    const lastThreeReceipts = lastThreeTransactionsWithReceipts.map((transaction) => ({...ReceiptUtils.getThumbnailAndImageURIs(transaction), transaction}));
     const showRTERViolationMessage =
         numberOfRequests === 1 &&
         TransactionUtils.hasPendingUI(allTransactions[0], TransactionUtils.getTransactionViolations(allTransactions[0]?.transactionID ?? '', transactionViolations));
@@ -227,7 +227,7 @@ function ReportPreview({
 
     const shouldDisableApproveButton = shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(iouReport);
 
-    const shouldShowSettlementButton = !ReportUtils.isInvoiceReport(iouReport) && (shouldShowPayButton || shouldShowApproveButton) && !showRTERViolationMessage;
+    const shouldShowSettlementButton = (shouldShowPayButton || shouldShowApproveButton) && !showRTERViolationMessage;
 
     const shouldPromptUserToAddBankAccount = ReportUtils.hasMissingPaymentMethod(userWallet, iouReportID);
     const shouldShowRBR = !iouSettled && hasErrors;
@@ -279,6 +279,17 @@ function ReportPreview({
             }),
         };
     }, [formattedMerchant, formattedDescription, moneyRequestComment, translate, numberOfRequests, numberOfScanningReceipts, numberOfPendingRequests]);
+
+    const confirmPayment = (paymentMethodType?: PaymentMethodType) => {
+        if (!paymentMethodType || !chatReport || !iouReport) {
+            return;
+        }
+        if (ReportUtils.isInvoiceReport(iouReport)) {
+            IOU.payInvoice(paymentMethodType, chatReport, iouReport);
+        } else {
+            IOU.payMoneyRequest(paymentMethodType, chatReport, iouReport);
+        }
+    };
 
     return (
         <OfflineWithFeedback
@@ -364,11 +375,12 @@ function ReportPreview({
                                 </View>
                                 {shouldShowSettlementButton && (
                                     <SettlementButton
+                                        formattedAmount={getDisplayAmount() ?? ''}
                                         currency={iouReport?.currency}
                                         policyID={policyID}
                                         chatReportID={chatReportID}
                                         iouReport={iouReport}
-                                        onPress={(paymentType?: PaymentMethodType) => chatReport && iouReport && paymentType && IOU.payMoneyRequest(paymentType, chatReport, iouReport)}
+                                        onPress={confirmPayment}
                                         enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                                         addBankAccountRoute={bankAccountRoute}
                                         shouldHidePaymentOptions={!shouldShowPayButton}

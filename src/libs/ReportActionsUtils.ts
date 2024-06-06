@@ -1,4 +1,4 @@
-import fastMerge from 'expensify-common/lib/fastMerge';
+import {fastMerge} from 'expensify-common';
 import _ from 'lodash';
 import lodashFindLast from 'lodash/findLast';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
@@ -1233,6 +1233,13 @@ function isLinkedTransactionHeld(reportActionID: string, reportID: string): bool
     return TransactionUtils.isOnHoldByTransactionID(getLinkedTransactionID(reportActionID, reportID) ?? '');
 }
 
+/**
+ * Check if the current user is the requestor of the action
+ */
+function wasActionTakenByCurrentUser(reportAction: OnyxEntry<ReportAction>): boolean {
+    return currentUserAccountID === reportAction?.actorAccountID;
+}
+
 export {
     extractLinksFromMessageHtml,
     getDismissedViolationMessageText,
@@ -1299,7 +1306,9 @@ export {
     isActionableJoinRequest,
     isActionableJoinRequestPending,
     isActionableTrackExpense,
+    getAllReportActions,
     isLinkedTransactionHeld,
+    wasActionTakenByCurrentUser,
     isResolvedActionTrackExpense,
 };
 
