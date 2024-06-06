@@ -37,7 +37,6 @@ function AnimatedStep({onAnimationEnd, direction = CONST.ANIMATION_DIRECTION.IN,
             }}
             duration={CONST.ANIMATED_TRANSITION}
             animation={animationStyle}
-            useNativeDriver={useNativeDriver}
             style={style}
         >
             {children}
