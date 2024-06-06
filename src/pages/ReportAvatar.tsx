@@ -25,6 +25,8 @@ function ReportAvatar({report = {} as Report, policies, isLoadingApp = true, rou
     let title;
     let avatarURL;
     let fileName;
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    let shouldShowNotFoundPage;
 
     const shouldUseGroupChatDraft = !!route.params.isNewGroupChat;
 
@@ -35,15 +37,20 @@ function ReportAvatar({report = {} as Report, policies, isLoadingApp = true, rou
         fileName = groupChatDraft?.originalFileName ?? undefined;
         // When user enters custom group name, it typically stored in groupChatDraft.reportName
         // If that is null then we will use ReportUtils.getGroupChatName to get the name
-        title = groupChatDraft?.reportName ? groupChatDraft?.reportName : ReportUtils.getGroupChatName(groupChatDraft?.participants.map(x => x.accountID) ?? []);
+        title = groupChatDraft?.reportName ? groupChatDraft?.reportName : ReportUtils.getGroupChatName(groupChatDraft?.participants.map((x) => x.accountID) ?? []);
+        shouldShowNotFoundPage = !isLoadingApp && !groupChatDraft;
     } else {
         avatarURL = policy ? ReportUtils.getWorkspaceAvatar(report) : report?.avatarUrl;
         // In the case of default workspace avatar, originalFileName prop takes policyID as value to get the color of the avatar
         fileName = policy ? policy?.originalFileName ?? policy?.id : title;
-        title = policy ? ReportUtils.getPolicyName(report, false, policy) : report?.reportName;
+        if (policy) {
+            title = ReportUtils.getPolicyName(report, false, policy);
+        } else {
+            title = report?.reportName ? report.reportName : ReportUtils.getGroupChatName(undefined, false, report?.reportID);
+        }
+        shouldShowNotFoundPage = !isLoadingApp && !policy && !report?.reportID;
     }
 
-    const shouldShowNotFoundPage = !isLoadingApp && (shouldUseGroupChatDraft ? !groupChatDraft : !policy && !report?.reportID);
     return (
         <AttachmentModal
             headerTitle={title}
