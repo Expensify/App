@@ -1,6 +1,6 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Switch from '@components/Switch';
@@ -22,6 +22,8 @@ type ToggleSettingOptionRowProps = {
     shouldPlaceSubtitleBelowSwitch?: boolean;
     /** Used to apply styles to the outermost container */
     wrapperStyle?: StyleProp<ViewStyle>;
+    /** Used to apply styles to the Title */
+    titleStyle?: StyleProp<TextStyle>;
     /** Whether the option is enabled or not */
     isActive: boolean;
     /** Callback to be called when the switch is toggled */
@@ -49,6 +51,7 @@ function ToggleSettingOptionRow({
     switchAccessibilityLabel,
     shouldPlaceSubtitleBelowSwitch,
     wrapperStyle,
+    titleStyle,
     onToggle,
     subMenuItems,
     isActive,
@@ -85,7 +88,7 @@ function ToggleSettingOptionRow({
                             />
                         )}
                         <View style={[styles.flexColumn, styles.flex1]}>
-                            <Text style={[styles.textNormal, styles.lh20]}>{title}</Text>
+                            <Text style={[styles.textNormal, styles.lh20, titleStyle]}>{title}</Text>
                             {!shouldPlaceSubtitleBelowSwitch && subtitle && subTitleView}
                         </View>
                     </View>

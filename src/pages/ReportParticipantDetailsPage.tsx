@@ -26,6 +26,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
+import NotFoundPage from './ErrorPage/NotFoundPage';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 
@@ -68,6 +69,10 @@ function ReportParticipantDetails({personalDetails, report, route}: ReportPartic
     const openRoleSelectionModal = useCallback(() => {
         Navigation.navigate(ROUTES.REPORT_PARTICIPANTS_ROLE_SELECTION.getRoute(report.reportID, accountID));
     }, [accountID, report.reportID]);
+
+    if (!member) {
+        return <NotFoundPage />;
+    }
 
     return (
         <ScreenWrapper testID={ReportParticipantDetails.displayName}>

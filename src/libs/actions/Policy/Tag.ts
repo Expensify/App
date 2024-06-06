@@ -472,6 +472,27 @@ function enablePolicyTags(policyID: string, enabled: boolean) {
             },
         ],
     };
+    const policyTagList = allPolicyTags?.[policyID];
+    if (!policyTagList) {
+        const defaultTagList: PolicyTagList = {
+            Tag: {
+                name: 'Tag',
+                orderWeight: 0,
+                required: false,
+                tags: {},
+            },
+        };
+        onyxData.optimisticData?.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+            value: defaultTagList,
+        });
+        onyxData.failureData?.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+            value: null,
+        });
+    }
 
     const parameters: EnablePolicyTagsParams = {policyID, enabled};
 

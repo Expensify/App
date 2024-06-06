@@ -156,6 +156,10 @@ const runTests = async (): Promise<void> => {
     for (let testIndex = 0; testIndex < tests.length; testIndex++) {
         const test = Object.values(config.TESTS_CONFIG)[testIndex];
 
+        // re-instal app for each new test suite
+        await installApp(config.MAIN_APP_PACKAGE, mainAppPath);
+        await installApp(config.DELTA_APP_PACKAGE, deltaAppPath);
+
         // check if we want to skip the test
         if (args.includes('--includes')) {
             const includes = args[args.indexOf('--includes') + 1];
@@ -177,11 +181,17 @@ const runTests = async (): Promise<void> => {
 
         const warmupText = `Warmup for test '${test.name}' [${testIndex + 1}/${tests.length}]`;
 
-        // Warmup the main app:
-        await runTestIteration(config.MAIN_APP_PACKAGE, `[MAIN] ${warmupText}`);
+        // by default we do 2 warmups:
+        // - first warmup to pass a login flow
+        // - second warmup to pass an actual flow and cache network requests
+        const iterations = test.warmupRuns ?? 2;
+        for (let i = 0; i < iterations; i++) {
+            // Warmup the main app:
+            await runTestIteration(config.MAIN_APP_PACKAGE, `[MAIN] ${warmupText}. Iteration ${i + 1}/${iterations}`);
 
-        // Warmup the delta app:
-        await runTestIteration(config.DELTA_APP_PACKAGE, `[DELTA] ${warmupText}`);
+            // Warmup the delta app:
+            await runTestIteration(config.DELTA_APP_PACKAGE, `[DELTA] ${warmupText}. Iteration ${i + 1}/${iterations}`);
+        }
 
         // For each test case we allow the test to fail three times before we stop the test run:
         const errorCountRef = {

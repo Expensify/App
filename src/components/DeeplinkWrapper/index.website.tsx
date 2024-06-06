@@ -1,4 +1,4 @@
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import {useEffect, useRef, useState} from 'react';
 import * as Browser from '@libs/Browser';
 import Navigation from '@libs/Navigation/Navigation';

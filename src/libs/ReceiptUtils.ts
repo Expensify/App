@@ -1,4 +1,4 @@
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import _ from 'lodash';
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';

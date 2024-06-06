@@ -64,40 +64,31 @@ Onyx.connect({
 });
 
 function buildOptimisticPolicyCategories(policyID: string, categories: readonly string[]) {
-    const optimisticCategoryMap = categories.reduce(
-        (acc, category) => ({
-            ...acc,
-            [category]: {
-                name: category,
-                enabled: true,
-                errors: null,
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            },
-        }),
-        {},
-    );
+    const optimisticCategoryMap = categories.reduce<Record<string, Partial<PolicyCategory>>>((acc, category) => {
+        acc[category] = {
+            name: category,
+            enabled: true,
+            errors: null,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        };
+        return acc;
+    }, {});
 
-    const successCategoryMap = categories.reduce(
-        (acc, category) => ({
-            ...acc,
-            [category]: {
-                errors: null,
-                pendingAction: null,
-            },
-        }),
-        {},
-    );
+    const successCategoryMap = categories.reduce<Record<string, Partial<PolicyCategory>>>((acc, category) => {
+        acc[category] = {
+            errors: null,
+            pendingAction: null,
+        };
+        return acc;
+    }, {});
 
-    const failureCategoryMap = categories.reduce(
-        (acc, category) => ({
-            ...acc,
-            [category]: {
-                errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.createFailureMessage'),
-                pendingAction: null,
-            },
-        }),
-        {},
-    );
+    const failureCategoryMap = categories.reduce<Record<string, Partial<PolicyCategory>>>((acc, category) => {
+        acc[category] = {
+            errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.createFailureMessage'),
+            pendingAction: null,
+        };
+        return acc;
+    }, {});
 
     const onyxData: OnyxData = {
         optimisticData: [

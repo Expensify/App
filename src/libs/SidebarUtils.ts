@@ -1,4 +1,4 @@
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ChatReportSelector, PolicySelector, ReportActionsSelector} from '@hooks/useReportIDs';
@@ -80,39 +80,49 @@ function getOrderedReportIDs(
     const allReportsDictValues = Object.values(allReports ?? {});
 
     // Filter out all the reports that shouldn't be displayed
-    let reportsToDisplay = allReportsDictValues.filter((report) => {
+    let reportsToDisplay: Array<ChatReportSelector & {hasErrorsOtherThanFailedReceipt?: boolean}> = [];
+
+    allReportsDictValues.forEach((report) => {
         if (!report) {
-            return false;
+            return;
         }
 
-        const parentReportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`;
-        const parentReportActions = allReportActions?.[parentReportActionsKey];
         const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? {};
-        const parentReportAction = parentReportActions?.find((action) => action && action?.reportActionID === report.parentReportActionID);
-        const doesReportHaveViolations = !!(
-            betas?.includes(CONST.BETAS.VIOLATIONS) &&
-            !!parentReportAction &&
-            ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction as OnyxEntry<ReportAction>)
-        );
+        const doesReportHaveViolations = OptionsListUtils.shouldShowViolations(report, betas ?? [], transactionViolations);
         const isHidden = report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
         const isFocused = report.reportID === currentReportId;
         const allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions) ?? {};
         const hasErrorsOtherThanFailedReceipt = doesReportHaveViolations || Object.values(allReportErrors).some((error) => error?.[0] !== 'report.genericSmartscanFailureMessage');
-        const shouldOverrideHidden = hasErrorsOtherThanFailedReceipt || isFocused || report.isPinned;
-        if (isHidden && !shouldOverrideHidden) {
-            return false;
+
+        if (hasErrorsOtherThanFailedReceipt) {
+            reportsToDisplay.push({
+                ...report,
+                hasErrorsOtherThanFailedReceipt: true,
+            });
+            return;
         }
 
-        return ReportUtils.shouldReportBeInOptionList({
-            report,
-            currentReportId: currentReportId ?? '',
-            isInFocusMode,
-            betas,
-            policies: policies as OnyxCollection<Policy>,
-            excludeEmptyChats: true,
-            doesReportHaveViolations,
-            includeSelfDM: true,
-        });
+        const isSystemChat = ReportUtils.isSystemChat(report);
+        const shouldOverrideHidden = hasErrorsOtherThanFailedReceipt || isFocused || isSystemChat || report.isPinned;
+
+        if (isHidden && !shouldOverrideHidden) {
+            return;
+        }
+
+        if (
+            ReportUtils.shouldReportBeInOptionList({
+                report,
+                currentReportId: currentReportId ?? '',
+                isInFocusMode,
+                betas,
+                policies: policies as OnyxCollection<Policy>,
+                excludeEmptyChats: true,
+                doesReportHaveViolations,
+                includeSelfDM: true,
+            })
+        ) {
+            reportsToDisplay.push(report);
+        }
     });
 
     // The LHN is split into four distinct groups, and each group is sorted a little differently. The groups will ALWAYS be in this order:
@@ -128,6 +138,7 @@ function getOrderedReportIDs(
     const draftReports: Array<OnyxEntry<Report>> = [];
     const nonArchivedReports: Array<OnyxEntry<Report>> = [];
     const archivedReports: Array<OnyxEntry<Report>> = [];
+    const errorReports: Array<OnyxEntry<Report>> = [];
 
     if (currentPolicyID || policyMemberAccountIDs.length > 0) {
         reportsToDisplay = reportsToDisplay.filter(
@@ -136,7 +147,7 @@ function getOrderedReportIDs(
     }
     // There are a few properties that need to be calculated for the report which are used when sorting reports.
     reportsToDisplay.forEach((reportToDisplay) => {
-        let report = reportToDisplay as OnyxEntry<Report>;
+        let report = reportToDisplay;
         if (report) {
             report = {
                 ...report,
@@ -152,6 +163,8 @@ function getOrderedReportIDs(
             draftReports.push(report);
         } else if (ReportUtils.isArchivedRoom(report)) {
             archivedReports.push(report);
+        } else if (report?.hasErrorsOtherThanFailedReceipt) {
+            errorReports.push(report);
         } else {
             nonArchivedReports.push(report);
         }
@@ -159,6 +172,8 @@ function getOrderedReportIDs(
 
     // Sort each group of reports accordingly
     pinnedAndGBRReports.sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
+    errorReports.sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
+
     draftReports.sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
 
     if (isInDefaultMode) {
@@ -179,7 +194,7 @@ function getOrderedReportIDs(
 
     // Now that we have all the reports grouped and sorted, they must be flattened into an array and only return the reportID.
     // The order the arrays are concatenated in matters and will determine the order that the groups are displayed in the sidebar.
-    const LHNReports = [...pinnedAndGBRReports, ...draftReports, ...nonArchivedReports, ...archivedReports].map((report) => report?.reportID ?? '');
+    const LHNReports = [...pinnedAndGBRReports, ...errorReports, ...draftReports, ...nonArchivedReports, ...archivedReports].map((report) => report?.reportID ?? '');
     return LHNReports;
 }
 

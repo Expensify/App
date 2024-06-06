@@ -261,6 +261,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
             <ToggleSettingOptionRow
                 icon={item.icon}
                 title={item.title}
+                titleStyle={styles.textStrong}
                 subtitle={item.subtitle}
                 switchAccessibilityLabel={item.switchAccessibilityLabel}
                 onToggle={item.onToggle}

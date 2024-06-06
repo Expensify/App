@@ -29,6 +29,7 @@ function EditCategoryPage({route, policyCategories}: EditCategoryPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const currentCategoryName = route.params.categoryName;
+    const backTo = route.params?.backTo;
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
@@ -53,8 +54,13 @@ function EditCategoryPage({route, policyCategories}: EditCategoryPageProps) {
             if (currentCategoryName !== newCategoryName) {
                 Category.renamePolicyCategory(route.params.policyID, {oldName: currentCategoryName, newName: values.categoryName});
             }
+            if (backTo) {
+                Navigation.goBack(ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName, backTo));
+                return;
+            }
+            Navigation.goBack();
         },
-        [currentCategoryName, route.params.policyID],
+        [backTo, currentCategoryName, route.params.categoryName, route.params.policyID],
     );
 
     return (
@@ -71,7 +77,11 @@ function EditCategoryPage({route, policyCategories}: EditCategoryPageProps) {
             >
                 <HeaderWithBackButton
                     title={translate('workspace.categories.editCategory')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName))}
+                    onBackButtonPress={() =>
+                        backTo
+                            ? Navigation.goBack(ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName, backTo))
+                            : Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName))
+                    }
                 />
                 <CategoryForm
                     onSubmit={editCategory}

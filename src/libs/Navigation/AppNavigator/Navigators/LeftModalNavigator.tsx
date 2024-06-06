@@ -7,7 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ModalNavigatorScreenOptions from '@libs/Navigation/AppNavigator/ModalNavigatorScreenOptions';
 import type {AuthScreensParamList, LeftModalNavigatorParamList} from '@libs/Navigation/types';
-import type NAVIGATORS from '@src/NAVIGATORS';
+import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import Overlay from './Overlay';
 
@@ -21,7 +21,7 @@ const Stack = createStackNavigator<LeftModalNavigatorParamList>();
 function LeftModalNavigator({navigation}: LeftModalNavigatorProps) {
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const screenOptions = useMemo(() => ModalNavigatorScreenOptions(styles), [styles]);
+    const screenOptions = useMemo(() => ModalNavigatorScreenOptions(styles, 'horizontal-inverted'), [styles]);
 
     return (
         <NoDropZone>
@@ -32,7 +32,10 @@ function LeftModalNavigator({navigation}: LeftModalNavigatorProps) {
                 />
             )}
             <View style={styles.LHPNavigatorContainer(isSmallScreenWidth)}>
-                <Stack.Navigator screenOptions={screenOptions}>
+                <Stack.Navigator
+                    screenOptions={screenOptions}
+                    id={NAVIGATORS.LEFT_MODAL_NAVIGATOR}
+                >
                     <Stack.Screen
                         name={SCREENS.LEFT_MODAL.CHAT_FINDER}
                         getComponent={loadChatFinder}

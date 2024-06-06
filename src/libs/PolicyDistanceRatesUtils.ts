@@ -9,6 +9,8 @@ import * as NumberUtils from './NumberUtils';
 
 type RateValueForm = typeof ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM | typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM | typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM;
 
+type TaxReclaimableForm = typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT_FORM;
+
 function validateRateValue(values: FormOnyxValues<RateValueForm>, currency: string, toLocaleDigit: (arg: string) => string): FormInputErrors<RateValueForm> {
     const errors: FormInputErrors<RateValueForm> = {};
     const parsedRate = MoneyRequestUtils.replaceAllDigits(values.rate, toLocaleDigit);
@@ -24,6 +26,15 @@ function validateRateValue(values: FormOnyxValues<RateValueForm>, currency: stri
     return errors;
 }
 
+function validateTaxClaimableValue(values: FormOnyxValues<TaxReclaimableForm>, rate: Rate): FormInputErrors<TaxReclaimableForm> {
+    const errors: FormInputErrors<TaxReclaimableForm> = {};
+
+    if (rate.rate && Number(values.taxClaimableValue) > rate.rate / 100) {
+        errors.taxClaimableValue = 'workspace.taxes.error.updateTaxClaimableFailureMessage';
+    }
+    return errors;
+}
+
 /**
  * Get the optimistic rate name in a way that matches BE logic
  * @param rates
@@ -33,4 +44,4 @@ function getOptimisticRateName(rates: Record<string, Rate>): string {
     return existingRatesWithSameName.length ? `${CONST.CUSTOM_UNITS.DEFAULT_RATE} ${existingRatesWithSameName.length}` : CONST.CUSTOM_UNITS.DEFAULT_RATE;
 }
 
-export {validateRateValue, getOptimisticRateName};
+export {validateRateValue, getOptimisticRateName, validateTaxClaimableValue};

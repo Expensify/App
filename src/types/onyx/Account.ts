@@ -63,6 +63,12 @@ type Account = {
 
     /** Object containing all account information necessary to connect with Spontana */
     travelSettings?: TravelSettings;
+
+    /** Indicates whether the user is an approved accountant */
+    isApprovedAccountant?: boolean;
+
+    /** Indicates whether the user is a client of an approved accountant */
+    isApprovedAccountantClient?: boolean;
 };
 
 export default Account;

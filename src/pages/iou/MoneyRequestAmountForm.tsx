@@ -64,11 +64,14 @@ type MoneyRequestAmountFormProps = {
 
     /** The current tab we have navigated to in the expense modal. String that corresponds to the expense type. */
     selectedTab?: SelectedTabRequest;
+
+    /** Whether the user input should be kept or not */
+    shouldKeepUserInput?: boolean;
 };
 
 const isAmountInvalid = (amount: string) => !amount.length || parseFloat(amount) < 0.01;
 const isTaxAmountInvalid = (currentAmount: string, taxAmount: number, isTaxAmountForm: boolean) =>
-    isTaxAmountForm && Number.parseFloat(currentAmount) > CurrencyUtils.convertToFrontendAmount(Math.abs(taxAmount));
+    isTaxAmountForm && Number.parseFloat(currentAmount) > CurrencyUtils.convertToFrontendAmountAsInteger(Math.abs(taxAmount));
 
 const AMOUNT_VIEW_ID = 'amountView';
 const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
@@ -88,6 +91,7 @@ function MoneyRequestAmountForm(
         onCurrencyButtonPress,
         onSubmitButtonPress,
         selectedTab = CONST.TAB_REQUEST.MANUAL,
+        shouldKeepUserInput = false,
     }: MoneyRequestAmountFormProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
 ) {
@@ -144,7 +148,7 @@ function MoneyRequestAmountForm(
     }, [isFocused, wasFocused]);
 
     const initializeAmount = useCallback((newAmount: number) => {
-        const frontendAmount = newAmount ? CurrencyUtils.convertToFrontendAmount(newAmount).toString() : '';
+        const frontendAmount = newAmount ? CurrencyUtils.convertToFrontendAmountAsString(newAmount) : '';
         moneyRequestAmountInput.current?.changeAmount(frontendAmount);
         moneyRequestAmountInput.current?.changeSelection({
             start: frontendAmount.length,
@@ -218,14 +222,9 @@ function MoneyRequestAmountForm(
                 return;
             }
 
-            // Update display amount string post-edit to ensure consistency with backend amount
-            // Reference: https://github.com/Expensify/App/issues/30505
-            const backendAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount));
-            initializeAmount(backendAmount);
-
             onSubmitButtonPress({amount: currentAmount, currency, paymentMethod: iouPaymentType});
         },
-        [taxAmount, onSubmitButtonPress, currency, formattedTaxAmount, initializeAmount],
+        [taxAmount, onSubmitButtonPress, currency, formattedTaxAmount],
     );
 
     const buttonText: string = useMemo(() => {
@@ -287,6 +286,7 @@ function MoneyRequestAmountForm(
                         }
                         textInput.current = ref;
                     }}
+                    shouldKeepUserInput={shouldKeepUserInput}
                     moneyRequestAmountInputRef={moneyRequestAmountInput}
                     inputStyle={[styles.iouAmountTextInput]}
                     containerStyle={[styles.iouAmountTextInputContainer]}

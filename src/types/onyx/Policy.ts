@@ -555,6 +555,7 @@ type PolicyConnectionName = ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
 type PolicyConnectionSyncProgress = {
     stageInProgress: PolicyConnectionSyncStage;
     connectionName: PolicyConnectionName;
+    timestamp: string;
 };
 
 export default Policy;

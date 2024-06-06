@@ -174,12 +174,12 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const isLoading = !isOffline && policyTags === undefined;
 
     const getHeaderButtons = () => {
-        const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
+        const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
 
         if (selectedTagsArray.length === 0) {
             return (
                 <View style={[styles.w100, styles.flexRow, styles.gap2, isSmallScreenWidth && styles.mb3]}>
-                    {!isThereAnyAccountingConnection && !isMultiLevelTags && (
+                    {!hasAccountingConnections && !isMultiLevelTags && (
                         <Button
                             medium
                             success
@@ -204,7 +204,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.TAGS_BULK_ACTION_TYPES>>> = [];
 
-        if (!isThereAnyAccountingConnection) {
+        if (!hasAccountingConnections) {
             options.push({
                 icon: Expensicons.Trashcan,
                 text: translate(selectedTagsArray.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
@@ -290,6 +290,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         </View>
     );
 
+    const hasVisibleTag = tagList.some((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -329,14 +331,14 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         color={theme.spinner}
                     />
                 )}
-                {tagList.length === 0 && !isLoading && (
+                {!hasVisibleTag && !isLoading && (
                     <WorkspaceEmptyStateSection
                         title={translate('workspace.tags.emptyTags.title')}
                         icon={Illustrations.EmptyStateExpenses}
                         subtitle={translate('workspace.tags.emptyTags.subtitle')}
                     />
                 )}
-                {tagList.length > 0 && !isLoading && (
+                {hasVisibleTag && !isLoading && (
                     <SelectionList
                         canSelectMultiple={canSelectMultiple}
                         sections={[{data: tagList, isDisabled: false}]}

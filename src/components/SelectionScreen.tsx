@@ -28,6 +28,9 @@ type SelectionScreenProps = {
     /** Custom content to display in the header */
     headerContent?: React.ReactNode;
 
+    /** Content to display if the list is empty */
+    listEmptyContent?: React.JSX.Element | null;
+
     /** Sections for the section list */
     sections: Array<SectionListDataType<SelectorType>>;
 
@@ -63,6 +66,7 @@ function SelectionScreen({
     displayName,
     title,
     headerContent,
+    listEmptyContent,
     sections,
     listItem,
     initiallyFocusedOptionKey,
@@ -102,6 +106,7 @@ function SelectionScreen({
                     showScrollIndicator
                     shouldShowTooltips={false}
                     initiallyFocusedOptionKey={initiallyFocusedOptionKey}
+                    listEmptyContent={listEmptyContent}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

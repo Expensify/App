@@ -39,13 +39,12 @@ function getUpdates(options?: GetDeferredOnyxUpdatesOptiosn) {
         return deferredUpdates;
     }
 
-    return Object.entries(deferredUpdates).reduce<DeferredUpdatesDictionary>(
-        (accUpdates, [lastUpdateID, update]) => ({
-            ...accUpdates,
-            ...(Number(lastUpdateID) > (options.minUpdateID ?? 0) ? {[Number(lastUpdateID)]: update} : {}),
-        }),
-        {},
-    );
+    return Object.entries(deferredUpdates).reduce<DeferredUpdatesDictionary>((acc, [lastUpdateID, update]) => {
+        if (Number(lastUpdateID) > (options.minUpdateID ?? 0)) {
+            acc[Number(lastUpdateID)] = update;
+        }
+        return acc;
+    }, {});
 }
 
 /**

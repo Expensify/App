@@ -5,6 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import type {FullPageNotFoundViewProps} from '@components/BlockingViews/FullPageNotFoundView';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -22,14 +23,20 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 const ACCESS_VARIANTS = {
     [CONST.POLICY.ACCESS_VARIANTS.PAID]: (policy: OnyxEntry<OnyxTypes.Policy>) => PolicyUtils.isPaidGroupPolicy(policy) && !!policy?.isPolicyExpenseChatEnabled,
-    [CONST.POLICY.ACCESS_VARIANTS.ADMIN]: (policy: OnyxEntry<OnyxTypes.Policy>) => PolicyUtils.isPolicyAdmin(policy),
-    [CONST.IOU.ACCESS_VARIANTS.CREATE]: (policy: OnyxEntry<OnyxTypes.Policy>, report: OnyxEntry<OnyxTypes.Report>, allPolicies: OnyxCollection<OnyxTypes.Policy>, iouType?: IOUType) =>
+    [CONST.POLICY.ACCESS_VARIANTS.ADMIN]: (policy: OnyxEntry<OnyxTypes.Policy>, login: string) => PolicyUtils.isPolicyAdmin(policy, login),
+    [CONST.IOU.ACCESS_VARIANTS.CREATE]: (
+        policy: OnyxEntry<OnyxTypes.Policy>,
+        login: string,
+        report: OnyxEntry<OnyxTypes.Report>,
+        allPolicies: OnyxCollection<OnyxTypes.Policy>,
+        iouType?: IOUType,
+    ) =>
         !!iouType &&
         IOUUtils.isValidMoneyRequestType(iouType) &&
         // Allow the user to submit the expense if we are submitting the expense in global menu or the report can create the expense
         (isEmptyObject(report?.reportID) || ReportUtils.canCreateRequest(report, policy, iouType)) &&
         (iouType !== CONST.IOU.TYPE.INVOICE || PolicyUtils.canSendInvoice(allPolicies)),
-} as const satisfies Record<string, (policy: OnyxTypes.Policy, report: OnyxTypes.Report, allPolicies: OnyxCollection<OnyxTypes.Policy>, iouType?: IOUType) => boolean>;
+} as const satisfies Record<string, (policy: OnyxTypes.Policy, login: string, report: OnyxTypes.Report, allPolicies: OnyxCollection<OnyxTypes.Policy>, iouType?: IOUType) => boolean>;
 
 type AccessVariant = keyof typeof ACCESS_VARIANTS;
 type AccessOrNotFoundWrapperOnyxProps = {
@@ -94,7 +101,7 @@ function PageNotFoundFallback({policyID, shouldShowFullScreenFallback, fullPageN
 
 function AccessOrNotFoundWrapper({accessVariants = [], fullPageNotFoundViewProps, shouldBeBlocked, ...props}: AccessOrNotFoundWrapperProps) {
     const {policy, policyID, report, iouType, allPolicies, featureName, isLoadingReportData} = props;
-
+    const {login = ''} = useCurrentUserPersonalDetails();
     const isPolicyIDInRoute = !!policyID?.length;
     const isMoneyRequest = !!iouType && IOUUtils.isValidMoneyRequestType(iouType);
     const isFromGlobalCreate = isEmptyObject(report?.reportID);
@@ -115,7 +122,7 @@ function AccessOrNotFoundWrapper({accessVariants = [], fullPageNotFoundViewProps
 
     const isPageAccessible = accessVariants.reduce((acc, variant) => {
         const accessFunction = ACCESS_VARIANTS[variant];
-        return acc && accessFunction(policy, report, allPolicies ?? null, iouType);
+        return acc && accessFunction(policy, login, report, allPolicies ?? null, iouType);
     }, true);
 
     const isPolicyNotAccessible = isEmptyObject(policy) || (Object.keys(policy).length === 1 && !isEmptyObject(policy.errors)) || !policy?.id;

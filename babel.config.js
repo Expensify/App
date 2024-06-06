@@ -10,6 +10,9 @@ const defaultPlugins = [
     '@babel/transform-runtime',
     '@babel/plugin-proposal-class-properties',
 
+    // This will serve to map the classes correctly in FullStory
+    '@fullstory/babel-plugin-annotate-react',
+
     // We use `transform-class-properties` for transforming ReactNative libraries and do not use it for our own
     // source code transformation as we do not use class property assignment.
     'transform-class-properties',
