@@ -53,9 +53,7 @@ type PhraseParameters<T> = T extends (args: number | Record<string, string | num
     ? [...A]
     : [];
 
-type Phrase<TKey extends TranslationPaths> = TranslationFlatObject[TKey] extends (...args: infer A) => unknown
-    ? (...args: A) => string
-    : string;
+type Phrase<TKey extends TranslationPaths> = TranslationFlatObject[TKey] extends (...args: infer A) => unknown ? (...args: A) => string : string;
 
 /**
  * Map to store translated values for each locale.

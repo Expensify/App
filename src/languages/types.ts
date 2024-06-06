@@ -261,7 +261,7 @@ type PluralFormValue = {
     few?: string;
     many?: string;
     other: string;
-}
+};
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type TranslationBaseValue = string | string[] | ((...args: any[]) => string | PluralFormValue);
