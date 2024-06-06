@@ -1,6 +1,6 @@
 type UpdatePolicyTagGLCodeParams = {
     policyID: string;
-    categoryName: string;
+    tagName: string;
     glCode: string;
 };
 
