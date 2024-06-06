@@ -491,7 +491,6 @@ function MoneyRequestConfirmationList({
         const currencySymbol = currencyList?.[iouCurrencyCode ?? '']?.symbol ?? iouCurrencyCode;
         const prefixPadding = StyleUtils.getCharacterPadding(currencySymbol ?? '');
         const formattedTotalAmount = CurrencyUtils.convertToDisplayStringWithoutCurrency(iouAmount, iouCurrencyCode);
-        const amountWidth = StyleUtils.getWidthStyle(formattedTotalAmount.length * 9 + prefixPadding);
 
         return [payeeOption, ...selectedParticipants].map((participantOption: Participant) => ({
             ...participantOption,
@@ -509,12 +508,13 @@ function MoneyRequestConfirmationList({
                     hideCurrencySymbol
                     formatAmountOnBlur
                     prefixContainerStyle={[styles.pv0]}
-                    inputStyle={[styles.optionRowAmountInput, amountWidth] as TextStyle[]}
-                    containerStyle={[styles.textInputContainer, amountWidth]}
+                    inputStyle={[styles.optionRowAmountInput] as TextStyle[]}
+                    containerStyle={[styles.textInputContainer]}
                     touchableInputWrapperStyle={[styles.ml3]}
                     onFormatAmount={CurrencyUtils.convertToDisplayStringWithoutCurrency}
                     onAmountChange={(value: string) => onSplitShareChange(participantOption.accountID ?? 0, Number(value))}
                     maxLength={formattedTotalAmount.length}
+                    contentWidth={formattedTotalAmount.length * 9}
                 />
             ),
         }));

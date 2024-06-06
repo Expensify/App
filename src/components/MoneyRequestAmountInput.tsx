@@ -121,6 +121,7 @@ function MoneyRequestAmountInput(
         hideFocusedState = true,
         shouldKeepUserInput = false,
         autoGrow = true,
+        contentWidth = undefined,
         ...props
     }: MoneyRequestAmountInputProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
@@ -315,6 +316,7 @@ function MoneyRequestAmountInput(
             hideFocusedState={hideFocusedState}
             onMouseDown={handleMouseDown}
             onMouseUp={handleMouseUp}
+            contentWidth={contentWidth}
         />
     );
 }
