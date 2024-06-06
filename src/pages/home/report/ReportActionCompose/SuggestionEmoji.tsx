@@ -1,6 +1,5 @@
 import type {ForwardedRef, RefAttributes} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import EmojiSuggestions from '@components/EmojiSuggestions';
@@ -60,8 +59,6 @@ function SuggestionEmoji(
     }: SuggestionEmojiProps,
     ref: ForwardedRef<SuggestionsRef>,
 ) {
-    const prevValueRef = useRef(value);
-    const prevSelectionEndRef = useRef(selection.end);
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
 
     const isEmojiSuggestionsMenuVisible = suggestionValues.suggestedEmojis.length > 0 && suggestionValues.shouldShowSuggestionMenu;
@@ -186,7 +183,6 @@ function SuggestionEmoji(
         }
         calculateEmojiSuggestion(selection.end);
     }, [selection, calculateEmojiSuggestion, isComposerFocused]);
-
 
     const setShouldBlockSuggestionCalc = useCallback(
         (shouldBlockSuggestionCalc: boolean) => {

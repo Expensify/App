@@ -1,4 +1,3 @@
-import {PortalHost} from '@gorhom/portal';
 import type {SyntheticEvent} from 'react';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputFocusEventData, TextInputSelectionChangeEventData} from 'react-native';

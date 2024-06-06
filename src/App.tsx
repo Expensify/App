@@ -87,14 +87,14 @@ function App({url}: AppProps) {
                         VideoPopoverMenuContextProvider,
                     ]}
                 >
-                    <KeyboardProvider>  
+                    <KeyboardProvider>
                         <CustomStatusBarAndBackground />
                         <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
                             <ColorSchemeWrapper>
                                 <Expensify />
                             </ColorSchemeWrapper>
                         </ErrorBoundary>
-                    </KeyboardProvider>  
+                    </KeyboardProvider>
                 </ComposeProviders>
             </GestureHandlerRootView>
         </InitialURLContextProvider>

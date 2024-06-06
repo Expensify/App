@@ -79,9 +79,6 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
         scrollRef.current.scrollToIndex({index: highlightedSuggestionIndex, animated: true});
     }, [highlightedSuggestionIndex]);
 
-    // if (suggestions.length === 0) {
-    //     return null;
-    // }
     return (
         <Animated.View
             style={[styles.autoCompleteSuggestionsContainer, animatedStyles]}
