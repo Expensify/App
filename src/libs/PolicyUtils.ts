@@ -1,4 +1,4 @@
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -95,6 +95,14 @@ function getNumericValue(value: number | string, toLocaleDigit: (arg: string) =>
  */
 function getCustomUnit(policy: OnyxEntry<Policy> | EmptyObject) {
     return Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+}
+
+/**
+ * Retrieves custom unit rate object from the given customUnitRateID
+ */
+function getCustomUnitRate(policy: OnyxEntry<Policy> | EmptyObject, customUnitRateID: string): Rate | EmptyObject {
+    const distanceUnit = getCustomUnit(policy);
+    return distanceUnit?.rates[customUnitRateID] ?? {};
 }
 
 function getRateDisplayValue(value: number, toLocaleDigit: (arg: string) => string): string {
@@ -513,6 +521,7 @@ export {
     getCurrentXeroOrganizationName,
     getXeroBankAccountsWithDefaultSelect,
     getCustomUnit,
+    getCustomUnitRate,
     sortWorkspacesBySelected,
 };
 
