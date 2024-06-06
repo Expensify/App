@@ -6,6 +6,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import pkg from '../../../../package.json';
 import type {IsBetaBuild} from './types';
 
+type GithubReleaseJSON = {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    tag_name: string | semver.SemVer;
+};
+
 let isLastSavedBeta = false;
 Onyx.connect({
     key: ONYXKEYS.IS_BETA,
@@ -21,7 +26,7 @@ function isBetaBuild(): IsBetaBuild {
     return new Promise((resolve) => {
         fetch(CONST.GITHUB_RELEASE_URL)
             .then((res) => res.json())
-            .then((json) => {
+            .then((json: GithubReleaseJSON) => {
                 const productionVersion: string | semver.SemVer = json.tag_name;
                 if (!productionVersion) {
                     AppUpdate.setIsAppInBeta(false);
