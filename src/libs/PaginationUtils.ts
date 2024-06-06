@@ -153,7 +153,7 @@ function getContinuousChain<TResource>(sortedItems: TResource[], pages: Pages, g
         page = pagesWithIndexes[0];
     }
 
-    return sortedItems.slice(page.firstIndex, page.lastIndex + 1);
+    return page ? sortedItems.slice(page.firstIndex, page.lastIndex + 1) : sortedItems;
 }
 
 export default {mergeContinuousPages, getContinuousChain};

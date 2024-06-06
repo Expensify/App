@@ -1,5 +1,5 @@
 // TODO: Is this a legit use case for exposing `OnyxCache`, or should we use `Onyx.connect`?
-import fastMerge from 'expensify-common/lib/fastMerge';
+import fastMerge from 'expensify-common/dist/fastMerge';
 import Onyx from 'react-native-onyx';
 import OnyxCache from 'react-native-onyx/dist/OnyxCache';
 import Log from '@libs/Log';
@@ -28,6 +28,7 @@ function isPaginatedRequest<TResource, TResourceKey extends OnyxCollectionKey, T
  * so it can keep track of and fill any potential gaps in paginated lists.
  */
 const Pagination: Middleware = (requestResponse, request) => {
+    console.log(isPaginatedRequest(request), request.command);
     if (!isPaginatedRequest(request)) {
         return requestResponse;
     }
