@@ -109,6 +109,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
     const ListItem = SearchUtils.getListItem(type);
 
     const data = SearchUtils.getSections(searchResults?.data ?? {}, type);
+    const sortedData = SearchUtils.getSortedSections(type, data, sortBy, sortOrder);
 
     const onSortPress = (column: SearchColumnType, order: SortOrder) => {
         navigation.setParams({
@@ -117,7 +118,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
         });
     };
 
-    const sortedData = SearchUtils.getSortedSections(type, data, sortBy, sortOrder);
+    const isSortingAllowed = sortableSearchTabs.includes(query);
 
     return (
         <SelectionList<ReportListItemType | TransactionListItemType>
@@ -126,6 +127,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
                     data={searchResults?.data}
                     onSortPress={onSortPress}
                     sortOrder={sortOrder}
+                    isSortingAllowed={isSortingAllowed}
                     sortBy={sortBy}
                 />
             }
