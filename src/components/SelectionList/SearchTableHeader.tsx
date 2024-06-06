@@ -64,6 +64,7 @@ const SearchColumns: SearchColumnConfig[] = [
         columnName: CONST.SEARCH_TABLE_COLUMNS.TAX_AMOUNT,
         translationKey: 'common.tax',
         shouldShow: (data: OnyxTypes.SearchResults['data']) => SearchUtils.getShouldShowColumn(data, CONST.SEARCH_TABLE_COLUMNS.TAX_AMOUNT),
+        isColumnSortable: false,
     },
     {
         columnName: CONST.SEARCH_TABLE_COLUMNS.TOTAL_AMOUNT,

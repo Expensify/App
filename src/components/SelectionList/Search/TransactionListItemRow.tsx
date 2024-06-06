@@ -154,7 +154,7 @@ function ActionCell({onButtonPress}: ActionCellProps) {
             onPress={onButtonPress}
             small
             pressOnEnter
-            style={[styles.p0]}
+            style={[styles.w100]}
         />
     );
 }
