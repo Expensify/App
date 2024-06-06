@@ -22,7 +22,7 @@ function hasEnoughSpaceForLargeSuggestionMenu(listHeight: number, composerHeight
 
 const measureSuggestionsContainerHeight = (numRows: number, isSuggestionsPickerLarge: boolean): number => {
     // Autocomplete suggestions has inner padding 8px and border-width 1px
-    const borderAndPadding = CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING + 2;
+    const borderAndPadding = CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING + CONST.AUTO_COMPLETE_SUGGESTER.BORDER_WIDTH;
     let suggestionsHeight = 0;
 
     if (isSuggestionsPickerLarge) {
