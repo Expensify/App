@@ -544,6 +544,8 @@ function MoneyRequestConfirmationList({
         transaction?.comment?.splits,
         transaction?.splitShares,
         onSplitShareChange,
+        shouldResetAmount,
+        onResetAmount,
     ]);
 
     const isSplitModified = useMemo(() => {

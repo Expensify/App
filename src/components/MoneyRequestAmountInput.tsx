@@ -216,7 +216,7 @@ function MoneyRequestAmountInput(
             return;
         }
 
-        if (shouldExitEarly) return;
+        if (shouldExitEarly) {return};
         
         setCurrentAmount(frontendAmount);
 
