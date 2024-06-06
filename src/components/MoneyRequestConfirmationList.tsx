@@ -344,13 +344,12 @@ function MoneyRequestConfirmationList({
     const isCategoryRequired = !!policy?.requiresCategory;
 
     useEffect(() => {
-        if (shouldDisplayFieldError && didConfirmSplit) {
-            setFormError('iou.error.genericSmartscanFailureMessage');
-            return;
-        }
-
         if (shouldDisplayFieldError && hasSmartScanFailed) {
             setFormError('iou.receiptScanningFailed');
+            return;
+        }
+        if (shouldDisplayFieldError && didConfirmSplit) {
+            setFormError('iou.error.genericSmartscanFailureMessage');
             return;
         }
         // reset the form error whenever the screen gains or loses focus
@@ -714,7 +713,21 @@ function MoneyRequestConfirmationList({
                 setFormError('iou.error.invalidCategoryLength');
                 return;
             }
-            if (iouType !== CONST.IOU.TYPE.PAY) {
+
+            if (formError) {
+                return;
+            }
+
+            if (iouType === CONST.IOU.TYPE.PAY) {
+                if (!paymentMethod) {
+                    return;
+                }
+
+                setDidConfirm(true);
+
+                Log.info(`[IOU] Sending money via: ${paymentMethod}`);
+                onSendMoney?.(paymentMethod);
+            } else {
                 // validate the amount for distance expenses
                 const decimals = CurrencyUtils.getCurrencyDecimals(iouCurrencyCode);
                 if (isDistanceRequest && !isDistanceRequestWithPendingRoute && !MoneyRequestUtils.validateAmount(String(iouAmount), decimals)) {
@@ -731,18 +744,6 @@ function MoneyRequestConfirmationList({
                 playSound(SOUNDS.DONE);
                 setDidConfirm(true);
                 onConfirm?.(selectedParticipants);
-            } else {
-                if (formError) {
-                    return;
-                }
-                if (!paymentMethod) {
-                    return;
-                }
-
-                setDidConfirm(true);
-
-                Log.info(`[IOU] Sending money via: ${paymentMethod}`);
-                onSendMoney?.(paymentMethod);
             }
         },
         [
