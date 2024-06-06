@@ -66,7 +66,7 @@ const FS = {
                     if (value) {
                         let localMetadata = value;
                         localMetadata.environment = envName;
-                        FS.fsIdentify(value);
+                        FS.fsIdentify(localMetadata);
                     }
                 });
             });
