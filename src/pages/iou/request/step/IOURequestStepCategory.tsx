@@ -3,13 +3,13 @@ import React, {useEffect} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
 import CategoryPicker from '@components/CategoryPicker';
 import FixedFooter from '@components/FixedFooter';
 import * as Illustrations from '@components/Icon/Illustrations';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
@@ -18,7 +18,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import variables from '@styles/variables';
 import * as IOU from '@userActions/IOU';
 import * as PolicyActions from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
@@ -169,13 +168,12 @@ function IOURequestStepCategory({
             )}
             {shouldShowEmptyState && (
                 <View style={[styles.flex1]}>
-                    <BlockingView
+                    <WorkspaceEmptyStateSection
+                        shouldStyleAsCard={false}
                         icon={Illustrations.EmptyStateExpenses}
-                        iconWidth={variables.modalTopIconWidth}
-                        iconHeight={variables.modalTopIconHeight}
                         title={translate('workspace.categories.emptyCategories.title')}
                         subtitle={translate('workspace.categories.emptyCategories.subtitle')}
-                        contentFitImage="contain"
+                        containerStyle={[styles.flex1, styles.justifyContentCenter]}
                     />
                     <FixedFooter style={[styles.mtAuto, styles.pt5]}>
                         <Button
