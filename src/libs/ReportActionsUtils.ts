@@ -1,4 +1,4 @@
-import fastMerge from 'expensify-common/lib/fastMerge';
+import {fastMerge} from 'expensify-common';
 import _ from 'lodash';
 import lodashFindLast from 'lodash/findLast';
 import type {OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
