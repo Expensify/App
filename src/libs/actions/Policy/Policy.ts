@@ -342,13 +342,6 @@ function deleteWorkspace(policyID: string, policyName: string) {
     }
 }
 
-/**
- * Is the user an admin of a free policy (aka workspace)?
- */
-function isAdminOfFreePolicy(policies?: PoliciesRecord): boolean {
-    return Object.values(policies ?? {}).some((policy) => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN);
-}
-
 function setWorkspaceAutoReporting(policyID: string, enabled: boolean, frequency: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>) {
     const policy = getPolicy(policyID);
     const optimisticData: OnyxUpdate[] = [
