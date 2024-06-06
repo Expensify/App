@@ -2304,6 +2304,8 @@ export default {
                 enableMultiple: 'Enable rates',
             },
             importedFromAccountingSoftware: 'The taxes below are imported from your',
+            glCode: 'GL code',
+            updateGLCodeFailureMessage: 'An error occurred while updating the GL code, please try again.',
         },
         emptyWorkspace: {
             title: 'Create a workspace',
