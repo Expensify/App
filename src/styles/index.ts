@@ -2832,6 +2832,22 @@ const styles = (theme: ThemeColors) =>
             width: 'auto',
         },
 
+        subscriptionCardIcon: {
+            padding: 10,
+            backgroundColor: theme.border,
+            borderRadius: variables.componentBorderRadius,
+            height: variables.iconSizeExtraLarge,
+            width: variables.iconSizeExtraLarge,
+        },
+
+        subscriptionAddedCardIcon: {
+            padding: 10,
+            backgroundColor: theme.icon,
+            borderRadius: variables.componentBorderRadius,
+            height: variables.iconSizeExtraLarge,
+            width: variables.iconSizeExtraLarge,
+        },
+
         selectCircle: {
             width: variables.componentSizeSmall,
             height: variables.componentSizeSmall,
