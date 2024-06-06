@@ -82,6 +82,7 @@ type Receipt = {
     filename?: string;
     state?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
     type?: string;
+    reservationList?: Reservation[];
 };
 
 type Route = {
@@ -109,6 +110,51 @@ type TaxRate = {
     isDisabled?: boolean;
     data?: TaxRateData;
 };
+
+type Reservation = {
+    reservationID?: string;
+    start: ReservationTimeDetails;
+    end: ReservationTimeDetails;
+    type: ReservationType;
+    company?: Company;
+    confirmations?: ReservationConfirmation[];
+    numPassengers?: number;
+    numberOfRooms?: number;
+    route?: {
+        airlineCode: string;
+        class?: string;
+        number: string;
+    };
+    vendor?: string;
+    carInfo?: CarInfo;
+};
+
+type ReservationTimeDetails = {
+    date: string;
+    address?: string;
+    location?: string;
+    longName?: string;
+    shortName?: string;
+    timezoneOffset?: string;
+};
+
+type Company = {
+    longName: string;
+    shortName?: string;
+    phone?: string;
+};
+
+type ReservationConfirmation = {
+    name: string;
+    value: string;
+};
+
+type CarInfo = {
+    name?: string;
+    engine?: string;
+};
+
+type ReservationType = ValueOf<typeof CONST.RESERVATION_TYPE>;
 
 type SplitShare = {
     amount: number;
@@ -281,6 +327,9 @@ export type {
     TransactionPendingFieldsKey,
     TransactionChanges,
     TaxRate,
+    Reservation,
+    ReservationTimeDetails,
+    ReservationType,
     ReceiptSource,
     TransactionCollectionDataSet,
     SplitShare,
