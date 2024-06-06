@@ -2343,8 +2343,8 @@ export default {
                 enableMultiple: 'Activar tasas',
             },
             importedFromAccountingSoftware: 'Impuestos importadas desde',
-            glCode: 'GL code',
-            updateGLCodeFailureMessage: 'An error occurred while updating the GL code, please try again.',
+            taxCode: 'Tax code',
+            updateTaxCodeFailureMessage: 'An error occurred while updating the tax code, please try again.',
         },
         emptyWorkspace: {
             title: 'Crea un espacio de trabajo',

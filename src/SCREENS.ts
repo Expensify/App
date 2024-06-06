@@ -290,7 +290,7 @@ const SCREENS = {
         TAX_EDIT: 'Workspace_Tax_Edit',
         TAX_NAME: 'Workspace_Tax_Name',
         TAX_VALUE: 'Workspace_Tax_Value',
-        TAX_GL_CODE: 'Workspace_Tax_GL_Code',
+        TAX_CODE: 'Workspace_Tax_Code',
         TAXES_SETTINGS: 'Workspace_Taxes_Settings',
         TAXES_SETTINGS_CUSTOM_TAX_NAME: 'Workspace_Taxes_Settings_CustomTaxName',
         TAXES_SETTINGS_WORKSPACE_CURRENCY_DEFAULT: 'Workspace_Taxes_Settings_WorkspaceCurrency',

@@ -777,9 +777,9 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/tax/:taxID/value',
         getRoute: (policyID: string, taxID: string) => `settings/workspaces/${policyID}/tax/${encodeURIComponent(taxID)}/value` as const,
     },
-    WORKSPACE_TAX_GL_CODE: {
-        route: 'settings/workspaces/:policyID/tax/:taxID/gl-code',
-        getRoute: (policyID: string, taxID: string) => `settings/workspaces/${policyID}/tax/${encodeURIComponent(taxID)}/gl-code` as const,
+    WORKSPACE_TAX_CODE: {
+        route: 'settings/workspaces/:policyID/tax/:taxID/tax-code',
+        getRoute: (policyID: string, taxID: string) => `settings/workspaces/${policyID}/tax/${encodeURIComponent(taxID)}/tax-code` as const,
     },
     WORKSPACE_DISTANCE_RATES: {
         route: 'settings/workspaces/:policyID/distance-rates',
