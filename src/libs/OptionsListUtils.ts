@@ -2103,7 +2103,7 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: OnyxEn
         ],
         descriptiveText: amountText ?? '',
         login: personalDetail?.login ?? '',
-        accountID: personalDetail?.accountID ?? 0,
+        accountID: personalDetail?.accountID ?? -1,
         keyForList: String(personalDetail?.accountID),
     };
 }

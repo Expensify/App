@@ -583,8 +583,8 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                approver: policy?.approver ?? null,
-                approvalMode: policy?.approvalMode ?? null,
+                approver: policy?.approver,
+                approvalMode: policy?.approvalMode,
                 pendingFields: {approvalMode: null},
                 errorFields: {approvalMode: ErrorUtils.getMicroSecondOnyxError('workflowsApprovalPage.genericErrorMessage')},
             },
@@ -3470,10 +3470,10 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
                     areWorkflowsEnabled: !enabled,
                     ...(!enabled
                         ? {
-                              approvalMode: policy?.approvalMode ?? null,
-                              autoReporting: policy?.autoReporting ?? null,
-                              harvesting: policy?.harvesting ?? null,
-                              reimbursementChoice: policy?.reimbursementChoice ?? null,
+                              approvalMode: policy?.approvalMode,
+                              autoReporting: policy?.autoReporting,
+                              harvesting: policy?.harvesting,
+                              reimbursementChoice: policy?.reimbursementChoice,
                           }
                         : {}),
                     pendingFields: {

@@ -52,7 +52,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant, Split} from '@src/types/onyx/IOU';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
-import type {IOUMessage, OriginalMessageReportPreview, PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import type {IOUMessage, PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {ReportPreviewAction} from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -292,10 +292,7 @@ function getReportPreviewAction(chatReportID: string, iouReportID: string): Onyx
     // Find the report preview action from the chat report
     return (
         Object.values(reportActions).find(
-            (reportAction) =>
-                reportAction &&
-                reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
-                (reportAction as ReportAction & OriginalMessageReportPreview).originalMessage.linkedReportID === iouReportID,
+            (reportAction) => reportAction && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && reportAction.originalMessage.linkedReportID === iouReportID,
         ) ?? null
     );
 }

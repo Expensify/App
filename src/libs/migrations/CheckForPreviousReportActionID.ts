@@ -3,7 +3,7 @@ import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
+import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
 
 function getReportActionsFromOnyx(): Promise<OnyxCollection<OnyxTypes.ReportActions>> {
     return new Promise((resolve) => {
@@ -61,6 +61,6 @@ export default function (): Promise<void | void[]> {
             onyxData[onyxKey] = {};
         });
 
-        return Onyx.multiSet(onyxData as Record<`${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}`, EmptyObject>);
+        return Onyx.multiSet(onyxData as ReportActionsCollectionDataSet);
     });
 }
