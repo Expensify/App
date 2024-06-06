@@ -1,4 +1,4 @@
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent, StyleProp, TextInputFocusEventData, ViewStyle} from 'react-native';

@@ -1,4 +1,4 @@
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
