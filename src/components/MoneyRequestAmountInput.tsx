@@ -2,6 +2,7 @@ import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {NativeSyntheticEvent, StyleProp, TextInputSelectionChangeEventData, TextStyle, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
+import {useMouseContext} from '@hooks/useMouseContext';
 import * as Browser from '@libs/Browser';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import getOperatingSystem from '@libs/getOperatingSystem';
@@ -78,6 +79,9 @@ type MoneyRequestAmountInputProps = {
     /** Hide the focus styles on TextInput */
     hideFocusedState?: boolean;
 
+    /** Whether the user input should be kept or not */
+    shouldKeepUserInput?: boolean;
+
     /**
      * Autogrow input container length based on the entered text.
      */
@@ -100,7 +104,7 @@ const getNewSelection = (oldSelection: Selection, prevLength: number, newLength:
     return {start: cursorPosition, end: cursorPosition};
 };
 
-const defaultOnFormatAmount = (amount: number) => CurrencyUtils.convertToFrontendAmount(amount).toString();
+const defaultOnFormatAmount = (amount: number) => CurrencyUtils.convertToFrontendAmountAsString(amount);
 
 function MoneyRequestAmountInput(
     {
@@ -118,6 +122,7 @@ function MoneyRequestAmountInput(
         formatAmountOnBlur,
         maxLength,
         hideFocusedState = true,
+        shouldKeepUserInput = false,
         autoGrow = true,
         resetClicked = false,
         ...props
@@ -199,7 +204,7 @@ function MoneyRequestAmountInput(
     }));
 
     useEffect(() => {
-        if (!currency || typeof amount !== 'number' || (formatAmountOnBlur && textInput.current?.isFocused())) {
+        if (!currency || typeof amount !== 'number' || (formatAmountOnBlur && textInput.current?.isFocused()) || shouldKeepUserInput) {
             return;
         }
         const frontendAmount = onFormatAmount(amount, currency);
@@ -216,7 +221,7 @@ function MoneyRequestAmountInput(
 
         // we want to re-initialize the state only when the amount changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [amount]);
+    }, [amount, shouldKeepUserInput]);
 
     // Modifies the amount to match the decimals for changed currency.
     useEffect(() => {
@@ -266,15 +271,15 @@ function MoneyRequestAmountInput(
 
     const formattedAmount = MoneyRequestUtils.replaceAllDigits(currentAmount, toLocaleDigit);
 
-    useEffect(() => {
-        if (!resetClicked) {
-            return;
-        }
-
-        resetFlag.current = true;
-        setNewAmount(selectedAmountAsString);
-        setSelection({start: formattedAmount.length, end: formattedAmount.length}); // Move cursor to the end
-    }, [resetClicked, selectedAmountAsString, setNewAmount, formattedAmount]);
+    const {setMouseDown, setMouseUp} = useMouseContext();
+    const handleMouseDown = (e: React.MouseEvent<Element, MouseEvent>) => {
+        e.stopPropagation();
+        setMouseDown();
+    };
+    const handleMouseUp = (e: React.MouseEvent<Element, MouseEvent>) => {
+        e.stopPropagation();
+        setMouseUp();
+    };
 
     return (
         <TextInputWithCurrencySymbol
@@ -316,7 +321,8 @@ function MoneyRequestAmountInput(
             touchableInputWrapperStyle={props.touchableInputWrapperStyle}
             maxLength={maxLength}
             hideFocusedState={hideFocusedState}
-            onMouseDown={(event) => event.stopPropagation()}
+            onMouseDown={handleMouseDown}
+            onMouseUp={handleMouseUp}
         />
     );
 }
