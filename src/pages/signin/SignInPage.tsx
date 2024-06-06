@@ -126,7 +126,7 @@ function getRenderOptions({
     };
 }
 
-function SignInPageInner({credentials, account, activeClients = [], preferredLocale, shouldEnableMaxHeight = true}: SignInPageInnerProps) {
+function SignInPage({credentials, account, activeClients = [], preferredLocale, shouldEnableMaxHeight = true}: SignInPageInnerProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -251,7 +251,7 @@ function SignInPageInner({credentials, account, activeClients = [], preferredLoc
             shouldShowOfflineIndicator={false}
             shouldEnableMaxHeight={shouldEnableMaxHeight}
             style={[styles.signInPage, StyleUtils.getSafeAreaPadding({...safeAreaInsets, bottom: 0, top: isInNarrowPaneModal ? 0 : safeAreaInsets.top}, 1)]}
-            testID={SignInPageInner.displayName}
+            testID={SignInPageThemeWrapper.displayName}
         >
             <SignInPageLayout
                 welcomeHeader={welcomeHeader}
@@ -288,18 +288,16 @@ function SignInPageInner({credentials, account, activeClients = [], preferredLoc
     );
 }
 
-SignInPageInner.displayName = 'SignInPage';
-
 type SignInPageProps = SignInPageInnerProps;
 type SignInPageOnyxProps = SignInPageInnerOnyxProps;
 
-function SignInPage(props: SignInPageProps) {
+function SignInPageThemeWrapper(props: SignInPageProps) {
     return (
         <ThemeProvider theme={CONST.THEME.DARK}>
             <ThemeStylesProvider>
                 <ColorSchemeWrapper>
                     <CustomStatusBarAndBackground isNested />
-                    <SignInPageInner
+                    <SignInPage
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}
                     />
@@ -308,6 +306,8 @@ function SignInPage(props: SignInPageProps) {
         </ThemeProvider>
     );
 }
+
+SignInPageThemeWrapper.displayName = 'SignInPage';
 
 export default withOnyx<SignInPageProps, SignInPageOnyxProps>({
     account: {key: ONYXKEYS.ACCOUNT},
@@ -323,4 +323,4 @@ export default withOnyx<SignInPageProps, SignInPageOnyxProps>({
     preferredLocale: {
         key: ONYXKEYS.NVP_PREFERRED_LOCALE,
     },
-})(SignInPage);
+})(SignInPageThemeWrapper);
