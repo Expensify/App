@@ -193,17 +193,21 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.CATEGORY_CREATE]: {
         policyID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.CATEGORY_EDIT]: {
         policyID: string;
         categoryName: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.CATEGORY_SETTINGS]: {
         policyID: string;
         categoryName: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.CATEGORIES_SETTINGS]: {
         policyID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.TAG_CREATE]: {
         policyID: string;
@@ -213,6 +217,14 @@ type SettingsNavigatorParamList = {
         rateID: string;
     };
     [SCREENS.WORKSPACE.DISTANCE_RATE_EDIT]: {
+        policyID: string;
+        rateID: string;
+    };
+    [SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT]: {
+        policyID: string;
+        rateID: string;
+    };
+    [SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RATE_EDIT]: {
         policyID: string;
         rateID: string;
     };
@@ -237,6 +249,7 @@ type SettingsNavigatorParamList = {
         orderWeight: number;
         tagName: string;
     };
+    [SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD]: undefined;
     [SCREENS.WORKSPACE.TAXES_SETTINGS]: {
         policyID: string;
     };
@@ -404,6 +417,7 @@ type SettingsNavigatorParamList = {
 
 type NewChatNavigatorParamList = {
     [SCREENS.NEW_CHAT.ROOT]: undefined;
+    [SCREENS.NEW_CHAT.NEW_CHAT_CONFIRM]: undefined;
     [SCREENS.NEW_CHAT.NEW_CHAT_EDIT_NAME]: undefined;
 };
 
@@ -730,6 +744,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.SETTINGS.SHARE_CODE]: undefined;
     [SCREENS.RIGHT_MODAL.REPORT_DETAILS]: NavigatorScreenParams<ReportDetailsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.REPORT_SETTINGS]: NavigatorScreenParams<ReportSettingsNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.SETTINGS_CATEGORIES]: NavigatorScreenParams<SettingsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.REPORT_DESCRIPTION]: NavigatorScreenParams<ReportDescriptionNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.PARTICIPANTS]: NavigatorScreenParams<ParticipantsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.ROOM_MEMBERS]: NavigatorScreenParams<RoomMembersNavigatorParamList>;
@@ -796,6 +811,7 @@ type FullScreenNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.CATEGORIES]: {
         policyID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.MORE_FEATURES]: {
         policyID: string;
