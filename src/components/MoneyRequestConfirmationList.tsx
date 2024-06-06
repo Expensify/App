@@ -179,15 +179,6 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
 
 type MoneyRequestConfirmationListItem = Participant | ReportUtils.OptionData;
 
-const getTaxAmount = (transaction: OnyxEntry<OnyxTypes.Transaction>, policy: OnyxEntry<OnyxTypes.Policy>, isDistanceRequest: boolean) => {
-    if (isDistanceRequest) {
-        return DistanceRequestUtils.calculateTaxAmount(policy, transaction, TransactionUtils.getRateID(transaction) ?? '');
-    }
-    const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction) ?? '';
-    const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, transaction?.taxCode ?? defaultTaxCode) ?? '';
-    return TransactionUtils.calculateTaxAmount(taxPercentage, transaction?.amount ?? 0);
-};
-
 function MoneyRequestConfirmationList({
     transaction = null,
     onSendMoney,
@@ -376,15 +367,21 @@ function MoneyRequestConfirmationList({
 
     // Calculate and set tax amount in transaction draft
     useEffect(() => {
-        const taxAmount = getTaxAmount(transaction, policy, isDistanceRequest).toString();
-        const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount));
-
-        if (transaction?.taxAmount && previousTransactionAmount === transaction?.amount && previousTransactionCurrency === transaction?.currency) {
-            return IOU.setMoneyRequestTaxAmount(transactionID, transaction?.taxAmount ?? 0, true);
+        if (!shouldShowTax || (transaction?.taxAmount !== undefined && previousTransactionAmount === transaction?.amount && previousTransactionCurrency === transaction?.currency)) {
+            return;
         }
 
-        IOU.setMoneyRequestTaxAmount(transactionID, amountInSmallestCurrencyUnits, true);
-    }, [policy, transaction, transactionID, previousTransactionAmount, previousTransactionCurrency, isDistanceRequest]);
+        let taxAmount;
+        if (isDistanceRequest) {
+            taxAmount = DistanceRequestUtils.calculateTaxAmount(policy, transaction, TransactionUtils.getRateID(transaction) ?? '');
+        } else {
+            const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction) ?? '';
+            const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, transaction?.taxCode ?? defaultTaxCode) ?? '';
+            taxAmount = TransactionUtils.calculateTaxAmount(taxPercentage, transaction?.amount ?? 0);
+        }
+        const taxAmountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount.toString()));
+        IOU.setMoneyRequestTaxAmount(transaction?.transactionID ?? '', taxAmountInSmallestCurrencyUnits);
+    }, [policy, shouldShowTax, previousTransactionAmount, previousTransactionCurrency, transaction, isDistanceRequest]);
 
     // If completing a split expense fails, set didConfirm to false to allow the user to edit the fields again
     if (isEditingSplitBill && didConfirm) {

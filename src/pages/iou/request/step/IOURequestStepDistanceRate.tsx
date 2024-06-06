@@ -82,7 +82,7 @@ function IOURequestStepDistanceRate({
             const policyCustomUnitRate = policy?.customUnits[customUnitID].rates[customUnitRateID];
             const taxRateExternalID = policyCustomUnitRate.attributes?.taxRateExternalID ?? '';
             const taxAmount = CurrencyUtils.convertToBackendAmount(DistanceRequestUtils.calculateTaxAmount(policy, transaction, customUnitRateID));
-            IOU.setMoneyRequestTaxAmount(transactionID, taxAmount, true);
+            IOU.setMoneyRequestTaxAmount(transactionID, taxAmount);
             IOU.setMoneyRequestTaxRate(transactionID, taxRateExternalID);
         }
         IOU.updateDistanceRequestRate(transactionID, customUnitRateID, policy?.id ?? '');
