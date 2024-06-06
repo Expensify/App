@@ -1,4 +1,4 @@
-import React from 'react';
+import React,{useCallback} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -36,7 +36,7 @@ function AddressBusiness({reimbursementAccount, onNext, isEditing}: AddressBusin
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
         const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
 
         if (values.addressStreet && !ValidationUtils.isValidAddress(values.addressStreet)) {
@@ -52,7 +52,7 @@ function AddressBusiness({reimbursementAccount, onNext, isEditing}: AddressBusin
         }
 
         return errors;
-    };
+    }, [translate])
 
     const defaultValues = {
         street: reimbursementAccount?.achData?.addressStreet ?? '',

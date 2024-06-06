@@ -351,10 +351,6 @@ function MoneyRequestConfirmationList({
     const isCategoryRequired = !!policy?.requiresCategory;
 
     useEffect(() => {
-        if (shouldDisplayFieldError && hasSmartScanFailed) {
-            setFormError('iou.receiptScanningFailed');
-            return;
-        }
         if (shouldDisplayFieldError && didConfirmSplit) {
             setFormError('iou.error.genericSmartscanFailureMessage');
             return;

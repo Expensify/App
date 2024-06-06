@@ -193,7 +193,7 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
             }
 
             if (!values.policyID) {
-                errors.policyID = 'newRoomPage.pleaseSelectWorkspace';
+                errors.policyID = translate('newRoomPage.pleaseSelectWorkspace');
             }
 
             return errors;
