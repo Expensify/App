@@ -3,16 +3,12 @@ import React, {forwardRef, useCallback, useContext, useEffect, useImperativeHand
 import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
 import {View} from 'react-native';
 import type {MeasureParentContainerAndCursorCallback} from '@components/AutoCompleteSuggestions/types';
+import type {TextSelection} from '@components/Composer/types';
 import {DragAndDropContext} from '@components/DragAndDrop/Provider';
 import usePrevious from '@hooks/usePrevious';
 import type {SuggestionsRef} from './ReportActionCompose';
 import SuggestionEmoji from './SuggestionEmoji';
 import SuggestionMention from './SuggestionMention';
-
-type Selection = {
-    start: number;
-    end: number;
-};
 
 type SuggestionProps = {
     /** The current input value */
@@ -22,10 +18,10 @@ type SuggestionProps = {
     setValue: (newValue: string) => void;
 
     /** The current selection value */
-    selection: Selection;
+    selection: TextSelection;
 
     /** Callback to update the current selection */
-    setSelection: (newSelection: Selection) => void;
+    setSelection: (newSelection: TextSelection) => void;
 
     /** Callback to update the comment draft */
     updateComment: (newComment: string, shouldDebounceSaveComment?: boolean) => void;

@@ -5,7 +5,7 @@ type PositionType = {
 
 type CursorPositionParamsType = {
     positionOnMobile?: PositionType;
-    positionOnWeb?: {positionX: number; positionY: number};
+    positionOnWeb?: {positionX?: number; positionY?: number};
 };
 
 type GetCursorPositionType = (params: CursorPositionParamsType) => PositionType;

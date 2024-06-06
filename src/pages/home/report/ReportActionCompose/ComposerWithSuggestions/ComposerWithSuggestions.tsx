@@ -11,7 +11,6 @@ import type {
     TextInputFocusEventData,
     TextInputKeyPressEventData,
     TextInputScrollEventData,
-    TextInputSelectionChangeEventData,
 } from 'react-native';
 import {DeviceEventEmitter, findNodeHandle, InteractionManager, NativeModules, View} from 'react-native';
 import {useFocusedInputHandler} from 'react-native-keyboard-controller';
@@ -23,6 +22,7 @@ import type {Emoji} from '@assets/emojis/types';
 import type {FileObject} from '@components/AttachmentModal';
 import type {MeasureParentContainerAndCursorCallback} from '@components/AutoCompleteSuggestions/types';
 import Composer from '@components/Composer';
+import type {CustomSelectionChangeEvent, TextSelection} from '@components/Composer/types';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
@@ -294,7 +294,7 @@ function ComposerWithSuggestions(
     const valueRef = useRef(value);
     valueRef.current = value;
 
-    const [selection, setSelection] = useState(() => ({start: 0, end: 0, positionX: 0, positionY: 0}));
+    const [selection, setSelection] = useState<TextSelection>(() => ({start: 0, end: 0, positionX: 0, positionY: 0}));
 
     const [composerHeight, setComposerHeight] = useState(0);
 
@@ -382,9 +382,9 @@ function ComposerWithSuggestions(
 
             if (currentIndex < newText.length) {
                 startIndex = currentIndex;
-                const commonSuffixLength = ComposerUtils.findCommonSuffixLength(prevText, newText, selection.end);
+                const commonSuffixLength = ComposerUtils.findCommonSuffixLength(prevText, newText, selection?.end ?? 0);
                 // if text is getting pasted over find length of common suffix and subtract it from new text length
-                if (commonSuffixLength > 0 || selection.end - selection.start > 0) {
+                if (commonSuffixLength > 0 || (selection?.end ?? 0) - selection.start > 0) {
                     endIndex = newText.length - commonSuffixLength;
                 } else {
                     endIndex = currentIndex + newText.length;
@@ -434,7 +434,7 @@ function ComposerWithSuggestions(
             emojisPresentBefore.current = emojis;
             setValue(newCommentConverted);
             if (commentValue !== newComment) {
-                const position = Math.max(selection.end + (newComment.length - commentRef.current.length), cursorPosition ?? 0);
+                const position = Math.max((selection.end ?? 0) + (newComment.length - commentRef.current.length), cursorPosition ?? 0);
 
                 if (isIOSNative) {
                     syncSelectionWithOnChangeTextRef.current = {position, value: newComment};
@@ -488,7 +488,7 @@ function ComposerWithSuggestions(
         debouncedSaveReportComment.cancel();
         isCommentPendingSaved.current = false;
 
-        setSelection({start: 0, end: 0});
+        setSelection({start: 0, end: 0, positionX: 0, positionY: 0});
         updateComment('');
         setTextInputShouldClear(true);
         if (isComposerFullSize) {
@@ -568,7 +568,7 @@ function ComposerWithSuggestions(
     );
 
     const onSelectionChange = useCallback(
-        (e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
+        (e: CustomSelectionChangeEvent) => {
             if (!textInputRef.current?.isFocused()) {
                 return;
             }
