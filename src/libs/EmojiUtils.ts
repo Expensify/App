@@ -18,6 +18,7 @@ type EmojiSpacer = {code: string; spacer: boolean};
 type EmojiPickerListItem = EmojiSpacer | Emoji | HeaderEmoji;
 type EmojiPickerList = EmojiPickerListItem[];
 type ReplacedEmoji = {text: string; emojis: Emoji[]; cursorPosition?: number};
+type EmojiTrieModule = {default: typeof EmojiTrie};
 
 let frequentlyUsedEmojis: FrequentlyUsedEmoji[] = [];
 Onyx.connect({
@@ -314,7 +315,7 @@ function getAddedEmojis(currentEmojis: Emoji[], formerEmojis: Emoji[]): Emoji[] 
  */
 function replaceEmojis(text: string, preferredSkinTone: OnyxEntry<number | string> = CONST.EMOJI_DEFAULT_SKIN_TONE, lang: Locale = CONST.LOCALES.DEFAULT): ReplacedEmoji {
     // emojisTrie is importing the emoji JSON file on the app starting and we want to avoid it
-    const emojisTrie: typeof EmojiTrie = (require('./EmojiTrie') as {default: typeof EmojiTrie}).default;
+    const emojisTrie = require<EmojiTrieModule>('./EmojiTrie').default;
 
     const trie = emojisTrie[lang as SupportedLanguage];
     if (!trie) {
@@ -392,7 +393,7 @@ function replaceAndExtractEmojis(text: string, preferredSkinTone: OnyxEntry<numb
  */
 function suggestEmojis(text: string, lang: Locale, limit: number = CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS): Emoji[] | undefined {
     // emojisTrie is importing the emoji JSON file on the app starting and we want to avoid it
-    const emojisTrie = (require('./EmojiTrie') as {default: typeof EmojiTrie}).default;
+    const emojisTrie = require<EmojiTrieModule>('./EmojiTrie').default;
 
     const trie = emojisTrie[lang as SupportedLanguage];
     if (!trie) {

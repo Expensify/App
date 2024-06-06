@@ -15,7 +15,9 @@ import installNetworkInterceptor from './utils/NetworkInterceptor';
 import LaunchArgs from './utils/LaunchArgs';
 import type { TestConfig } from './types';
 
-type Tests = Record<ValueOf<typeof E2EConfig.TEST_NAMES>, (config: TestConfig) => void>;
+type Test = (config: TestConfig) => void;
+type TestModule = { default: Test}
+type Tests = Record<ValueOf<typeof E2EConfig.TEST_NAMES>, Test>;
 
 console.debug('==========================');
 console.debug('==== Running e2e test ====');
@@ -34,11 +36,11 @@ if (!appInstanceId) {
 
 // import your test here, define its name and config first in e2e/config.js
 const tests: Tests = {
-    [E2EConfig.TEST_NAMES.AppStartTime]: require('./tests/appStartTimeTest.e2e').default,
-    [E2EConfig.TEST_NAMES.OpenChatFinderPage]: require('./tests/openChatFinderPageTest.e2e').default,
-    [E2EConfig.TEST_NAMES.ChatOpening]: require('./tests/chatOpeningTest.e2e').default,
-    [E2EConfig.TEST_NAMES.ReportTyping]: require('./tests/reportTypingTest.e2e').default,
-    [E2EConfig.TEST_NAMES.Linking]: require('./tests/linkingTest.e2e').default,
+    [E2EConfig.TEST_NAMES.AppStartTime]: require<TestModule>('./tests/appStartTimeTest.e2e').default,
+    [E2EConfig.TEST_NAMES.OpenChatFinderPage]: require<TestModule>('./tests/openChatFinderPageTest.e2e').default,
+    [E2EConfig.TEST_NAMES.ChatOpening]: require<TestModule>('./tests/chatOpeningTest.e2e').default,
+    [E2EConfig.TEST_NAMES.ReportTyping]: require<TestModule>('./tests/reportTypingTest.e2e').default,
+    [E2EConfig.TEST_NAMES.Linking]: require<TestModule>('./tests/linkingTest.e2e').default,
 };
 
 // Once we receive the TII measurement we know that the app is initialized and ready to be used:

@@ -21,7 +21,7 @@ type CreateDownloadQueue = () => {
     dequeueDownloadItem: () => DownloadItem | undefined;
 };
 
-const createDownloadQueue = (require('./createDownloadQueue') as {default: CreateDownloadQueue}).default;
+const createDownloadQueue = require<{default: CreateDownloadQueue}>('./createDownloadQueue').default;
 
 const port = process.env.PORT ?? 8082;
 const {DESKTOP_SHORTCUT_ACCELERATOR, LOCALES} = CONST;
