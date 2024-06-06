@@ -27,16 +27,16 @@ type RequestData = {
 
 type Request = RequestData & OnyxData;
 
-type PaginationConfig<TResource, TResourceKey extends OnyxCollectionKey = OnyxCollectionKey, TPageKey extends OnyxPagesKey = OnyxPagesKey> = {
-    resourceKey: TResourceKey;
-    pageKey: TPageKey;
-    getItemsFromResponse: (response: Response) => OnyxValues[TResourceKey];
-    sortItems: (items: OnyxValues[TResourceKey]) => TResource[];
-    getItemID: (item: TResource) => string;
+type PaginationConfig<TResourceKey extends OnyxCollectionKey, TPageKey extends OnyxPagesKey> = {
+    resourceCollectionKey: TResourceKey;
+    resourceID: string;
+    pageCollectionKey: TPageKey;
+    sortItems: (items: OnyxValues[TResourceKey]) => Array<OnyxValues[TResourceKey] extends Record<string, infer TResource> ? TResource : never>;
+    getItemID: (item: OnyxValues[TResourceKey] extends Record<string, infer TResource> ? TResource : never) => string;
     isInitialRequest: boolean;
 };
-type PaginatedRequest<TResource, TResourceKey extends OnyxCollectionKey = OnyxCollectionKey, TPageKey extends OnyxPagesKey = OnyxPagesKey> = Request &
-    PaginationConfig<TResource, TResourceKey, TPageKey> & {
+type PaginatedRequest<TResourceKey extends OnyxCollectionKey, TPageKey extends OnyxPagesKey> = Request &
+    PaginationConfig<TResourceKey, TPageKey> & {
         isPaginated: true;
     };
 

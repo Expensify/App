@@ -190,22 +190,22 @@ function read<TCommand extends ReadCommand>(command: TCommand, apiCommandParamet
     });
 }
 
-function paginate<TRequestType extends ApiRequestType, TCommand extends CommandOfType<TRequestType>, TResource, TResourceKey extends OnyxCollectionKey, TPageKey extends OnyxPagesKey>(
+function paginate<TRequestType extends ApiRequestType, TCommand extends CommandOfType<TRequestType>, TResourceKey extends OnyxCollectionKey, TPageKey extends OnyxPagesKey>(
     type: TRequestType,
     command: TCommand,
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
     onyxData: OnyxData,
-    config: PaginationConfig<TResource, TResourceKey, TPageKey>,
+    config: PaginationConfig<TResourceKey, TPageKey>,
 ): TRequestType extends typeof CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS ? Promise<Response | void> : void;
-function paginate<TRequestType extends ApiRequestType, TCommand extends CommandOfType<TRequestType>, TResource, TResourceKey extends OnyxCollectionKey, TPageKey extends OnyxPagesKey>(
+function paginate<TRequestType extends ApiRequestType, TCommand extends CommandOfType<TRequestType>, TResourceKey extends OnyxCollectionKey, TPageKey extends OnyxPagesKey>(
     type: TRequestType,
     command: TCommand,
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
     onyxData: OnyxData,
-    config: PaginationConfig<TResource, TResourceKey, TPageKey>,
+    config: PaginationConfig<TResourceKey, TPageKey>,
 ): Promise<Response | void> | void {
     Log.info('[API] Called API.paginate', false, {command, ...apiCommandParameters});
-    const request: PaginatedRequest<TResource, TResourceKey, TPageKey> = {
+    const request: PaginatedRequest<TResourceKey, TPageKey> = {
         ...prepareRequest(command, type, apiCommandParameters, onyxData),
         ...config,
         ...{

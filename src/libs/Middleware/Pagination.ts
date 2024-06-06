@@ -10,9 +10,9 @@ import type {Pages, Request} from '@src/types/onyx';
 import type {PaginatedRequest} from '@src/types/onyx/Request';
 import type Middleware from './types';
 
-function isPaginatedRequest<TResource, TResourceKey extends OnyxCollectionKey, TPageKey extends OnyxPagesKey>(
-    request: Request | PaginatedRequest<TResource, TResourceKey, TPageKey>,
-): request is PaginatedRequest<TResource, TResourceKey, TPageKey> {
+function isPaginatedRequest<TResourceKey extends OnyxCollectionKey, TPageKey extends OnyxPagesKey>(
+    request: Request | PaginatedRequest<TResourceKey, TPageKey>,
+): request is PaginatedRequest<TResourceKey, TPageKey> {
     return 'isPaginated' in request && request.isPaginated;
 }
 
@@ -32,14 +32,17 @@ const Pagination: Middleware = (requestResponse, request) => {
         return requestResponse;
     }
 
-    const {resourceKey, pageKey, getItemsFromResponse, sortItems, getItemID, isInitialRequest} = request;
+    const {resourceCollectionKey, resourceID, pageCollectionKey, sortItems, getItemID, isInitialRequest} = request;
     return requestResponse.then((response) => {
         if (!response?.onyxData) {
             return Promise.resolve(response);
         }
 
+        const resourceKey = `${resourceCollectionKey}${resourceID}` as const;
+        const pageKey = `${pageCollectionKey}${resourceID}` as const;
+
         // Create a new page based on the response
-        const pageItems = getItemsFromResponse(response);
+        const pageItems = (response.onyxData.find((data) => data.key === resourceKey)?.value ?? {}) as OnyxValues[typeof resourceCollectionKey];
         const sortedPageItems = sortItems(pageItems);
         if (sortedPageItems.length === 0) {
             // Must have at least 1 action to create a page.
@@ -52,7 +55,7 @@ const Pagination: Middleware = (requestResponse, request) => {
             newPage.unshift(CONST.PAGINATION_START_ID);
         }
 
-        const existingItems = (OnyxCache.getValue(resourceKey) ?? {}) as OnyxValues[typeof resourceKey];
+        const existingItems = (OnyxCache.getValue(resourceKey) ?? {}) as OnyxValues[typeof resourceCollectionKey];
         const allItems = fastMerge(existingItems, pageItems, true);
         const sortedAllItems = sortItems(allItems);
 
