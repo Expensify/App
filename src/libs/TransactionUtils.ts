@@ -40,6 +40,16 @@ Onyx.connect({
     callback: (value) => (allReports = value),
 });
 
+let currentUserEmail = '';
+let currentUserAccountID = -1;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (val) => {
+        currentUserEmail = val?.email ?? '';
+        currentUserAccountID = val?.accountID ?? -1;
+    },
+});
+
 function isDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
     // This is used during the expense creation flow before the transaction has been saved to the server
     if (lodashHas(transaction, 'iouRequestType')) {
@@ -624,6 +634,23 @@ function getRecentTransactions(transactions: Record<string, string>, size = 2): 
 }
 
 /**
+ * Check if transaction has duplicatedTransaction violation.
+ * @param transactionID - the transaction to check
+ * @param checkDismissed - whether to check if the violation has already been dismissed as well
+ */
+function isDuplicate(transactionID: string, checkDismissed = false): boolean {
+    const hasDuplicatedViolation = !!allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]?.some(
+        (violation: TransactionViolation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+    );
+    if (!checkDismissed) {
+        return hasDuplicatedViolation;
+    }
+    const didDismissedViolation =
+        allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.comment?.dismissedViolations?.duplicatedTransaction?.[currentUserEmail] === `${currentUserAccountID}`;
+    return hasDuplicatedViolation && !didDismissedViolation;
+}
+
+/**
  * Check if transaction is on hold
  */
 function isOnHold(transaction: OnyxEntry<Transaction>): boolean {
@@ -631,7 +658,7 @@ function isOnHold(transaction: OnyxEntry<Transaction>): boolean {
         return false;
     }
 
-    return !!transaction.comment?.hold;
+    return !!transaction.comment?.hold || isDuplicate(transaction.transactionID, true);
 }
 
 /**
@@ -659,6 +686,15 @@ function hasViolation(transactionID: string, transactionViolations: OnyxCollecti
  */
 function hasNoticeTypeViolation(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
     return Boolean(transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some((violation: TransactionViolation) => violation.type === 'notice'));
+}
+
+/**
+ * Checks if any violations for the provided transaction are of type 'warning'
+ */
+function hasWarningTypeViolation(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
+    return Boolean(
+        transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some((violation: TransactionViolation) => violation.type === CONST.VIOLATION_TYPES.WARNING),
+    );
 }
 
 /**
@@ -798,6 +834,7 @@ export {
     isFetchingWaypointsFromServer,
     isExpensifyCardTransaction,
     isCardTransaction,
+    isDuplicate,
     isPending,
     isPosted,
     isOnHold,
@@ -818,6 +855,7 @@ export {
     hasReservationList,
     hasViolation,
     hasNoticeTypeViolation,
+    hasWarningTypeViolation,
     isCustomUnitRateIDForP2P,
     getRateID,
 };
