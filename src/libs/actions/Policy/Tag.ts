@@ -604,6 +604,76 @@ function setPolicyRequiresTag(policyID: string, requiresTag: boolean) {
     API.write(WRITE_COMMANDS.SET_POLICY_REQUIRES_TAG, parameters, onyxData);
 }
 
+function setPolicyTagGLCode(policyID: string, tagName: string, glCode: string) {
+    const tagListName = Object.keys(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})[0];
+    const policyTagToUpdate = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`]?.[tagListName]?.tags?.[tagName] ?? {};
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    [tagListName]: {
+                        tags: {
+                            [tagName]: {
+                                ...policyTagToUpdate,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                pendingFields: {
+                                    glCode: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                },
+                                glCode,
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    [tagListName]: {
+                        tags: {
+                            [tagName]: {
+                                errors: null,
+                                pendingAction: null,
+                                pendingFields: {
+                                    glCode: null,
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    [tagListName]: {
+                        tags: {
+                            [tagName]: {
+                                ...policyTagToUpdate,
+                                errors: ErrorUtils.getMicroSecondOnyxError('workspace.tags.updateGLCodeFailureMessage'),
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        tagName,
+        glCode,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_POLICY_TAG_GL_CODE, parameters, onyxData);
+}
+
 export {
     openPolicyTagsPage,
     buildOptimisticPolicyRecentlyUsedTags,
@@ -615,6 +685,7 @@ export {
     clearPolicyTagErrors,
     deletePolicyTags,
     setWorkspaceTagEnabled,
+    setPolicyTagGLCode,
 };
 
 export type {NewCustomUnit};
