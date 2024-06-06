@@ -520,11 +520,11 @@ function ReportActionItem({
         if (
             isIOUReport(action) &&
             action.originalMessage &&
-            // For the pay flow, we only want to show MoneyRequestAction when sending money and we're not in the combine report. Otherwise, we display a regular system message
+            // For the pay flow, we only want to show MoneyRequestAction when sending money. When paying, we display a regular system message
             (action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE ||
                 action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT ||
                 action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK ||
-                (isSendingMoney && !transactionThreadReport?.reportID))
+                isSendingMoney)
         ) {
             // There is no single iouReport for bill splits, so only 1:1 requests require an iouReportID
             const iouReportID = action.originalMessage.IOUReportID ? action.originalMessage.IOUReportID.toString() : '0';
