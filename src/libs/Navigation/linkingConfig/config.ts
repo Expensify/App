@@ -502,6 +502,12 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                                 taxID: (taxID: string) => decodeURIComponent(taxID),
                             },
                         },
+                        [SCREENS.WORKSPACE.TAX_CODE]: {
+                            path: ROUTES.WORKSPACE_TAX_CODE.route,
+                            parse: {
+                                taxID: (taxID: string) => decodeURIComponent(taxID),
+                            },
+                        },
                         [SCREENS.WORKSPACE.TAX_NAME]: {
                             path: ROUTES.WORKSPACE_TAX_NAME.route,
                             parse: {
