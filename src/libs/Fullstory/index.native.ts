@@ -47,7 +47,7 @@ const FS = {
                 FullStory.identify(String(metadata.accountID), {
                     properties: metadata,
                 });
-            })
+            });
         }
     },
 };
