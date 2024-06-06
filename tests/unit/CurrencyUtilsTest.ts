@@ -157,4 +157,31 @@ describe('CurrencyUtils', () => {
             Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() => expect(CurrencyUtils.convertToDisplayString(amount, currency)).toBe(expectedResult)),
         );
     });
+
+    describe('convertToShortDisplayString', () => {
+        test.each([
+            [CONST.CURRENCY.USD, 25, '$0'],
+            [CONST.CURRENCY.USD, 2500, '$25'],
+            [CONST.CURRENCY.USD, 150, '$2'],
+            [CONST.CURRENCY.USD, 250000, '$2,500'],
+            ['JPY', 2500, '¥25'],
+            ['JPY', 250000, '¥2,500'],
+            ['JPY', 2500.5, '¥25'],
+            ['RSD', 100, 'RSD\xa01'],
+            ['RSD', 145, 'RSD\xa01'],
+            ['BHD', 12345, 'BHD\xa0123'],
+            ['BHD', 1, 'BHD\xa00'],
+        ])('Correctly displays %s', (currency, amount, expectedResult) => {
+            expect(CurrencyUtils.convertToShortDisplayString(amount, currency)).toBe(expectedResult);
+        });
+
+        test.each([
+            ['EUR', 25, '0\xa0€'],
+            ['EUR', 2500, '25\xa0€'],
+            ['EUR', 250000, '2500\xa0€'],
+            ['EUR', 250000000, '2.500.000\xa0€'],
+        ])('Correctly displays %s in ES locale', (currency, amount, expectedResult) =>
+            Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() => expect(CurrencyUtils.convertToShortDisplayString(amount, currency)).toBe(expectedResult)),
+        );
+    })
 });
