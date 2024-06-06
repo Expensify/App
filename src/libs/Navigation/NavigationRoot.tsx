@@ -138,7 +138,8 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
         // clear all window selection on navigation
         // this is to prevent the selection from persisting when navigating to a new page in web
-        window?.getSelection()?.removeAllRanges();
+        // using "?" to avoid crash in native
+        window?.getSelection?.()?.removeAllRanges?.();
     };
 
     return (
