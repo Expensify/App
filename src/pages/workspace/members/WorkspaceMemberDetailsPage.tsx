@@ -164,7 +164,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 fallbackIcon={fallbackIcon}
                             />
                         </OfflineWithFeedback>
-                        {Boolean(details.displayName ?? '') && (
+                        {!!(details.displayName ?? '') && (
                             <Text
                                 style={[styles.textHeadline, styles.pre, styles.mb6, styles.w100, styles.textAlignCenter]}
                                 numberOfLines={1}
