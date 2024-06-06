@@ -583,6 +583,18 @@ function MoneyRequestConfirmationList({
         ],
     );
 
+    const shouldDisableParticipant = (participant: Participant): boolean => {
+        if (ReportUtils.isDraftReport(participant.reportID)) {
+            return true;
+        }
+
+        if (!participant.isInvoiceRoom && !participant.isPolicyExpenseChat && !participant.isSelfDM && ReportUtils.isOptimisticPersonalDetail(participant.accountID ?? -1)) {
+            return true;
+        }
+
+        return false;
+    };
+
     const sections = useMemo(() => {
         const options: Array<SectionListDataType<MoneyRequestConfirmationListItem>> = [];
         if (isTypeSplit) {
@@ -605,7 +617,7 @@ function MoneyRequestConfirmationList({
             const formattedSelectedParticipants = selectedParticipants.map((participant) => ({
                 ...participant,
                 isSelected: false,
-                isDisabled: !participant.isInvoiceRoom && !participant.isPolicyExpenseChat && !participant.isSelfDM && ReportUtils.isOptimisticPersonalDetail(participant.accountID ?? -1),
+                isDisabled: shouldDisableParticipant(participant),
             }));
             options.push({
                 title: translate('common.to'),
