@@ -745,7 +745,7 @@ function openReport(
     reportID: string,
     reportActionID?: string,
     participantLoginList: string[] = [],
-    newReportObject: Partial<Report> = {},
+    newReportObject: ReportUtils.OptimisticChatReport | null = null,
     parentReportActionID = '0',
     isFromDeepLink = false,
     participantAccountIDList: number[] = [],
@@ -821,8 +821,8 @@ function openReport(
     if (ReportUtils.isGroupChat(newReportObject)) {
         parameters.chatType = CONST.REPORT.CHAT_TYPE.GROUP;
         parameters.groupChatAdminLogins = currentUserEmail;
-        parameters.optimisticAccountIDList = Object.keys(newReportObject.participants ?? {}).join(',');
-        parameters.reportName = newReportObject.reportName ?? '';
+        parameters.optimisticAccountIDList = Object.keys(newReportObject?.participants ?? {}).join(',');
+        parameters.reportName = newReportObject?.reportName ?? '';
 
         // If we have an avatar then include it with the parameters
         if (avatar) {
@@ -990,7 +990,7 @@ function navigateToAndOpenReport(
     const report = isEmptyObject(chat) ? newChat : chat;
 
     // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
-    openReport(report?.reportID ?? '', '', userLogins, newChat ?? {}, undefined, undefined, undefined, avatarFile);
+    openReport(report?.reportID ?? '', '', userLogins, newChat, undefined, undefined, undefined, avatarFile);
     if (shouldDismissModal) {
         Navigation.dismissModalWithReport(report);
     } else {
@@ -1013,7 +1013,7 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[]) 
     const report = chat ?? newChat;
 
     // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
-    openReport(report?.reportID ?? '', '', [], newChat ?? {}, '0', false, participantAccountIDs);
+    openReport(report?.reportID ?? '', '', [], newChat, '0', false, participantAccountIDs);
     Navigation.dismissModalWithReport(report);
 }
 
@@ -2487,7 +2487,7 @@ function openReportFromDeepLink(url: string, shouldNavigate = true) {
 
     if (reportID && !isAuthenticated) {
         // Call the OpenReport command to check in the server if it's a public room. If so, we'll open it as an anonymous user
-        openReport(reportID, '', [], {}, '0', true);
+        openReport(reportID, '', [], null, '0', true);
 
         // Show the sign-in page if the app is offline
         if (networkStatus === CONST.NETWORK.NETWORK_STATUS.OFFLINE) {
