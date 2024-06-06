@@ -67,7 +67,7 @@ function SubscriptionPlan() {
                 <Text style={[styles.textLabelSupporting, styles.mb2]}>
                     {translate(`subscription.yourPlan.${isCollect ? 'collect' : 'control'}.${isAnnual ? 'priceAnnual' : 'pricePayPerUse'}`, {
                         lower: convertToShortDisplayString(subscriptionPrice, preferredCurrency),
-                        upper: convertToShortDisplayString(subscriptionPrice * 2, preferredCurrency),
+                        upper: convertToShortDisplayString(subscriptionPrice * CONST.SUBSCRIPTION_PRICE_FACTOR, preferredCurrency),
                     })}
                 </Text>
                 {benefitsList.map((benefit) => (

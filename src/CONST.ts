@@ -4821,6 +4821,8 @@ const CONST = {
         GBP: 'GBP',
         NZD: 'NZD',
     },
+
+    SUBSCRIPTION_PRICE_FACTOR: 2,
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
