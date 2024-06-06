@@ -12,7 +12,7 @@ import {isCorporateCard, isExpensifyCard} from './CardUtils';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
 import * as NumberUtils from './NumberUtils';
-import {getCleanedTagName} from './PolicyUtils';
+import {getCleanedTagName, getCustomUnitRate} from './PolicyUtils';
 
 let allTransactions: OnyxCollection<Transaction> = {};
 Onyx.connect({
@@ -662,7 +662,7 @@ function hasNoticeTypeViolation(transactionID: string, transactionViolations: On
 }
 
 /**
- * this is the formulae to calculate tax
+ * Calculates tax amount from the given expense amount and tax percentage
  */
 function calculateTaxAmount(percentage: string, amount: number) {
     const divisor = Number(percentage.slice(0, -1)) / 100 + 1;
@@ -695,10 +695,16 @@ function getRateID(transaction: OnyxEntry<Transaction>): string | undefined {
 }
 
 /**
- * Gets the tax code based on selected currency.
- * Returns policy default tax rate if transaction is in policy default currency, otherwise returns foreign default tax rate
+ * Gets the tax code based on the type of transaction and selected currency.
+ * If it is distance request, then returns the tax code corresponding to the custom unit rate
+ * Else returns policy default tax rate if transaction is in policy default currency, otherwise foreign default tax rate
  */
 function getDefaultTaxCode(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, currency?: string | undefined) {
+    if (isDistanceRequest(transaction)) {
+        const customUnitRateID = getRateID(transaction) ?? '';
+        const customUnitRate = getCustomUnitRate(policy, customUnitRateID);
+        return customUnitRate?.attributes?.taxRateExternalID ?? '';
+    }
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
     const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
     return policy?.outputCurrency === (currency ?? getCurrency(transaction)) ? defaultExternalID : foreignTaxDefault;
@@ -743,7 +749,7 @@ function getWorkspaceTaxesSettingsName(policy: OnyxEntry<Policy>, taxCode: strin
 }
 
 /**
- * Gets the tax name
+ * Gets the name corresponding to the taxCode that is displayed to the user
  */
 function getTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>) {
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);

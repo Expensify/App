@@ -11,7 +11,7 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import type {MileageRate} from '@libs/DistanceRequestUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getCustomUnit, isTaxTrackingEnabled} from '@libs/PolicyUtils';
+import {getCustomUnitRate, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -50,8 +50,6 @@ function IOURequestStepDistanceRate({
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
-    const distanceUnit = getCustomUnit(policy);
-    const customUnitID = distanceUnit?.customUnitID;
     const isPolicyExpenseChat = ReportUtils.isReportInGroupPolicy(report);
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest);
 
@@ -78,10 +76,12 @@ function IOURequestStepDistanceRate({
     const initiallyFocusedOption = sections.find((item) => item.isSelected)?.keyForList;
 
     function selectDistanceRate(customUnitRateID: string) {
-        if (policy?.customUnits && customUnitID && shouldShowTax) {
-            const policyCustomUnitRate = policy?.customUnits[customUnitID].rates[customUnitRateID];
+        if (shouldShowTax) {
+            const policyCustomUnitRate = getCustomUnitRate(policy, customUnitRateID);
             const taxRateExternalID = policyCustomUnitRate.attributes?.taxRateExternalID ?? '-1';
-            const taxAmount = CurrencyUtils.convertToBackendAmount(DistanceRequestUtils.calculateTaxAmount(policy, transaction, customUnitRateID));
+            const taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, TransactionUtils.getDistance(transaction));
+            const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, taxRateExternalID) ?? '';
+            const taxAmount = CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(taxPercentage, taxableAmount));
             IOU.setMoneyRequestTaxAmount(transactionID, taxAmount);
             IOU.setMoneyRequestTaxRate(transactionID, taxRateExternalID);
         }
