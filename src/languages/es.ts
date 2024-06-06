@@ -3783,7 +3783,7 @@ export default {
             disableAutoRenew: 'Desactivar auto-renovación',
             helpUsImprove: 'Ayúdanos a mejorar Expensify',
             whatsMainReason: '¿Cuál es la razón principal por la que deseas desactivar la auto-renovación de tu suscripción?',
-            renewsOn: ({date}) => `Se renovará el ${date}`,
+            renewsOn: ({date}) => `Se renovará el ${date}.`,
         },
     },
     feedbackSurvey: {

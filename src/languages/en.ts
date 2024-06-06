@@ -3276,7 +3276,7 @@ export default {
             disableAutoRenew: 'Disable auto-renew',
             helpUsImprove: 'Help us improve Expensify',
             whatsMainReason: 'What’s the main reason you’re disabling auto-renew on your subscription?',
-            renewsOn: ({date}) => `Renews on ${date}`,
+            renewsOn: ({date}) => `Renews on ${date}.`,
         },
     },
     feedbackSurvey: {

@@ -24,8 +24,7 @@ function SubscriptionSettings() {
     const [autoRenew, setAutoRenew] = useState(true);
     const [autoIncrease, setAutoIncrease] = useState(false);
 
-    // TODO this will come from API in next phase
-    const expirationDate = format(new Date(), CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT);
+    const expirationDate = privateSubscription?.endDate ? format(new Date(privateSubscription?.endDate), CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT) : null;
 
     // TODO all actions will be implemented in next phase
     const handleAutoRenewToggle = () => {
@@ -64,16 +63,16 @@ function SubscriptionSettings() {
                     title={translate('subscription.subscriptionSettings.autoRenew')}
                     switchAccessibilityLabel={translate('subscription.subscriptionSettings.autoRenew')}
                     onToggle={handleAutoRenewToggle}
-                    isActive={autoRenew}
+                    isActive={privateSubscription?.autoRenew ?? false}
                 />
-                <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('subscription.subscriptionSettings.renewsOn', {date: expirationDate})}</Text>
+                {!!expirationDate && <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('subscription.subscriptionSettings.renewsOn', {date: expirationDate})}</Text>}
             </View>
             <View style={styles.mt3}>
                 <ToggleSettingOptionRow
                     customTitle={customTitle}
                     switchAccessibilityLabel={translate('subscription.subscriptionSettings.autoRenew')}
                     onToggle={handleAutoIncreaseToggle}
-                    isActive={autoIncrease}
+                    isActive={privateSubscription?.addNewUsersAutomatically ?? false}
                 />
                 <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('subscription.subscriptionSettings.automaticallyIncrease')}</Text>
             </View>
