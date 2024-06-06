@@ -56,7 +56,7 @@ function useSubscriptionPrice() {
         return 0;
     }
 
-    return SUBSCRIPTION_PRICES[preferredCurrency.name][subscriptionPlan][privateSubscription.type];
+    return SUBSCRIPTION_PRICES[preferredCurrency][subscriptionPlan][privateSubscription.type];
 }
 
 export default useSubscriptionPrice;

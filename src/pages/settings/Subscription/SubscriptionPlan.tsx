@@ -12,6 +12,7 @@ import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useSubscriptionPrice from '@hooks/useSubscriptionPrice';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -27,9 +28,6 @@ function SubscriptionPlan() {
     const subscriptionPlan = useSubscriptionPlan();
     const subscriptionPrice = useSubscriptionPrice();
     const preferredCurrency = usePreferredCurrency();
-
-    console.log('SUBSCRIPTION PRICE', subscriptionPrice);
-    console.log('PREFERRED CURRENCY', preferredCurrency);
 
     const isCollect = subscriptionPlan === CONST.POLICY.TYPE.TEAM;
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
@@ -68,7 +66,8 @@ function SubscriptionPlan() {
                 <Text style={[styles.headerText, styles.mt2]}>{translate(`subscription.yourPlan.${isCollect ? 'collect' : 'control'}.title`)}</Text>
                 <Text style={[styles.textLabelSupporting, styles.mb2]}>
                     {translate(`subscription.yourPlan.${isCollect ? 'collect' : 'control'}.${isAnnual ? 'priceAnnual' : 'pricePayPerUse'}`, {
-                        price: subscriptionPrice / 100,
+                        lower: convertToShortDisplayString(subscriptionPrice, preferredCurrency),
+                        upper: convertToShortDisplayString(subscriptionPrice * 2, preferredCurrency),
                     })}
                 </Text>
                 {benefitsList.map((benefit) => (
