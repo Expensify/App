@@ -1,4 +1,4 @@
-import React,{useCallback} from 'react';
+import React, {useCallback} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -36,23 +36,26 @@ function AddressBusiness({reimbursementAccount, onNext, isEditing}: AddressBusin
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-        const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+            const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
 
-        if (values.addressStreet && !ValidationUtils.isValidAddress(values.addressStreet)) {
-            errors.addressStreet = translate('bankAccount.error.addressStreet');
-        }
+            if (values.addressStreet && !ValidationUtils.isValidAddress(values.addressStreet)) {
+                errors.addressStreet = translate('bankAccount.error.addressStreet');
+            }
 
-        if (values.addressCity && !ValidationUtils.isValidAddress(values.addressCity)) {
-            errors.addressCity = translate('bankAccount.error.addressCity');
-        }
+            if (values.addressCity && !ValidationUtils.isValidAddress(values.addressCity)) {
+                errors.addressCity = translate('bankAccount.error.addressCity');
+            }
 
-        if (values.addressZipCode && !ValidationUtils.isValidZipCode(values.addressZipCode)) {
-            errors.addressZipCode = translate('bankAccount.error.zipCode');
-        }
+            if (values.addressZipCode && !ValidationUtils.isValidZipCode(values.addressZipCode)) {
+                errors.addressZipCode = translate('bankAccount.error.zipCode');
+            }
 
-        return errors;
-    }, [translate])
+            return errors;
+        },
+        [translate],
+    );
 
     const defaultValues = {
         street: reimbursementAccount?.achData?.addressStreet ?? '',
