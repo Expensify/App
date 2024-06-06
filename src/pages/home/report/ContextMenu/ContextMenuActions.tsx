@@ -1,5 +1,4 @@
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import Str from 'expensify-common/lib/str';
+import {ExpensiMark, Str} from 'expensify-common';
 import type {MutableRefObject} from 'react';
 import React from 'react';
 import {InteractionManager} from 'react-native';

@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import {format} from 'date-fns';
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useReducer, useState} from 'react';
 import type {TextStyle} from 'react-native';
 import {View} from 'react-native';
@@ -178,22 +178,6 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
 };
 
 type MoneyRequestConfirmationListItem = Participant | ReportUtils.OptionData;
-
-const getTaxAmount = (transaction: OnyxEntry<OnyxTypes.Transaction>, policy: OnyxEntry<OnyxTypes.Policy>, isDistanceRequest: boolean) => {
-    let taxableAmount: number;
-    let taxCode: string;
-    if (isDistanceRequest) {
-        const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '';
-        const customUnitRate = getCustomUnitRate(policy, customUnitRateID);
-        taxCode = customUnitRate?.attributes?.taxRateExternalID ?? '';
-        taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, TransactionUtils.getDistance(transaction));
-    } else {
-        taxableAmount = transaction?.amount ?? 0;
-        taxCode = transaction?.taxCode ?? TransactionUtils.getDefaultTaxCode(policy, transaction) ?? '';
-    }
-    const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, taxCode) ?? '';
-    return TransactionUtils.calculateTaxAmount(taxPercentage, taxableAmount);
-};
 
 function MoneyRequestConfirmationList({
     transaction = null,
@@ -383,15 +367,26 @@ function MoneyRequestConfirmationList({
 
     // Calculate and set tax amount in transaction draft
     useEffect(() => {
-        const taxAmount = getTaxAmount(transaction, policy, isDistanceRequest).toString();
-        const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount));
-
-        if (transaction?.taxAmount && previousTransactionAmount === transaction?.amount && previousTransactionCurrency === transaction?.currency) {
-            return IOU.setMoneyRequestTaxAmount(transactionID, transaction?.taxAmount ?? 0, true);
+        if (!shouldShowTax || (transaction?.taxAmount !== undefined && previousTransactionAmount === transaction?.amount && previousTransactionCurrency === transaction?.currency)) {
+            return;
         }
 
-        IOU.setMoneyRequestTaxAmount(transactionID, amountInSmallestCurrencyUnits, true);
-    }, [policy, transaction, transactionID, previousTransactionAmount, previousTransactionCurrency, isDistanceRequest]);
+        let taxableAmount: number;
+        let taxCode: string;
+        if (isDistanceRequest) {
+            const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '';
+            const customUnitRate = getCustomUnitRate(policy, customUnitRateID);
+            taxCode = customUnitRate?.attributes?.taxRateExternalID ?? '';
+            taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, TransactionUtils.getDistance(transaction));
+        } else {
+            taxableAmount = transaction?.amount ?? 0;
+            taxCode = transaction?.taxCode ?? TransactionUtils.getDefaultTaxCode(policy, transaction) ?? '';
+        }
+        const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, taxCode) ?? '';
+        const taxAmount = TransactionUtils.calculateTaxAmount(taxPercentage, taxableAmount);
+        const taxAmountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount.toString()));
+        IOU.setMoneyRequestTaxAmount(transaction?.transactionID ?? '', taxAmountInSmallestCurrencyUnits);
+    }, [policy, shouldShowTax, previousTransactionAmount, previousTransactionCurrency, transaction, isDistanceRequest]);
 
     // If completing a split expense fails, set didConfirm to false to allow the user to edit the fields again
     if (isEditingSplitBill && didConfirm) {
