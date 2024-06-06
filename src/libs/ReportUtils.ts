@@ -489,6 +489,11 @@ let currentUserPrivateDomain: string | undefined;
 let currentUserAccountID: number | undefined;
 let isAnonymousUser = false;
 
+// This cache is used to save parse result of report action html message into text
+// to prevent unnecessary parsing when the report action is not changed/modified.
+// Example case: when we need to get a report name of a thread which is dependent on a report action message.
+const parsedReportActionMessageCache: Record<string, string> = {};
+
 const defaultAvatarBuildingIconTestID = 'SvgDefaultAvatarBuilding Icon';
 
 Onyx.connect({
@@ -3144,9 +3149,52 @@ function getInvoicePayerName(report: OnyxEntry<Report>): string {
 }
 
 /**
+ * Parse html of reportAction into text
+ */
+function parseReportActionHtmlToText(reportAction: OnyxEntry<ReportAction>, reportID: string, childReportID?: string): string {
+    if (!reportAction) {
+        return '';
+    }
+    const key = `${reportID}_${reportAction.reportActionID}_${reportAction.lastModified}`;
+    const cachedText = parsedReportActionMessageCache[key];
+    if (cachedText !== undefined) {
+        return cachedText;
+    }
+
+    const {html, text} = reportAction?.message?.[0] ?? {};
+
+    if (!html) {
+        return text ?? '';
+    }
+
+    const mentionReportRegex = /<mention-report reportID="(\d+)" *\/>/gi;
+    const matches = html.matchAll(mentionReportRegex);
+
+    const reportIDToName: Record<string, string> = {};
+    for (const match of matches) {
+        if (match[1] !== childReportID) {
+            // eslint-disable-next-line @typescript-eslint/no-use-before-define
+            reportIDToName[match[1]] = getReportName(getReport(match[1])) ?? '';
+        }
+    }
+
+    const mentionUserRegex = /<mention-user accountID="(\d+)" *\/>/gi;
+    const accountIDToName: Record<string, string> = {};
+    const accountIDs = Array.from(html.matchAll(mentionUserRegex), (mention) => Number(mention[1]));
+    const logins = PersonalDetailsUtils.getLoginsByAccountIDs(accountIDs);
+    accountIDs.forEach((id, index) => (accountIDToName[id] = logins[index]));
+
+    const parser = new ExpensiMark();
+    const textMessage = Str.removeSMSDomain(parser.htmlToText(html, {reportIDToName, accountIDToName}));
+    parsedReportActionMessageCache[key] = textMessage;
+
+    return textMessage;
+}
+
+/**
  * Get the report action message for a report action.
  */
-function getReportActionMessage(reportAction: OnyxEntry<ReportAction>, parentReportID?: string) {
+function getReportActionMessage(reportAction: OnyxEntry<ReportAction>, reportID?: string, childReportID?: string) {
     if (isEmptyObject(reportAction)) {
         return '';
     }
@@ -3160,9 +3208,10 @@ function getReportActionMessage(reportAction: OnyxEntry<ReportAction>, parentRep
         return ReportActionsUtils.getReportActionMessageText(reportAction);
     }
     if (ReportActionsUtils.isReimbursementQueuedAction(reportAction)) {
-        return getReimbursementQueuedActionMessage(reportAction, getReport(parentReportID), false);
+        return getReimbursementQueuedActionMessage(reportAction, getReport(reportID), false);
     }
-    return Str.removeSMSDomain(reportAction?.message?.[0]?.text ?? '');
+
+    return parseReportActionHtmlToText(reportAction, reportID ?? '', childReportID);
 }
 
 /**
@@ -3208,7 +3257,7 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
         }
 
         const isAttachment = ReportActionsUtils.isReportActionAttachment(!isEmptyObject(parentReportAction) ? parentReportAction : null);
-        const parentReportActionMessage = getReportActionMessage(parentReportAction, report?.parentReportID).replace(/(\r\n|\n|\r)/gm, ' ');
+        const parentReportActionMessage = getReportActionMessage(parentReportAction, report?.parentReportID, report?.reportID ?? '').replace(/(\r\n|\n|\r)/gm, ' ');
         if (isAttachment && parentReportActionMessage) {
             return `[${Localize.translateLocal('common.attachment')}]`;
         }
@@ -6452,23 +6501,33 @@ function getAllAncestorReportActions(report: Report | null | undefined): Ancesto
     let parentReportID = report.parentReportID;
     let parentReportActionID = report.parentReportActionID;
 
+    // Store the child of parent report
+    let currentReport = report;
+
     while (parentReportID) {
         const parentReport = getReport(parentReportID);
         const parentReportAction = ReportActionsUtils.getReportAction(parentReportID, parentReportActionID ?? '0');
 
-        if (!parentReport || !parentReportAction || ReportActionsUtils.isTransactionThread(parentReportAction) || ReportActionsUtils.isReportPreviewAction(parentReportAction)) {
+        if (!parentReportAction || ReportActionsUtils.isTransactionThread(parentReportAction) || ReportActionsUtils.isReportPreviewAction(parentReportAction)) {
             break;
         }
 
         const isParentReportActionUnread = ReportActionsUtils.isCurrentActionUnread(parentReport, parentReportAction);
         allAncestors.push({
-            report: parentReport,
+            report: currentReport,
             reportAction: parentReportAction,
             shouldDisplayNewMarker: isParentReportActionUnread,
         });
 
+        if (!parentReport) {
+            break;
+        }
+
         parentReportID = parentReport?.parentReportID;
         parentReportActionID = parentReport?.parentReportActionID;
+        if (!isEmptyObject(parentReport)) {
+            currentReport = parentReport;
+        }
     }
 
     return allAncestors.reverse();
@@ -7047,6 +7106,7 @@ export {
     navigateToDetailsPage,
     navigateToPrivateNotes,
     parseReportRouteParams,
+    parseReportActionHtmlToText,
     reportFieldsEnabled,
     requiresAttentionFromCurrentUser,
     shouldAutoFocusOnKeyPress,

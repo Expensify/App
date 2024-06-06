@@ -3202,6 +3202,19 @@ export default {
         mergedWithCashTransaction: 'matched a receipt to this transaction.',
     },
     subscription: {
+        mobileReducedFunctionalityMessage: 'You can’t make changes to your subscription in the mobile app.',
+        cardSection: {
+            title: 'Payment',
+            subtitle: 'Add a payment card to pay for your Expensify subscription.',
+            addCardButton: 'Add payment card',
+            cardNextPayment: 'Your next payment date is',
+            cardEnding: ({cardNumber}) => `Card ending in ${cardNumber}`,
+            cardInfo: ({name, expiration, currency}) => `Name: ${name}, Expiration: ${expiration}, Currency: ${currency}`,
+            changeCard: 'Change payment card',
+            changeCurrency: 'Change payment currency',
+            cardNotFound: 'No payment card added',
+            retryPaymentButton: 'Retry payment',
+        },
         yourPlan: {
             title: 'Your plan',
             collect: {

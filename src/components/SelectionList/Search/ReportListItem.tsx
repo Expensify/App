@@ -79,6 +79,10 @@ function ReportListItem<TItem extends ListItem>({
     const {isLargeScreenWidth} = useWindowDimensions();
     const StyleUtils = useStyleUtils();
 
+    if (reportItem.transactions.length === 0) {
+        return;
+    }
+
     const listItemPressableStyle = [styles.selectionListPressableItemWrapper, styles.pv3, item.isSelected && styles.activeComponentBG, isFocused && styles.sidebarLinkActive];
 
     const handleOnButtonPress = () => {
