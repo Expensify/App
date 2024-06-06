@@ -19,23 +19,15 @@ function usePreferredCurrency(): PreferredCurrency {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
 
-    const defaultCard = useMemo(() => Object.values(fundList ?? {}).find((card) => card.isDefault), [fundList]);
+    const defaultCardCurrency = useMemo(() => Object.values(fundList ?? {}).find((card) => card.isDefault)?.accountData?.currency, [fundList]);
 
-    if (defaultCard?.accountData?.currency) {
-        return defaultCard?.accountData?.currency;
+    if (defaultCardCurrency) {
+        return defaultCardCurrency;
     }
 
-    if (!session?.accountID) {
-        return CONST.PAYMENT_CARD_CURRENCY.USD;
-    }
+    const currentUserLocalCurrency = (personalDetails?.[session?.accountID ?? '']?.localCurrencyCode ?? CONST.PAYMENT_CARD_CURRENCY.USD) as PreferredCurrency;
 
-    const currentUserLocalCurrency = (personalDetails?.[session.accountID]?.localCurrencyCode ?? CONST.PAYMENT_CARD_CURRENCY.USD) as PreferredCurrency;
-
-    if (!Object.values(CONST.PAYMENT_CARD_CURRENCY).includes(currentUserLocalCurrency)) {
-        return CONST.PAYMENT_CARD_CURRENCY.USD;
-    }
-
-    return currentUserLocalCurrency;
+    return Object.values(CONST.PAYMENT_CARD_CURRENCY).includes(currentUserLocalCurrency) ? currentUserLocalCurrency : CONST.PAYMENT_CARD_CURRENCY.USD;
 }
 
 export default usePreferredCurrency;
