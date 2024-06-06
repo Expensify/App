@@ -43,7 +43,7 @@ function setOfflineStatus(isCurrentlyOffline: boolean): void {
     // When reconnecting, ie, going from offline to online, all the reconnection callbacks
     // are triggered (this is usually Actions that need to re-download data from the server)
     if (isOffline && !isCurrentlyOffline) {
-        NetworkActions.setIsBackendReachable(true);
+        NetworkActions.setIsBackendReachable(true, 'moved from offline to online');
         triggerReconnectionCallbacks('offline status changed');
     }
 
@@ -118,20 +118,20 @@ function subscribeToBackendAndInternetReachability(): () => void {
             })
             .then((isBackendReachable: boolean) => {
                 if (isBackendReachable) {
-                    NetworkActions.setIsBackendReachable(true);
+                    NetworkActions.setIsBackendReachable(true, 'successfully completed API request');
                     return;
                 }
                 checkInternetReachability().then((isInternetReachable: boolean) => {
                     setOfflineStatus(!isInternetReachable);
                     setNetWorkStatus(isInternetReachable);
-                    NetworkActions.setIsBackendReachable(false);
+                    NetworkActions.setIsBackendReachable(false, 'request succeeded, but internet reachability test failed');
                 });
             })
             .catch(() => {
                 checkInternetReachability().then((isInternetReachable: boolean) => {
                     setOfflineStatus(!isInternetReachable);
                     setNetWorkStatus(isInternetReachable);
-                    NetworkActions.setIsBackendReachable(false);
+                    NetworkActions.setIsBackendReachable(false, 'request failed and internet reachability test failed');
                 });
             });
     }, CONST.NETWORK.BACKEND_CHECK_INTERVAL_MS);

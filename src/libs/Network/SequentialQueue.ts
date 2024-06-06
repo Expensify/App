@@ -26,6 +26,7 @@ let isQueuePaused = false;
  */
 function pause() {
     if (isQueuePaused) {
+        console.debug('[SequentialQueue] Queue already paused');
         return;
     }
 
@@ -40,6 +41,7 @@ function flushOnyxUpdatesQueue() {
     // The only situation where the queue is paused is if we found a gap between the app current data state and our server's. If that happens,
     // we'll trigger async calls to make the client updated again. While we do that, we don't want to insert anything in Onyx.
     if (isQueuePaused) {
+        console.debug('[SequentialQueue] Queue already paused');
         return;
     }
     QueuedOnyxUpdates.flushQueue();
@@ -56,11 +58,18 @@ function flushOnyxUpdatesQueue() {
 function process(): Promise<void> {
     // When the queue is paused, return early. This prevents any new requests from happening. The queue will be flushed again when the queue is unpaused.
     if (isQueuePaused) {
+        console.debug('[SequentialQueue] Unable to process. Queue is paused.');
+        return Promise.resolve();
+    }
+
+    if (NetworkStore.isOffline()) {
+        console.debug('[SequentialQueue] Unable to process. We are offline.');
         return Promise.resolve();
     }
 
     const persistedRequests = PersistedRequests.getAll();
-    if (persistedRequests.length === 0 || NetworkStore.isOffline()) {
+    if (persistedRequests.length === 0) {
+        console.debug('[SequentialQueue] Unable to process. No requests to process.');
         return Promise.resolve();
     }
 
@@ -72,6 +81,7 @@ function process(): Promise<void> {
             // A response might indicate that the queue should be paused. This happens when a gap in onyx updates is detected between the client and the server and
             // that gap needs resolved before the queue can continue.
             if (response?.shouldPauseQueue) {
+                console.debug('[SequentialQueue] Handled \'shouldPauseQueue\' in response. Pausing the queue.');
                 pause();
             }
             PersistedRequests.remove(requestToProcess);
@@ -102,16 +112,24 @@ function process(): Promise<void> {
 function flush() {
     // When the queue is paused, return early. This will keep an requests in the queue and they will get flushed again when the queue is unpaused
     if (isQueuePaused) {
+        console.debug('[SequentialQueue] Unable to flush. Queue is paused.');
         return;
     }
 
-    if (isSequentialQueueRunning || PersistedRequests.getAll().length === 0) {
+    if (isSequentialQueueRunning) {
+        console.debug('[SequentialQueue] Unable to flush. Queue is already running.');
+        return;
+    }
+
+    if (PersistedRequests.getAll().length === 0) {
+        console.debug('[SequentialQueue] Unable to flush. No requests to process.');
         return;
     }
 
     // ONYXKEYS.PERSISTED_REQUESTS is shared across clients, thus every client/tab will have a copy
     // It is very important to only process the queue from leader client otherwise requests will be duplicated.
     if (!ActiveClientManager.isClientTheLeader()) {
+        console.debug('[SequentialQueue] Unable to flush. Client is not the leader.');
         return;
     }
 
@@ -128,6 +146,7 @@ function flush() {
         callback: () => {
             Onyx.disconnect(connectionID);
             process().finally(() => {
+                console.debug('[SequentialQueue] Finished processing queue.');
                 isSequentialQueueRunning = false;
                 resolveIsReadyPromise?.();
                 currentRequest = null;
@@ -142,6 +161,7 @@ function flush() {
  */
 function unpause() {
     if (!isQueuePaused) {
+        console.debug('[SequentialQueue] Unable to unpause queue. We are already processing.');
         return;
     }
 

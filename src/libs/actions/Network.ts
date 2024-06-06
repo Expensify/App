@@ -1,8 +1,14 @@
 import Onyx from 'react-native-onyx';
 import type {NetworkStatus} from '@libs/NetworkConnection';
 import ONYXKEYS from '@src/ONYXKEYS';
+import Log from '@libs/Log';
 
-function setIsBackendReachable(isBackendReachable: boolean) {
+function setIsBackendReachable(isBackendReachable: boolean, reason: string) {
+    if (isBackendReachable) {
+        Log.info(`[Network] Backend is reachable because: ${reason}`);
+    } else {
+        Log.info(`[Network] Backend is not reachable because: ${reason}`);
+    }
     Onyx.merge(ONYXKEYS.NETWORK, {isBackendReachable});
 }
 
