@@ -62,9 +62,9 @@ function EnablePaymentsPage({userWallet, bankAccountList}: EnablePaymentsPagePro
 
     switch (currentStep) {
         case CONST.WALLET.STEP.ADD_BANK_ACCOUNT:
-        case CONST.WALLET.STEP.ADDITIONAL_DETAILS_KBA:
             return <AddBankAccount />;
         case CONST.WALLET.STEP.ADDITIONAL_DETAILS:
+        case CONST.WALLET.STEP.ADDITIONAL_DETAILS_KBA:
             return <PersonalInfo />;
         case CONST.WALLET.STEP.ONFIDO:
             return <VerifyIdentity />;
