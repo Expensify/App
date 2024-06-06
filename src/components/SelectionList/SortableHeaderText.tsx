@@ -14,23 +14,34 @@ type SearchTableHeaderColumnProps = {
     text: string;
     isActive: boolean;
     sortOrder: SortOrder;
-    shouldShow?: boolean;
     isSortable?: boolean;
     containerStyle?: StyleProp<ViewStyle>;
     textStyle?: StyleProp<TextStyle>;
     onPress: (order: SortOrder) => void;
 };
 
-export default function SortableHeaderText({text, sortOrder, isActive, textStyle, containerStyle, shouldShow = true, isSortable = true, onPress}: SearchTableHeaderColumnProps) {
+export default function SortableHeaderText({text, sortOrder, isActive, textStyle, containerStyle, isSortable = true, onPress}: SearchTableHeaderColumnProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
 
-    if (!shouldShow) {
-        return null;
+    if (!isSortable) {
+        return (
+            <View style={containerStyle}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
+                    <Text
+                        numberOfLines={1}
+                        style={[styles.textMicroSupporting, textStyle]}
+                    >
+                        {text}
+                    </Text>
+                </View>
+            </View>
+        );
     }
 
     const icon = sortOrder === CONST.SORT_ORDER.ASC ? Expensicons.ArrowUpLong : Expensicons.ArrowDownLong;
     const displayIcon = isActive;
+    const activeColumnStyle = isSortable && isActive && styles.searchTableHeaderActive;
 
     const nextSortOrder = isActive && sortOrder === CONST.SORT_ORDER.DESC ? CONST.SORT_ORDER.ASC : CONST.SORT_ORDER.DESC;
 
@@ -46,7 +57,7 @@ export default function SortableHeaderText({text, sortOrder, isActive, textStyle
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
                     <Text
                         numberOfLines={1}
-                        style={[styles.textMicroSupporting, textStyle, isActive && styles.searchTableHeaderActive]}
+                        style={[styles.textMicroSupporting, activeColumnStyle, textStyle]}
                     >
                         {text}
                     </Text>
