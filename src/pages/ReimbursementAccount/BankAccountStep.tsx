@@ -189,7 +189,6 @@ function BankAccountStep({
                                     fontSize={variables.fontSizeLabel}
                                     onPress={() => {
                                         const login = loginList?.[loginNames?.[0]] ?? {};
-
                                         Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(login?.partnerUserID ?? loginNames?.[0]));
                                     }}
                                 >
