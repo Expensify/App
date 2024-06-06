@@ -21,6 +21,7 @@ function UserListItem<TItem extends ListItem>({
     isFocused,
     showTooltip,
     isDisabled,
+    isInteractive,
     canSelectMultiple,
     onSelectRow,
     onCheckboxPress,
@@ -55,6 +56,7 @@ function UserListItem<TItem extends ListItem>({
             wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.userSelectNone, styles.peopleRow, isFocused && styles.sidebarLinkActive]}
             isFocused={isFocused}
             isDisabled={isDisabled}
+            isInteractive={isInteractive}
             showTooltip={showTooltip}
             canSelectMultiple={canSelectMultiple}
             onSelectRow={onSelectRow}

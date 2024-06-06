@@ -617,7 +617,7 @@ function MoneyRequestConfirmationList({
             const formattedSelectedParticipants = selectedParticipants.map((participant) => ({
                 ...participant,
                 isSelected: false,
-                isDisabled: shouldDisableParticipant(participant),
+                isInteractive: !shouldDisableParticipant(participant),
             }));
             options.push({
                 title: translate('common.to'),

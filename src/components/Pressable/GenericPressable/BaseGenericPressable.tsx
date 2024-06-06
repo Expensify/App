@@ -36,6 +36,7 @@ function GenericPressable(
         onPressOut,
         accessible = true,
         fullDisabled = false,
+        interactive = true,
         ...rest
     }: PressableProps,
     ref: PressableRef,
@@ -66,6 +67,9 @@ function GenericPressable(
      * Returns the cursor style based on the state of Pressable
      */
     const cursorStyle = useMemo(() => {
+        if (!interactive) {
+            return styles.cursorDefault;
+        }
         if (shouldUseDisabledCursor) {
             return styles.cursorDisabled;
         }
@@ -73,7 +77,7 @@ function GenericPressable(
             return styles.cursorText;
         }
         return styles.cursorPointer;
-    }, [styles, shouldUseDisabledCursor, rest.accessibilityRole, rest.role]);
+    }, [styles, shouldUseDisabledCursor, rest.accessibilityRole, rest.role, interactive]);
 
     const onLongPressHandler = useCallback(
         (event: GestureResponderEvent) => {
@@ -98,7 +102,7 @@ function GenericPressable(
 
     const onPressHandler = useCallback(
         (event?: GestureResponderEvent | KeyboardEvent) => {
-            if (isDisabled) {
+            if (isDisabled || !interactive) {
                 return;
             }
             if (!onPress) {
@@ -114,7 +118,7 @@ function GenericPressable(
             Accessibility.moveAccessibilityFocus(nextFocusRef);
             return onPressResult;
         },
-        [shouldUseHapticsOnPress, onPress, nextFocusRef, ref, isDisabled],
+        [shouldUseHapticsOnPress, onPress, nextFocusRef, ref, isDisabled, interactive],
     );
 
     const onKeyboardShortcutPressHandler = useCallback(
