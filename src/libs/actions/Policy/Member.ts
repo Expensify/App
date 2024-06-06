@@ -1,4 +1,4 @@
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import {ExpensiMark} from 'expensify-common';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
@@ -575,7 +575,9 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
 
             // Convert to object with each key containing the error. We don’t
             // need to remove the members since that is handled by onClose of OfflineWithFeedback.
-            value: failureMembersState,
+            value: {
+                employeeList: failureMembersState,
+            },
         },
         ...membersChats.onyxFailureData,
         ...announceRoomMembers.onyxFailureData,

@@ -1,6 +1,5 @@
 import {format} from 'date-fns';
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import Str from 'expensify-common/lib/str';
+import {ExpensiMark, Str} from 'expensify-common';
 import {isEmpty} from 'lodash';
 import lodashEscape from 'lodash/escape';
 import lodashFindLastIndex from 'lodash/findLastIndex';
@@ -903,6 +902,13 @@ function isPolicyExpenseChat(report: OnyxEntry<Report> | Participant | EmptyObje
 
 function isInvoiceRoom(report: OnyxEntry<Report> | EmptyObject): boolean {
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.INVOICE;
+}
+
+/**
+ * Checks if a report is a completed task report.
+ */
+function isTripRoom(report: OnyxEntry<Report>): boolean {
+    return isChatReport(report) && getChatType(report) === CONST.REPORT.CHAT_TYPE.TRIP_ROOM;
 }
 
 function isCurrentUserInvoiceReceiver(report: OnyxEntry<Report>): boolean {
@@ -2888,7 +2894,7 @@ function getReportPreviewMessage(
             }
 
             const transactionDetails = getTransactionDetails(linkedTransaction);
-            const formattedAmount = CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency ?? '');
+            const formattedAmount = CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency);
             return Localize.translateLocal('iou.didSplitAmount', {formattedAmount, comment: transactionDetails?.comment ?? ''});
         }
     }
@@ -2910,7 +2916,7 @@ function getReportPreviewMessage(
             }
 
             const transactionDetails = getTransactionDetails(linkedTransaction);
-            const formattedAmount = CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency ?? '');
+            const formattedAmount = CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency);
             return Localize.translateLocal('iou.trackedAmount', {formattedAmount, comment: transactionDetails?.comment ?? ''});
         }
     }
@@ -3227,6 +3233,11 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
         if (ReportActionsUtils.isModifiedExpenseAction(parentReportAction)) {
             return ModifiedExpenseMessage.getForReportAction(report?.reportID, parentReportAction);
         }
+
+        if (isTripRoom(report)) {
+            return report?.reportName ?? '';
+        }
+
         return parentReportActionMessage;
     }
 
@@ -3855,7 +3866,7 @@ function getIOUSubmittedMessage(report: OnyxEntry<Report>) {
         ];
     }
 
-    const submittedToPersonalDetail = getPersonalDetailsForAccountID(policy?.submitsTo ?? 0);
+    const submittedToPersonalDetail = getPersonalDetailsForAccountID(PolicyUtils.getSubmitToAccountID(policy, report?.ownerAccountID ?? 0));
     let submittedToDisplayName = `${submittedToPersonalDetail.displayName ?? ''}${
         submittedToPersonalDetail.displayName !== submittedToPersonalDetail.login ? ` (${submittedToPersonalDetail.login})` : ''
     }`;
@@ -6361,9 +6372,9 @@ function hasHeldExpenses(iouReportID?: string): boolean {
 /**
  * Check if all expenses in the Report are on hold
  */
-function hasOnlyHeldExpenses(iouReportID: string): boolean {
-    const transactions = TransactionUtils.getAllReportTransactions(iouReportID);
-    return !transactions.some((transaction) => !TransactionUtils.isOnHold(transaction));
+function hasOnlyHeldExpenses(iouReportID: string, transactions?: OnyxCollection<Transaction>): boolean {
+    const reportTransactions = TransactionUtils.getAllReportTransactions(iouReportID, transactions);
+    return !reportTransactions.some((transaction) => !TransactionUtils.isOnHold(transaction));
 }
 
 /**
@@ -6400,12 +6411,12 @@ function getNonHeldAndFullAmount(iouReport: OnyxEntry<Report>, policy: OnyxEntry
     if (hasUpdatedTotal(iouReport, policy) && hasPendingTransaction) {
         const unheldTotal = transactions.reduce((currentVal, transaction) => currentVal - (!TransactionUtils.isOnHold(transaction) ? transaction.amount : 0), 0);
 
-        return [CurrencyUtils.convertToDisplayString(unheldTotal, iouReport?.currency ?? ''), CurrencyUtils.convertToDisplayString((iouReport?.total ?? 0) * -1, iouReport?.currency ?? '')];
+        return [CurrencyUtils.convertToDisplayString(unheldTotal, iouReport?.currency), CurrencyUtils.convertToDisplayString((iouReport?.total ?? 0) * -1, iouReport?.currency)];
     }
 
     return [
-        CurrencyUtils.convertToDisplayString((iouReport?.unheldTotal ?? 0) * -1, iouReport?.currency ?? ''),
-        CurrencyUtils.convertToDisplayString((iouReport?.total ?? 0) * -1, iouReport?.currency ?? ''),
+        CurrencyUtils.convertToDisplayString((iouReport?.unheldTotal ?? 0) * -1, iouReport?.currency),
+        CurrencyUtils.convertToDisplayString((iouReport?.total ?? 0) * -1, iouReport?.currency),
     ];
 }
 
@@ -6617,6 +6628,13 @@ function hasMissingPaymentMethod(userWallet: OnyxEntry<UserWallet>, iouReportID:
  */
 function shouldCreateNewMoneyRequestReport(existingIOUReport: OnyxEntry<Report> | undefined | null, chatReport: OnyxEntry<Report> | null): boolean {
     return !existingIOUReport || hasIOUWaitingOnCurrentUserBankAccount(chatReport) || !canAddOrDeleteTransactions(existingIOUReport);
+}
+
+function getTripTransactions(tripRoomReportID: string | undefined): Transaction[] {
+    const tripTransactionReportIDs = Object.values(allReports ?? {})
+        .filter((report) => report && report?.parentReportID === tripRoomReportID)
+        .map((report) => report?.reportID);
+    return tripTransactionReportIDs.flatMap((reportID) => TransactionUtils.getAllReportTransactions(reportID));
 }
 
 /**
@@ -6964,6 +6982,7 @@ export {
     isCanceledTaskReport,
     isChatReport,
     isChatRoom,
+    isTripRoom,
     isChatThread,
     isChildReport,
     isClosedExpenseReportWithNoExpenses,
@@ -7054,6 +7073,7 @@ export {
     updateOptimisticParentReportAction,
     updateReportPreview,
     temporary_getMoneyRequestOptions,
+    getTripTransactions,
     buildOptimisticInvoiceReport,
     getInvoiceChatByParticipants,
     shouldShowMerchantColumn,

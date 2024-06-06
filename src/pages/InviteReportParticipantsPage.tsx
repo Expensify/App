@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
-import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -190,10 +189,25 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
         return OptionsListUtils.getHeaderMessage(invitePersonalDetails.length !== 0, Boolean(userToInvite), searchValue);
     }, [searchTerm, userToInvite, excludedUsers, invitePersonalDetails, translate, reportName]);
 
+    const footerContent = useMemo(
+        () => (
+            <FormAlertWithSubmitButton
+                isDisabled={!selectedOptions.length}
+                buttonText={translate('common.invite')}
+                onSubmit={inviteUsers}
+                containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
+                enabledWhenOffline
+                disablePressOnEnter
+            />
+        ),
+        [selectedOptions.length, inviteUsers, translate, styles],
+    );
+
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
             testID={InviteReportParticipantsPage.displayName}
+            includeSafeAreaPaddingBottom={false}
         >
             <HeaderWithBackButton
                 title={translate('workspace.invite.members')}
@@ -202,32 +216,22 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
                     Navigation.goBack(backRoute);
                 }}
             />
-            <View style={[styles.flex1, styles.p1]}>
-                <SelectionList
-                    canSelectMultiple
-                    sections={sections}
-                    ListItem={InviteMemberListItem}
-                    textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
-                    textInputValue={searchTerm}
-                    onChangeText={setSearchTerm}
-                    headerMessage={headerMessage}
-                    onSelectRow={toggleOption}
-                    onConfirm={inviteUsers}
-                    showScrollIndicator
-                    shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                    showLoadingPlaceholder={!didScreenTransitionEnd || !OptionsListUtils.isPersonalDetailsReady(personalDetails)}
-                />
-            </View>
-            <View style={[styles.flexShrink0, styles.p5]}>
-                <FormAlertWithSubmitButton
-                    isDisabled={!selectedOptions.length}
-                    buttonText={translate('common.invite')}
-                    onSubmit={inviteUsers}
-                    containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5]}
-                    enabledWhenOffline
-                    disablePressOnEnter
-                />
-            </View>
+
+            <SelectionList
+                canSelectMultiple
+                sections={sections}
+                ListItem={InviteMemberListItem}
+                textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
+                textInputValue={searchTerm}
+                onChangeText={setSearchTerm}
+                headerMessage={headerMessage}
+                onSelectRow={toggleOption}
+                onConfirm={inviteUsers}
+                showScrollIndicator
+                shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+                showLoadingPlaceholder={!didScreenTransitionEnd || !OptionsListUtils.isPersonalDetailsReady(personalDetails)}
+                footerContent={footerContent}
+            />
         </ScreenWrapper>
     );
 }

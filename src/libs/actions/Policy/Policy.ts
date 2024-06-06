@@ -1,5 +1,4 @@
-import {PUBLIC_DOMAINS} from 'expensify-common/lib/CONST';
-import Str from 'expensify-common/lib/str';
+import {PUBLIC_DOMAINS, Str} from 'expensify-common';
 import {escapeRegExp} from 'lodash';
 import lodashClone from 'lodash/clone';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
@@ -81,8 +80,6 @@ type OptimisticCustomUnits = {
     customUnitRateID: string;
     outputCurrency: string;
 };
-
-type PoliciesRecord = Record<string, OnyxEntry<Policy>>;
 
 type NewCustomUnit = {
     customUnitID: string;
@@ -2649,6 +2646,10 @@ function enablePolicyConnections(policyID: string, enabled: boolean) {
     const parameters: EnablePolicyConnectionsParams = {policyID, enabled};
 
     API.write(WRITE_COMMANDS.ENABLE_POLICY_CONNECTIONS, parameters, onyxData);
+
+    if (enabled && getIsNarrowLayout()) {
+        navigateWhenEnableFeature(policyID);
+    }
 }
 
 function enablePolicyReportFields(policyID: string, enabled: boolean) {
@@ -2893,6 +2894,62 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
     }
 }
 
+function enableDistanceRequestTax(policyID: string, customUnitName: string, customUnitID: string, attributes: Attributes) {
+    const policy = getPolicy(policyID);
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    customUnits: {
+                        [customUnitID]: {
+                            attributes,
+                        },
+                    },
+                    pendingFields: {
+                        customUnits: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {
+                        customUnits: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    customUnits: {
+                        [customUnitID]: {
+                            attributes: policy.customUnits ? policy.customUnits[customUnitID].attributes : null,
+                        },
+                    },
+                },
+            },
+        ],
+    };
+
+    const params = {
+        policyID,
+        customUnit: JSON.stringify({
+            customUnitName,
+            customUnitID,
+            attributes,
+        }),
+    };
+    API.write(WRITE_COMMANDS.ENABLE_DISTANCE_REQUEST_TAX, params, onyxData);
+}
+
 function openPolicyMoreFeaturesPage(policyID: string) {
     const params: OpenPolicyMoreFeaturesPageParams = {policyID};
 
@@ -3070,7 +3127,6 @@ function setForeignCurrencyDefault(policyID: string, taxCode: string) {
 export {
     leaveWorkspace,
     addBillingCardAndRequestPolicyOwnerChange,
-    isAdminOfFreePolicy,
     hasActiveChatEnabledPolicies,
     setWorkspaceErrors,
     clearCustomUnitErrors,
@@ -3117,6 +3173,7 @@ export {
     enablePolicyReportFields,
     enablePolicyTaxes,
     enablePolicyWorkflows,
+    enableDistanceRequestTax,
     openPolicyMoreFeaturesPage,
     generateCustomUnitID,
     clearQBOErrorField,
