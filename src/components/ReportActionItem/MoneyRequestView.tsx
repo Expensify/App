@@ -585,7 +585,7 @@ export default withOnyx<MoneyRequestViewPropsWithoutTransaction, MoneyRequestVie
     },
     distanceRates: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`,
-        selector: (policy: OnyxEntry<OnyxTypes.Policy>) => DistanceRequestUtils.getMileageRates(policy, true),
+        selector: DistanceRequestUtils.getMileageRates,
     },
 })(
     withOnyx<MoneyRequestViewProps, MoneyRequestViewTransactionOnyxProps>({
