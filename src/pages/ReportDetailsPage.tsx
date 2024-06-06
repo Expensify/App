@@ -134,6 +134,8 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         Report.leaveGroupChat(report.reportID);
     }, [isChatRoom, isPolicyEmployee, isPolicyExpenseChat, report.reportID, report.visibility]);
 
+    const shouldShowLeaveButton = isGroupChat || (isChatRoom && ReportUtils.canLeaveChat(report, policy ?? null));
+
     const menuItems: ReportDetailsPageMenuItem[] = useMemo(() => {
         const items: ReportDetailsPageMenuItem[] = [];
 
@@ -209,7 +211,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             });
         }
 
-        if (isGroupChat || (isChatRoom && ReportUtils.canLeaveChat(report, policy ?? null))) {
+        if (shouldShowLeaveButton) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
                 translationKey: 'common.leave',
@@ -227,7 +229,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         }
 
         return items;
-    }, [isSelfDM, isArchivedRoom, isGroupChat, isDefaultRoom, isChatThread, isPolicyEmployee, isUserCreatedPolicyRoom, participants.length, report, isSystemChat, isPolicyExpenseChat, isMoneyRequestReport, isInvoiceReport, isTaskReport, isChatRoom, policy, activeChatMembers.length, session, leaveChat]);
+    }, [isSelfDM, isArchivedRoom, isGroupChat, isDefaultRoom, isChatThread, isPolicyEmployee, isUserCreatedPolicyRoom, participants.length, report, isSystemChat, isPolicyExpenseChat, isMoneyRequestReport, isInvoiceReport, isTaskReport, shouldShowLeaveButton, activeChatMembers.length, session, leaveChat]);
 
     const displayNamesWithTooltips = useMemo(() => {
         const hasMultipleParticipants = participants.length > 1;
@@ -335,11 +337,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 style={[isPolicy ? styles.pb1 : undefined]}
                 titleStyle={styles.textHeadline}
                 description={isGroupChat ? translate('common.name') : translate('newRoomPage.roomName')}
-                onPress={() =>
-                    isGroupChat
-                        ? Navigation.navigate(ROUTES.REPORT_SETTINGS_GROUP_NAME.getRoute(report.reportID))
-                        : Navigation.navigate(ROUTES.REPORT_SETTINGS_ROOM_NAME.getRoute(report.reportID))
-                }
+                onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NAME.getRoute(report.reportID))}
                 disabled={shouldDisableRename}
                 shouldGreyOutWhenDisabled={false}
             />
@@ -364,8 +362,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             )}
         </OfflineWithFeedback>
     );
-
-    const shouldShowLeaveButton = !isDefaultRoom && !isExpenseReport;
 
     return (
         <ScreenWrapper testID={ReportDetailsPage.displayName}>
@@ -409,7 +405,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                         </OfflineWithFeedback>
                     )}
 
-                    <PromotedActionsBar promotedActions={[PromotedActions.pin(report), ...(isGroupDMChat ? [] : [PromotedActions.share(report)])]} />
+                    <PromotedActionsBar containerStyle={styles.mt5} promotedActions={[PromotedActions.pin(report), ...(isGroupDMChat ? [] : [PromotedActions.share(report)])]} />
                     
                     {menuItems.map((item) => {
                         const brickRoadIndicator =
@@ -427,38 +423,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                             />
                         );
                     })}
-
-                    {shouldShowLeaveButton && (
-                        <MenuItem
-                            key={CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM}
-                            title={translate('common.leave')}
-                            icon={Expensicons.Exit}
-                            isAnonymousAction={false}
-                            shouldShowRightIcon={false}
-                            onPress={() => {
-                                if (Object.keys(report?.participants ?? {}).length === 1) {
-                                    setIsLastMemberLeavingGroupModalVisible(true);
-                                    return;
-                                }
-
-                                Report.leaveGroupChat(report.reportID);
-                            }}
-                        />
-                    )}
-
-                    <ConfirmModal
-                        danger
-                        title={translate('groupChat.lastMemberTitle')}
-                        isVisible={isLastMemberLeavingGroupModalVisible}
-                        onConfirm={() => {
-                            setIsLastMemberLeavingGroupModalVisible(false);
-                            Report.leaveGroupChat(report.reportID);
-                        }}
-                        onCancel={() => setIsLastMemberLeavingGroupModalVisible(false)}
-                        prompt={translate('groupChat.lastMemberWarning')}
-                        confirmText={translate('common.leave')}
-                        cancelText={translate('common.cancel')}
-                    />
                 </ScrollView>
                 <ConfirmModal
                     danger
