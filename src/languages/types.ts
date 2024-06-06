@@ -307,8 +307,6 @@ type LogSizeParams = {size: number};
 
 type HeldRequestParams = {comment: string};
 
-type DistanceRateOperationsParams = {count: number};
-
 type ReimbursementRateParams = {unit: Unit};
 
 export type {
@@ -330,7 +328,6 @@ export type {
     DeleteActionParams,
     DeleteConfirmationParams,
     DidSplitAmountMessageParams,
-    DistanceRateOperationsParams,
     EditActionParams,
     ElectronicFundsParams,
     EnglishTranslation,
