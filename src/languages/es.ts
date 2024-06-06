@@ -2214,7 +2214,6 @@ export default {
             importedFromAccountingSoftware: 'Categorías importadas desde',
             glCode: 'GL code',
             updateGLCodeFailureMessage: 'An error occurred while updating the GL code, please try again.',
-            payrollCode: 'Payroll code',
         },
         moreFeatures: {
             spendSection: {
