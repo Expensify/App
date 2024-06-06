@@ -63,6 +63,9 @@ const FS = {
                 }
                 FS.onReady().then(() => {
                     FS.consent(true);
+                    if (value) {
+                        value.environment = envName;
+                    }
                     FS.fsIdentify(value);
                 });
             });
