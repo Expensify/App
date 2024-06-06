@@ -18,7 +18,7 @@ function findFirstItem<TResource>(sortedItems: TResource[], page: string[], getI
             return {id, index: 0};
         }
         const index = sortedItems.findIndex((item) => getID(item) === id);
-        if (index === -1) {
+        if (index !== -1) {
             return {id, index};
         }
     }
@@ -72,7 +72,6 @@ function getPagesWithIndexes<TResource>(sortedItems: TResource[], pages: Pages, 
 
 function mergeContinuousPages<TResource>(sortedItems: TResource[], pages: Pages, getItemID: (item: TResource) => string): Pages {
     const pagesWithIndexes = getPagesWithIndexes(sortedItems, pages, getItemID);
-
     if (pagesWithIndexes.length === 0) {
         return [];
     }

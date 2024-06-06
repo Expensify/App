@@ -28,7 +28,6 @@ function isPaginatedRequest<TResource, TResourceKey extends OnyxCollectionKey, T
  * so it can keep track of and fill any potential gaps in paginated lists.
  */
 const Pagination: Middleware = (requestResponse, request) => {
-    console.log(isPaginatedRequest(request), request.command);
     if (!isPaginatedRequest(request)) {
         return requestResponse;
     }

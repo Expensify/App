@@ -947,8 +947,8 @@ function openReport(
     parameters.clientLastReadTime = currentReportData?.[reportID]?.lastReadTime ?? '';
 
     const paginationConfig: PaginationConfig<ReportAction, typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES> = {
-        resourceKey: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-        pageKey: ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES,
+        resourceKey: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        pageKey: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${reportID}`,
         getItemsFromResponse: (response) => response?.onyxData?.find((data) => data.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`)?.value as ReportActions,
         sortItems: (reportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true),
         getItemID: (reportAction) => reportAction.reportActionID,
@@ -1118,8 +1118,8 @@ function getOlderActions(reportID: string, reportActionID: string) {
         parameters,
         {optimisticData, successData, failureData},
         {
-            resourceKey: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-            pageKey: ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES,
+            resourceKey: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            pageKey: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${reportID}`,
             getItemsFromResponse: (response) => response?.onyxData?.find((data) => data.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`)?.value as ReportActions,
             sortItems: (reportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true),
             getItemID: (reportAction) => reportAction.reportActionID,
@@ -1176,8 +1176,8 @@ function getNewerActions(reportID: string, reportActionID: string) {
         parameters,
         {optimisticData, successData, failureData},
         {
-            resourceKey: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-            pageKey: ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES,
+            resourceKey: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            pageKey: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${reportID}`,
             getItemsFromResponse: (response) => response?.onyxData?.find((data) => data.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`)?.value as ReportActions,
             sortItems: (reportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true),
             getItemID: (reportAction) => reportAction.reportActionID,
