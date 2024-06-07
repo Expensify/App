@@ -564,7 +564,7 @@ function MoneyRequestView({
                 )}
                 {shouldShowViewTripDetails && tripID && (
                     <MenuItem
-                        title="View trip details"
+                        title={translate('travel.viewTripDetails')}
                         icon={Expensicons.Suitcase}
                         iconRight={Expensicons.NewWindow}
                         shouldShowRightIcon

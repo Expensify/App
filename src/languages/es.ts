@@ -1919,6 +1919,7 @@ export default {
         hotel: 'Hotel',
         car: 'Auto',
         viewTrip: 'Ver viaje',
+        viewTripDetails: 'View trip details',
         trip: 'Viaje',
         tripSummary: 'Resumen del viaje',
         departs: 'Sale',

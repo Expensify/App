@@ -1895,6 +1895,7 @@ export default {
         hotel: 'Hotel',
         car: 'Car',
         viewTrip: 'View trip',
+        viewTripDetails: 'View trip details',
         trip: 'Trip',
         tripSummary: 'Trip summary',
         departs: 'Departs',
