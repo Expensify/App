@@ -4980,10 +4980,6 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'center',
         }),
 
-        tripReservationTitleGap: {
-            gap: 2,
-        },
-
         textLineThrough: {
             textDecorationLine: 'line-through',
         },

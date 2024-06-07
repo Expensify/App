@@ -89,7 +89,7 @@ function ReservationView({reservation}: ReservationViewProps) {
             description={translate(`travel.${reservation.type}`)}
             descriptionTextStyle={styles.textMicro}
             titleComponent={titleComponent}
-            titleContainerStyle={styles.tripReservationTitleGap}
+            titleContainerStyle={styles.gap1}
             secondaryIcon={reservationIcon}
             shouldShowRightIcon={false}
             wrapperStyle={[styles.taskDescriptionMenuItem, styles.p0]}
