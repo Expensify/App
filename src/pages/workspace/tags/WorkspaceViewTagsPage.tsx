@@ -238,7 +238,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                     <ToggleSettingOptionRow
                         title={translate('common.required')}
                         switchAccessibilityLabel={translate('common.required')}
-                        isActive={Boolean(currentPolicyTag?.required)}
+                        isActive={!!currentPolicyTag?.required}
                         onToggle={(on) => Tag.setPolicyTagsRequired(policyID, on, route.params.orderWeight)}
                         pendingAction={currentPolicyTag.pendingFields?.required}
                         errors={currentPolicyTag?.errorFields?.required ?? undefined}
