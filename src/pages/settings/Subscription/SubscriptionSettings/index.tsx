@@ -11,6 +11,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import * as Subscription from '@userActions/Subscription';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -26,7 +27,6 @@ function SubscriptionSettings() {
 
     // TODO these default state values will come from API in next phase
     const [autoRenew, setAutoRenew] = useState(true);
-    const [autoIncrease, setAutoIncrease] = useState(false);
 
     const autoRenewalDate = privateSubscription?.endDate ? format(addMonths(new Date(privateSubscription?.endDate), 1), CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT) : '';
 
@@ -40,8 +40,11 @@ function SubscriptionSettings() {
         Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_DISABLE_AUTO_RENEW_SURVEY);
     };
     const handleAutoIncreaseToggle = () => {
-        // TODO make API call to toggle auto increase here
-        setAutoIncrease(!autoIncrease);
+        if (privateSubscription?.addNewUsersAutomatically === undefined) {
+            Subscription.updateSubscriptionAddNewUsersAutomatically(true);
+        } else {
+            Subscription.updateSubscriptionAddNewUsersAutomatically(!privateSubscription.addNewUsersAutomatically);
+        }
     };
 
     if (privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.PAYPERUSE) {
