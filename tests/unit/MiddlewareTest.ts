@@ -14,7 +14,6 @@ Onyx.init({
 });
 
 beforeAll(() => {
-    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
     global.fetch = TestHelper.getGlobalFetchMock();
 });
 
@@ -50,9 +49,9 @@ describe('Middleware', () => {
 
             expect(global.fetch).toHaveBeenCalledTimes(2);
             expect(global.fetch).toHaveBeenLastCalledWith('https://www.expensify.com.dev/api/AddComment?', expect.anything());
-            TestHelper.assertFormDataMatchesObject((global.fetch as jest.Mock).mock.calls[1][1].body, {reportID: '1234', reportActionID: '5678'});
+            TestHelper.assertFormDataMatchesObject((global.fetch as jest.Mock).mock.calls[1][1].body as TestHelper.FormData, {reportID: '1234', reportActionID: '5678'});
             expect(global.fetch).toHaveBeenNthCalledWith(1, 'https://www.expensify.com.dev/api/OpenReport?', expect.anything());
-            TestHelper.assertFormDataMatchesObject((global.fetch as jest.Mock).mock.calls[0][1].body, {reportID: '1234'});
+            TestHelper.assertFormDataMatchesObject((global.fetch as jest.Mock).mock.calls[0][1].body as TestHelper.FormData, {reportID: '1234'});
         });
 
         test('Request with preexistingReportID', async () => {
@@ -94,9 +93,9 @@ describe('Middleware', () => {
 
             expect(global.fetch).toHaveBeenCalledTimes(2);
             expect(global.fetch).toHaveBeenLastCalledWith('https://www.expensify.com.dev/api/AddComment?', expect.anything());
-            TestHelper.assertFormDataMatchesObject((global.fetch as jest.Mock).mock.calls[1][1].body, {reportID: '5555', reportActionID: '5678'});
+            TestHelper.assertFormDataMatchesObject((global.fetch as jest.Mock).mock.calls[1][1].body as TestHelper.FormData, {reportID: '5555', reportActionID: '5678'});
             expect(global.fetch).toHaveBeenNthCalledWith(1, 'https://www.expensify.com.dev/api/OpenReport?', expect.anything());
-            TestHelper.assertFormDataMatchesObject((global.fetch as jest.Mock).mock.calls[0][1].body, {reportID: '1234'});
+            TestHelper.assertFormDataMatchesObject((global.fetch as jest.Mock).mock.calls[0][1].body as TestHelper.FormData, {reportID: '1234'});
         });
     });
 });
