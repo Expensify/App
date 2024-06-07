@@ -108,7 +108,7 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
     if (!parentReportActions || !parentReportActionID) {
         return null;
     }
-    return parentReportActions[parentReportActionID ?? '-1'];
+    return parentReportActions[parentReportActionID ?? '0'];
 }
 
 function ReportScreen({
@@ -168,7 +168,7 @@ function ReportScreen({
     const report = useMemo(
         (): OnyxTypes.Report => ({
             lastReadTime: reportOnyx?.lastReadTime,
-            reportID: reportOnyx?.reportID ?? '-1',
+            reportID: reportOnyx?.reportID ?? '',
             policyID: reportOnyx?.policyID,
             lastVisibleActionCreated: reportOnyx?.lastVisibleActionCreated,
             statusNum: reportOnyx?.statusNum,
@@ -436,7 +436,7 @@ function ReportScreen({
     }, []);
 
     const chatWithAccountManager = useCallback(() => {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(accountManagerReportID ?? '-1'));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(accountManagerReportID ?? ''));
     }, [accountManagerReportID]);
 
     // Clear notifications for the current report when it's opened and re-focused
