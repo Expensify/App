@@ -3442,7 +3442,7 @@ function clearPrivateNotesError(reportID: string, accountID: number) {
 }
 
 function getDraftPrivateNote(reportID: string): string {
-    return draftNoteMap?.[reportID] ?? '-1';
+    return draftNoteMap?.[reportID] ?? '';
 }
 
 /**
