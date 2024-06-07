@@ -396,7 +396,13 @@ function ReportScreen({
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(
         (): boolean =>
-            (!isLoadingApp && !wasReportAccessibleRef.current && !firstRenderRef.current && !report.reportID && !isOptimisticDelete && !reportMetadata?.isLoadingInitialReportActions && !userLeavingStatus) ||
+            (!isLoadingApp &&
+                !wasReportAccessibleRef.current &&
+                !firstRenderRef.current &&
+                !report.reportID &&
+                !isOptimisticDelete &&
+                !reportMetadata?.isLoadingInitialReportActions &&
+                !userLeavingStatus) ||
             shouldHideReport ||
             (!!currentReportIDFormRoute && !ReportUtils.isValidReportIDFromPath(currentReportIDFormRoute)),
         [report.reportID, isOptimisticDelete, reportMetadata?.isLoadingInitialReportActions, userLeavingStatus, shouldHideReport, currentReportIDFormRoute, isLoadingApp],
@@ -431,8 +437,8 @@ function ReportScreen({
         }
 
         /**
-         * Since OpenReport is a write, the response from OpenReport will get dropped while the app is 
-         * still loading. This usually happens when signing in and deeplinking to a report. Instead, 
+         * Since OpenReport is a write, the response from OpenReport will get dropped while the app is
+         * still loading. This usually happens when signing in and deeplinking to a report. Instead,
          * we'll fetch the report after the app finishes loading in an effect below
          */
         if (isLoadingApp) {
@@ -585,7 +591,7 @@ function ReportScreen({
         prevReport,
         reportIDFromRoute,
         isFocused,
-        finishedLoadingReport
+        finishedLoadingReport,
     ]);
 
     useEffect(() => {
