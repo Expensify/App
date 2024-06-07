@@ -402,6 +402,7 @@ function MoneyRequestView({
                     />
                 )}
                 {!shouldShowReceiptEmptyState && !shouldShowMapOrReceipt && <View style={{marginVertical: 6}} />}
+                {canUseViolations && <ViolationMessages violations={getViolationsForField('receipt')} />}
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('amount')}>
                     <MenuItemWithTopDescription
                         title={amountTitle}
