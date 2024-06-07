@@ -138,7 +138,6 @@ function getTagViolationForIndependentTags(policyTagList: PolicyTagList, transac
 function getTagViolationsForMultiLevelTags(
     updatedTransaction: Transaction,
     transactionViolations: TransactionViolation[],
-    policyRequiresTags: boolean,
     policyTagList: PolicyTagList,
     hasDependentTags: boolean,
 ): TransactionViolation[] {
@@ -215,7 +214,7 @@ const ViolationsUtils = {
             newTransactionViolations =
                 Object.keys(policyTagList).length === 1
                     ? getTagViolationsForSingleLevelTags(updatedTransaction, newTransactionViolations, policyRequiresTags, policyTagList)
-                    : getTagViolationsForMultiLevelTags(updatedTransaction, newTransactionViolations, policyRequiresTags, policyTagList, hasDependentTags);
+                    : getTagViolationsForMultiLevelTags(updatedTransaction, newTransactionViolations, policyTagList, hasDependentTags);
         }
 
         return {
