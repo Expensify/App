@@ -15,6 +15,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     Beta,
     Login,
+    OnyxInputOrEntry,
     PersonalDetails,
     PersonalDetailsList,
     Policy,
@@ -362,7 +363,7 @@ function getAvatarsForAccountIDs(accountIDs: number[], personalDetails: OnyxEntr
  * Returns the personal details for an array of accountIDs
  * @returns keys of the object are emails, values are PersonalDetails objects.
  */
-function getPersonalDetailsForAccountIDs(accountIDs: number[] | undefined, personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetailsList {
+function getPersonalDetailsForAccountIDs(accountIDs: number[] | undefined, personalDetails: OnyxInputOrEntry<PersonalDetailsList>): PersonalDetailsList {
     const personalDetailsForAccountIDs: PersonalDetailsList = {};
     if (!personalDetails) {
         return personalDetailsForAccountIDs;
@@ -372,7 +373,7 @@ function getPersonalDetailsForAccountIDs(accountIDs: number[] | undefined, perso
         if (!cleanAccountID) {
             return;
         }
-        let personalDetail: OnyxEntry<PersonalDetails> = personalDetails[accountID];
+        let personalDetail: OnyxEntry<PersonalDetails> = personalDetails[accountID] ?? undefined;
         if (!personalDetail) {
             personalDetail = {} as PersonalDetails;
         }
@@ -479,7 +480,7 @@ function uniqFast(items: string[]): string[] {
  * Array.prototype.push.apply is faster than using the spread operator.
  */
 function getSearchText(
-    report: OnyxEntry<Report>,
+    report: OnyxInputOrEntry<Report>,
     reportName: string,
     personalDetailList: Array<Partial<PersonalDetails>>,
     isChatRoomOrPolicyExpenseChat: boolean,
@@ -528,7 +529,7 @@ function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<
 
         return Object.assign(prevReportActionErrors, action.errors);
     }, {});
-    const parentReportAction: OnyxEntry<ReportAction> =
+    const parentReportAction: OnyxEntry<ReportAction> | null =
         !report?.parentReportID || !report?.parentReportActionID ? null : allReportActions?.[report.parentReportID ?? '']?.[report.parentReportActionID ?? ''] ?? null;
 
     if (ReportActionUtils.wasActionTakenByCurrentUser(parentReportAction) && ReportActionUtils.isTransactionThread(parentReportAction)) {
@@ -679,8 +680,8 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
  */
 function createOption(
     accountIDs: number[],
-    personalDetails: OnyxEntry<PersonalDetailsList>,
-    report: OnyxEntry<Report>,
+    personalDetails: OnyxInputOrEntry<PersonalDetailsList>,
+    report: OnyxInputOrEntry<Report>,
     reportActions: ReportActions,
     config?: PreviewConfig,
 ): ReportUtils.OptionData {
@@ -829,7 +830,7 @@ function getReportOption(participant: Participant): ReportUtils.OptionData {
     const option = createOption(
         visibleParticipantAccountIDs,
         allPersonalDetails ?? {},
-        !isEmptyObject(report) ? report : null,
+        !isEmptyObject(report) ? report : undefined,
         {},
         {
             showChatPreviewLine: false,

@@ -92,7 +92,7 @@ Onyx.connect({
 let preferredLocale: ValueOf<typeof CONST.LOCALES> | null = null;
 Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: (val) => (preferredLocale = val),
+    callback: (val) => (preferredLocale = val ?? null),
 });
 
 function isSupportAuthToken(): boolean {

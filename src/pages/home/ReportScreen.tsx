@@ -104,7 +104,7 @@ function isEmpty(report: OnyxTypes.Report): boolean {
     return !Object.values(report).some((value) => value !== undefined && value !== '');
 }
 
-function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportActions>, parentReportActionID: string | undefined): OnyxEntry<OnyxTypes.ReportAction> {
+function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportActions>, parentReportActionID: string | undefined): OnyxEntry<OnyxTypes.ReportAction> | null {
     if (!parentReportActions || !parentReportActionID) {
         return null;
     }
@@ -293,7 +293,7 @@ function ReportScreen({
     const hasHelpfulErrors = Object.keys(report?.errorFields ?? {}).some((key) => key !== 'notFound');
     const shouldHideReport = !hasHelpfulErrors && !ReportUtils.canAccessReport(report, policies, betas);
 
-    const lastReportAction: OnyxEntry<OnyxTypes.ReportAction> = useMemo(
+    const lastReportAction: NonNullable<OnyxEntry<OnyxTypes.ReportAction>> | null = useMemo(
         () =>
             reportActions.length
                 ? [...reportActions, parentReportAction].find((action) => ReportUtils.canEditReportAction(action) && !ReportActionsUtils.isMoneyRequestAction(action)) ?? null

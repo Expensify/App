@@ -53,7 +53,7 @@ type ReportActionsViewProps = ReportActionsViewOnyxProps & {
     reportActions?: OnyxTypes.ReportAction[];
 
     /** The report's parentReportAction */
-    parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
+    parentReportAction: OnyxEntry<OnyxTypes.ReportAction> | null;
 
     /** The report metadata loading states */
     isLoadingInitialReportActions?: boolean;

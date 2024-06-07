@@ -5,8 +5,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Credentials from '@src/types/onyx/Credentials';
 
-let credentials: Credentials | null = null;
-let authToken: string | null = null;
+let credentials: Credentials | null | undefined;
+let authToken: string | null | undefined;
 let authTokenType: ValueOf<typeof CONST.AUTH_TOKEN_TYPES> | null;
 let currentUserEmail: string | null = null;
 let offline = false;
@@ -62,7 +62,7 @@ Onyx.connect({
 Onyx.connect({
     key: ONYXKEYS.CREDENTIALS,
     callback: (val) => {
-        credentials = val;
+        credentials = val ?? null;
         checkRequiredData();
     },
 });
@@ -86,7 +86,7 @@ Onyx.connect({
 });
 
 function getCredentials(): Credentials | null {
-    return credentials;
+    return credentials ?? null;
 }
 
 function isOffline(): boolean {
@@ -94,7 +94,7 @@ function isOffline(): boolean {
 }
 
 function getAuthToken(): string | null {
-    return authToken;
+    return authToken ?? null;
 }
 
 function isSupportRequest(command: string): boolean {

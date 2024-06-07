@@ -61,7 +61,7 @@ Onyx.connect({
     },
 });
 
-let myPersonalDetails: OnyxEntry<OnyxPersonalDetails> | EmptyObject = {};
+let myPersonalDetails: OnyxEntry<OnyxPersonalDetails> | EmptyObject | null = {};
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {

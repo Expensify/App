@@ -158,7 +158,7 @@ type ComposerWithSuggestionsProps = ComposerWithSuggestionsOnyxProps &
         isEmptyChat?: boolean;
 
         /** The last report action */
-        lastReportAction?: OnyxEntry<OnyxTypes.ReportAction>;
+        lastReportAction?: OnyxEntry<OnyxTypes.ReportAction> | null;
 
         /** Whether to include chronos */
         includeChronos?: boolean;
@@ -284,7 +284,7 @@ function ComposerWithSuggestions(
     const {isSmallScreenWidth} = useWindowDimensions();
     const maxComposerLines = isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
 
-    const parentReportAction = parentReportActions?.[parentReportActionID ?? ''] ?? null;
+    const parentReportAction = parentReportActions?.[parentReportActionID ?? ''];
     const shouldAutoFocus =
         !modal?.isVisible &&
         Modal.areAllModalsHidden() &&
