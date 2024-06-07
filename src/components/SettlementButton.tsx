@@ -183,7 +183,6 @@ function SettlementButton({
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             },
         };
-
         const buttonOptions = [];
         const approveButtonOption = {
             text: translate('iou.approve'),
@@ -212,7 +211,6 @@ function SettlementButton({
         if (shouldShowPersonalBankAccountOption && canUsePersonalBankAccount) {
             buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]);
         }
-
         if (shouldShowPayElsewhereOption) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]);
         }
