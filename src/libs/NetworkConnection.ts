@@ -37,7 +37,7 @@ const triggerReconnectionCallbacks = throttle(
  * Called when the offline status of the app changes and if the network is "reconnecting" (going from offline to online)
  * then all of the reconnection callbacks are triggered
  */
-function setOfflineStatus(isCurrentlyOffline: boolean, reason: string): void {
+function setOfflineStatus(isCurrentlyOffline: boolean, reason = ''): void {
     NetworkActions.setIsOffline(isCurrentlyOffline, reason);
 
     // When reconnecting, ie, going from offline to online, all the reconnection callbacks
