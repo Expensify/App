@@ -12,16 +12,19 @@ type TaxRateAttributes = {
     taxRateExternalID?: string;
 };
 
-type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<{
-    name?: string;
-    rate?: number;
-    currency?: string;
-    customUnitRateID?: string;
-    enabled?: boolean;
-    errors?: OnyxCommon.Errors;
-    errorFields?: OnyxCommon.ErrorFields;
-    attributes?: TaxRateAttributes;
-}>;
+type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<
+    {
+        name?: string;
+        rate?: number;
+        currency?: string;
+        customUnitRateID?: string;
+        enabled?: boolean;
+        errors?: OnyxCommon.Errors;
+        errorFields?: OnyxCommon.ErrorFields;
+        attributes?: TaxRateAttributes;
+    },
+    keyof TaxRateAttributes
+>;
 
 type Attributes = {
     unit: Unit;

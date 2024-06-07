@@ -135,9 +135,7 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
                             </View>
                             {!isPolicyTrackTaxEnabled && (
                                 <View style={[styles.mh4]}>
-                                    <Text
-                                        style={styles.colorMuted}
-                                    >
+                                    <Text style={styles.colorMuted}>
                                         {translate('workspace.distanceRates.taxFeatureNotEnabledMessage')}
                                         <TextLink
                                             onPress={() => {
