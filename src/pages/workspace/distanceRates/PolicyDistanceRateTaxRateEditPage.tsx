@@ -50,6 +50,10 @@ function PolicyDistanceRateTaxRateEditPage({route, policy}: PolicyDistanceRateTa
     }, [policy, taxRateExternalID]);
 
     const onTaxRateChange = (newTaxRate: ListItemType) => {
+        if (taxRateExternalID === newTaxRate.value) {
+            Navigation.goBack();
+            return;
+        }
         DistanceRate.updateDistanceTaxRate(policyID, customUnit, [
             {
                 ...rate,
