@@ -703,15 +703,6 @@ function formatToSupportedTimezone(timezoneInput: Timezone): Timezone {
 }
 
 /**
- * Return the date with full format if the created date is the current date.
- * Otherwise return the created date.
- */
-function enrichMoneyRequestTimestamp(created: string): string {
-    const now = new Date();
-    const createdDate = parse(created, CONST.DATE.FNS_FORMAT_STRING, now);
-    return isSameDay(createdDate, now) ? getDBTimeFromDate(now) : created;
-}
-/**
  * Returns the last business day of given date month
  *
  * param {Date} inputDate
@@ -835,7 +826,6 @@ const DateUtils = {
     getWeekEndsOn,
     isTimeAtLeastOneMinuteInFuture,
     formatToSupportedTimezone,
-    enrichMoneyRequestTimestamp,
     getLastBusinessDayOfMonth,
     getFormattedDateRange,
     getFormattedReservationRangeDate,
