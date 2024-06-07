@@ -71,7 +71,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
         const topRouteName = rootState?.routes?.at(-1)?.name;
         const isTargetNavigatorOnTop = topRouteName === action.payload.name;
 
-        const isTargetScreenDifferentThanCurrent = Boolean(!topmostCentralPaneRoute || topmostCentralPaneRoute.name !== (action.payload.params?.screen ?? action.payload.name));
+        const isTargetScreenDifferentThanCurrent = !!(!topmostCentralPaneRoute || topmostCentralPaneRoute.name !== (action.payload.params?.screen ?? action.payload.name));
         const areParamsDifferent =
             action.payload.name === SCREENS.REPORT
                 ? getTopmostReportId(rootState) !== getTopmostReportId(stateFromPath)
