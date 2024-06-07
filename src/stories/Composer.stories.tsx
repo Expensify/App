@@ -1,5 +1,5 @@
 import type {Meta} from '@storybook/react';
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import {ExpensiMark} from 'expensify-common';
 import React, {useState} from 'react';
 import {Image, View} from 'react-native';
 import Composer from '@components/Composer';
