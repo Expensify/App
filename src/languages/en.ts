@@ -2048,7 +2048,7 @@ export default {
                 "QuickBooks Online doesn't support a field for locations on vendor bill exports.",
             outOfPocketTaxEnabledDescription:
                 "QuickBooks Online doesn't support a field for tax on journal entry exports.",
-            outOfPocketTaxEnabledError: 'Journal entry is not available when taxes are enabled. Please choose a different export option.',
+            outOfPocketTaxEnabledError: 'Journal entry is unavailable when tax is enabled. Please choose a different export option.',
             outOfPocketLocationEnabledError: 'Vendor bills are not available when locations are enabled. Please choose a different export option.',
             advancedConfig: {
                 advanced: 'Advanced',
@@ -2088,7 +2088,7 @@ export default {
 
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Error`]: 'Vendor bills are not available when locations are enabled. Please choose a different export option.',
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK}Error`]: 'Check is not available when locations are enabled. Please choose a different export option.',
-                [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY}Error`]: 'Journal entry is not available when taxes are enabled. Please choose a different export option.',
+                [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY}Error`]: 'Journal entry is unavailable when tax is enabled. Please choose a different export option.',
             },
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Add the account in Quickbooks Online and sync the connection again.',
