@@ -137,11 +137,9 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
                                 <View style={[styles.mh4]}>
                                     <Text
                                         style={styles.colorMuted}
-                                        fontSize={14}
                                     >
                                         {translate('workspace.distanceRates.taxFeatureNotEnabledMessage')}
                                         <TextLink
-                                            fontSize={14}
                                             onPress={() => {
                                                 Navigation.dismissModal();
                                                 Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
