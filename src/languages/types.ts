@@ -19,7 +19,7 @@ type LoggedInAsParams = {
     email: string;
 };
 
-type NewFaceEnterMagicCodeParams = {
+type SignUpNewFaceCodeParams = {
     login: string;
 };
 
@@ -331,7 +331,7 @@ export type {
     LoggedInAsParams,
     ManagerApprovedAmountParams,
     ManagerApprovedParams,
-    NewFaceEnterMagicCodeParams,
+    SignUpNewFaceCodeParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
     NotYouParams,

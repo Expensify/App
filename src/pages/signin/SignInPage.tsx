@@ -31,6 +31,7 @@ import LoginForm from './LoginForm';
 import type {InputHandle} from './LoginForm/types';
 import SignInPageLayout from './SignInPageLayout';
 import type {SignInPageLayoutRef} from './SignInPageLayout/types';
+import SignUpWelcomeForm from './SignUpWelcomeForm';
 import UnlinkLoginForm from './UnlinkLoginForm';
 import ValidateCodeForm from './ValidateCodeForm';
 
@@ -61,6 +62,7 @@ type RenderOption = {
     shouldInitiateSAMLLogin: boolean;
     shouldShowWelcomeHeader: boolean;
     shouldShowWelcomeText: boolean;
+    shouldShouldSignUpWelcomeForm: boolean;
 };
 
 type GetRenderOptionsParams = {
@@ -71,6 +73,7 @@ type GetRenderOptionsParams = {
     isUsingMagicCode: boolean;
     hasInitiatedSAMLLogin: boolean;
     shouldShowAnotherLoginPageOpenedMessage: boolean;
+    credentials: OnyxEntry<Credentials>;
 };
 
 /**
@@ -90,6 +93,7 @@ function getRenderOptions({
     isUsingMagicCode,
     hasInitiatedSAMLLogin,
     shouldShowAnotherLoginPageOpenedMessage,
+    credentials,
 }: GetRenderOptionsParams): RenderOption {
     const hasAccount = !isEmptyObject(account);
     const isSAMLEnabled = !!account?.isSAMLEnabled;
@@ -107,22 +111,33 @@ function getRenderOptions({
         Session.clearSignInData();
     }
 
+    // Show the Welcome form if a user is signing up for a new account in a domain that is not controlled
+    const shouldShouldSignUpWelcomeForm = !!credentials?.login && !account?.validated && !account?.accountExists && !account?.domainControlled;
     const shouldShowLoginForm = !shouldShowAnotherLoginPageOpenedMessage && !hasLogin && !hasValidateCode;
     const shouldShowEmailDeliveryFailurePage = hasLogin && hasEmailDeliveryFailure && !shouldShowChooseSSOOrMagicCode && !shouldInitiateSAMLLogin;
     const isUnvalidatedSecondaryLogin = hasLogin && !isPrimaryLogin && !account?.validated && !hasEmailDeliveryFailure;
     const shouldShowValidateCodeForm =
-        hasAccount && (hasLogin || hasValidateCode) && !isUnvalidatedSecondaryLogin && !hasEmailDeliveryFailure && !shouldShowChooseSSOOrMagicCode && !isSAMLRequired;
-    const shouldShowWelcomeHeader = shouldShowLoginForm || shouldShowValidateCodeForm || shouldShowChooseSSOOrMagicCode || isUnvalidatedSecondaryLogin;
-    const shouldShowWelcomeText = shouldShowLoginForm || shouldShowValidateCodeForm || shouldShowChooseSSOOrMagicCode || shouldShowAnotherLoginPageOpenedMessage;
+        !shouldShouldSignUpWelcomeForm &&
+        hasAccount &&
+        (hasLogin || hasValidateCode) &&
+        !isUnvalidatedSecondaryLogin &&
+        !hasEmailDeliveryFailure &&
+        !shouldShowChooseSSOOrMagicCode &&
+        !isSAMLRequired;
+    const shouldShowWelcomeHeader = shouldShowLoginForm || shouldShowValidateCodeForm || shouldShowChooseSSOOrMagicCode || isUnvalidatedSecondaryLogin || shouldShouldSignUpWelcomeForm;
+    const shouldShowWelcomeText =
+        shouldShowLoginForm || shouldShowValidateCodeForm || shouldShowChooseSSOOrMagicCode || shouldShowAnotherLoginPageOpenedMessage || shouldShouldSignUpWelcomeForm;
+
     return {
         shouldShowLoginForm,
         shouldShowEmailDeliveryFailurePage,
-        shouldShowUnlinkLoginForm: isUnvalidatedSecondaryLogin,
+        shouldShowUnlinkLoginForm: !shouldShouldSignUpWelcomeForm && isUnvalidatedSecondaryLogin,
         shouldShowValidateCodeForm,
         shouldShowChooseSSOOrMagicCode,
         shouldInitiateSAMLLogin,
         shouldShowWelcomeHeader,
         shouldShowWelcomeText,
+        shouldShouldSignUpWelcomeForm,
     };
 }
 
@@ -181,6 +196,7 @@ function SignInPage({credentials, account, activeClients = [], preferredLocale, 
         shouldInitiateSAMLLogin,
         shouldShowWelcomeHeader,
         shouldShowWelcomeText,
+        shouldShouldSignUpWelcomeForm,
     } = getRenderOptions({
         hasLogin: !!credentials?.login,
         hasValidateCode: !!credentials?.validateCode,
@@ -189,6 +205,7 @@ function SignInPage({credentials, account, activeClients = [], preferredLocale, 
         isUsingMagicCode,
         hasInitiatedSAMLLogin,
         shouldShowAnotherLoginPageOpenedMessage,
+        credentials,
     });
 
     if (shouldInitiateSAMLLogin) {
@@ -199,6 +216,11 @@ function SignInPage({credentials, account, activeClients = [], preferredLocale, 
     let welcomeHeader = '';
     let welcomeText = '';
     const headerText = translate('login.hero.header');
+
+    const userLogin = Str.removeSMSDomain(credentials?.login ?? '');
+
+    // replacing spaces with "hard spaces" to prevent breaking the number
+    const userLoginToDisplay = Str.isSMSLogin(userLogin) ? formatPhoneNumber(userLogin) : userLogin;
 
     if (shouldShowAnotherLoginPageOpenedMessage) {
         welcomeHeader = translate('welcomeText.anotherLoginPageIsOpen');
@@ -212,21 +234,10 @@ function SignInPage({credentials, account, activeClients = [], preferredLocale, 
             welcomeHeader = shouldUseNarrowLayout ? '' : translate('welcomeText.welcome');
             welcomeText = isUsingRecoveryCode ? translate('validateCodeForm.enterRecoveryCode') : translate('validateCodeForm.enterAuthenticatorCode');
         } else {
-            const userLogin = Str.removeSMSDomain(credentials?.login ?? '');
-
-            // replacing spaces with "hard spaces" to prevent breaking the number
-            const userLoginToDisplay = Str.isSMSLogin(userLogin) ? formatPhoneNumber(userLogin).replace(/ /g, '\u00A0') : userLogin;
-            if (account?.validated) {
-                welcomeHeader = shouldUseNarrowLayout ? '' : translate('welcomeText.welcome');
-                welcomeText = shouldUseNarrowLayout
-                    ? `${translate('welcomeText.welcome')} ${translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay})}`
-                    : translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay});
-            } else {
-                welcomeHeader = shouldUseNarrowLayout ? '' : translate('welcomeText.welcome');
-                welcomeText = shouldUseNarrowLayout
-                    ? `${translate('welcomeText.welcome')} ${translate('welcomeText.newFaceEnterMagicCode', {login: userLoginToDisplay})}`
-                    : translate('welcomeText.newFaceEnterMagicCode', {login: userLoginToDisplay});
-            }
+            welcomeHeader = shouldUseNarrowLayout ? '' : translate('welcomeText.welcome');
+            welcomeText = shouldUseNarrowLayout
+                ? `${translate('welcomeText.welcome')} ${translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay})}`
+                : translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay});
         }
     } else if (shouldShowUnlinkLoginForm || shouldShowEmailDeliveryFailurePage || shouldShowChooseSSOOrMagicCode) {
         welcomeHeader = shouldUseNarrowLayout ? headerText : translate('welcomeText.welcome');
@@ -235,6 +246,11 @@ function SignInPage({credentials, account, activeClients = [], preferredLocale, 
         if (shouldShowEmailDeliveryFailurePage || shouldShowChooseSSOOrMagicCode) {
             welcomeText = '';
         }
+    } else if (shouldShouldSignUpWelcomeForm) {
+        welcomeHeader = shouldUseNarrowLayout ? headerText : translate('welcomeText.welcome');
+        welcomeText = shouldUseNarrowLayout
+            ? `${translate('welcomeText.welcomeWithoutExclamation')} ${translate('welcomeText.welcomeNewFace', {login: userLoginToDisplay})}`
+            : translate('welcomeText.welcomeNewFace', {login: userLoginToDisplay});
     } else if (!shouldInitiateSAMLLogin && !hasInitiatedSAMLLogin) {
         Log.warn('SignInPage in unexpected state!');
     }
@@ -269,6 +285,7 @@ function SignInPage({credentials, account, activeClients = [], preferredLocale, 
                     blurOnSubmit={account?.validated === false}
                     scrollPageToTop={signInPageLayoutRef.current?.scrollPageToTop}
                 />
+                {shouldShouldSignUpWelcomeForm && <SignUpWelcomeForm />}
                 {shouldShowValidateCodeForm && (
                     <ValidateCodeForm
                         isVisible={!shouldShowAnotherLoginPageOpenedMessage}

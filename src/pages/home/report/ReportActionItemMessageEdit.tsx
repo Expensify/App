@@ -107,11 +107,7 @@ function ReportActionItemMessageEdit(
     useEffect(() => {
         const parser = new ExpensiMark();
         const originalMessage = parser.htmlToMarkdown(action.message?.[0]?.html ?? '');
-        if (
-            ReportActionsUtils.isDeletedAction(action) ||
-            Boolean(action.message && draftMessage === originalMessage) ||
-            Boolean(prevDraftMessage === draftMessage || isCommentPendingSaved.current)
-        ) {
+        if (ReportActionsUtils.isDeletedAction(action) || !!(action.message && draftMessage === originalMessage) || !!(prevDraftMessage === draftMessage || isCommentPendingSaved.current)) {
             return;
         }
         setDraft(draftMessage);

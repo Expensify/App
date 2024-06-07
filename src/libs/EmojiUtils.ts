@@ -519,13 +519,13 @@ const enrichEmojiReactionWithTimestamps = (emoji: ReportActionReaction, emojiNam
  */
 function hasAccountIDEmojiReacted(accountID: number, usersReactions: UsersReactions, skinTone?: number) {
     if (skinTone === undefined) {
-        return Boolean(usersReactions[accountID]);
+        return !!usersReactions[accountID];
     }
     const userReaction = usersReactions[accountID];
     if (!userReaction?.skinTones || !Object.values(userReaction?.skinTones ?? {}).length) {
         return false;
     }
-    return Boolean(userReaction.skinTones[skinTone]);
+    return !!userReaction.skinTones[skinTone];
 }
 
 /**

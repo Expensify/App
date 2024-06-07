@@ -71,8 +71,8 @@ function useOptions() {
         );
 
         const headerMessage = OptionsListUtils.getHeaderMessage(
-            (recentReports?.length || 0) + (personalDetails?.length || 0) !== 0 || Boolean(currentUserOption),
-            Boolean(userToInvite),
+            (recentReports?.length || 0) + (personalDetails?.length || 0) !== 0 || !!currentUserOption,
+            !!userToInvite,
             debouncedSearchValue,
         );
 

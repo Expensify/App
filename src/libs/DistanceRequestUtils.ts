@@ -52,7 +52,7 @@ function getMileageRates(policy: OnyxInputOrEntry<Policy>, includeDisabledRates 
     }
 
     Object.entries(distanceUnit.rates).forEach(([rateID, rate]) => {
-        if (!includeDisabledRates && !rate.enabled) {
+        if (!includeDisabledRates && rate.enabled === false) {
             return;
         }
 
@@ -89,7 +89,7 @@ function getDefaultMileageRate(policy: OnyxInputOrEntry<Policy> | EmptyObject): 
     }
     const mileageRates = getMileageRates(policy);
 
-    const distanceRate = Object.values(mileageRates).find((rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE) ?? Object.values(mileageRates)[0];
+    const distanceRate = Object.values(mileageRates).find((rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE) ?? Object.values(mileageRates)[0] ?? {};
 
     return {
         customUnitRateID: distanceRate.customUnitRateID,

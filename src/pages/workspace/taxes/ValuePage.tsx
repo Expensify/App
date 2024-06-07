@@ -42,10 +42,14 @@ function ValuePage({
 
     const submit = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_VALUE_FORM>) => {
+            if (defaultValue === values.value) {
+                goBack();
+                return;
+            }
             updatePolicyTaxValue(policyID, taxID, Number(values.value));
             goBack();
         },
-        [goBack, policyID, taxID],
+        [goBack, policyID, taxID, defaultValue],
     );
 
     if (!currentTaxRate) {
