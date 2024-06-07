@@ -2074,13 +2074,14 @@ function getIcons(
             if (report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
                 icons.push(...getIconsForParticipants([report?.invoiceReceiver.accountID], personalDetails));
             } else {
-                const receiverPolicy = getPolicy(report?.invoiceReceiver?.policyID);
+                const receiverPolicyID = report?.invoiceReceiver?.policyID;
+                const receiverPolicy = getPolicy(receiverPolicyID);
                 if (!isEmptyObject(receiverPolicy)) {
                     icons.push({
                         source: receiverPolicy?.avatarURL ?? getDefaultWorkspaceAvatar(receiverPolicy.name),
                         type: CONST.ICON_TYPE_WORKSPACE,
                         name: receiverPolicy.name,
-                        id: receiverPolicy.id,
+                        id: receiverPolicyID,
                     });
                 }
             }
@@ -2153,14 +2154,15 @@ function getIcons(
             return icons;
         }
 
-        const receiverPolicy = getPolicy(invoiceRoomReport?.invoiceReceiver?.policyID);
+        const receiverPolicyID = invoiceRoomReport?.invoiceReceiver?.policyID;
+        const receiverPolicy = getPolicy(receiverPolicyID);
 
         if (!isEmptyObject(receiverPolicy)) {
             icons.push({
                 source: receiverPolicy?.avatarURL ?? getDefaultWorkspaceAvatar(receiverPolicy.name),
                 type: CONST.ICON_TYPE_WORKSPACE,
                 name: receiverPolicy.name,
-                id: receiverPolicy.id,
+                id: receiverPolicyID,
             });
         }
 

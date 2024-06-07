@@ -679,6 +679,7 @@ export default {
         settledExpensify: 'Paid',
         settledElsewhere: 'Paid elsewhere',
         individual: 'Individual',
+        business: 'Business',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} with Expensify` : `Pay with Expensify`),
         settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} as an individual` : `Pay as an individual`),
         settlePayment: ({formattedAmount}: SettleExpensifyCardParams) => `Pay ${formattedAmount}`,

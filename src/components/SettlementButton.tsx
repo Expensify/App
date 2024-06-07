@@ -227,6 +227,7 @@ function SettlementButton({
                     text: translate('iou.settleBusiness', {formattedAmount}),
                     icon: Expensicons.Building,
                     value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                    backButtonText: translate('iou.business'),
                     subMenuItems: [
                         {
                             text: translate('iou.payElsewhere', {formattedAmount: ''}),
