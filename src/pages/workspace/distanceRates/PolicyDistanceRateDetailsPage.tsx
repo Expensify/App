@@ -27,7 +27,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {Rate} from '@src/types/onyx/Policy';
+import type {Rate, TaxRateAttributes} from '@src/types/onyx/Policy';
 
 type PolicyDistanceRateDetailsPageOnyxProps = {
     /** Policy details */
@@ -105,7 +105,7 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
         },
     ];
 
-    const clearErrorFields = (fieldName: keyof Rate) => {
+    const clearErrorFields = (fieldName: keyof Rate | keyof TaxRateAttributes) => {
         DistanceRate.clearPolicyDistanceRateErrorFields(policyID, customUnit.customUnitID, rateID, {...errorFields, [fieldName]: null});
     };
 
@@ -158,10 +158,10 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
                     </OfflineWithFeedback>
                     {isDistanceTrackTaxEnabled && (
                         <OfflineWithFeedback
-                            errors={ErrorUtils.getLatestErrorField(rate, 'attributes')}
-                            pendingAction={rate?.pendingFields?.attributes}
+                            errors={ErrorUtils.getLatestErrorField(rate, 'taxRateExternalID')}
+                            pendingAction={rate?.pendingFields?.taxRateExternalID}
                             errorRowStyles={styles.mh5}
-                            onClose={() => clearErrorFields('attributes')}
+                            onClose={() => clearErrorFields('taxRateExternalID')}
                         >
                             <View style={styles.w100}>
                                 <MenuItemWithTopDescription
@@ -175,10 +175,10 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
                     )}
                     {isDistanceTrackTaxEnabled && (
                         <OfflineWithFeedback
-                            errors={ErrorUtils.getLatestErrorField(rate, 'attributes')}
-                            pendingAction={rate?.pendingFields?.attributes}
+                            errors={ErrorUtils.getLatestErrorField(rate, 'taxClaimablePercentage')}
+                            pendingAction={rate?.pendingFields?.taxClaimablePercentage}
                             errorRowStyles={styles.mh5}
-                            onClose={() => clearErrorFields('attributes')}
+                            onClose={() => clearErrorFields('taxClaimablePercentage')}
                         >
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon

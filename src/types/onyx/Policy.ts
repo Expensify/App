@@ -570,6 +570,7 @@ export type {
     CustomUnit,
     Attributes,
     Rate,
+    TaxRateAttributes,
     TaxRate,
     TaxRates,
     TaxRatesWithDefault,
