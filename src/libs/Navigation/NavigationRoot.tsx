@@ -10,8 +10,8 @@ import {FSPage} from '@libs/Fullstory';
 import Log from '@libs/Log';
 import {getPathFromURL} from '@libs/Url';
 import {updateLastVisitedPath} from '@userActions/App';
+import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import AppNavigator from './AppNavigator';
 import getPolicyIDFromState from './getPolicyIDFromState';
 import linkingConfig from './linkingConfig';
@@ -46,7 +46,7 @@ function parseAndLogRoute(state: NavigationState) {
 
     const focusedRoute = findFocusedRoute(state);
 
-    if (focusedRoute?.name !== SCREENS.NOT_FOUND && focusedRoute?.name !== SCREENS.SAML_SIGN_IN) {
+    if (focusedRoute && !CONST.EXCLUDE_FROM_LAST_VISITED_PATH.includes(focusedRoute?.name)) {
         updateLastVisitedPath(currentPath);
     }
 
