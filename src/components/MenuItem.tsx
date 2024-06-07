@@ -452,7 +452,7 @@ function MenuItem(
         ellipsis?: string;
         truncateLastWord?: boolean;
         slop?: number;
-        keepImageTag?: boolean;
+        removeImageTag?: boolean;
     };
 
     /**
