@@ -37,10 +37,12 @@ import * as EmojiPickerActions from '@userActions/EmojiPickerAction';
 import * as Report from '@userActions/Report';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
+import Performance from '@libs/Performance';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import noop from 'lodash/noop';
 import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
 import type {ComposerWithSuggestionsProps} from './ComposerWithSuggestions/ComposerWithSuggestions';
@@ -101,6 +103,8 @@ type ReportActionComposeProps = ReportActionComposeOnyxProps &
 const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
 const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
+
+let onSubmitAction = noop;
 
 function ReportActionCompose({
     blockedFromConcierge,
@@ -295,11 +299,15 @@ function ReportActionCompose({
                 return;
             }
 
+            Performance.markStart(CONST.TIMING.MESSAGE_SENT, {message: newComment});
+
             playSound(SOUNDS.DONE);
             onSubmit(newComment);
         },
         [onSubmit],
     );
+
+    onSubmitAction = submitForm;
 
     const onTriggerAttachmentPicker = useCallback(() => {
         isNextModalWillOpenRef.current = true;
@@ -525,5 +533,5 @@ export default withCurrentUserPersonalDetails(
         },
     })(memo(ReportActionCompose)),
 );
-
+export {onSubmitAction};
 export type {SuggestionsRef, ComposerRef};
