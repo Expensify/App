@@ -1,7 +1,8 @@
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import {AttachmentContext} from '@components/AttachmentContext';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -34,29 +35,34 @@ type NoteListItem = {
     brickRoadIndicator: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
     note: string;
     disabled: boolean;
+    reportID: string;
+    accountID: string;
 };
 
 function PrivateNotesListPage({report, personalDetailsList, session}: PrivateNotesListPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const getAttachmentValue = useCallback((item: NoteListItem) => ({reportID: item.reportID, accountID: Number(item.accountID), type: CONST.ATTACHMENT_TYPE.NOTE}), []);
 
     /**
      * Gets the menu item for each workspace
      */
     function getMenuItem(item: NoteListItem) {
         return (
-            <MenuItemWithTopDescription
-                key={item.title}
-                description={item.title}
-                title={item.note}
-                onPress={item.action}
-                shouldShowRightIcon={!item.disabled}
-                numberOfLinesTitle={0}
-                shouldRenderAsHTML
-                brickRoadIndicator={item.brickRoadIndicator}
-                disabled={item.disabled}
-                shouldGreyOutWhenDisabled={false}
-            />
+            <AttachmentContext.Provider value={getAttachmentValue(item)}>
+                <MenuItemWithTopDescription
+                    key={item.title}
+                    description={item.title}
+                    title={item.note}
+                    onPress={item.action}
+                    shouldShowRightIcon={!item.disabled}
+                    numberOfLinesTitle={0}
+                    shouldRenderAsHTML
+                    brickRoadIndicator={item.brickRoadIndicator}
+                    disabled={item.disabled}
+                    shouldGreyOutWhenDisabled={false}
+                />
+            </AttachmentContext.Provider>
         );
     }
 
@@ -68,6 +74,8 @@ function PrivateNotesListPage({report, personalDetailsList, session}: PrivateNot
         return Object.keys(report.privateNotes ?? {}).map((accountID: string) => {
             const privateNote = report.privateNotes?.[Number(accountID)];
             return {
+                reportID: report.reportID,
+                accountID,
                 title: Number(session?.accountID) === Number(accountID) ? translate('privateNotes.myNote') : personalDetailsList?.[accountID]?.login ?? '',
                 action: () => Navigation.navigate(ROUTES.PRIVATE_NOTES_EDIT.getRoute(report.reportID, accountID)),
                 brickRoadIndicator: privateNoteBrickRoadIndicator(Number(accountID)),

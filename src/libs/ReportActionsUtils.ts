@@ -1,4 +1,4 @@
-import fastMerge from 'expensify-common/lib/fastMerge';
+import {fastMerge} from 'expensify-common';
 import _ from 'lodash';
 import lodashFindLast from 'lodash/findLast';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
@@ -854,6 +854,10 @@ function isTrackExpenseAction(reportAction: OnyxEntry<ReportAction | OptimisticI
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && (reportAction.originalMessage as IOUMessage).type === CONST.IOU.REPORT_ACTION_TYPE.TRACK;
 }
 
+function isPayAction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>): boolean {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && (reportAction.originalMessage as IOUMessage).type === CONST.IOU.REPORT_ACTION_TYPE.PAY;
+}
+
 function isTaskAction(reportAction: OnyxEntry<ReportAction>): boolean {
     const reportActionName = reportAction?.actionName;
     return (
@@ -904,7 +908,7 @@ function getOneTransactionThreadReportID(
             // - they have an assocaited IOU transaction ID or
             // - they have visibile childActions (like comments) that we'd want to display
             // - the action is pending deletion and the user is offline
-            (Boolean(action.originalMessage.IOUTransactionID) ||
+            (!!action.originalMessage.IOUTransactionID ||
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 (isMessageDeleted(action) && action.childVisibleActionCount) ||
                 (action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && (isOffline ?? isNetworkOffline))),
@@ -1169,7 +1173,7 @@ function isReportActionUnread(reportAction: OnyxEntry<ReportAction>, lastReadTim
         return !isCreatedAction(reportAction);
     }
 
-    return Boolean(reportAction && lastReadTime && reportAction.created && lastReadTime < reportAction.created);
+    return !!(reportAction && lastReadTime && reportAction.created && lastReadTime < reportAction.created);
 }
 
 /**
@@ -1229,6 +1233,13 @@ function isLinkedTransactionHeld(reportActionID: string, reportID: string): bool
     return TransactionUtils.isOnHoldByTransactionID(getLinkedTransactionID(reportActionID, reportID) ?? '');
 }
 
+/**
+ * Check if the current user is the requestor of the action
+ */
+function wasActionTakenByCurrentUser(reportAction: OnyxEntry<ReportAction>): boolean {
+    return currentUserAccountID === reportAction?.actorAccountID;
+}
+
 export {
     extractLinksFromMessageHtml,
     getDismissedViolationMessageText,
@@ -1268,6 +1279,7 @@ export {
     isSentMoneyReportAction,
     isSplitBillAction,
     isTrackExpenseAction,
+    isPayAction,
     isTaskAction,
     doesReportHaveVisibleActions,
     isThreadParentMessage,
@@ -1294,7 +1306,9 @@ export {
     isActionableJoinRequest,
     isActionableJoinRequestPending,
     isActionableTrackExpense,
+    getAllReportActions,
     isLinkedTransactionHeld,
+    wasActionTakenByCurrentUser,
     isResolvedActionTrackExpense,
 };
 
