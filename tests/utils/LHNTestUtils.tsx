@@ -136,8 +136,8 @@ function getFakeReport(participantAccountIDs = [1, 2], millisecondsInThePast = 0
         participants[id] = {
             hidden: false,
             role: CONST.REPORT.ROLE.ADMIN,
-        }
-    })
+        };
+    });
 
     return {
         type: CONST.REPORT.TYPE.CHAT,
