@@ -51,9 +51,6 @@ type ReportFooterProps = ReportFooterOnyxProps & {
     /** The pending action when we are adding a chat */
     pendingAction?: PendingAction;
 
-    /** Height of the list which the composer is part of */
-    listHeight?: number;
-
     /** Whether the report is ready for display */
     isReportReadyForDisplay?: boolean;
 
@@ -76,7 +73,6 @@ function ReportFooter({
     shouldShowComposeInput = false,
     isEmptyChat = true,
     isReportReadyForDisplay = true,
-    listHeight = 0,
     isComposerFullSize = false,
     blockedFromChat,
     onComposerBlur,
@@ -176,7 +172,6 @@ function ReportFooter({
                             lastReportAction={lastReportAction}
                             pendingAction={pendingAction}
                             isComposerFullSize={isComposerFullSize}
-                            listHeight={listHeight}
                             isReportReadyForDisplay={isReportReadyForDisplay}
                         />
                     </SwipeableView>
@@ -205,7 +200,6 @@ export default withOnyx<ReportFooterProps, ReportFooterOnyxProps>({
         (prevProps, nextProps) =>
             lodashIsEqual(prevProps.report, nextProps.report) &&
             prevProps.pendingAction === nextProps.pendingAction &&
-            prevProps.listHeight === nextProps.listHeight &&
             prevProps.isComposerFullSize === nextProps.isComposerFullSize &&
             prevProps.isEmptyChat === nextProps.isEmptyChat &&
             prevProps.lastReportAction === nextProps.lastReportAction &&

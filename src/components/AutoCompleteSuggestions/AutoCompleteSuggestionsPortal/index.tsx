@@ -4,7 +4,6 @@ import ReactDOM from 'react-dom';
 import {View} from 'react-native';
 import BaseAutoCompleteSuggestions from '@components/AutoCompleteSuggestions/BaseAutoCompleteSuggestions';
 import useStyleUtils from '@hooks/useStyleUtils';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import getBottomSuggestionPadding from './getBottomSuggestionPadding';
 import type {AutoCompleteSuggestionsPortalProps} from './types';
 
@@ -17,30 +16,14 @@ import type {AutoCompleteSuggestionsPortalProps} from './types';
 
 function AutoCompleteSuggestionsPortal<TSuggestion>({left = 0, width = 0, bottom = 0, ...props}: AutoCompleteSuggestionsPortalProps<TSuggestion>): ReactElement | null | false {
     const StyleUtils = useStyleUtils();
-    const containerRef = React.useRef<HTMLDivElement>(null);
 
     const bodyElement = document.querySelector('body');
-
-    React.useEffect(() => {
-        const container = containerRef.current;
-        if (!container) {
-            return () => {};
-        }
-        container.onpointerdown = (e) => {
-            if (DeviceCapabilities.hasHoverSupport()) {
-                return;
-            }
-            e.preventDefault();
-        };
-        return () => (container.onpointerdown = null);
-    }, []);
 
     const componentToRender = (
         <BaseAutoCompleteSuggestions<TSuggestion>
             width={width}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-            ref={containerRef}
         />
     );
 

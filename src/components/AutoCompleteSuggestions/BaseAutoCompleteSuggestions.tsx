@@ -1,7 +1,7 @@
 import type {ReactElement} from 'react';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {FlatList} from 'react-native-gesture-handler';
-import Animated, {Easing, FadeOutDown, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -14,7 +14,7 @@ import type {RenderSuggestionMenuItemProps} from './types';
 type ExternalProps<TSuggestion> = Omit<AutoCompleteSuggestionsPortalProps<TSuggestion>, 'left' | 'bottom'>;
 
 function BaseAutoCompleteSuggestions<TSuggestion>({
-    highlightedSuggestionIndex,
+    highlightedSuggestionIndex = 0,
     onSelect,
     accessibilityLabelExtractor,
     renderSuggestionMenuItem,
@@ -76,13 +76,17 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
         if (!scrollRef.current) {
             return;
         }
-        scrollRef.current.scrollToIndex({index: highlightedSuggestionIndex, animated: true});
+        // When using cursor control (moving the cursor with the space bar on the keyboard) on Android, moving the cursor too fast may cause an error.
+        try {
+            scrollRef.current.scrollToIndex({index: highlightedSuggestionIndex, animated: true});
+        } catch (e) {
+            // eslint-disable-next-line no-console
+        }
     }, [highlightedSuggestionIndex]);
 
     return (
         <Animated.View
             style={[styles.autoCompleteSuggestionsContainer, animatedStyles]}
-            exiting={FadeOutDown.duration(100).easing(Easing.inOut(Easing.ease))}
             onPointerDown={(e) => {
                 if (DeviceCapabilities.hasHoverSupport()) {
                     return;

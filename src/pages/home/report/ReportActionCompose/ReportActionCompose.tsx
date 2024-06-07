@@ -72,7 +72,7 @@ type ReportActionComposeOnyxProps = {
 
 type ReportActionComposeProps = ReportActionComposeOnyxProps &
     WithCurrentUserPersonalDetailsProps &
-    Pick<ComposerWithSuggestionsProps, 'reportID' | 'isEmptyChat' | 'isComposerFullSize' | 'listHeight' | 'lastReportAction'> & {
+    Pick<ComposerWithSuggestionsProps, 'reportID' | 'isEmptyChat' | 'isComposerFullSize' | 'lastReportAction'> & {
         /** A method to call when the form is submitted */
         onSubmit: (newComment: string) => void;
 
@@ -110,7 +110,6 @@ function ReportActionCompose({
     pendingAction,
     report,
     reportID,
-    listHeight = 0,
     shouldShowComposeInput = true,
     isReportReadyForDisplay = true,
     isEmptyChat,
@@ -459,7 +458,6 @@ function ReportActionCompose({
                                         onFocus={onFocus}
                                         onBlur={onBlur}
                                         measureParentContainer={measureContainer}
-                                        listHeight={listHeight}
                                         onValueChange={(value) => {
                                             if (value.length === 0 && isComposerFullSize) {
                                                 Report.setIsComposerFullSize(reportID, false);
