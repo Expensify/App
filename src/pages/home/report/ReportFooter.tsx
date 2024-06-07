@@ -39,7 +39,7 @@ type ReportFooterProps = {
     reportNameValuePairs?: OnyxEntry<OnyxTypes.ReportNameValuePairs>;
 
     /** The policy of the report */
-    policy: OnyxEntry<OnyxTypes.Policy>;
+    policy: OnyxEntry<OnyxTypes.Policy> | null;
 
     /** The last report action */
     lastReportAction?: OnyxEntry<OnyxTypes.ReportAction> | null;
@@ -200,7 +200,7 @@ function ReportFooter({
                     )}
                 </View>
             )}
-            {!shouldHideComposer && (shouldShowComposeInput || !isSmallScreenWidth) && (
+            {!shouldHideComposer && (shouldShowComposeInput ?? !isSmallScreenWidth) && (
                 <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
                     <SwipeableView onSwipeDown={Keyboard.dismiss}>
                         <ReportActionCompose
