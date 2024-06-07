@@ -20,7 +20,7 @@ function Size({onNext}: SizeProps) {
 
     const defaultValues = {
         // TODO this is temporary and default value will be replaced in next phase once data in ONYX is ready
-        [INPUT_IDS.SUBSCRIPTION_SIZE]: '0',
+        [INPUT_IDS.SUBSCRIPTION_SIZE]: '',
     };
 
     return (
