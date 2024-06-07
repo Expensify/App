@@ -12,7 +12,7 @@ function setIsBackendReachable(isBackendReachable: boolean, reason: string) {
     Onyx.merge(ONYXKEYS.NETWORK, {isBackendReachable});
 }
 
-function setIsOffline(isOffline: boolean, reason: string) {
+function setIsOffline(isOffline: boolean, reason = '') {
     if (isOffline) {
         Log.info(`[Network] Client is entering offline mode because: ${reason}`);
     } else {
