@@ -89,23 +89,26 @@ function IOURequestStepParticipants({
     const addParticipant = useCallback(
         (val: Participant[]) => {
             HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
-            IOU.setMoneyRequestParticipants(transactionID, val);
-            const rateID = DistanceRequestUtils.getCustomUnitRateID(val[0]?.reportID ?? '-1');
-            IOU.setCustomUnitRateID(transactionID, rateID);
 
+            const firstParticipantReportID = val[0]?.reportID ?? '';
+            const rateID = DistanceRequestUtils.getCustomUnitRateID(firstParticipantReportID);
+            const isInvoice = iouType === CONST.IOU.TYPE.INVOICE && ReportUtils.isInvoiceRoom(ReportUtils.getReport(firstParticipantReportID));
             numberOfParticipants.current = val.length;
+
+            IOU.setMoneyRequestParticipants(transactionID, val);
+            IOU.setCustomUnitRateID(transactionID, rateID);
 
             // When multiple participants are selected, the reportID is generated at the end of the confirmation step.
             // So we are resetting selectedReportID ref to the reportID coming from params.
-            if (val.length !== 1) {
+            if (val.length !== 1 && !isInvoice) {
                 selectedReportID.current = reportID;
                 return;
             }
 
             // When a participant is selected, the reportID needs to be saved because that's the reportID that will be used in the confirmation step.
-            selectedReportID.current = val[0]?.reportID ?? reportID;
+            selectedReportID.current = firstParticipantReportID || reportID;
         },
-        [reportID, transactionID],
+        [iouType, reportID, transactionID],
     );
 
     const goToNextStep = useCallback(() => {

@@ -288,7 +288,11 @@ function MoneyRequestConfirmationList({
         return allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${senderWorkspaceParticipant?.policyID}`];
     }, [allPolicies, selectedParticipantsProp]);
 
-    const canUpdateSenderWorkspace = useMemo(() => PolicyUtils.canSendInvoice(allPolicies) && !!transaction?.isFromGlobalCreate, [allPolicies, transaction?.isFromGlobalCreate]);
+    const canUpdateSenderWorkspace = useMemo(() => {
+        const isInvoiceRoomParticipant = selectedParticipantsProp.some((participant) => participant.isInvoiceRoom);
+
+        return PolicyUtils.canSendInvoice(allPolicies) && !!transaction?.isFromGlobalCreate && !isInvoiceRoomParticipant;
+    }, [allPolicies, selectedParticipantsProp, transaction?.isFromGlobalCreate]);
 
     const canModifyTaxFields = !isReadOnly && !isDistanceRequest;
 
