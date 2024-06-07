@@ -1,4 +1,4 @@
-import {format} from 'date-fns';
+import {addMonths, format} from 'date-fns';
 import React, {useState} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import {View} from 'react-native';
@@ -6,6 +6,7 @@ import {useOnyx} from 'react-native-onyx';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
@@ -18,13 +19,16 @@ function SubscriptionSettings() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
+    const subscriptionPlan = useSubscriptionPlan();
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
+
+    const isCollect = subscriptionPlan === CONST.POLICY.TYPE.TEAM;
 
     // TODO these default state values will come from API in next phase
     const [autoRenew, setAutoRenew] = useState(true);
     const [autoIncrease, setAutoIncrease] = useState(false);
 
-    const expirationDate = privateSubscription?.endDate ? format(new Date(privateSubscription?.endDate), CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT) : null;
+    const autoRenewalDate = privateSubscription?.endDate ? format(addMonths(new Date(privateSubscription?.endDate), 1), CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT) : '';
 
     // TODO all actions will be implemented in next phase
     const handleAutoRenewToggle = () => {
@@ -48,7 +52,11 @@ function SubscriptionSettings() {
     const customTitle = (
         <View style={[styles.flexRow, styles.flex1, styles.alignItemsCenter]}>
             <Text style={[styles.mr1, styles.textNormalThemeText]}>{translate('subscription.subscriptionSettings.autoIncrease')}</Text>
-            <Text style={customTitleSecondSentenceStyles}>{translate('subscription.subscriptionSettings.saveUpTo')}</Text>
+            <Text style={customTitleSecondSentenceStyles}>
+                {translate('subscription.subscriptionSettings.saveUpTo', {
+                    amountSaved: isCollect ? CONST.SUBSCRIPTION_POSSIBLE_COST_SAVINGS.COLLECT_PLAN : CONST.SUBSCRIPTION_POSSIBLE_COST_SAVINGS.CONTROL_PLAN,
+                })}
+            </Text>
         </View>
     );
 
@@ -65,7 +73,7 @@ function SubscriptionSettings() {
                     onToggle={handleAutoRenewToggle}
                     isActive={privateSubscription?.autoRenew ?? false}
                 />
-                {!!expirationDate && <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('subscription.subscriptionSettings.renewsOn', {date: expirationDate})}</Text>}
+                {!!autoRenewalDate && <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('subscription.subscriptionSettings.renewsOn', {date: autoRenewalDate})}</Text>}
             </View>
             <View style={styles.mt3}>
                 <ToggleSettingOptionRow
