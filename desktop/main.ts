@@ -15,6 +15,8 @@ import type PlatformSpecificUpdater from '@src/setup/platformSetup/types';
 import type {Locale} from '@src/types/onyx';
 import ELECTRON_EVENTS from './ELECTRON_EVENTS';
 
+const createDownloadQueue = require('./createDownloadQueue').default;
+
 const port = process.env.PORT ?? 8082;
 const {DESKTOP_SHORTCUT_ACCELERATOR, LOCALES} = CONST;
 
@@ -581,7 +583,7 @@ const mainWindow = (): Promise<void> => {
                     app.hide();
                 }
 
-                ipcMain.on(ELECTRON_EVENTS.LOCALE_UPDATED, (event, updatedLocale) => {
+                ipcMain.on(ELECTRON_EVENTS.LOCALE_UPDATED, (event, updatedLocale: Locale) => {
                     Menu.setApplicationMenu(Menu.buildFromTemplate(localizeMenuItems(initialMenuTemplate, updatedLocale)));
                     disposeContextMenu();
                     disposeContextMenu = createContextMenu(updatedLocale);
@@ -601,7 +603,7 @@ const mainWindow = (): Promise<void> => {
 
                 // Listen to badge updater event emitted by the render process
                 // and update the app badge count (MacOS only)
-                ipcMain.on(ELECTRON_EVENTS.REQUEST_UPDATE_BADGE_COUNT, (event, totalCount) => {
+                ipcMain.on(ELECTRON_EVENTS.REQUEST_UPDATE_BADGE_COUNT, (event, totalCount?: number) => {
                     if (totalCount === -1) {
                         // The electron docs say you should be able to update this and pass no parameters to set the badge
                         // to a single red dot, but in practice it resulted in an error "TypeError: Insufficient number of
@@ -611,6 +613,15 @@ const mainWindow = (): Promise<void> => {
                     } else {
                         app.setBadgeCount(totalCount);
                     }
+                });
+
+                const downloadQueue = createDownloadQueue();
+                ipcMain.on(ELECTRON_EVENTS.DOWNLOAD, (event, downloadData) => {
+                    const downloadItem = {
+                        ...downloadData,
+                        win: browserWindow,
+                    };
+                    downloadQueue.enqueueDownloadItem(downloadItem);
                 });
 
                 // Automatically check for and install the latest version in the background

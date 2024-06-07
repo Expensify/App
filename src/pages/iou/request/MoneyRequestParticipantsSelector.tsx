@@ -22,7 +22,8 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import type {MaybePhraseKey} from '@libs/Localize';
 import type {Options} from '@libs/OptionsListUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as Policy from '@userActions/Policy';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as Policy from '@userActions/Policy/Policy';
 import * as Report from '@userActions/Report';
 import type {IOUAction, IOURequestType, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -77,7 +78,7 @@ function MoneyRequestParticipantsSelector({participants = [], onFinish, onPartic
     }, [debouncedSearchTerm]);
 
     /**
-     * Returns the sections needed for the OptionsSelector
+     * Returns the sections needed for the SelectionList
      *
      * @returns {Array}
      */
@@ -115,8 +116,8 @@ function MoneyRequestParticipantsSelector({participants = [], onFinish, onPartic
             undefined,
             undefined,
             undefined,
-            !isCategorizeOrShareAction,
             isCategorizeOrShareAction ? 0 : undefined,
+            iouType === CONST.IOU.TYPE.INVOICE,
         );
 
         const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
@@ -190,10 +191,9 @@ function MoneyRequestParticipantsSelector({participants = [], onFinish, onPartic
             ];
 
             if (iouType === CONST.IOU.TYPE.INVOICE) {
-                const primaryPolicy = Policy.getPrimaryPolicy(activePolicyID);
-
+                const policyID = option.item && ReportUtils.isInvoiceRoom(option.item) ? option.policyID : Policy.getPrimaryPolicy(activePolicyID)?.id;
                 newParticipants.push({
-                    policyID: primaryPolicy?.id,
+                    policyID,
                     isSender: true,
                     selected: false,
                     iouType,
@@ -254,7 +254,7 @@ function MoneyRequestParticipantsSelector({participants = [], onFinish, onPartic
         () =>
             OptionsListUtils.getHeaderMessage(
                 ((newChatOptions as Options)?.personalDetails ?? []).length + ((newChatOptions as Options)?.recentReports ?? []).length !== 0,
-                Boolean((newChatOptions as Options)?.userToInvite),
+                !!(newChatOptions as Options)?.userToInvite,
                 debouncedSearchTerm.trim(),
                 participants.some((participant) => participant?.searchText?.toLowerCase().includes(debouncedSearchTerm.trim().toLowerCase())),
             ),
@@ -353,11 +353,12 @@ function MoneyRequestParticipantsSelector({participants = [], onFinish, onPartic
             sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
             ListItem={InviteMemberListItem}
             textInputValue={searchTerm}
-            textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+            textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
             textInputHint={offlineMessage}
             onChangeText={setSearchTerm}
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
             onSelectRow={(item) => (isIOUSplit ? addParticipantToSelection(item) : addSingleParticipant(item))}
+            shouldDebounceRowSelect
             footerContent={footerContent}
             headerMessage={headerMessage}
             showLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}

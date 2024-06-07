@@ -1,10 +1,10 @@
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import {ExpensiMark} from 'expensify-common';
 import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {Keyboard, View} from 'react-native';
+import {InteractionManager, Keyboard, View} from 'react-native';
 import type {NativeSyntheticEvent, TextInput, TextInputFocusEventData, TextInputKeyPressEventData} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import Composer from '@components/Composer';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
@@ -58,9 +58,6 @@ type ReportActionItemMessageEditProps = {
 
     /** Whether or not the emoji picker is disabled */
     shouldDisableEmojiPicker?: boolean;
-
-    /** Stores user's preferred skin tone */
-    preferredSkinTone?: OnyxEntry<string | number>;
 };
 
 // native ids
@@ -70,9 +67,10 @@ const messageEditInput = 'messageEditInput';
 const shouldUseForcedSelectionRange = shouldUseEmojiPickerSelection();
 
 function ReportActionItemMessageEdit(
-    {action, draftMessage, reportID, index, shouldDisableEmojiPicker = false, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE}: ReportActionItemMessageEditProps,
+    {action, draftMessage, reportID, index, shouldDisableEmojiPicker = false}: ReportActionItemMessageEditProps,
     forwardedRef: ForwardedRef<TextInput | HTMLTextAreaElement | undefined>,
 ) {
+    const [preferredSkinTone] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {initialValue: CONST.EMOJI_DEFAULT_SKIN_TONE});
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -109,11 +107,7 @@ function ReportActionItemMessageEdit(
     useEffect(() => {
         const parser = new ExpensiMark();
         const originalMessage = parser.htmlToMarkdown(action.message?.[0]?.html ?? '');
-        if (
-            ReportActionsUtils.isDeletedAction(action) ||
-            Boolean(action.message && draftMessage === originalMessage) ||
-            Boolean(prevDraftMessage === draftMessage || isCommentPendingSaved.current)
-        ) {
+        if (ReportActionsUtils.isDeletedAction(action) || !!(action.message && draftMessage === originalMessage) || !!(prevDraftMessage === draftMessage || isCommentPendingSaved.current)) {
             return;
         }
         setDraft(draftMessage);
@@ -408,7 +402,11 @@ function ReportActionItemMessageEdit(
                             style={[styles.textInputCompose, styles.flex1, styles.bgTransparent]}
                             onFocus={() => {
                                 setIsFocused(true);
-                                reportScrollManager.scrollToIndex(index, true);
+                                InteractionManager.runAfterInteractions(() => {
+                                    requestAnimationFrame(() => {
+                                        reportScrollManager.scrollToIndex(index, true);
+                                    });
+                                });
                                 setShouldShowComposeInputKeyboardAware(false);
 
                                 // Clear active report action when another action gets focused
@@ -421,8 +419,8 @@ function ReportActionItemMessageEdit(
                             }}
                             onBlur={(event: NativeSyntheticEvent<TextInputFocusEventData>) => {
                                 setIsFocused(false);
-                                // @ts-expect-error TODO: TextInputFocusEventData doesn't contain relatedTarget.
                                 const relatedTargetId = event.nativeEvent?.relatedTarget?.id;
+                                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                 if ((relatedTargetId && [messageEditInput, emojiButtonID].includes(relatedTargetId)) || EmojiPickerAction.isEmojiPickerVisible()) {
                                     return;
                                 }
