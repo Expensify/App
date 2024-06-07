@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
@@ -19,6 +19,7 @@ import {withNetwork} from './OnyxProvider';
 import Switch from './Switch';
 import TestToolRow from './TestToolRow';
 import Text from './Text';
+import testCrash from "@libs/testCrash";
 
 type TestToolMenuOnyxProps = {
     /** User object in Onyx */
@@ -29,12 +30,19 @@ type TestToolMenuProps = TestToolMenuOnyxProps & {
     /** Network object in Onyx */
     network: OnyxEntry<NetworkOnyx>;
 };
-const USER_DEFAULT: UserOnyx = {shouldUseStagingServer: undefined, isSubscribedToNewsletter: false, validated: false, isFromPublicDomain: false, isUsingExpensifyCard: false};
+const USER_DEFAULT: UserOnyx = {
+    shouldUseStagingServer: undefined,
+    isSubscribedToNewsletter: false,
+    validated: false,
+    isFromPublicDomain: false,
+    isUsingExpensifyCard: false
+};
 
 function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
     const shouldUseStagingServer = user?.shouldUseStagingServer ?? ApiUtils.isUsingStagingApi();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {showDummyUndefinedView, setShowDummyUndefinedView} = useState(false)
 
     return (
         <>
@@ -100,6 +108,16 @@ function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
                     text="Navigate"
                     onPress={() => {
                         Navigation.navigate(ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.ALL));
+                    }}
+                />
+            </TestToolRow>
+
+            <TestToolRow title="Native crash">
+                <Button
+                    small
+                    text="Native crash"
+                    onPress={() => {
+                        testCrash();
                     }}
                 />
             </TestToolRow>
