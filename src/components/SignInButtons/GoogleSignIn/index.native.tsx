@@ -5,6 +5,7 @@ import Log from '@libs/Log';
 import * as Session from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
+import type {GoogleSignInProps} from '.';
 
 /**
  * Google Sign In method for iOS and android that returns identityToken.
@@ -44,10 +45,13 @@ function googleSignInRequest() {
 /**
  * Google Sign In button for iOS.
  */
-function GoogleSignIn() {
+function GoogleSignIn({onPress = () => {}}: GoogleSignInProps) {
     return (
         <IconButton
-            onPress={googleSignInRequest}
+            onPress={() => {
+                onPress();
+                googleSignInRequest();
+            }}
             provider={CONST.SIGN_IN_METHOD.GOOGLE}
         />
     );
