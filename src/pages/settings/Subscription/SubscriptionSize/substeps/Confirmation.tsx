@@ -1,3 +1,4 @@
+import {format} from 'date-fns';
 import React from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -10,27 +11,27 @@ import useNetwork from '@hooks/useNetwork';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getNewSubscriptionRenewalDate} from '@pages/settings/Subscription/SubscriptionSize/utils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/SubscriptionSizeForm';
 
 type ConfirmationProps = SubStepProps;
 
-function Confirmation({onNext}: ConfirmationProps) {
+function Confirmation({onNext, isEditing}: ConfirmationProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
     const [subscriptionSizeFormDraft] = useOnyx(ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM_DRAFT);
     const subscriptionRenewalDate = getNewSubscriptionRenewalDate();
 
-    // TODO this is temporary and will be replaced in next phase once data in ONYX is ready
-    // we will have to check if the amount of active members is less than the current amount of active members and if account?.canDowngrade is true - if so then we can't downgrade
-    const CAN_DOWNGRADE = true;
-    // TODO this is temporary and will be replaced in next phase once data in ONYX is ready
-    const SUBSCRIPTION_UNTIL = subscriptionRenewalDate;
+    const CAN_CHANGE_SUBSCRIPTION_SIZE = ((account?.canDowngrade ?? false) || (Number(subscriptionSizeFormDraft) ?? 0) >= (privateSubscription?.userCount ?? 0)) && isEditing;
+    const SUBSCRIPTION_UNTIL = privateSubscription?.endDate ? format(new Date(privateSubscription?.endDate), CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT) : '';
 
     return (
         <View style={[styles.flexGrow1]}>
-            {CAN_DOWNGRADE ? (
+            {CAN_CHANGE_SUBSCRIPTION_SIZE ? (
                 <>
                     <Text style={[styles.ph5, styles.pb3]}>{translate('subscription.subscriptionSize.confirmDetails')}</Text>
                     <MenuItemWithTopDescription
@@ -49,7 +50,7 @@ function Confirmation({onNext}: ConfirmationProps) {
                     <Text style={[styles.ph5, styles.pb5, styles.textNormalThemeText]}>{translate('subscription.subscriptionSize.youCantDowngrade')}</Text>
                     <Text style={[styles.ph5, styles.textNormalThemeText]}>
                         {translate('subscription.subscriptionSize.youAlreadyCommitted', {
-                            size: subscriptionSizeFormDraft ? subscriptionSizeFormDraft[INPUT_IDS.SUBSCRIPTION_SIZE] : 0,
+                            size: privateSubscription?.userCount ?? 0,
                             date: SUBSCRIPTION_UNTIL,
                         })}
                     </Text>
@@ -61,7 +62,7 @@ function Confirmation({onNext}: ConfirmationProps) {
                     success
                     large
                     onPress={onNext}
-                    text={translate(CAN_DOWNGRADE ? 'common.save' : 'common.close')}
+                    text={translate(CAN_CHANGE_SUBSCRIPTION_SIZE ? 'common.save' : 'common.close')}
                 />
             </FixedFooter>
         </View>

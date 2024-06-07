@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import Text from '@components/Text';
@@ -17,10 +18,10 @@ type SizeProps = SubStepProps;
 function Size({onNext}: SizeProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
 
     const defaultValues = {
-        // TODO this is temporary and default value will be replaced in next phase once data in ONYX is ready
-        [INPUT_IDS.SUBSCRIPTION_SIZE]: '0',
+        [INPUT_IDS.SUBSCRIPTION_SIZE]: `${privateSubscription?.userCount ?? 0}`,
     };
 
     return (
