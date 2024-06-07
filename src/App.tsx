@@ -85,16 +85,15 @@ function App({url}: AppProps) {
                         FullScreenContextProvider,
                         VolumeContextProvider,
                         VideoPopoverMenuContextProvider,
+                        KeyboardProvider,
                     ]}
                 >
-                    <KeyboardProvider>
-                        <CustomStatusBarAndBackground />
-                        <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
-                            <ColorSchemeWrapper>
-                                <Expensify />
-                            </ColorSchemeWrapper>
-                        </ErrorBoundary>
-                    </KeyboardProvider>
+                    <CustomStatusBarAndBackground />
+                    <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
+                        <ColorSchemeWrapper>
+                            <Expensify />
+                        </ColorSchemeWrapper>
+                    </ErrorBoundary>
                 </ComposeProviders>
             </GestureHandlerRootView>
         </InitialURLContextProvider>
