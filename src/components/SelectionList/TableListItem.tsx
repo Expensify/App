@@ -21,7 +21,6 @@ function TableListItem<TItem extends ListItem>({
     onSelectRow,
     onCheckboxPress,
     onDismissError,
-    shouldPreventDefaultFocusOnSelectRow,
     rightHandSideComponent,
     onFocus,
     shouldSyncFocus,

@@ -18,7 +18,6 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -308,7 +307,6 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                             onSelectAll={() => toggleAllUsers(data)}
                             showLoadingPlaceholder={!OptionsListUtils.isPersonalDetailsReady(personalDetails) || !didLoadRoomMembers}
                             showScrollIndicator
-                            shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                             ListItem={UserListItem}
                             onDismissError={dismissError}
                         />

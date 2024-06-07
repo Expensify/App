@@ -25,7 +25,6 @@ function UserListItem<TItem extends ListItem>({
     onSelectRow,
     onCheckboxPress,
     onDismissError,
-    shouldPreventDefaultFocusOnSelectRow,
     shouldPreventEnterKeySubmit,
     rightHandSideComponent,
     onFocus,

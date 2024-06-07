@@ -13,7 +13,6 @@ function RadioListItem<TItem extends ListItem>({
     isDisabled,
     onSelectRow,
     onDismissError,
-    shouldPreventDefaultFocusOnSelectRow,
     shouldPreventEnterKeySubmit,
     rightHandSideComponent,
     isMultilineSupported = false,

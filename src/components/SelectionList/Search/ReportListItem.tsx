@@ -68,7 +68,6 @@ function ReportListItem<TItem extends ListItem>({
     canSelectMultiple,
     onSelectRow,
     onDismissError,
-    shouldPreventDefaultFocusOnSelectRow,
     onFocus,
     shouldSyncFocus,
 }: ReportListItemProps<TItem>) {
@@ -119,7 +118,6 @@ function ReportListItem<TItem extends ListItem>({
                 canSelectMultiple={canSelectMultiple}
                 onSelectRow={() => openReportInRHP(transactionItem)}
                 onDismissError={onDismissError}
-                shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 onFocus={onFocus}
                 shouldSyncFocus={shouldSyncFocus}
             />

@@ -13,7 +13,6 @@ function TransactionListItem<TItem extends ListItem>({
     canSelectMultiple,
     onSelectRow,
     onDismissError,
-    shouldPreventDefaultFocusOnSelectRow,
     onFocus,
     shouldSyncFocus,
 }: TransactionListItemProps<TItem>) {

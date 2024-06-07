@@ -13,7 +13,6 @@ import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd
 import type {WithNavigationTransitionEndProps} from '@components/withNavigationTransitionEnd';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -228,7 +227,6 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
                 onSelectRow={toggleOption}
                 onConfirm={inviteUsers}
                 showScrollIndicator
-                shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                 showLoadingPlaceholder={!didScreenTransitionEnd || !OptionsListUtils.isPersonalDetailsReady(personalDetails)}
                 footerContent={footerContent}
             />
