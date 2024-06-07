@@ -2047,7 +2047,7 @@ export default {
             companyCardsLocationEnabledDescription:
                 "QuickBooks Online doesn't support a field for locations on vendor bill exports. As you have locations enabled on your workspace, this export option is unavailable.",
             outOfPocketTaxEnabledDescription:
-                "QuickBooks Online doesn't support a field for tax on Journal Entry exports. Because you have tax tracking enabled on your workspace, this export option is unavailable.",
+                "QuickBooks Online doesn't support a field for tax on journal entry exports. Because you have tax tracking enabled on your workspace, this export option is unavailable.",
             outOfPocketTaxEnabledError: 'Journal entry is not available when taxes enabled. Please select a different export option.',
             outOfPocketLocationEnabledError: 'Vendor bills are not available when locations are enabled. Please select a different export option.',
             advancedConfig: {
