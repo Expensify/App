@@ -56,7 +56,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 switchAccessibilityLabel={translate('workspace.xero.advancedConfig.autoSyncDescription')}
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={styles.mv3}
-                isActive={Boolean(autoSync?.enabled)}
+                isActive={!!autoSync?.enabled}
                 onToggle={() =>
                     Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.AUTO_SYNC, {
                         enabled: !autoSync?.enabled,
@@ -73,7 +73,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 switchAccessibilityLabel={translate('workspace.xero.advancedConfig.reimbursedReportsDescription')}
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={styles.mv3}
-                isActive={Boolean(sync?.syncReimbursedReports)}
+                isActive={!!sync?.syncReimbursedReports}
                 onToggle={() =>
                     Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.SYNC, {
                         syncReimbursedReports: !sync?.syncReimbursedReports,
