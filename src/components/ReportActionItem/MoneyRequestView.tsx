@@ -171,8 +171,8 @@ function MoneyRequestView({
 
     const {getViolationsForField} = useViolations(transactionViolations ?? []);
     const hasViolations = useCallback(
-        (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags?: boolean): boolean =>
-            !!canUseViolations && getViolationsForField(field, data, policyHasDependentTags).length > 0,
+        (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string): boolean =>
+            !!canUseViolations && getViolationsForField(field, data, policyHasDependentTags, tagValue).length > 0,
         [canUseViolations, getViolationsForField],
     );
 
@@ -239,7 +239,7 @@ function MoneyRequestView({
     const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => transaction?.pendingFields?.[fieldPath] ?? pendingAction;
 
     const getErrorForField = useCallback(
-        (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags?: boolean) => {
+        (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string) => {
             // Checks applied when creating a new expense
             // NOTE: receipt field can return multiple violations, so we need to handle it separately
             const fieldChecks: Partial<Record<ViolationField, {isError: boolean; translationPath: TranslationPaths}>> = {
@@ -265,8 +265,8 @@ function MoneyRequestView({
             }
 
             // Return violations if there are any
-            if (hasViolations(field, data, policyHasDependentTags)) {
-                const violations = getViolationsForField(field, data, policyHasDependentTags);
+            if (hasViolations(field, data, policyHasDependentTags, tagValue)) {
+                const violations = getViolationsForField(field, data, policyHasDependentTags, tagValue);
                 return ViolationsUtils.getViolationTranslation(violations[0], translate);
             }
 
@@ -492,9 +492,9 @@ function MoneyRequestView({
                                         {
                                             tagListIndex: index,
                                             tagListName: name,
-                                            tagListValue: TransactionUtils.getTagForDisplay(transaction, index),
                                         },
                                         PolicyUtils.hasDependentTags(policy, policyTagList),
+                                        TransactionUtils.getTagForDisplay(transaction, index),
                                     )
                                         ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                                         : undefined
@@ -504,9 +504,9 @@ function MoneyRequestView({
                                     {
                                         tagListIndex: index,
                                         tagListName: name,
-                                        tagListValue: TransactionUtils.getTagForDisplay(transaction, index),
                                     },
                                     PolicyUtils.hasDependentTags(policy, policyTagList),
+                                    TransactionUtils.getTagForDisplay(transaction, index),
                                 )}
                             />
                         </OfflineWithFeedback>

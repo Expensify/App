@@ -9,13 +9,6 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyCategories, PolicyTagList, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
 
-const TRANSACTION_VIOLATIONS_FILTER = [
-    CONST.VIOLATIONS.SOME_TAG_LEVELS_REQUIRED,
-    CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
-    CONST.VIOLATIONS.MISSING_TAG,
-    CONST.VIOLATIONS.ALL_TAG_LEVELS_REQUIRED,
-] as ViolationName[];
-
 /**
  * Calculates tag out of policy and missing tag violations for the given transaction
  */
@@ -76,7 +69,7 @@ function getTagViolationsForDependentTags(policyTagList: PolicyTagList, transact
             tagViolations.push({
                 name: CONST.VIOLATIONS.ALL_TAG_LEVELS_REQUIRED,
                 type: CONST.VIOLATION_TYPES.VIOLATION,
-                data: undefined,
+                data: {},
             });
         }
     }
@@ -84,19 +77,19 @@ function getTagViolationsForDependentTags(policyTagList: PolicyTagList, transact
     return tagViolations;
 }
 
-/**
- * Calculates missing tag violations for policies with independent tags,
- * by returning one per tag with its corresponding tagName in the data
- */
+/** Calculates missing tag violations for policies with independent tags */
 function getTagViolationForIndependentTags(policyTagList: PolicyTagList, transactionViolations: TransactionViolation[], transaction: Transaction) {
     const policyTagKeys = getSortedTagKeys(policyTagList);
     const selectedTags = transaction.tag?.split(CONST.COLON) ?? [];
     let newTransactionViolations = [...transactionViolations];
 
+    newTransactionViolations = newTransactionViolations.filter(
+        (violation) => violation.name !== CONST.VIOLATIONS.SOME_TAG_LEVELS_REQUIRED && violation.name !== CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
+    );
+
     // We first get the errorIndexes for someTagLevelsRequired. If it's not empty, we puth SOME_TAG_LEVELS_REQUIRED in Onyx.
     // Otherwise, we put TAG_OUT_OF_POLICY in Onyx (when applicable)
     const errorIndexes = [];
-
     for (let i = 0; i < policyTagKeys.length; i++) {
         const isTagRequired = policyTagList[policyTagKeys[i]].required ?? true;
         const isTagSelected = !!selectedTags[i];
@@ -104,7 +97,6 @@ function getTagViolationForIndependentTags(policyTagList: PolicyTagList, transac
             errorIndexes.push(i);
         }
     }
-
     if (errorIndexes.length !== 0) {
         newTransactionViolations.push({
             name: CONST.VIOLATIONS.SOME_TAG_LEVELS_REQUIRED,
@@ -115,7 +107,6 @@ function getTagViolationForIndependentTags(policyTagList: PolicyTagList, transac
         });
     } else {
         let hasInvalidTag = false;
-
         for (let i = 0; i < policyTagKeys.length; i++) {
             const selectedTag = selectedTags[i];
             const tags = policyTagList[policyTagKeys[i]].tags;
@@ -132,14 +123,12 @@ function getTagViolationForIndependentTags(policyTagList: PolicyTagList, transac
                 break;
             }
         }
-
         if (!hasInvalidTag) {
             newTransactionViolations = reject(newTransactionViolations, {
                 name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
             });
         }
     }
-
     return newTransactionViolations;
 }
 
@@ -153,7 +142,13 @@ function getTagViolationsForMultiLevelTags(
     policyTagList: PolicyTagList,
     hasDependentTags: boolean,
 ): TransactionViolation[] {
-    const filteredTransactionViolations = transactionViolations.filter((violation) => !TRANSACTION_VIOLATIONS_FILTER.includes(violation.name));
+    const tagViolations = [
+        CONST.VIOLATIONS.SOME_TAG_LEVELS_REQUIRED,
+        CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
+        CONST.VIOLATIONS.MISSING_TAG,
+        CONST.VIOLATIONS.ALL_TAG_LEVELS_REQUIRED,
+    ] as ViolationName[];
+    const filteredTransactionViolations = transactionViolations.filter((violation) => !tagViolations.includes(violation.name));
 
     if (hasDependentTags) {
         return getTagViolationsForDependentTags(policyTagList, filteredTransactionViolations, updatedTransaction.tag ?? '');
