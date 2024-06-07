@@ -87,8 +87,3 @@ The traveler is emailed an itinerary of the booking. Additionally,
 - If booked with an Expensify Card, the trip is automatically reconciled.
 
 </div>
-
-
-
-
-
