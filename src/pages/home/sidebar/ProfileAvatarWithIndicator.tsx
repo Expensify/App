@@ -25,7 +25,7 @@ function ProfileAvatarWithIndicator({isSelected = false}: ProfileAvatarWithIndic
                     source={currentUserPersonalDetails.avatar}
                     accountID={currentUserPersonalDetails.accountID}
                     fallbackIcon={currentUserPersonalDetails.fallbackIcon}
-                    isLoading={Boolean(isLoading && !currentUserPersonalDetails.avatar)}
+                    isLoading={!!(isLoading && !currentUserPersonalDetails.avatar)}
                 />
             </View>
         </OfflineWithFeedback>

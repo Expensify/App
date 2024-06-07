@@ -56,7 +56,7 @@ type Comment = {
     source?: string;
     originalTransactionID?: string;
     splits?: Split[];
-    dismissedViolations?: Record<ViolationName, Record<string, string>>;
+    dismissedViolations?: Record<ViolationName, Record<string, string | number>>;
 };
 
 type TransactionCustomUnit = {

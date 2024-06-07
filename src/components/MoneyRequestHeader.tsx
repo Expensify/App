@@ -73,7 +73,6 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
     const isApprover = ReportUtils.isMoneyRequestReport(moneyRequestReport) && moneyRequestReport?.managerID !== null && session?.accountID === moneyRequestReport?.managerID;
     const hasAllPendingRTERViolations = TransactionUtils.allHavePendingRTERViolation([transaction?.transactionID ?? '']);
     const shouldShowMarkAsCashButton = isDraft && hasAllPendingRTERViolations;
-
     const deleteTransaction = useCallback(() => {
         if (parentReportAction) {
             const iouTransactionID = parentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction.originalMessage?.IOUTransactionID ?? '' : '';
@@ -235,6 +234,9 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
                             medium
                             text={translate('iou.reviewDuplicates')}
                             style={[styles.p0]}
+                            onPress={() => {
+                                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(report.reportID));
+                            }}
                         />
                     )}
                 </HeaderWithBackButton>
@@ -256,6 +258,9 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
                             medium
                             text={translate('iou.reviewDuplicates')}
                             style={[styles.w100, styles.pr0]}
+                            onPress={() => {
+                                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(report.reportID));
+                            }}
                         />
                     </View>
                 )}

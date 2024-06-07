@@ -291,6 +291,8 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
     const currentTransactionViolations = transactionIDs.map((id) => ({transactionID: id, violations: allTransactionViolation?.[id] ?? []}));
     const currentTransactions = transactionIDs.map((id) => allTransactions?.[id]);
     const optimisticReportAction = buildOptimisticDismissedViolationReportAction({reason: 'manual', violationName: CONST.VIOLATIONS.DUPLICATED_TRANSACTION});
+    const optimisticData: OnyxUpdate[] = [];
+    const failureData: OnyxUpdate[] = [];
 
     const optimisticReportActions: OnyxUpdate[] = [
         {
@@ -307,6 +309,9 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
         value: transactionViolations.violations?.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
     }));
 
+    optimisticData.push(...optimisticDataTransactionViolations);
+    optimisticData.push(...optimisticReportActions);
+
     const optimisticDataTransactions: OnyxUpdate[] = currentTransactions.map((transaction) => ({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
@@ -322,6 +327,8 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
             },
         },
     }));
+
+    optimisticData.push(...optimisticDataTransactions);
 
     const failureDataTransactionViolations: OnyxUpdate[] = currentTransactionViolations.map((transactionViolations) => ({
         onyxMethod: Onyx.METHOD.MERGE,
@@ -347,14 +354,18 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
         },
     ];
 
+    failureData.push(...failureDataTransactionViolations);
+    failureData.push(...failureDataTransaction);
+    failureData.push(...failureReportActions);
+
     const params: DismissViolationParams = {
         name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
         transactionIDList: transactionIDs.join(','),
     };
 
     API.write(WRITE_COMMANDS.DISMISS_VIOLATION, params, {
-        optimisticData: [...optimisticDataTransactionViolations, ...optimisticDataTransactions, ...optimisticReportActions],
-        failureData: [...failureDataTransactionViolations, ...failureDataTransaction, ...failureReportActions],
+        optimisticData,
+        failureData,
     });
 }
 
