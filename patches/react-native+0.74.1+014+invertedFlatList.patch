@@ -1,0 +1,23 @@
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/scrollview/ScrollViewShadowNode.cpp b/node_modules/react-native/ReactCommon/react/renderer/components/scrollview/ScrollViewShadowNode.cpp
+index a8ecce5..56e9509 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/components/scrollview/ScrollViewShadowNode.cpp
++++ b/node_modules/react-native/ReactCommon/react/renderer/components/scrollview/ScrollViewShadowNode.cpp
+@@ -68,5 +68,4 @@ Point ScrollViewShadowNode::getContentOriginOffset() const {
+   auto contentOffset = stateData.contentOffset;
+   return {-contentOffset.x, -contentOffset.y + stateData.scrollAwayPaddingTop};
+ }
+-
+ } // namespace facebook::react
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/core/LayoutableShadowNode.cpp b/node_modules/react-native/ReactCommon/react/renderer/core/LayoutableShadowNode.cpp
+index e0bbf14..525a7ba 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/core/LayoutableShadowNode.cpp
++++ b/node_modules/react-native/ReactCommon/react/renderer/core/LayoutableShadowNode.cpp
+@@ -221,7 +221,7 @@ LayoutMetrics LayoutableShadowNode::computeRelativeLayoutMetrics(
+ 
+     if (!shouldCalculateTransformedFrames && i != 0 &&
+         policy.includeTransform) {
+-      resultFrame.origin += currentShadowNode->getContentOriginOffset();
++      resultFrame.origin += currentShadowNode->getContentOriginOffset() * currentShadowNode->getTransform();
+     }
+ 
+     if (policy.enableOverflowClipping) {
