@@ -65,7 +65,7 @@ Onyx.connect({
         if (!network) {
             return;
         }
-        shouldForceOffline = Boolean(network.shouldForceOffline);
+        shouldForceOffline = !!network.shouldForceOffline;
     },
 });
 

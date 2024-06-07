@@ -6,6 +6,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -14,7 +15,6 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -39,7 +39,6 @@ type PolicyDistanceRateDetailsPageProps = PolicyDistanceRateDetailsPageOnyxProps
 function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetailsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {windowWidth} = useWindowDimensions();
     const [isWarningModalVisible, setIsWarningModalVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const policyID = route.params.policyID;
@@ -91,20 +90,6 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
     const taxClaimableValueToDisplay = taxClaimablePercentage && rate.rate ? CurrencyUtils.convertAmountToDisplayString(taxClaimablePercentage * rate.rate, currency) : '';
     const unitToDisplay = translate(`common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`);
 
-    const threeDotsMenuItems = [
-        {
-            icon: Expensicons.Trashcan,
-            text: translate('workspace.distanceRates.deleteDistanceRate'),
-            onSelected: () => {
-                if (canDisableOrDeleteRate) {
-                    setIsDeleteModalVisible(true);
-                    return;
-                }
-                setIsWarningModalVisible(true);
-            },
-        },
-    ];
-
     const clearErrorFields = (fieldName: keyof Rate | keyof TaxRateAttributes) => {
         DistanceRate.clearPolicyDistanceRateErrorFields(policyID, customUnit.customUnitID, rateID, {...errorFields, [fieldName]: null});
     };
@@ -120,12 +105,7 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
                 includeSafeAreaPaddingBottom={false}
                 style={[styles.defaultModalContainer]}
             >
-                <HeaderWithBackButton
-                    title={`${rateValueToDisplay} / ${translate(`common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`)}`}
-                    shouldShowThreeDotsButton
-                    threeDotsMenuItems={threeDotsMenuItems}
-                    threeDotsAnchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
-                />
+                <HeaderWithBackButton title={`${rateValueToDisplay} / ${translate(`common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`)}`} />
                 <ScrollView contentContainerStyle={styles.flexGrow1}>
                     <OfflineWithFeedback
                         errors={ErrorUtils.getLatestErrorField(rate ?? {}, 'enabled')}
@@ -189,6 +169,17 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
                             />
                         </OfflineWithFeedback>
                     )}
+                    <MenuItem
+                        icon={Expensicons.Trashcan}
+                        title={translate('common.delete')}
+                        onPress={() => {
+                            if (canDisableOrDeleteRate) {
+                                setIsDeleteModalVisible(true);
+                                return;
+                            }
+                            setIsWarningModalVisible(true);
+                        }}
+                    />
                     <ConfirmModal
                         onConfirm={() => setIsWarningModalVisible(false)}
                         isVisible={isWarningModalVisible}
