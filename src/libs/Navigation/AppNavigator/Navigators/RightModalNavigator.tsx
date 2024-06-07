@@ -8,7 +8,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import ModalNavigatorScreenOptions from '@libs/Navigation/AppNavigator/ModalNavigatorScreenOptions';
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
 import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigation/types';
-import type NAVIGATORS from '@src/NAVIGATORS';
+import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import Overlay from './Overlay';
 
@@ -36,7 +36,10 @@ function RightModalNavigator({navigation}: RightModalNavigatorProps) {
                 />
             )}
             <View style={styles.RHPNavigatorContainer(isSmallScreenWidth)}>
-                <Stack.Navigator screenOptions={screenOptions}>
+                <Stack.Navigator
+                    screenOptions={screenOptions}
+                    id={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
+                >
                     <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.SETTINGS}
                         component={ModalStackNavigators.SettingsModalStackNavigator}
@@ -44,10 +47,6 @@ function RightModalNavigator({navigation}: RightModalNavigatorProps) {
                     <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.NEW_CHAT}
                         component={ModalStackNavigators.NewChatModalStackNavigator}
-                    />
-                    <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.DETAILS}
-                        component={ModalStackNavigators.DetailsModalStackNavigator}
                     />
                     <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.PROFILE}
