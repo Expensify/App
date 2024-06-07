@@ -197,6 +197,8 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
         [onScaleChangedContext, onScaleChangedProp],
     );
 
+    const isLocalFile = uri.startsWith('blob:') || uri.startsWith('file:');
+
     return (
         <View
             style={[StyleSheet.absoluteFill, style]}
@@ -248,13 +250,13 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
                     )}
 
                     {/* Show activity indicator while the lightbox is still loading the image. */}
-                    {isLoading && !isOffline && (
+                    {isLoading && (!isOffline || isLocalFile) && (
                         <ActivityIndicator
                             size="large"
                             style={StyleSheet.absoluteFill}
                         />
                     )}
-                    {isLoading && <AttachmentOfflineIndicator />}
+                    {isLoading && !isLocalFile && <AttachmentOfflineIndicator />}
                 </>
             )}
         </View>

@@ -195,6 +195,8 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
         };
     }, [canUseTouchScreen, trackMovement, trackPointerPosition]);
 
+    const isLocalFile = url.startsWith('blob:') || url.startsWith('file:');
+
     if (canUseTouchScreen) {
         return (
             <View
@@ -213,8 +215,8 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
                     onLoad={imageLoad}
                     onError={onError}
                 />
-                {((isLoading && !isOffline) || (!isLoading && zoomScale === 0)) && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
-                {isLoading && <AttachmentOfflineIndicator />}
+                {((isLoading && (!isOffline || isLocalFile)) || (!isLoading && zoomScale === 0)) && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
+                {isLoading && !isLocalFile && <AttachmentOfflineIndicator />}
             </View>
         );
     }
@@ -247,8 +249,8 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
                 />
             </PressableWithoutFeedback>
 
-            {isLoading && !isOffline && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
-            {isLoading && <AttachmentOfflineIndicator />}
+            {isLoading && (!isOffline || isLocalFile) && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
+            {isLoading && !isLocalFile && <AttachmentOfflineIndicator />}
         </View>
     );
 }
