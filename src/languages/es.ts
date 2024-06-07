@@ -1302,6 +1302,9 @@ export default {
             },
         },
     },
+    reportDetailsPage: {
+        in: 'en',
+    },
     reportDescriptionPage: {
         roomDescription: 'Descripción de la sala de chat',
         roomDescriptionOptional: 'Descripción de la sala de chat (opcional)',
