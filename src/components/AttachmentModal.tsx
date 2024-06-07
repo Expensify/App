@@ -140,6 +140,10 @@ type AttachmentModalProps = AttachmentModalOnyxProps & {
     canEditReceipt?: boolean;
 };
 
+type DataWebkitGetAsEntry = {
+    isDirectory: boolean;
+};
+
 function AttachmentModal({
     source = '',
     onConfirm,
@@ -306,7 +310,7 @@ function AttachmentModal({
     }, []);
 
     const isDirectoryCheck = useCallback((data: FileObject) => {
-        if ('webkitGetAsEntry' in data && typeof data.webkitGetAsEntry === 'function' && data.webkitGetAsEntry().isDirectory) {
+        if ('webkitGetAsEntry' in data && typeof data.webkitGetAsEntry === 'function' && (data.webkitGetAsEntry() as DataWebkitGetAsEntry).isDirectory) {
             setIsAttachmentInvalid(true);
             setAttachmentInvalidReasonTitle('attachmentPicker.attachmentError');
             setAttachmentInvalidReason('attachmentPicker.folderNotAllowedMessage');

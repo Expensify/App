@@ -15,6 +15,10 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import callOrReturn from '@src/types/utils/callOrReturn';
 
+type MouseEvents = {
+    onMouseEnter: (e: MouseEvent) => void | undefined;
+};
+
 const hasHoverSupport = DeviceCapabilities.hasHoverSupport();
 
 /**
@@ -188,7 +192,7 @@ function Tooltip(
         (e: MouseEvent) => {
             updateTargetAndMousePosition(e);
             if (React.isValidElement(children)) {
-                const onMouseEnter: (e: MouseEvent) => void | undefined = children.props.onMouseEnter;
+                const onMouseEnter = (children.props as MouseEvents).onMouseEnter;
                 onMouseEnter?.(e);
             }
         },
