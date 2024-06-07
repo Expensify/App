@@ -34,8 +34,10 @@ type ReportFooterProps = {
     /** Report object for the current report */
     report?: OnyxTypes.Report;
 
+    /** Report metadata */
     reportMetadata?: OnyxEntry<OnyxTypes.ReportMetadata>;
 
+    /** Additional report details */
     reportNameValuePairs?: OnyxEntry<OnyxTypes.ReportNameValuePairs>;
 
     /** The policy of the report */
