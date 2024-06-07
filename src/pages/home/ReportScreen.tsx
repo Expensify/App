@@ -731,6 +731,7 @@ function ReportScreen({
                                         report={report}
                                         reportMetadata={reportMetadata}
                                         reportNameValuePairs={reportNameValuePairs}
+                                        policy={policy}
                                         pendingAction={reportPendingAction}
                                         isComposerFullSize={!!isComposerFullSize}
                                         listHeight={listHeight}
