@@ -32,7 +32,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {GetPhysicalCardForm} from '@src/types/form';
 import type {LoginList, Card as OnyxCard, PrivatePersonalDetails} from '@src/types/onyx';
-import type {TCardDetails} from '@src/types/onyx/Card';
+import type {ExpensifyCardDetails} from '@src/types/onyx/Card';
 import RedDotCardSection from './RedDotCardSection';
 import CardDetails from './WalletPage/CardDetails';
 
@@ -101,7 +101,7 @@ function ExpensifyCardPage({
 
     const virtualCards = useMemo(() => cardsToShow?.filter((card) => card?.nameValuePairs?.isVirtual), [cardsToShow]);
     const physicalCards = useMemo(() => cardsToShow?.filter((card) => !card?.nameValuePairs?.isVirtual), [cardsToShow]);
-    const [cardsDetails, setCardsDetails] = useState<Record<number, TCardDetails>>({});
+    const [cardsDetails, setCardsDetails] = useState<Record<number, ExpensifyCardDetails | null>>({});
     const [isCardDetailsLoading, setIsCardDetailsLoading] = useState<Record<number, boolean>>({});
     const [cardsDetailsErrors, setCardsDetailsErrors] = useState<Record<number, string>>({});
 
@@ -116,7 +116,7 @@ function ExpensifyCardPage({
         // eslint-disable-next-line rulesdir/no-thenable-actions-in-views
         Card.revealVirtualCardDetails(revealedCardID)
             .then((value) => {
-                setCardsDetails((prevState: Record<number, TCardDetails>) => ({...prevState, [revealedCardID]: value as TCardDetails}));
+                setCardsDetails((prevState: Record<number, ExpensifyCardDetails | null>) => ({...prevState, [revealedCardID]: value}));
                 setCardsDetailsErrors((prevState) => ({
                     ...prevState,
                     [revealedCardID]: '',
