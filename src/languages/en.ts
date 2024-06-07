@@ -2036,7 +2036,7 @@ export default {
             exportCheckDescription: "We'll create an itemized check for each Expensify report and send it from the bank account below.",
             exportJournalEntryDescription: "We'll create an itemized journal entry for each Expensify report and post it to the account below.",
             exportVendorBillDescription:
-                "We'll create an itemized vendor bill for each Expensify report and add it to the account below. If the period of the bill is closed, we'll post to the 1st of the next open period.",
+                "We'll create an itemized vendor bill for each Expensify report and add it to the account below. If this period is closed, we'll post to the 1st of the next open period.",
             account: 'Account',
             accountDescription: 'Choose where to post journal entry offsets.',
             accountsPayable: 'Accounts payable',
@@ -2058,15 +2058,15 @@ export default {
                 inviteEmployeesDescription: 'Import Quickbooks Online employee records and invite employees to this workspace.',
                 createEntities: 'Auto-create entities',
                 createEntitiesDescription:
-                    'Expensify will automatically create vendors in QuickBooks Online if they don't exist already, and auto-create customers when exporting invoices.',
+                    "Expensify will automatically create vendors in QuickBooks Online if they don't exist already, and auto-create customers when exporting invoices.",
                 reimbursedReports: 'Sync reimbursed reports',
                 reimbursedReportsDescription: 'Any time a report is paid using Expensify ACH, the corresponding bill payment will be created in the Quickbooks Online account below.',
                 qboBillPaymentAccount: 'QuickBooks bill payment account',
                 qboInvoiceCollectionAccount: 'QuickBooks invoice collections account',
                 accountSelectDescription:
-                    "As you've enabled sync reimbursed reports, you will need select the bank account your reimbursements are coming out of, and we'll create the payment in QuickBooks.",
+                    "Choose a bank account for reimbursements and we'll create the payment in QuickBooks Online.",
                 invoiceAccountSelectorDescription:
-                    'If you're exporting invoices from Expensify to Quickbooks Online, this is the account the invoice will appear against once marked as paid.',
+                    "Once an invoice is marked as paid in Expensify and exported to QuickBooks Online, it’ll appear against the account below.",
             },
             accounts: {
                 [CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD]: 'Debit card',
@@ -2080,7 +2080,7 @@ export default {
                 [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}Description`]:
                     "We'll automatically match the merchant name on the credit card transaction to any corresponding vendors in QuickBooks. If no vendors exist, we'll create a 'Credit Card Misc.' vendor for association.",
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Description`]:
-                    "We'll create a single itemized vendor bill for each Expensify report, carrying the date of the last expense on the report. If this period is closed, we'll post to the 1st of the next open period. You can add the vendor bill to your A/P account of choice (below).",
+                    "We'll create an itemized vendor bill for each Expensify report with the date of the last expense, and add it to the account below. If this period is closed, we'll post to the 1st of the next open period.",
 
                 [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD}AccountDescription`]: 'Debit card transactions will export to the bank account below.”',
                 [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}AccountDescription`]: 'Credit card transactions will export to the bank account below.',
