@@ -193,7 +193,6 @@ function IOURequestStepWaypoint({
                     cancelText={translate('common.cancel')}
                     shouldEnableNewFocusManagement
                     danger
-                    shouldEnableNewFocusManagement
                     restoreFocusType={restoreFocusType}
                 />
                 <FormProvider
