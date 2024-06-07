@@ -377,7 +377,7 @@ function ReportScreen({
         return reportIDFromRoute !== '' && !!report.reportID && !isTransitioning;
     }, [report, reportIDFromRoute]);
 
-    const isLoading = !reportIDFromRoute || (!isSidebarLoaded && !isReportOpenInRHP) || PersonalDetailsUtils.isPersonalDetailsEmpty();
+    const isLoading = isLoadingApp || !reportIDFromRoute || (!isSidebarLoaded && !isReportOpenInRHP) || PersonalDetailsUtils.isPersonalDetailsEmpty();
     const shouldShowSkeleton =
         !isLinkedMessageAvailable &&
         (isLinkingToMessage ||
@@ -390,10 +390,10 @@ function ReportScreen({
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(
         (): boolean =>
-            (!wasReportAccessibleRef.current && !firstRenderRef.current && !report.reportID && !isOptimisticDelete && !reportMetadata?.isLoadingInitialReportActions && !userLeavingStatus) ||
+            (!isLoadingApp && !wasReportAccessibleRef.current && !firstRenderRef.current && !report.reportID && !isOptimisticDelete && !reportMetadata?.isLoadingInitialReportActions && !userLeavingStatus) ||
             shouldHideReport ||
             (!!currentReportIDFormRoute && !ReportUtils.isValidReportIDFromPath(currentReportIDFormRoute)),
-        [report.reportID, isOptimisticDelete, reportMetadata?.isLoadingInitialReportActions, userLeavingStatus, shouldHideReport, currentReportIDFormRoute],
+        [report.reportID, isOptimisticDelete, reportMetadata?.isLoadingInitialReportActions, userLeavingStatus, shouldHideReport, currentReportIDFormRoute, isLoadingApp],
     );
 
     const fetchReport = useCallback(() => {
