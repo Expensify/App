@@ -1,8 +1,7 @@
 import React, {useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {FlatList, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -26,15 +25,10 @@ import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Report, ReportAction} from '@src/types/onyx';
+import type {ReportAction} from '@src/types/onyx';
 import type {Reservation} from '@src/types/onyx/Transaction';
 
-type TripRoomPreviewOnyxProps = {
-    /** ChatReport associated with iouReport */
-    chatReport: OnyxEntry<Report>;
-};
-
-type TripRoomPreviewProps = TripRoomPreviewOnyxProps & {
+type TripRoomPreviewProps = {
     /** All the data of the action */
     action: ReportAction;
 
@@ -112,31 +106,23 @@ function ReservationView({reservation}: ReservationViewProps) {
         />
     );
 }
-function TripRoomPreview({
-    action,
-    chatReport,
-    chatReportID,
-    containerStyles,
-    contextMenuAnchor,
-    isHovered = false,
-    isWhisper = false,
-    checkIfContextMenuActive = () => {},
-}: TripRoomPreviewProps) {
+
+const renderItem = ({item}: {item: Reservation}) => <ReservationView reservation={item} />;
+
+function TripRoomPreview({action, chatReportID, containerStyles, contextMenuAnchor, isHovered = false, isWhisper = false, checkIfContextMenuActive = () => {}}: TripRoomPreviewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
+    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReport?.iouReportID}`);
 
     const tripTransactions = ReportUtils.getTripTransactions(chatReport?.iouReportID, 'reportID');
-
-    const renderItem = ({item}: {item: Reservation}) => <ReservationView reservation={item} />;
-
     const reservations: Reservation[] = TripReservationUtils.getReservationsFromTripTransactions(tripTransactions);
-
     const dateInfo = chatReport?.tripData ? DateUtils.getFormattedDateRange(new Date(chatReport.tripData.startDate), new Date(chatReport.tripData.endDate)) : '';
     const {totalDisplaySpend} = ReportUtils.getMoneyRequestSpendBreakdown(chatReport);
 
     const displayAmount = useMemo(() => {
         if (totalDisplaySpend) {
-            return CurrencyUtils.convertToDisplayString(totalDisplaySpend, chatReport?.currency);
+            return CurrencyUtils.convertToDisplayString(totalDisplaySpend, iouReport?.currency);
         }
 
         // If iouReport is not available, get amount from the action message (Ex: "Domain20821's Workspace owes $33.00" or "paid ₫60" or "paid -₫60 elsewhere")
@@ -153,7 +139,7 @@ function TripRoomPreview({
         });
 
         return displayAmountValue;
-    }, [action.message, chatReport?.currency, totalDisplaySpend]);
+    }, [action.message, iouReport?.currency, totalDisplaySpend]);
 
     return (
         <OfflineWithFeedback
@@ -215,8 +201,4 @@ function TripRoomPreview({
 
 TripRoomPreview.displayName = 'TripRoomPreview';
 
-export default withOnyx<TripRoomPreviewProps, TripRoomPreviewOnyxProps>({
-    chatReport: {
-        key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
-    },
-})(TripRoomPreview);
+export default TripRoomPreview;
