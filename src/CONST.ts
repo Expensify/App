@@ -3546,6 +3546,7 @@ const CONST = {
     },
     EVENTS: {
         SCROLLING: 'scrolling',
+        RENDERED_ITEM_INDEX: 'renderedItemIndex',
     },
 
     CHAT_HEADER_LOADER_HEIGHT: 36,

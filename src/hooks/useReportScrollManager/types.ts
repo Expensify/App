@@ -1,6 +1,9 @@
 import type {FlatListRefType} from '@pages/home/ReportScreenContext';
 
 type ReportScrollManagerData = {
+    /**
+     * Reference to the FlatList component.
+     */
     ref: FlatListRefType;
     /**
      * Scroll to the provided index.

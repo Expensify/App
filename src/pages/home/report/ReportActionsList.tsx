@@ -515,7 +515,7 @@ function ReportActionsList({
     }, [calculateUnreadMarker, report.lastReadTime, messageManuallyMarkedUnread]);
 
     function onItemLayout(index: number) {
-        return () => DeviceEventEmitter.emit('renderedItemIndex', index);
+        return () => DeviceEventEmitter.emit(CONST.EVENTS.RENDERED_ITEM_INDEX, index);
     }
 
     useEffect(() => {
@@ -539,7 +539,7 @@ function ReportActionsList({
             }
         }
 
-        const subscription = DeviceEventEmitter.addListener('renderedItemIndex', scrollToUnreadMessageIndex);
+        const subscription = DeviceEventEmitter.addListener(CONST.EVENTS.RENDERED_ITEM_INDEX, scrollToUnreadMessageIndex);
         return () => {
             subscription.remove();
         };
