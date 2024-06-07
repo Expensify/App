@@ -1989,11 +1989,11 @@ export default {
             customersDescription: 'Choose how to handle QuickBooks Online customers/projects in Expensify.',
             locationsDescription: 'Choose how to handle QuickBooks Online locations in Expensify.',
             taxesDescription: 'Choose how to handle QuickBooks Online taxes in Expensify.',
-            locationsAdditionalDescription: "QuickBooks Online doesn’t allow locations on vendor bills or checks. Please change your export preference to journal entry.",
+            locationsAdditionalDescription: "QuickBooks Online doesn’t allow locations on vendor bills or checks. Please change your export option to journal entry.",
             outOfPocketLocationEnabledDescription:
-                "QuickBooks Online doesn't support a field for locations on vendor bill or check exports. As you have locations enabled on your workspace, this export option is unavailable.",
+                "QuickBooks Online doesn't support a field for locations on vendor bill or check exports.",
             taxesJournalEntrySwitchNote:
-                "QuickBooks Online doesn't allow taxes on journal entries. Please change your export preference to vendor bill or check.",
+                "QuickBooks Online doesn't allow taxes on journal entries. Please change your export option to vendor bill or check.",
             export: 'Export',
             exportAs: 'Export as',
             exportDescription: 'Configure how Expensify data exports to QuickBooks Online.',
@@ -2045,11 +2045,11 @@ export default {
             bankAccountDescription: 'Choose where to send checks from.',
             optionBelow: 'Choose an option below:',
             companyCardsLocationEnabledDescription:
-                "QuickBooks Online doesn't support a field for locations on vendor bill exports. As you have locations enabled on your workspace, this export option is unavailable.",
+                "QuickBooks Online doesn't support a field for locations on vendor bill exports.",
             outOfPocketTaxEnabledDescription:
-                "QuickBooks Online doesn't support a field for tax on journal entry exports. Because you have tax tracking enabled on your workspace, this export option is unavailable.",
-            outOfPocketTaxEnabledError: 'Journal entry is not available when taxes enabled. Please select a different export option.',
-            outOfPocketLocationEnabledError: 'Vendor bills are not available when locations are enabled. Please select a different export option.',
+                "QuickBooks Online doesn't support a field for tax on journal entry exports.",
+            outOfPocketTaxEnabledError: 'Journal entry is not available when taxes are enabled. Please choose a different export option.',
+            outOfPocketLocationEnabledError: 'Vendor bills are not available when locations are enabled. Please choose a different export option.',
             advancedConfig: {
                 advanced: 'Advanced',
                 autoSync: 'Auto-sync',
@@ -2088,7 +2088,7 @@ export default {
 
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Error`]: 'Vendor bills are not available when locations are enabled. Please choose a different export option.',
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK}Error`]: 'Check is not available when locations are enabled. Please choose a different export option.',
-                [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY}Error`]: 'Journal entry is not available when taxes enabled. Please choose a different export option.',
+                [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY}Error`]: 'Journal entry is not available when taxes are enabled. Please choose a different export option.',
             },
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Add the account in Quickbooks Online and sync the connection again.',
