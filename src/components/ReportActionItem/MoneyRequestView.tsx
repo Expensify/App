@@ -334,7 +334,7 @@ function MoneyRequestView({
         ...parentReportAction?.errors,
     };
 
-    const TagList = policyTagLists.map(({name, orderWeight}, index) => {
+    const tagList = policyTagLists.map(({name, orderWeight}, index) => {
         const tagError = getErrorForField(
             'tag',
             {
@@ -500,7 +500,7 @@ function MoneyRequestView({
                         />
                     </OfflineWithFeedback>
                 )}
-                {shouldShowTag && TagList}
+                {shouldShowTag && tagList}
                 {isCardTransaction && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('cardID')}>
                         <MenuItemWithTopDescription

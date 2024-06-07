@@ -49,8 +49,7 @@ function getTagViolationsForSingleLevelTags(
 }
 
 /**
- * Calculates missing tag violations for policies with dependent tags,
- * by returning one per tag with its corresponding tagName in the data
+ * Calculates missing tag violations for policies with dependent tags
  */
 function getTagViolationsForDependentTags(policyTagList: PolicyTagList, transactionViolations: TransactionViolation[], tagName: string) {
     const tagViolations = [...transactionViolations];
@@ -77,7 +76,9 @@ function getTagViolationsForDependentTags(policyTagList: PolicyTagList, transact
     return tagViolations;
 }
 
-/** Calculates missing tag violations for policies with independent tags */
+/**
+ * Calculates missing tag violations for policies with independent tags
+ */
 function getTagViolationForIndependentTags(policyTagList: PolicyTagList, transactionViolations: TransactionViolation[], transaction: Transaction) {
     const policyTagKeys = getSortedTagKeys(policyTagList);
     const selectedTags = transaction.tag?.split(CONST.COLON) ?? [];
