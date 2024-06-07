@@ -1,7 +1,7 @@
 import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {EnablePolicyTagsParams, OpenPolicyTagsPageParams, SetPolicyTagsEnabled, SetPolicyTagsRequired} from '@libs/API/parameters';
+import type {EnablePolicyTagsParams, OpenPolicyTagsPageParams, RenamePolicyTaglistParams, RenamePolicyTagsParams, SetPolicyTagsEnabled, SetPolicyTagsRequired} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
@@ -372,28 +372,29 @@ function clearPolicyTagListError(policyID: string, tagListIndex: number, errorFi
     });
 }
 
-function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName: string}) {
-    const tagListName = Object.keys(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})[0];
+function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName: string}, tagListIndex: number) {
+    const tagList = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.[tagListIndex] ?? {};
+    const tag = tagList.tags?.[policyTag.oldName];
     const oldTagName = policyTag.oldName;
     const newTagName = PolicyUtils.escapeTagName(policyTag.newName);
-    const oldTag = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`]?.[tagListName]?.tags?.[oldTagName] ?? {};
     const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
-                    [tagListName]: {
+                    [tagList.name]: {
                         tags: {
                             [oldTagName]: null,
                             [newTagName]: {
-                                ...oldTag,
+                                ...tag,
                                 name: newTagName,
                                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                 pendingFields: {
                                     name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                 },
                                 previousTagName: oldTagName,
+                                errors: null,
                             },
                         },
                     },
@@ -405,10 +406,9 @@ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName:
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
-                    [tagListName]: {
+                    [tagList.name]: {
                         tags: {
                             [newTagName]: {
-                                errors: null,
                                 pendingAction: null,
                                 pendingFields: {
                                     name: null,
@@ -424,11 +424,15 @@ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName:
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
-                    [tagListName]: {
+                    [tagList.name]: {
                         tags: {
                             [newTagName]: null,
                             [oldTagName]: {
-                                ...oldTag,
+                                ...tag,
+                                pendingAction: null,
+                                pendingFields: {
+                                    name: null,
+                                },
                                 errors: ErrorUtils.getMicroSecondOnyxError('workspace.tags.genericFailureMessage'),
                             },
                         },
@@ -438,10 +442,11 @@ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName:
         ],
     };
 
-    const parameters = {
+    const parameters: RenamePolicyTagsParams = {
         policyID,
         oldName: oldTagName,
         newName: newTagName,
+        tagListIndex,
     };
 
     API.write(WRITE_COMMANDS.RENAME_POLICY_TAG, parameters, onyxData);
@@ -516,7 +521,7 @@ function enablePolicyTags(policyID: string, enabled: boolean) {
     }
 }
 
-function renamePolicyTaglist(policyID: string, policyTagListName: {oldName: string; newName: string}, policyTags: OnyxEntry<PolicyTagList>) {
+function renamePolicyTaglist(policyID: string, policyTagListName: {oldName: string; newName: string}, policyTags: OnyxEntry<PolicyTagList>, tagListIndex: number) {
     const newName = policyTagListName.newName;
     const oldName = policyTagListName.oldName;
     const oldPolicyTags = policyTags?.[oldName] ?? {};
@@ -556,10 +561,11 @@ function renamePolicyTaglist(policyID: string, policyTagListName: {oldName: stri
             },
         ],
     };
-    const parameters = {
+    const parameters: RenamePolicyTaglistParams = {
         policyID,
         oldName,
         newName,
+        tagListIndex,
     };
 
     API.write(WRITE_COMMANDS.RENAME_POLICY_TAG_LIST, parameters, onyxData);
