@@ -1,4 +1,4 @@
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import {ExpensiMark} from 'expensify-common';
 import type {ImageContentFit} from 'expo-image';
 import type {ReactNode} from 'react';
 import React, {forwardRef, useContext, useMemo} from 'react';
@@ -448,173 +448,8 @@ function MenuItem(
         }
     };
 
-    type TruncateOptions = {
-        ellipsis?: string;
-        truncateLastWord?: boolean;
-        slop?: number;
-        removeImageTag?: boolean;
-    };
-
-    /**
-     * Truncate HTML string and keep tag safe.
-     * pulled from https://github.com/huang47/nodejs-html-truncate/blob/master/lib/truncate.js
-     *
-     * @param htmlString - The string that needs to be truncated
-     * @param maxLength - Length of truncated string
-     * @param options - Optional configuration options
-     * @returns The truncated string
-     */
-    function truncate(htmlString: string, maxLength: number, options?: TruncateOptions): string {
-        const EMPTY_STRING = '';
-        const DEFAULT_TRUNCATE_SYMBOL = '...';
-        const DEFAULT_SLOP = Math.min(10, maxLength);
-        const tagsStack: string[] = [];
-        const KEY_VALUE_REGEX = '((?:\\s+(?:\\w+|-)+(?:\\s*=\\s*(?:"(?:\\\\.|[^"\\\\])*"|\'(?:\\\\.|[^\'\\\\])*\'|[^\'">\\s]+))?)*)';
-        const IS_CLOSE_REGEX = '\\s*\\/?\\s*';
-        const CLOSE_REGEX = '\\s*\\/\\s*';
-        const SELF_CLOSE_REGEX = new RegExp(`<\\/?(\\w+)${KEY_VALUE_REGEX}${CLOSE_REGEX}>`);
-        const HTML_TAG_REGEX = new RegExp(`<\\/?(\\w+)${KEY_VALUE_REGEX}${IS_CLOSE_REGEX}>`);
-        const URL_REGEX = /(((ftp|https?):\/\/)[\\-\w@:%_\\+.~#?,&\\/\\/=]+)|((mailto:)?[_.\w\\-]+@([\w][\w\\-]+\.)+[a-zA-Z]{2,3})/g;
-        const IMAGE_TAG_REGEX = new RegExp(`<img\\s*${KEY_VALUE_REGEX}${CLOSE_REGEX}>`);
-        const WORD_BREAK_REGEX = new RegExp('\\W+', 'g');
-        let truncatedContent = EMPTY_STRING;
-
-        let totalLength = 0;
-
-        let matches: RegExpExecArray | null = HTML_TAG_REGEX.exec(htmlString);
-        let endResult: string | number | null;
-        let index;
-        let tag;
-        let selfClose = null;
-
-        const opts: TruncateOptions = {
-            ellipsis: DEFAULT_TRUNCATE_SYMBOL,
-            truncateLastWord: true,
-            slop: DEFAULT_SLOP,
-            ...options,
-        };
-
-        function removeImageTag(content: string): string {
-            const match = IMAGE_TAG_REGEX.exec(content);
-            if (!match) {
-                return content;
-            }
-
-            const matchIndex = match.index;
-            const matchLength = match[0].length;
-
-            return content.substring(0, matchIndex) + content.substring(matchIndex + matchLength);
-        }
-
-        function closeTags(tags: string[]): string {
-            return tags
-                .reverse()
-                .map((mappedTag) => `</${mappedTag}>`)
-                .join('');
-        }
-
-        function getEndPosition(content: string, tailPos?: number): number {
-            const defaultPos = maxLength - totalLength;
-            const slop = opts.slop ?? DEFAULT_SLOP;
-            let position = defaultPos;
-            const isShort = defaultPos < slop;
-            const slopPos = isShort ? defaultPos : slop - 1;
-            const substr = content.slice(isShort ? 0 : defaultPos - slop, tailPos ?? defaultPos + slop);
-            const wordBreakMatch = WORD_BREAK_REGEX.exec(substr);
-
-            if (!opts.truncateLastWord) {
-                if (tailPos && substr.length <= tailPos) {
-                    position = substr.length;
-                } else {
-                    while (wordBreakMatch !== null) {
-                        if (wordBreakMatch.index < slopPos) {
-                            position = defaultPos - (slopPos - wordBreakMatch.index);
-                            if (wordBreakMatch.index === 0 && defaultPos <= 1) {
-                                break;
-                            }
-                        } else if (wordBreakMatch.index === slopPos) {
-                            position = defaultPos;
-                            break;
-                        } else {
-                            position = defaultPos + (wordBreakMatch.index - slopPos);
-                            break;
-                        }
-                    }
-                }
-                if (content.charAt(position - 1).match(/\s$/)) {
-                    position--;
-                }
-            }
-            return position;
-        }
-
-        while (matches) {
-            matches = HTML_TAG_REGEX.exec(htmlString);
-
-            if (!matches) {
-                if (totalLength >= maxLength) {
-                    break;
-                }
-
-                matches = URL_REGEX.exec(htmlString);
-                if (!matches || matches.index >= maxLength) {
-                    truncatedContent += htmlString.substring(0, getEndPosition(htmlString));
-                    break;
-                }
-
-                while (matches) {
-                    endResult = matches[0];
-                    if (endResult !== null) {
-                        index = matches.index;
-                        truncatedContent += htmlString.substring(0, index + endResult.length - totalLength);
-                        // eslint-disable-next-line no-param-reassign
-                        htmlString = htmlString.substring(index + endResult.length);
-                        matches = URL_REGEX.exec(htmlString);
-                    }
-                }
-                break;
-            }
-
-            endResult = matches[0];
-            index = matches.index;
-
-            if (totalLength + index > maxLength) {
-                truncatedContent += htmlString.substring(0, getEndPosition(htmlString, index));
-                break;
-            } else {
-                totalLength += index;
-                truncatedContent += htmlString.substring(0, index);
-            }
-
-            if (endResult[1] === '/') {
-                tagsStack.pop();
-                selfClose = null;
-            } else {
-                selfClose = SELF_CLOSE_REGEX.exec(endResult);
-                if (!selfClose) {
-                    tag = matches[1];
-                    tagsStack.push(tag);
-                }
-            }
-
-            truncatedContent += selfClose ? selfClose[0] : endResult;
-            // eslint-disable-next-line no-param-reassign
-            htmlString = htmlString.substring(index + endResult.length); // Update htmlString
-        }
-
-        if (htmlString.length > maxLength - totalLength && opts.ellipsis) {
-            truncatedContent += opts.ellipsis;
-        }
-        truncatedContent += closeTags(tagsStack);
-
-        if (opts.removeImageTag) {
-            truncatedContent = removeImageTag(truncatedContent);
-        }
-
-        return truncatedContent;
-    }
-
     const maxDescLength = 100;
+    const parser = new ExpensiMark();
 
     return (
         <View>
@@ -746,7 +581,7 @@ function MenuItem(
                                                 <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                                     {!!title && (shouldRenderAsHTML || (shouldParseTitle && !!html.length)) && (
                                                         <View style={styles.renderHTMLTitle}>
-                                                            <RenderHTML html={truncate(processedTitle, maxDescLength)} />
+                                                            <RenderHTML html={parser.truncateHTML(processedTitle, maxDescLength)} />
                                                         </View>
                                                     )}
                                                     {!shouldRenderAsHTML && !shouldParseTitle && !!title && (
