@@ -762,12 +762,6 @@ export default {
         reason: 'Reason',
         holdReasonRequired: 'A reason is required when holding.',
         expenseOnHold: 'This expense was put on hold. Review the comments for next steps.',
-<<<<<<< HEAD
-        expensesOnHold: 'All expenses were put on hold. Review the comments for next steps.',
-=======
-        expenseDuplicate: 'This expense has the same details as another one. Review the duplicates to remove the hold.',
-        reviewDuplicates: 'Review duplicates',
->>>>>>> 4fcc5a9 (Merge pull request #43237 from Expensify/blimpich-revert-42374)
         confirmApprove: 'Confirm approval amount',
         confirmApprovalAmount: "Approve what's not on hold, or approve the entire report.",
         confirmPay: 'Confirm payment amount',

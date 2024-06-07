@@ -120,11 +120,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
 
     const getStatusBarProps: () => MoneyRequestHeaderStatusBarProps | undefined = () => {
         if (isOnHold) {
-<<<<<<< HEAD
-            return {title: translate('iou.hold'), description: translate('iou.expenseOnHold'), danger: true};
-=======
-            return {title: translate('iou.hold'), description: isDuplicate ? translate('iou.expenseDuplicate') : translate('iou.expenseOnHold'), danger: true, shouldShowBorderBottom: true};
->>>>>>> 4fcc5a9 (Merge pull request #43237 from Expensify/blimpich-revert-42374)
+            return {title: translate('iou.hold'), description: translate('iou.expenseOnHold'), danger: true, shouldShowBorderBottom: true};
         }
 
         if (TransactionUtils.isExpensifyCardTransaction(transaction) && TransactionUtils.isPending(transaction)) {
