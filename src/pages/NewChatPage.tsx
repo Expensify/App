@@ -75,7 +75,7 @@ function useOptions({isGroupChat}: NewChatPageProps) {
 
         const headerMessage = OptionsListUtils.getHeaderMessage(
             filteredOptions.personalDetails.length + filteredOptions.recentReports.length !== 0,
-            Boolean(filteredOptions.userToInvite),
+            !!filteredOptions.userToInvite,
             debouncedSearchTerm.trim(),
             selectedOptions.some((participant) => participant?.searchText?.toLowerCase?.().includes(debouncedSearchTerm.trim().toLowerCase())),
         );

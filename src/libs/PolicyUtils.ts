@@ -137,7 +137,7 @@ function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>): ValueOf<t
 function shouldShowPolicy(policy: OnyxEntry<Policy>, isOffline: boolean): boolean {
     return (
         !!policy &&
-        (policy?.isPolicyExpenseChatEnabled || Boolean(policy?.isJoinRequestPending)) &&
+        (policy?.isPolicyExpenseChatEnabled || !!policy?.isJoinRequestPending) &&
         (isOffline || policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors ?? {}).length > 0)
     );
 }
@@ -357,10 +357,10 @@ function canEditTaxRate(policy: Policy, taxID: string): boolean {
 
 function isPolicyFeatureEnabled(policy: OnyxEntry<Policy> | EmptyObject, featureName: PolicyFeatureName): boolean {
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED) {
-        return Boolean(policy?.tax?.trackingEnabled);
+        return !!policy?.tax?.trackingEnabled;
     }
 
-    return Boolean(policy?.[featureName]);
+    return !!policy?.[featureName];
 }
 
 function getApprovalWorkflow(policy: OnyxEntry<Policy> | EmptyObject): ValueOf<typeof CONST.POLICY.APPROVAL_MODE> {

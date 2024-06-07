@@ -32,7 +32,6 @@ import type {
     LogSizeParams,
     ManagerApprovedAmountParams,
     ManagerApprovedParams,
-    NewFaceEnterMagicCodeParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
     NotYouParams,
@@ -65,6 +64,7 @@ import type {
     SetTheRequestParams,
     SettledAfterAddedBankAccountParams,
     SettleExpensifyCardParams,
+    SignUpNewFaceCodeParams,
     SizeExceededParams,
     SplitAmountParams,
     StepCounterParams,
@@ -139,7 +139,7 @@ export default {
         magicCode: 'Código mágico',
         twoFactorCode: 'Autenticación de dos factores',
         workspaces: 'Espacios de trabajo',
-        chats: 'Chats',
+        inbox: 'Bandeja de entrada',
         group: 'Grupo',
         profile: 'Perfil',
         referral: 'Remisión',
@@ -422,11 +422,11 @@ export default {
         anotherLoginPageIsOpen: 'Otra página de inicio de sesión está abierta.',
         anotherLoginPageIsOpenExplanation: 'Ha abierto la página de inicio de sesión en una pestaña separada, inicie sesión desde esa pestaña específica.',
         welcome: '¡Bienvenido!',
+        welcomeWithoutExclamation: 'Bienvenido',
         phrase2: 'El dinero habla. Y ahora que chat y pagos están en un mismo lugar, es también fácil.',
         phrase3: 'Tus pagos llegan tan rápido como tus mensajes.',
         enterPassword: 'Por favor, introduce tu contraseña',
-        newFaceEnterMagicCode: ({login}: NewFaceEnterMagicCodeParams) =>
-            `¡Siempre es genial ver una cara nueva por aquí! Por favor ingresa el código mágico enviado a ${login}. Debería llegar en un par de minutos.`,
+        welcomeNewFace: ({login}: SignUpNewFaceCodeParams) => `${login}, siempre es genial ver una cara nueva por aquí!`,
         welcomeEnterMagicCode: ({login}: WelcomeEnterMagicCodeParams) => `Por favor, introduce el código mágico enviado a ${login}. Debería llegar en un par de minutos.`,
     },
     login: {
@@ -506,7 +506,6 @@ export default {
         beginningOfChatHistoryAdminRoomPartOne: ({workspaceName}: BeginningOfChatHistoryAdminRoomPartOneParams) =>
             `¡Este es el lugar para que los administradores de ${workspaceName} colaboren! 🎉\nUsa `,
         beginningOfChatHistoryAdminRoomPartTwo: ' para chatear sobre temas como la configuración del espacio de trabajo y mas.',
-        beginningOfChatHistoryAdminOnlyPostingRoom: 'Solo los administradores pueden enviar mensajes en esta sala.',
         beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}: BeginningOfChatHistoryAnnounceRoomPartOneParams) =>
             `¡Este es el lugar para que todos los miembros de ${workspaceName} colaboren! 🎉\nUsa `,
         beginningOfChatHistoryAnnounceRoomPartTwo: ({workspaceName}: BeginningOfChatHistoryAnnounceRoomPartTwo) => ` para chatear sobre cualquier cosa relacionada con ${workspaceName}.`,
@@ -532,6 +531,7 @@ export default {
             invoice: 'facturar un gasto',
         },
     },
+    adminOnlyCanPost: 'Solo los administradores pueden enviar mensajes en esta sala.',
     reportAction: {
         asCopilot: 'como copiloto de',
     },
@@ -758,6 +758,8 @@ export default {
         holdReasonRequired: 'Se requiere una razón para bloquear.',
         expenseOnHold: 'Este gasto está bloqueado. Revisa los comentarios para saber como proceder.',
         expensesOnHold: 'Todos los gastos quedaron bloqueado. Revisa los comentarios para saber como proceder.',
+        expenseDuplicate: 'Esta solicitud tiene los mismos detalles que otra. Revise los duplicados para eliminar la retención.',
+        reviewDuplicates: 'Revisar duplicados',
         confirmApprove: 'Confirmar importe a aprobar',
         confirmApprovalAmount: 'Aprueba lo que no está bloqueado, o aprueba todo el informe.',
         confirmPay: 'Confirmar importe de pago',
@@ -1461,6 +1463,9 @@ export default {
         onceTheAbove: 'Una vez completados los pasos anteriores, ponte en contacto con ',
         toUnblock: ' para desbloquear el inicio de sesión.',
     },
+    welcomeSignUpForm: {
+        join: 'Unirse',
+    },
     detailsPage: {
         localTime: 'Hora local',
     },
@@ -1566,6 +1571,8 @@ export default {
         validateAccountError: {
             phrase1: '¡Un momento! Primero necesitas validar tu cuenta. Para hacerlo, ',
             phrase2: 'vuelve a iniciar sesión con un código mágico',
+            phrase3: 'o',
+            phrase4: 'verifique tu cuenta aquí',
         },
         hasPhoneLoginError:
             'Para añadir una cuenta bancaria verificada, asegúrate de que tu nombre de usuario principal sea un correo electrónico válido y vuelve a intentarlo. Puedes añadir tu número de teléfono como nombre de usuario secundario.',
@@ -3620,7 +3627,7 @@ export default {
         categoryOutOfPolicy: 'La categoría ya no es válida',
         conversionSurcharge: ({surcharge}: ViolationsConversionSurchargeParams = {}) => `${surcharge}% de recargo aplicado`,
         customUnitOutOfPolicy: 'La unidad ya no es válida',
-        duplicatedTransaction: 'Posible duplicado',
+        duplicatedTransaction: 'Duplicado',
         fieldRequired: 'Los campos del informe son obligatorios',
         futureDate: 'Fecha futura no permitida',
         invoiceMarkup: ({invoiceMarkup}: ViolationsInvoiceMarkupParams) => `Incrementado un ${invoiceMarkup}%`,

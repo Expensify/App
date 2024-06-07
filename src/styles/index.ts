@@ -3735,7 +3735,7 @@ const styles = (theme: ThemeColors) =>
             height: variables.optionRowHeight,
         },
 
-        archivedReportFooter: {
+        chatFooterBanner: {
             borderRadius: variables.componentBorderRadius,
             ...wordBreak.breakWord,
         },
@@ -4504,7 +4504,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         mapPendingView: {
-            backgroundColor: theme.highlightBG,
+            backgroundColor: theme.hoverComponentBG,
             ...flex.flex1,
             borderRadius: variables.componentBorderRadiusLarge,
         },
