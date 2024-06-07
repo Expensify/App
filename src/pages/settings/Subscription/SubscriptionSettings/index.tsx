@@ -28,7 +28,7 @@ function SubscriptionSettings() {
     const [autoRenew, setAutoRenew] = useState(true);
     const [autoIncrease, setAutoIncrease] = useState(false);
 
-    const autoRenewalDate = privateSubscription?.endDate ? format(new Date(privateSubscription?.endDate), CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT) : '';
+    const autoRenewalDate = privateSubscription?.endDate ? format(new Date(`${privateSubscription?.endDate}T00:00:00`), CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT) : '';
 
     // TODO all actions will be implemented in next phase
     const handleAutoRenewToggle = () => {
