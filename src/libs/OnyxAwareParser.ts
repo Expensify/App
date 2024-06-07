@@ -1,4 +1,4 @@
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import {ExpensiMark} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -31,14 +31,12 @@ Onyx.connect({
     },
 });
 
-function parseHtmlToMarkdown(html: string): string {
-    // TODO: change `reportIdToName` to `reportIDToName` (changes in expensify-common)
-    return parser.htmlToMarkdown(html, {reportIdToName: reportIDToNameMap, accountIDToName: accountIDToNameMap});
+function parseHtmlToMarkdown(html: string, reportIDToName?: Record<string, string>, accountIDToName?: Record<string, string>): string {
+    return parser.htmlToMarkdown(html, {reportIDToName: reportIDToName ?? reportIDToNameMap, accountIDToName: accountIDToName ?? accountIDToNameMap});
 }
 
-function parseHtmlToText(html: string): string {
-    // TODO: change `reportIdToName` to `reportIDToName` (changes in expensify-common)
-    return parser.htmlToText(html, {reportIdToName: reportIDToNameMap, accountIDToName: accountIDToNameMap});
+function parseHtmlToText(html: string, reportIDToName?: Record<string, string>, accountIDToName?: Record<string, string>): string {
+    return parser.htmlToText(html, {reportIDToName: reportIDToName ?? reportIDToNameMap, accountIDToName: accountIDToName ?? accountIDToNameMap});
 }
 
 export {parseHtmlToMarkdown, parseHtmlToText};

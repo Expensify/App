@@ -3187,8 +3187,7 @@ function parseReportActionHtmlToText(reportAction: OnyxEntry<ReportAction>, repo
     const logins = PersonalDetailsUtils.getLoginsByAccountIDs(accountIDs);
     accountIDs.forEach((id, index) => (accountIDToName[id] = logins[index]));
 
-    const parser = new ExpensiMark();
-    const textMessage = Str.removeSMSDomain(parser.htmlToText(html, {reportIDToName, accountIDToName}));
+    const textMessage = Str.removeSMSDomain(parseHtmlToText(html, reportIDToName, accountIDToName));
     parsedReportActionMessageCache[key] = textMessage;
 
     return textMessage;
