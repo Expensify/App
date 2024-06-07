@@ -1,5 +1,5 @@
 import {fireEvent, screen} from '@testing-library/react-native';
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import {Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
 import * as Localize from '@libs/Localize';

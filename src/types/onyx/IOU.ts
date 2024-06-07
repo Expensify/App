@@ -1,6 +1,7 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {Icon} from './OnyxCommon';
+import type Report from './Report';
 
 type Participant = {
     accountID?: number;
@@ -25,6 +26,8 @@ type Participant = {
     isSelfDM?: boolean;
     isSender?: boolean;
     iouType?: string;
+    item?: Report;
+    ownerAccountID?: number;
 };
 
 type Split = {
@@ -41,6 +44,7 @@ type Split = {
     reportPreviewReportActionID?: string;
     transactionThreadReportID?: string;
     createdReportActionIDForThread?: string;
+    taxAmount?: number;
 };
 
 type IOU = {

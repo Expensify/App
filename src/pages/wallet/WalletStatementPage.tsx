@@ -1,6 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import {format, getMonth, getYear} from 'date-fns';
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import React, {useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';

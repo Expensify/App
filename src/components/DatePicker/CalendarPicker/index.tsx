@@ -1,5 +1,5 @@
 import {addMonths, endOfDay, endOfMonth, format, getYear, isSameDay, parseISO, setDate, setYear, startOfDay, startOfMonth, subMonths} from 'date-fns';
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -235,7 +235,7 @@ function CalendarPicker({
                                 style={themeStyles.calendarDayRoot}
                                 accessibilityLabel={day?.toString() ?? ''}
                                 tabIndex={day ? 0 : -1}
-                                accessible={Boolean(day)}
+                                accessible={!!day}
                                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                             >
                                 {({hovered, pressed}) => (
