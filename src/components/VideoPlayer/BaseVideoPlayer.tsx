@@ -249,10 +249,7 @@ function BaseVideoPlayer({
             return;
         }
         shareVideoPlayerElements(videoPlayerRef.current, videoPlayerElementParentRef.current, videoPlayerElementRef.current, isUploading || isFullScreenRef.current);
-
-        // don't include `isFullScreenRef.current` in dependency array as we don't have to update shared video elements when it is changed
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentlyPlayingURL, shouldUseSharedVideoElement, shareVideoPlayerElements, url, isUploading]);
+    }, [currentlyPlayingURL, shouldUseSharedVideoElement, shareVideoPlayerElements, url, isUploading, isFullScreenRef]);
 
     // append shared video element to new parent (used for example in attachment modal)
     useEffect(() => {
