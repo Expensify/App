@@ -26,6 +26,12 @@ function useMarkdownStyle(inputContainsOnlyEmojis?: boolean): MarkdownStyle {
                 borderWidth: 4,
                 marginLeft: 0,
                 paddingLeft: 6,
+                /**
+                 * since blockquote has `inline-block` display -> padding-right is needed to prevent cursor overlapping
+                 * with last character of the text node.
+                 * As long as paddingRight > cursor.width, cursor will be displayed correctly.
+                 */
+                paddingRight: 1,
             },
             code: {
                 fontFamily: FontUtils.fontFamily.platform.MONOSPACE,

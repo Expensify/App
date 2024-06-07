@@ -1,4 +1,4 @@
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import {isEmpty} from 'lodash';
 import React, {memo} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';

@@ -1,6 +1,5 @@
 import {addYears, endOfMonth, format, isAfter, isBefore, isSameDay, isValid, isWithinInterval, parse, parseISO, startOfDay, subYears} from 'date-fns';
-import Str from 'expensify-common/lib/str';
-import {URL_REGEX_WITH_REQUIRED_PROTOCOL} from 'expensify-common/lib/Url';
+import {Str, Url} from 'expensify-common';
 import isDate from 'lodash/isDate';
 import isEmpty from 'lodash/isEmpty';
 import isObject from 'lodash/isObject';
@@ -98,7 +97,7 @@ function isRequiredFulfilled(value?: FormValue | number[] | string[] | Record<st
     if (Array.isArray(value) || isObject(value)) {
         return !isEmpty(value);
     }
-    return Boolean(value);
+    return !!value;
 }
 
 /**
@@ -243,7 +242,7 @@ function getDatePassedError(inputDate: string): string {
  */
 function isValidWebsite(url: string): boolean {
     const isLowerCase = url === url.toLowerCase();
-    return new RegExp(`^${URL_REGEX_WITH_REQUIRED_PROTOCOL}$`, 'i').test(url) && isLowerCase;
+    return new RegExp(`^${Url.URL_REGEX_WITH_REQUIRED_PROTOCOL}$`, 'i').test(url) && isLowerCase;
 }
 
 function validateIdentity(identity: Record<string, string>): Record<string, boolean> {
@@ -295,15 +294,15 @@ function isValidUSPhone(phoneNumber = '', isCountryCodeOptional?: boolean): bool
 }
 
 function isValidValidateCode(validateCode: string): boolean {
-    return Boolean(validateCode.match(CONST.VALIDATE_CODE_REGEX_STRING));
+    return !!validateCode.match(CONST.VALIDATE_CODE_REGEX_STRING);
 }
 
 function isValidRecoveryCode(recoveryCode: string): boolean {
-    return Boolean(recoveryCode.match(CONST.RECOVERY_CODE_REGEX_STRING));
+    return !!recoveryCode.match(CONST.RECOVERY_CODE_REGEX_STRING);
 }
 
 function isValidTwoFactorCode(code: string): boolean {
-    return Boolean(code.match(CONST.REGEX.CODE_2FA));
+    return !!code.match(CONST.REGEX.CODE_2FA);
 }
 
 /**
@@ -354,7 +353,7 @@ function isValidDisplayName(name: string): boolean {
  * Checks that the provided legal name doesn't contain special characters
  */
 function isValidLegalName(name: string): boolean {
-    const hasAccentedChars = Boolean(name.match(CONST.REGEX.ACCENT_LATIN_CHARS));
+    const hasAccentedChars = !!name.match(CONST.REGEX.ACCENT_LATIN_CHARS);
     return CONST.REGEX.ALPHABETIC_AND_LATIN_CHARS.test(name) && !hasAccentedChars;
 }
 
@@ -483,6 +482,14 @@ function isExistingTaxName(taxName: string, taxRates: TaxRates): boolean {
     return !!Object.values(taxRates).find((taxRate) => taxRate.name === trimmedTaxName);
 }
 
+/**
+ * Validates the given value if it is correct subscription size.
+ */
+function isValidSubscriptionSize(subscriptionSize: string): boolean {
+    const parsedSubscriptionSize = Number(subscriptionSize);
+    return !Number.isNaN(parsedSubscriptionSize) && parsedSubscriptionSize > 0 && parsedSubscriptionSize <= CONST.SUBSCRIPTION_SIZE_LIMIT;
+}
+
 export {
     meetsMinimumAgeRequirement,
     meetsMaximumAgeRequirement,
@@ -524,4 +531,5 @@ export {
     isValidPercentage,
     isValidReportName,
     isExistingTaxName,
+    isValidSubscriptionSize,
 };

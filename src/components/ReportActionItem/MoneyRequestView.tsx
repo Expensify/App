@@ -2,7 +2,6 @@ import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import ConfirmedRoute from '@components/ConfirmedRoute';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -37,6 +36,7 @@ import * as IOU from '@userActions/IOU';
 import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import * as ReportActions from '@src/libs/actions/ReportActions';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -119,8 +119,6 @@ function MoneyRequestView({
     const isEmptyMerchant = transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
     const formattedTransactionAmount = transactionAmount ? CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency) : '';
-    const hasPendingWaypoints = Boolean(transaction?.pendingFields?.waypoints);
-    const showMapAsImage = isDistanceRequest && hasPendingWaypoints;
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && CurrencyUtils.convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
     const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
     const cardProgramName = isCardTransaction && transactionCardID !== undefined ? CardUtils.getCardDescription(transactionCardID) : '';
@@ -231,7 +229,7 @@ function MoneyRequestView({
     }
 
     let receiptURIs;
-    const hasErrors = canEdit && TransactionUtils.hasMissingSmartscanFields(transaction);
+    const hasErrors = TransactionUtils.hasMissingSmartscanFields(transaction);
     if (hasReceipt) {
         receiptURIs = ReceiptUtils.getThumbnailAndImageURIs(transaction);
     }
@@ -315,7 +313,6 @@ function MoneyRequestView({
         </OfflineWithFeedback>
     );
 
-    const shouldShowMapOrReceipt = showMapAsImage || hasReceipt;
     const isReceiptAllowed = !isPaidReport && !isInvoice;
     const shouldShowReceiptEmptyState =
         isReceiptAllowed && !hasReceipt && !isApproved && !isSettled && (canEditReceipt || isAdmin || isApprover) && (canEditReceipt || ReportUtils.isPaidGroupPolicy(report));
@@ -329,7 +326,12 @@ function MoneyRequestView({
     const receiptViolations =
         transactionViolations?.filter((violation) => receiptViolationNames.includes(violation.name)).map((violation) => ViolationsUtils.getViolationTranslation(violation, translate)) ?? [];
     const shouldShowNotesViolations = !isReceiptBeingScanned && canUseViolations && ReportUtils.isPaidGroupPolicy(report);
-    const shouldShowReceiptHeader = isReceiptAllowed && (shouldShowReceiptEmptyState || shouldShowMapOrReceipt) && canUseViolations && ReportUtils.isPaidGroupPolicy(report);
+    const shouldShowReceiptHeader = isReceiptAllowed && (shouldShowReceiptEmptyState || hasReceipt) && canUseViolations && ReportUtils.isPaidGroupPolicy(report);
+
+    const errors = {
+        ...(transaction?.errorFields?.route ?? transaction?.errors),
+        ...parentReportAction?.errors,
+    };
 
     return (
         <View style={styles.pRelative}>
@@ -338,28 +340,24 @@ function MoneyRequestView({
                 {shouldShowReceiptHeader && (
                     <ReceiptAuditHeader
                         notes={receiptViolations}
-                        shouldShowAuditMessage={Boolean(shouldShowNotesViolations && didRceiptScanSucceed)}
+                        shouldShowAuditMessage={!!(shouldShowNotesViolations && didRceiptScanSucceed)}
                     />
                 )}
-                {shouldShowMapOrReceipt && (
+                {(hasReceipt || errors) && (
                     <OfflineWithFeedback
                         pendingAction={pendingAction}
-                        errors={transaction?.errorFields?.route ?? transaction?.errors}
+                        errors={errors}
                         errorRowStyles={[styles.mh4]}
                         onClose={() => {
                             if (!transaction?.transactionID) {
                                 return;
                             }
                             Transaction.clearError(transaction.transactionID);
+                            ReportActions.clearAllRelatedReportActionErrors(report.reportID, parentReportAction);
                         }}
                     >
-                        <View style={styles.moneyRequestViewImage}>
-                            {showMapAsImage ? (
-                                <ConfirmedRoute
-                                    transaction={transaction}
-                                    interactive={false}
-                                />
-                            ) : (
+                        {hasReceipt && (
+                            <View style={styles.moneyRequestViewImage}>
                                 <ReportActionItemImage
                                     thumbnail={receiptURIs?.thumbnail}
                                     fileExtension={receiptURIs?.fileExtension}
@@ -370,8 +368,8 @@ function MoneyRequestView({
                                     transaction={transaction}
                                     enablePreviewModal
                                 />
-                            )}
-                        </View>
+                            </View>
+                        )}
                     </OfflineWithFeedback>
                 )}
                 {shouldShowReceiptEmptyState && (
@@ -391,7 +389,7 @@ function MoneyRequestView({
                         }
                     />
                 )}
-                {!shouldShowReceiptEmptyState && !shouldShowMapOrReceipt && <View style={{marginVertical: 6}} />}
+                {!shouldShowReceiptEmptyState && !hasReceipt && <View style={{marginVertical: 6}} />}
                 {shouldShowNotesViolations && <ReceiptAuditMessages notes={receiptViolations} />}
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('amount')}>
                     <MenuItemWithTopDescription
@@ -587,7 +585,7 @@ export default withOnyx<MoneyRequestViewPropsWithoutTransaction, MoneyRequestVie
     },
     distanceRates: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`,
-        selector: DistanceRequestUtils.getMileageRates,
+        selector: (policy: OnyxEntry<OnyxTypes.Policy>) => DistanceRequestUtils.getMileageRates(policy, true),
     },
 })(
     withOnyx<MoneyRequestViewProps, MoneyRequestViewTransactionOnyxProps>({

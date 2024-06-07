@@ -60,13 +60,13 @@ const ROUTES = {
         getRoute: (reportID: string, reportActionID: string) => `flag/${reportID}/${reportActionID}` as const,
     },
     CHAT_FINDER: 'chat-finder',
-    DETAILS: {
-        route: 'details',
-        getRoute: (login: string) => `details?login=${encodeURIComponent(login)}` as const,
-    },
     PROFILE: {
         route: 'a/:accountID',
-        getRoute: (accountID: string | number, backTo?: string) => getUrlWithBackToParam(`a/${accountID}`, backTo),
+        getRoute: (accountID?: string | number, backTo?: string, login?: string) => {
+            const baseRoute = getUrlWithBackToParam(`a/${accountID}`, backTo);
+            const loginParam = login ? `?login=${encodeURIComponent(login)}` : '';
+            return `${baseRoute}${loginParam}` as const;
+        },
     },
     PROFILE_AVATAR: {
         route: 'a/:accountID/avatar',
@@ -102,6 +102,8 @@ const ROUTES = {
     SETTINGS_PRONOUNS: 'settings/profile/pronouns',
     SETTINGS_PREFERENCES: 'settings/preferences',
     SETTINGS_SUBSCRIPTION: 'settings/subscription',
+    SETTINGS_SUBSCRIPTION_SIZE: 'settings/subscription/subscription-size',
+    SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD: 'settings/subscription/add-payment-card',
     SETTINGS_PRIORITY_MODE: 'settings/preferences/priority-mode',
     SETTINGS_LANGUAGE: 'settings/preferences/language',
     SETTINGS_THEME: 'settings/preferences/theme',
@@ -280,13 +282,9 @@ const ROUTES = {
         route: 'r/:reportID/settings',
         getRoute: (reportID: string) => `r/${reportID}/settings` as const,
     },
-    REPORT_SETTINGS_ROOM_NAME: {
-        route: 'r/:reportID/settings/room-name',
-        getRoute: (reportID: string) => `r/${reportID}/settings/room-name` as const,
-    },
-    REPORT_SETTINGS_GROUP_NAME: {
-        route: 'r/:reportID/settings/group-name',
-        getRoute: (reportID: string) => `r/${reportID}/settings/group-name` as const,
+    REPORT_SETTINGS_NAME: {
+        route: 'r/:reportID/settings/name',
+        getRoute: (reportID: string) => `r/${reportID}/settings/name` as const,
     },
     REPORT_SETTINGS_NOTIFICATION_PREFERENCES: {
         route: 'r/:reportID/settings/notification-preferences',
@@ -370,6 +368,27 @@ const ROUTES = {
         route: ':action/:iouType/category/:transactionID/:reportID/:reportActionID?',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '', reportActionID?: string) =>
             getUrlWithBackToParam(`${action as string}/${iouType as string}/category/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo),
+    },
+    SETTINGS_CATEGORIES_ROOT: {
+        route: 'settings/:policyID/categories',
+        getRoute: (policyID: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/categories`, backTo),
+    },
+    SETTINGS_CATEGORY_SETTINGS: {
+        route: 'settings/:policyID/categories/:categoryName',
+        getRoute: (policyID: string, categoryName: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/categories/${encodeURIComponent(categoryName)}`, backTo),
+    },
+    SETTINGS_CATEGORIES_SETTINGS: {
+        route: 'settings/:policyID/categories/settings',
+        getRoute: (policyID: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/categories/settings`, backTo),
+    },
+    SETTINGS_CATEGORY_CREATE: {
+        route: 'settings/:policyID/categories/new',
+        getRoute: (policyID: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/categories/new`, backTo),
+    },
+    SETTINGS_CATEGORY_EDIT: {
+        route: 'settings/:policyID/categories/:categoryName/edit',
+        getRoute: (policyID: string, categoryName: string, backTo = '') =>
+            getUrlWithBackToParam(`settings/workspaces/${policyID}/categories/${encodeURIComponent(categoryName)}/edit`, backTo),
     },
     MONEY_REQUEST_STEP_CURRENCY: {
         route: ':action/:iouType/currency/:transactionID/:reportID/:pageIndex?',
@@ -661,10 +680,6 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/categories/settings',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/categories/settings` as const,
     },
-    WORKSPACE_MORE_FEATURES: {
-        route: 'settings/workspaces/:policyID/more-features',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/more-features` as const,
-    },
     WORKSPACE_CATEGORY_CREATE: {
         route: 'settings/workspaces/:policyID/categories/new',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/categories/new` as const,
@@ -672,6 +687,10 @@ const ROUTES = {
     WORKSPACE_CATEGORY_EDIT: {
         route: 'settings/workspaces/:policyID/categories/:categoryName/edit',
         getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/categories/${encodeURIComponent(categoryName)}/edit` as const,
+    },
+    WORKSPACE_MORE_FEATURES: {
+        route: 'settings/workspaces/:policyID/more-features',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/more-features` as const,
     },
     WORKSPACE_TAGS: {
         route: 'settings/workspaces/:policyID/tags',
@@ -777,6 +796,14 @@ const ROUTES = {
     WORKSPACE_DISTANCE_RATE_EDIT: {
         route: 'settings/workspaces/:policyID/distance-rates/:rateID/edit',
         getRoute: (policyID: string, rateID: string) => `settings/workspaces/${policyID}/distance-rates/${rateID}/edit` as const,
+    },
+    WORKSPACE_DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT: {
+        route: 'settings/workspaces/:policyID/distance-rates/:rateID/tax-reclaimable/edit',
+        getRoute: (policyID: string, rateID: string) => `settings/workspaces/${policyID}/distance-rates/${rateID}/tax-reclaimable/edit` as const,
+    },
+    WORKSPACE_DISTANCE_RATE_TAX_RATE_EDIT: {
+        route: 'settings/workspaces/:policyID/distance-rates/:rateID/tax-rate/edit',
+        getRoute: (policyID: string, rateID: string) => `settings/workspaces/${policyID}/distance-rates/${rateID}/tax-rate/edit` as const,
     },
     // Referral program promotion
     REFERRAL_DETAILS_MODAL: {
