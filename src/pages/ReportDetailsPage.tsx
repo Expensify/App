@@ -16,6 +16,7 @@ import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import type {PromotedAction} from '@components/PromotedActionsBar';
 import PromotedActionsBar, {PromotedActions} from '@components/PromotedActionsBar';
 import RoomHeaderAvatars from '@components/RoomHeaderAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -109,8 +110,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         const pendingMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
         return !pendingMember || pendingMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? accountID : [];
     });
-
-    const isGroupDMChat = useMemo(() => ReportUtils.isDM(report) && participants.length > 1, [report, participants.length]);
 
     const isPrivateNotesFetchTriggered = report?.isLoadingPrivateNotes !== undefined;
 
@@ -301,6 +300,17 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
     const reportName = ReportUtils.isDeprecatedGroupDM(report) || isGroupChat ? ReportUtils.getGroupChatName(undefined, false, report.reportID ?? '') : ReportUtils.getReportName(report);
 
+    const promotedActions = useMemo(() => {
+        const result: PromotedAction[] = [];
+        if (report) {
+            result.push(PromotedActions.pin(report));
+        }
+
+        result.push(PromotedActions.share(report));
+
+        return result;
+    }, [report]);
+
     const nameSectionExpenseIOU = (
         <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
             <View style={[styles.alignSelfCenter, styles.w100, styles.mt1]}>
@@ -389,10 +399,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     {!isExpenseReport && nameSectionGroupWorkspace}
 
                     {shouldShowReportDescription && (
-                        <OfflineWithFeedback
-                            pendingAction={report.pendingFields?.description}
-                            style={styles.mb5}
-                        >
+                        <OfflineWithFeedback pendingAction={report.pendingFields?.description}>
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon={canEditReportDescription}
                                 interactive={canEditReportDescription}
@@ -405,7 +412,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                         </OfflineWithFeedback>
                     )}
 
-                    <PromotedActionsBar containerStyle={styles.mt5} promotedActions={[PromotedActions.pin(report), ...(isGroupDMChat ? [] : [PromotedActions.share(report)])]} />
+                    <PromotedActionsBar containerStyle={styles.mt5} promotedActions={promotedActions} />
                     
                     {menuItems.map((item) => {
                         const brickRoadIndicator =
