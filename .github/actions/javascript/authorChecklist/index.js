@@ -17681,7 +17681,7 @@ exports["default"] = _default;
 var _highlight = __nccwpck_require__(7654);
 var _picocolors = _interopRequireWildcard(__nccwpck_require__(7023), true);
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
-function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && Object.prototype.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
+function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
 const colors = typeof process === "object" && (process.env.FORCE_COLOR === "0" || process.env.FORCE_COLOR === "false") ? (0, _picocolors.createColors)(false) : _picocolors.default;
 const compose = (f, g) => v => f(g(v));
 let pcWithForcedColor = undefined;
@@ -20470,20 +20470,21 @@ function TaggedTemplateExpression(node) {
   this.print(node.typeParameters, node);
   this.print(node.quasi, node);
 }
-function TemplateElement(node, parent) {
-  const isFirst = parent.quasis[0] === node;
-  const isLast = parent.quasis[parent.quasis.length - 1] === node;
-  const value = (isFirst ? "`" : "}") + node.value.raw + (isLast ? "`" : "${");
-  this.token(value, true);
+function TemplateElement() {
+  throw new Error("TemplateElement printing is handled in TemplateLiteral");
 }
 function TemplateLiteral(node) {
   const quasis = node.quasis;
+  let partRaw = "`";
   for (let i = 0; i < quasis.length; i++) {
-    this.print(quasis[i], node);
+    partRaw += quasis[i].value.raw;
     if (i + 1 < quasis.length) {
+      this.token(partRaw + "${", true);
       this.print(node.expressions[i], node);
+      partRaw = "}";
     }
   }
+  this.token(partRaw + "`", true);
 }
 
 //# sourceMappingURL=template-literals.js.map
@@ -20598,14 +20599,16 @@ function RecordExpression(node) {
   const props = node.properties;
   let startToken;
   let endToken;
-  if (this.format.recordAndTupleSyntaxType === "bar") {
-    startToken = "{|";
-    endToken = "|}";
-  } else if (this.format.recordAndTupleSyntaxType !== "hash" && this.format.recordAndTupleSyntaxType != null) {
-    throw new Error(`The "recordAndTupleSyntaxType" generator option must be "bar" or "hash" (${JSON.stringify(this.format.recordAndTupleSyntaxType)} received).`);
-  } else {
-    startToken = "#{";
-    endToken = "}";
+  {
+    if (this.format.recordAndTupleSyntaxType === "bar") {
+      startToken = "{|";
+      endToken = "|}";
+    } else if (this.format.recordAndTupleSyntaxType !== "hash" && this.format.recordAndTupleSyntaxType != null) {
+      throw new Error(`The "recordAndTupleSyntaxType" generator option must be "bar" or "hash" (${JSON.stringify(this.format.recordAndTupleSyntaxType)} received).`);
+    } else {
+      startToken = "#{";
+      endToken = "}";
+    }
   }
   this.token(startToken);
   if (props.length) {
@@ -20623,14 +20626,16 @@ function TupleExpression(node) {
   const len = elems.length;
   let startToken;
   let endToken;
-  if (this.format.recordAndTupleSyntaxType === "bar") {
-    startToken = "[|";
-    endToken = "|]";
-  } else if (this.format.recordAndTupleSyntaxType === "hash") {
-    startToken = "#[";
-    endToken = "]";
-  } else {
-    throw new Error(`${this.format.recordAndTupleSyntaxType} is not a valid recordAndTuple syntax type`);
+  {
+    if (this.format.recordAndTupleSyntaxType === "bar") {
+      startToken = "[|";
+      endToken = "|]";
+    } else if (this.format.recordAndTupleSyntaxType === "hash") {
+      startToken = "#[";
+      endToken = "]";
+    } else {
+      throw new Error(`${this.format.recordAndTupleSyntaxType} is not a valid recordAndTuple syntax type`);
+    }
   }
   this.token(startToken);
   for (let i = 0; i < elems.length; i++) {
@@ -21120,7 +21125,8 @@ function TSMappedType(node) {
     nameType,
     optional,
     readonly,
-    typeParameter
+    typeParameter,
+    typeAnnotation
   } = node;
   this.tokenChar(123);
   this.space();
@@ -21146,9 +21152,11 @@ function TSMappedType(node) {
     tokenIfPlusMinus(this, optional);
     this.tokenChar(63);
   }
-  this.tokenChar(58);
-  this.space();
-  this.print(node.typeAnnotation, node);
+  if (typeAnnotation) {
+    this.tokenChar(58);
+    this.space();
+    this.print(typeAnnotation, node);
+  }
   this.space();
   this.tokenChar(125);
 }
@@ -21428,7 +21436,6 @@ exports["default"] = generate;
 var _sourceMap = __nccwpck_require__(6280);
 var _printer = __nccwpck_require__(5637);
 function normalizeOptions(code, opts) {
-  var _opts$recordAndTupleS;
   const format = {
     auxiliaryCommentBefore: opts.auxiliaryCommentBefore,
     auxiliaryCommentAfter: opts.auxiliaryCommentAfter,
@@ -21448,13 +21455,14 @@ function normalizeOptions(code, opts) {
       wrap: true,
       minimal: false
     }, opts.jsescOption),
-    recordAndTupleSyntaxType: (_opts$recordAndTupleS = opts.recordAndTupleSyntaxType) != null ? _opts$recordAndTupleS : "hash",
     topicToken: opts.topicToken,
     importAttributesKeyword: opts.importAttributesKeyword
   };
   {
+    var _opts$recordAndTupleS;
     format.decoratorsBeforeExport = opts.decoratorsBeforeExport;
     format.jsescOption.json = opts.jsonCompatibleStrings;
+    format.recordAndTupleSyntaxType = (_opts$recordAndTupleS = opts.recordAndTupleSyntaxType) != null ? _opts$recordAndTupleS : "hash";
   }
   if (format.minified) {
     format.compact = true;
@@ -22309,7 +22317,7 @@ class Printer {
     }
     this._printStack.push(node);
     const oldInAux = this._insideAux;
-    this._insideAux = node.loc == undefined;
+    this._insideAux = node.loc == null;
     this._maybeAddAuxComment(this._insideAux && !oldInAux);
     const parenthesized = (_node$extra = node.extra) == null ? void 0 : _node$extra.parenthesized;
     let shouldPrintParens = forceParens || parenthesized && format.retainFunctionParens && nodeType === "FunctionExpression" || needsParens(node, parent, this._printStack);
@@ -22602,7 +22610,7 @@ class Printer {
         if (type === 0) {
           let offset = 0;
           if (i === 0) {
-            if (this._buf.hasContent() && (comment.type === "CommentLine" || commentStartLine != commentEndLine)) {
+            if (this._buf.hasContent() && (comment.type === "CommentLine" || commentStartLine !== commentEndLine)) {
               offset = leadingCommentNewline = 1;
             }
           } else {
@@ -35088,8 +35096,10 @@ class ExpressionParser extends LValParser {
       if (isRecord && !this.isObjectProperty(prop) && prop.type !== "SpreadElement") {
         this.raise(Errors.InvalidRecordProperty, prop);
       }
-      if (prop.shorthand) {
-        this.addExtra(prop, "shorthand", true);
+      {
+        if (prop.shorthand) {
+          this.addExtra(prop, "shorthand", true);
+        }
       }
       node.properties.push(prop);
     }
@@ -38087,7 +38097,7 @@ Object.defineProperty(exports, "__esModule", ({
 exports["default"] = parseAndBuildMetadata;
 var _t = __nccwpck_require__(7912);
 var _parser = __nccwpck_require__(5026);
-var _codeFrame = __nccwpck_require__(1304);
+var _codeFrame = __nccwpck_require__(1322);
 const {
   isCallExpression,
   isExpressionStatement,
@@ -38397,170 +38407,6 @@ function stringTemplate(formatter, code, opts) {
 }
 
 //# sourceMappingURL=string.js.map
-
-
-/***/ }),
-
-/***/ 1304:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.codeFrameColumns = codeFrameColumns;
-exports["default"] = _default;
-var _highlight = __nccwpck_require__(7654);
-var _picocolors = _interopRequireWildcard(__nccwpck_require__(7023), true);
-function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
-function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
-const colors = typeof process === "object" && (process.env.FORCE_COLOR === "0" || process.env.FORCE_COLOR === "false") ? (0, _picocolors.createColors)(false) : _picocolors.default;
-const compose = (f, g) => v => f(g(v));
-let pcWithForcedColor = undefined;
-function getColors(forceColor) {
-  if (forceColor) {
-    var _pcWithForcedColor;
-    (_pcWithForcedColor = pcWithForcedColor) != null ? _pcWithForcedColor : pcWithForcedColor = (0, _picocolors.createColors)(true);
-    return pcWithForcedColor;
-  }
-  return colors;
-}
-let deprecationWarningShown = false;
-function getDefs(colors) {
-  return {
-    gutter: colors.gray,
-    marker: compose(colors.red, colors.bold),
-    message: compose(colors.red, colors.bold)
-  };
-}
-const NEWLINE = /\r\n|[\n\r\u2028\u2029]/;
-function getMarkerLines(loc, source, opts) {
-  const startLoc = Object.assign({
-    column: 0,
-    line: -1
-  }, loc.start);
-  const endLoc = Object.assign({}, startLoc, loc.end);
-  const {
-    linesAbove = 2,
-    linesBelow = 3
-  } = opts || {};
-  const startLine = startLoc.line;
-  const startColumn = startLoc.column;
-  const endLine = endLoc.line;
-  const endColumn = endLoc.column;
-  let start = Math.max(startLine - (linesAbove + 1), 0);
-  let end = Math.min(source.length, endLine + linesBelow);
-  if (startLine === -1) {
-    start = 0;
-  }
-  if (endLine === -1) {
-    end = source.length;
-  }
-  const lineDiff = endLine - startLine;
-  const markerLines = {};
-  if (lineDiff) {
-    for (let i = 0; i <= lineDiff; i++) {
-      const lineNumber = i + startLine;
-      if (!startColumn) {
-        markerLines[lineNumber] = true;
-      } else if (i === 0) {
-        const sourceLength = source[lineNumber - 1].length;
-        markerLines[lineNumber] = [startColumn, sourceLength - startColumn + 1];
-      } else if (i === lineDiff) {
-        markerLines[lineNumber] = [0, endColumn];
-      } else {
-        const sourceLength = source[lineNumber - i].length;
-        markerLines[lineNumber] = [0, sourceLength];
-      }
-    }
-  } else {
-    if (startColumn === endColumn) {
-      if (startColumn) {
-        markerLines[startLine] = [startColumn, 0];
-      } else {
-        markerLines[startLine] = true;
-      }
-    } else {
-      markerLines[startLine] = [startColumn, endColumn - startColumn];
-    }
-  }
-  return {
-    start,
-    end,
-    markerLines
-  };
-}
-function codeFrameColumns(rawLines, loc, opts = {}) {
-  const highlighted = (opts.highlightCode || opts.forceColor) && (0, _highlight.shouldHighlight)(opts);
-  const colors = getColors(opts.forceColor);
-  const defs = getDefs(colors);
-  const maybeHighlight = (fmt, string) => {
-    return highlighted ? fmt(string) : string;
-  };
-  const lines = rawLines.split(NEWLINE);
-  const {
-    start,
-    end,
-    markerLines
-  } = getMarkerLines(loc, lines, opts);
-  const hasColumns = loc.start && typeof loc.start.column === "number";
-  const numberMaxWidth = String(end).length;
-  const highlightedLines = highlighted ? (0, _highlight.default)(rawLines, opts) : rawLines;
-  let frame = highlightedLines.split(NEWLINE, end).slice(start, end).map((line, index) => {
-    const number = start + 1 + index;
-    const paddedNumber = ` ${number}`.slice(-numberMaxWidth);
-    const gutter = ` ${paddedNumber} |`;
-    const hasMarker = markerLines[number];
-    const lastMarkerLine = !markerLines[number + 1];
-    if (hasMarker) {
-      let markerLine = "";
-      if (Array.isArray(hasMarker)) {
-        const markerSpacing = line.slice(0, Math.max(hasMarker[0] - 1, 0)).replace(/[^\t]/g, " ");
-        const numberOfMarkers = hasMarker[1] || 1;
-        markerLine = ["\n ", maybeHighlight(defs.gutter, gutter.replace(/\d/g, " ")), " ", markerSpacing, maybeHighlight(defs.marker, "^").repeat(numberOfMarkers)].join("");
-        if (lastMarkerLine && opts.message) {
-          markerLine += " " + maybeHighlight(defs.message, opts.message);
-        }
-      }
-      return [maybeHighlight(defs.marker, ">"), maybeHighlight(defs.gutter, gutter), line.length > 0 ? ` ${line}` : "", markerLine].join("");
-    } else {
-      return ` ${maybeHighlight(defs.gutter, gutter)}${line.length > 0 ? ` ${line}` : ""}`;
-    }
-  }).join("\n");
-  if (opts.message && !hasColumns) {
-    frame = `${" ".repeat(numberMaxWidth + 1)}${opts.message}\n${frame}`;
-  }
-  if (highlighted) {
-    return colors.reset(frame);
-  } else {
-    return frame;
-  }
-}
-function _default(rawLines, lineNumber, colNumber, opts = {}) {
-  if (!deprecationWarningShown) {
-    deprecationWarningShown = true;
-    const message = "Passing lineNumber and colNumber is deprecated to @babel/code-frame. Please use `codeFrameColumns`.";
-    if (process.emitWarning) {
-      process.emitWarning(message, "DeprecationWarning");
-    } else {
-      const deprecationError = new Error(message);
-      deprecationError.name = "DeprecationWarning";
-      console.warn(new Error(message));
-    }
-  }
-  colNumber = Math.max(colNumber, 0);
-  const location = {
-    start: {
-      column: colNumber,
-      line: lineNumber
-    }
-  };
-  return codeFrameColumns(rawLines, location, opts);
-}
-
-//# sourceMappingURL=index.js.map
 
 
 /***/ }),
@@ -54236,10 +54082,9 @@ function getBindingIdentifiers(node, duplicates, outerOnly, newBindingsOnly) {
   while (search.length) {
     const id = search.shift();
     if (!id) continue;
-    if (newBindingsOnly && ((0, _index.isAssignmentExpression)(id) || (0, _index.isUnaryExpression)(id))) {
+    if (newBindingsOnly && ((0, _index.isAssignmentExpression)(id) || (0, _index.isUnaryExpression)(id) || (0, _index.isUpdateExpression)(id))) {
       continue;
     }
-    const keys = getBindingIdentifiers.keys[id.type];
     if ((0, _index.isIdentifier)(id)) {
       if (duplicates) {
         const _ids = ids[id.name] = ids[id.name] || [];
@@ -54264,6 +54109,7 @@ function getBindingIdentifiers(node, duplicates, outerOnly, newBindingsOnly) {
         continue;
       }
     }
+    const keys = getBindingIdentifiers.keys[id.type];
     if (keys) {
       for (let i = 0; i < keys.length; i++) {
         const key = keys[i];
