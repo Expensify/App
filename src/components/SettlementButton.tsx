@@ -20,7 +20,7 @@ import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
-import type {DropdownOption, PaymentType} from './ButtonWithDropdownMenu/types';
+import type {PaymentType} from './ButtonWithDropdownMenu/types';
 import * as Expensicons from './Icon/Expensicons';
 import KYCWall from './KYCWall';
 import {useSession} from './OnyxProvider';
@@ -183,13 +183,15 @@ function SettlementButton({
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             },
         };
-        const buttonOptions = [paymentMethods[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT], paymentMethods[CONST.PAYMENT_METHODS.DEBIT_CARD]] as Array<DropdownOption<PaymentType>>;
+
+        const buttonOptions = [];
         const approveButtonOption = {
             text: translate('iou.approve'),
             icon: Expensicons.ThumbsUp,
             value: CONST.IOU.REPORT_ACTION_TYPE.APPROVE,
             disabled: !!shouldDisableApproveButton,
         };
+        const canUseWallet = !isExpenseReport && !isInvoiceReport && currency === CONST.CURRENCY.USD;
 
         // Only show the Approve button if the user cannot pay the expense
         if (shouldHidePaymentOptions && shouldShowApproveButton) {
@@ -200,6 +202,11 @@ function SettlementButton({
         // If the user has previously chosen a specific payment option or paid for some expense,
         // let's use the last payment method or use default.
         const paymentMethod = nvpLastPaymentMethod?.[policyID] ?? '';
+        if (canUseWallet) {
+            buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]);
+            buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.DEBIT_CARD]);
+        }
+
         const canUsePersonalBankAccount = isExpenseReport && shouldShowPaywithExpensifyOption;
 
         if (shouldShowPersonalBankAccountOption && canUsePersonalBankAccount) {
