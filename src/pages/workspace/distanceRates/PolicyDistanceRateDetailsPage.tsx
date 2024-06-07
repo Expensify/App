@@ -51,7 +51,8 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
     const taxRateExternalID = rate.attributes?.taxRateExternalID;
 
     const isDistanceTrackTaxEnabled = !!customUnit?.attributes?.taxEnabled;
-    const taxRate = taxRateExternalID ? `${policy?.taxRates?.taxes[taxRateExternalID].name} (${policy?.taxRates?.taxes[taxRateExternalID].value})` : '';
+    const taxRate =
+        taxRateExternalID && policy?.taxRates?.taxes[taxRateExternalID] ? `${policy?.taxRates?.taxes[taxRateExternalID]?.name} (${policy?.taxRates?.taxes[taxRateExternalID]?.value})` : '';
     // Rates can be disabled or deleted as long as in the remaining rates there is always at least one enabled rate and there are no pending delete action
     const canDisableOrDeleteRate = Object.values(customUnit?.rates ?? {}).some(
         (distanceRate: Rate) => distanceRate?.enabled && rateID !== distanceRate?.customUnitRateID && distanceRate?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
