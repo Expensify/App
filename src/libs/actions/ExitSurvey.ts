@@ -65,6 +65,7 @@ function switchToOldDot() {
         },
     ];
 
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
     return API.makeRequestWithSideEffects(
         'SwitchToOldDot',
         {
