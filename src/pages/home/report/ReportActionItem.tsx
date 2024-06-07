@@ -29,6 +29,7 @@ import ReportPreview from '@components/ReportActionItem/ReportPreview';
 import TaskAction from '@components/ReportActionItem/TaskAction';
 import TaskPreview from '@components/ReportActionItem/TaskPreview';
 import TaskView from '@components/ReportActionItem/TaskView';
+import TripDetailsView from '@components/ReportActionItem/TripDetailsView';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
@@ -55,7 +56,7 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
-import * as Policy from '@userActions/Policy/Policy';
+import * as Member from '@userActions/Policy/Member';
 import * as Report from '@userActions/Report';
 import * as ReportActions from '@userActions/ReportActions';
 import * as Session from '@userActions/Session';
@@ -371,7 +372,7 @@ function ReportActionItem({
             return;
         }
 
-        if (prevActionResolution !== (action.originalMessage.resolution ?? null)) {
+        if (prevActionResolution !== action.originalMessage.resolution) {
             reportScrollManager.scrollToIndex(index);
         }
     }, [index, action, prevActionResolution, reportScrollManager, isActionableWhisper]);
@@ -444,13 +445,13 @@ function ReportActionItem({
                 {
                     text: 'actionableMentionJoinWorkspaceOptions.accept',
                     key: `${action.reportActionID}-actionableMentionJoinWorkspace-${CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.ACCEPT}`,
-                    onPress: () => Policy.acceptJoinRequest(report.reportID, action),
+                    onPress: () => Member.acceptJoinRequest(report.reportID, action),
                     isPrimary: true,
                 },
                 {
                     text: 'actionableMentionJoinWorkspaceOptions.decline',
                     key: `${action.reportActionID}-actionableMentionJoinWorkspace-${CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.DECLINE}`,
-                    onPress: () => Policy.declineJoinRequest(report.reportID, action),
+                    onPress: () => Member.declineJoinRequest(report.reportID, action),
                 },
             ];
         }
@@ -783,6 +784,19 @@ function ReportActionItem({
         return <ReportActionItemGrouped wrapperStyle={isWhisper ? styles.pt1 : {}}>{content}</ReportActionItemGrouped>;
     };
 
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.TRIPPREVIEW) {
+        if (ReportUtils.isTripRoom(report)) {
+            return (
+                <OfflineWithFeedback pendingAction={action.pendingAction}>
+                    <TripDetailsView
+                        tripRoomReportID={report.reportID}
+                        shouldShowHorizontalRule={false}
+                    />
+                </OfflineWithFeedback>
+            );
+        }
+    }
+
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
         if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
             const isReversedTransaction = ReportActionsUtils.isReversedTransaction(parentReportAction);
@@ -849,6 +863,7 @@ function ReportActionItem({
                 </View>
             );
         }
+
         if (ReportUtils.isExpenseReport(report) || ReportUtils.isIOUReport(report) || ReportUtils.isInvoiceReport(report)) {
             return (
                 <OfflineWithFeedback pendingAction={action.pendingAction}>
