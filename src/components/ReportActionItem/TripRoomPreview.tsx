@@ -176,7 +176,7 @@ function TripRoomPreview({action, chatReportID, containerStyles, contextMenuAnch
                                 </View>
                                 <View style={styles.flexRow}>
                                     <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                        <Text style={[styles.textSupportingNormalSize, styles.lh20]}>{chatReport?.reportName}</Text>
+                                        <Text style={[styles.textLabelSupporting, styles.textNormal, styles.lh20]}>{chatReport?.reportName}</Text>
                                     </View>
                                 </View>
                             </View>

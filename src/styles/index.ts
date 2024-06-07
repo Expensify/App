@@ -1336,12 +1336,6 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightNormal,
         },
 
-        textSupportingNormalSize: {
-            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
-            fontSize: variables.fontSizeNormal,
-            color: theme.textSupporting,
-        },
-
         textLabelSupporting: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeLabel,
