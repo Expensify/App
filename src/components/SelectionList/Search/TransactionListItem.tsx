@@ -42,7 +42,6 @@ function TransactionListItem<TItem extends ListItem>({
             canSelectMultiple={canSelectMultiple}
             onSelectRow={onSelectRow}
             onDismissError={onDismissError}
-            shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
             errors={item.errors}
             pendingAction={item.pendingAction}
             keyForList={item.keyForList}
