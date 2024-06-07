@@ -334,6 +334,37 @@ function MoneyRequestView({
         ...parentReportAction?.errors,
     };
 
+    const TagList = policyTagLists.map(({name, orderWeight}, index) => {
+        const tagError = getErrorForField(
+            'tag',
+            {
+                tagListIndex: index,
+                tagListName: name,
+            },
+            PolicyUtils.hasDependentTags(policy, policyTagList),
+            TransactionUtils.getTagForDisplay(transaction, index),
+        );
+        return (
+            <OfflineWithFeedback
+                key={name}
+                pendingAction={getPendingFieldAction('tag')}
+            >
+                <MenuItemWithTopDescription
+                    description={name ?? translate('common.tag')}
+                    title={TransactionUtils.getTagForDisplay(transaction, index)}
+                    interactive={canEdit}
+                    shouldShowRightIcon={canEdit}
+                    titleStyle={styles.flex1}
+                    onPress={() =>
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(CONST.IOU.ACTION.EDIT, iouType, orderWeight, transaction?.transactionID ?? '', report.reportID))
+                    }
+                    brickRoadIndicator={tagError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    errorText={tagError}
+                />
+            </OfflineWithFeedback>
+        );
+    });
+
     return (
         <View style={styles.pRelative}>
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
@@ -469,48 +500,7 @@ function MoneyRequestView({
                         />
                     </OfflineWithFeedback>
                 )}
-                {shouldShowTag &&
-                    policyTagLists.map(({name, orderWeight}, index) => (
-                        <OfflineWithFeedback
-                            key={name}
-                            pendingAction={getPendingFieldAction('tag')}
-                        >
-                            <MenuItemWithTopDescription
-                                description={name ?? translate('common.tag')}
-                                title={TransactionUtils.getTagForDisplay(transaction, index)}
-                                interactive={canEdit}
-                                shouldShowRightIcon={canEdit}
-                                titleStyle={styles.flex1}
-                                onPress={() =>
-                                    Navigation.navigate(
-                                        ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(CONST.IOU.ACTION.EDIT, iouType, orderWeight, transaction?.transactionID ?? '', report.reportID),
-                                    )
-                                }
-                                brickRoadIndicator={
-                                    getErrorForField(
-                                        'tag',
-                                        {
-                                            tagListIndex: index,
-                                            tagListName: name,
-                                        },
-                                        PolicyUtils.hasDependentTags(policy, policyTagList),
-                                        TransactionUtils.getTagForDisplay(transaction, index),
-                                    )
-                                        ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                                        : undefined
-                                }
-                                errorText={getErrorForField(
-                                    'tag',
-                                    {
-                                        tagListIndex: index,
-                                        tagListName: name,
-                                    },
-                                    PolicyUtils.hasDependentTags(policy, policyTagList),
-                                    TransactionUtils.getTagForDisplay(transaction, index),
-                                )}
-                            />
-                        </OfflineWithFeedback>
-                    ))}
+                {shouldShowTag && TagList}
                 {isCardTransaction && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('cardID')}>
                         <MenuItemWithTopDescription

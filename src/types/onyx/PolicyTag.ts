@@ -25,6 +25,10 @@ type PolicyTag = OnyxCommon.OnyxValueWithOfflineFeedback<{
         parentTagsFilter?: string;
     };
 
+    /**
+     * String representation of regex to match against parent tag. Eg, if San Francisco is a child tag of California
+     * its parentTagsFilter will be ^California$
+     */
     parentTagsFilter?: string;
 }>;
 
