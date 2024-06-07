@@ -285,6 +285,7 @@ function PaymentCardForm({
                                 inputStyle={isHovered && styles.cursorPointer}
                                 hideFocusedState
                                 caretHidden
+                                disableKeyboard
                             />
                         )}
                     </Hoverable>
