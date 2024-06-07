@@ -2,6 +2,9 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
+/** Types of join workspace resolutions */
+type JoinWorkspaceResolution = ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION>;
+
 /** Types of payments methods */
 type PaymentMethodType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE | typeof CONST.IOU.REPORT_ACTION_TYPE | typeof CONST.WALLET.TRANSFER_METHOD_TYPE>;
 
@@ -36,7 +39,10 @@ type OriginalMessageActionName =
 
 /** Model of `approved` report action */
 type OriginalMessageApproved = {
+    /** Approved */
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.APPROVED;
+
+    /** Content of the original message */
     originalMessage: {
         /** Approved expense amount */
         amount: number;
@@ -54,19 +60,28 @@ type OriginalMessageSource = 'Chronos' | 'email' | 'ios' | 'android' | 'web' | '
 
 /** Model of `hold` report action */
 type OriginalMessageHold = {
+    /** Hold */
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.HOLD;
+
+    /** Content of the original message */
     originalMessage: unknown;
 };
 
 /** Model of `hold comment` report action */
 type OriginalMessageHoldComment = {
+    /** Hold comment */
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.HOLD_COMMENT;
+
+    /** Content of the original message */
     originalMessage: unknown;
 };
 
 /** Model of `unhold` report action */
 type OriginalMessageUnHold = {
+    /** Unhold */
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.UNHOLD;
+
+    /** Content of the original message */
     originalMessage: unknown;
 };
 
@@ -144,7 +159,10 @@ type ReimbursementDeQueuedMessage = {
 
 /** Model of `IOU` report action */
 type OriginalMessageIOU = {
+    /** IOU */
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.IOU;
+
+    /** Content of the original message */
     originalMessage: IOUMessage;
 };
 
@@ -203,7 +221,10 @@ type Closed = {
 
 /** Model of `add comment` report action */
 type OriginalMessageAddComment = {
+    /** Add comment */
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
+
+    /** Content of the original message */
     originalMessage: {
         /** HTML content of the comment */
         html: string;
@@ -224,7 +245,10 @@ type OriginalMessageAddComment = {
 
 /** Model of `actionable mention whisper` report action */
 type OriginalMessageActionableMentionWhisper = {
+    /** Actionable mention whisper */
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER;
+
+    /** Content of the original message */
     originalMessage: {
         /** Account IDs of users that aren't members of the room  */
         inviteeAccountIDs: number[];
@@ -239,7 +263,10 @@ type OriginalMessageActionableMentionWhisper = {
 
 /** Model of `actionable report mention whisper` report action */
 type OriginalMessageActionableReportMentionWhisper = {
+    /** Actionable report mention whisper */
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER;
+
+    /** Content of the original message */
     originalMessage: {
         /** Decision on whether to create a report that were mentioned but doesn't exist or do nothing */
         resolution?: ValueOf<typeof CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION> | null;
@@ -251,7 +278,10 @@ type OriginalMessageActionableReportMentionWhisper = {
 
 /** Model of `submitted` report action */
 type OriginalMessageSubmitted = {
+    /** Submitted */
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED;
+
+    /** Content of the original message */
     originalMessage: {
         /** Approved expense amount */
         amount: number;
@@ -266,25 +296,37 @@ type OriginalMessageSubmitted = {
 
 /** Model of `closed` report action */
 type OriginalMessageClosed = {
+    /** Closed */
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.CLOSED;
+
+    /** Content of the original message */
     originalMessage: Closed;
 };
 
 /** Model of `created` report action */
 type OriginalMessageCreated = {
+    /** Created */
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.CREATED;
+
+    /** Content of the original message */
     originalMessage?: unknown;
 };
 
 /** Model of `marked reimbursed` report action */
 type OriginalMessageMarkedReimbursed = {
+    /** Marked reimbursed */
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED;
+
+    /** Content of the original message */
     originalMessage?: unknown;
 };
 
 /** Model of `renamed` report action, created when chat rooms get renamed */
 type OriginalMessageRenamed = {
+    /** Renamed */
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.RENAMED;
+
+    /** Content of the original message */
     originalMessage: {
         /** Renamed room comment */
         html: string;
@@ -380,8 +422,10 @@ type ModifiedExpense = {
     /** Old expense tag */
     oldTag?: string;
 
+    /** Edited billable */
     billable?: string;
 
+    /** Old billable */
     oldBillable?: string;
 
     /** Old expense tag amount */
@@ -402,7 +446,10 @@ type ModifiedExpense = {
 
 /** Model of `Chronos OOO List` report action */
 type OriginalMessageChronosOOOList = {
+    /** Chronos OOO list */
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.CHRONOS_OOO_LIST;
+
+    /** Content of the original message */
     originalMessage: {
         /** Collection of OOO events to show in report action */
         events: ChronosOOOEvent[];
@@ -411,7 +458,10 @@ type OriginalMessageChronosOOOList = {
 
 /** Model of `report preview` report action */
 type OriginalMessageReportPreview = {
+    /** Report preview */
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
+
+    /** Content of the original message */
     originalMessage: {
         /** ID of the report to be previewed */
         linkedReportID: string;
@@ -423,16 +473,22 @@ type OriginalMessageReportPreview = {
 
 /** Model of `policy change log` report action */
 type OriginalMessagePolicyChangeLog = {
+    /** Policy change log  */
     actionName: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>;
+
+    /** Content of the original message */
     originalMessage: ChangeLog;
 };
 
-/** Model of `join policy change log` report action */
+/** Model of `join policy changelog` report action */
 type OriginalMessageJoinPolicyChangeLog = {
+    /** Actionable join request */
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST;
+
+    /** Content of the original message */
     originalMessage: {
         /** What was the invited user decision */
-        choice: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION>;
+        choice: JoinWorkspaceResolution;
 
         /** ID of the affected policy */
         policyID: string;
@@ -441,30 +497,42 @@ type OriginalMessageJoinPolicyChangeLog = {
 
 /** Model of `room change log` report action */
 type OriginalMessageRoomChangeLog = {
+    /** Room change log */
     actionName: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>;
+
+    /** Content of the original message */
     originalMessage: ChangeLog;
 };
 
 /** Model of `policy task` report action */
 type OriginalMessagePolicyTask = {
+    /** Policy task */
     actionName:
         | typeof CONST.REPORT.ACTIONS.TYPE.TASK_EDITED
         | typeof CONST.REPORT.ACTIONS.TYPE.TASK_CANCELLED
         | typeof CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED
         | typeof CONST.REPORT.ACTIONS.TYPE.TASK_REOPENED
         | typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE;
+
+    /** Content of the original message */
     originalMessage: unknown;
 };
 
 /** Model of `modified expense` report action */
 type OriginalMessageModifiedExpense = {
+    /** Modified expense */
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE;
+
+    /** Content of the original message */
     originalMessage: ModifiedExpense;
 };
 
 /** Model of `reimbursement queued` report action */
 type OriginalMessageReimbursementQueued = {
+    /** Reimbursement queued */
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED;
+
+    /** Content of the original message */
     originalMessage: {
         /** How is the payment getting reimbursed */
         paymentType: DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
@@ -473,7 +541,10 @@ type OriginalMessageReimbursementQueued = {
 
 /** Model of `actionable tracked expense whisper` report action */
 type OriginalMessageActionableTrackedExpenseWhisper = {
+    /** Actionable track expense whisper */
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER;
+
+    /** Content of the original message */
     originalMessage: {
         /** ID of the transaction */
         transactionID: string;
@@ -488,13 +559,19 @@ type OriginalMessageActionableTrackedExpenseWhisper = {
 
 /** Model of `reimbursement dequeued` report action */
 type OriginalMessageReimbursementDequeued = {
+    /** Reimbursement dequeued */
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED;
+
+    /** Content of the original message */
     originalMessage: ReimbursementDeQueuedMessage;
 };
 
 /** Model of `moved` report action */
 type OriginalMessageMoved = {
+    /** Moved */
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.MOVED;
+
+    /** Content of the original message */
     originalMessage: {
         /** ID of the old policy */
         fromPolicyID: string;
@@ -512,13 +589,19 @@ type OriginalMessageMoved = {
 
 /** Model of `merged with cash transaction` report action */
 type OriginalMessageMergedWithCashTransaction = {
+    /** Merged with cash transaction */
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION;
+
+    /** Content of the original message */
     originalMessage: Record<string, never>; // No data is sent with this action
 };
 
 /** Model of `dismissed violation` report action */
 type OriginalMessageDismissedViolation = {
+    /** Dismissed violation */
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION;
+
+    /** Content of the original message */
     originalMessage: {
         /** Why the violation was dismissed */
         reason: string;
@@ -530,7 +613,10 @@ type OriginalMessageDismissedViolation = {
 
 /** Model of `trip room preview` report action */
 type OriginalMessageTripRoomPreview = {
+    /** Trip Room Preview */
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.TRIPPREVIEW;
+
+    /** Content of the original message */
     originalMessage: {
         /** ID of the report to be previewed */
         linkedReportID: string;
@@ -575,6 +661,7 @@ type OriginalMessage =
 
 export default OriginalMessage;
 export type {
+    JoinWorkspaceResolution,
     ChronosOOOEvent,
     Decision,
     Reaction,
