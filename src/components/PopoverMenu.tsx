@@ -1,3 +1,4 @@
+import lodashIsEqual from 'lodash/isEqual';
 import type {RefObject} from 'react';
 import React, {useEffect, useRef, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
@@ -6,6 +7,7 @@ import type {ModalProps} from 'react-native-modal';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
@@ -26,6 +28,9 @@ type PopoverMenuItem = MenuItemProps & {
 
     /** Sub menu items to be rendered after a menu item is selected */
     subMenuItems?: PopoverMenuItem[];
+
+    /** Back button text to be shown if sub menu items are opened */
+    backButtonText?: string;
 
     /** Determines whether the menu item is disabled or not */
     disabled?: boolean;
@@ -103,6 +108,7 @@ function PopoverMenu({
     shouldEnableNewFocusManagement,
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {isSmallScreenWidth} = useResponsiveLayout();
     const selectedItemIndex = useRef<number | null>(null);
 
@@ -116,6 +122,7 @@ function PopoverMenu({
         if (selectedItem?.subMenuItems) {
             setCurrentMenuItems([...selectedItem.subMenuItems]);
             setEnteredSubMenuIndexes([...enteredSubMenuIndexes, index]);
+            setFocusedIndex(-1);
         } else {
             selectedItemIndex.current = index;
             onItemSelected(selectedItem, index);
@@ -137,17 +144,22 @@ function PopoverMenu({
     const renderBackButtonItem = () => {
         const previousMenuItems = getPreviousSubMenu();
         const previouslySelectedItem = previousMenuItems[enteredSubMenuIndexes[enteredSubMenuIndexes.length - 1]];
+        const hasBackButtonText = !!previouslySelectedItem.backButtonText;
 
         return (
             <MenuItem
                 key={previouslySelectedItem.text}
                 icon={Expensicons.BackArrow}
-                iconFill="gray"
-                title={previouslySelectedItem.text}
+                iconFill={theme.icon}
+                style={hasBackButtonText ? styles.pv0 : undefined}
+                title={hasBackButtonText ? previouslySelectedItem.backButtonText : previouslySelectedItem.text}
+                titleStyle={hasBackButtonText ? styles.createMenuHeaderText : undefined}
+                shouldShowBasicTitle={hasBackButtonText}
                 shouldCheckActionAllowedOnPress={false}
                 description={previouslySelectedItem.description}
                 onPress={() => {
                     setCurrentMenuItems(previousMenuItems);
+                    setFocusedIndex(-1);
                     enteredSubMenuIndexes.splice(-1);
                 }}
             />
@@ -207,7 +219,7 @@ function PopoverMenu({
                 onLayout={onLayout}
                 style={isSmallScreenWidth ? {} : styles.createMenuContainer}
             >
-                {!!headerText && <Text style={[styles.createMenuHeaderText, styles.ml3]}>{headerText}</Text>}
+                {!!headerText && enteredSubMenuIndexes.length === 0 && <Text style={[styles.createMenuHeaderText, styles.ph5, styles.pv3]}>{headerText}</Text>}
                 {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
                 {currentMenuItems.map((item, menuIndex) => (
                     <FocusableMenuItem
@@ -245,5 +257,21 @@ function PopoverMenu({
 
 PopoverMenu.displayName = 'PopoverMenu';
 
-export default React.memo(PopoverMenu);
+export default React.memo(
+    PopoverMenu,
+    (prevProps, nextProps) =>
+        !lodashIsEqual(prevProps.menuItems, nextProps.menuItems) &&
+        prevProps.isVisible === nextProps.isVisible &&
+        lodashIsEqual(prevProps.anchorPosition, nextProps.anchorPosition) &&
+        prevProps.anchorRef === nextProps.anchorRef &&
+        prevProps.headerText === nextProps.headerText &&
+        prevProps.fromSidebarMediumScreen === nextProps.fromSidebarMediumScreen &&
+        lodashIsEqual(prevProps.anchorAlignment, nextProps.anchorAlignment) &&
+        prevProps.animationIn === nextProps.animationIn &&
+        prevProps.animationOut === nextProps.animationOut &&
+        prevProps.animationInTiming === nextProps.animationInTiming &&
+        prevProps.disableAnimation === nextProps.disableAnimation &&
+        prevProps.withoutOverlay === nextProps.withoutOverlay &&
+        prevProps.shouldSetModalVisibility === nextProps.shouldSetModalVisibility,
+);
 export type {PopoverMenuItem, PopoverMenuProps};

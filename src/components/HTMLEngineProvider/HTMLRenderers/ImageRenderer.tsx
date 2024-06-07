@@ -51,7 +51,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
     //           control and thus require no authToken to verify access.
     //
     const attachmentSourceAttribute = htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE];
-    const isAttachmentOrReceipt = Boolean(attachmentSourceAttribute);
+    const isAttachmentOrReceipt = !!attachmentSourceAttribute;
 
     // Files created/uploaded/hosted by App should resolve from API ROOT. Other URLs aren't modified
     const previewSource = tryResolveUrlFromApiRoot(htmlAttribs.src);

@@ -14,7 +14,7 @@ import SortableHeaderText from './SortableHeaderText';
 type SearchColumnConfig = {
     columnName: SearchColumnType;
     translationKey: TranslationPaths;
-    isSortable?: boolean;
+    isColumnSortable?: boolean;
     shouldShow: (data: OnyxTypes.SearchResults['data']) => boolean;
 };
 
@@ -23,7 +23,7 @@ const SearchColumns: SearchColumnConfig[] = [
         columnName: CONST.SEARCH_TABLE_COLUMNS.RECEIPT,
         translationKey: 'common.receipt',
         shouldShow: () => true,
-        isSortable: false,
+        isColumnSortable: false,
     },
     {
         columnName: CONST.SEARCH_TABLE_COLUMNS.DATE,
@@ -53,20 +53,21 @@ const SearchColumns: SearchColumnConfig[] = [
     {
         columnName: CONST.SEARCH_TABLE_COLUMNS.CATEGORY,
         translationKey: 'common.category',
-        shouldShow: (data: OnyxTypes.SearchResults['data']) => SearchUtils.getShouldShowColumn(data, CONST.SEARCH_TABLE_COLUMNS.CATEGORY),
+        shouldShow: () => true,
     },
     {
         columnName: CONST.SEARCH_TABLE_COLUMNS.TAG,
         translationKey: 'common.tag',
-        shouldShow: (data: OnyxTypes.SearchResults['data']) => SearchUtils.getShouldShowColumn(data, CONST.SEARCH_TABLE_COLUMNS.TAG),
+        shouldShow: () => true,
     },
     {
         columnName: CONST.SEARCH_TABLE_COLUMNS.TAX_AMOUNT,
         translationKey: 'common.tax',
-        shouldShow: (data: OnyxTypes.SearchResults['data']) => SearchUtils.getShouldShowColumn(data, CONST.SEARCH_TABLE_COLUMNS.TAX_AMOUNT),
+        shouldShow: () => true,
+        isColumnSortable: false,
     },
     {
-        columnName: CONST.SEARCH_TABLE_COLUMNS.TOTAL,
+        columnName: CONST.SEARCH_TABLE_COLUMNS.TOTAL_AMOUNT,
         translationKey: 'common.total',
         shouldShow: () => true,
     },
@@ -74,11 +75,13 @@ const SearchColumns: SearchColumnConfig[] = [
         columnName: CONST.SEARCH_TABLE_COLUMNS.TYPE,
         translationKey: 'common.type',
         shouldShow: () => true,
+        isColumnSortable: false,
     },
     {
         columnName: CONST.SEARCH_TABLE_COLUMNS.ACTION,
         translationKey: 'common.action',
         shouldShow: () => true,
+        isColumnSortable: false,
     },
 ];
 
@@ -86,10 +89,11 @@ type SearchTableHeaderProps = {
     data: OnyxTypes.SearchResults['data'];
     sortBy?: SearchColumnType;
     sortOrder?: SortOrder;
+    isSortingAllowed: boolean;
     onSortPress: (column: SearchColumnType, order: SortOrder) => void;
 };
 
-function SearchTableHeader({data, sortBy, sortOrder, onSortPress}: SearchTableHeaderProps) {
+function SearchTableHeader({data, sortBy, sortOrder, isSortingAllowed, onSortPress}: SearchTableHeaderProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth, isMediumScreenWidth} = useWindowDimensions();
@@ -103,9 +107,14 @@ function SearchTableHeader({data, sortBy, sortOrder, onSortPress}: SearchTableHe
     return (
         <View style={[styles.ph5, styles.pb3]}>
             <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.ph4]}>
-                {SearchColumns.map(({columnName, translationKey, shouldShow, isSortable}) => {
+                {SearchColumns.map(({columnName, translationKey, shouldShow, isColumnSortable}) => {
+                    if (!shouldShow(data)) {
+                        return null;
+                    }
+
                     const isActive = sortBy === columnName;
                     const textStyle = columnName === CONST.SEARCH_TABLE_COLUMNS.RECEIPT ? StyleUtils.getTextOverflowStyle('clip') : null;
+                    const isSortable = isSortingAllowed && isColumnSortable;
 
                     return (
                         <SortableHeaderText
@@ -115,7 +124,6 @@ function SearchTableHeader({data, sortBy, sortOrder, onSortPress}: SearchTableHe
                             sortOrder={sortOrder ?? CONST.SORT_ORDER.ASC}
                             isActive={isActive}
                             containerStyle={[StyleUtils.getSearchTableColumnStyles(columnName)]}
-                            shouldShow={shouldShow(data)}
                             isSortable={isSortable}
                             onPress={(order: SortOrder) => onSortPress(columnName, order)}
                         />
