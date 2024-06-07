@@ -3,7 +3,6 @@ import truncate from 'lodash/truncate';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
-import ConfirmedRoute from '@components/ConfirmedRoute';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {ReceiptScan} from '@components/Icon/Expensicons';
@@ -15,6 +14,7 @@ import ReportActionItemImages from '@components/ReportActionItem/ReportActionIte
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -71,6 +71,7 @@ function MoneyRequestPreviewContent({
     const managerID = iouReport?.managerID ?? -1;
     const ownerAccountID = iouReport?.ownerAccountID ?? -1;
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
+    const {canUseViolations} = usePermissions();
 
     const participantAccountIDs = action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && isBillSplit ? action.originalMessage.participantAccountIDs ?? [] : [managerID, ownerAccountID];
     const participantAvatars = OptionsListUtils.getAvatarsForAccountIDs(participantAccountIDs, personalDetails ?? {});
@@ -88,10 +89,14 @@ function MoneyRequestPreviewContent({
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
     const isOnHold = TransactionUtils.isOnHold(transaction);
-    const isSettlementOrApprovalPartial = Boolean(iouReport?.pendingFields?.partial);
+    const isSettlementOrApprovalPartial = !!iouReport?.pendingFields?.partial;
     const isPartialHold = isSettlementOrApprovalPartial && isOnHold;
     const hasViolations = TransactionUtils.hasViolation(transaction?.transactionID ?? '', transactionViolations);
-    const hasNoticeTypeViolations = TransactionUtils.hasNoticeTypeViolation(transaction?.transactionID ?? '', transactionViolations);
+    const hasNoticeTypeViolations = !!(
+        TransactionUtils.hasNoticeTypeViolation(transaction?.transactionID ?? '', transactionViolations) &&
+        ReportUtils.isPaidGroupPolicy(iouReport) &&
+        canUseViolations
+    );
     const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(transaction);
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
     const isFetchingWaypointsFromServer = TransactionUtils.isFetchingWaypointsFromServer(transaction);
@@ -101,6 +106,7 @@ function MoneyRequestPreviewContent({
     const isFullySettled = isSettled && !isSettlementOrApprovalPartial;
     const isFullyApproved = ReportUtils.isReportApproved(iouReport) && !isSettlementOrApprovalPartial;
     const shouldShowRBR = hasNoticeTypeViolations || hasViolations || hasFieldErrors || (!isFullySettled && !isFullyApproved && isOnHold);
+    const shouldShowHoldMessage = !(isSettled && !isSettlementOrApprovalPartial) && isOnHold;
 
     /*
      Show the merchant for IOUs and expenses only if:
@@ -120,10 +126,7 @@ function MoneyRequestPreviewContent({
         merchantOrDescription = description || '';
     }
 
-    const receiptImages = hasReceipt ? [ReceiptUtils.getThumbnailAndImageURIs(transaction)] : [];
-
-    const hasPendingWaypoints = transaction?.pendingFields?.waypoints;
-    const showMapAsImage = isDistanceRequest && hasPendingWaypoints;
+    const receiptImages = hasReceipt ? [{...ReceiptUtils.getThumbnailAndImageURIs(transaction), transaction}] : [];
 
     const getSettledMessage = (): string => {
         if (isCardTransaction) {
@@ -160,7 +163,11 @@ function MoneyRequestPreviewContent({
                 const isTooLong = violationsCount > 1 || violationMessage.length > 15;
                 const hasViolationsAndFieldErrors = violationsCount > 0 && hasFieldErrors;
 
-                return `${message} ${CONST.DOT_SEPARATOR} ${isTooLong || hasViolationsAndFieldErrors ? translate('violations.reviewRequired') : violationMessage}`;
+                message += ` ${CONST.DOT_SEPARATOR} ${isTooLong || hasViolationsAndFieldErrors ? translate('violations.reviewRequired') : violationMessage}`;
+                if (shouldShowHoldMessage) {
+                    message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.hold')}`;
+                }
+                return message;
             }
 
             const isMerchantMissing = TransactionUtils.isMerchantMissing(transaction);
@@ -171,7 +178,7 @@ function MoneyRequestPreviewContent({
                 message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.missingAmount')}`;
             } else if (isMerchantMissing) {
                 message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.missingMerchant')}`;
-            } else if (!(isSettled && !isSettlementOrApprovalPartial) && isOnHold) {
+            } else if (shouldShowHoldMessage) {
                 message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.hold')}`;
             }
         } else if (hasNoticeTypeViolations && transaction && !ReportUtils.isReportApproved(iouReport) && !ReportUtils.isSettled(iouReport?.reportID)) {
@@ -180,7 +187,7 @@ function MoneyRequestPreviewContent({
             message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.approved')}`;
         } else if (iouReport?.isCancelledIOU) {
             message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
-        } else if (!(isSettled && !isSettlementOrApprovalPartial) && isOnHold) {
+        } else if (shouldShowHoldMessage) {
             message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.hold')}`;
         }
         return message;
@@ -250,15 +257,7 @@ function MoneyRequestPreviewContent({
                         !onPreviewPressed ? [styles.moneyRequestPreviewBox, containerStyles] : {},
                     ]}
                 >
-                    {showMapAsImage && (
-                        <View style={styles.reportActionItemImages}>
-                            <ConfirmedRoute
-                                transaction={transaction}
-                                interactive={false}
-                            />
-                        </View>
-                    )}
-                    {!showMapAsImage && hasReceipt && (
+                    {hasReceipt && (
                         <ReportActionItemImages
                             images={receiptImages}
                             isHovered={isHovered || isScanning}
@@ -330,7 +329,7 @@ function MoneyRequestPreviewContent({
                                             </View>
                                             {splitShare && (
                                                 <Text style={[styles.textLabel, styles.colorMuted, styles.ml1, styles.amountSplitPadding]}>
-                                                    {translate('iou.yourSplit', {amount: CurrencyUtils.convertToDisplayString(splitShare ?? 0, requestCurrency ?? '')})}
+                                                    {translate('iou.yourSplit', {amount: CurrencyUtils.convertToDisplayString(splitShare ?? 0, requestCurrency)})}
                                                 </Text>
                                             )}
                                         </View>
