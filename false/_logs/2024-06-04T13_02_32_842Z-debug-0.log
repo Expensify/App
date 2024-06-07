@@ -1,0 +1,42 @@
+0 verbose cli /Users/shridhar/.nvm/versions/node/v20.13.0/bin/node /Users/shridhar/.nvm/versions/node/v20.13.0/bin/npm
+1 info using npm@10.5.2
+2 info using node@v20.13.0
+3 timing npm:load:whichnode Completed in 1ms
+4 timing config:load:defaults Completed in 1ms
+5 timing config:load:file:/Users/shridhar/.nvm/versions/node/v20.13.0/lib/node_modules/npm/npmrc Completed in 1ms
+6 timing config:load:builtin Completed in 1ms
+7 timing config:load:cli Completed in 1ms
+8 timing config:load:env Completed in 0ms
+9 timing config:load:file:/Users/shridhar/Expense/App/.npmrc Completed in 3ms
+10 timing config:load:project Completed in 87ms
+11 timing config:load:file:/Users/shridhar/.npmrc Completed in 3ms
+12 timing config:load:user Completed in 3ms
+13 timing config:load:file:/Users/shridhar/.nvm/versions/node/v20.13.0/etc/npmrc Completed in 0ms
+14 timing config:load:global Completed in 0ms
+15 timing config:load:setEnvs Completed in 1ms
+16 timing config:load Completed in 95ms
+17 timing npm:load:configload Completed in 95ms
+18 timing config:load:flatten Completed in 1ms
+19 timing npm:load:mkdirpcache Completed in 8ms
+20 timing npm:load:mkdirplogs Completed in 1ms
+21 verbose title npm run lint
+22 verbose argv "run" "lint" "--cache" "false"
+23 timing npm:load:setTitle Completed in 12ms
+24 timing npm:load:display Completed in 0ms
+25 verbose logfile logs-max:10 dir:/Users/shridhar/Expense/App/false/_logs/2024-06-04T13_02_32_842Z-
+26 verbose logfile /Users/shridhar/Expense/App/false/_logs/2024-06-04T13_02_32_842Z-debug-0.log
+27 timing npm:load:logFile Completed in 3ms
+28 timing npm:load:timers Completed in 0ms
+29 timing npm:load:configScope Completed in 0ms
+30 timing npm:load Completed in 139ms
+31 silly logfile done cleaning log files
+32 http fetch GET 200 https://registry.npmjs.org/npm 201ms
+33 timing command:run Completed in 7707ms
+34 notice
+34 notice New [33mminor[39m version of npm available! [31m10.5.2[39m -> [32m10.8.1[39m
+34 notice Changelog: [36mhttps://github.com/npm/cli/releases/tag/v10.8.1[39m
+34 notice Run [32mnpm install -g npm@10.8.1[39m to update!
+34 notice
+35 verbose exit 0
+36 timing npm Completed in 7882ms
+37 info ok
