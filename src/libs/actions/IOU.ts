@@ -5882,6 +5882,7 @@ function getReportFromHoldRequestsOnyxData(
         true,
     );
     const optimisticExpenseReportPreview = ReportUtils.buildOptimisticReportPreview(chatReport, optimisticExpenseReport, '', holdTransactions[0]);
+    optimisticExpenseReport.parentReportActionID = optimisticExpenseReportPreview.reportActionID;
 
     const holdReportActions = Object.values(allReportActions?.[`reportActions_${iouReport.reportID}`] ?? {}).filter((reportAction) =>
         holdTransactions.find((transaction) => transaction?.transactionID === (reportAction.originalMessage as IOUMessage)?.IOUTransactionID),
@@ -5906,14 +5907,14 @@ function getReportFromHoldRequestsOnyxData(
     });
 
     const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
-            value: {
-                hasOutstandingChildRequest: true,
-                iouReportID: optimisticExpenseReport.reportID,
-            },
-        },
+        // {
+        //     onyxMethod: Onyx.METHOD.MERGE,
+        //     key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+        //     value: {
+        //         hasOutstandingChildRequest: true,
+        //         iouReportID: optimisticExpenseReport.reportID,
+        //     },
+        // },
         // add new optimistic expense report
         {
             onyxMethod: Onyx.METHOD.SET,
