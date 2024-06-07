@@ -157,8 +157,9 @@ function ReportScreen({
     const permissions = useDeepCompareRef(reportOnyx?.permissions);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true});
     const wasLoadingApp = usePrevious(isLoadingApp);
-    const prevMetadata = usePrevious(reportMetadata);
-    const finishedLoadingReport = prevMetadata?.isLoadingInitialReportActions && !reportMetadata?.isLoadingInitialReportActions;
+    const isLoadingReport = reportMetadata?.isLoadingInitialReportActions;
+    const wasLoadingReport = usePrevious(isLoadingReport);
+    const finishedLoadingReport = wasLoadingReport && !isLoadingReport;
 
     /**
      * Create a lightweight Report so as to keep the re-rendering as light as possible by
