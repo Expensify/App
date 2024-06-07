@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import type {OnyxEntry, OnyxInputValue} from 'react-native-onyx';
+import type {OnyxInputValue} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
 import ONYXKEYS from '@src/ONYXKEYS';

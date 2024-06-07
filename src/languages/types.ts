@@ -1,4 +1,3 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import type en from './en';
