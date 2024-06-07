@@ -1027,7 +1027,6 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[]) 
  */
 function navigateToAndOpenChildReport(childReportID = '0', parentReportAction: Partial<ReportAction> = {}, parentReportID = '0') {
     if (childReportID !== '0') {
-        openReport(childReportID);
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
     } else {
         const participantAccountIDs = [...new Set([currentUserAccountID, Number(parentReportAction.actorAccountID)])];

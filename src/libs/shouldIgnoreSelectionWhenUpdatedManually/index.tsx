@@ -1,4 +1,4 @@
-import type ShouldIgnoreSelectionWhenUpdatedManually from './types.ts';
+import type ShouldIgnoreSelectionWhenUpdatedManually from './types';
 
 const shouldIgnoreSelectionWhenUpdatedManually: ShouldIgnoreSelectionWhenUpdatedManually = false;
 
