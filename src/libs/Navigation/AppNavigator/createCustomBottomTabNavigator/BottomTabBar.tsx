@@ -70,19 +70,19 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
 
     return (
         <View style={styles.bottomTabBarContainer}>
-            <Tooltip text={translate('common.chats')}>
+            <Tooltip text={translate('common.inbox')}>
                 <PressableWithFeedback
                     onPress={() => {
                         Navigation.navigate(ROUTES.HOME);
                     }}
                     role={CONST.ROLE.BUTTON}
-                    accessibilityLabel={translate('common.chats')}
+                    accessibilityLabel={translate('common.inbox')}
                     wrapperStyle={styles.flex1}
                     style={styles.bottomTabBarItem}
                 >
                     <View>
                         <Icon
-                            src={Expensicons.ChatBubble}
+                            src={Expensicons.Inbox}
                             fill={currentTabName === SCREENS.HOME ? theme.iconMenu : theme.icon}
                             width={variables.iconBottomBar}
                             height={variables.iconBottomBar}
@@ -93,8 +93,30 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
                     </View>
                 </PressableWithFeedback>
             </Tooltip>
-            <BottomTabBarFloatingActionButton />
+            <Tooltip text={translate('common.search')}>
+                <PressableWithFeedback
+                    onPress={() => {
+                        Navigation.navigate(ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.ALL));
+                    }}
+                    role={CONST.ROLE.BUTTON}
+                    accessibilityLabel={translate('common.search')}
+                    wrapperStyle={styles.flex1}
+                    style={styles.bottomTabBarItem}
+                >
+                    <View>
+                        <Icon
+                            src={Expensicons.MoneySearch}
+                            fill={currentTabName === SCREENS.SEARCH.BOTTOM_TAB || currentTabName === SCREENS.SEARCH.CENTRAL_PANE ? theme.iconMenu : theme.icon}
+                            width={variables.iconBottomBar}
+                            height={variables.iconBottomBar}
+                        />
+                    </View>
+                </PressableWithFeedback>
+            </Tooltip>
             <BottomTabAvatar isSelected={currentTabName === SCREENS.SETTINGS.ROOT} />
+            <View style={[styles.flex1, styles.bottomTabBarItem]}>
+                <BottomTabBarFloatingActionButton />
+            </View>
         </View>
     );
 }
