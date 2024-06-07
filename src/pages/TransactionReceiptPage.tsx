@@ -50,7 +50,7 @@ function TransactionReceipt({transaction, report, reportMetadata = {isLoadingIni
     const isTrackExpenseReport = ReportUtils.isTrackExpenseReport(report);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = isTrackExpenseReport ? !transaction : (moneyRequestReportID ?? '-1') !== transaction?.reportID;
+    const shouldShowNotFoundPage = isTrackExpenseReport || transaction?.reportID === CONST.REPORT.SPLIT_REPORTID ? !transaction : (moneyRequestReportID ?? '-1') !== transaction?.reportID;
 
     return (
         <AttachmentModal

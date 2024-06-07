@@ -5,13 +5,17 @@ import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import AnonymousReportFooter from '@components/AnonymousReportFooter';
 import ArchivedReportFooter from '@components/ArchivedReportFooter';
+import Banner from '@components/Banner';
 import BlockedReportFooter from '@components/BlockedReportFooter';
+import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineIndicator from '@components/OfflineIndicator';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import SwipeableView from '@components/SwipeableView';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
 import variables from '@styles/variables';
@@ -43,6 +47,9 @@ type ReportFooterProps = ReportFooterOnyxProps & {
     reportMetadata?: OnyxEntry<OnyxTypes.ReportMetadata>;
 
     reportNameValuePairs?: OnyxEntry<OnyxTypes.ReportNameValuePairs>;
+
+    /** The policy of the report */
+    policy: OnyxEntry<OnyxTypes.Policy>;
 
     /** The last report action */
     lastReportAction?: OnyxEntry<OnyxTypes.ReportAction>;
@@ -76,6 +83,7 @@ function ReportFooter({
     report = {reportID: '-1'},
     reportMetadata,
     reportNameValuePairs,
+    policy,
     shouldShowComposeInput = false,
     isEmptyChat = true,
     isReportReadyForDisplay = true,
@@ -87,6 +95,7 @@ function ReportFooter({
 }: ReportFooterProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
+    const {translate} = useLocalize();
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
     const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
     const isArchivedRoom = ReportUtils.isArchivedRoom(report, reportNameValuePairs);
@@ -99,6 +108,8 @@ function ReportFooter({
     const hideComposer = (!ReportUtils.canUserPerformWriteAction(report, reportNameValuePairs) && !showComposerOptimistically) || blockedFromChat;
     const canWriteInReport = ReportUtils.canWriteInReport(report);
     const isSystemChat = ReportUtils.isSystemChat(report);
+    const isAdminsOnlyPostingRoom = ReportUtils.isAdminsOnlyPostingRoom(report);
+    const isUserPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
 
     const allPersonalDetails = usePersonalDetails();
 
@@ -156,7 +167,13 @@ function ReportFooter({
     return (
         <>
             {hideComposer && (
-                <View style={[styles.chatFooter, isArchivedRoom || isAnonymousUser || !canWriteInReport ? styles.mt4 : {}, isSmallScreenWidth ? styles.mb5 : null]}>
+                <View
+                    style={[
+                        styles.chatFooter,
+                        isArchivedRoom || isAnonymousUser || !canWriteInReport || (isAdminsOnlyPostingRoom && !isUserPolicyAdmin) ? styles.mt4 : {},
+                        isSmallScreenWidth ? styles.mb5 : null,
+                    ]}
+                >
                     {isAnonymousUser && !isArchivedRoom && (
                         <AnonymousReportFooter
                             report={report}
@@ -166,6 +183,14 @@ function ReportFooter({
                     {isArchivedRoom && <ArchivedReportFooter report={report} />}
                     {!isArchivedRoom && blockedFromChat && <BlockedReportFooter />}
                     {!isAnonymousUser && !canWriteInReport && isSystemChat && <SystemChatReportFooterMessage />}
+                    {isAdminsOnlyPostingRoom && !isUserPolicyAdmin && !isArchivedRoom && !isAnonymousUser && !blockedFromChat && (
+                        <Banner
+                            containerStyles={[styles.chatFooterBanner]}
+                            text={translate('adminOnlyCanPost')}
+                            icon={Expensicons.Lightbulb}
+                            shouldShowIcon
+                        />
+                    )}
                     {!isSmallScreenWidth && <View style={styles.offlineIndicatorRow}>{hideComposer && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}</View>}
                 </View>
             )}

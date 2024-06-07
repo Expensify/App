@@ -70,7 +70,7 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
                                 errors={errorFields?.autoCreateVendor ?? undefined}
                                 title={translate('workspace.qbo.defaultVendor')}
                                 wrapperStyle={[styles.ph5, styles.mb3, styles.mt1]}
-                                isActive={Boolean(autoCreateVendor)}
+                                isActive={!!autoCreateVendor}
                                 onToggle={(isOn) =>
                                     Connections.updateManyPolicyConnectionConfigs(
                                         policyID,

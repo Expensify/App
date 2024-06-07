@@ -64,7 +64,7 @@ function ArchivedReportFooter({report, reportClosedAction, personalDetails = {}}
 
     return (
         <Banner
-            containerStyles={[styles.archivedReportFooter]}
+            containerStyles={[styles.chatFooterBanner]}
             text={text}
             shouldRenderHTML={shouldRenderHTML}
             shouldShowIcon

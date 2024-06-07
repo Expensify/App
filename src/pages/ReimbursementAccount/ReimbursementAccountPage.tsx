@@ -469,7 +469,7 @@ function ReimbursementAccountPage({
         return (
             <RequestorStep
                 ref={requestorStepRef}
-                shouldShowOnfido={Boolean(shouldShowOnfido)}
+                shouldShowOnfido={!!shouldShowOnfido}
                 onBackButtonPress={goBack}
             />
         );

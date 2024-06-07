@@ -59,7 +59,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyId}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyId}`);
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
-    const isConnectedToQbo = Boolean(policy?.connections?.quickbooksOnline);
+    const isConnectedToQbo = !!policy?.connections?.quickbooksOnline;
 
     const fetchCategories = useCallback(() => {
         Category.openPolicyCategoriesPage(policyId);
