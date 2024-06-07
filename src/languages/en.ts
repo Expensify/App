@@ -2105,7 +2105,7 @@ export default {
             mapTrackingCategoryTo: ({categoryName}) => `Map Xero ${categoryName} to`,
             mapTrackingCategoryToDescription: ({categoryName}) => `Choose where to map ${categoryName} when exporting to Xero.`,
             customers: 'Re-bill customers',
-            customersDescription: 'Import customer contacts. Billable expenses need tags for export. Expenses will carry the customer information to Xero for sales invoices.',
+            customersDescription: 'Choose whether to re-bill customers in Expensify. Your Xero customer contacts can be tagged to expenses, and will export to Xero as a sale invoice.',
             taxesDescription: 'Choose how to handle Xero taxes in Expensify.',
             notImported: 'Not imported',
             trackingCategoriesOptions: {
@@ -2130,16 +2130,16 @@ export default {
             exportInvoicesDescription: 'Sales invoices always display the date on which the invoice was sent.',
             advancedConfig: {
                 advanced: 'Advanced',
-                autoSync: 'Auto-Sync',
+                autoSync: 'Auto-sync',
                 autoSyncDescription: 'Sync Xero and Expensify automatically, every day.',
                 purchaseBillStatusTitle: 'Purchase bill status',
                 reimbursedReports: 'Sync reimbursed reports',
                 reimbursedReportsDescription: 'Any time a report is paid using Expensify ACH, the corresponding bill payment will be created in the Xero account below.',
-                xeroBillPaymentAccount: 'Xero Bill Payment Account',
-                xeroInvoiceCollectionAccount: 'Xero Invoice Collections Account',
-                invoiceAccountSelectorDescription: "As you've enabled exporting invoices from Expensify to Xero, this is the account the invoice will appear against once marked as paid.",
+                xeroBillPaymentAccount: 'Xero bill payment account',
+                xeroInvoiceCollectionAccount: 'Xero invoice collections account',
+                invoiceAccountSelectorDescription: "Once an invoice is marked as paid in Expensify and exported to Xero, it’ll appear against the account below.",
                 xeroBillPaymentAccountDescription:
-                    "As you've enabled sync reimbursed reports, you will need to select the bank account your reimbursements are coming out of, and we'll create the payment in Xero.",
+                    "Choose a bank account for reimbursements and we'll create the payment in Xero.",
             },
             exportDate: {
                 label: 'Export date',
@@ -2161,17 +2161,17 @@ export default {
             },
             invoiceStatus: {
                 label: 'Purchase bill status',
-                description: 'When exported to Xero what state should purchase bills have.',
+                description: 'Choose a status for purchase bills exported to Xero.',
                 values: {
                     [CONST.XERO_CONFIG.INVOICE_STATUS.DRAFT]: 'Draft',
                     [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_APPROVAL]: 'Awaiting approval',
                     [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_PAYMENT]: 'Awaiting payment',
                 },
             },
-            exportPreferredExporterNote: 'This can be any workspace admin, but must be a domain admin if you set different export accounts for individual company cards in domain settings.',
+            exportPreferredExporterNote: 'The preferred exporter can be any workspace admin, but must be a domain admin if you set different export accounts for individual company cards in domain settings.',
             exportPreferredExporterSubNote: 'Once set, the preferred exporter will see reports for export in their account.',
             noAccountsFound: 'No accounts found',
-            noAccountsFoundDescription: 'Add the account in Xero and sync the connection again',
+            noAccountsFoundDescription: 'Add the account in Xero and sync the connection again.',
         },
         type: {
             free: 'Free',
