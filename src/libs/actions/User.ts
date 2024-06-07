@@ -22,6 +22,7 @@ import type {
     ValidateSecondaryLoginParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -399,6 +400,7 @@ function validateSecondaryLogin(contactMethod: string, validateCode: string) {
             key: ONYXKEYS.LOGIN_LIST,
             value: {
                 [contactMethod]: {
+                    validatedDate: DateUtils.getDBTime(),
                     pendingFields: {
                         validateLogin: null,
                     },
@@ -412,6 +414,13 @@ function validateSecondaryLogin(contactMethod: string, validateCode: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {isLoading: false},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.USER,
+            value: {
+                validated: true,
+            },
         },
     ];
 

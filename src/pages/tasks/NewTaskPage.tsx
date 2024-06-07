@@ -199,7 +199,7 @@ function NewTaskPage({task, reports, personalDetails}: NewTaskPageProps) {
                     </View>
                     <View style={styles.flexShrink0}>
                         <FormAlertWithSubmitButton
-                            isAlertVisible={Boolean(errorMessage)}
+                            isAlertVisible={!!errorMessage}
                             message={errorMessage}
                             onSubmit={onSubmit}
                             enabledWhenOffline

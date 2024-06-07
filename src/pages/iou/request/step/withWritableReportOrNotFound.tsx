@@ -62,7 +62,7 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
         const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
 
         useEffect(() => {
-            if (Boolean(report?.reportID) || !route.params.reportID) {
+            if (!!report?.reportID || !route.params.reportID) {
                 return;
             }
 

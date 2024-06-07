@@ -82,7 +82,7 @@ export default {
     iconSizeXLarge: 28,
     iconSizeExtraLarge: 40,
     iconSizeSuperLarge: 60,
-    iconSizeUltraLarge: 120,
+    iconSizeUltraLarge: 80,
     iconBottomBar: 24,
     sidebarAvatarSize: 28,
     iconHeader: 48,

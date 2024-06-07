@@ -69,7 +69,7 @@ function getTagViolationsForMultiLevelTags(
     const errorIndexes = [];
     for (let i = 0; i < policyTagKeys.length; i++) {
         const isTagRequired = policyTagList[policyTagKeys[i]].required ?? true;
-        const isTagSelected = Boolean(selectedTags[i]);
+        const isTagSelected = !!selectedTags[i];
         if (isTagRequired && (!isTagSelected || (selectedTags.length === 1 && selectedTags[0] === ''))) {
             errorIndexes.push(i);
         }
@@ -87,7 +87,7 @@ function getTagViolationsForMultiLevelTags(
         for (let i = 0; i < policyTagKeys.length; i++) {
             const selectedTag = selectedTags[i];
             const tags = policyTagList[policyTagKeys[i]].tags;
-            const isTagInPolicy = Object.values(tags).some((tag) => tag.name === selectedTag && Boolean(tag.enabled));
+            const isTagInPolicy = Object.values(tags).some((tag) => tag.name === selectedTag && !!tag.enabled);
             if (!isTagInPolicy) {
                 newTransactionViolations.push({
                     name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,

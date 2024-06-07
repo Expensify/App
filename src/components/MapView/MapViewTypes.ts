@@ -38,6 +38,9 @@ type PendingMapViewProps = {
 
     /** Style applied to PendingMapView */
     style?: StyleProp<ViewStyle>;
+
+    /** Whether the size of the route pending icon is smaller. */
+    isSmallerIcon?: boolean;
 };
 
 // Initial state of the map

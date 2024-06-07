@@ -485,7 +485,7 @@ function ReportActionsView({
                 action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
                 action.originalMessage &&
                 (action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE ||
-                    Boolean(action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && action.originalMessage.IOUDetails) ||
+                    !!(action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && action.originalMessage.IOUDetails) ||
                     action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK),
         );
 
@@ -512,7 +512,7 @@ function ReportActionsView({
         // Update pending action of created action if we have some requests that are pending
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const createdAction = actions.pop()!;
-        if (moneyRequestActions.filter((action) => Boolean(action.pendingAction)).length > 0) {
+        if (moneyRequestActions.filter((action) => !!action.pendingAction).length > 0) {
             createdAction.pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
         }
 

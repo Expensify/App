@@ -64,6 +64,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
     const isDraft = ReportUtils.isOpenExpenseReport(moneyRequestReport);
     const isOnHold = TransactionUtils.isOnHold(transaction);
+    const isDuplicate = TransactionUtils.isDuplicate(transaction?.transactionID ?? '');
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
 
     // Only the requestor can take delete the expense, admins can only edit it.
@@ -120,7 +121,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
 
     const getStatusBarProps: () => MoneyRequestHeaderStatusBarProps | undefined = () => {
         if (isOnHold) {
-            return {title: translate('iou.hold'), description: translate('iou.expenseOnHold'), danger: true};
+            return {title: translate('iou.hold'), description: isDuplicate ? translate('iou.expenseDuplicate') : translate('iou.expenseOnHold'), danger: true};
         }
 
         if (TransactionUtils.isExpensifyCardTransaction(transaction) && TransactionUtils.isPending(transaction)) {
@@ -150,7 +151,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
         const isHoldCreator = ReportUtils.isHoldCreator(transaction, report?.reportID) && isRequestIOU;
         const isTrackExpenseReport = ReportUtils.isTrackExpenseReport(report);
         const canModifyStatus = !isTrackExpenseReport && (isPolicyAdmin || isActionOwner || isApprover);
-        if (isOnHold && (isHoldCreator || (!isRequestIOU && canModifyStatus))) {
+        if (isOnHold && !isDuplicate && (isHoldCreator || (!isRequestIOU && canModifyStatus))) {
             threeDotsMenuItems.push({
                 icon: Expensicons.Stopwatch,
                 text: translate('iou.unholdExpense'),
@@ -224,6 +225,14 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
                             onPress={markAsCash}
                         />
                     )}
+                    {isDuplicate && !shouldUseNarrowLayout && (
+                        <Button
+                            success
+                            medium
+                            text={translate('iou.reviewDuplicates')}
+                            style={[styles.p0]}
+                        />
+                    )}
                 </HeaderWithBackButton>
                 {shouldShowMarkAsCashButton && shouldUseNarrowLayout && (
                     <View style={[styles.ph5, styles.pb3]}>
@@ -233,6 +242,16 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
                             text={translate('iou.markAsCash')}
                             style={[styles.w100, styles.pr0]}
                             onPress={markAsCash}
+                        />
+                    </View>
+                )}
+                {isDuplicate && shouldUseNarrowLayout && (
+                    <View style={[styles.ph5, styles.pb3]}>
+                        <Button
+                            success
+                            medium
+                            text={translate('iou.reviewDuplicates')}
+                            style={[styles.w100, styles.pr0]}
                         />
                     </View>
                 )}

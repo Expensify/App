@@ -24,7 +24,7 @@ Onyx.connect({
             shouldCollectLogs = false;
         }
 
-        shouldCollectLogs = Boolean(val);
+        shouldCollectLogs = !!val;
     },
 });
 

@@ -76,15 +76,8 @@ function getShouldShowMerchant(data: OnyxTypes.SearchResults['data']): boolean {
     });
 }
 
-function getShouldShowColumn(data: OnyxTypes.SearchResults['data'], columnName: ValueOf<typeof CONST.SEARCH_TABLE_COLUMNS>) {
-    return Object.values(data).some((item) => !!item[columnName]);
-}
-
 function getTransactionsSections(data: OnyxTypes.SearchResults['data']): TransactionListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
-    const shouldShowCategory = getShouldShowColumn(data, CONST.SEARCH_TABLE_COLUMNS.CATEGORY);
-    const shouldShowTag = getShouldShowColumn(data, CONST.SEARCH_TABLE_COLUMNS.TAG);
-    const shouldShowTax = getShouldShowColumn(data, CONST.SEARCH_TABLE_COLUMNS.TAX_AMOUNT);
 
     return Object.entries(data)
         .filter(([key]) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION))
@@ -107,9 +100,9 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data']): Transac
                 formattedMerchant,
                 date,
                 shouldShowMerchant,
-                shouldShowCategory,
-                shouldShowTag,
-                shouldShowTax,
+                shouldShowCategory: true,
+                shouldShowTag: true,
+                shouldShowTax: true,
                 keyForList: transactionItem.transactionID,
             };
         });
@@ -117,9 +110,6 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data']): Transac
 
 function getReportSections(data: OnyxTypes.SearchResults['data']): ReportListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
-    const shouldShowCategory = getShouldShowColumn(data, CONST.SEARCH_TABLE_COLUMNS.CATEGORY);
-    const shouldShowTag = getShouldShowColumn(data, CONST.SEARCH_TABLE_COLUMNS.TAG);
-    const shouldShowTax = getShouldShowColumn(data, CONST.SEARCH_TABLE_COLUMNS.TAX_AMOUNT);
 
     const reportIDToTransactions: Record<string, ReportListItemType> = {};
     for (const key in data) {
@@ -152,9 +142,9 @@ function getReportSections(data: OnyxTypes.SearchResults['data']): ReportListIte
                 formattedMerchant,
                 date,
                 shouldShowMerchant,
-                shouldShowCategory,
-                shouldShowTag,
-                shouldShowTax,
+                shouldShowCategory: true,
+                shouldShowTag: true,
+                shouldShowTax: true,
                 keyForList: transactionItem.transactionID,
             };
             if (reportIDToTransactions[reportKey]?.transactions) {
@@ -240,5 +230,5 @@ function getSearchParams() {
     return topmostCentralPaneRoute?.params as CentralPaneNavigatorParamList['Search_Central_Pane'];
 }
 
-export {getListItem, getQueryHash, getSections, getSortedSections, getShouldShowColumn, getShouldShowMerchant, getSearchType, getSearchParams};
+export {getListItem, getQueryHash, getSections, getSortedSections, getShouldShowMerchant, getSearchType, getSearchParams};
 export type {SearchColumnType, SortOrder};

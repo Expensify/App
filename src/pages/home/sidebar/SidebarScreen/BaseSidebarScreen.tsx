@@ -40,7 +40,7 @@ function BaseSidebarScreen() {
             {({insets}) => (
                 <>
                     <TopBar
-                        breadcrumbLabel={translate('common.chats')}
+                        breadcrumbLabel={translate('common.inbox')}
                         activeWorkspaceID={activeWorkspaceID}
                     />
                     <View style={[styles.flex1]}>

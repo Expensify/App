@@ -82,7 +82,7 @@ function AllSettingsScreen({policies}: AllSettingsScreenProps) {
             iconRight: item.iconRight,
             onPress: item.action,
             shouldShowRightIcon: item.shouldShowRightIcon,
-            shouldBlockSelection: Boolean(item.link),
+            shouldBlockSelection: !!item.link,
             wrapperStyle: styles.sectionMenuItem,
             isPaneMenu: true,
             focused: item.focused,

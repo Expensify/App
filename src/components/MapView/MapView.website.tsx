@@ -208,7 +208,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
             });
         }, [directionCoordinates, currentPosition, mapRef, waypoints, mapPadding]);
 
-        return !isOffline && Boolean(accessToken) && Boolean(currentPosition) ? (
+        return !isOffline && !!accessToken && !!currentPosition ? (
             <View
                 style={style}
                 // eslint-disable-next-line react/jsx-props-no-spreading

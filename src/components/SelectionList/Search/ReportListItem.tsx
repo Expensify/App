@@ -55,7 +55,7 @@ function ActionCell({onButtonPress}: ActionCellProps) {
             onPress={onButtonPress}
             small
             pressOnEnter
-            style={[styles.p0]}
+            style={[styles.w100]}
         />
     );
 }
@@ -78,6 +78,10 @@ function ReportListItem<TItem extends ListItem>({
     const {translate} = useLocalize();
     const {isLargeScreenWidth} = useWindowDimensions();
     const StyleUtils = useStyleUtils();
+
+    if (reportItem.transactions.length === 0) {
+        return;
+    }
 
     const listItemPressableStyle = [styles.selectionListPressableItemWrapper, styles.pv3, item.isSelected && styles.activeComponentBG, isFocused && styles.sidebarLinkActive];
 

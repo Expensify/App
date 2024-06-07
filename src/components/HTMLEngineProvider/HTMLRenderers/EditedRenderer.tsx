@@ -11,7 +11,7 @@ function EditedRenderer({tnode, TDefaultRenderer, style, ...defaultRendererProps
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const isPendingDelete = Boolean(tnode.attributes.deleted !== undefined);
+    const isPendingDelete = !!(tnode.attributes.deleted !== undefined);
     return (
         <Text>
             <Text

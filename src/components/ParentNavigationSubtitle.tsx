@@ -55,13 +55,13 @@ function ParentNavigationSubtitle({parentNavigationSubtitleData, parentReportAct
                 style={[styles.optionAlternateText]}
                 numberOfLines={1}
             >
-                {Boolean(reportName) && (
+                {!!reportName && (
                     <>
                         <Text style={[styles.optionAlternateText, styles.textLabelSupporting]}>{`${translate('threads.from')} `}</Text>
                         <Text style={[styles.optionAlternateText, styles.textLabelSupporting, styles.link]}>{reportName}</Text>
                     </>
                 )}
-                {Boolean(workspaceName) && <Text style={[styles.optionAlternateText, styles.textLabelSupporting]}>{` ${translate('threads.in')} ${workspaceName}`}</Text>}
+                {!!workspaceName && <Text style={[styles.optionAlternateText, styles.textLabelSupporting]}>{` ${translate('threads.in')} ${workspaceName}`}</Text>}
             </Text>
         </PressableWithoutFeedback>
     );

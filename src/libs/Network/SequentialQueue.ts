@@ -129,7 +129,9 @@ function flush() {
             Onyx.disconnect(connectionID);
             process().finally(() => {
                 isSequentialQueueRunning = false;
-                resolveIsReadyPromise?.();
+                if (NetworkStore.isOffline() || PersistedRequests.getAll().length === 0) {
+                    resolveIsReadyPromise?.();
+                }
                 currentRequest = null;
                 flushOnyxUpdatesQueue();
             });

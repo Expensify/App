@@ -74,7 +74,7 @@ function CodesStep({account, backTo}: CodesStepProps) {
                         ) : (
                             <>
                                 <View style={styles.twoFactorAuthCodesContainer}>
-                                    {Boolean(account?.recoveryCodes) &&
+                                    {!!account?.recoveryCodes &&
                                         account?.recoveryCodes?.split(', ').map((code) => (
                                             <Text
                                                 style={styles.twoFactorAuthCode}
@@ -122,7 +122,7 @@ function CodesStep({account, backTo}: CodesStepProps) {
                     </View>
                 </Section>
                 <FixedFooter style={[styles.mtAuto, styles.pt5]}>
-                    {Boolean(error) && (
+                    {!!error && (
                         <FormHelpMessage
                             isError
                             message={error}

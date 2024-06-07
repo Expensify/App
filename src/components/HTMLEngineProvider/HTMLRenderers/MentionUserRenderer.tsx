@@ -69,7 +69,7 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
         asMutable(tnodeClone).data = tnodeClone.data.replace(mentionDisplayText, Str.removeSMSDomain(getShortMentionIfFound(mentionDisplayText, htmlAttributeAccountID)));
 
         accountID = PersonalDetailsUtils.getAccountIDsByLogins([mentionDisplayText])?.[0];
-        navigationRoute = ROUTES.DETAILS.getRoute(mentionDisplayText);
+        navigationRoute = ROUTES.PROFILE.getRoute(accountID, undefined, mentionDisplayText);
         mentionDisplayText = Str.removeSMSDomain(mentionDisplayText);
     } else {
         // If neither an account ID or email is provided, don't render anything

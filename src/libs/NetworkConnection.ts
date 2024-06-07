@@ -68,7 +68,7 @@ Onyx.connect({
         if (!network) {
             return;
         }
-        const currentShouldForceOffline = Boolean(network.shouldForceOffline);
+        const currentShouldForceOffline = !!network.shouldForceOffline;
         if (currentShouldForceOffline === shouldForceOffline) {
             return;
         }
@@ -79,7 +79,7 @@ Onyx.connect({
         } else {
             // If we are no longer forcing offline fetch the NetInfo to set isOffline appropriately
             NetInfo.fetch().then((state) => {
-                const isInternetReachable = Boolean(state.isInternetReachable);
+                const isInternetReachable = !!state.isInternetReachable;
                 setOfflineStatus(isInternetReachable);
                 Log.info(
                     `[NetworkStatus] The force-offline mode was turned off. Getting the device network status from NetInfo. Network state: ${JSON.stringify(
@@ -160,7 +160,7 @@ function subscribeToNetworkStatus(): () => void {
             return;
         }
         setOfflineStatus(state.isInternetReachable === false);
-        Log.info(`[NetworkStatus] NetInfo.addEventListener event coming, setting "offlineStatus" to ${Boolean(state.isInternetReachable)} with network state: ${JSON.stringify(state)}`);
+        Log.info(`[NetworkStatus] NetInfo.addEventListener event coming, setting "offlineStatus" to ${!!state.isInternetReachable} with network state: ${JSON.stringify(state)}`);
         setNetWorkStatus(state.isInternetReachable);
     });
 

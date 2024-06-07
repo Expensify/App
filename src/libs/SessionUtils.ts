@@ -50,7 +50,7 @@ function resetDidUserLogInDuringSession() {
 }
 
 function didUserLogInDuringSession() {
-    return Boolean(loggedInDuringSession);
+    return !!loggedInDuringSession;
 }
 
 export {isLoggingInAsNewUser, didUserLogInDuringSession, resetDidUserLogInDuringSession};

@@ -36,7 +36,7 @@ type GroupChatNameEditPageProps = GroupChatNameEditPageOnyxProps &
 function GroupChatNameEditPage({groupChatDraft, report}: GroupChatNameEditPageProps) {
     // If we have a report this means we are using this page to update an existing Group Chat name
     const reportID = report?.reportID ?? '';
-    const isUpdatingExistingReport = Boolean(reportID);
+    const isUpdatingExistingReport = !!reportID;
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();

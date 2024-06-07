@@ -63,7 +63,7 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon}: Sw
             pressDimmingValue={0.8}
         >
             <Animated.View style={[styles.switchThumb, styles.switchThumbTransformation(offsetX.current)]}>
-                {(Boolean(disabled) || Boolean(showLockIcon)) && (
+                {(!!disabled || !!showLockIcon) && (
                     <Icon
                         src={Expensicons.Lock}
                         fill={isOn ? theme.text : theme.icon}

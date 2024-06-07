@@ -4,7 +4,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {RateAndUnit} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {LastSelectedDistanceRates, Report, Transaction} from '@src/types/onyx';
+import type {LastSelectedDistanceRates, Report} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
@@ -12,7 +12,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CurrencyUtils from './CurrencyUtils';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportUtils from './ReportUtils';
-import * as TransactionUtils from './TransactionUtils';
 
 type MileageRate = {
     customUnitRateID?: string;
@@ -53,7 +52,7 @@ function getMileageRates(policy: OnyxEntry<Policy>, includeDisabledRates = false
     }
 
     Object.entries(distanceUnit.rates).forEach(([rateID, rate]) => {
-        if (!includeDisabledRates && !rate.enabled) {
+        if (!includeDisabledRates && rate.enabled === false) {
             return;
         }
 
@@ -90,7 +89,7 @@ function getDefaultMileageRate(policy: OnyxEntry<Policy> | EmptyObject): Mileage
     }
     const mileageRates = getMileageRates(policy);
 
-    const distanceRate = Object.values(mileageRates).find((rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE) ?? Object.values(mileageRates)[0];
+    const distanceRate = Object.values(mileageRates).find((rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE) ?? Object.values(mileageRates)[0] ?? {};
 
     return {
         customUnitRateID: distanceRate.customUnitRateID,
@@ -272,22 +271,20 @@ function getCustomUnitRateID(reportID: string) {
     return customUnitRateID;
 }
 
-function calculateTaxAmount(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, customUnitRateID: string) {
+/**
+ * Get taxable amount from a specific distance rate, taking into consideration the tax claimable amount configured for the distance rate
+ */
+function getTaxableAmount(policy: OnyxEntry<Policy>, customUnitRateID: string, distance: number) {
     const distanceUnit = PolicyUtils.getCustomUnit(policy);
-    const customUnitID = distanceUnit?.customUnitID;
-    if (!policy?.customUnits || !customUnitID) {
+    const customUnitRate = PolicyUtils.getCustomUnitRate(policy, customUnitRateID);
+    if (!distanceUnit || !distanceUnit?.customUnitID || !customUnitRate) {
         return 0;
     }
-    const policyCustomUnitRate = policy?.customUnits[customUnitID].rates[customUnitRateID];
-    const unit = policy?.customUnits[customUnitID]?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
-    const rate = policyCustomUnitRate?.rate ?? 0;
-    const distance = TransactionUtils.getDistance(transaction);
+    const unit = distanceUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
+    const rate = customUnitRate?.rate ?? 0;
     const amount = getDistanceRequestAmount(distance, unit, rate);
-    const taxClaimablePercentage = policyCustomUnitRate.attributes?.taxClaimablePercentage ?? 0;
-    const taxRateExternalID = policyCustomUnitRate.attributes?.taxRateExternalID ?? '';
-    const taxableAmount = amount * taxClaimablePercentage;
-    const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, taxRateExternalID) ?? '';
-    return TransactionUtils.calculateTaxAmount(taxPercentage, taxableAmount);
+    const taxClaimablePercentage = customUnitRate.attributes?.taxClaimablePercentage ?? 0;
+    return amount * taxClaimablePercentage;
 }
 
 export default {
@@ -300,7 +297,7 @@ export default {
     getRateForP2P,
     getCustomUnitRateID,
     convertToDistanceInMeters,
-    calculateTaxAmount,
+    getTaxableAmount,
 };
 
 export type {MileageRate};

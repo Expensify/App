@@ -42,7 +42,7 @@ function BaseListItem<TItem extends ListItem>({
     const pressableRef = useRef<View>(null);
 
     // Sync focus on an item
-    useSyncFocus(pressableRef, Boolean(isFocused), shouldSyncFocus);
+    useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
     const handleMouseUp = (e: React.MouseEvent<Element, MouseEvent>) => {
         e.stopPropagation();
         setMouseUp();

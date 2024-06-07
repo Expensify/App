@@ -60,13 +60,13 @@ const ROUTES = {
         getRoute: (reportID: string, reportActionID: string) => `flag/${reportID}/${reportActionID}` as const,
     },
     CHAT_FINDER: 'chat-finder',
-    DETAILS: {
-        route: 'details',
-        getRoute: (login: string) => `details?login=${encodeURIComponent(login)}` as const,
-    },
     PROFILE: {
         route: 'a/:accountID',
-        getRoute: (accountID: string | number, backTo?: string) => getUrlWithBackToParam(`a/${accountID}`, backTo),
+        getRoute: (accountID?: string | number, backTo?: string, login?: string) => {
+            const baseRoute = getUrlWithBackToParam(`a/${accountID}`, backTo);
+            const loginParam = login ? `?login=${encodeURIComponent(login)}` : '';
+            return `${baseRoute}${loginParam}` as const;
+        },
     },
     PROFILE_AVATAR: {
         route: 'a/:accountID/avatar',

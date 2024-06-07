@@ -67,7 +67,7 @@ function SystemChatReportFooterMessage({choice, policies, activePolicyID}: Syste
 
     return (
         <Banner
-            containerStyles={[styles.archivedReportFooter]}
+            containerStyles={[styles.chatFooterBanner]}
             shouldShowIcon
             icon={Expensicons.Lightbulb}
             content={<Text suppressHighlighting>{content}</Text>}

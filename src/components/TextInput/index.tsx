@@ -43,7 +43,7 @@ function TextInput(props: BaseTextInputProps, ref: ForwardedRef<BaseTextInputRef
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const isLabeledMultiline = Boolean(props.label?.length) && props.multiline;
+    const isLabeledMultiline = !!props.label?.length && props.multiline;
     const labelAnimationStyle = {
         // eslint-disable-next-line @typescript-eslint/naming-convention
         '--active-label-translate-y': `${styleConst.ACTIVE_LABEL_TRANSLATE_Y}px`,

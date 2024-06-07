@@ -16,7 +16,7 @@ type PromotedAction = {
 } & ThreeDotsMenuItem;
 
 type PromotedActionsType = Record<'pin' | 'share', (report: OnyxReport) => PromotedAction> & {
-    message: (accountID: number) => PromotedAction;
+    message: (params: {accountID?: number; login?: string}) => PromotedAction;
 };
 
 const PromotedActions = {
@@ -28,11 +28,20 @@ const PromotedActions = {
         key: 'share',
         ...HeaderUtils.getShareMenuItem(report),
     }),
-    message: (accountID) => ({
+    message: ({accountID, login}) => ({
         key: 'message',
         icon: Expensicons.CommentBubbles,
         text: Localize.translateLocal('common.message'),
-        onSelected: () => ReportActions.navigateToAndOpenReportWithAccountIDs([accountID]),
+        onSelected: () => {
+            // The accountID might be optimistic, so we should use the login if we have it
+            if (login) {
+                ReportActions.navigateToAndOpenReport([login]);
+                return;
+            }
+            if (accountID) {
+                ReportActions.navigateToAndOpenReportWithAccountIDs([accountID]);
+            }
+        },
     }),
 } satisfies PromotedActionsType;
 

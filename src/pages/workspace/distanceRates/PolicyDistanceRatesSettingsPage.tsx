@@ -56,7 +56,8 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
     const errorFields = customUnits[customUnitID]?.errorFields;
 
     const setNewUnit = (unit: UnitItemType) => {
-        DistanceRate.setPolicyDistanceRatesUnit(policyID, customUnit, {...customUnit, attributes: {unit: unit.value}});
+        const attributes = {...customUnits[customUnitID].attributes, unit: unit.value};
+        DistanceRate.setPolicyDistanceRatesUnit(policyID, customUnit, {...customUnit, attributes});
     };
 
     const setNewCategory = (category: ListItem) => {

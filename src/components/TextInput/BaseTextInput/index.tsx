@@ -239,7 +239,7 @@ function BaseTextInput(
         setPasswordHidden((prevPasswordHidden: boolean | undefined) => !prevPasswordHidden);
     }, []);
 
-    const hasLabel = Boolean(label?.length);
+    const hasLabel = !!label?.length;
     const isReadOnly = inputProps.readOnly ?? inputProps.disabled;
     // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null, and errorText can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -328,7 +328,7 @@ function BaseTextInput(
                                     />
                                 </View>
                             )}
-                            {Boolean(prefixCharacter) && (
+                            {!!prefixCharacter && (
                                 <View style={[styles.textInputPrefixWrapper, prefixContainerStyle]}>
                                     <Text
                                         tabIndex={-1}
@@ -407,7 +407,7 @@ function BaseTextInput(
                                     style={[styles.mt4, styles.ml1]}
                                 />
                             )}
-                            {Boolean(inputProps.secureTextEntry) && (
+                            {!!inputProps.secureTextEntry && (
                                 <Checkbox
                                     style={[styles.flex1, styles.textInputIconContainer]}
                                     onPress={togglePasswordVisibility}

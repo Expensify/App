@@ -101,7 +101,7 @@ function ReportActionItemParentAction({
             {allAncestors.map((ancestor) => (
                 <OfflineWithFeedback
                     key={ancestor.reportAction.reportActionID}
-                    shouldDisableOpacity={Boolean(ancestor.reportAction?.pendingAction)}
+                    shouldDisableOpacity={!!ancestor.reportAction?.pendingAction}
                     pendingAction={ancestor.report?.pendingFields?.addWorkspaceRoom ?? ancestor.report?.pendingFields?.createChat}
                     errors={ancestor.report?.errorFields?.addWorkspaceRoom ?? ancestor.report?.errorFields?.createChat}
                     errorRowStyles={[styles.ml10, styles.mr2]}

@@ -7,6 +7,7 @@ import type {Participant, Split} from './IOU';
 import type * as OnyxCommon from './OnyxCommon';
 import type RecentWaypoint from './RecentWaypoint';
 import type ReportAction from './ReportAction';
+import type {ViolationName} from './TransactionViolation';
 
 type Waypoint = {
     /** The name associated with the address of the waypoint */
@@ -55,6 +56,7 @@ type Comment = {
     source?: string;
     originalTransactionID?: string;
     splits?: Split[];
+    dismissedViolations?: Record<ViolationName, Record<string, string>>;
 };
 
 type TransactionCustomUnit = {

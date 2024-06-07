@@ -8,6 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as SearchActions from '@libs/actions/Search';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as SearchUtils from '@libs/SearchUtils';
 import type {SearchColumnType, SortOrder} from '@libs/SearchUtils';
 import Navigation from '@navigation/Navigation';
@@ -34,9 +35,9 @@ type SearchProps = {
 
 const sortableSearchTabs: SearchQuery[] = [CONST.TAB_SEARCH.ALL];
 
-function isReportListItemType(item: TransactionListItemType | ReportListItemType): item is ReportListItemType {
-    const reportListItem = item as ReportListItemType;
-    return reportListItem.transactions !== undefined;
+function isTransactionListItemType(item: TransactionListItemType | ReportListItemType): item is TransactionListItemType {
+    const transactionListItem = item as TransactionListItemType;
+    return transactionListItem.transactionID !== undefined;
 }
 
 function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
@@ -76,9 +77,17 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
         return <EmptySearchView />;
     }
 
-    const openReport = (reportID?: string) => {
+    const openReport = (item: TransactionListItemType | ReportListItemType) => {
+        let reportID = isTransactionListItemType(item) ? item.transactionThreadReportID : item.reportID;
+
         if (!reportID) {
             return;
+        }
+
+        // If we're trying to open a legacy transaction without a transaction thread, let's create the thread and navigate the user
+        if (isTransactionListItemType(item) && reportID === '0' && item.moneyRequestReportActionID) {
+            reportID = ReportUtils.generateReportID();
+            SearchActions.createTransactionThread(hash, item.transactionID, reportID, item.moneyRequestReportActionID);
         }
 
         Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(query, reportID));
@@ -137,10 +146,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
             updateCellsBatchingPeriod={200}
             ListItem={ListItem}
             sections={[{data: sortedData, isDisabled: false}]}
-            onSelectRow={(item) => {
-                const reportID = isReportListItemType(item) ? item.reportID : item.transactionThreadReportID;
-                openReport(reportID);
-            }}
+            onSelectRow={(item) => openReport(item)}
             shouldDebounceRowSelect
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
             listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
