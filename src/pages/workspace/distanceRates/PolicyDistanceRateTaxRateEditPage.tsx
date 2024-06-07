@@ -41,6 +41,7 @@ function PolicyDistanceRateTaxRateEditPage({route, policy}: PolicyDistanceRateTa
             text: `${value.name} (${value.value})`,
             isSelected: taxRateExternalID === key,
             keyForList: key,
+            isDisabled: !!value.pendingAction,
         }));
         return result;
     }, [policy, taxRateExternalID]);
