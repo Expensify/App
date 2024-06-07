@@ -2,6 +2,7 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import type {Icon} from './OnyxCommon';
+import type Report from './Report';
 
 /** Model of IOU participant */
 type Participant = {
@@ -73,6 +74,9 @@ type Participant = {
 
     /** When the participant is associated with a policy expense chat, this is the account ID of the policy owner */
     ownerAccountID?: number;
+
+    /** The report associated to the IOU participant */
+    item?: Report;
 };
 
 /** Model of IOU split */
@@ -115,6 +119,8 @@ type Split = {
 
     /** Created report action ID for thread */
     createdReportActionIDForThread?: string;
+
+    /** IOU tax amount */
     taxAmount?: number;
 };
 

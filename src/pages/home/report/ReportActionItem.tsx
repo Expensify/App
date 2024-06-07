@@ -374,7 +374,7 @@ function ReportActionItem({
             return;
         }
 
-        if (prevActionResolution !== (action.originalMessage.resolution ?? null)) {
+        if (prevActionResolution !== action.originalMessage.resolution) {
             reportScrollManager.scrollToIndex(index);
         }
     }, [index, action, prevActionResolution, reportScrollManager, isActionableWhisper]);
