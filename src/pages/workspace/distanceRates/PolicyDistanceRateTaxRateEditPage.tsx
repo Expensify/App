@@ -44,7 +44,7 @@ function PolicyDistanceRateTaxRateEditPage({route, policy}: PolicyDistanceRateTa
             isSelected: taxRateExternalID === key,
             keyForList: key,
             pendingAction: value.pendingAction,
-            isDisabled: value.pendingAction == CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         }));
         return result;
     }, [policy, taxRateExternalID]);
