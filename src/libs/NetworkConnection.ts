@@ -125,17 +125,17 @@ function subscribeToBackendAndInternetReachability(): () => void {
                     NetworkActions.setIsBackendReachable(true, 'successfully completed API request');
                     return;
                 }
+                NetworkActions.setIsBackendReachable(false, 'request succeeded, but internet reachability test failed');
                 checkInternetReachability().then((isInternetReachable: boolean) => {
                     setOfflineStatus(!isInternetReachable);
                     setNetWorkStatus(isInternetReachable);
-                    NetworkActions.setIsBackendReachable(false, 'request succeeded, but internet reachability test failed');
                 });
             })
             .catch(() => {
+                NetworkActions.setIsBackendReachable(false, 'request failed and internet reachability test failed');
                 checkInternetReachability().then((isInternetReachable: boolean) => {
                     setOfflineStatus(!isInternetReachable);
                     setNetWorkStatus(isInternetReachable);
-                    NetworkActions.setIsBackendReachable(false, 'request failed and internet reachability test failed');
                 });
             });
     }, CONST.NETWORK.BACKEND_CHECK_INTERVAL_MS);
