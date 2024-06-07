@@ -2848,6 +2848,11 @@ const styles = (theme: ThemeColors) =>
             width: variables.iconSizeExtraLarge,
         },
 
+        billingBannerSubtitle: {
+            color: theme.textSupporting,
+            lineHeight: variables.lineHeightXLarge,
+        },
+
         selectCircle: {
             width: variables.componentSizeSmall,
             height: variables.componentSizeSmall,
