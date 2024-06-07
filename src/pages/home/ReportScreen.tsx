@@ -155,6 +155,7 @@ function ReportScreen({
 
     const isLoadingReportOnyx = isLoadingOnyxValue(reportResult);
     const permissions = useDeepCompareRef(reportOnyx?.permissions);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true});
 
     /**
      * Create a lightweight Report so as to keep the re-rendering as light as possible by
@@ -423,12 +424,21 @@ function ReportScreen({
             return;
         }
 
+        /**
+         * Since OpenReport is a write, the response from OpenReport will get dropped while the app is 
+         * still loading. This usually happens when signing in and deeplinking to a report. Instead, 
+         * we'll fetch the report after the app finishes loading in an effect below
+         */
+        if (isLoadingApp) {
+            return;
+        }
+
         if (!shouldFetchReport(report)) {
             return;
         }
 
         fetchReport();
-    }, [report, fetchReport, reportIDFromRoute]);
+    }, [report, fetchReport, reportIDFromRoute, isLoadingApp]);
 
     const dismissBanner = useCallback(() => {
         setIsBannerVisible(false);
