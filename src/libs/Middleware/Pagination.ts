@@ -32,7 +32,7 @@ const Pagination: Middleware = (requestResponse, request) => {
         return requestResponse;
     }
 
-    const {resourceCollectionKey, resourceID, pageCollectionKey, sortItems, getItemID, isInitialRequest} = request;
+    const {resourceCollectionKey, resourceID, pageCollectionKey, sortItems, getItemID, requestType} = request;
     return requestResponse.then((response) => {
         if (!response?.onyxData) {
             return Promise.resolve(response);
@@ -51,7 +51,10 @@ const Pagination: Middleware = (requestResponse, request) => {
         }
 
         const newPage = sortedPageItems.map((item) => getItemID(item));
-        if (isInitialRequest) {
+
+        // Detect if we are at the start of the list. This will always be the case for the initial request.
+        // For previous requests we check that no new data is returned. Ideally the server would return that info.
+        if (requestType === 'initial' || (requestType === 'next' && newPage.length === 1)) {
             newPage.unshift(CONST.PAGINATION_START_ID);
         }
 

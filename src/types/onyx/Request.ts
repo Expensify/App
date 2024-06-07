@@ -33,7 +33,7 @@ type PaginationConfig<TResourceKey extends OnyxCollectionKey, TPageKey extends O
     pageCollectionKey: TPageKey;
     sortItems: (items: OnyxValues[TResourceKey]) => Array<OnyxValues[TResourceKey] extends Record<string, infer TResource> ? TResource : never>;
     getItemID: (item: OnyxValues[TResourceKey] extends Record<string, infer TResource> ? TResource : never) => string;
-    isInitialRequest: boolean;
+    requestType: 'initial' | 'link' | 'next' | 'previous';
 };
 type PaginatedRequest<TResourceKey extends OnyxCollectionKey, TPageKey extends OnyxPagesKey> = Request &
     PaginationConfig<TResourceKey, TPageKey> & {

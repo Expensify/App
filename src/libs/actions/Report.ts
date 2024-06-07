@@ -952,7 +952,7 @@ function openReport(
         pageCollectionKey: ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES,
         sortItems: (reportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true),
         getItemID: (reportAction) => reportAction.reportActionID,
-        isInitialRequest: !reportActionID,
+        requestType: !reportActionID ? 'initial' : 'link',
     };
 
     if (isFromDeepLink) {
@@ -1123,7 +1123,7 @@ function getOlderActions(reportID: string, reportActionID: string) {
             pageCollectionKey: ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES,
             sortItems: (reportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true),
             getItemID: (reportAction) => reportAction.reportActionID,
-            isInitialRequest: false,
+            requestType: 'previous',
         },
     );
 }
@@ -1181,7 +1181,7 @@ function getNewerActions(reportID: string, reportActionID: string) {
             pageCollectionKey: ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES,
             sortItems: (reportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true),
             getItemID: (reportAction) => reportAction.reportActionID,
-            isInitialRequest: false,
+            requestType: 'next',
         },
     );
 }
