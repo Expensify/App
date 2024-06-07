@@ -15,8 +15,8 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as PolicyUtils from '@libs/PolicyUtils';
 import Log from '@libs/Log';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
 import variables from '@styles/variables';
@@ -187,7 +187,7 @@ function ReportFooter({
                     {isArchivedRoom && <ArchivedReportFooter report={report} />}
                     {!isArchivedRoom && isBlockedFromChat && <BlockedReportFooter />}
                     {!isAnonymousUser && !canWriteInReport && isSystemChat && <SystemChatReportFooterMessage />}
-                    {isAdminsOnlyPostingRoom && !isUserPolicyAdmin && !isArchivedRoom && !isAnonymousUser && !blockedFromChat && (
+                    {isAdminsOnlyPostingRoom && !isUserPolicyAdmin && !isArchivedRoom && !isAnonymousUser && !isBlockedFromChat && (
                         <Banner
                             containerStyles={[styles.chatFooterBanner]}
                             text={translate('adminOnlyCanPost')}
@@ -195,7 +195,9 @@ function ReportFooter({
                             shouldShowIcon
                         />
                     )}
-                    {!isSmallScreenWidth && <View style={styles.offlineIndicatorRow}>{shouldHideComposer && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}</View>}
+                    {!isSmallScreenWidth && (
+                        <View style={styles.offlineIndicatorRow}>{shouldHideComposer && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}</View>
+                    )}
                 </View>
             )}
             {!shouldHideComposer && (shouldShowComposeInput || !isSmallScreenWidth) && (
