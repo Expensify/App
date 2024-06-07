@@ -175,8 +175,8 @@ function MoneyRequestView({
     const shouldShowBillable = isPolicyExpenseChat && (!!transactionBillable || !(policy?.disabledFields?.defaultBillable ?? true));
 
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest);
-    const shouldShowViewTripDetails = TransactionUtils.hasReservationList(transaction);
     const tripID = ReportUtils.getTripIDFromTransactionParentReport(parentReport);
+    const shouldShowViewTripDetails = TransactionUtils.hasReservationList(transaction) && tripID;
 
     const navigateToTripID = () => {
         if (!tripID) {
@@ -562,7 +562,7 @@ function MoneyRequestView({
                         />
                     </OfflineWithFeedback>
                 )}
-                {shouldShowViewTripDetails && tripID && (
+                {shouldShowViewTripDetails && (
                     <MenuItem
                         title={translate('travel.viewTripDetails')}
                         icon={Expensicons.Suitcase}
