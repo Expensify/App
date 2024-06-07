@@ -228,7 +228,26 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         }
 
         return items;
-    }, [isSelfDM, isArchivedRoom, isGroupChat, isDefaultRoom, isChatThread, isPolicyEmployee, isUserCreatedPolicyRoom, participants.length, report, isSystemChat, isPolicyExpenseChat, isMoneyRequestReport, isInvoiceReport, isTaskReport, shouldShowLeaveButton, activeChatMembers.length, session, leaveChat]);
+    }, [
+        isSelfDM,
+        isArchivedRoom,
+        isGroupChat,
+        isDefaultRoom,
+        isChatThread,
+        isPolicyEmployee,
+        isUserCreatedPolicyRoom,
+        participants.length,
+        report,
+        isSystemChat,
+        isPolicyExpenseChat,
+        isMoneyRequestReport,
+        isInvoiceReport,
+        isTaskReport,
+        shouldShowLeaveButton,
+        activeChatMembers.length,
+        session,
+        leaveChat,
+    ]);
 
     const displayNamesWithTooltips = useMemo(() => {
         const hasMultipleParticipants = participants.length > 1;
@@ -412,8 +431,11 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                         </OfflineWithFeedback>
                     )}
 
-                    <PromotedActionsBar containerStyle={styles.mt5} promotedActions={promotedActions} />
-                    
+                    <PromotedActionsBar
+                        containerStyle={styles.mt5}
+                        promotedActions={promotedActions}
+                    />
+
                     {menuItems.map((item) => {
                         const brickRoadIndicator =
                             ReportUtils.hasReportNameError(report) && item.key === CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
