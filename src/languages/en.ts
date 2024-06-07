@@ -1553,7 +1553,9 @@ export default {
         checkHelpLine: 'Your routing number and account number can be found on a check for the account.',
         validateAccountError: {
             phrase1: 'Hold up! We need you to validate your account first. To do so, ',
-            phrase2: 'sign back in with a magic code',
+            phrase2: 'sign back in with a magic code ',
+            phrase3: 'or ',
+            phrase4: 'verify your account here',
         },
         hasPhoneLoginError: 'To add a verified bank account please ensure your primary login is a valid email and try again. You can add your phone number as a secondary login.',
         hasBeenThrottledError: 'There was an error adding your bank account. Please wait a few minutes and try again.',
