@@ -95,7 +95,7 @@ function TravelTerms() {
                                     Navigation.resetToHome();
                                 }}
                                 message={errorMessage}
-                                isAlertVisible={error || Boolean(errorMessage)}
+                                isAlertVisible={error || !!errorMessage}
                                 containerStyles={[styles.mh0, styles.mt5]}
                             />
                         </ScrollView>

@@ -252,7 +252,7 @@ function MoneyRequestParticipantsSelector({participants = [], onFinish, onPartic
         () =>
             OptionsListUtils.getHeaderMessage(
                 ((newChatOptions as Options)?.personalDetails ?? []).length + ((newChatOptions as Options)?.recentReports ?? []).length !== 0,
-                Boolean((newChatOptions as Options)?.userToInvite),
+                !!(newChatOptions as Options)?.userToInvite,
                 debouncedSearchTerm.trim(),
                 participants.some((participant) => participant?.searchText?.toLowerCase().includes(debouncedSearchTerm.trim().toLowerCase())),
             ),

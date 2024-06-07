@@ -101,7 +101,7 @@ function TermsStep() {
                     Navigation.navigate(ROUTES.SETTINGS_WALLET);
                 }}
                 message={errorMessage}
-                isAlertVisible={error || Boolean(errorMessage)}
+                isAlertVisible={error || !!errorMessage}
                 isLoading={!!walletTerms?.isLoading}
                 containerStyles={[styles.mh0, styles.mv5]}
             />
