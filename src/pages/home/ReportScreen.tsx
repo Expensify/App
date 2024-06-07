@@ -157,6 +157,8 @@ function ReportScreen({
     const permissions = useDeepCompareRef(reportOnyx?.permissions);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true});
     const wasLoadingApp = usePrevious(isLoadingApp);
+    const prevMetadata = usePrevious(reportMetadata);
+    const finishedLoadingReport = prevMetadata?.isLoadingInitialReportActions && !reportMetadata?.isLoadingInitialReportActions;
 
     /**
      * Create a lightweight Report so as to keep the re-rendering as light as possible by
@@ -559,6 +561,11 @@ function ReportScreen({
             return;
         }
 
+        // If we just finished loading the report, we don't need to load it again
+        if (finishedLoadingReport) {
+            return;
+        }
+
         fetchReportIfNeeded();
         ComposerActions.setShouldShowComposeInput(true);
     }, [
@@ -575,6 +582,7 @@ function ReportScreen({
         prevReport,
         reportIDFromRoute,
         isFocused,
+        finishedLoadingReport
     ]);
 
     useEffect(() => {
