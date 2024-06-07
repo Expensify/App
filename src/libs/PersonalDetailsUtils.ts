@@ -1,4 +1,4 @@
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {CurrentUserPersonalDetails} from '@components/withCurrentUserPersonalDetails';
@@ -50,6 +50,10 @@ function getDisplayNameOrDefault(passedPersonalDetails?: Partial<PersonalDetails
 
     if (shouldAddCurrentUserPostfix && !!displayName) {
         displayName = `${displayName} (${Localize.translateLocal('common.you').toLowerCase()})`;
+    }
+
+    if (passedPersonalDetails?.accountID === CONST.ACCOUNT_ID.CONCIERGE) {
+        displayName = CONST.CONCIERGE_DISPLAY_NAME;
     }
 
     if (displayName) {
@@ -153,7 +157,6 @@ function getPersonalDetailsOnyxDataForOptimisticUsers(newLogins: string[], newAc
         personalDetailsNew[accountID] = {
             login,
             accountID,
-            avatar: UserUtils.getDefaultAvatarURL(accountID),
             displayName: LocalePhoneNumber.formatPhoneNumber(login),
         };
 
