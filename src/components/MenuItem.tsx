@@ -590,7 +590,7 @@ function MenuItem(
                 tagsStack.pop();
                 selfClose = null;
             } else {
-                selfClose = SELF_CLOSE_REGEX.exec(endResult[0]);
+                selfClose = SELF_CLOSE_REGEX.exec(endResult);
                 if (!selfClose) {
                     tag = matches[1];
                     tagsStack.push(tag);
