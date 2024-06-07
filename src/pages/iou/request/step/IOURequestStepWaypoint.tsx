@@ -191,7 +191,6 @@ function IOURequestStepWaypoint({
                     prompt={translate('distance.deleteWaypointConfirmation')}
                     confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}
-                    shouldEnableNewFocusManagement
                     danger
                     shouldEnableNewFocusManagement
                     restoreFocusType={restoreFocusType}
