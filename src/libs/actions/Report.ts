@@ -57,6 +57,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import isPublicScreenRoute from '@libs/isPublicScreenRoute';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
+import {registerPaginationConfig} from '@libs/Middleware/Pagination';
 import Navigation from '@libs/Navigation/Navigation';
 import type {NetworkStatus} from '@libs/NetworkConnection';
 import LocalNotification from '@libs/Notification/LocalNotification';
@@ -96,7 +97,6 @@ import type {Decision, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage
 import type {NotificationPreference, Participants, Participant as ReportParticipant, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
 import type Report from '@src/types/onyx/Report';
 import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
-import type {PaginationConfig} from '@src/types/onyx/Request';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CachedPDFPaths from './CachedPDFPaths';
@@ -275,6 +275,16 @@ let quickAction: OnyxEntry<QuickAction> = {};
 Onyx.connect({
     key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
     callback: (val) => (quickAction = val),
+});
+
+registerPaginationConfig({
+    initialCommand: WRITE_COMMANDS.OPEN_REPORT,
+    previousCommand: READ_COMMANDS.GET_OLDER_ACTIONS,
+    nextCommand: READ_COMMANDS.GET_NEWER_ACTIONS,
+    resourceCollectionKey: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+    pageCollectionKey: ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES,
+    sortItems: (reportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true),
+    getItemID: (reportAction) => reportAction.reportActionID,
 });
 
 function clearGroupChat() {
@@ -946,13 +956,9 @@ function openReport(
 
     parameters.clientLastReadTime = currentReportData?.[reportID]?.lastReadTime ?? '';
 
-    const paginationConfig: PaginationConfig<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES> = {
-        resourceCollectionKey: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+    const paginationConfig = {
         resourceID: reportID,
-        pageCollectionKey: ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES,
-        sortItems: (reportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true),
-        getItemID: (reportAction) => reportAction.reportActionID,
-        requestType: !reportActionID ? 'initial' : 'link',
+        cursorID: reportActionID,
     };
 
     if (isFromDeepLink) {
@@ -1118,12 +1124,8 @@ function getOlderActions(reportID: string, reportActionID: string) {
         parameters,
         {optimisticData, successData, failureData},
         {
-            resourceCollectionKey: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
             resourceID: reportID,
-            pageCollectionKey: ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES,
-            sortItems: (reportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true),
-            getItemID: (reportAction) => reportAction.reportActionID,
-            requestType: 'previous',
+            cursorID: reportActionID,
         },
     );
 }
@@ -1176,12 +1178,8 @@ function getNewerActions(reportID: string, reportActionID: string) {
         parameters,
         {optimisticData, successData, failureData},
         {
-            resourceCollectionKey: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
             resourceID: reportID,
-            pageCollectionKey: ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES,
-            sortItems: (reportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true),
-            getItemID: (reportAction) => reportAction.reportActionID,
-            requestType: 'next',
+            cursorID: reportActionID,
         },
     );
 }

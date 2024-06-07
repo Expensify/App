@@ -1,5 +1,4 @@
 import type {OnyxUpdate} from 'react-native-onyx';
-import type {OnyxCollectionKey, OnyxPagesKey, OnyxValues} from '@src/ONYXKEYS';
 import type Response from './Response';
 
 type OnyxData = {
@@ -27,16 +26,13 @@ type RequestData = {
 
 type Request = RequestData & OnyxData;
 
-type PaginationConfig<TResourceKey extends OnyxCollectionKey, TPageKey extends OnyxPagesKey> = {
-    resourceCollectionKey: TResourceKey;
+type PaginationConfig = {
     resourceID: string;
-    pageCollectionKey: TPageKey;
-    sortItems: (items: OnyxValues[TResourceKey]) => Array<OnyxValues[TResourceKey] extends Record<string, infer TResource> ? TResource : never>;
-    getItemID: (item: OnyxValues[TResourceKey] extends Record<string, infer TResource> ? TResource : never) => string;
-    requestType: 'initial' | 'link' | 'next' | 'previous';
+    cursorID?: string | null;
 };
-type PaginatedRequest<TResourceKey extends OnyxCollectionKey, TPageKey extends OnyxPagesKey> = Request &
-    PaginationConfig<TResourceKey, TPageKey> & {
+
+type PaginatedRequest = Request &
+    PaginationConfig & {
         isPaginated: true;
     };
 

@@ -8,7 +8,6 @@ import * as Pusher from '@libs/Pusher/pusher';
 import * as Request from '@libs/Request';
 import * as PersistedRequests from '@userActions/PersistedRequests';
 import CONST from '@src/CONST';
-import type {OnyxCollectionKey, OnyxPagesKey} from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
 import type {PaginatedRequest, PaginationConfig} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
@@ -190,22 +189,22 @@ function read<TCommand extends ReadCommand>(command: TCommand, apiCommandParamet
     });
 }
 
-function paginate<TRequestType extends ApiRequestType, TCommand extends CommandOfType<TRequestType>, TResourceKey extends OnyxCollectionKey, TPageKey extends OnyxPagesKey>(
+function paginate<TRequestType extends ApiRequestType, TCommand extends CommandOfType<TRequestType>>(
     type: TRequestType,
     command: TCommand,
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
     onyxData: OnyxData,
-    config: PaginationConfig<TResourceKey, TPageKey>,
+    config: PaginationConfig,
 ): TRequestType extends typeof CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS ? Promise<Response | void> : void;
-function paginate<TRequestType extends ApiRequestType, TCommand extends CommandOfType<TRequestType>, TResourceKey extends OnyxCollectionKey, TPageKey extends OnyxPagesKey>(
+function paginate<TRequestType extends ApiRequestType, TCommand extends CommandOfType<TRequestType>>(
     type: TRequestType,
     command: TCommand,
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
     onyxData: OnyxData,
-    config: PaginationConfig<TResourceKey, TPageKey>,
+    config: PaginationConfig,
 ): Promise<Response | void> | void {
     Log.info('[API] Called API.paginate', false, {command, ...apiCommandParameters});
-    const request: PaginatedRequest<TResourceKey, TPageKey> = {
+    const request: PaginatedRequest = {
         ...prepareRequest(command, type, apiCommandParameters, onyxData),
         ...config,
         ...{
