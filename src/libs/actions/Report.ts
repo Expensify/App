@@ -952,7 +952,7 @@ function openReport(
         pageCollectionKey: ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES,
         sortItems: (reportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true),
         getItemID: (reportAction) => reportAction.reportActionID,
-        isInitialRequest: true,
+        isInitialRequest: !reportActionID,
     };
 
     if (isFromDeepLink) {
