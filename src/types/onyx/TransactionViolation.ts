@@ -1,10 +1,11 @@
+import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 
 /**
  * Names of violations.
  * Derived from `CONST.VIOLATIONS` to maintain a single source of truth.
  */
-type ViolationName = (typeof CONST.VIOLATIONS)[keyof typeof CONST.VIOLATIONS];
+type ViolationName = ValueOf<typeof CONST.VIOLATIONS>;
 
 type TransactionViolation = {
     type: string;

@@ -1,3 +1,4 @@
+import type {TupleToUnion} from 'type-fest';
 import type {MutableRefObject} from 'react';
 import type {View} from 'react-native';
 import type {SharedValue} from 'react-native-reanimated';
@@ -42,6 +43,6 @@ type FullScreenContext = {
 
 type StatusCallback = (isPlaying: boolean) => void;
 
-type PlaybackSpeed = (typeof CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS)[number];
+type PlaybackSpeed = TupleToUnion<typeof CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS>;
 
 export type {PlaybackContext, VolumeContext, VideoPopoverMenuContext, FullScreenContext, StatusCallback, PlaybackSpeed};

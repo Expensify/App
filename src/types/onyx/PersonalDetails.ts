@@ -1,8 +1,9 @@
+import type {TupleToUnion} from 'type-fest';
 import type {AvatarSource} from '@libs/UserUtils';
 import type TIMEZONES from '@src/TIMEZONES';
 import type * as OnyxCommon from './OnyxCommon';
 
-type SelectedTimezone = (typeof TIMEZONES)[number];
+type SelectedTimezone = TupleToUnion<typeof TIMEZONES>;
 
 type Timezone = {
     /** Value of selected timezone */
