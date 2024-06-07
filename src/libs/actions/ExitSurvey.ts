@@ -65,7 +65,7 @@ function switchToOldDot() {
         },
     ];
 
-    API.write(
+    return API.makeRequestWithSideEffects(
         'SwitchToOldDot',
         {
             reason: exitReason,
