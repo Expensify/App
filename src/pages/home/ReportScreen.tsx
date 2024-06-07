@@ -156,6 +156,7 @@ function ReportScreen({
     const isLoadingReportOnyx = isLoadingOnyxValue(reportResult);
     const permissions = useDeepCompareRef(reportOnyx?.permissions);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true});
+    const wasLoadingApp = usePrevious(isLoadingApp);
 
     /**
      * Create a lightweight Report so as to keep the re-rendering as light as possible by
@@ -622,6 +623,14 @@ function ReportScreen({
             setIsLinkingToMessage(false);
         });
     }, [reportMetadata?.isLoadingInitialReportActions]);
+
+    // If we deeplinked to the report after signing in, we need to fetch the report after the app is done loading
+    useEffect(() => {
+        const finishedLoadingApp = wasLoadingApp && !isLoadingApp;
+        if (finishedLoadingApp) {
+            fetchReportIfNeeded();
+        }
+    }, [wasLoadingApp, isLoadingApp, fetchReportIfNeeded])
 
     const navigateToEndOfReport = useCallback(() => {
         Navigation.setParams({reportActionID: ''});
