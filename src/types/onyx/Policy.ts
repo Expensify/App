@@ -18,31 +18,34 @@ type TaxRateAttributes = {
 };
 
 /** Model of policy distance rate */
-type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<{
-    /** Name of the distance rate */
-    name?: string;
+type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<
+    {
+        /** Name of the distance rate */
+        name?: string;
 
-    /** Amount to be reimbursed per distance unit travelled */
-    rate?: number;
+        /** Amount to be reimbursed per distance unit travelled */
+        rate?: number;
 
-    /** Currency used to pay the distance rate */
-    currency?: string;
+        /** Currency used to pay the distance rate */
+        currency?: string;
 
-    /** Generated ID to identify the distance rate */
-    customUnitRateID?: string;
+        /** Generated ID to identify the distance rate */
+        customUnitRateID?: string;
 
-    /** Whether this distance rate is currently enabled */
-    enabled?: boolean;
+        /** Whether this distance rate is currently enabled */
+        enabled?: boolean;
 
-    /** Error messages to show in UI */
-    errors?: OnyxCommon.Errors;
+        /** Error messages to show in UI */
+        errors?: OnyxCommon.Errors;
 
-    /** Form fields that triggered the errors */
-    errorFields?: OnyxCommon.ErrorFields;
+        /** Form fields that triggered the errors */
+        errorFields?: OnyxCommon.ErrorFields;
 
-    /** Tax rate attributes of the policy */
-    attributes?: TaxRateAttributes;
-}>;
+        /** Tax rate attributes of the policy */
+        attributes?: TaxRateAttributes;
+    },
+    keyof TaxRateAttributes
+>;
 
 /** Custom unit attributes */
 type Attributes = {
@@ -931,6 +934,7 @@ export type {
     CustomUnit,
     Attributes,
     Rate,
+    TaxRateAttributes,
     TaxRate,
     TaxRates,
     TaxRatesWithDefault,
