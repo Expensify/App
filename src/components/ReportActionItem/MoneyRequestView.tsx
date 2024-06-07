@@ -340,7 +340,7 @@ function MoneyRequestView({
                 {shouldShowReceiptHeader && (
                     <ReceiptAuditHeader
                         notes={receiptViolations}
-                        shouldShowAuditMessage={Boolean(shouldShowNotesViolations && didRceiptScanSucceed)}
+                        shouldShowAuditMessage={!!(shouldShowNotesViolations && didRceiptScanSucceed)}
                     />
                 )}
                 {(hasReceipt || errors) && (

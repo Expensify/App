@@ -148,7 +148,9 @@ function flush() {
             process().finally(() => {
                 console.debug('[SequentialQueue] Finished processing queue.');
                 isSequentialQueueRunning = false;
-                resolveIsReadyPromise?.();
+                if (NetworkStore.isOffline() || PersistedRequests.getAll().length === 0) {
+                    resolveIsReadyPromise?.();
+                }
                 currentRequest = null;
                 flushOnyxUpdatesQueue();
             });
