@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import {ExpensiMark} from 'expensify-common';
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
@@ -45,7 +45,11 @@ function NamePage({
     const goBack = useCallback(() => Navigation.goBack(ROUTES.WORKSPACE_TAX_EDIT.getRoute(policyID ?? '', taxID)), [policyID, taxID]);
 
     const submit = () => {
-        renamePolicyTax(policyID, taxID, name);
+        const taxName = name.trim();
+        // Do not call the API if the edited tax name is the same as the current tag name
+        if (currentTaxRate?.name !== taxName) {
+            renamePolicyTax(policyID, taxID, taxName);
+        }
         goBack();
     };
 

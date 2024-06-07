@@ -1,6 +1,8 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
+import BlockingView from '@components/BlockingViews/BlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
@@ -13,6 +15,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -58,6 +61,20 @@ function QuickbooksAccountSelectPage({policy}: WithPolicyConnectionsProps) {
         [policyID],
     );
 
+    const listEmptyContent = useMemo(
+        () => (
+            <BlockingView
+                icon={Illustrations.TeleScope}
+                iconWidth={variables.emptyListIconWidth}
+                iconHeight={variables.emptyListIconHeight}
+                title={translate('workspace.qbo.noAccountsFound')}
+                subtitle={translate('workspace.qbo.noAccountsFoundDescription')}
+                containerStyle={styles.pb10}
+            />
+        ),
+        [translate, styles.pb10],
+    );
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -71,11 +88,13 @@ function QuickbooksAccountSelectPage({policy}: WithPolicyConnectionsProps) {
                 <HeaderWithBackButton title={translate('workspace.qbo.advancedConfig.qboBillPaymentAccount')} />
 
                 <SelectionList
-                    sections={[{data: qboOnlineSelectorOptions}]}
+                    sections={qboOnlineSelectorOptions.length ? [{data: qboOnlineSelectorOptions}] : []}
                     ListItem={RadioListItem}
                     headerContent={listHeaderComponent}
                     onSelectRow={saveSelection}
+                    shouldDebounceRowSelect
                     initiallyFocusedOptionKey={initiallyFocusedOptionKey}
+                    listEmptyContent={listEmptyContent}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

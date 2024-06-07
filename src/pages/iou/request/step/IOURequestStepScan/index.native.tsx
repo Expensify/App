@@ -27,6 +27,7 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
@@ -36,7 +37,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import CameraPermission from './CameraPermission';
-import NavigationAwareCamera from './NavigationAwareCamera';
+import NavigationAwareCamera from './NavigationAwareCamera/Camera';
 import type {IOURequestStepOnyxProps, IOURequestStepScanProps} from './types';
 
 function IOURequestStepScan({
@@ -62,6 +63,10 @@ function IOURequestStepScan({
     const [flash, setFlash] = useState(false);
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState<string | null>(null);
     const [didCapturePhoto, setDidCapturePhoto] = useState(false);
+
+    const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction);
+    const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
+    const transactionTaxAmount = transaction?.taxAmount ?? 0;
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
     // request and the workspace requires a category or a tag
@@ -105,11 +110,11 @@ function IOURequestStepScan({
             return;
         }
 
-        camera.current.focus(point).catch((ex) => {
-            if (ex.message === '[unknown/unknown] Cancelled by another startFocusAndMetering()') {
+        camera.current.focus(point).catch((error: Record<string, unknown>) => {
+            if (error.message === '[unknown/unknown] Cancelled by another startFocusAndMetering()') {
                 return;
             }
-            Log.warn('Error focusing camera', ex);
+            Log.warn('Error focusing camera', error);
         });
     };
 
@@ -243,6 +248,8 @@ function IOURequestStepScan({
                         category: '',
                         tag: '',
                         currency: transaction?.currency ?? 'USD',
+                        taxCode: transactionTaxCode,
+                        taxAmount: transactionTaxAmount,
                     });
                     return;
                 }
@@ -353,6 +360,8 @@ function IOURequestStepScan({
             navigateToConfirmationPage,
             navigateToParticipantPage,
             policy,
+            transactionTaxCode,
+            transactionTaxAmount,
         ],
     );
 
@@ -439,7 +448,7 @@ function IOURequestStepScan({
             includeSafeAreaPaddingBottom
             headerTitle={translate('common.receipt')}
             onBackButtonPress={navigateBack}
-            shouldShowWrapper={Boolean(backTo)}
+            shouldShowWrapper={!!backTo}
             testID={IOURequestStepScan.displayName}
         >
             {cameraPermissionStatus !== RESULTS.GRANTED && (
@@ -480,8 +489,7 @@ function IOURequestStepScan({
                             <NavigationAwareCamera
                                 ref={camera}
                                 device={device}
-                                // @ts-expect-error The HOC are not migrated to TypeScript yet
-                                style={[styles.flex1]}
+                                style={styles.flex1}
                                 zoom={device.neutralZoom}
                                 photo
                                 cameraTabIndex={1}
