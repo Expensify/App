@@ -192,8 +192,8 @@ Note: It is important that the file has `.md` extension.
 # How to hide an article temporarily
 Video demo available [here 🧵](https://expensify.slack.com/archives/C02NK2DQWUX/p1717772272605829?thread_ts=1717523271.137469&cid=C02NK2DQWUX).
 1. Open github's in built code editor by pressing `.` on your keyboard. ([instructions here](https://docs.github.com/en/codespaces/the-githubdev-web-based-editor#opening-the-githubdev-editor))
-2. Go to the article `docs/articles/..`
-3. Drag and drop the article to the hidden folder. `docs/Hidden/`
+2. Go to the article that you want to hide `docs/articles/...`.
+3. Drag and drop the article inside the hidden folder `docs/Hidden/`.
 4. Commit the changes and raise a PR.
 
 # How the site is deployed
