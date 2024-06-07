@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -15,6 +15,8 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
+import type {PromotedAction} from '@components/PromotedActionsBar';
+import PromotedActionsBar, {PromotedActions} from '@components/PromotedActionsBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -25,6 +27,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as UserUtils from '@libs/UserUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import type {ProfileNavigatorParamList} from '@navigation/types';
 import * as PersonalDetailsActions from '@userActions/PersonalDetails';
@@ -81,7 +84,7 @@ function ProfilePage({route}: ProfilePageProps) {
         const accountID = Number(route.params?.accountID ?? 0);
         const reportID = ReportUtils.getChatByParticipants(session?.accountID ? [accountID, session.accountID] : [], reports)?.reportID ?? '';
 
-        if ((Boolean(session) && Number(session?.accountID) === accountID) || SessionActions.isAnonymousUser() || !reportID) {
+        if ((!!session && Number(session?.accountID) === accountID) || SessionActions.isAnonymousUser() || !reportID) {
             return `${ONYXKEYS.COLLECTION.REPORT}0` as const;
         }
         return `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
@@ -92,10 +95,31 @@ function ProfilePage({route}: ProfilePageProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const accountID = Number(route.params?.accountID ?? 0);
     const isCurrentUser = session?.accountID === accountID;
+
     const isValidAccountID = ValidationUtils.isValidAccountRoute(accountID);
-    const details: PersonalDetails | EmptyObject = personalDetails?.[accountID] ?? (isValidAccountID ? {} : {accountID: 0});
+    const loginParams = route.params?.login;
+
+    const details = useMemo((): PersonalDetails | EmptyObject => {
+        // Check if we have the personal details already in Onyx
+        if (personalDetails?.[accountID]) {
+            return personalDetails?.[accountID] ?? {};
+        }
+        // Check if we have the login param
+        if (!loginParams) {
+            return isValidAccountID ? {} : {accountID: 0};
+        }
+        // Look up the personal details by login
+        const foundDetails = Object.values(personalDetails ?? {}).find((personalDetail) => personalDetail?.login === loginParams?.toLowerCase());
+        if (foundDetails) {
+            return foundDetails;
+        }
+        // If we don't have the personal details in Onyx, we can create an optimistic account
+        const optimisticAccountID = UserUtils.generateAccountID(loginParams);
+        return {accountID: optimisticAccountID, login: loginParams, displayName: loginParams};
+    }, [personalDetails, accountID, loginParams, isValidAccountID]);
 
     const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(details, undefined, undefined, isCurrentUser);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const fallbackIcon = details?.fallbackIcon ?? '';
     const login = details?.login ?? '';
     const timezone = details?.timezone;
@@ -115,8 +139,8 @@ function ProfilePage({route}: ProfilePageProps) {
     const phoneNumber = getPhoneNumber(details);
     const phoneOrEmail = isSMSLogin ? getPhoneNumber(details) : login;
 
-    const hasAvatar = Boolean(details.avatar);
-    const isLoading = Boolean(personalDetailsMetadata?.[accountID]?.isLoading) || isEmptyObject(details);
+    const hasAvatar = !!details.avatar;
+    const isLoading = !!personalDetailsMetadata?.[accountID]?.isLoading || isEmptyObject(details);
     const shouldShowBlockingView = (!isValidAccountID && !isLoading) || CONST.RESTRICTED_ACCOUNT_IDS.includes(accountID);
 
     const statusEmojiCode = details?.status?.emojiCode ?? '';
@@ -134,10 +158,22 @@ function ProfilePage({route}: ProfilePageProps) {
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
-        if (ValidationUtils.isValidAccountRoute(accountID)) {
+        if (ValidationUtils.isValidAccountRoute(accountID) && !loginParams) {
             PersonalDetailsActions.openPublicProfilePage(accountID);
         }
-    }, [accountID]);
+    }, [accountID, loginParams]);
+
+    const promotedActions = useMemo(() => {
+        const result: PromotedAction[] = [];
+        if (report) {
+            result.push(PromotedActions.pin(report));
+        }
+
+        if (!isCurrentUser && !SessionActions.isAnonymousUser()) {
+            result.push(PromotedActions.message({accountID, login: loginParams}));
+        }
+        return result;
+    }, [accountID, isCurrentUser, loginParams, report]);
 
     return (
         <ScreenWrapper testID={ProfilePage.displayName}>
@@ -148,9 +184,9 @@ function ProfilePage({route}: ProfilePageProps) {
                 />
                 <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                     <ScrollView>
-                        <View style={styles.avatarSectionWrapper}>
+                        <View style={[styles.avatarSectionWrapper, styles.pb0]}>
                             <PressableWithoutFocus
-                                style={[styles.noOutline]}
+                                style={[styles.noOutline, styles.mb4]}
                                 onPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(String(accountID)))}
                                 accessibilityLabel={translate('common.profile')}
                                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
@@ -158,7 +194,7 @@ function ProfilePage({route}: ProfilePageProps) {
                             >
                                 <OfflineWithFeedback pendingAction={details?.pendingFields?.avatar}>
                                     <Avatar
-                                        containerStyles={[styles.avatarXLarge, styles.mb3]}
+                                        containerStyles={[styles.avatarXLarge]}
                                         imageStyles={[styles.avatarXLarge]}
                                         source={details.avatar}
                                         avatarID={accountID}
@@ -167,14 +203,18 @@ function ProfilePage({route}: ProfilePageProps) {
                                     />
                                 </OfflineWithFeedback>
                             </PressableWithoutFocus>
-                            {Boolean(displayName) && (
+                            {!!displayName && (
                                 <Text
-                                    style={[styles.textHeadline, styles.pre, styles.mb6, styles.w100, styles.textAlignCenter]}
+                                    style={[styles.textHeadline, styles.pre, styles.mb8, styles.w100, styles.textAlignCenter]}
                                     numberOfLines={1}
                                 >
                                     {displayName}
                                 </Text>
                             )}
+                            <PromotedActionsBar
+                                promotedActions={promotedActions}
+                                containerStyle={[styles.ph0, styles.mb8]}
+                            />
                             {hasStatus && (
                                 <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.mw100]}>
                                     <Text
@@ -222,17 +262,6 @@ function ProfilePage({route}: ProfilePageProps) {
                                 title={notificationPreference}
                                 description={translate('notificationPreferencesPage.label')}
                                 onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.getRoute(report.reportID))}
-                                wrapperStyle={[styles.mtn6, styles.mb5]}
-                            />
-                        )}
-                        {!isCurrentUser && !SessionActions.isAnonymousUser() && (
-                            <MenuItem
-                                title={`${translate('common.message')}${displayName}`}
-                                titleStyle={styles.flex1}
-                                icon={Expensicons.ChatBubble}
-                                onPress={() => ReportActions.navigateToAndOpenReportWithAccountIDs([accountID])}
-                                wrapperStyle={styles.breakAll}
-                                shouldShowRightIcon
                             />
                         )}
                         {!isEmptyObject(report) && report.reportID && !isCurrentUser && (

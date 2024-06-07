@@ -2,7 +2,6 @@ import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import ConfirmedRoute from '@components/ConfirmedRoute';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -120,8 +119,6 @@ function MoneyRequestView({
     const isEmptyMerchant = transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
     const formattedTransactionAmount = transactionAmount ? CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency) : '';
-    const hasPendingWaypoints = Boolean(transaction?.pendingFields?.waypoints);
-    const showMapAsImage = isDistanceRequest && hasPendingWaypoints;
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && CurrencyUtils.convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
     const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
     const cardProgramName = isCardTransaction && transactionCardID !== undefined ? CardUtils.getCardDescription(transactionCardID) : '';
@@ -317,7 +314,6 @@ function MoneyRequestView({
         </OfflineWithFeedback>
     );
 
-    const shouldShowMapOrReceipt = showMapAsImage || hasReceipt;
     const isReceiptAllowed = !isPaidReport && !isInvoice;
     const shouldShowReceiptEmptyState =
         isReceiptAllowed && !hasReceipt && !isApproved && !isSettled && (canEditReceipt || isAdmin || isApprover) && (canEditReceipt || ReportUtils.isPaidGroupPolicy(report));
@@ -331,7 +327,7 @@ function MoneyRequestView({
     const receiptViolations =
         transactionViolations?.filter((violation) => receiptViolationNames.includes(violation.name)).map((violation) => ViolationsUtils.getViolationTranslation(violation, translate)) ?? [];
     const shouldShowNotesViolations = !isReceiptBeingScanned && canUseViolations && ReportUtils.isPaidGroupPolicy(report);
-    const shouldShowReceiptHeader = isReceiptAllowed && (shouldShowReceiptEmptyState || shouldShowMapOrReceipt) && canUseViolations && ReportUtils.isPaidGroupPolicy(report);
+    const shouldShowReceiptHeader = isReceiptAllowed && (shouldShowReceiptEmptyState || hasReceipt) && canUseViolations && ReportUtils.isPaidGroupPolicy(report);
 
     const errors = {
         ...(transaction?.errorFields?.route ?? transaction?.errors),
@@ -345,10 +341,10 @@ function MoneyRequestView({
                 {shouldShowReceiptHeader && (
                     <ReceiptAuditHeader
                         notes={receiptViolations}
-                        shouldShowAuditMessage={Boolean(shouldShowNotesViolations && didRceiptScanSucceed)}
+                        shouldShowAuditMessage={!!(shouldShowNotesViolations && didRceiptScanSucceed)}
                     />
                 )}
-                {(shouldShowMapOrReceipt || errors) && (
+                {(hasReceipt || errors) && (
                     <OfflineWithFeedback
                         pendingAction={pendingAction}
                         errors={errors}
@@ -361,25 +357,18 @@ function MoneyRequestView({
                             ReportActions.clearAllRelatedReportActionErrors(report.reportID, parentReportAction);
                         }}
                     >
-                        {shouldShowMapOrReceipt && (
+                        {hasReceipt && (
                             <View style={styles.moneyRequestViewImage}>
-                                {showMapAsImage ? (
-                                    <ConfirmedRoute
-                                        transaction={transaction}
-                                        interactive={false}
-                                    />
-                                ) : (
-                                    <ReportActionItemImage
-                                        thumbnail={receiptURIs?.thumbnail}
-                                        fileExtension={receiptURIs?.fileExtension}
-                                        isThumbnail={receiptURIs?.isThumbnail}
-                                        image={receiptURIs?.image}
-                                        isLocalFile={receiptURIs?.isLocalFile}
-                                        filename={receiptURIs?.filename}
-                                        transaction={transaction}
-                                        enablePreviewModal
-                                    />
-                                )}
+                                <ReportActionItemImage
+                                    thumbnail={receiptURIs?.thumbnail}
+                                    fileExtension={receiptURIs?.fileExtension}
+                                    isThumbnail={receiptURIs?.isThumbnail}
+                                    image={receiptURIs?.image}
+                                    isLocalFile={receiptURIs?.isLocalFile}
+                                    filename={receiptURIs?.filename}
+                                    transaction={transaction}
+                                    enablePreviewModal
+                                />
                             </View>
                         )}
                     </OfflineWithFeedback>
@@ -401,7 +390,7 @@ function MoneyRequestView({
                         }
                     />
                 )}
-                {!shouldShowReceiptEmptyState && !shouldShowMapOrReceipt && <View style={{marginVertical: 6}} />}
+                {!shouldShowReceiptEmptyState && !hasReceipt && <View style={{marginVertical: 6}} />}
                 {shouldShowNotesViolations && <ReceiptAuditMessages notes={receiptViolations} />}
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('amount')}>
                     <MenuItemWithTopDescription
@@ -610,7 +599,7 @@ export default withOnyx<MoneyRequestViewPropsWithoutTransaction, MoneyRequestVie
     },
     distanceRates: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`,
-        selector: DistanceRequestUtils.getMileageRates,
+        selector: (policy: OnyxEntry<OnyxTypes.Policy>) => DistanceRequestUtils.getMileageRates(policy, true),
     },
 })(
     withOnyx<MoneyRequestViewProps, MoneyRequestViewTransactionOnyxProps>({

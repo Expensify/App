@@ -1,5 +1,5 @@
 /* eslint-disable no-continue */
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 // eslint-disable-next-line you-dont-need-lodash-underscore/get
 import lodashGet from 'lodash/get';
 import lodashOrderBy from 'lodash/orderBy';
@@ -144,7 +144,6 @@ type GetOptionsConfig = {
     maxRecentReportsToShow?: number;
     excludeLogins?: string[];
     includeMultipleParticipantReports?: boolean;
-    includePersonalDetails?: boolean;
     includeRecentReports?: boolean;
     includeSelfDM?: boolean;
     sortByReportTypeInSearch?: boolean;
@@ -174,6 +173,7 @@ type GetOptionsConfig = {
     policyReportFieldOptions?: string[];
     recentlyUsedPolicyReportFieldOptions?: string[];
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
+    includeInvoiceRooms?: boolean;
 };
 
 type GetUserToInviteConfig = {
@@ -576,12 +576,22 @@ function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | nu
  * Update alternate text for the option when applicable
  */
 function getAlternateText(option: ReportUtils.OptionData, {showChatPreviewLine = false, forcePolicyNamePreview = false}: PreviewConfig) {
+    const report = ReportUtils.getReport(option.reportID);
+    const isAdminRoom = ReportUtils.isAdminRoom(report);
+    const isAnnounceRoom = ReportUtils.isAnnounceRoom(report);
+
     if (!!option.isThread || !!option.isMoneyRequestReport) {
         return option.lastMessageText ? option.lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
     }
-    if (!!option.isChatRoom || !!option.isPolicyExpenseChat) {
+
+    if (option.isChatRoom && !isAdminRoom && !isAnnounceRoom) {
+        return showChatPreviewLine && option.lastMessageText ? option.lastMessageText : option.subtitle;
+    }
+
+    if ((option.isPolicyExpenseChat ?? false) || isAdminRoom || isAnnounceRoom) {
         return showChatPreviewLine && !forcePolicyNamePreview && option.lastMessageText ? option.lastMessageText : option.subtitle;
     }
+
     if (option.isTaskReport) {
         return showChatPreviewLine && option.lastMessageText ? option.lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
     }
@@ -1583,6 +1593,9 @@ function orderOptions(options: ReportUtils.OptionData[], searchValue: string | u
         options,
         [
             (option) => {
+                if (option.isSelfDM) {
+                    return 0;
+                }
                 if (preferChatroomsOverThreads && option.isThread) {
                     return 4;
                 }
@@ -1674,6 +1687,26 @@ function getUserToInviteOption({
 }
 
 /**
+ * Check whether report has violations
+ */
+function shouldShowViolations(report: Report, betas: OnyxEntry<Beta[]>, transactionViolations: OnyxCollection<TransactionViolation[]>) {
+    if (!Permissions.canUseViolations(betas)) {
+        return false;
+    }
+    const {parentReportID, parentReportActionID} = report ?? {};
+    const canGetParentReport = parentReportID && parentReportActionID && allReportActions;
+    if (!canGetParentReport) {
+        return false;
+    }
+    const parentReportActions = allReportActions ? allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`] ?? {} : {};
+    const parentReportAction = parentReportActions[parentReportActionID] ?? null;
+    if (!parentReportAction) {
+        return false;
+    }
+    return ReportUtils.shouldDisplayTransactionThreadViolations(report, transactionViolations, parentReportAction);
+}
+
+/**
  * filter options based on specific conditions
  */
 function getOptions(
@@ -1685,7 +1718,6 @@ function getOptions(
         maxRecentReportsToShow = 0,
         excludeLogins = [],
         includeMultipleParticipantReports = false,
-        includePersonalDetails = false,
         includeRecentReports = false,
         // When sortByReportTypeInSearch flag is true, recentReports will include the personalDetails options as well.
         sortByReportTypeInSearch = false,
@@ -1715,6 +1747,7 @@ function getOptions(
         includePolicyReportFieldOptions = false,
         policyReportFieldOptions = [],
         recentlyUsedPolicyReportFieldOptions = [],
+        includeInvoiceRooms = false,
     }: GetOptionsConfig,
 ): Options {
     if (includeCategories) {
@@ -1780,13 +1813,7 @@ function getOptions(
     // Filter out all the reports that shouldn't be displayed
     const filteredReportOptions = options.reports.filter((option) => {
         const report = option.item;
-
-        const {parentReportID, parentReportActionID} = report ?? {};
-        const canGetParentReport = parentReportID && parentReportActionID && allReportActions;
-        const parentReportActions = allReportActions ? allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`] ?? {} : {};
-        const parentReportAction = canGetParentReport ? parentReportActions[parentReportActionID] ?? null : null;
-        const doesReportHaveViolations =
-            (betas?.includes(CONST.BETAS.VIOLATIONS) && ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction)) ?? false;
+        const doesReportHaveViolations = shouldShowViolations(report, betas, transactionViolations);
 
         return ReportUtils.shouldReportBeInOptionList({
             report,
@@ -1802,11 +1829,16 @@ function getOptions(
 
     // Sorting the reports works like this:
     // - Order everything by the last message timestamp (descending)
+    // - When searching, self DM is put at the top
     // - All archived reports should remain at the bottom
     const orderedReportOptions = lodashSortBy(filteredReportOptions, (option) => {
         const report = option.item;
         if (option.isArchivedRoom) {
             return CONST.DATE.UNIX_EPOCH;
+        }
+
+        if (searchValue) {
+            return [option.isSelfDM, report?.lastVisibleActionCreated];
         }
 
         return report?.lastVisibleActionCreated;
@@ -1870,7 +1902,7 @@ function getOptions(
         return option;
     });
 
-    const havingLoginPersonalDetails = options.personalDetails.filter((detail) => !!detail?.login && !!detail.accountID && !detail?.isOptimisticPersonalDetail);
+    const havingLoginPersonalDetails = includeP2P ? options.personalDetails.filter((detail) => !!detail?.login && !!detail.accountID && !detail?.isOptimisticPersonalDetail) : [];
     let allPersonalDetailsOptions = havingLoginPersonalDetails;
 
     if (sortPersonalDetailsByAlphaAsc) {
@@ -1915,8 +1947,16 @@ function getOptions(
             const isCurrentUserOwnedPolicyExpenseChatThatCouldShow =
                 reportOption.isPolicyExpenseChat && reportOption.ownerAccountID === currentUserAccountID && includeOwnedWorkspaceChats && !reportOption.isArchivedRoom;
 
-            // Skip if we aren't including multiple participant reports and this report has multiple participants
-            if (!isCurrentUserOwnedPolicyExpenseChatThatCouldShow && !includeMultipleParticipantReports && !reportOption.login) {
+            const shouldShowInvoiceRoom = includeInvoiceRooms && ReportUtils.isInvoiceRoom(reportOption.item) && ReportUtils.isPolicyAdmin(reportOption.policyID ?? '', policies);
+
+            /**
+                Exclude the report option if it doesn't meet any of the following conditions:
+                - It is not an owned policy expense chat that could be shown
+                - Multiple participant reports are not included
+                - It doesn't have a login
+                - It is not an invoice room that should be shown
+            */
+            if (!isCurrentUserOwnedPolicyExpenseChatThatCouldShow && !includeMultipleParticipantReports && !reportOption.login && !shouldShowInvoiceRoom) {
                 continue;
             }
 
@@ -1956,22 +1996,20 @@ function getOptions(
         }
     }
 
-    if (includePersonalDetails) {
-        const personalDetailsOptionsToExclude = [...optionsToExclude, {login: currentUserLogin}];
-        // Next loop over all personal details removing any that are selectedUsers or recentChats
-        allPersonalDetailsOptions.forEach((personalDetailOption) => {
-            if (personalDetailsOptionsToExclude.some((optionToExclude) => optionToExclude.login === personalDetailOption.login)) {
-                return;
-            }
-            const {searchText, participantsList, isChatRoom} = personalDetailOption;
-            const participantNames = getParticipantNames(participantsList);
-            if (searchValue && !isSearchStringMatch(searchValue, searchText, participantNames, isChatRoom)) {
-                return;
-            }
+    const personalDetailsOptionsToExclude = [...optionsToExclude, {login: currentUserLogin}];
+    // Next loop over all personal details removing any that are selectedUsers or recentChats
+    allPersonalDetailsOptions.forEach((personalDetailOption) => {
+        if (personalDetailsOptionsToExclude.some((optionToExclude) => optionToExclude.login === personalDetailOption.login)) {
+            return;
+        }
+        const {searchText, participantsList, isChatRoom} = personalDetailOption;
+        const participantNames = getParticipantNames(participantsList);
+        if (searchValue && !isSearchStringMatch(searchValue, searchText, participantNames, isChatRoom)) {
+            return;
+        }
 
-            personalDetailsOptions.push(personalDetailOption);
-        });
-    }
+        personalDetailsOptions.push(personalDetailOption);
+    });
 
     let currentUserOption = allPersonalDetailsOptions.find((personalDetailsOption) => personalDetailsOption.login === currentUserLogin);
     if (searchValue && currentUserOption && !isSearchStringMatch(searchValue, currentUserOption.searchText)) {
@@ -2029,7 +2067,7 @@ function getSearchOptions(options: OptionList, searchValue = '', betas: Beta[] =
         maxRecentReportsToShow: 0, // Unlimited
         sortByReportTypeInSearch: true,
         showChatPreviewLine: true,
-        includePersonalDetails: true,
+        includeP2P: true,
         forcePolicyNamePreview: true,
         includeOwnedWorkspaceChats: true,
         includeThreads: true,
@@ -2050,7 +2088,7 @@ function getShareLogOptions(options: OptionList, searchValue = '', betas: Beta[]
         includeRecentReports: true,
         includeMultipleParticipantReports: true,
         sortByReportTypeInSearch: true,
-        includePersonalDetails: true,
+        includeP2P: true,
         forcePolicyNamePreview: true,
         includeOwnedWorkspaceChats: true,
         includeSelfDM: true,
@@ -2107,8 +2145,8 @@ function getFilteredOptions(
     includePolicyReportFieldOptions = false,
     policyReportFieldOptions: string[] = [],
     recentlyUsedPolicyReportFieldOptions: string[] = [],
-    includePersonalDetails = true,
     maxRecentReportsToShow = 5,
+    includeInvoiceRooms = false,
 ) {
     return getOptions(
         {reports, personalDetails},
@@ -2117,7 +2155,6 @@ function getFilteredOptions(
             searchInputValue: searchValue.trim(),
             selectedOptions,
             includeRecentReports: true,
-            includePersonalDetails,
             maxRecentReportsToShow,
             excludeLogins,
             includeOwnedWorkspaceChats,
@@ -2136,6 +2173,7 @@ function getFilteredOptions(
             includePolicyReportFieldOptions,
             policyReportFieldOptions,
             recentlyUsedPolicyReportFieldOptions,
+            includeInvoiceRooms,
         },
     );
 }
@@ -2163,7 +2201,6 @@ function getShareDestinationOptions(
             maxRecentReportsToShow: 0, // Unlimited
             includeRecentReports: true,
             includeMultipleParticipantReports: true,
-            includePersonalDetails: false,
             showChatPreviewLine: true,
             forcePolicyNamePreview: true,
             includeThreads: true,
@@ -2220,7 +2257,7 @@ function getMemberInviteOptions(
         {
             betas,
             searchInputValue: searchValue.trim(),
-            includePersonalDetails: true,
+            includeP2P: true,
             excludeLogins,
             sortPersonalDetailsByAlphaAsc: true,
             includeSelectedOptions,
@@ -2470,6 +2507,7 @@ export {
     getTaxRatesSection,
     getFirstKeyForList,
     getUserToInviteOption,
+    shouldShowViolations,
 };
 
 export type {MemberForList, CategorySection, CategoryTreeSection, Options, OptionList, SearchOption, PayeePersonalDetails, Category, Tax, TaxRatesOption, Option, OptionTree};

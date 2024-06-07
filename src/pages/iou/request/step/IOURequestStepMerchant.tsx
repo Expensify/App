@@ -60,10 +60,12 @@ function IOURequestStepMerchant({
 
     // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
     const isEditingSplitBill = iouType === CONST.IOU.TYPE.SPLIT && isEditing;
+    const isTypeInvoice = iouType === CONST.IOU.TYPE.INVOICE;
     const merchant = ReportUtils.getTransactionDetails(isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction)?.merchant;
     const isEmptyMerchant = merchant === '' || merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
 
-    const isMerchantRequired = ReportUtils.isReportInGroupPolicy(report) || transaction?.participants?.some((participant) => Boolean(participant.isPolicyExpenseChat));
+    const isMerchantRequired = ReportUtils.isReportInGroupPolicy(report) || isTypeInvoice || transaction?.participants?.some((participant) => !!participant.isPolicyExpenseChat);
+
     const navigateBack = () => {
         Navigation.goBack(backTo);
     };
