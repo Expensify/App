@@ -1,6 +1,7 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {Icon} from './OnyxCommon';
+import type Report from './Report';
 
 type Participant = {
     accountID?: number;
@@ -25,6 +26,7 @@ type Participant = {
     isSelfDM?: boolean;
     isSender?: boolean;
     iouType?: string;
+    item?: Report;
     ownerAccountID?: number;
 };
 
