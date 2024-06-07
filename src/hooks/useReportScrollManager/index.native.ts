@@ -7,7 +7,7 @@ function useReportScrollManager(): ReportScrollManagerData {
 
     /**
      * Scroll to the provided index.
-    */
+     */
     const scrollToIndex = useCallback(
         // We're defaulting isEditing to false to match the number of arguments of index.ts function version.
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
