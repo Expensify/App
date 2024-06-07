@@ -57,7 +57,7 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
-import * as Policy from '@userActions/Policy/Policy';
+import * as Member from '@userActions/Policy/Member';
 import * as Report from '@userActions/Report';
 import * as ReportActions from '@userActions/ReportActions';
 import * as Session from '@userActions/Session';
@@ -449,13 +449,13 @@ function ReportActionItem({
                 {
                     text: 'actionableMentionJoinWorkspaceOptions.accept',
                     key: `${action.reportActionID}-actionableMentionJoinWorkspace-${CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.ACCEPT}`,
-                    onPress: () => Policy.acceptJoinRequest(report.reportID, action),
+                    onPress: () => Member.acceptJoinRequest(report.reportID, action),
                     isPrimary: true,
                 },
                 {
                     text: 'actionableMentionJoinWorkspaceOptions.decline',
                     key: `${action.reportActionID}-actionableMentionJoinWorkspace-${CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.DECLINE}`,
-                    onPress: () => Policy.declineJoinRequest(report.reportID, action),
+                    onPress: () => Member.declineJoinRequest(report.reportID, action),
                 },
             ];
         }
@@ -521,11 +521,11 @@ function ReportActionItem({
         if (
             isIOUReport(action) &&
             action.originalMessage &&
-            // For the pay flow, we only want to show MoneyRequestAction when sending money and we're not in the combine report. Otherwise, we display a regular system message
+            // For the pay flow, we only want to show MoneyRequestAction when sending money. When paying, we display a regular system message
             (action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE ||
                 action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT ||
                 action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK ||
-                (isSendingMoney && !transactionThreadReport?.reportID))
+                isSendingMoney)
         ) {
             // There is no single iouReport for bill splits, so only 1:1 requests require an iouReportID
             const iouReportID = action.originalMessage.IOUReportID ? action.originalMessage.IOUReportID.toString() : '0';

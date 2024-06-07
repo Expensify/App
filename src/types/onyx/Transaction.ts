@@ -7,6 +7,7 @@ import type {Participant, Split} from './IOU';
 import type * as OnyxCommon from './OnyxCommon';
 import type RecentWaypoint from './RecentWaypoint';
 import type ReportAction from './ReportAction';
+import type {ViolationName} from './TransactionViolation';
 
 /** Model of waypoint */
 type Waypoint = {
@@ -78,6 +79,7 @@ type Comment = {
 
     /** In split transactions this is a collection of participant split data */
     splits?: Split[];
+    dismissedViolations?: Record<ViolationName, Record<string, string>>;
 };
 
 /** Model of transaction custom unit */

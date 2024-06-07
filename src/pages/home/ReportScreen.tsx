@@ -29,6 +29,7 @@ import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {getCurrentUserAccountID} from '@libs/actions/Report';
 import Timing from '@libs/actions/Timing';
 import Navigation from '@libs/Navigation/Navigation';
 import clearReportNotifications from '@libs/Notification/clearReportNotifications';
@@ -619,15 +620,30 @@ function ReportScreen({
         fetchReport();
     }, [fetchReport]);
 
-    const isLinkedReportActionDeleted = useMemo(() => {
+    const {isLinkedReportActionDeleted, isInaccessibleWhisper} = useMemo(() => {
+        const currentUserAccountID = getCurrentUserAccountID();
         if (!reportActionIDFromRoute || !sortedAllReportActions) {
-            return false;
+            return {isLinkedReportActionDeleted: false, isInaccessibleWhisper: false};
         }
         const action = sortedAllReportActions.find((item) => item.reportActionID === reportActionIDFromRoute);
-        return action && !ReportActionsUtils.shouldReportActionBeVisible(action, action.reportActionID);
+        return {
+            isLinkedReportActionDeleted: action && !ReportActionsUtils.shouldReportActionBeVisible(action, action.reportActionID),
+            isInaccessibleWhisper: action && ReportActionsUtils.isWhisperAction(action) && !(action?.whisperedToAccountIDs ?? []).includes(currentUserAccountID),
+        };
     }, [reportActionIDFromRoute, sortedAllReportActions]);
 
-    if (isLinkedReportActionDeleted ?? (!shouldShowSkeleton && reportActionIDFromRoute && reportActions?.length === 0 && !isLinkingToMessage)) {
+    // If user redirects to an inaccessible whisper via a deeplink, on a report they have access to,
+    // then we set reportActionID as empty string, so we display them the report and not the "Not found page".
+    useEffect(() => {
+        if (!isInaccessibleWhisper) {
+            return;
+        }
+        Navigation.isNavigationReady().then(() => {
+            Navigation.setParams({reportActionID: ''});
+        });
+    }, [isInaccessibleWhisper]);
+
+    if ((!isInaccessibleWhisper && isLinkedReportActionDeleted) ?? (!shouldShowSkeleton && reportActionIDFromRoute && reportActions?.length === 0 && !isLinkingToMessage)) {
         return (
             <BlockingView
                 icon={Illustrations.ToddBehindCloud}
@@ -716,6 +732,7 @@ function ReportScreen({
                                         report={report}
                                         reportMetadata={reportMetadata}
                                         reportNameValuePairs={reportNameValuePairs}
+                                        policy={policy}
                                         pendingAction={reportPendingAction}
                                         isComposerFullSize={!!isComposerFullSize}
                                         listHeight={listHeight}

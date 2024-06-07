@@ -115,6 +115,7 @@ type Split = {
 
     /** Created report action ID for thread */
     createdReportActionIDForThread?: string;
+    taxAmount?: number;
 };
 
 /** Model of IOU request */
