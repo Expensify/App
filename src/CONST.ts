@@ -4,6 +4,7 @@ import dateSubtract from 'date-fns/sub';
 import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
 import type {ValueOf} from 'type-fest';
+import {isProduction} from '@libs/Environment/Environment';
 import BankAccount from './libs/models/BankAccount';
 import * as Url from './libs/Url';
 import SCREENS from './SCREENS';
@@ -3306,7 +3307,8 @@ const CONST = {
 
     CONCIERGE_TRAVEL_URL: 'https://community.expensify.com/discussion/7066/introducing-concierge-travel',
     BOOK_TRAVEL_DEMO_URL: 'https://calendly.com/d/ck2z-xsh-q97/expensify-travel-demo-travel-page',
-    TRIP_ID_URL: (tripID: string, isProduction: boolean) => (isProduction ? `https://travel.expensify.com/trips/${tripID}` : `https://staging.travel.expensify.com/trips/${tripID}`),
+    TRAVEL_DOT_URL: (isProduction: boolean) => (isProduction ? 'https://travel.expensify.com' : 'https://staging.travel.expensify.com'),
+    TRIP_ID_URL: (tripID: string, isProduction: boolean) => `${CONST.TRAVEL_DOT_URL(isProduction)}/trips/${tripID}`,
     SCREEN_READER_STATES: {
         ALL: 'all',
         ACTIVE: 'active',
