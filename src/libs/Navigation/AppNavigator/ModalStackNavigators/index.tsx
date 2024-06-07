@@ -4,7 +4,6 @@ import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
 import type {
     AddPersonalBankAccountNavigatorParamList,
-    DetailsNavigatorParamList,
     EditRequestNavigatorParamList,
     EnablePaymentsNavigatorParamList,
     FlagCommentNavigatorParamList,
@@ -103,10 +102,6 @@ const TravelModalStackNavigator = createModalStackNavigator<TravelNavigatorParam
 
 const SplitDetailsModalStackNavigator = createModalStackNavigator<SplitDetailsNavigatorParamList>({
     [SCREENS.SPLIT_DETAILS.ROOT]: () => require('../../../../pages/iou/SplitBillDetailsPage').default as React.ComponentType,
-});
-
-const DetailsModalStackNavigator = createModalStackNavigator<DetailsNavigatorParamList>({
-    [SCREENS.DETAILS_ROOT]: () => require('../../../../pages/DetailsPage').default as React.ComponentType,
 });
 
 const ProfileModalStackNavigator = createModalStackNavigator<ProfileNavigatorParamList>({
@@ -248,6 +243,9 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS]: () => require('../../../../pages/workspace/distanceRates/PolicyDistanceRatesSettingsPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.DISTANCE_RATE_DETAILS]: () => require('../../../../pages/workspace/distanceRates/PolicyDistanceRateDetailsPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.DISTANCE_RATE_EDIT]: () => require('../../../../pages/workspace/distanceRates/PolicyDistanceRateEditPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT]: () =>
+        require('../../../../pages/workspace/distanceRates/PolicyDistanceRateTaxReclaimableEditPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RATE_EDIT]: () => require('../../../../pages/workspace/distanceRates/PolicyDistanceRateTaxRateEditPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.TAGS_SETTINGS]: () => require('../../../../pages/workspace/tags/WorkspaceTagsSettingsPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.TAG_SETTINGS]: () => require('../../../../pages/workspace/tags/TagSettingsPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.TAG_LIST_VIEW]: () => require('../../../../pages/workspace/tags/WorkspaceViewTagsPage').default as React.ComponentType,
@@ -332,6 +330,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.TAX_VALUE]: () => require('../../../../pages/workspace/taxes/ValuePage').default as React.ComponentType,
     [SCREENS.WORKSPACE.TAX_CREATE]: () => require('../../../../pages/workspace/taxes/WorkspaceCreateTaxPage').default as React.ComponentType,
     [SCREENS.SETTINGS.SAVE_THE_WORLD]: () => require('../../../../pages/TeachersUnite/SaveTheWorldPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD]: () => require('../../../../pages/settings/Subscription/PaymentCard/AddPaymentCard').default as React.ComponentType,
 });
 
 const EnablePaymentsStackNavigator = createModalStackNavigator<EnablePaymentsNavigatorParamList>({
@@ -384,7 +383,6 @@ const SearchReportModalStackNavigator = createModalStackNavigator<SearchReportPa
 
 export {
     AddPersonalBankAccountModalStackNavigator,
-    DetailsModalStackNavigator,
     EditRequestStackNavigator,
     EnablePaymentsStackNavigator,
     FlagCommentStackNavigator,

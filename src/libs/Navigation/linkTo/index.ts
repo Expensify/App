@@ -71,7 +71,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
         const topRouteName = rootState?.routes?.at(-1)?.name;
         const isTargetNavigatorOnTop = topRouteName === action.payload.name;
 
-        const isTargetScreenDifferentThanCurrent = Boolean(!topmostCentralPaneRoute || topmostCentralPaneRoute.name !== action.payload.params?.screen);
+        const isTargetScreenDifferentThanCurrent = !!(!topmostCentralPaneRoute || topmostCentralPaneRoute.name !== action.payload.params?.screen);
         const areParamsDifferent =
             action.payload.params?.screen === SCREENS.REPORT
                 ? getTopmostReportId(rootState) !== getTopmostReportId(stateFromPath)
@@ -80,13 +80,8 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
                       omitBy(action.payload.params?.params as Record<string, unknown> | undefined, (value) => value === undefined),
                   );
 
-        // If the type is UP, we deeplinked into one of the RHP flows and we want to replace the current screen with the previous one in the flow
-        // and at the same time we want the back button to go to the page we were before the deeplink
-        if (type === CONST.NAVIGATION.TYPE.UP) {
-            action.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
-
-            // If this action is navigating to the report screen and the top most navigator is different from the one we want to navigate - PUSH the new screen to the top of the stack
-        } else if (action.payload.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR && (isTargetScreenDifferentThanCurrent || areParamsDifferent)) {
+        // If this action is navigating to the report screen and the top most navigator is different from the one we want to navigate - PUSH the new screen to the top of the stack by default
+        if (action.payload.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR && (isTargetScreenDifferentThanCurrent || areParamsDifferent)) {
             // We need to push a tab if the tab doesn't match the central pane route that we are going to push.
             const topmostBottomTabRoute = getTopmostBottomTabRoute(rootState);
             const policyIDsFromState = extractPolicyIDsFromState(stateFromPath);
@@ -100,12 +95,21 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
                 });
             }
 
-            action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
+            if (type === CONST.NAVIGATION.TYPE.UP) {
+                action.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
+            } else {
+                action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
+            }
 
             // If we navigate to SCREENS.SEARCH.CENTRAL_PANE, it's necessary to pass the current policyID, but we have to remember that this param is called policyIDs on this page
             if (action.payload.params?.screen === SCREENS.SEARCH.CENTRAL_PANE && action.payload?.params?.params && policyID) {
                 action.payload.params.params.policyIDs = policyID;
             }
+
+            // If the type is UP, we deeplinked into one of the RHP flows and we want to replace the current screen with the previous one in the flow
+            // and at the same time we want the back button to go to the page we were before the deeplink
+        } else if (type === CONST.NAVIGATION.TYPE.UP) {
+            action.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
 
             // If this action is navigating to ModalNavigator or FullScreenNavigator and the last route on the root navigator is not already opened Navigator then push
         } else if ((action.payload.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR || isSideModalNavigator(action.payload.name)) && !isTargetNavigatorOnTop) {

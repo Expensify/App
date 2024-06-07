@@ -18,6 +18,48 @@ import ExpenseItemHeaderNarrow from './ExpenseItemHeaderNarrow';
 import TransactionListItem from './TransactionListItem';
 import TransactionListItemRow from './TransactionListItemRow';
 
+type CellProps = {
+    // eslint-disable-next-line react/no-unused-prop-types
+    showTooltip: boolean;
+    // eslint-disable-next-line react/no-unused-prop-types
+    isLargeScreenWidth: boolean;
+};
+
+type ReportCellProps = {
+    reportItem: ReportListItemType;
+} & CellProps;
+
+type ActionCellProps = {
+    onButtonPress: () => void;
+} & CellProps;
+
+function TotalCell({showTooltip, isLargeScreenWidth, reportItem}: ReportCellProps) {
+    const styles = useThemeStyles();
+
+    return (
+        <TextWithTooltip
+            shouldShowTooltip={showTooltip}
+            text={CurrencyUtils.convertToDisplayString((reportItem?.type === CONST.REPORT.TYPE.EXPENSE ? -1 : 1) * (reportItem?.total ?? 0), reportItem?.currency)}
+            style={[styles.optionDisplayName, styles.textNewKansasNormal, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? undefined : styles.textAlignRight]}
+        />
+    );
+}
+
+function ActionCell({onButtonPress}: ActionCellProps) {
+    const {translate} = useLocalize();
+    const styles = useThemeStyles();
+
+    return (
+        <Button
+            text={translate('common.view')}
+            onPress={onButtonPress}
+            small
+            pressOnEnter
+            style={[styles.w100]}
+        />
+    );
+}
+
 function ReportListItem<TItem extends ListItem>({
     item,
     isFocused,
@@ -37,6 +79,10 @@ function ReportListItem<TItem extends ListItem>({
     const {isLargeScreenWidth} = useWindowDimensions();
     const StyleUtils = useStyleUtils();
 
+    if (reportItem.transactions.length === 0) {
+        return;
+    }
+
     const listItemPressableStyle = [styles.selectionListPressableItemWrapper, styles.pv3, item.isSelected && styles.activeComponentBG, isFocused && styles.sidebarLinkActive];
 
     const handleOnButtonPress = () => {
@@ -45,27 +91,9 @@ function ReportListItem<TItem extends ListItem>({
 
     const openReportInRHP = (transactionItem: TransactionListItemType) => {
         const searchParams = getSearchParams();
-        const currentQuery = searchParams && `query` in searchParams ? (searchParams?.query as string) : CONST.TAB_SEARCH.ALL;
+        const currentQuery = searchParams?.query ?? CONST.TAB_SEARCH.ALL;
         Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(currentQuery, transactionItem.transactionThreadReportID));
     };
-
-    const totalCell = (
-        <TextWithTooltip
-            shouldShowTooltip={showTooltip}
-            text={CurrencyUtils.convertToDisplayString((reportItem?.type === CONST.REPORT.TYPE.EXPENSE ? -1 : 1) * (reportItem?.total ?? 0), reportItem?.currency)}
-            style={[styles.optionDisplayName, styles.textNewKansasNormal, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? undefined : styles.textAlignRight]}
-        />
-    );
-
-    const actionCell = (
-        <Button
-            text={translate('common.view')}
-            onPress={handleOnButtonPress}
-            small
-            pressOnEnter
-            style={[styles.p0]}
-        />
-    );
 
     if (!reportItem?.reportName && reportItem.transactions.length > 1) {
         return null;
@@ -138,13 +166,25 @@ function ReportListItem<TItem extends ListItem>({
                                     <Text style={[styles.textMicroSupporting]}>{`${reportItem.transactions.length} ${translate('search.groupedExpenses')}`}</Text>
                                 </View>
                             </View>
-                            <View style={[styles.flexRow, styles.flex1, styles.justifyContentEnd]}>{totalCell}</View>
+                            <View style={[styles.flexRow, styles.flex1, styles.justifyContentEnd]}>
+                                <TotalCell
+                                    showTooltip={showTooltip}
+                                    isLargeScreenWidth={isLargeScreenWidth}
+                                    reportItem={reportItem}
+                                />
+                            </View>
                         </View>
                         {isLargeScreenWidth && (
                             <>
                                 {/** We add an empty view with type style to align the total with the table header */}
                                 <View style={StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TYPE)} />
-                                <View style={StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.ACTION)}>{actionCell}</View>
+                                <View style={StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.ACTION)}>
+                                    <ActionCell
+                                        showTooltip={showTooltip}
+                                        isLargeScreenWidth={isLargeScreenWidth}
+                                        onButtonPress={handleOnButtonPress}
+                                    />
+                                </View>
                             </>
                         )}
                     </View>

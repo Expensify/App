@@ -1,5 +1,4 @@
-import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
-import Str from 'expensify-common/lib/str';
+import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {ConnectionName, PolicyConnectionSyncStage} from '@src/types/onyx/Policy';
@@ -33,7 +32,6 @@ import type {
     LogSizeParams,
     ManagerApprovedAmountParams,
     ManagerApprovedParams,
-    NewFaceEnterMagicCodeParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
     NotYouParams,
@@ -66,6 +64,7 @@ import type {
     SetTheRequestParams,
     SettledAfterAddedBankAccountParams,
     SettleExpensifyCardParams,
+    SignUpNewFaceCodeParams,
     SizeExceededParams,
     SplitAmountParams,
     StepCounterParams,
@@ -149,7 +148,7 @@ export default {
         magicCode: 'Magic code',
         twoFactorCode: 'Two-factor code',
         workspaces: 'Workspaces',
-        chats: 'Chats',
+        inbox: 'Inbox',
         group: 'Group',
         profile: 'Profile',
         referral: 'Referral',
@@ -165,6 +164,7 @@ export default {
         continue: 'Continue',
         firstName: 'First name',
         lastName: 'Last name',
+        addCardTermsOfService: 'Expensify Terms of Service',
         phone: 'Phone',
         phoneNumber: 'Phone number',
         phoneNumberPlaceholder: '(xxx) xxx-xxxx',
@@ -172,6 +172,7 @@ export default {
         and: 'and',
         details: 'Details',
         privacy: 'Privacy',
+        privacyPolicy: 'Privacy Policy',
         hidden: 'Hidden',
         visible: 'Visible',
         delete: 'Delete',
@@ -187,7 +188,6 @@ export default {
         saveAndContinue: 'Save & continue',
         settings: 'Settings',
         termsOfService: 'Terms of Service',
-        expensifyTermsOfService: 'Expensify Terms of Service',
         members: 'Members',
         invite: 'Invite',
         here: 'here',
@@ -430,11 +430,11 @@ export default {
         anotherLoginPageIsOpen: 'Another login page is open.',
         anotherLoginPageIsOpenExplanation: "You've opened the login page in a separate tab, please login from that specific tab.",
         welcome: 'Welcome!',
+        welcomeWithoutExclamation: 'Welcome',
         phrase2: "Money talks. And now that chat and payments are in one place, it's also easy.",
         phrase3: 'Your payments get to you as fast as you can get your point across.',
         enterPassword: 'Please enter your password',
-        newFaceEnterMagicCode: ({login}: NewFaceEnterMagicCodeParams) =>
-            `It's always great to see a new face around here! Please enter the magic code sent to ${login}. It should arrive within a minute or two.`,
+        welcomeNewFace: ({login}: SignUpNewFaceCodeParams) => `${login}, it's always great to see a new face around here!`,
         welcomeEnterMagicCode: ({login}: WelcomeEnterMagicCodeParams) => `Please enter the magic code sent to ${login}. It should arrive within a minute or two.`,
     },
     login: {
@@ -512,7 +512,6 @@ export default {
         beginningOfChatHistoryDomainRoomPartTwo: ' to chat with colleagues, share tips, and ask questions.',
         beginningOfChatHistoryAdminRoomPartOne: ({workspaceName}: BeginningOfChatHistoryAdminRoomPartOneParams) => `Collaboration among ${workspaceName} admins starts here! 🎉\nUse `,
         beginningOfChatHistoryAdminRoomPartTwo: ' to chat about topics such as workspace configurations and more.',
-        beginningOfChatHistoryAdminOnlyPostingRoom: 'Only admins can send messages in this room.',
         beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}: BeginningOfChatHistoryAnnounceRoomPartOneParams) =>
             `Collaboration between all ${workspaceName} members starts here! 🎉\nUse `,
         beginningOfChatHistoryAnnounceRoomPartTwo: ({workspaceName}: BeginningOfChatHistoryAnnounceRoomPartTwo) => ` to chat about anything ${workspaceName} related.`,
@@ -538,6 +537,7 @@ export default {
             invoice: 'invoice an expense',
         },
     },
+    adminOnlyCanPost: 'Only admins can send messages in this room.',
     reportAction: {
         asCopilot: 'as copilot for',
     },
@@ -1074,6 +1074,29 @@ export default {
             password: 'Please enter your Expensify password.',
         },
     },
+    addPaymentCardPage: {
+        addAPaymentCard: 'Add payment card',
+        nameOnCard: 'Name on card',
+        paymentCardNumber: 'Card number',
+        expiration: 'Expiration date',
+        expirationDate: 'MMYY',
+        cvv: 'CVV',
+        billingAddress: 'Billing address',
+        growlMessageOnSave: 'Your payment card was successfully added',
+        expensifyPassword: 'Expensify password',
+        error: {
+            invalidName: 'Name can only include letters.',
+            addressZipCode: 'Please enter a valid zip code.',
+            paymentCardNumber: 'Please enter a valid card number.',
+            expirationDate: 'Please select a valid expiration date.',
+            securityCode: 'Please enter a valid security code.',
+            addressStreet: 'Please enter a valid billing address that is not a PO Box.',
+            addressState: 'Please select a state.',
+            addressCity: 'Please enter a city.',
+            genericFailureMessage: 'An error occurred while adding your card, please try again.',
+            password: 'Please enter your Expensify password.',
+        },
+    },
     walletPage: {
         paymentMethodsTitle: 'Payment methods',
         setDefaultConfirmation: 'Make default payment method',
@@ -1438,6 +1461,9 @@ export default {
         onceTheAbove: 'Once the above steps are completed, please reach out to ',
         toUnblock: ' to unblock your login.',
     },
+    welcomeSignUpForm: {
+        join: 'Join',
+    },
     detailsPage: {
         localTime: 'Local time',
     },
@@ -1527,7 +1553,9 @@ export default {
         checkHelpLine: 'Your routing number and account number can be found on a check for the account.',
         validateAccountError: {
             phrase1: 'Hold up! We need you to validate your account first. To do so, ',
-            phrase2: 'sign back in with a magic code',
+            phrase2: 'sign back in with a magic code ',
+            phrase3: 'or ',
+            phrase4: 'verify your account here',
         },
         hasPhoneLoginError: 'To add a verified bank account please ensure your primary login is a valid email and try again. You can add your phone number as a secondary login.',
         hasBeenThrottledError: 'There was an error adding your bank account. Please wait a few minutes and try again.',
@@ -2262,6 +2290,8 @@ export default {
             foreignDefault: 'Foreign currency default',
             customTaxName: 'Custom tax name',
             value: 'Value',
+            taxReclaimableOn: 'Tax reclaimable on',
+            taxRate: 'Tax rate',
             error: {
                 taxRateAlreadyExists: 'This tax name is already in use.',
                 valuePercentageRange: 'Please enter a valid percentage between 0 and 100.',
@@ -2269,6 +2299,7 @@ export default {
                 deleteFailureMessage: 'An error occurred while deleting the tax rate. Please try again or ask Concierge for help.',
                 updateFailureMessage: 'An error occurred while updating the tax rate. Please try again or ask Concierge for help.',
                 createFailureMessage: 'An error occurred while creating the tax rate. Please try again or ask Concierge for help.',
+                updateTaxClaimableFailureMessage: 'The reclaimable portion must be less than the distance rate amount.',
             },
             deleteTaxConfirmation: 'Are you sure you want to delete this tax?',
             deleteMultipleTaxConfirmation: ({taxAmount}) => `Are you sure you want to delete ${taxAmount} taxes?`,
@@ -2362,7 +2393,7 @@ export default {
             subtitle: 'Connect to your accounting system to code transactions with your chart of accounts, auto-match payments, and keep your finances in sync.',
             qbo: 'Quickbooks Online',
             xero: 'Xero',
-            setup: 'Set up',
+            setup: 'Connect',
             lastSync: 'Last synced just now',
             import: 'Import',
             export: 'Export',
@@ -2558,12 +2589,15 @@ export default {
             centrallyManage: 'Centrally manage rates, choose to track in miles or kilometers, and set a default category.',
             rate: 'Rate',
             addRate: 'Add rate',
+            trackTax: 'Track tax',
             deleteRates: ({count}: DistanceRateOperationsParams) => `Delete ${Str.pluralize('rate', 'rates', count)}`,
             enableRates: ({count}: DistanceRateOperationsParams) => `Enable ${Str.pluralize('rate', 'rates', count)}`,
             disableRates: ({count}: DistanceRateOperationsParams) => `Disable ${Str.pluralize('rate', 'rates', count)}`,
             enableRate: 'Enable rate',
             status: 'Status',
             unit: 'Unit',
+            taxFeatureNotEnabledMessage: 'Taxes must be enabled on the workspace to use this feature. Head over to ',
+            changePromptMessage: ' to make that change.',
             defaultCategory: 'Default category',
             deleteDistanceRate: 'Delete distance rate',
             areYouSureDelete: ({count}: DistanceRateOperationsParams) => `Are you sure you want to delete ${Str.pluralize('this rate', 'these rates', count)}?`,
@@ -3179,6 +3213,19 @@ export default {
         mergedWithCashTransaction: 'matched a receipt to this transaction.',
     },
     subscription: {
+        mobileReducedFunctionalityMessage: 'You can’t make changes to your subscription in the mobile app.',
+        cardSection: {
+            title: 'Payment',
+            subtitle: 'Add a payment card to pay for your Expensify subscription.',
+            addCardButton: 'Add payment card',
+            cardNextPayment: 'Your next payment date is',
+            cardEnding: ({cardNumber}) => `Card ending in ${cardNumber}`,
+            cardInfo: ({name, expiration, currency}) => `Name: ${name}, Expiration: ${expiration}, Currency: ${currency}`,
+            changeCard: 'Change payment card',
+            changeCurrency: 'Change payment currency',
+            cardNotFound: 'No payment card added',
+            retryPaymentButton: 'Retry payment',
+        },
         yourPlan: {
             title: 'Your plan',
             collect: {
@@ -3234,6 +3281,12 @@ export default {
             error: {
                 size: 'Please enter a valid subscription size.',
             },
+        },
+        paymentCard: {
+            addPaymentCard: 'Add payment card',
+            enterPaymentCardDetails: 'Enter your payment card details.',
+            security: 'Expensify is PCI-DSS compliant, uses bank-level encryption, and utilizes redundant infrastructure to protect your data.',
+            learnMoreAboutSecurity: 'Learn more about our security.',
         },
     },
 } satisfies TranslationBase;

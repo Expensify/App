@@ -6,6 +6,7 @@ import ConciergeBlue from '@assets/images/product-illustrations/concierge--blue.
 import ConciergeExclamation from '@assets/images/product-illustrations/concierge--exclamation.svg';
 import CreditCardsBlue from '@assets/images/product-illustrations/credit-cards--blue.svg';
 import EmptyStateExpenses from '@assets/images/product-illustrations/emptystate__expenses.svg';
+import EmptyStateTravel from '@assets/images/product-illustrations/emptystate__travel.svg';
 import GpsTrackOrange from '@assets/images/product-illustrations/gps-track--orange.svg';
 import Hands from '@assets/images/product-illustrations/home-illustration-hands.svg';
 import InvoiceOrange from '@assets/images/product-illustrations/invoice--orange.svg';
@@ -182,6 +183,7 @@ export {
     Tag,
     CarIce,
     Lightbulb,
+    EmptyStateTravel,
     SubscriptionAnnual,
     SubscriptionPPU,
     ExpensifyApprovedLogo,
