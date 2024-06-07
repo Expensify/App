@@ -1,5 +1,5 @@
 // Issue - https://github.com/Expensify/App/issues/26719
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import type {AppStateStatus} from 'react-native';
 import {AppState} from 'react-native';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
@@ -34,7 +34,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
-import * as Policy from './Policy';
+import * as Policy from './Policy/Policy';
 import * as Session from './Session';
 import Timing from './Timing';
 

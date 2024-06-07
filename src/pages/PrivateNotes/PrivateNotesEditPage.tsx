@@ -1,7 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import Str from 'expensify-common/lib/str';
+import {ExpensiMark, Str} from 'expensify-common';
 import lodashDebounce from 'lodash/debounce';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
@@ -46,7 +45,7 @@ type PrivateNotesEditPageProps = WithReportAndPrivateNotesOrNotFoundProps &
         report: Report;
     };
 
-function PrivateNotesEditPage({route, personalDetailsList, report}: PrivateNotesEditPageProps) {
+function PrivateNotesEditPage({route, personalDetailsList, report, session}: PrivateNotesEditPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -117,7 +116,7 @@ function PrivateNotesEditPage({route, personalDetailsList, report}: PrivateNotes
         >
             <HeaderWithBackButton
                 title={translate('privateNotes.title')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID))}
+                onBackButtonPress={() => ReportUtils.goBackFromPrivateNotes(report, session)}
                 shouldShowBackButton
                 onCloseButtonPress={() => Navigation.dismissModal()}
             />
