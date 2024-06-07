@@ -249,6 +249,7 @@ type SettingsNavigatorParamList = {
         orderWeight: number;
         tagName: string;
     };
+    [SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD]: undefined;
     [SCREENS.WORKSPACE.TAXES_SETTINGS]: {
         policyID: string;
     };
@@ -431,6 +432,7 @@ type ProfileNavigatorParamList = {
     [SCREENS.PROFILE_ROOT]: {
         accountID: string;
         reportID: string;
+        login?: string;
         backTo: Routes;
     };
 };

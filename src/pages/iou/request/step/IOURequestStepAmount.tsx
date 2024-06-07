@@ -82,7 +82,8 @@ function IOURequestStepAmount({
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isEditingSplitBill = isEditing && isSplitBill;
-    const {amount: transactionAmount} = ReportUtils.getTransactionDetails(isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction) ?? {amount: 0};
+    const currentTransaction = isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction;
+    const {amount: transactionAmount} = ReportUtils.getTransactionDetails(currentTransaction) ?? {amount: 0};
     const {currency: originalCurrency} = ReportUtils.getTransactionDetails(isEditing ? draftTransaction : transaction) ?? {currency: CONST.CURRENCY.USD};
     const currency = CurrencyUtils.isValidCurrencyCode(selectedCurrency) ? selectedCurrency : originalCurrency;
 
@@ -168,6 +169,10 @@ function IOURequestStepAmount({
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         IOU.setMoneyRequestAmount(transactionID, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD, shouldKeepUserInput);
+
+        // Initially when we're creating money request, we do not know the participant and hence if the request is with workspace with tax tracking enabled
+        // So, we reset the taxAmount here and calculate it in the hook in MoneyRequestConfirmationList component
+        IOU.setMoneyRequestTaxAmount(transactionID, null);
 
         if (backTo) {
             Navigation.goBack(backTo);
@@ -273,24 +278,29 @@ function IOURequestStepAmount({
         }
 
         // If the value hasn't changed, don't request to save changes on the server and just close the modal
-        const transactionCurrency = TransactionUtils.getCurrency(transaction);
-        if (newAmount === TransactionUtils.getAmount(transaction) && currency === transactionCurrency) {
-            Navigation.dismissModal();
-            return;
-        }
+        const transactionCurrency = TransactionUtils.getCurrency(currentTransaction);
+        if (newAmount === TransactionUtils.getAmount(currentTransaction) && currency === transactionCurrency) {
+            if (isSplitBill) {
+                Navigation.goBack(backTo);
+            } else {
+                Navigation.dismissModal();
+            }
 
-        if (isSplitBill) {
-            IOU.setDraftSplitTransaction(transactionID, {amount: newAmount, currency});
-            Navigation.goBack(backTo);
             return;
         }
 
         // If currency has changed, then we get the default tax rate based on currency, otherwise we use the current tax rate selected in transaction, if we have it.
-        const transactionTaxCode = transaction?.taxCode ?? '';
-        const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction, currency) ?? '';
+        const transactionTaxCode = ReportUtils.getTransactionDetails(currentTransaction)?.taxCode;
+        const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, currentTransaction, currency) ?? '';
         const taxCode = (currency !== transactionCurrency ? defaultTaxCode : transactionTaxCode) ?? defaultTaxCode;
-        const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, taxCode) ?? '';
+        const taxPercentage = TransactionUtils.getTaxValue(policy, currentTransaction, taxCode) ?? '';
         const taxAmount = CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(taxPercentage, newAmount));
+
+        if (isSplitBill) {
+            IOU.setDraftSplitTransaction(transactionID, {amount: newAmount, currency, taxCode, taxAmount});
+            Navigation.goBack(backTo);
+            return;
+        }
 
         IOU.updateMoneyRequestAmountAndCurrency({transactionID, transactionThreadReportID: reportID, currency, amount: newAmount, taxAmount, policy, taxCode});
         Navigation.dismissModal();

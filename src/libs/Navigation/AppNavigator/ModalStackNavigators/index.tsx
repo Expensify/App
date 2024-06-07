@@ -4,7 +4,6 @@ import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
 import type {
     AddPersonalBankAccountNavigatorParamList,
-    DetailsNavigatorParamList,
     EditRequestNavigatorParamList,
     EnablePaymentsNavigatorParamList,
     FlagCommentNavigatorParamList,
@@ -102,10 +101,6 @@ const TravelModalStackNavigator = createModalStackNavigator<TravelNavigatorParam
 
 const SplitDetailsModalStackNavigator = createModalStackNavigator<SplitDetailsNavigatorParamList>({
     [SCREENS.SPLIT_DETAILS.ROOT]: () => require('../../../../pages/iou/SplitBillDetailsPage').default as React.ComponentType,
-});
-
-const DetailsModalStackNavigator = createModalStackNavigator<DetailsNavigatorParamList>({
-    [SCREENS.DETAILS_ROOT]: () => require('../../../../pages/DetailsPage').default as React.ComponentType,
 });
 
 const ProfileModalStackNavigator = createModalStackNavigator<ProfileNavigatorParamList>({
@@ -223,6 +218,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_DATE]: () => require('../../../../pages/settings/Profile/CustomStatus/SetDatePage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: () => require('../../../../pages/settings/Profile/CustomStatus/SetTimePage').default as React.ComponentType,
     [SCREENS.SETTINGS.SUBSCRIPTION.SIZE]: () => require('../../../../pages/settings/Subscription/SubscriptionSize/SubscriptionSizePage').default as React.ComponentType,
+    [SCREENS.SETTINGS.SUBSCRIPTION.DISABLE_AUTO_RENEW_SURVEY]: () => require('../../../../pages/settings/Subscription/DisableAutoRenewSurveyPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.RATE_AND_UNIT]: () => require('../../../../pages/workspace/reimburse/WorkspaceRateAndUnitPage/InitialPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.RATE_AND_UNIT_RATE]: () => require('../../../../pages/workspace/reimburse/WorkspaceRateAndUnitPage/RatePage').default as React.ComponentType,
     [SCREENS.WORKSPACE.RATE_AND_UNIT_UNIT]: () => require('../../../../pages/workspace/reimburse/WorkspaceRateAndUnitPage/UnitPage').default as React.ComponentType,
@@ -334,6 +330,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.TAX_VALUE]: () => require('../../../../pages/workspace/taxes/ValuePage').default as React.ComponentType,
     [SCREENS.WORKSPACE.TAX_CREATE]: () => require('../../../../pages/workspace/taxes/WorkspaceCreateTaxPage').default as React.ComponentType,
     [SCREENS.SETTINGS.SAVE_THE_WORLD]: () => require('../../../../pages/TeachersUnite/SaveTheWorldPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD]: () => require('../../../../pages/settings/Subscription/PaymentCard/AddPaymentCard').default as React.ComponentType,
 });
 
 const EnablePaymentsStackNavigator = createModalStackNavigator<EnablePaymentsNavigatorParamList>({
@@ -382,7 +379,6 @@ const SearchReportModalStackNavigator = createModalStackNavigator<SearchReportPa
 
 export {
     AddPersonalBankAccountModalStackNavigator,
-    DetailsModalStackNavigator,
     EditRequestStackNavigator,
     EnablePaymentsStackNavigator,
     FlagCommentStackNavigator,

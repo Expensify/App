@@ -6,6 +6,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -14,7 +15,6 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -27,7 +27,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {Rate} from '@src/types/onyx/Policy';
+import type {Rate, TaxRateAttributes} from '@src/types/onyx/Policy';
 
 type PolicyDistanceRateDetailsPageOnyxProps = {
     /** Policy details */
@@ -39,7 +39,6 @@ type PolicyDistanceRateDetailsPageProps = PolicyDistanceRateDetailsPageOnyxProps
 function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetailsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {windowWidth} = useWindowDimensions();
     const [isWarningModalVisible, setIsWarningModalVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const policyID = route.params.policyID;
@@ -91,21 +90,7 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
     const taxClaimableValueToDisplay = taxClaimablePercentage && rate.rate ? CurrencyUtils.convertAmountToDisplayString(taxClaimablePercentage * rate.rate, currency) : '';
     const unitToDisplay = translate(`common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`);
 
-    const threeDotsMenuItems = [
-        {
-            icon: Expensicons.Trashcan,
-            text: translate('workspace.distanceRates.deleteDistanceRate'),
-            onSelected: () => {
-                if (canDisableOrDeleteRate) {
-                    setIsDeleteModalVisible(true);
-                    return;
-                }
-                setIsWarningModalVisible(true);
-            },
-        },
-    ];
-
-    const clearErrorFields = (fieldName: keyof Rate) => {
+    const clearErrorFields = (fieldName: keyof Rate | keyof TaxRateAttributes) => {
         DistanceRate.clearPolicyDistanceRateErrorFields(policyID, customUnit.customUnitID, rateID, {...errorFields, [fieldName]: null});
     };
 
@@ -120,12 +105,7 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
                 includeSafeAreaPaddingBottom={false}
                 style={[styles.defaultModalContainer]}
             >
-                <HeaderWithBackButton
-                    title={`${rateValueToDisplay} / ${translate(`common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`)}`}
-                    shouldShowThreeDotsButton
-                    threeDotsMenuItems={threeDotsMenuItems}
-                    threeDotsAnchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
-                />
+                <HeaderWithBackButton title={`${rateValueToDisplay} / ${translate(`common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`)}`} />
                 <ScrollView contentContainerStyle={styles.flexGrow1}>
                     <OfflineWithFeedback
                         errors={ErrorUtils.getLatestErrorField(rate ?? {}, 'enabled')}
@@ -158,10 +138,10 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
                     </OfflineWithFeedback>
                     {isDistanceTrackTaxEnabled && (
                         <OfflineWithFeedback
-                            errors={ErrorUtils.getLatestErrorField(rate, 'attributes')}
-                            pendingAction={rate?.pendingFields?.attributes}
+                            errors={ErrorUtils.getLatestErrorField(rate, 'taxRateExternalID')}
+                            pendingAction={rate?.pendingFields?.taxRateExternalID}
                             errorRowStyles={styles.mh5}
-                            onClose={() => clearErrorFields('attributes')}
+                            onClose={() => clearErrorFields('taxRateExternalID')}
                         >
                             <View style={styles.w100}>
                                 <MenuItemWithTopDescription
@@ -175,10 +155,10 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
                     )}
                     {isDistanceTrackTaxEnabled && (
                         <OfflineWithFeedback
-                            errors={ErrorUtils.getLatestErrorField(rate, 'attributes')}
-                            pendingAction={rate?.pendingFields?.attributes}
+                            errors={ErrorUtils.getLatestErrorField(rate, 'taxClaimablePercentage')}
+                            pendingAction={rate?.pendingFields?.taxClaimablePercentage}
                             errorRowStyles={styles.mh5}
-                            onClose={() => clearErrorFields('attributes')}
+                            onClose={() => clearErrorFields('taxClaimablePercentage')}
                         >
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon
@@ -189,6 +169,17 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
                             />
                         </OfflineWithFeedback>
                     )}
+                    <MenuItem
+                        icon={Expensicons.Trashcan}
+                        title={translate('common.delete')}
+                        onPress={() => {
+                            if (canDisableOrDeleteRate) {
+                                setIsDeleteModalVisible(true);
+                                return;
+                            }
+                            setIsWarningModalVisible(true);
+                        }}
+                    />
                     <ConfirmModal
                         onConfirm={() => setIsWarningModalVisible(false)}
                         isVisible={isWarningModalVisible}

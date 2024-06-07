@@ -60,13 +60,13 @@ const ROUTES = {
         getRoute: (reportID: string, reportActionID: string) => `flag/${reportID}/${reportActionID}` as const,
     },
     CHAT_FINDER: 'chat-finder',
-    DETAILS: {
-        route: 'details',
-        getRoute: (login: string) => `details?login=${encodeURIComponent(login)}` as const,
-    },
     PROFILE: {
         route: 'a/:accountID',
-        getRoute: (accountID: string | number, backTo?: string) => getUrlWithBackToParam(`a/${accountID}`, backTo),
+        getRoute: (accountID?: string | number, backTo?: string, login?: string) => {
+            const baseRoute = getUrlWithBackToParam(`a/${accountID}`, backTo);
+            const loginParam = login ? `?login=${encodeURIComponent(login)}` : '';
+            return `${baseRoute}${loginParam}` as const;
+        },
     },
     PROFILE_AVATAR: {
         route: 'a/:accountID/avatar',
@@ -103,6 +103,8 @@ const ROUTES = {
     SETTINGS_PREFERENCES: 'settings/preferences',
     SETTINGS_SUBSCRIPTION: 'settings/subscription',
     SETTINGS_SUBSCRIPTION_SIZE: 'settings/subscription/subscription-size',
+    SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD: 'settings/subscription/add-payment-card',
+    SETTINGS_SUBSCRIPTION_DISABLE_AUTO_RENEW_SURVEY: 'settings/subscription/disable-auto-renew-survey',
     SETTINGS_PRIORITY_MODE: 'settings/preferences/priority-mode',
     SETTINGS_LANGUAGE: 'settings/preferences/language',
     SETTINGS_THEME: 'settings/preferences/theme',
