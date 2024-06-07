@@ -60,7 +60,7 @@ function RadioButtonWithLabel({LabelComponent, style, label = '', hasError = fal
                     hoverDimmingValue={0.8}
                     pressDimmingValue={0.5}
                 >
-                    {Boolean(label) && <Text style={[styles.ml1]}>{label}</Text>}
+                    {!!label && <Text style={[styles.ml1]}>{label}</Text>}
                     {!!LabelComponent && <LabelComponent />}
                 </PressableWithFeedback>
             </View>
