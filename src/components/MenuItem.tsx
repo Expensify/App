@@ -607,7 +607,7 @@ function MenuItem(
         }
         truncatedContent += closeTags(tagsStack);
 
-        if (!opts.keepImageTag) {
+        if (opts.removeImageTag) {
             truncatedContent = removeImageTag(truncatedContent);
         }
 
