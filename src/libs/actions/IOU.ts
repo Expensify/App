@@ -3788,6 +3788,8 @@ function createSplitsAndOnyxData(
     existingSplitChatReportID = '',
     billable = false,
     iouRequestType: IOURequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
+    taxCode = '',
+    taxAmount = 0,
 ): SplitsAndOnyxData {
     const currentUserEmailForIOUSplit = PhoneNumber.addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -3809,8 +3811,8 @@ function createSplitsAndOnyxData(
         undefined,
         category,
         tag,
-        undefined,
-        undefined,
+        taxCode,
+        taxAmount,
         billable,
     );
 
@@ -3966,14 +3968,16 @@ function createSplitsAndOnyxData(
 
     // Loop through participants creating individual chats, iouReports and reportActionIDs as needed
     const currentUserAmount = splitShares?.[currentUserAccountID]?.amount ?? IOUUtils.calculateAmount(participants.length, amount, currency, true);
+    const currentUserTaxAmount = IOUUtils.calculateAmount(participants.length, taxAmount, currency, true);
 
-    const splits: Split[] = [{email: currentUserEmailForIOUSplit, accountID: currentUserAccountID, amount: currentUserAmount}];
+    const splits: Split[] = [{email: currentUserEmailForIOUSplit, accountID: currentUserAccountID, amount: currentUserAmount, taxAmount: currentUserTaxAmount}];
 
     const hasMultipleParticipants = participants.length > 1;
     participants.forEach((participant) => {
         // In a case when a participant is a workspace, even when a current user is not an owner of the workspace
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(participant);
         const splitAmount = splitShares?.[participant.accountID ?? -1]?.amount ?? IOUUtils.calculateAmount(participants.length, amount, currency, false);
+        const splitTaxAmount = IOUUtils.calculateAmount(participants.length, taxAmount, currency, false);
 
         // To exclude someone from a split, the amount can be 0. The scenario for this is when creating a split from a group chat, we have remove the option to deselect users to exclude them.
         // We can input '0' next to someone we want to exclude.
@@ -4043,8 +4047,8 @@ function createSplitsAndOnyxData(
             undefined,
             category,
             tag,
-            undefined,
-            undefined,
+            taxCode,
+            ReportUtils.isExpenseReport(oneOnOneIOUReport) ? -splitTaxAmount : splitTaxAmount,
             billable,
         );
 
@@ -4135,6 +4139,7 @@ function createSplitsAndOnyxData(
             reportPreviewReportActionID: oneOnOneReportPreviewAction.reportActionID,
             transactionThreadReportID: optimisticTransactionThread.reportID,
             createdReportActionIDForThread: optimisticCreatedActionForTransactionThread.reportActionID,
+            taxAmount: splitTaxAmount,
         };
 
         splits.push(individualSplit);
@@ -4188,6 +4193,8 @@ type SplitBillActionsParams = {
     existingSplitChatReportID?: string;
     splitShares?: SplitShares;
     splitPayerAccountIDs?: number[];
+    taxCode?: string;
+    taxAmount?: number;
 };
 
 /**
@@ -4210,6 +4217,8 @@ function splitBill({
     existingSplitChatReportID = '',
     splitShares = {},
     splitPayerAccountIDs = [],
+    taxCode = '',
+    taxAmount = 0,
 }: SplitBillActionsParams) {
     const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData(
@@ -4227,6 +4236,8 @@ function splitBill({
         existingSplitChatReportID,
         billable,
         iouRequestType,
+        taxCode,
+        taxAmount,
     );
 
     const parameters: SplitBillParams = {
@@ -4246,6 +4257,8 @@ function splitBill({
         policyID: splitData.policyID,
         chatType: splitData.chatType,
         splitPayerAccountIDs,
+        taxCode,
+        taxAmount,
     };
 
     API.write(WRITE_COMMANDS.SPLIT_BILL, parameters, onyxData);
@@ -4272,6 +4285,8 @@ function splitBillAndOpenReport({
     iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
     splitShares = {},
     splitPayerAccountIDs = [],
+    taxCode = '',
+    taxAmount = 0,
 }: SplitBillActionsParams) {
     const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData(
@@ -4289,6 +4304,8 @@ function splitBillAndOpenReport({
         '',
         billable,
         iouRequestType,
+        taxCode,
+        taxAmount,
     );
 
     const parameters: SplitBillParams = {
@@ -4308,6 +4325,8 @@ function splitBillAndOpenReport({
         policyID: splitData.policyID,
         chatType: splitData.chatType,
         splitPayerAccountIDs,
+        taxCode,
+        taxAmount,
     };
 
     API.write(WRITE_COMMANDS.SPLIT_BILL_AND_OPEN_REPORT, parameters, onyxData);
@@ -4327,6 +4346,8 @@ type StartSplitBilActionParams = {
     category: string | undefined;
     tag: string | undefined;
     currency: string;
+    taxCode: string;
+    taxAmount: number;
 };
 
 /** Used exclusively for starting a split expense request that contains a receipt, the split request will be completed once the receipt is scanned
@@ -4345,6 +4366,8 @@ function startSplitBill({
     category = '',
     tag = '',
     currency,
+    taxCode = '',
+    taxAmount = 0,
 }: StartSplitBilActionParams) {
     const currentUserEmailForIOUSplit = PhoneNumber.addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -4369,8 +4392,8 @@ function startSplitBill({
         undefined,
         category,
         tag,
-        undefined,
-        undefined,
+        taxCode,
+        taxAmount,
         billable,
     );
 
@@ -4612,6 +4635,8 @@ function startSplitBill({
         billable,
         ...(existingSplitChatReport ? {} : {createdReportActionID: splitChatCreatedReportAction.reportActionID}),
         chatType: splitChatReport?.chatType,
+        taxCode,
+        taxAmount,
     };
 
     API.write(WRITE_COMMANDS.START_SPLIT_BILL, parameters, {optimisticData, successData, failureData});
@@ -4696,9 +4721,11 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
     const splitParticipants: Split[] = updatedTransaction?.comment.splits ?? [];
     const amount = updatedTransaction?.modifiedAmount;
     const currency = updatedTransaction?.modifiedCurrency;
+    console.debug(updatedTransaction);
 
     // Exclude the current user when calculating the split amount, `calculateAmount` takes it into account
     const splitAmount = IOUUtils.calculateAmount(splitParticipants.length - 1, amount ?? 0, currency ?? '', false);
+    const splitTaxAmount = IOUUtils.calculateAmount(splitParticipants.length - 1, updatedTransaction?.taxAmount ?? 0, currency ?? '', false);
 
     const splits: Split[] = [{email: currentUserEmailForIOUSplit}];
     splitParticipants.forEach((participant) => {
@@ -4762,8 +4789,8 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
             undefined,
             updatedTransaction?.category,
             updatedTransaction?.tag,
-            undefined,
-            undefined,
+            updatedTransaction?.taxCode,
+            isPolicyExpenseChat ? -splitTaxAmount : splitAmount,
             updatedTransaction?.billable,
         );
 
@@ -4837,6 +4864,8 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
         comment: transactionComment,
         category: transactionCategory,
         tag: transactionTag,
+        taxCode: transactionTaxCode,
+        taxAmount: transactionTaxAmount,
     } = ReportUtils.getTransactionDetails(updatedTransaction) ?? {};
 
     const parameters: CompleteSplitBillParams = {
@@ -4849,6 +4878,8 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
         category: transactionCategory,
         tag: transactionTag,
         splits: JSON.stringify(splits),
+        taxCode: transactionTaxCode,
+        taxAmount: transactionTaxAmount,
     };
 
     API.write(WRITE_COMMANDS.COMPLETE_SPLIT_BILL, parameters, {optimisticData, successData, failureData});
@@ -6610,8 +6641,8 @@ function setMoneyRequestTaxRate(transactionID: string, taxCode: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {taxCode});
 }
 
-function setMoneyRequestTaxAmount(transactionID: string, taxAmount: number, isDraft: boolean) {
-    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {taxAmount});
+function setMoneyRequestTaxAmount(transactionID: string, taxAmount: number | null) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {taxAmount});
 }
 
 function setShownHoldUseExplanation() {
