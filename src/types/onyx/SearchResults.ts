@@ -2,6 +2,7 @@ import type {ValueOf} from 'type-fest';
 import type ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import type TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
 import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {SearchColumnType, SortOrder} from '@libs/SearchUtils';
 import type CONST from '@src/CONST';
 
 type SearchDataTypes = ValueOf<typeof CONST.SEARCH_DATA_TYPES>;
@@ -22,6 +23,7 @@ type SearchTypeToItemMap = {
     [K in SearchDataTypes]: {
         listItem: ListItemType<K>;
         getSections: (data: SearchResults['data']) => SectionsType<K>;
+        getSortedSections: (data: SectionsType<K>, sortBy?: SearchColumnType, sortOrder?: SortOrder) => SectionsType<K>;
     };
 };
 
@@ -57,6 +59,9 @@ type SearchReport = {
 
     /** The report currency */
     currency?: string;
+
+    /** The report type */
+    type?: string;
 
     /** The action that can be performed for the report */
     action?: string;
@@ -146,6 +151,9 @@ type SearchTransaction = {
 
     /** The modified MCC Group associated with the transaction */
     modifiedMCCGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
+
+    /** The ID of the money request reportAction associated with the transaction */
+    moneyRequestReportActionID?: string;
 };
 
 type SearchAccountDetails = Partial<SearchPolicyDetails & SearchPersonalDetails>;
@@ -161,4 +169,15 @@ type SearchResults = {
 
 export default SearchResults;
 
-export type {SearchQuery, SearchTransaction, SearchTransactionType, SearchPersonalDetails, SearchPolicyDetails, SearchAccountDetails, SearchDataTypes, SearchTypeToItemMap, SearchReport};
+export type {
+    SearchQuery,
+    SearchTransaction,
+    SearchTransactionType,
+    SearchPersonalDetails,
+    SearchPolicyDetails,
+    SearchAccountDetails,
+    SearchDataTypes,
+    SearchTypeToItemMap,
+    SearchReport,
+    SectionsType,
+};

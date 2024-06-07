@@ -2,7 +2,6 @@ import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import ConfirmedRoute from '@components/ConfirmedRoute';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -27,6 +26,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
@@ -36,6 +36,7 @@ import * as IOU from '@userActions/IOU';
 import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import * as ReportActions from '@src/libs/actions/ReportActions';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -118,13 +119,12 @@ function MoneyRequestView({
     const isEmptyMerchant = transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
     const formattedTransactionAmount = transactionAmount ? CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency) : '';
-    const hasPendingWaypoints = Boolean(transaction?.pendingFields?.waypoints);
-    const showMapAsImage = isDistanceRequest && hasPendingWaypoints;
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && CurrencyUtils.convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
     const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
     const cardProgramName = isCardTransaction && transactionCardID !== undefined ? CardUtils.getCardDescription(transactionCardID) : '';
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
     const isInvoice = ReportUtils.isInvoiceReport(moneyRequestReport);
+    const isPaidReport = ReportActionsUtils.isPayAction(parentReportAction);
     const taxRates = policy?.taxRates;
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transactionTaxAmount, transactionCurrency);
 
@@ -137,6 +137,8 @@ function MoneyRequestView({
 
     // Used for non-restricted fields such as: description, category, tag, billable, etc.
     const canEdit = ReportUtils.canEditMoneyRequest(parentReportAction);
+    const canEditTaxFields = canEdit && !isDistanceRequest;
+
     const canEditAmount = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.AMOUNT);
     const canEditMerchant = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.MERCHANT);
     const canEditDate = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DATE);
@@ -144,8 +146,7 @@ function MoneyRequestView({
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const isReceiptBeingScanned = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
     const didRceiptScanSucceed = hasReceipt && TransactionUtils.didRceiptScanSucceed(transaction);
-    // TODO: remove the !isTrackExpense from this condition after this fix: https://github.com/Expensify/Expensify/issues/382786
-    const canEditDistance = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE) && !isTrackExpense;
+    const canEditDistance = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE);
 
     const isAdmin = policy?.role === 'admin';
     const isApprover = ReportUtils.isMoneyRequestReport(moneyRequestReport) && moneyRequestReport?.managerID !== null && session?.accountID === moneyRequestReport?.managerID;
@@ -166,8 +167,7 @@ function MoneyRequestView({
     const shouldShowTag = isPolicyExpenseChat && (transactionTag || OptionsListUtils.hasEnabledTags(policyTagLists));
     const shouldShowBillable = isPolicyExpenseChat && (!!transactionBillable || !(policy?.disabledFields?.defaultBillable ?? true));
 
-    // A flag for showing tax rate
-    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy);
+    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest);
 
     const {getViolationsForField} = useViolations(transactionViolations ?? []);
     const hasViolations = useCallback(
@@ -229,7 +229,7 @@ function MoneyRequestView({
     }
 
     let receiptURIs;
-    const hasErrors = canEdit && TransactionUtils.hasMissingSmartscanFields(transaction);
+    const hasErrors = TransactionUtils.hasMissingSmartscanFields(transaction);
     if (hasReceipt) {
         receiptURIs = ReceiptUtils.getThumbnailAndImageURIs(transaction);
     }
@@ -313,40 +313,51 @@ function MoneyRequestView({
         </OfflineWithFeedback>
     );
 
-    const shouldShowMapOrReceipt = showMapAsImage || hasReceipt;
-    const shouldShowReceiptEmptyState = !hasReceipt && !isInvoice && (canEditReceipt || isAdmin || isApprover);
-    const noticeTypeViolations = transactionViolations?.filter((violation) => violation.type === 'notice').map((v) => ViolationsUtils.getViolationTranslation(v, translate)) ?? [];
+    const isReceiptAllowed = !isPaidReport && !isInvoice;
+    const shouldShowReceiptEmptyState =
+        isReceiptAllowed && !hasReceipt && !isApproved && !isSettled && (canEditReceipt || isAdmin || isApprover) && (canEditReceipt || ReportUtils.isPaidGroupPolicy(report));
+    const receiptViolationNames: OnyxTypes.ViolationName[] = [
+        CONST.VIOLATIONS.RECEIPT_REQUIRED,
+        CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED,
+        CONST.VIOLATIONS.MODIFIED_DATE,
+        CONST.VIOLATIONS.CASH_EXPENSE_WITH_NO_RECEIPT,
+        CONST.VIOLATIONS.SMARTSCAN_FAILED,
+    ];
+    const receiptViolations =
+        transactionViolations?.filter((violation) => receiptViolationNames.includes(violation.name)).map((violation) => ViolationsUtils.getViolationTranslation(violation, translate)) ?? [];
     const shouldShowNotesViolations = !isReceiptBeingScanned && canUseViolations && ReportUtils.isPaidGroupPolicy(report);
+    const shouldShowReceiptHeader = isReceiptAllowed && (shouldShowReceiptEmptyState || hasReceipt) && canUseViolations && ReportUtils.isPaidGroupPolicy(report);
+
+    const errors = {
+        ...(transaction?.errorFields?.route ?? transaction?.errors),
+        ...parentReportAction?.errors,
+    };
 
     return (
         <View style={styles.pRelative}>
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
             <>
-                {!isInvoice && (
+                {shouldShowReceiptHeader && (
                     <ReceiptAuditHeader
-                        notes={noticeTypeViolations}
-                        shouldShowAuditMessage={Boolean(shouldShowNotesViolations && didRceiptScanSucceed)}
+                        notes={receiptViolations}
+                        shouldShowAuditMessage={!!(shouldShowNotesViolations && didRceiptScanSucceed)}
                     />
                 )}
-                {shouldShowMapOrReceipt && (
+                {(hasReceipt || errors) && (
                     <OfflineWithFeedback
                         pendingAction={pendingAction}
-                        errors={transaction?.errorFields?.route ?? transaction?.errors}
+                        errors={errors}
                         errorRowStyles={[styles.mh4]}
                         onClose={() => {
                             if (!transaction?.transactionID) {
                                 return;
                             }
                             Transaction.clearError(transaction.transactionID);
+                            ReportActions.clearAllRelatedReportActionErrors(report.reportID, parentReportAction);
                         }}
                     >
-                        <View style={styles.moneyRequestViewImage}>
-                            {showMapAsImage ? (
-                                <ConfirmedRoute
-                                    transaction={transaction}
-                                    interactive={false}
-                                />
-                            ) : (
+                        {hasReceipt && (
+                            <View style={styles.moneyRequestViewImage}>
                                 <ReportActionItemImage
                                     thumbnail={receiptURIs?.thumbnail}
                                     fileExtension={receiptURIs?.fileExtension}
@@ -357,8 +368,8 @@ function MoneyRequestView({
                                     transaction={transaction}
                                     enablePreviewModal
                                 />
-                            )}
-                        </View>
+                            </View>
+                        )}
                     </OfflineWithFeedback>
                 )}
                 {shouldShowReceiptEmptyState && (
@@ -378,9 +389,8 @@ function MoneyRequestView({
                         }
                     />
                 )}
-                {!shouldShowReceiptEmptyState && !shouldShowMapOrReceipt && <View style={{marginVertical: 6}} />}
-                {shouldShowNotesViolations && <ReceiptAuditMessages notes={noticeTypeViolations} />}
-                {canUseViolations && <ViolationMessages violations={getViolationsForField('receipt')} />}
+                {!shouldShowReceiptEmptyState && !hasReceipt && <View style={{marginVertical: 6}} />}
+                {shouldShowNotesViolations && <ReceiptAuditMessages notes={receiptViolations} />}
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('amount')}>
                     <MenuItemWithTopDescription
                         title={amountTitle}
@@ -502,8 +512,8 @@ function MoneyRequestView({
                         <MenuItemWithTopDescription
                             title={taxRateTitle ?? ''}
                             description={taxRatesDescription}
-                            interactive={canEdit}
-                            shouldShowRightIcon={canEdit}
+                            interactive={canEditTaxFields}
+                            shouldShowRightIcon={canEditTaxFields}
                             titleStyle={styles.flex1}
                             onPress={() =>
                                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '', report.reportID))
@@ -519,8 +529,8 @@ function MoneyRequestView({
                         <MenuItemWithTopDescription
                             title={formattedTaxAmount ? formattedTaxAmount.toString() : ''}
                             description={translate('iou.taxAmount')}
-                            interactive={canEdit}
-                            shouldShowRightIcon={canEdit}
+                            interactive={canEditTaxFields}
+                            shouldShowRightIcon={canEditTaxFields}
                             titleStyle={styles.flex1}
                             onPress={() =>
                                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '', report.reportID))
@@ -575,7 +585,7 @@ export default withOnyx<MoneyRequestViewPropsWithoutTransaction, MoneyRequestVie
     },
     distanceRates: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`,
-        selector: DistanceRequestUtils.getMileageRates,
+        selector: (policy: OnyxEntry<OnyxTypes.Policy>) => DistanceRequestUtils.getMileageRates(policy, true),
     },
 })(
     withOnyx<MoneyRequestViewProps, MoneyRequestViewTransactionOnyxProps>({

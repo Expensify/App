@@ -1,4 +1,4 @@
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {AdditionalData} from '@src/types/onyx/BankAccount';
@@ -153,7 +153,7 @@ class BankAccount {
      * Return whether this bank account has been risk checked
      */
     isRiskChecked() {
-        return Boolean(this.json.accountData?.riskChecked);
+        return !!this.json.accountData?.riskChecked;
     }
 
     /**

@@ -11,6 +11,8 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportActions from '@libs/actions/Report';
+import {READ_COMMANDS} from '@libs/API/types';
+import HttpUtils from '@libs/HttpUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -21,6 +23,7 @@ import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 
 const selectReportHandler = (option: unknown) => {
+    HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
     const optionItem = option as ReportUtils.OptionData;
 
     if (!optionItem || !optionItem?.reportID) {
@@ -105,6 +108,7 @@ function TaskShareDestinationSelectorModal() {
                         ListItem={UserListItem}
                         sections={areOptionsInitialized ? options.sections : []}
                         onSelectRow={selectReportHandler}
+                        shouldDebounceRowSelect
                         onChangeText={setSearchValue}
                         textInputValue={searchValue}
                         headerMessage={options.headerMessage}

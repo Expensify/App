@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
+import CaretWrapper from '@components/CaretWrapper';
 import ConfirmModal from '@components/ConfirmModal';
 import DisplayNames from '@components/DisplayNames';
 import type {ThreeDotsMenuItem} from '@components/HeaderWithBackButton/types';
@@ -90,11 +91,12 @@ function HeaderView({
     const isSelfDM = ReportUtils.isSelfDM(report);
     const isGroupChat = ReportUtils.isGroupChat(report) || ReportUtils.isDeprecatedGroupDM(report);
     const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
+    const isSystemChat = ReportUtils.isSystemChat(report);
 
     // For 1:1 chat, we don't want to include currentUser as participants in order to not mark 1:1 chats as having multiple participants
     const participants = Object.keys(report?.participants ?? {})
         .map(Number)
-        .filter((accountID) => accountID !== session?.accountID || !isOneOnOneChat)
+        .filter((accountID) => accountID !== session?.accountID || (!isOneOnOneChat && !isSystemChat))
         .slice(0, 5);
     const isMultipleParticipant = participants.length > 1;
 
@@ -146,7 +148,7 @@ function HeaderView({
         }
 
         // Task is not closed
-        if (ReportUtils.canWriteInReport(report) && report.stateNum !== CONST.REPORT.STATE_NUM.APPROVED && report.statusNum !== CONST.REPORT.STATUS_NUM.CLOSED && canModifyTask) {
+        if (ReportUtils.canWriteInReport(report) && report.stateNum !== CONST.REPORT.STATE_NUM.APPROVED && !ReportUtils.isClosedReport(report) && canModifyTask) {
             threeDotMenuItems.push({
                 icon: Expensicons.Trashcan,
                 text: translate('common.delete'),
@@ -155,9 +157,7 @@ function HeaderView({
         }
     }
 
-    const join = Session.checkIfActionIsAllowed(() =>
-        Report.updateNotificationPreference(reportID, report.notificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, false, report.parentReportID, report.parentReportActionID),
-    );
+    const join = Session.checkIfActionIsAllowed(() => Report.joinRoom(report));
 
     const canJoin = ReportUtils.canJoinChat(report, parentReportAction, policy);
     if (canJoin) {
@@ -274,15 +274,17 @@ function HeaderView({
                                         </OfflineWithFeedback>
                                     )}
                                     <View style={[styles.flex1, styles.flexColumn]}>
-                                        <DisplayNames
-                                            fullTitle={title}
-                                            displayNamesWithTooltips={displayNamesWithTooltips}
-                                            tooltipEnabled
-                                            numberOfLines={1}
-                                            textStyles={[styles.headerText, styles.pre]}
-                                            shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isChatThread || isTaskReport || shouldUseGroupTitle}
-                                            renderAdditionalText={renderAdditionalText}
-                                        />
+                                        <CaretWrapper>
+                                            <DisplayNames
+                                                fullTitle={title}
+                                                displayNamesWithTooltips={displayNamesWithTooltips}
+                                                tooltipEnabled
+                                                numberOfLines={1}
+                                                textStyles={[styles.headerText, styles.pre]}
+                                                shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isChatThread || isTaskReport || shouldUseGroupTitle}
+                                                renderAdditionalText={renderAdditionalText}
+                                            />
+                                        </CaretWrapper>
                                         {!isEmptyObject(parentNavigationSubtitleData) && (
                                             <ParentNavigationSubtitle
                                                 parentNavigationSubtitleData={parentNavigationSubtitleData}
@@ -373,6 +375,7 @@ function HeaderView({
                                 confirmText={translate('common.delete')}
                                 cancelText={translate('common.cancel')}
                                 danger
+                                shouldEnableNewFocusManagement
                             />
                         </>
                     )}
