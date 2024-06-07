@@ -2,7 +2,9 @@
 import {Str} from 'expensify-common';
 import React from 'react';
 import type {ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import ConfirmedRoute from '@components/ConfirmedRoute';
 import type {IconSize} from '@components/EReceiptThumbnail';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
@@ -46,6 +48,9 @@ type ReportActionItemImageProps = {
 
     /** Whether there are other images displayed in the same parent container */
     isSingleImage?: boolean;
+
+    /** Whether the map view should have border radius  */
+    shouldMapHaveBorderRadius?: boolean;
 };
 
 /**
@@ -64,13 +69,31 @@ function ReportActionItemImage({
     fileExtension,
     filename,
     isSingleImage = true,
+    shouldMapHaveBorderRadius,
 }: ReportActionItemImageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const isDistanceRequest = !!transaction && TransactionUtils.isDistanceRequest(transaction);
+    const hasPendingWaypoints = transaction && TransactionUtils.isFetchingWaypointsFromServer(transaction);
+    const showMapAsImage = isDistanceRequest && hasPendingWaypoints;
+
+    if (showMapAsImage) {
+        return (
+            <View style={[styles.w100, styles.h100]}>
+                <ConfirmedRoute
+                    transaction={transaction}
+                    isSmallerIcon={!isSingleImage}
+                    shouldHaveBorderRadius={shouldMapHaveBorderRadius}
+                    interactive={false}
+                    requireRouteToDisplayMap
+                />
+            </View>
+        );
+    }
+
     const attachmentModalSource = tryResolveUrlFromApiRoot(image ?? '');
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail ?? '');
     const isEReceipt = transaction && TransactionUtils.hasEReceipt(transaction);
-    const isDistanceRequest = Boolean(transaction && TransactionUtils.isDistanceRequest(transaction));
 
     let propsObj: ReceiptImageProps;
 

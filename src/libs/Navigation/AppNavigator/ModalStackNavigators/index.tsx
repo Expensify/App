@@ -4,7 +4,6 @@ import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
 import type {
     AddPersonalBankAccountNavigatorParamList,
-    DetailsNavigatorParamList,
     EditRequestNavigatorParamList,
     EnablePaymentsNavigatorParamList,
     FlagCommentNavigatorParamList,
@@ -102,10 +101,6 @@ const TravelModalStackNavigator = createModalStackNavigator<TravelNavigatorParam
 
 const SplitDetailsModalStackNavigator = createModalStackNavigator<SplitDetailsNavigatorParamList>({
     [SCREENS.SPLIT_DETAILS.ROOT]: () => require('../../../../pages/iou/SplitBillDetailsPage').default as React.ComponentType,
-});
-
-const DetailsModalStackNavigator = createModalStackNavigator<DetailsNavigatorParamList>({
-    [SCREENS.DETAILS_ROOT]: () => require('../../../../pages/DetailsPage').default as React.ComponentType,
 });
 
 const ProfileModalStackNavigator = createModalStackNavigator<ProfileNavigatorParamList>({
@@ -384,7 +379,6 @@ const SearchReportModalStackNavigator = createModalStackNavigator<SearchReportPa
 
 export {
     AddPersonalBankAccountModalStackNavigator,
-    DetailsModalStackNavigator,
     EditRequestStackNavigator,
     EnablePaymentsStackNavigator,
     FlagCommentStackNavigator,

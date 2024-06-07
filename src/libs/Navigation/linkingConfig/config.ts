@@ -620,11 +620,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.I_AM_A_TEACHER]: ROUTES.I_AM_A_TEACHER,
                     },
                 },
-                [SCREENS.RIGHT_MODAL.DETAILS]: {
-                    screens: {
-                        [SCREENS.DETAILS_ROOT]: ROUTES.DETAILS.route,
-                    },
-                },
                 [SCREENS.RIGHT_MODAL.PROFILE]: {
                     screens: {
                         [SCREENS.PROFILE_ROOT]: ROUTES.PROFILE.route,
