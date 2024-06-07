@@ -129,7 +129,7 @@ function WorkspacePageWithSections({
     const firstRender = useRef(true);
     const isFocused = useIsFocused();
     const prevPolicy = usePrevious(policy);
-    const isCalledVBBA = useRef(false);
+    const isCalledVBBARef = useRef(false);
 
     useEffect(() => {
         // Because isLoading is false before merging in Onyx, we need firstRender ref to display loading page as well before isLoading is change to true
@@ -137,10 +137,10 @@ function WorkspacePageWithSections({
     }, []);
 
     useEffect(() => {
-        if (isCalledVBBA.current) {
+        if (isCalledVBBARef.current || !policyID) {
             return;
         }
-        isCalledVBBA.current = true;
+        isCalledVBBARef.current = true;
         fetchData(policyID, shouldSkipVBBACall);
     }, [policyID, shouldSkipVBBACall]);
 
