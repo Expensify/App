@@ -2040,7 +2040,7 @@ export default {
             account: 'Account',
             accountDescription: 'Choose where to post journal entry offsets.',
             accountsPayable: 'Accounts payable',
-            accountsPayableDescription: 'Choose an account to create vendor bills against.',
+            accountsPayableDescription: 'Choose an A/P account to create vendor bills against.',
             bankAccount: 'Bank account',
             bankAccountDescription: 'Choose where to send checks from.',
             optionBelow: 'Choose an option below:',
