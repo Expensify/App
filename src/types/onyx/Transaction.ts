@@ -79,6 +79,8 @@ type Comment = {
 
     /** In split transactions this is a collection of participant split data */
     splits?: Split[];
+
+    /** Violations that were dismissed */
     dismissedViolations?: Record<ViolationName, Record<string, string>>;
 };
 
@@ -198,11 +200,9 @@ type Reservation = {
     /** In flight reservations, this represents the details of the airline company */
     company?: Company;
 
-    /** TODO: To be confirmed */
     /** Collection of passenger confirmations */
     confirmations?: ReservationConfirmation[];
 
-    /** TODO: To be confirmed */
     /** In flight and car reservations, this represents the number of passengers */
     numPassengers?: number;
 
@@ -214,16 +214,13 @@ type Reservation = {
         /** Route airline code */
         airlineCode: string;
 
-        /** TODO: To be confirmed */
         /** Passenger class */
         class?: string;
 
-        /** TODO: To be confirmed */
         /** Passenger seat number */
         number: string;
     };
 
-    /** TODO: To be confirmed */
     /** In car reservations, this represents the car dealership name */
     vendor?: string;
 
@@ -239,7 +236,6 @@ type ReservationTimeDetails = {
     /** In hotel reservations, this is the address of the hotel */
     address?: string;
 
-    /** TODO: To be confirmed */
     /** In car reservations, this is the location of the car dealership */
     location?: string;
 
@@ -261,29 +257,24 @@ type Company = {
     /** Short name of airline company */
     shortName?: string;
 
-    /** TODO: To be confirmed */
     /** Phone number of airline company support */
     phone?: string;
 };
 
 /** Model of reservation confirmation */
 type ReservationConfirmation = {
-    /** TODO: To be confirmed */
     /** Passenger name */
     name: string;
 
-    /** TODO: To be confirmed */
     /** Reservation code */
     value: string;
 };
 
 /** Model of car details */
 type CarInfo = {
-    /** TODO: To be confirmed */
     /** Name of the car */
     name?: string;
 
-    /** TODO: To be confirmed */
     /** Engine type */
     engine?: string;
 };

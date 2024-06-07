@@ -20,7 +20,7 @@ type DataOptions = {
 
     /**
      * If there is a masked bank account number from the server, the account needs to be unlocked
-     * 
+     *
      * (Note: Copied directly from a comment in Old Dot JS)
      */
     maskedLockedAccountNumber?: string;

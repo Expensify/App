@@ -35,7 +35,7 @@ type BankAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Determines if the bank account is a default payment method */
     isDefault?: boolean;
 
-    /* Determines if the bank account is a savings account */
+    /** Determines if the bank account is a savings account */
     isSavings?: boolean;
 
     /** Date when the 3 micro amounts for validation were supposed to reach the bank account */

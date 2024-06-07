@@ -171,7 +171,7 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Avatar data to display on the report action */
     avatar?: AvatarSource;
 
-    /** TODO: not enough context */
+    /** TODO: Not enough context */
     automatic?: boolean;
 
     /** TODO: Not enough context */
@@ -222,6 +222,7 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Amount of money requests */
     childMoneyRequestCount?: number;
 
+    /** Whether the report action is the first one */
     isFirstItem?: boolean;
 
     /** Informations about attachments of report action */

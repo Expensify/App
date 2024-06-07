@@ -8,9 +8,9 @@ type Task = {
     /** Description of the Task */
     description?: string;
 
-    /** 
+    /**
      * Report ID of the report where the task will be shared
-     * 
+     *
      * (Note: This variable doesn't exist in the API. It's only used locally for UI purposes)
      */
     shareDestination?: string;

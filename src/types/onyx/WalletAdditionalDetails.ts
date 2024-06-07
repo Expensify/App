@@ -63,7 +63,7 @@ type WalletAdditionalDetails = {
     errors?: OnyxCommon.Errors;
 };
 
-// TODO: refactor into one type after removing old wallet flow
+/** TODO: refactor into one type after removing old wallet flow */
 type WalletAdditionalDetailsRefactor = WalletAdditionalDetails & WalletPersonalDetails;
 
 export default WalletAdditionalDetails;
