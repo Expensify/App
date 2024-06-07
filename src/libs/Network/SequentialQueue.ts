@@ -81,7 +81,7 @@ function process(): Promise<void> {
             // A response might indicate that the queue should be paused. This happens when a gap in onyx updates is detected between the client and the server and
             // that gap needs resolved before the queue can continue.
             if (response?.shouldPauseQueue) {
-                console.debug('[SequentialQueue] Handled \'shouldPauseQueue\' in response. Pausing the queue.');
+                console.debug("[SequentialQueue] Handled 'shouldPauseQueue' in response. Pausing the queue.");
                 pause();
             }
             PersistedRequests.remove(requestToProcess);
