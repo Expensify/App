@@ -26,7 +26,7 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const {bankAccounts} = policy?.connections?.xero?.data ?? {};
     const selectedBankAccountName = useMemo(() => {
         const selectedAccount = (bankAccounts ?? []).find((bank) => bank.id === exportConfiguration?.nonReimbursableAccount);
-        return selectedAccount?.name ?? '';
+        return selectedAccount?.name ?? bankAccounts?.[0]?.name ?? '';
     }, [bankAccounts, exportConfiguration?.nonReimbursableAccount]);
 
     const currentXeroOrganizationName = useMemo(() => getCurrentXeroOrganizationName(policy ?? undefined), [policy]);
@@ -59,7 +59,7 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
         },
         {
             description: translate('workspace.xero.advancedConfig.purchaseBillStatusTitle'),
-            onPress: () => {},
+            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_BILL_STATUS_SELECTOR.getRoute(policyID)),
             title: exportConfiguration?.billStatus?.purchase ? translate(`workspace.xero.invoiceStatus.values.${exportConfiguration.billStatus.purchase}`) : undefined,
             pendingAction: pendingFields?.export,
             errorText: errorFields?.purchase ? translate('common.genericErrorMessage') : undefined,
@@ -99,6 +99,7 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
         >
             {menuItems.map((menuItem) => (
                 <OfflineWithFeedback

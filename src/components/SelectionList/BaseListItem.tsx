@@ -5,6 +5,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useHover from '@hooks/useHover';
+import {useMouseContext} from '@hooks/useMouseContext';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -35,11 +36,16 @@ function BaseListItem<TItem extends ListItem>({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {hovered, bind} = useHover();
+    const {isMouseDownOnInput, setMouseUp} = useMouseContext();
 
     const pressableRef = useRef<View>(null);
 
     // Sync focus on an item
-    useSyncFocus(pressableRef, Boolean(isFocused), shouldSyncFocus);
+    useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
+    const handleMouseUp = (e: React.MouseEvent<Element, MouseEvent>) => {
+        e.stopPropagation();
+        setMouseUp();
+    };
 
     const rightHandSideComponentRender = () => {
         if (canSelectMultiple || !rightHandSideComponent) {
@@ -66,6 +72,10 @@ function BaseListItem<TItem extends ListItem>({
                 {...bind}
                 ref={pressableRef}
                 onPress={(e) => {
+                    if (isMouseDownOnInput) {
+                        e?.stopPropagation(); // Preventing the click action
+                        return;
+                    }
                     if (shouldPreventEnterKeySubmit && e && 'key' in e && e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
                         return;
                     }
@@ -81,6 +91,9 @@ function BaseListItem<TItem extends ListItem>({
                 id={keyForList ?? ''}
                 style={pressableStyle}
                 onFocus={onFocus}
+                onMouseUp={handleMouseUp}
+                onMouseLeave={handleMouseUp}
+                tabIndex={item.tabIndex}
             >
                 <View style={wrapperStyle}>
                     {typeof children === 'function' ? children(hovered) : children}
