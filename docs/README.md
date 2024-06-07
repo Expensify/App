@@ -189,6 +189,12 @@ Assume that we want to rename the article `The Free Plan` to `Freemium Features`
 
 Note: It is important that the file has `.md` extension.
 
+# How to hide an article temporarily
+1. Open github's in built code editor. ([instructions here](https://docs.github.com/en/codespaces/the-githubdev-web-based-editor#opening-the-githubdev-editor))
+2. Go to the article `docs/articles/..`
+3. Drag and drop the article to the hidden folder. `docs/Hidden/`
+4. Commit the changes and raise a PR
+
 # How the site is deployed
 This site is hosted on Cloudflare pages. Whenever code is merged to main, the github action `deployExpensifyHelp` will run.
 
