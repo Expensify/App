@@ -47,7 +47,7 @@ const SUBSCRIPTION_PRICES = {
     },
 } as const;
 
-function useSubscriptionPrice() {
+function useSubscriptionPrice(): number {
     const preferredCurrency = usePreferredCurrency();
     const subscriptionPlan = useSubscriptionPlan();
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);

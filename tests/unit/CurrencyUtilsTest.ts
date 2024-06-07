@@ -183,5 +183,5 @@ describe('CurrencyUtils', () => {
         ])('Correctly displays %s in ES locale', (currency, amount, expectedResult) =>
             Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() => expect(CurrencyUtils.convertToShortDisplayString(amount, currency)).toBe(expectedResult)),
         );
-    })
+    });
 });
