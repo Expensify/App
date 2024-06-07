@@ -26,6 +26,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
+import NotFoundPage from './ErrorPage/NotFoundPage';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 
@@ -69,6 +70,10 @@ function ReportParticipantDetails({personalDetails, report, route}: ReportPartic
         Navigation.navigate(ROUTES.REPORT_PARTICIPANTS_ROLE_SELECTION.getRoute(report.reportID, accountID));
     }, [accountID, report.reportID]);
 
+    if (!member) {
+        return <NotFoundPage />;
+    }
+
     return (
         <ScreenWrapper testID={ReportParticipantDetails.displayName}>
             <HeaderWithBackButton
@@ -85,7 +90,7 @@ function ReportParticipantDetails({personalDetails, report, route}: ReportPartic
                         size={CONST.AVATAR_SIZE.XLARGE}
                         fallbackIcon={fallbackIcon}
                     />
-                    {Boolean(details.displayName ?? '') && (
+                    {!!(details.displayName ?? '') && (
                         <Text
                             style={[styles.textHeadline, styles.pre, styles.mb6, styles.w100, styles.textAlignCenter]}
                             numberOfLines={1}

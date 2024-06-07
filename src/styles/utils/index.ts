@@ -514,7 +514,7 @@ function getButtonStyleWithIcon(
     hasText?: boolean,
     shouldShowRightIcon?: boolean,
 ): ViewStyle | undefined {
-    const useDefaultButtonStyles = Boolean(hasIcon && shouldShowRightIcon) || Boolean(!hasIcon && !shouldShowRightIcon);
+    const useDefaultButtonStyles = !!(hasIcon && shouldShowRightIcon) || !!(!hasIcon && !shouldShowRightIcon);
     switch (true) {
         case small: {
             const verticalStyle = hasIcon ? styles.pl2 : styles.pr2;
@@ -1564,12 +1564,14 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH_TABLE_COLUMNS.MERCHANT:
             case CONST.SEARCH_TABLE_COLUMNS.FROM:
             case CONST.SEARCH_TABLE_COLUMNS.TO:
-            case CONST.SEARCH_TABLE_COLUMNS.CATEGORY:
-            case CONST.SEARCH_TABLE_COLUMNS.TAG:
                 columnWidth = styles.flex1;
                 break;
+            case CONST.SEARCH_TABLE_COLUMNS.CATEGORY:
+            case CONST.SEARCH_TABLE_COLUMNS.TAG:
+                columnWidth = {...getWidthStyle(variables.w36), ...styles.flex1};
+                break;
             case CONST.SEARCH_TABLE_COLUMNS.TAX_AMOUNT:
-            case CONST.SEARCH_TABLE_COLUMNS.TOTAL:
+            case CONST.SEARCH_TABLE_COLUMNS.TOTAL_AMOUNT:
                 columnWidth = {...getWidthStyle(variables.w96), ...styles.alignItemsEnd};
                 break;
             case CONST.SEARCH_TABLE_COLUMNS.TYPE:

@@ -261,6 +261,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
             <ToggleSettingOptionRow
                 icon={item.icon}
                 title={item.title}
+                titleStyle={styles.textStrong}
                 subtitle={item.subtitle}
                 switchAccessibilityLabel={item.switchAccessibilityLabel}
                 onToggle={item.onToggle}
@@ -274,7 +275,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
     );
 
     const isPaidGroupPolicy = PolicyUtils.isPaidGroupPolicy(policy);
-    const isLoading = Boolean(policy?.isLoading && policy?.reimbursementChoice === undefined);
+    const isLoading = !!(policy?.isLoading && policy?.reimbursementChoice === undefined);
 
     return (
         <AccessOrNotFoundWrapper
