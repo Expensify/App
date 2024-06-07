@@ -382,7 +382,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         textSmall: {
-            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
+            ...FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeSmall,
         },
 
@@ -3523,7 +3523,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         searchTableHeaderActive: {
-            fontWeight: 'bold',
+            fontWeight: FontUtils.fontWeight.bold,
         },
 
         threeDotsPopoverOffset: (windowWidth: number) =>
