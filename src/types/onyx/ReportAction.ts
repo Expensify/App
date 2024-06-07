@@ -224,6 +224,9 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** The admins's ID */
     adminAccountID?: number;
+
+    /** These are the account IDs to whom a message was whispered. It is used to check if a specific user should be displayed a whisper message or not. */
+    whisperedToAccountIDs?: number[];
 }>;
 
 type ReportAction<T extends ReportActionName = ReportActionName> = ReportActionBase & {
