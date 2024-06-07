@@ -92,7 +92,6 @@ function MoneyRequestAction({
         }
 
         const childReportID = action?.childReportID ?? '0';
-        Report.openReport(childReportID);
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
     };
 
