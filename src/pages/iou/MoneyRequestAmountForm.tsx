@@ -238,7 +238,7 @@ function MoneyRequestAmountForm(
             return translate('iou.submitExpense');
         }
         return isEditing ? translate('common.save') : translate('common.next');
-    }, [skipConfirmation, iouType, currency, isEditing, translate]);
+    }, [skipConfirmation, iouType, isEditing, translate]);
 
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 
