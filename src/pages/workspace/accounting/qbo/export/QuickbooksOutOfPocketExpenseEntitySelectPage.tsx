@@ -46,8 +46,8 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
     const styles = useThemeStyles();
     const {reimbursableExpensesExportDestination, reimbursableExpensesAccount, syncTax, syncLocations} = policy?.connections?.quickbooksOnline?.config ?? {};
     const {bankAccounts, accountPayable, journalEntryAccounts} = policy?.connections?.quickbooksOnline?.data ?? {};
-    const isLocationsEnabled = Boolean(syncLocations && syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
-    const isTaxesEnabled = Boolean(syncTax);
+    const isLocationsEnabled = !!(syncLocations && syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
+    const isTaxesEnabled = !!syncTax;
     const policyID = policy?.id ?? '';
 
     const data: CardListItem[] = useMemo(
