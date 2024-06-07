@@ -3795,9 +3795,8 @@ export default {
         subscriptionSettings: {
             title: 'Configuración de suscripción',
             autoRenew: 'Auto-renovación',
-            yourAnnual: 'Tu suscripción anual se renovará el (date). Puedes cambiar a pago-por-uso a partir de los 30 días previos a la renovación.',
             autoIncrease: 'Auto-incremento',
-            saveUpTo: 'Ahorre hasta $10 al mes por miembro activo',
+            saveUpTo: ({amountSaved}) => `Ahorre hasta $${amountSaved} al mes por miembro activo`,
             automaticallyIncrease:
                 'Aumenta automáticamente tus plazas anuales para dar lugar a los miembros activos que superen el tamaño de tu suscripción. Nota: Esto ampliará la fecha de finalización de tu suscripción anual.',
             disableAutoRenew: 'Desactivar auto-renovación',

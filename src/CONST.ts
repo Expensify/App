@@ -4815,6 +4815,10 @@ const CONST = {
     },
 
     SUBSCRIPTION_SIZE_LIMIT: 20000,
+    SUBSCRIPTION_POSSIBLE_COST_SAVINGS: {
+        COLLECT_PLAN: 10,
+        CONTROL_PLAN: 18,
+    },
     FEEDBACK_SURVEY_OPTIONS: {
         TOO_LIMITED: {
             ID: 'tooLimited',

@@ -3288,9 +3288,8 @@ export default {
         subscriptionSettings: {
             title: 'Subscription settings',
             autoRenew: 'Auto-renew',
-            yourAnnual: 'Your annual subscription will automatically renew on (date). You can switch to pay-per-use starting 30 days before renewal.',
             autoIncrease: 'Auto-increase annual seats',
-            saveUpTo: 'Save up to $10/month per active member',
+            saveUpTo: ({amountSaved}) => `Save up to $${amountSaved}/month per active member`,
             automaticallyIncrease:
                 'Automatically increase your annual seats to accommodate for active members that exceed your subscription size. Note: This will extend your annual subscription end date.',
             disableAutoRenew: 'Disable auto-renew',
