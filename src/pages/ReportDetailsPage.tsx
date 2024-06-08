@@ -160,7 +160,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
                 action: () => {
-                    if (isUserCreatedPolicyRoom || isChatThread || isPolicyExpenseChat) {
+                    if (isUserCreatedPolicyRoom || isChatThread || (isPolicyExpenseChat && isPolicyAdmin)) {
                         Navigation.navigate(ROUTES.ROOM_MEMBERS.getRoute(report?.reportID ?? ''));
                     } else {
                         Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID ?? ''));
@@ -204,7 +204,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             });
         }
 
-        if (isGroupChat || (isChatRoom && ReportUtils.canLeaveChat(report, policy ?? null))) {
+        if (isGroupChat || (isChatRoom && ReportUtils.canLeaveChat(report, policy ?? null)) || (isPolicyExpenseChat && !isPolicyAdmin)) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
                 translationKey: 'common.leave',
@@ -231,6 +231,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         isChatThread,
         isPolicyEmployee,
         isPolicyExpenseChat,
+        isPolicyAdmin,
         isUserCreatedPolicyRoom,
         participants.length,
         report,

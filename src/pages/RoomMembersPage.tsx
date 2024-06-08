@@ -55,6 +55,8 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
     const [searchValue, setSearchValue] = useState('');
     const [didLoadRoomMembers, setDidLoadRoomMembers] = useState(false);
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
+    const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? ''}`], [policies, report?.policyID]);
+    const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(report), [report]);
 
     const isFocusedScreen = useIsFocused();
 
@@ -196,31 +198,33 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                     memberDetails += ` ${details.phoneNumber.toLowerCase()}`;
                 }
 
-                if (!OptionsListUtils.isSearchStringMatch(searchValue.trim(), memberDetails)) {
-                    return;
+                    if (!OptionsListUtils.isSearchStringMatch(searchValue.trim(), memberDetails)) {
+                        return;
+                    }
                 }
-            }
-            const pendingChatMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
+                const pendingChatMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
+                const isAdmin = !!(policy && policy.employeeList && details.login && policy.employeeList[details.login]?.role === CONST.POLICY.ROLE.ADMIN);
+                const isDisabled = (isPolicyExpenseChat && isAdmin) || accountID === session?.accountID || pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
-            result.push({
-                keyForList: String(accountID),
-                accountID,
-                isSelected: selectedMembers.includes(accountID),
-                isDisabled: accountID === session?.accountID || pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
-                alternateText: details?.login ? formatPhoneNumber(details.login) : '',
-                icons: [
-                    {
-                        source: details.avatar ?? FallbackAvatar,
-                        name: details.login ?? '',
-                        type: CONST.ICON_TYPE_AVATAR,
-                        id: accountID,
-                    },
-                ],
-                pendingAction: pendingChatMember?.pendingAction,
-                errors: pendingChatMember?.errors,
+                result.push({
+                    keyForList: String(accountID),
+                    accountID,
+                    isSelected: selectedMembers.includes(accountID),
+                    isDisabled,
+                    text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
+                    alternateText: details?.login ? formatPhoneNumber(details.login) : '',
+                    icons: [
+                        {
+                            source: details.avatar ?? FallbackAvatar,
+                            name: details.login ?? '',
+                            type: CONST.ICON_TYPE_AVATAR,
+                            id: accountID,
+                        },
+                    ],
+                    pendingAction: pendingChatMember?.pendingAction,
+                    errors: pendingChatMember?.errors,
+                });
             });
-        });
 
         result = result.sort((value1, value2) => localeCompare(value1.text ?? '', value2.text ?? ''));
 
