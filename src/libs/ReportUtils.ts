@@ -2729,13 +2729,6 @@ function canEditReportAction(reportAction: OnyxEntry<ReportAction>): boolean {
     );
 }
 
-function getParentReportAction(parentReportActions: OnyxEntry<ReportActions>, parentReportActionID: string | undefined): OnyxEntry<ReportAction> {
-    if (!parentReportActions || !parentReportActionID) {
-        return null;
-    }
-    return parentReportActions[parentReportActionID ?? '0'];
-}
-
 function canHoldUnholdReportAction(reportAction: OnyxEntry<ReportAction>): {canHoldRequest: boolean; canUnholdRequest: boolean} {
     if (reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
         return {canHoldRequest: false, canUnholdRequest: false};
@@ -2753,10 +2746,8 @@ function canHoldUnholdReportAction(reportAction: OnyxEntry<ReportAction>): {canH
     const transactionID = moneyRequestReport ? reportAction?.originalMessage?.IOUTransactionID : 0;
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? ({} as Transaction);
 
-    const parentReportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport.parentReportID}`;
-    const parentReportActions = allReportActions?.[parentReportActionsKey];
     const parentReport = getReport(String(moneyRequestReport.parentReportID));
-    const parentReportAction = getParentReportAction(parentReportActions ?? {}, moneyRequestReport?.parentReportActionID);
+    const parentReportAction = ReportActionsUtils.getParentReportAction(moneyRequestReport);
 
     const isRequestIOU = parentReport?.type === 'iou';
     const isRequestHoldCreator = isHoldCreator(transaction, moneyRequestReport?.reportID) && isRequestIOU;
@@ -2770,7 +2761,7 @@ function canHoldUnholdReportAction(reportAction: OnyxEntry<ReportAction>): {canH
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
 
     const canModifyStatus = !isTrackExpenseMoneyReport && (isPolicyAdmin || isActionOwner || isApprover);
-    const isDeletedParentAction = ReportActionsUtils.isDeletedAction(parentReportAction);
+    const isDeletedParentAction = isEmptyObject(parentReportAction) || ReportActionsUtils.isDeletedAction(parentReportAction);
 
     const canHoldOrUnholdRequest = !isRequestSettled && !isApproved && !isDeletedParentAction;
     const canHoldRequest = canHoldOrUnholdRequest && !isOnHold && (isRequestHoldCreator || (!isRequestIOU && canModifyStatus)) && !isScanning;
@@ -7031,7 +7022,6 @@ export {
     getOriginalReportID,
     getOutstandingChildRequest,
     getParentNavigationSubtitle,
-    getParentReportAction,
     getParsedComment,
     getParticipantAccountIDs,
     getParticipants,
