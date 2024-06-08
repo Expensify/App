@@ -2,7 +2,6 @@ import React, {useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useNativeDriver from '@libs/useNativeDriver';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {AnimationDirection} from './AnimatedStepContext';
