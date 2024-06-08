@@ -1,4 +1,4 @@
-import * as pdfjsLib from 'pdfjs-dist/build/pdf';
+import * as pdfjsLib from 'pdfjs-dist';
 
 const isPdfFilePasswordProtected = (file) => {
     return new Promise((resolve, reject) => {
@@ -6,6 +6,10 @@ const isPdfFilePasswordProtected = (file) => {
 
         reader.onload = async (event) => {
             const arrayBuffer = event.target?.result;
+            if (!arrayBuffer) {
+                resolve(false);
+                return;
+            }
 
             try {
                 const loadingTask = pdfjsLib.getDocument({data: arrayBuffer});
@@ -14,7 +18,6 @@ const isPdfFilePasswordProtected = (file) => {
                         resolve(false);
                     },
                     (error) => {
-                        console.log('***********', error);
                         if (error.name === 'PasswordException') {
                             resolve(true);
                         } else {
