@@ -1,6 +1,6 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Switch from '@components/Switch';
@@ -12,28 +12,46 @@ import type IconAsset from '@src/types/utils/IconAsset';
 type ToggleSettingOptionRowProps = {
     /** Icon to be shown for the option */
     icon?: IconAsset;
+
     /** Title of the option */
-    title: string;
+    title?: string;
+
+    /** Custom title for the option */
+    customTitle?: React.ReactNode;
+
     /** Subtitle of the option */
     subtitle?: string;
+
     /** Accessibility label for the switch */
     switchAccessibilityLabel: string;
+
     /** subtitle should show below switch and title */
     shouldPlaceSubtitleBelowSwitch?: boolean;
+
     /** Used to apply styles to the outermost container */
     wrapperStyle?: StyleProp<ViewStyle>;
+
+    /** Used to apply styles to the Title */
+    titleStyle?: StyleProp<TextStyle>;
+
     /** Whether the option is enabled or not */
     isActive: boolean;
+
     /** Callback to be called when the switch is toggled */
     onToggle: (isEnabled: boolean) => void;
+
     /** SubMenuItems will be shown when the option is enabled */
     subMenuItems?: React.ReactNode;
+
     /** If there is a pending action, we will grey out the option */
     pendingAction?: PendingAction;
+
     /** Any error message to show */
     errors?: Errors;
+
     /** Callback to close the error messages */
     onCloseError?: () => void;
+
     /** Whether the toggle should be disabled */
     disabled?: boolean;
 
@@ -45,10 +63,12 @@ const ICON_SIZE = 48;
 function ToggleSettingOptionRow({
     icon,
     title,
+    customTitle,
     subtitle,
     switchAccessibilityLabel,
     shouldPlaceSubtitleBelowSwitch,
     wrapperStyle,
+    titleStyle,
     onToggle,
     subMenuItems,
     isActive,
@@ -84,10 +104,12 @@ function ToggleSettingOptionRow({
                                 additionalStyles={[styles.mr3]}
                             />
                         )}
-                        <View style={[styles.flexColumn, styles.flex1]}>
-                            <Text style={[styles.textNormal, styles.lh20]}>{title}</Text>
-                            {!shouldPlaceSubtitleBelowSwitch && subtitle && subTitleView}
-                        </View>
+                        {customTitle ?? (
+                            <View style={[styles.flexColumn, styles.flex1]}>
+                                <Text style={[styles.textNormal, styles.lh20, titleStyle]}>{title}</Text>
+                                {!shouldPlaceSubtitleBelowSwitch && subtitle && subTitleView}
+                            </View>
+                        )}
                     </View>
                     <Switch
                         accessibilityLabel={switchAccessibilityLabel}

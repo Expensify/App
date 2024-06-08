@@ -15,6 +15,9 @@ type PDFThumbnailProps = {
 
     /** Callback to call if PDF is password protected */
     onPassword?: () => void;
+
+    /** Callback to call if PDF can't be loaded(corrupted) */
+    onLoadError?: () => void;
 };
 
 export default PDFThumbnailProps;

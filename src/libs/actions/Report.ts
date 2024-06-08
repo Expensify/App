@@ -1,6 +1,5 @@
 import {format as timezoneFormat, utcToZonedTime} from 'date-fns-tz';
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import Str from 'expensify-common/lib/str';
+import {ExpensiMark, Str} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
 import {DeviceEventEmitter, InteractionManager, Linking} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
@@ -161,14 +160,6 @@ Onyx.connect({
         }
         currentUserEmail = value.email;
         currentUserAccountID = value.accountID;
-    },
-});
-
-let guideCalendarLink: string | undefined;
-Onyx.connect({
-    key: ONYXKEYS.ACCOUNT,
-    callback: (value) => {
-        guideCalendarLink = value?.guideCalendarLink ?? undefined;
     },
 });
 
@@ -1158,8 +1149,11 @@ function expandURLPreview(reportID: string, reportActionID: string) {
     API.read(READ_COMMANDS.EXPAND_URL_PREVIEW, parameters);
 }
 
-/** Marks the new report actions as read */
-function readNewestAction(reportID: string) {
+/** Marks the new report actions as read
+ * @param shouldResetUnreadMarker Indicates whether the unread indicator should be reset.
+ * Currently, the unread indicator needs to be reset only when users mark a report as read.
+ */
+function readNewestAction(reportID: string, shouldResetUnreadMarker = false) {
     const lastReadTime = DateUtils.getDBTime();
 
     const optimisticData: OnyxUpdate[] = [
@@ -1178,7 +1172,9 @@ function readNewestAction(reportID: string) {
     };
 
     API.write(WRITE_COMMANDS.READ_NEWEST_ACTION, parameters, {optimisticData});
-    DeviceEventEmitter.emit(`readNewestAction_${reportID}`, lastReadTime);
+    if (shouldResetUnreadMarker) {
+        DeviceEventEmitter.emit(`readNewestAction_${reportID}`, lastReadTime);
+    }
 }
 
 /**
@@ -2731,12 +2727,17 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
         ...newPersonalDetailsOnyxData.optimisticData,
     ];
 
+    const successPendingChatMembers = report?.pendingChatMembers
+        ? report?.pendingChatMembers?.filter(
+              (pendingMember) => !(inviteeAccountIDs.includes(Number(pendingMember.accountID)) && pendingMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
+          )
+        : null;
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                pendingChatMembers: report?.pendingChatMembers ?? null,
+                pendingChatMembers: successPendingChatMembers,
             },
         },
         ...newPersonalDetailsOnyxData.finallyData,
@@ -3154,7 +3155,6 @@ function completeOnboarding(
             typeof task.description === 'function'
                 ? task.description({
                       adminsRoomLink: `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID ?? '')}`,
-                      guideCalendarLink: guideCalendarLink ?? CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL,
                   })
                 : task.description;
         const currentTask = ReportUtils.buildOptimisticTaskReport(

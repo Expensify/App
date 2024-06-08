@@ -137,6 +137,7 @@ function syncConnection(policyID: string, connectionName: PolicyConnectionName |
             value: {
                 stageInProgress: isQBOConnection ? CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.STARTING_IMPORT_QBO : CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.STARTING_IMPORT_XERO,
                 connectionName,
+                timestamp: new Date().toISOString(),
             },
         },
     ];
