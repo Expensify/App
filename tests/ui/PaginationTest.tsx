@@ -1,30 +1,21 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import type * as NativeNavigation from '@react-navigation/native';
-import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
-import {addSeconds, format, subMinutes, subSeconds} from 'date-fns';
-import {utcToZonedTime} from 'date-fns-tz';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
+import {addSeconds, format, subMinutes} from 'date-fns';
 import React from 'react';
-import {AppState, DeviceEventEmitter, Linking} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import {Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type Animated from 'react-native-reanimated';
-import * as CollectionUtils from '@libs/CollectionUtils';
-import DateUtils from '@libs/DateUtils';
 import * as Localize from '@libs/Localize';
-import LocalNotification from '@libs/Notification/LocalNotification';
-import * as NumberUtils from '@libs/NumberUtils';
 import * as Pusher from '@libs/Pusher/pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
-import FontUtils from '@styles/utils/FontUtils';
 import * as AppActions from '@userActions/App';
-import * as Report from '@userActions/Report';
 import * as User from '@userActions/User';
 import App from '@src/App';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import appSetup from '@src/setup';
-import type {ReportAction, ReportActions} from '@src/types/onyx';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -77,7 +68,7 @@ const createAddListenerMock = (): ListenerMock => {
         transitionEndListeners.forEach((transitionEndListener) => transitionEndListener());
     };
 
-    const addListener: jest.Mock = jest.fn().mockImplementation((listener, callback) => {
+    const addListener: jest.Mock = jest.fn().mockImplementation((listener: string, callback: () => void) => {
         if (listener === 'transitionEnd') {
             transitionEndListeners.push(callback);
         }
@@ -102,6 +93,7 @@ jest.mock('@react-navigation/native', () => {
                 routes: [],
             }),
             addListener,
+            setParams: jest.fn(),
         } as typeof NativeNavigation.useNavigation);
 
     return {
@@ -116,7 +108,7 @@ jest.mock('@react-navigation/native', () => {
 const fetchMock = TestHelper.getGlobalFetchMock();
 
 beforeAll(() => {
-    global.fetch = fetchMock;
+    global.fetch = fetchMock as unknown as typeof global.fetch;
 
     Linking.setInitialURL('https://new.expensify.com/');
     appSetup();
@@ -151,19 +143,56 @@ function scrollToOffset(offset: number) {
     });
 }
 
-function navigateToSidebar(): Promise<void> {
-    const hintText = Localize.translateLocal('accessibilityHints.navigateToChatsList');
-    const reportHeaderBackButton = screen.queryByAccessibilityHint(hintText);
-    if (reportHeaderBackButton) {
-        fireEvent(reportHeaderBackButton, 'press');
-    }
-    return waitForBatchedUpdates();
+function getReportActions() {
+    const messageHintText = Localize.translateLocal('accessibilityHints.chatMessage');
+    return screen.queryAllByLabelText(messageHintText);
+}
+
+function triggerListLayout() {
+    fireEvent(screen.getByTestId('report-actions-view-container'), 'onLayout', {
+        nativeEvent: {
+            layout: {
+                x: 0,
+                y: 0,
+                width: 300,
+                height: 300,
+            },
+        },
+    });
+    fireEvent(screen.getByTestId('report-actions-list'), 'onLayout', {
+        nativeEvent: {
+            layout: {
+                x: 0,
+                y: 0,
+                width: 300,
+                height: 300,
+            },
+        },
+    });
+
+    getReportActions().forEach((e, i) =>
+        fireEvent(e, 'onLayout', {
+            nativeEvent: {
+                layout: {
+                    x: 0,
+                    y: i * 100,
+                    width: 300,
+                    height: 100,
+                },
+            },
+        }),
+    );
 }
 
 async function navigateToSidebarOption(index: number): Promise<void> {
     const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
     const optionRows = screen.queryAllByAccessibilityHint(hintText);
     fireEvent(optionRows[index], 'press');
+    await act(() => {
+        transitionEndCB?.();
+    });
+    // ReportScreen relies on the onLayout event to receive updates from onyx.
+    triggerListLayout();
     await waitForBatchedUpdatesWithAct();
 }
 
@@ -196,42 +225,73 @@ function signInAndGetApp(): Promise<void> {
             return waitForBatchedUpdates();
         })
         .then(async () => {
-            // Simulate setting an unread report and personal details
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
-                reportID: REPORT_ID,
-                reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
-                lastMessageText: 'Test',
-                participants: {[USER_B_ACCOUNT_ID]: {hidden: false}},
-                lastActorAccountID: USER_B_ACCOUNT_ID,
-                type: CONST.REPORT.TYPE.CHAT,
+            await act(async () => {
+                // Simulate setting an unread report and personal details
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
+                    reportID: REPORT_ID,
+                    reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
+                    lastMessageText: 'Test',
+                    participants: {[USER_B_ACCOUNT_ID]: {hidden: false}},
+                    lastActorAccountID: USER_B_ACCOUNT_ID,
+                    type: CONST.REPORT.TYPE.CHAT,
+                });
+
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [USER_B_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_B_EMAIL, USER_B_ACCOUNT_ID, 'B'),
+                });
+
+                // We manually setting the sidebar as loaded since the onLayout event does not fire in tests
+                AppActions.setSidebarLoaded();
             });
 
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                [USER_B_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_B_EMAIL, USER_B_ACCOUNT_ID, 'B'),
-            });
-
-            // We manually setting the sidebar as loaded since the onLayout event does not fire in tests
-            AppActions.setSidebarLoaded();
-
-            return waitForBatchedUpdatesWithAct();
+            await waitForBatchedUpdatesWithAct();
         });
 }
 
 describe('Pagination', () => {
     afterEach(async () => {
-        await Onyx.clear();
+        await act(async () => {
+            await Onyx.clear();
 
-        // Unsubscribe to pusher channels
-        PusherHelper.teardown();
+            // Unsubscribe to pusher channels
+            PusherHelper.teardown();
+        });
 
         await waitForBatchedUpdatesWithAct();
 
         jest.clearAllMocks();
     });
 
-    it('opens a chat and load initial messages', async () => {
+    it.only('opens a chat and load initial messages', async () => {
+        const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
+        fetchMock.mockAPICommand('OpenReport', [
+            {
+                onyxMethod: 'merge',
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
+                value: {
+                    // '1': {
+                    //     reportActionID: '1',
+                    //     actionName: 'CREATED',
+                    //     created: format(TEN_MINUTES_AGO, CONST.DATE.FNS_DB_FORMAT_STRING),
+                    // },
+                    '2': TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '2'),
+                    '3': TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 20), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '3'),
+                },
+            },
+        ]);
         await signInAndGetApp();
         await navigateToSidebarOption(0);
-        await act(() => transitionEndCB?.());
+
+        const messageHintText = Localize.translateLocal('accessibilityHints.chatMessage');
+        const messages = screen.queryAllByLabelText(messageHintText);
+
+        expect(fetchMock.mock.calls.filter((c) => c[0] === 'https://www.expensify.com.dev/api/OpenReport?')).toHaveLength(1);
+        expect(messages).toHaveLength(2);
+
+        // Scrolling up here should not trigger a new network request.
+        const fetchCalls = fetchMock.mock.calls.length;
+        scrollToOffset(300);
+        await waitForBatchedUpdatesWithAct();
+        expect(fetchMock.mock.calls.length).toBe(fetchCalls);
     });
 });
