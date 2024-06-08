@@ -1,5 +1,6 @@
+import type {ImageContentFit} from 'expo-image';
 import React, {useMemo} from 'react';
-import type {ImageSourcePropType, StyleProp, ViewStyle, WebStyle} from 'react-native';
+import type {ImageSourcePropType, StyleProp, TextStyle, ViewStyle, WebStyle} from 'react-native';
 import {View} from 'react-native';
 import type {SvgProps} from 'react-native-svg';
 import type {MergeExclusive} from 'type-fest';
@@ -22,6 +23,9 @@ type BaseBlockingViewProps = {
     /** Subtitle message below the title */
     subtitle?: string;
 
+    /** The style of the subtitle message */
+    subtitleStyle?: StyleProp<TextStyle>;
+
     /** Link message below the subtitle */
     linkKey?: TranslationPaths;
 
@@ -36,6 +40,9 @@ type BaseBlockingViewProps = {
 
     /** Render custom subtitle */
     CustomSubtitle?: React.ReactElement;
+
+    /** Determines how the image should be resized to fit its container */
+    contentFitImage?: ImageContentFit;
 
     /** Additional styles to apply to the container */
     containerStyle?: StyleProp<ViewStyle>;
@@ -75,6 +82,7 @@ function BlockingView({
     iconColor,
     title,
     subtitle = '',
+    subtitleStyle,
     linkKey = 'notFound.goBackHome',
     shouldShowLink = false,
     iconWidth = variables.iconSizeSuperLarge,
@@ -84,6 +92,7 @@ function BlockingView({
     animationStyles = [],
     animationWebStyle = {},
     CustomSubtitle,
+    contentFitImage,
     containerStyle,
 }: BlockingViewProps) {
     const styles = useThemeStyles();
@@ -93,7 +102,7 @@ function BlockingView({
         () => (
             <>
                 <AutoEmailLink
-                    style={[styles.textAlignCenter]}
+                    style={[styles.textAlignCenter, subtitleStyle]}
                     text={subtitle}
                 />
                 {shouldShowLink ? (
@@ -106,7 +115,7 @@ function BlockingView({
                 ) : null}
             </>
         ),
-        [styles, subtitle, shouldShowLink, linkKey, onLinkPress, translate],
+        [styles, subtitle, shouldShowLink, linkKey, onLinkPress, translate, subtitleStyle],
     );
 
     const subtitleContent = useMemo(() => {
@@ -137,6 +146,7 @@ function BlockingView({
                     fill={iconColor}
                     width={iconWidth}
                     height={iconHeight}
+                    contentFit={contentFitImage}
                 />
             )}
             <View>

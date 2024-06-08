@@ -106,6 +106,9 @@ const SCREENS = {
 
         SUBSCRIPTION: {
             ROOT: 'Settings_Subscription',
+            SIZE: 'Settings_Subscription_Size',
+            ADD_PAYMENT_CARD: 'Settings_Subscription_Add_Payment_Card',
+            DISABLE_AUTO_RENEW_SURVEY: 'Settings_Subscription_DisableAutoRenewSurvey',
         },
     },
     SAVE_THE_WORLD: {
@@ -142,6 +145,7 @@ const SCREENS = {
         PROCESS_MONEY_REQUEST_HOLD: 'ProcessMoneyRequestHold',
         TRAVEL: 'Travel',
         SEARCH_REPORT: 'SearchReport',
+        SETTINGS_CATEGORIES: 'SettingsCategories',
     },
     ONBOARDING_MODAL: {
         ONBOARDING: 'Onboarding',
@@ -184,6 +188,14 @@ const SCREENS = {
         ADD_BANK_ACCOUNT: 'IOU_Send_Add_Bank_Account',
         ADD_DEBIT_CARD: 'IOU_Send_Add_Debit_Card',
         ENABLE_PAYMENTS: 'IOU_Send_Enable_Payments',
+    },
+
+    SETTINGS_CATEGORIES: {
+        SETTINGS_CATEGORY_SETTINGS: 'Settings_Category_Settings',
+        SETTINGS_CATEGORIES_SETTINGS: 'Settings_Categories_Settings',
+        SETTINGS_CATEGORY_CREATE: 'Settings_Category_Create',
+        SETTINGS_CATEGORY_EDIT: 'Settings_Category_Edit',
+        SETTINGS_CATEGORIES_ROOT: 'Settings_Categories',
     },
 
     REPORT_SETTINGS: {
@@ -311,6 +323,8 @@ const SCREENS = {
         DISTANCE_RATES_SETTINGS: 'Distance_Rates_Settings',
         DISTANCE_RATE_DETAILS: 'Distance_Rate_Details',
         DISTANCE_RATE_EDIT: 'Distance_Rate_Edit',
+        DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT: 'Distance_Rate_Tax_Reclaimable_On_Edit',
+        DISTANCE_RATE_TAX_RATE_EDIT: 'Distance_Rate_Tax_Rate_Edit',
     },
 
     EDIT_REQUEST: {
