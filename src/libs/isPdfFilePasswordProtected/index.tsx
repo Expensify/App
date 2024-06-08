@@ -34,7 +34,7 @@ const isPdfFilePasswordProtected = (file: FileObject): Promise<boolean> => {
             resolve(false);
         };
 
-        reader.readAsArrayBuffer(file);
+        reader.readAsArrayBuffer(file as Blob);
     });
 };
 
