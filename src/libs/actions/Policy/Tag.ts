@@ -363,6 +363,10 @@ function clearPolicyTagErrors(policyID: string, tagName: string, tagListIndex: n
 function clearPolicyTagListError(policyID: string, tagListIndex: number, errorField: string) {
     const policyTag = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.[tagListIndex] ?? {};
 
+    if (!policyTag.name) {
+        return;
+    }
+
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {
         [policyTag.name]: {
             errorFields: {
@@ -625,6 +629,10 @@ function setPolicyRequiresTag(policyID: string, requiresTag: boolean) {
 
 function setPolicyTagsRequired(policyID: string, requiresTag: boolean, tagListIndex: number) {
     const policyTag = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.[tagListIndex] ?? {};
+
+    if (!policyTag.name) {
+        return;
+    }
 
     const onyxData: OnyxData = {
         optimisticData: [
