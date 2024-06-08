@@ -5,6 +5,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
+import useStepFormSubmit from '@hooks/useStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {validate} from '@pages/settings/Subscription/SubscriptionSize/utils';
@@ -18,6 +19,13 @@ function Size({onNext}: SizeProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
+    const handleSubmit = useStepFormSubmit<typeof ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM>({
+        formId: ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM,
+        fieldIds: [INPUT_IDS.SUBSCRIPTION_SIZE],
+        onNext,
+        shouldSaveDraft: true,
+    });
+
     const defaultValues = {
         // TODO this is temporary and default value will be replaced in next phase once data in ONYX is ready
         [INPUT_IDS.SUBSCRIPTION_SIZE]: '0',
@@ -27,7 +35,7 @@ function Size({onNext}: SizeProps) {
         <FormProvider
             formID={ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM}
             submitButtonText={translate('common.next')}
-            onSubmit={onNext}
+            onSubmit={handleSubmit}
             validate={validate}
             style={[styles.mh5, styles.flexGrow1]}
         >
