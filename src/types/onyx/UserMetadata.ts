@@ -11,6 +11,7 @@ type UserMetadata = {
 
     /** User's account ID */
     accountID?: number;
+    environment?: string;
 };
 
 export default UserMetadata;
