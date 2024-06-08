@@ -161,41 +161,26 @@ function IOURequestStepScan({
         }, []),
     );
 
-    const validateReceipt = (file: FileObject): Promise<boolean> =>
-        new Promise((resolve) => {
-            const {fileExtension} = FileUtils.splitExtensionFromFileName(file?.name ?? '');
-            if (
-                !CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(
-                    fileExtension.toLowerCase() as (typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS)[number],
-                )
-            ) {
-                Alert.alert(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.notAllowedExtension'));
-                resolve(false);
-            }
+    const validateReceipt = (file: FileObject) => {
+        const {fileExtension} = FileUtils.splitExtensionFromFileName(file?.name ?? '');
+        if (
+            !CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(fileExtension.toLowerCase() as (typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS)[number])
+        ) {
+            Alert.alert(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.notAllowedExtension'));
+            return false;
+        }
 
-            if ((file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-                Alert.alert(translate('attachmentPicker.attachmentTooLarge'), translate('attachmentPicker.sizeExceeded'));
-                resolve(false);
-            }
+        if ((file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+            Alert.alert(translate('attachmentPicker.attachmentTooLarge'), translate('attachmentPicker.sizeExceeded'));
+            return false;
+        }
 
-            if ((file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-                Alert.alert(translate('attachmentPicker.attachmentTooSmall'), translate('attachmentPicker.sizeNotMet'));
-                resolve(false);
-            }
-
-            if (fileExtension === 'pdf') {
-                isPdfFilePasswordProtected(file).then((isProtected: boolean) => {
-                    if (isProtected) {
-                        Alert.alert(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.protectedPDFNotSupported'));
-                        resolve(false);
-                    } else {
-                        resolve(true);
-                    }
-                });
-            } else {
-                resolve(true);
-            }
-        });
+        if ((file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+            Alert.alert(translate('attachmentPicker.attachmentTooSmall'), translate('attachmentPicker.sizeNotMet'));
+            return false;
+        }
+        return true;
+    };
 
     const navigateBack = () => {
         Navigation.goBack();
@@ -393,22 +378,21 @@ function IOURequestStepScan({
      * Sets the Receipt objects and navigates the user to the next page
      */
     const setReceiptAndNavigate = (file: FileObject) => {
-        validateReceipt(file).then((isFileValid) => {
-            if (!isFileValid) {
-                return;
-            }
-            // Store the receipt on the transaction object in Onyx
-            // On Android devices, fetching blob for a file with name containing spaces fails to retrieve the type of file.
-            // So, let us also save the file type in receipt for later use during blob fetch
-            IOU.setMoneyRequestReceipt(transactionID, file?.uri ?? '', file.name ?? '', action !== CONST.IOU.ACTION.EDIT, file.type);
+        if (!validateReceipt(file)) {
+            return;
+        }
 
-            if (action === CONST.IOU.ACTION.EDIT) {
-                updateScanAndNavigate(file, file?.uri ?? '');
-                return;
-            }
+        // Store the receipt on the transaction object in Onyx
+        // On Android devices, fetching blob for a file with name containing spaces fails to retrieve the type of file.
+        // So, let us also save the file type in receipt for later use during blob fetch
+        IOU.setMoneyRequestReceipt(transactionID, file?.uri ?? '', file.name ?? '', action !== CONST.IOU.ACTION.EDIT, file.type);
 
-            navigateToConfirmationStep(file, file.uri ?? '');
-        });
+        if (action === CONST.IOU.ACTION.EDIT) {
+            updateScanAndNavigate(file, file?.uri ?? '');
+            return;
+        }
+
+        navigateToConfirmationStep(file, file.uri ?? '');
     };
 
     const capturePhoto = useCallback(() => {

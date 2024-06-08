@@ -1,31 +1,38 @@
-import {PDFDocument} from 'pdf-lib';
-import type {FileObject} from '@components/AttachmentModal';
+import * as pdfjsLib from 'pdfjs-dist/build/pdf';
 
-const isPdfFilePasswordProtected = (file: FileObject): Promise<boolean> =>
-    new Promise((resolve) => {
+const isPdfFilePasswordProtected = (file) => {
+    return new Promise((resolve, reject) => {
         const reader = new FileReader();
 
-        reader.onload = (event) => {
+        reader.onload = async (event) => {
             const arrayBuffer = event.target?.result;
-            if (!arrayBuffer) {
-                resolve(false);
-                return;
+
+            try {
+                const loadingTask = pdfjsLib.getDocument({data: arrayBuffer});
+                loadingTask.promise.then(
+                    () => {
+                        resolve(false);
+                    },
+                    (error) => {
+                        console.log('***********', error);
+                        if (error.name === 'PasswordException') {
+                            resolve(true);
+                        } else {
+                            reject(error);
+                        }
+                    },
+                );
+            } catch (error) {
+                reject(error);
             }
-
-            PDFDocument.load(arrayBuffer, {ignoreEncryption: true})
-                .then((pdfDoc) => {
-                    resolve(pdfDoc.isEncrypted);
-                })
-                .catch(() => {
-                    resolve(false);
-                });
         };
 
-        reader.onerror = () => {
-            resolve(false);
+        reader.onerror = (error) => {
+            reject(error);
         };
 
-        reader.readAsArrayBuffer(file as File);
+        reader.readAsArrayBuffer(file);
     });
+};
 
 export default isPdfFilePasswordProtected;
