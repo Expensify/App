@@ -2765,7 +2765,7 @@ function canHoldUnholdReportAction(reportAction: OnyxEntry<ReportAction>): {canH
 
     const canHoldOrUnholdRequest = !isRequestSettled && !isApproved && !isDeletedParentAction;
     const canHoldRequest = canHoldOrUnholdRequest && !isOnHold && (isRequestHoldCreator || (!isRequestIOU && canModifyStatus)) && !isScanning;
-    const canUnholdRequest = Boolean(canHoldOrUnholdRequest && isOnHold && (isRequestHoldCreator || (!isRequestIOU && canModifyStatus)));
+    const canUnholdRequest = !!(canHoldOrUnholdRequest && isOnHold && (isRequestHoldCreator || (!isRequestIOU && canModifyStatus)));
 
     return {canHoldRequest, canUnholdRequest};
 }
