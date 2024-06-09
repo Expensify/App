@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useCallback, useMemo, useRef, useState, useEffect} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -24,6 +24,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
+import * as FileUtils from '@libs/fileDownload/FileUtils';
 
 type NewChatConfirmPageOnyxProps = {
     /** New group chat draft data */
@@ -45,7 +46,7 @@ function navigateToEditChatName() {
 
 function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmPageProps) {
     const optimisticReportID = useRef<string>(ReportUtils.generateReportID());
-    const fileRef = useRef<File | CustomRNImageManipulatorResult | undefined>();
+    const [avatarFile, setAvatarFile] = useState<File | CustomRNImageManipulatorResult | undefined>();    
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const personalData = useCurrentUserPersonalDetails();
@@ -104,10 +105,29 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
         }
 
         const logins: string[] = (newGroupDraft.participants ?? []).map((participant) => participant.login);
-        Report.navigateToAndOpenReport(logins, true, newGroupDraft.reportName ?? '', newGroupDraft.avatarUri ?? '', fileRef.current, optimisticReportID.current, true);
-    }, [newGroupDraft]);
+        Report.navigateToAndOpenReport(logins, true, newGroupDraft.reportName ?? '', newGroupDraft.avatarUri ?? '', avatarFile, optimisticReportID.current, true);
+    }, [newGroupDraft, avatarFile]);
 
     const stashedLocalAvatarImage = newGroupDraft?.avatarUri;
+
+    useEffect(() => {
+        if (!stashedLocalAvatarImage) {
+            return;
+        }
+
+        const onSuccess = (file: File) => {
+            setAvatarFile(file)
+        };
+
+    
+        const onFailure = () => {
+            setAvatarFile(undefined);
+            Report.setGroupDraft({avatarUri: null, avatarFileName: null, avatarFileType: null});
+        };
+        FileUtils.readFileAsync(stashedLocalAvatarImage.toString(), newGroupDraft?.avatarFileName ?? '', onSuccess, onFailure, newGroupDraft?.avatarFileType ?? '');
+    
+    }, []);
+
     return (
         <ScreenWrapper testID={NewChatConfirmPage.displayName}>
             <HeaderWithBackButton
@@ -119,12 +139,12 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
                     isUsingDefaultAvatar={!stashedLocalAvatarImage}
                     source={stashedLocalAvatarImage ?? ReportUtils.getDefaultGroupAvatar(optimisticReportID.current)}
                     onImageSelected={(image) => {
-                        fileRef.current = image;
-                        Report.setGroupDraft({avatarUri: image?.uri ?? ''});
+                        setAvatarFile(image);
+                        Report.setGroupDraft({ avatarUri: image?.uri ?? '', avatarFileName: image?.name ?? '', avatarFileType: image?.type });
                     }}
                     onImageRemoved={() => {
-                        fileRef.current = undefined;
-                        Report.setGroupDraft({avatarUri: null});
+                        setAvatarFile(undefined);
+                        Report.setGroupDraft({avatarUri: null, avatarFileName: null, avatarFileType: null});
                     }}
                     size={CONST.AVATAR_SIZE.XLARGE}
                     avatarStyle={styles.avatarXLarge}
