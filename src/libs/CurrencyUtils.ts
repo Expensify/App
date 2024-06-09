@@ -112,9 +112,16 @@ function convertToFrontendAmountAsString(amountAsInt: number | null | undefined)
  */
 function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURRENCY.USD): string {
     const convertedAmount = convertToFrontendAmountAsInteger(amountInCents);
+    /**
+     * Fallback currency to USD if it empty string or undefined
+     */
+    let currencyWithFallback = currency;
+    if (!currency) {
+        currencyWithFallback = CONST.CURRENCY.USD;
+    }
     return NumberFormatUtils.format(BaseLocaleListener.getPreferredLocale(), convertedAmount, {
         style: 'currency',
-        currency,
+        currency: currencyWithFallback,
 
         // We are forcing the number of decimals because we override the default number of decimals in the backend for RSD
         // See: https://github.com/Expensify/PHP-Libs/pull/834
@@ -161,7 +168,7 @@ function convertToDisplayStringWithoutCurrency(amountInCents: number, currency: 
  */
 function isValidCurrencyCode(currencyCode: string): boolean {
     const currency = currencyList?.[currencyCode];
-    return Boolean(currency);
+    return !!currency;
 }
 
 export {
