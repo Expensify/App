@@ -45,13 +45,20 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, removeLi
                 insertByCommand(text);
             }
 
+            if (!textInputRef.current?.isFocused()) {
+                textInputRef.current?.focus();
+                return;
+            }
+
             // Pointer will go out of sight when a large paragraph is pasted on the web. Refocusing the input keeps the cursor in view.
             // If shouldRefocusAfterPaste = false, we want to call `focus()` only as it won't change the focus state of the input since it is already focused
             if (shouldRefocusAfterPaste) {
                 textInputRef.current?.blur();
+                textInputRef.current?.focus();
+                return;
             }
-
-            textInputRef.current?.focus();
+            // just restore the selection position if the input is already focused
+            textInputRef.current?.restoreSelectionPosition?.();
             // eslint-disable-next-line no-empty
         } catch (e) {}
         // We only need to set the callback once.

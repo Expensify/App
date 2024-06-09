@@ -9,6 +9,7 @@ import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
 import Text from '@components/Text';
 import useHtmlPaste from '@hooks/useHtmlPaste';
+import UseHtmlPaste from '@hooks/useHtmlPaste/types';
 import useIsScrollBarVisible from '@hooks/useIsScrollBarVisible';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -251,7 +252,7 @@ function Composer(
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isComposerFullSize]);
 
-    useHtmlPaste(textInput, handlePaste, true, false);
+    useHtmlPaste(textInput as Parameters<UseHtmlPaste>[0], handlePaste, true, false);
 
     useEffect(() => {
         if (typeof ref === 'function') {
