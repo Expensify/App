@@ -49,7 +49,7 @@ function init() {
 type PluralFormPhrase = Record<string, string>;
 type PhraseParameters<T> = T extends (args: number | Record<string, string | number | undefined>) => string
     ? [number | Record<string, string | number | undefined>]
-    : T extends (...args: infer A) => unknown
+    : T extends (...args: infer A) => string
     ? A
     : [];
 
@@ -225,7 +225,7 @@ function translateIfPhraseKey(message: MaybePhraseKey | ReceiptError): string | 
             return phrase;
         }
 
-        return translateLocal(phrase as TranslationPaths);
+        return translateLocal(phrase as TranslationPaths, variables as never);
     } catch (error) {
         return Array.isArray(message) ? message[0] : message;
     }
