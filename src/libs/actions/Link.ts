@@ -80,6 +80,9 @@ function buildTravelDotURL(spotnanaToken?: string, postLoginURL?: string): Promi
     });
 }
 
+/**
+ * @param postLoginURL When provided, we will redirect the user to this url post login on travelDot.
+ */
 function openTravelDotLink(policyID: OnyxEntry<string>, postLoginURL?: string) {
     if (policyID === null) {
         return;
