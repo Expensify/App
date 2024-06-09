@@ -11,8 +11,6 @@ type UserMetadata = {
 
     /** User's account ID */
     accountID?: number;
-
-    /** User environment identifier */
     environment?: string;
 };
 
