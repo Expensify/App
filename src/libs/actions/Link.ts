@@ -64,6 +64,10 @@ function openOldDotLink(url: string) {
     );
 }
 
+function openTravelDotLink(policyID: string) {
+    API.makeRequestWithSideEffects()
+}
+
 function getInternalNewExpensifyPath(href: string) {
     const attrPath = Url.getPathFromURL(href);
     return (Url.hasSameExpensifyOrigin(href, CONST.NEW_EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(href, CONST.STAGING_NEW_EXPENSIFY_URL) || href.startsWith(CONST.DEV_NEW_EXPENSIFY_URL)) &&
