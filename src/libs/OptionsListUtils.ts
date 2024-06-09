@@ -1039,7 +1039,7 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], i
                 tooltipText: option.name,
                 isDisabled: !option.enabled || option.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 isSelected: !!option.isSelected,
-                pendingAction: option.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? option.pendingAction : undefined,
+                pendingAction: option.pendingAction,
             });
 
             return;
@@ -1061,7 +1061,7 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], i
                 tooltipText: optionName,
                 isDisabled: isChild ? !option.enabled || option.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : true,
                 isSelected: isChild ? !!option.isSelected : selectedOptionsName.includes(searchText),
-                pendingAction: option.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? option.pendingAction : undefined,
+                pendingAction: option.pendingAction,
             });
         });
     });
@@ -1211,7 +1211,7 @@ function getTagsOptions(tags: Array<Pick<PolicyTag, 'name' | 'enabled' | 'pendin
             tooltipText: cleanedName,
             isDisabled: !tag.enabled || tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             isSelected: selectedOptions?.some((selectedTag) => selectedTag.name === tag.name),
-            pendingAction: tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? tag.pendingAction : undefined,
+            pendingAction: tag.pendingAction,
         };
     });
 }
