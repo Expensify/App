@@ -50,7 +50,7 @@ type PluralFormPhrase = Record<string, string>;
 type PhraseParameters<T> = T extends (args: number | Record<string, string | number | undefined>) => string
     ? [number | Record<string, string | number | undefined>]
     : T extends (...args: infer A) => unknown
-    ? [...A]
+    ? A
     : [];
 
 type Phrase<TKey extends TranslationPaths> = TranslationFlatObject[TKey] extends (...args: infer A) => unknown ? (...args: A) => string : string;
