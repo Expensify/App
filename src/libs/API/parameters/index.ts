@@ -172,7 +172,7 @@ export type {default as SetWorkspaceApprovalModeParams} from './SetWorkspaceAppr
 export type {default as SetWorkspacePayerParams} from './SetWorkspacePayerParams';
 export type {default as SetWorkspaceReimbursementParams} from './SetWorkspaceReimbursementParams';
 export type {default as SetPolicyRequiresTag} from './SetPolicyRequiresTag';
-export type {default as RenamePolicyTaglist} from './RenamePolicyTaglist';
+export type {default as RenamePolicyTaglistParams} from './RenamePolicyTaglistParams';
 export type {default as SwitchToOldDotParams} from './SwitchToOldDotParams';
 export type {default as TrackExpenseParams} from './TrackExpenseParams';
 export type {default as EnablePolicyCategoriesParams} from './EnablePolicyCategoriesParams';
@@ -224,3 +224,4 @@ export type {default as SearchParams} from './Search';
 export type {default as SendInvoiceParams} from './SendInvoiceParams';
 export type {default as PayInvoiceParams} from './PayInvoiceParams';
 export type {default as MarkAsCashParams} from './MarkAsCashParams';
+export type {default as SignUpUserParams} from './SignUpUserParams';

@@ -1,5 +1,6 @@
 import type * as OnyxCommon from './OnyxCommon';
 
+/** Model of policy tag */
 type PolicyTag = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Name of a Tag */
     name: string;
@@ -18,8 +19,10 @@ type PolicyTag = OnyxCommon.OnyxValueWithOfflineFeedback<{
     errors?: OnyxCommon.Errors | null;
 }>;
 
+/** Record of policy tags, indexed by their name */
 type PolicyTags = Record<string, PolicyTag>;
 
+/** Record of policy tag lists, index by the name of the tag list */
 type PolicyTagList<T extends string = string> = Record<
     T,
     OnyxCommon.OnyxValueWithOfflineFeedback<{
