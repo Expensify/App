@@ -17,6 +17,13 @@ const OLDDOT_ENVIRONMENT_URLS = {
     [CONST.ENVIRONMENT.ADHOC]: CONST.STAGING_EXPENSIFY_URL,
 };
 
+const TRAVELDOT_ENVIRONMENT_URLS = {
+    [CONST.ENVIRONMENT.DEV]: CONST.TRAVEL_DOT_URL(false),
+    [CONST.ENVIRONMENT.STAGING]: CONST.TRAVEL_DOT_URL(false),
+    [CONST.ENVIRONMENT.PRODUCTION]: CONST.TRAVEL_DOT_URL(true),
+    [CONST.ENVIRONMENT.ADHOC]: CONST.TRAVEL_DOT_URL(false),
+};
+
 /**
  * Are we running the app in development?
  */
@@ -54,4 +61,8 @@ function getOldDotEnvironmentURL(): Promise<string> {
     return getEnvironment().then((environment) => OLDDOT_ENVIRONMENT_URLS[environment]);
 }
 
-export {getEnvironment, isInternalTestBuild, isDevelopment, isProduction, getEnvironmentURL, getOldDotEnvironmentURL};
+function getTravelDotEnvironmentURL(): Promise<string> {
+    return getEnvironment().then((environment) => TRAVELDOT_ENVIRONMENT_URLS[environment]);
+}
+
+export {getEnvironment, isInternalTestBuild, isDevelopment, isProduction, getEnvironmentURL, getOldDotEnvironmentURL, getTravelDotEnvironmentURL};
