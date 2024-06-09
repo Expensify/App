@@ -71,6 +71,11 @@ type Phrase<TKey extends TranslationPaths> = TranslationFlatObject[TKey] extends
  *     other: `You have ${count} items`
  *   }),
  *   paramExample: (exampleParams: ExampleParamsType) => `Hello ${exampleParams.name}`,
+ *   paramAndPluralExample: (count: number, exampleParams: ExampleParamsType) => ({
+ *     zero: `Hello ${exampleParams.name}, you have no items`,
+ *     one: `Hello ${exampleParams.name}, you have one item`,
+ *     other: `Hello ${exampleParams.name}, you have ${count} items`
+ *   }),
  * }
  *
  * Note: We are not storing any translated values for phrases with variables,
