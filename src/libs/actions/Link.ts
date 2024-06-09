@@ -65,10 +65,11 @@ function openOldDotLink(url: string) {
     );
 }
 
-function buildTravelDotURL(spotnanaToken: string): Promise<string> {
+function buildTravelDotURL(spotnanaToken?: string): Promise<string> {
+    const authCode = spotnanaToken ? `authCode=${spotnanaToken}` : '';
     return Environment.getTravelDotEnvironmentURL().then((environmentURL) => {
         const travelDotDomain = Url.addTrailingForwardSlash(environmentURL);
-        return `${travelDotDomain}auth/code?authCode=${spotnanaToken}&tmcId=${CONST.SPOTNANA_TMC_ID}`;
+        return `${travelDotDomain}auth/code?${authCode}&tmcId=${CONST.SPOTNANA_TMC_ID}`;
     });
 }
 
@@ -78,9 +79,9 @@ function openTravelDotLink(policyID: string) {
     };
     asyncOpenURL(
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GENERATE_SPOTNANA_TOKEN, parameters, {}).then(
-            (response) => response.spotnanaToken && buildTravelDotURL(response.spotnanaToken),
-        ),
+        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GENERATE_SPOTNANA_TOKEN, parameters, {})
+            .then((response) => (response?.spotnanaToken ? buildTravelDotURL(response.spotnanaToken) : buildTravelDotURL()))
+            .catch(() => buildTravelDotURL()),
         (travelDotURL) => travelDotURL,
     );
 }
