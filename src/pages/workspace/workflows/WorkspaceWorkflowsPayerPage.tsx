@@ -58,7 +58,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
         const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList);
 
         Object.entries(policy?.employeeList ?? {}).forEach(([email, policyEmployee]) => {
-            const accountID = policyMemberEmailsToAccountIDs?.[email] ?? '';
+            const accountID = policyMemberEmailsToAccountIDs?.[email] ?? 0;
             const details = personalDetails?.[accountID];
             if (!details) {
                 Log.hmmm(`[WorkspaceMembersPage] no personal details found for policy member with accountID: ${accountID}`);
@@ -137,10 +137,8 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     }, [formattedPolicyAdmins, formattedAuthorizedPayer, translate, searchTerm]);
 
     const headerMessage = useMemo(
-        () => (searchTerm && !sections[0].data.length ? translate('common.noResultsFound') : ''),
-
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [translate, sections],
+        () => (searchTerm && !(sections[0]?.data.length ?? 0) ? translate('common.noResultsFound') : ''),
+        [translate, sections, searchTerm],
     );
 
     const setPolicyAuthorizedPayer = (member: MemberOption) => {

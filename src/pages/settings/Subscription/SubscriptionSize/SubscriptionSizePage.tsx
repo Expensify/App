@@ -30,7 +30,7 @@ function SubscriptionSizePage() {
         Navigation.goBack();
     };
 
-    const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo} = useSubStep({bodyContent, startFrom, onFinished});
+    const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo} = useSubStep<SubStepProps>({bodyContent, startFrom, onFinished});
 
     const onBackButtonPress = () => {
         if (screenIndex !== 0 && startFrom === 0) {
@@ -40,6 +40,8 @@ function SubscriptionSizePage() {
 
         Navigation.goBack();
     };
+
+    const SubStepComponent = SubStep ?? function () { return null };
 
     return (
         <ScreenWrapper
@@ -52,7 +54,7 @@ function SubscriptionSizePage() {
                 title={translate('subscription.subscriptionSize.title')}
                 onBackButtonPress={onBackButtonPress}
             />
-            <SubStep
+            <SubStepComponent
                 isEditing={isEditing}
                 onNext={nextScreen}
                 onMove={moveTo}

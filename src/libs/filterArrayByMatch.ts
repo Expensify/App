@@ -79,7 +79,7 @@ function getMatchRanking(testString: string, stringToRank: string): Ranking {
     }
 
     // Calculate ranking based on character sequence and spread
-    const spread = charNumber - lowercaseTestString.indexOf(stringToRank[0]);
+    const spread = charNumber - lowercaseTestString.indexOf(stringToRank[0] ?? '');
     const spreadPercentage = 1 / spread;
     const inOrderPercentage = matchingInOrderCharCount / stringToRank.length;
     const ranking = MATCH_RANK.MATCHES + inOrderPercentage * spreadPercentage;

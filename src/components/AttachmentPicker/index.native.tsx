@@ -328,7 +328,10 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
             if (focusedIndex === -1) {
                 return;
             }
-            selectItem(menuItemData[focusedIndex]);
+            const item = menuItemData[focusedIndex];
+            if (item) {
+                selectItem(item);
+            }
             setFocusedIndex(-1); // Reset the focusedIndex on selecting any menu
         },
         {

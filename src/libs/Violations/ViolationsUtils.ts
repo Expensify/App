@@ -20,7 +20,7 @@ function getTagViolationsForSingleLevelTags(
 ): TransactionViolation[] {
     const policyTagKeys = Object.keys(policyTagList);
     const policyTagListName = policyTagKeys[0];
-    const policyTags = policyTagList[policyTagListName]?.tags;
+    const policyTags = policyTagListName ? policyTagList[policyTagListName]?.tags : undefined;
     const hasTagOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.TAG_OUT_OF_POLICY);
     const hasMissingTagViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.MISSING_TAG);
     const isTagInPolicy = policyTags ? !!policyTags[updatedTransaction.tag ?? '']?.enabled : false;
@@ -68,7 +68,8 @@ function getTagViolationsForMultiLevelTags(
     // Otherwise, we put TAG_OUT_OF_POLICY in Onyx (when applicable)
     const errorIndexes = [];
     for (let i = 0; i < policyTagKeys.length; i++) {
-        const isTagRequired = policyTagList[policyTagKeys[i]].required ?? true;
+        const policyTagKey = policyTagKeys[i];
+        const isTagRequired = policyTagKey ? policyTagList[policyTagKey]?.required ?? true : true;
         const isTagSelected = !!selectedTags[i];
         if (isTagRequired && (!isTagSelected || (selectedTags.length === 1 && selectedTags[0] === ''))) {
             errorIndexes.push(i);
@@ -86,8 +87,12 @@ function getTagViolationsForMultiLevelTags(
         let hasInvalidTag = false;
         for (let i = 0; i < policyTagKeys.length; i++) {
             const selectedTag = selectedTags[i];
-            const tags = policyTagList[policyTagKeys[i]].tags;
-            const isTagInPolicy = Object.values(tags).some((tag) => tag.name === selectedTag && !!tag.enabled);
+            const policyTagKey = policyTagKeys[i];
+            const tags = policyTagKey ? policyTagList[policyTagKey]?.tags : undefined;
+            let isTagInPolicy = false;
+            if (tags) {
+                isTagInPolicy = Object.values(tags).some((tag) => tag.name === selectedTag && !!tag.enabled);
+            }
             if (!isTagInPolicy) {
                 newTransactionViolations.push({
                     name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,

@@ -106,7 +106,7 @@ function MultipleAvatars({
     let avatarContainerStyles = StyleUtils.getContainerStyles(size, isInReportAction);
     const {singleAvatarStyle, secondAvatarStyles} = useMemo(() => avatarSizeToStylesMap[size as AvatarSizeToStyles] ?? avatarSizeToStylesMap.default, [size, avatarSizeToStylesMap]);
 
-    const tooltipTexts = useMemo(() => (shouldShowTooltip ? icons.map((icon) => ReportUtils.getUserDetailTooltipText(Number(icon.id), icon.name)) : ['']), [shouldShowTooltip, icons]);
+    const tooltipTexts = useMemo(() => (shouldShowTooltip ? icons.map((icon) => ReportUtils.getUserDetailTooltipText(Number(icon?.id), icon?.name)) : ['']), [shouldShowTooltip, icons]);
 
     const avatarSize = useMemo(() => {
         if (isFocusMode) {
@@ -142,23 +142,24 @@ function MultipleAvatars({
     }
 
     if (icons.length === 1 && !shouldStackHorizontally) {
+        const icon = icons[0];
         return (
             <UserDetailsTooltip
-                accountID={Number(icons[0].id)}
-                icon={icons[0]}
+                accountID={Number(icon?.id)}
+                icon={icon}
                 fallbackUserDetails={{
-                    displayName: icons[0].name,
+                    displayName: icon?.name,
                 }}
             >
                 <View style={avatarContainerStyles}>
                     <Avatar
-                        source={icons[0].source}
+                        source={icon?.source ?? fallbackIcon}
                         size={size}
-                        fill={icons[0].fill}
-                        name={icons[0].name}
-                        avatarID={icons[0].id}
-                        type={icons[0].type}
-                        fallbackIcon={icons[0].fallbackIcon}
+                        fill={icon?.fill}
+                        name={icon?.name}
+                        avatarID={icon?.id}
+                        type={icon?.type}
+                        fallbackIcon={icon?.fallbackIcon}
                     />
                 </View>
             </UserDetailsTooltip>
@@ -184,14 +185,14 @@ function MultipleAvatars({
             >
                 {[...avatars].splice(0, maxAvatarsInRow).map((icon, index) => (
                     <UserDetailsTooltip
-                        key={`stackedAvatars-${icon.id}`}
-                        accountID={Number(icon.id)}
+                        key={`stackedAvatars-${icon?.id}`}
+                        accountID={Number(icon?.id)}
                         icon={icon}
                         fallbackUserDetails={{
-                            displayName: icon.name,
+                            displayName: icon?.name,
                         }}
                     >
-                        <View style={[StyleUtils.getHorizontalStackedAvatarStyle(index, overlapSize), StyleUtils.getAvatarBorderRadius(size, icon.type)]}>
+                        <View style={[StyleUtils.getHorizontalStackedAvatarStyle(index, overlapSize), StyleUtils.getAvatarBorderRadius(size, icon?.type)]}>
                             <Avatar
                                 iconAdditionalStyles={[
                                     StyleUtils.getHorizontalStackedAvatarBorderStyle({
@@ -203,12 +204,12 @@ function MultipleAvatars({
                                     }),
                                     StyleUtils.getAvatarBorderWidth(size),
                                 ]}
-                                source={icon.source ?? fallbackIcon}
+                                source={icon?.source ?? fallbackIcon}
                                 size={size}
-                                name={icon.name}
-                                avatarID={icon.id}
-                                type={icon.type}
-                                fallbackIcon={icon.fallbackIcon}
+                                name={icon?.name}
+                                avatarID={icon?.id}
+                                type={icon?.type}
+                                fallbackIcon={icon?.fallbackIcon}
                             />
                         </View>
                     </UserDetailsTooltip>
@@ -233,7 +234,7 @@ function MultipleAvatars({
                                 // Set overlay background color with RGBA value so that the text will not inherit opacity
                                 StyleUtils.getBackgroundColorWithOpacityStyle(theme.overlay, variables.overlayOpacity),
                                 StyleUtils.getHorizontalStackedOverlayAvatarStyle(oneAvatarSize, oneAvatarBorderWidth),
-                                icons[3].type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, icons[3].type),
+                                icons[3]?.type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, icons[3]?.type),
                             ]}
                         >
                             <View style={[styles.justifyContentCenter, styles.alignItemsCenter, StyleUtils.getHeight(oneAvatarSize.height), StyleUtils.getWidthStyle(oneAvatarSize.width)]}>
@@ -249,45 +250,45 @@ function MultipleAvatars({
         ))
     ) : (
         <View style={avatarContainerStyles}>
-            <View style={[singleAvatarStyle, icons[0].type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, icons[0].type)]}>
+            <View style={[singleAvatarStyle, icons[0]?.type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, icons[0]?.type)]}>
                 <UserDetailsTooltip
-                    accountID={Number(icons[0].id)}
+                    accountID={Number(icons[0]?.id)}
                     icon={icons[0]}
                     fallbackUserDetails={{
-                        displayName: icons[0].name,
+                        displayName: icons[0]?.name,
                     }}
                 >
                     {/* View is necessary for tooltip to show for multiple avatars in LHN */}
                     <View>
                         <Avatar
-                            source={icons[0].source ?? fallbackIcon}
+                            source={icons[0]?.source ?? fallbackIcon}
                             size={avatarSize}
                             imageStyles={[singleAvatarStyle]}
-                            name={icons[0].name}
-                            type={icons[0].type}
-                            avatarID={icons[0].id}
-                            fallbackIcon={icons[0].fallbackIcon}
+                            name={icons[0]?.name}
+                            type={icons[0]?.type}
+                            avatarID={icons[0]?.id}
+                            fallbackIcon={icons[0]?.fallbackIcon}
                         />
                     </View>
                 </UserDetailsTooltip>
-                <View style={[secondAvatarStyles, secondAvatarStyle, icons[1].type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(size, icons[1].type) : {}]}>
+                <View style={[secondAvatarStyles, secondAvatarStyle, icons[1]?.type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(size, icons[1]?.type) : {}]}>
                     {icons.length === 2 ? (
                         <UserDetailsTooltip
-                            accountID={Number(icons[1].id)}
+                            accountID={Number(icons[1]?.id)}
                             icon={icons[1]}
                             fallbackUserDetails={{
-                                displayName: icons[1].name,
+                                displayName: icons[1]?.name,
                             }}
                         >
                             <View>
                                 <Avatar
-                                    source={icons[1].source ?? fallbackIcon}
+                                    source={icons[1]?.source ?? fallbackIcon}
                                     size={avatarSize}
                                     imageStyles={[singleAvatarStyle]}
-                                    name={icons[1].name}
-                                    avatarID={icons[1].id}
-                                    type={icons[1].type}
-                                    fallbackIcon={icons[1].fallbackIcon}
+                                    name={icons[1]?.name}
+                                    avatarID={icons[1]?.id}
+                                    type={icons[1]?.type}
+                                    fallbackIcon={icons[1]?.fallbackIcon}
                                 />
                             </View>
                         </UserDetailsTooltip>

@@ -54,7 +54,7 @@ function CompleteVerification({reimbursementAccount, reimbursementAccountDraft, 
         );
     }, [reimbursementAccount, values, policyID]);
 
-    const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo, goToTheLastStep} = useSubStep({bodyContent, startFrom: 0, onFinished: submit});
+    const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo, goToTheLastStep} = useSubStep<SubStepProps>({bodyContent, startFrom: 0, onFinished: submit});
 
     const handleBackButtonPress = () => {
         if (isEditing) {
@@ -68,6 +68,8 @@ function CompleteVerification({reimbursementAccount, reimbursementAccountDraft, 
             prevScreen();
         }
     };
+
+    const SubStepComponent = SubStep ?? function () { return null };
 
     return (
         <ScreenWrapper
@@ -86,7 +88,7 @@ function CompleteVerification({reimbursementAccount, reimbursementAccountDraft, 
                     stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
                 />
             </View>
-            <SubStep
+            <SubStepComponent
                 isEditing={isEditing}
                 onNext={nextScreen}
                 onMove={moveTo}

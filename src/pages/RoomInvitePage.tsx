@@ -88,7 +88,12 @@ function RoomInvitePage({
         });
         const newSelectedOptions: ReportUtils.OptionData[] = [];
         selectedOptions.forEach((option) => {
-            newSelectedOptions.push(option.login && option.login in detailsMap ? {...detailsMap[option.login], isSelected: true} : option);
+            const details = option.login && option.login in detailsMap ? detailsMap[option.login] : undefined;
+            if (details) {
+                newSelectedOptions.push({...details, isSelected: true});
+            } else {
+                newSelectedOptions.push(option);
+            }
         });
 
         setUserToInvite(inviteOptions.userToInvite);

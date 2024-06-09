@@ -839,7 +839,7 @@ function openReport(
 
     // If we are creating a new report, we need to add the optimistic report data and a report action
     const isCreatingNewReport = !isEmptyObject(newReportObject);
-    if (isCreatingNewReport) {
+    if (isCreatingNewReport && optimisticData?.length > 0) {
         // Change the method to set for new reports because it doesn't exist yet, is faster,
         // and we need the data to be available when we navigate to the chat page
         optimisticData[0].onyxMethod = Onyx.METHOD.SET;
@@ -876,6 +876,11 @@ function openReport(
         const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(participantLoginList);
         participantLoginList.forEach((login, index) => {
             const accountID = participantAccountIDs[index];
+
+            if (!accountID) {
+                return;
+            }
+
             const isOptimisticAccount = !allPersonalDetails?.[accountID];
 
             if (!isOptimisticAccount) {

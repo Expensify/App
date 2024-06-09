@@ -155,7 +155,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
 
     return (
         <ScreenWrapper
-            style={[StyleUtils.getBackgroundColorStyle(theme.PAGE_THEMES[SCREENS.SETTINGS.PROFILE.STATUS].backgroundColor)]}
+            style={[StyleUtils.getBackgroundColorStyle(theme.PAGE_THEMES[SCREENS.SETTINGS.PROFILE.STATUS]?.backgroundColor ?? '#FFFFFF')]}
             shouldEnablePickerAvoiding={false}
             includeSafeAreaPaddingBottom={false}
             testID={HeaderPageLayout.displayName}

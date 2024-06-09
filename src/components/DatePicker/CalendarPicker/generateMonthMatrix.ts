@@ -50,9 +50,15 @@ export default function generateMonthMatrix(year: number, month: number) {
         matrix.push(currentWeek);
     }
 
+    if (matrix.length === 0) {
+        return matrix;
+    }
+
+    const matrixLength = matrix[0]?.length ?? 0;
+
     // Add null values for days before the first day of the month
-    for (let i = matrix[0].length; i < 7; i++) {
-        matrix[0].unshift(undefined);
+    for (let i = matrixLength; i < 7; i++) {
+        matrix[0]?.unshift(undefined);
     }
 
     return matrix;

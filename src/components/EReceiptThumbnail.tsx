@@ -127,7 +127,7 @@ function EReceiptThumbnail({transaction, borderRadius, fileExtension, isReceiptT
                                 styles.labelStrong,
                                 StyleUtils.getFontSizeStyle(labelFontSize),
                                 StyleUtils.getLineHeightStyle(labelLineHeight),
-                                StyleUtils.getTextColorStyle(primaryColor ?? colors.black),
+                                StyleUtils.getTextColorStyle(primaryColor ?? colors.black ?? '#000000'),
                             ]}
                         >
                             {fileExtension.toUpperCase()}

@@ -120,14 +120,16 @@ function PopoverMenu({
             setFocusedIndex(-1);
         } else {
             selectedItemIndex.current = index;
-            onItemSelected(selectedItem, index);
+            if (selectedItem) {
+                onItemSelected(selectedItem, index);
+            }
         }
     };
 
     const getPreviousSubMenu = () => {
         let currentItems = menuItems;
         for (let i = 0; i < enteredSubMenuIndexes.length - 1; i++) {
-            const nextItems = currentItems[enteredSubMenuIndexes[i]].subMenuItems;
+            const nextItems = currentItems[enteredSubMenuIndexes[i] ?? 0].subMenuItems;
             if (!nextItems) {
                 return currentItems;
             }
@@ -138,7 +140,7 @@ function PopoverMenu({
 
     const renderBackButtonItem = () => {
         const previousMenuItems = getPreviousSubMenu();
-        const previouslySelectedItem = previousMenuItems[enteredSubMenuIndexes[enteredSubMenuIndexes.length - 1]];
+        const previouslySelectedItem = previousMenuItems[enteredSubMenuIndexes?.at(-1) ?? 0];
         const hasBackButtonText = !!previouslySelectedItem.backButtonText;
 
         return (
@@ -176,7 +178,7 @@ function PopoverMenu({
     const onModalHide = () => {
         setFocusedIndex(-1);
         if (selectedItemIndex.current !== null) {
-            currentMenuItems[selectedItemIndex.current].onSelected?.();
+            currentMenuItems[selectedItemIndex.current]?.onSelected?.();
             selectedItemIndex.current = null;
         }
     };

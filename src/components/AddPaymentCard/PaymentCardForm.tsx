@@ -131,7 +131,7 @@ function PaymentCardForm({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const route = useRoute();
-    const label = CARD_LABELS[isDebitCard ? CARD_TYPES.DEBIT_CARD : CARD_TYPES.PAYMENT_CARD];
+    const label = CARD_LABELS[isDebitCard ? CARD_TYPES.DEBIT_CARD : CARD_TYPES.PAYMENT_CARD] ?? {};
 
     const cardNumberRef = useRef<AnimatedTextInputRef>(null);
 
@@ -142,27 +142,27 @@ function PaymentCardForm({
         const errors = ValidationUtils.getFieldRequiredErrors(formValues, REQUIRED_FIELDS);
 
         if (formValues.nameOnCard && !ValidationUtils.isValidLegalName(formValues.nameOnCard)) {
-            errors.nameOnCard = label.error.nameOnCard;
+            errors.nameOnCard = label.error?.nameOnCard;
         }
 
         if (formValues.cardNumber && !ValidationUtils.isValidDebitCard(formValues.cardNumber.replace(/ /g, ''))) {
-            errors.cardNumber = label.error.cardNumber;
+            errors.cardNumber = label.error?.cardNumber;
         }
 
         if (formValues.expirationDate && !ValidationUtils.isValidExpirationDate(formValues.expirationDate)) {
-            errors.expirationDate = label.error.expirationDate;
+            errors.expirationDate = label.error?.expirationDate;
         }
 
         if (formValues.securityCode && !ValidationUtils.isValidSecurityCode(formValues.securityCode)) {
-            errors.securityCode = label.error.securityCode;
+            errors.securityCode = label.error?.securityCode;
         }
 
         if (formValues.addressStreet && !ValidationUtils.isValidAddress(formValues.addressStreet)) {
-            errors.addressStreet = label.error.addressStreet;
+            errors.addressStreet = label.error?.addressStreet;
         }
 
         if (formValues.addressZipCode && !ValidationUtils.isValidZipCode(formValues.addressZipCode)) {
-            errors.addressZipCode = label.error.addressZipCode;
+            errors.addressZipCode = label.error?.addressZipCode;
         }
 
         if (!formValues.acceptTerms) {
@@ -199,8 +199,8 @@ function PaymentCardForm({
                 <InputWrapper
                     InputComponent={TextInput}
                     inputID={INPUT_IDS.CARD_NUMBER}
-                    label={translate(label.defaults.cardNumber)}
-                    aria-label={translate(label.defaults.cardNumber)}
+                    label={translate(label.defaults?.cardNumber ?? 'common.na')}
+                    aria-label={translate(label.defaults?.cardNumber ?? 'common.na')}
                     role={CONST.ROLE.PRESENTATION}
                     ref={cardNumberRef}
                     inputMode={CONST.INPUT_MODE.NUMERIC}
@@ -208,8 +208,8 @@ function PaymentCardForm({
                 <InputWrapper
                     InputComponent={TextInput}
                     inputID={INPUT_IDS.NAME_ON_CARD}
-                    label={translate(label.defaults.nameOnCard)}
-                    aria-label={translate(label.defaults.nameOnCard)}
+                    label={translate(label.defaults?.nameOnCard ?? 'common.na')}
+                    aria-label={translate(label.defaults?.nameOnCard ?? 'common.na')}
                     role={CONST.ROLE.PRESENTATION}
                     containerStyles={[styles.mt5]}
                     spellCheck={false}
@@ -219,10 +219,10 @@ function PaymentCardForm({
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.EXPIRATION_DATE}
-                            label={translate(label.defaults.expiration)}
-                            aria-label={translate(label.defaults.expiration)}
+                            label={translate(label.defaults?.expiration ?? 'common.na')}
+                            aria-label={translate(label.defaults?.expiration ?? 'common.na')}
                             role={CONST.ROLE.PRESENTATION}
-                            placeholder={translate(label.defaults.expirationDate)}
+                            placeholder={translate(label.defaults?.expirationDate ?? 'common.na')}
                             inputMode={CONST.INPUT_MODE.NUMERIC}
                             maxLength={4}
                         />
@@ -231,8 +231,8 @@ function PaymentCardForm({
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.SECURITY_CODE}
-                            label={translate(label.defaults.securityCode)}
-                            aria-label={translate(label.defaults.securityCode)}
+                            label={translate(label.defaults?.securityCode ?? 'common.na')}
+                            aria-label={translate(label.defaults?.securityCode ?? 'common.na')}
                             role={CONST.ROLE.PRESENTATION}
                             maxLength={4}
                             inputMode={CONST.INPUT_MODE.NUMERIC}
@@ -244,7 +244,7 @@ function PaymentCardForm({
                         <InputWrapper
                             InputComponent={AddressSearch}
                             inputID={INPUT_IDS.ADDRESS_STREET}
-                            label={translate(label.defaults.billingAddress)}
+                            label={translate(label.defaults?.billingAddress ?? 'common.na')}
                             containerStyles={[styles.mt5]}
                             maxInputLength={CONST.FORM_CHARACTER_LIMIT}
                             // Limit the address search only to the USA until we fully can support international debit cards

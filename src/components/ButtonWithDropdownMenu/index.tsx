@@ -75,9 +75,10 @@ function ButtonWithDropdownMenu<IValueType>({
                         ref={(ref) => {
                             caretButton.current = ref;
                         }}
-                        onPress={(event) => (!isSplitButton ? setIsMenuVisible(!isMenuVisible) : onPress(event, selectedItem.value))}
-                        text={customText ?? selectedItem.text}
-                        isDisabled={isDisabled || !!selectedItem.disabled}
+                        /* eslint-disable-next-line no-nested-ternary */
+                        onPress={(event) => (!isSplitButton ? setIsMenuVisible(!isMenuVisible) : (selectedItem?.value ? onPress(event, selectedItem?.value) : {}))}
+                        text={customText ?? selectedItem?.text ?? ''}
+                        isDisabled={isDisabled || !!selectedItem?.disabled}
                         isLoading={isLoading}
                         shouldRemoveRightBorderRadius
                         style={[styles.flex1, styles.pr0]}
@@ -122,11 +123,11 @@ function ButtonWithDropdownMenu<IValueType>({
                     success={success}
                     ref={buttonRef}
                     pressOnEnter={pressOnEnter}
-                    isDisabled={isDisabled || !!options[0].disabled}
+                    isDisabled={isDisabled || !!options[0]?.disabled}
                     style={[styles.w100, style]}
                     isLoading={isLoading}
-                    text={selectedItem.text}
-                    onPress={(event) => onPress(event, options[0].value)}
+                    text={selectedItem?.text}
+                    onPress={(event) => options?.[0]?.value ? onPress(event, options?.[0]?.value) : {}}
                     large={isButtonSizeLarge}
                     medium={!isButtonSizeLarge}
                     innerStyles={[innerStyleDropButton]}

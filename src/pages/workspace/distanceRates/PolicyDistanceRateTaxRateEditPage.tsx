@@ -31,7 +31,8 @@ function PolicyDistanceRateTaxRateEditPage({route, policy}: PolicyDistanceRateTa
     const policyID = route.params.policyID;
     const rateID = route.params.rateID;
     const customUnits = policy?.customUnits ?? {};
-    const customUnit = customUnits[Object.keys(customUnits)[0]];
+    const customUnitKey = Object.keys(customUnits)[0];
+    const customUnit = customUnitKey ? customUnits[customUnitKey] : undefined;
     const rate = customUnit?.rates[rateID];
     const taxRateExternalID = rate.attributes?.taxRateExternalID;
     const taxRateItems: ListItemType[] = useMemo(() => {
@@ -50,7 +51,7 @@ function PolicyDistanceRateTaxRateEditPage({route, policy}: PolicyDistanceRateTa
             {
                 ...rate,
                 attributes: {
-                    ...rate.attributes,
+                    ...rate?.attributes,
                     taxRateExternalID: newTaxRate.value,
                 },
             },

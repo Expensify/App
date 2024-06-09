@@ -28,15 +28,15 @@ function extractAttachments(
     const htmlParser = new HtmlParser({
         onopentag: (name, attribs) => {
             if (name === 'video') {
-                const source = tryResolveUrlFromApiRoot(attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]);
+                const source = tryResolveUrlFromApiRoot(attribs?.[CONST.ATTACHMENT_SOURCE_ATTRIBUTE] ?? '');
                 if (uniqueSources.has(source)) {
                     return;
                 }
 
                 uniqueSources.add(source);
-                const splittedUrl = attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE].split('/');
+                const splittedUrl = (attribs?.[CONST.ATTACHMENT_SOURCE_ATTRIBUTE] ?? '').split('/');
                 attachments.unshift({
-                    source: tryResolveUrlFromApiRoot(attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]),
+                    source: tryResolveUrlFromApiRoot(attribs?.[CONST.ATTACHMENT_SOURCE_ATTRIBUTE] ?? ''),
                     isAuthTokenRequired: !!attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE],
                     file: {name: splittedUrl[splittedUrl.length - 1]},
                     duration: Number(attribs[CONST.ATTACHMENT_DURATION_ATTRIBUTE]),

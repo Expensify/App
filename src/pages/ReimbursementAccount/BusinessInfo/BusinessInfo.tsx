@@ -113,6 +113,8 @@ function BusinessInfo({reimbursementAccount, reimbursementAccountDraft, onBackBu
         }
     };
 
+    const SubStepComponent = SubStep ?? function () { return null };
+
     return (
         <ScreenWrapper
             testID={BusinessInfo.displayName}
@@ -131,7 +133,7 @@ function BusinessInfo({reimbursementAccount, reimbursementAccountDraft, onBackBu
                     stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
                 />
             </View>
-            <SubStep
+            <SubStepComponent
                 isEditing={isEditing}
                 onNext={nextScreen}
                 onMove={moveTo}

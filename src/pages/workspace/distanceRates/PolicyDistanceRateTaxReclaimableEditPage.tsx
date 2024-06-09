@@ -32,27 +32,32 @@ function PolicyDistanceRateTaxReclaimableEditPage({route, policy}: PolicyDistanc
     const policyID = route.params.policyID;
     const rateID = route.params.rateID;
     const customUnits = policy?.customUnits ?? {};
-    const customUnit = customUnits[Object.keys(customUnits)[0]];
-    const rate = customUnit.rates[rateID];
-    const currency = rate.currency ?? CONST.CURRENCY.USD;
+    const customUnitKey = Object.keys(customUnits)[0];
+    const customUnit = customUnitKey ? customUnits[customUnitKey] : undefined;
+    const rate = customUnit?.rates[rateID];
+    const currency = rate?.currency ?? CONST.CURRENCY.USD;
     const extraDecimals = 1;
     const decimals = CurrencyUtils.getCurrencyDecimals(currency) + extraDecimals;
-    const currentTaxReclaimableOnValue = rate.attributes?.taxClaimablePercentage && rate.rate ? ((rate.attributes.taxClaimablePercentage * rate.rate) / 100).toFixed(decimals) : '';
+    const taxClaimablePercentage = rate?.attributes?.taxClaimablePercentage ?? 0;
+    const rateValue = rate?.rate ?? 0;
+    const currentTaxReclaimableOnValue = ((taxClaimablePercentage * rateValue) / 100).toFixed(decimals);
 
     const submitTaxReclaimableOn = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT_FORM>) => {
-        DistanceRate.updateDistanceTaxClaimableValue(policyID, customUnit, [
-            {
-                ...rate,
-                attributes: {
-                    ...rate.attributes,
-                    taxClaimablePercentage: rate.rate ? (Number(values.taxClaimableValue) * 100) / rate.rate : undefined,
+        if (customUnit && rate) {
+            DistanceRate.updateDistanceTaxClaimableValue(policyID, customUnit, [
+                {
+                    ...rate,
+                    attributes: {
+                        ...rate.attributes,
+                        taxClaimablePercentage: rate.rate ? (Number(values.taxClaimableValue) * 100) / rate.rate : undefined,
+                    },
                 },
-            },
-        ]);
-        Navigation.goBack();
+            ]);
+            Navigation.goBack();
+        }
     };
 
-    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT_FORM>) => validateTaxClaimableValue(values, rate), [rate]);
+    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT_FORM>) => validateTaxClaimableValue(values, rate ?? {}), [rate]);
 
     return (
         <AccessOrNotFoundWrapper

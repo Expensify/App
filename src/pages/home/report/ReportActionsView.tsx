@@ -235,7 +235,9 @@ function ReportActionsView({
             // This function is a placeholder as the actual pagination is handled by visibleReportActions
             if (!hasMoreCached) {
                 isFirstLinkedActionRender.current = false;
-                fetchNewerAction(newestReportAction);
+                if (newestReportAction) {
+                    fetchNewerAction(newestReportAction);
+                }
             }
             if (isFirstLinkedActionRender.current) {
                 isFirstLinkedActionRender.current = false;
@@ -357,7 +359,7 @@ function ReportActionsView({
                     // If there was an error only try again once on initial mount. We should also still load
                     // more in case we have cached messages.
                     (!hasMoreCached && didLoadNewerChats.current && hasLoadingNewerReportActionsError) ||
-                    newestReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+                    newestReportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
             ) {
                 return;
             }
@@ -365,7 +367,7 @@ function ReportActionsView({
             didLoadNewerChats.current = true;
 
             if ((reportActionID && indexOfLinkedAction > -1 && !isLoadingOlderReportsFirstNeeded) || (!reportActionID && !isLoadingOlderReportsFirstNeeded)) {
-                handleReportActionPagination({firstReportActionID: newestReportAction?.reportActionID});
+                handleReportActionPagination({firstReportActionID: newestReportAction?.reportActionID ?? ''});
             }
         },
         [
@@ -473,8 +475,8 @@ function ReportActionsView({
         const actions = [...reportActions];
         const lastAction = reportActions[reportActions.length - 1];
 
-        if (!ReportActionsUtils.isCreatedAction(lastAction)) {
-            const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(String(report?.ownerAccountID), DateUtils.subtractMillisecondsFromDateTime(lastAction.created, 1));
+        if (!ReportActionsUtils.isCreatedAction(lastAction ?? {} as OnyxEntry<ReportAction>)) {
+            const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(String(report?.ownerAccountID), DateUtils.subtractMillisecondsFromDateTime(lastAction?.created ?? '', 1));
             optimisticCreatedAction.pendingAction = null;
             actions.push(optimisticCreatedAction);
         }
@@ -503,7 +505,7 @@ function ReportActionsView({
                 false,
                 {},
                 false,
-                DateUtils.subtractMillisecondsFromDateTime(actions[actions.length - 1].created, 1),
+                DateUtils.subtractMillisecondsFromDateTime(actions?.at(-1)?.created ?? '', 1),
             ) as OnyxTypes.ReportAction;
             moneyRequestActions.push(optimisticIOUAction);
             actions.splice(actions.length - 1, 0, optimisticIOUAction);

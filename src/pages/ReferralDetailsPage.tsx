@@ -61,7 +61,7 @@ function ReferralDetailsPage({route, account}: ReferralDetailsPageProps) {
                 />
             }
             headerContainerStyles={[styles.staticHeaderImage, styles.justifyContentEnd]}
-            backgroundColor={theme.PAGE_THEMES[SCREENS.REFERRAL_DETAILS].backgroundColor}
+            backgroundColor={theme?.PAGE_THEMES?.[SCREENS.REFERRAL_DETAILS]?.backgroundColor ?? '#FFFFFF'}
             testID={ReferralDetailsPage.displayName}
             onBackButtonPress={() => {
                 if (backTo) {

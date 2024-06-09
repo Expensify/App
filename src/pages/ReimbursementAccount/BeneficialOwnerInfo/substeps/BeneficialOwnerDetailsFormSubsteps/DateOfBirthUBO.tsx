@@ -38,10 +38,11 @@ function DateOfBirthUBO({reimbursementAccountDraft, onNext, isEditing, beneficia
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
         const errors = ValidationUtils.getFieldRequiredErrors(values, [dobInputID]);
 
-        if (values[dobInputID]) {
-            if (!ValidationUtils.isValidPastDate(values[dobInputID]) || !ValidationUtils.meetsMaximumAgeRequirement(values[dobInputID])) {
+        const dobDate = values[dobInputID];
+        if (dobDate) {
+            if (!ValidationUtils.isValidPastDate(dobDate) || !ValidationUtils.meetsMaximumAgeRequirement(dobDate)) {
                 errors[dobInputID] = 'bankAccount.error.dob';
-            } else if (!ValidationUtils.meetsMinimumAgeRequirement(values[dobInputID])) {
+            } else if (!ValidationUtils.meetsMinimumAgeRequirement(dobDate)) {
                 errors[dobInputID] = 'bankAccount.error.age';
             }
         }

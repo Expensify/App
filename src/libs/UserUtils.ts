@@ -96,8 +96,10 @@ function getDefaultAvatar(accountID = -1, avatarURL?: string): IconAsset | undef
     let accountIDHashBucket: AvatarRange | undefined;
     if (avatarURL) {
         const match = avatarURL.match(/(default-avatar_|avatar_)(\d+)(?=\.)/);
-        const lastDigit = match && parseInt(match[2], 10);
-        accountIDHashBucket = lastDigit as AvatarRange;
+        if (match && match.length > 2) {
+            const lastDigit = match && parseInt(match[2], 10);
+            accountIDHashBucket = lastDigit as AvatarRange;
+        }
     } else if (accountID > 0) {
         accountIDHashBucket = ((accountID % CONST.DEFAULT_AVATAR_COUNT) + 1) as AvatarRange;
     }

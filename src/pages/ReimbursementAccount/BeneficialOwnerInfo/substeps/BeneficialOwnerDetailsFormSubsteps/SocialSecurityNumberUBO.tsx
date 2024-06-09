@@ -35,7 +35,7 @@ function SocialSecurityNumberUBO({reimbursementAccountDraft, onNext, isEditing, 
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
         const errors = ValidationUtils.getFieldRequiredErrors(values, stepFields);
-        if (values[ssnLast4InputID] && !ValidationUtils.isValidSSNLastFour(values[ssnLast4InputID])) {
+        if (values[ssnLast4InputID] && !ValidationUtils.isValidSSNLastFour(values[ssnLast4InputID] ?? '')) {
             errors[ssnLast4InputID] = 'bankAccount.error.ssnLast4';
         }
         return errors;

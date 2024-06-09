@@ -139,7 +139,7 @@ function WorkspaceWorkflowsApproverPage({policy, personalDetails, isLoadingRepor
     }, [formattedPolicyEmployeeList, formattedApprover, searchTerm, translate]);
 
     const headerMessage = useMemo(
-        () => (searchTerm && !sections[0].data.length ? translate('common.noResultsFound') : ''),
+        () => (searchTerm && !sections[0]?.data.length ? translate('common.noResultsFound') : ''),
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [translate, sections],

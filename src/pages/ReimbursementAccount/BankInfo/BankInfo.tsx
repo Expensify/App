@@ -133,6 +133,8 @@ function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkTok
         }
     };
 
+    const SubStepComponent = SubStep ?? function () { return null };
+
     return (
         <ScreenWrapper
             testID={BankInfo.displayName}
@@ -150,7 +152,7 @@ function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkTok
                     stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
                 />
             </View>
-            <SubStep
+            <SubStepComponent
                 isEditing={isEditing}
                 onNext={nextScreen}
                 onMove={moveTo}

@@ -87,8 +87,9 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
             }
 
             // Update the parent modal's state with the source and name from the mapped attachments
-            if (targetAttachments[initialPage] !== undefined && onNavigate) {
-                onNavigate(targetAttachments[initialPage]);
+            const item = targetAttachments[initialPage];
+            if (item && onNavigate) {
+                onNavigate(item);
             }
         }
     }, [reportActions, parentReportActions, compareImage, report.parentReportActionID, attachments, setDownloadButtonVisibility, onNavigate, accountID, report.reportID, type]);

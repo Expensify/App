@@ -341,7 +341,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 <ProcessMoneyReportHoldMenu
                     nonHeldAmount={!ReportUtils.hasOnlyHeldExpenses(moneyRequestReport.reportID) ? nonHeldAmount : undefined}
                     requestType={requestType}
-                    fullAmount={fullAmount}
+                    fullAmount={fullAmount ?? ''}
                     isSmallScreenWidth={shouldUseNarrowLayout}
                     onClose={() => setIsHoldMenuVisible(false)}
                     isVisible={isHoldMenuVisible}

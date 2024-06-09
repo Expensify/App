@@ -470,8 +470,8 @@ const ContextMenuActions: ContextMenuAction[] = [
             const {originalFileName, sourceURL} = getAttachmentDetails(html);
             const sourceURLWithAuth = addEncryptedAuthTokenToURL(sourceURL ?? '');
             const sourceID = (sourceURL?.match(CONST.REGEX.ATTACHMENT_ID) ?? [])[1];
-            Download.setDownload(sourceID, true);
-            fileDownload(sourceURLWithAuth, originalFileName ?? '').then(() => Download.setDownload(sourceID, false));
+            Download.setDownload(sourceID ?? '', true);
+            fileDownload(sourceURLWithAuth, originalFileName ?? '').then(() => Download.setDownload(sourceID ?? '', false));
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }

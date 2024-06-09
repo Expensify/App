@@ -48,8 +48,8 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', dow
                         if (isDownloading || isOffline) {
                             return;
                         }
-                        Download.setDownload(sourceID, true);
-                        fileDownload(sourceURLWithAuth, displayName, '', Browser.isMobileSafari()).then(() => Download.setDownload(sourceID, false));
+                        Download.setDownload(sourceID ?? '', true);
+                        fileDownload(sourceURLWithAuth, displayName, '', Browser.isMobileSafari()).then(() => Download.setDownload(sourceID ?? '', false));
                     }}
                     onPressIn={onPressIn}
                     onPressOut={onPressOut}

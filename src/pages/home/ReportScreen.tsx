@@ -108,7 +108,7 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
     if (!parentReportActions || !parentReportActionID) {
         return null;
     }
-    return parentReportActions[parentReportActionID ?? '0'];
+    return parentReportActions[parentReportActionID ?? '0'] ?? ({} as OnyxEntry<OnyxTypes.ReportAction>);
 }
 
 function ReportScreen({

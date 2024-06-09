@@ -188,11 +188,11 @@ function BankAccountStep({
                                 <TextLink
                                     fontSize={variables.fontSizeLabel}
                                     onPress={() => {
-                                        const login = loginList?.[loginNames?.[0]] ?? {};
-                                        Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(login?.partnerUserID ?? loginNames?.[0]));
+                                        const login = loginList?.[loginNames?.[0] ?? ''] ?? {};
+                                        Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(login?.partnerUserID ?? loginNames?.[0] ?? ''));
                                     }}
                                 >
-                                    {translate('bankAccount.validateAccountError.phrase4')}
+                                {translate('bankAccount.validateAccountError.phrase4')}
                                 </TextLink>
                                 .
                             </Text>

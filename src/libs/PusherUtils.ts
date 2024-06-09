@@ -16,10 +16,11 @@ function subscribeToMultiEvent(eventType: string, callback: Callback) {
 }
 
 function triggerMultiEventHandler(eventType: string, data: OnyxUpdate[]): Promise<void> {
-    if (!multiEventCallbackMapping[eventType]) {
-        return Promise.resolve();
+    const callback = multiEventCallbackMapping[eventType];
+    if (callback) {
+        return callback(data);
     }
-    return multiEventCallbackMapping[eventType](data);
+    return Promise.resolve();
 }
 
 /**

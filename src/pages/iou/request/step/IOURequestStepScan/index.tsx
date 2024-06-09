@@ -42,6 +42,7 @@ import type {Receipt} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import NavigationAwareCamera from './NavigationAwareCamera/WebCamera';
 import type {IOURequestStepOnyxProps, IOURequestStepScanProps} from './types';
+import {Participant} from "@src/types/onyx/IOU";
 
 function IOURequestStepScan({
     report,
@@ -302,7 +303,7 @@ function IOURequestStepScan({
                                 '',
                                 currentUserPersonalDetails.login,
                                 currentUserPersonalDetails.accountID,
-                                participants[0],
+                                participants[0] as Participant,
                                 '',
                                 receipt,
                                 '',
@@ -327,7 +328,7 @@ function IOURequestStepScan({
                                 '',
                                 currentUserPersonalDetails.login,
                                 currentUserPersonalDetails.accountID,
-                                participants[0],
+                                participants[0] as Participant,
                                 '',
                                 receipt,
                                 '',
@@ -357,7 +358,7 @@ function IOURequestStepScan({
                                 '',
                                 currentUserPersonalDetails.login,
                                 currentUserPersonalDetails.accountID,
-                                participants[0],
+                                participants[0] as Participant,
                                 '',
                                 receipt,
                             );
@@ -370,7 +371,7 @@ function IOURequestStepScan({
                                 '',
                                 currentUserPersonalDetails.login,
                                 currentUserPersonalDetails.accountID,
-                                participants[0],
+                                participants[0] as Participant,
                                 '',
                                 receipt,
                             );
@@ -436,9 +437,9 @@ function IOURequestStepScan({
         setCameraPermissionState('granted');
 
         const [track] = stream.getVideoTracks();
-        const capabilities = track.getCapabilities();
+        const capabilities = track?.getCapabilities();
 
-        if ('torch' in capabilities && capabilities.torch) {
+        if (capabilities && 'torch' in capabilities && capabilities?.torch && trackRef) {
             trackRef.current = track;
         }
         setIsTorchAvailable('torch' in capabilities && !!capabilities.torch);

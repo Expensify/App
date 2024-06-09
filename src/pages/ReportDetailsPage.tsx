@@ -40,6 +40,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
+import {AvatarSource} from "@libs/UserUtils";
 
 type ReportDetailsPageMenuItem = {
     key: DeepValueOf<typeof CONST.REPORT_DETAILS_MENU_ITEM>;
@@ -274,8 +275,8 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         if (isGroupChat && !isThread) {
             return (
                 <AvatarWithImagePicker
-                    source={icons[0].source}
-                    avatarID={icons[0].id}
+                    source={icons[0]?.source ?? {} as AvatarSource}
+                    avatarID={icons[0]?.id ?? ''}
                     isUsingDefaultAvatar={!report.avatarUrl}
                     size={CONST.AVATAR_SIZE.XLARGE}
                     avatarStyle={styles.avatarXLarge}

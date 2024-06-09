@@ -123,7 +123,7 @@ function ActivatePhysicalCardPage({
         <IllustratedHeaderPageLayout
             title={translate('activateCardPage.activateCard')}
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(cardID))}
-            backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.PREFERENCES.ROOT].backgroundColor}
+            backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.PREFERENCES.ROOT]?.backgroundColor ?? '#FFFFFF'}
             illustration={LottieAnimations.Magician}
             scrollViewContainerStyles={[styles.mnh100]}
             childrenContainerStyles={[styles.flex1]}

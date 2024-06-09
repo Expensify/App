@@ -69,7 +69,7 @@ function BaseValidateCodeForm({account = {}, contactMethod, hasMagicCodeBeenSent
     const [validateCode, setValidateCode] = useState('');
     const loginData = loginList[contactMethod];
     const inputValidateCodeRef = useRef<MagicCodeInputHandle>(null);
-    const validateLoginError = ErrorUtils.getEarliestErrorField(loginData, 'validateLogin');
+    const validateLoginError = ErrorUtils.getEarliestErrorField(loginData ?? {}, 'validateLogin');
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing doesn't achieve the same result in this case
     const shouldDisableResendValidateCode = !!isOffline || account?.isLoading;
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -183,8 +183,8 @@ function BaseValidateCodeForm({account = {}, contactMethod, hasMagicCodeBeenSent
                 autoFocus={false}
             />
             <OfflineWithFeedback
-                pendingAction={loginData.pendingFields?.validateCodeSent}
-                errors={ErrorUtils.getLatestErrorField(loginData, 'validateCodeSent')}
+                pendingAction={loginData?.pendingFields?.validateCodeSent}
+                errors={ErrorUtils.getLatestErrorField(loginData ?? {}, 'validateCodeSent')}
                 errorRowStyles={[styles.mt2]}
                 onClose={() => User.clearContactMethodErrors(contactMethod, 'validateCodeSent')}
             >
@@ -212,7 +212,7 @@ function BaseValidateCodeForm({account = {}, contactMethod, hasMagicCodeBeenSent
                 </View>
             </OfflineWithFeedback>
             <OfflineWithFeedback
-                pendingAction={loginData.pendingFields?.validateLogin}
+                pendingAction={loginData?.pendingFields?.validateLogin}
                 errors={validateLoginError}
                 errorRowStyles={[styles.mt2]}
                 onClose={() => User.clearContactMethodErrors(contactMethod, 'validateLogin')}

@@ -603,6 +603,10 @@ function getValidWaypoints(waypoints: WaypointCollection | undefined, reArrangeI
     return waypointValues.reduce<WaypointCollection>((acc, currentWaypoint, index) => {
         const previousWaypoint = waypointValues[lastWaypointIndex];
 
+        if (!currentWaypoint) {
+            return acc;
+        }
+
         // Check if the waypoint has a valid address
         if (!waypointHasValidAddress(currentWaypoint)) {
             return acc;

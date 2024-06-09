@@ -249,14 +249,14 @@ function BeneficialOwnersStep({reimbursementAccount, reimbursementAccountDraft, 
                 />
             )}
 
-            {currentUBOSubstep === SUBSTEP.UBO_DETAILS_FORM && (
+            {currentUBOSubstep === SUBSTEP.UBO_DETAILS_FORM && ((
                 <BeneficialOwnerDetailsForm
                     isEditing={isEditing}
                     beneficialOwnerBeingModifiedID={beneficialOwnerBeingModifiedID}
                     setBeneficialOwnerBeingModifiedID={setBeneficialOwnerBeingModifiedID}
                     onNext={nextScreen}
                     onMove={moveTo}
-                />
+                /> ?? function () { return null; })
             )}
 
             {currentUBOSubstep === SUBSTEP.ARE_THERE_MORE_UBOS && (

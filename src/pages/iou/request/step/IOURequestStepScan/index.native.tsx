@@ -39,6 +39,7 @@ import type {Receipt} from '@src/types/onyx/Transaction';
 import CameraPermission from './CameraPermission';
 import NavigationAwareCamera from './NavigationAwareCamera/Camera';
 import type {IOURequestStepOnyxProps, IOURequestStepScanProps} from './types';
+import {Participant} from "@src/types/onyx/IOU";
 
 function IOURequestStepScan({
     report,
@@ -264,7 +265,7 @@ function IOURequestStepScan({
                                 '',
                                 currentUserPersonalDetails.login,
                                 currentUserPersonalDetails.accountID,
-                                participants[0],
+                                participants[0] as Participant,
                                 '',
                                 receipt,
                                 '',
@@ -289,7 +290,7 @@ function IOURequestStepScan({
                                 '',
                                 currentUserPersonalDetails.login,
                                 currentUserPersonalDetails.accountID,
-                                participants[0],
+                                participants[0] as Participant,
                                 '',
                                 receipt,
                                 '',
@@ -319,7 +320,7 @@ function IOURequestStepScan({
                                 '',
                                 currentUserPersonalDetails.login,
                                 currentUserPersonalDetails.accountID,
-                                participants[0],
+                                participants[0] as Participant,
                                 '',
                                 receipt,
                             );
@@ -332,7 +333,7 @@ function IOURequestStepScan({
                                 '',
                                 currentUserPersonalDetails.login,
                                 currentUserPersonalDetails.accountID,
-                                participants[0],
+                                participants[0] as Participant,
                                 '',
                                 receipt,
                             );

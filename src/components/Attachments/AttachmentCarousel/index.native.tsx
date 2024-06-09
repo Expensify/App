@@ -53,8 +53,9 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
             }
 
             // Update the parent modal's state with the source and name from the mapped attachments
-            if (targetAttachments[initialPage] !== undefined && onNavigate) {
-                onNavigate(targetAttachments[initialPage]);
+            const item = targetAttachments[initialPage];
+            if (item && onNavigate) {
+                onNavigate(item);
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -69,9 +70,11 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
             const item = attachments[newPageIndex];
 
             setPage(newPageIndex);
-            setActiveSource(item.source);
+            if (item) {
+                setActiveSource(item.source);
+            }
 
-            if (onNavigate) {
+            if (onNavigate && item) {
                 onNavigate(item);
             }
         },

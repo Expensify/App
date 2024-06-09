@@ -101,6 +101,7 @@ tests/e2e/results/
 
 # Typescript
 tsconfig.tsbuildinfo
+tsconfig.uncheckedindex.tsbuildinfo
 
 # Mock-github
 /repo/

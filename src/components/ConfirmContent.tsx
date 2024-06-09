@@ -104,7 +104,7 @@ function ConfirmContent({
     return (
         <>
             {!!image && (
-                <View style={[StyleUtils.getBackgroundColorStyle(colors.pink800)]}>
+                <View style={[StyleUtils.getBackgroundColorStyle(colors.pink800 ?? '#FFFFFF')]}>
                     <ImageSVG
                         contentFit="contain"
                         src={image}

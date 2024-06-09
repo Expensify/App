@@ -52,7 +52,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
 
             Report.completeOnboarding(
                 onboardingPurposeSelected,
-                CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
+                CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected] ?? {},
                 {
                     firstName,
                     lastName,

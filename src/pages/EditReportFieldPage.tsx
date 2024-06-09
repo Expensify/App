@@ -75,7 +75,7 @@ function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) 
 
     const handleReportFieldChange = (form: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM>) => {
         const value = form[fieldKey];
-        if (isReportFieldTitle) {
+        if (isReportFieldTitle && value) {
             ReportActions.updateReportName(report.reportID, value, report.reportName ?? '');
         } else {
             ReportActions.updateReportField(report.reportID, {...reportField, value: value === '' ? null : value}, reportField);

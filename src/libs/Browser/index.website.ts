@@ -13,6 +13,10 @@ const getBrowser: GetBrowser = () => {
     let temp: RegExpMatchArray | null;
     let browserName = '';
 
+    if (!match[1]) {
+        return navigator.appName.toLowerCase() ?? CONST.BROWSER.OTHER;
+    }
+
     if (/trident/i.test(match[1])) {
         return 'IE';
     }

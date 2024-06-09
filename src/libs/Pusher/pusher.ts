@@ -191,6 +191,11 @@ function bindEventToChannel<EventName extends PusherEventName>(channel: Channel 
 
         // Add it to the rolling list.
         const chunkedEvent = chunkedDataEvents[data.id];
+
+        if (!chunkedEvent) {
+            return;
+        }
+
         if (data.index !== undefined) {
             chunkedEvent.chunks[data.index] = data.chunk;
         }
@@ -202,7 +207,7 @@ function bindEventToChannel<EventName extends PusherEventName>(channel: Channel 
 
         // Only call the event callback if we've received the last packet and we don't have any holes in the complete
         // packet.
-        if (chunkedEvent.receivedFinal && chunkedEvent.chunks.length === Object.keys(chunkedEvent.chunks).length) {
+        if (chunkedEvent.receivedFinal && chunkedEvent.chunks?.length === Object.keys(chunkedEvent.chunks).length) {
             try {
                 eventCallback(JSON.parse(chunkedEvent.chunks.join('')) as EventData<EventName>);
             } catch (err) {

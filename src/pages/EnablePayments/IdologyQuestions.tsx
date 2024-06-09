@@ -41,7 +41,7 @@ function IdologyQuestions({questions, idNumber}: IdologyQuestionsProps) {
     const [userAnswers, setUserAnswers] = useState<Answer[]>([]);
 
     const currentQuestion = questions[currentQuestionIndex] || {};
-    const possibleAnswers: Choice[] = currentQuestion.answer
+    const possibleAnswers: Choice[] = currentQuestion?.answer || []
         .map((answer) => {
             if (shouldHideSkipAnswer && answer === SKIP_QUESTION_TEXT) {
                 return;
@@ -124,7 +124,7 @@ function IdologyQuestions({questions, idNumber}: IdologyQuestionsProps) {
                 <InputWrapper
                     InputComponent={SingleChoiceQuestion}
                     inputID="answer"
-                    prompt={currentQuestion.prompt}
+                    prompt={currentQuestion.prompt || ''}
                     possibleAnswers={possibleAnswers}
                     currentQuestionIndex={currentQuestionIndex}
                     onValueChange={(value) => {

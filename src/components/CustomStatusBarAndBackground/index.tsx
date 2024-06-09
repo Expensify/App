@@ -82,14 +82,14 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
             if (currentRoute && 'name' in currentRoute && currentRoute.name in theme.PAGE_THEMES) {
                 const pageTheme = theme.PAGE_THEMES[currentRoute.name];
 
-                newStatusBarStyle = pageTheme.statusBarStyle;
+                newStatusBarStyle = pageTheme?.statusBarStyle ?? 'light-content';
 
                 const backgroundColorFromRoute =
                     currentRoute?.params && 'backgroundColor' in currentRoute.params && typeof currentRoute.params.backgroundColor === 'string' && currentRoute.params.backgroundColor;
 
                 // It's possible for backgroundColorFromRoute to be empty string, so we must use "||" to fallback to backgroundColorFallback.
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                currentScreenBackgroundColor = backgroundColorFromRoute || pageTheme.backgroundColor;
+                currentScreenBackgroundColor = backgroundColorFromRoute || (pageTheme?.backgroundColor ?? '#FFFFFF');
             }
 
             prevStatusBarBackgroundColor.current = statusBarBackgroundColor.current;

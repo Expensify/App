@@ -205,7 +205,7 @@ function getForReportAction(reportID: string | undefined, reportAction: OnyxEntr
         const sortedTagKeys = PolicyUtils.getSortedTagKeys(policyTags);
 
         sortedTagKeys.forEach((policyTagKey, index) => {
-            const policyTagListName = policyTags[policyTagKey].name || localizedTagListName;
+            const policyTagListName = policyTags[policyTagKey]?.name || localizedTagListName;
 
             const newTag = splittedTag[index] ?? '';
             const oldTag = splittedOldTag[index] ?? '';

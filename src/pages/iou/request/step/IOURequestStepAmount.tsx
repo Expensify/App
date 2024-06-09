@@ -22,6 +22,7 @@ import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {Participant} from "@src/types/onyx/IOU";
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -213,23 +214,23 @@ function IOURequestStepAmount({
 
                 if (iouType === CONST.IOU.TYPE.PAY || iouType === CONST.IOU.TYPE.SEND) {
                     if (paymentMethod && paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-                        IOU.sendMoneyWithWallet(report, backendAmount, currency, '', currentUserPersonalDetails.accountID, participants[0]);
+                        IOU.sendMoneyWithWallet(report, backendAmount, currency ?? CONST.CURRENCY.USD, '', currentUserPersonalDetails.accountID, participants[0] as Participant);
                         return;
                     }
 
-                    IOU.sendMoneyElsewhere(report, backendAmount, currency, '', currentUserPersonalDetails.accountID, participants[0]);
+                    IOU.sendMoneyElsewhere(report, backendAmount, currency ?? CONST.CURRENCY.USD, '', currentUserPersonalDetails.accountID, participants[0] as Participant);
                     return;
                 }
-                if (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.REQUEST) {
+                if (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.REQUEST && participants[0]) {
                     IOU.requestMoney(
                         report,
                         backendAmount,
-                        currency,
+                        currency ?? CONST.CURRENCY.USD,
                         transaction?.created ?? '',
                         '',
                         currentUserPersonalDetails.login,
                         currentUserPersonalDetails.accountID,
-                        participants[0],
+                        participants[0] as Participant,
                         '',
                         {},
                     );
@@ -239,12 +240,12 @@ function IOURequestStepAmount({
                     IOU.trackExpense(
                         report,
                         backendAmount,
-                        currency ?? 'USD',
+                        currency ?? CONST.CURRENCY.USD,
                         transaction?.created ?? '',
                         '',
                         currentUserPersonalDetails.login,
                         currentUserPersonalDetails.accountID,
-                        participants[0],
+                        participants[0] as Participant,
                         '',
                     );
                     return;

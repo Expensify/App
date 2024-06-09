@@ -64,7 +64,9 @@ function InteractiveStepSubHeader({stepNames, startStepIndex = 0, onStepSelected
                         return;
                     }
                     setCurrentStep(index);
-                    onStepSelected(stepNames[index]);
+                    if (stepName) {
+                        onStepSelected(stepName);
+                    }
                 };
 
                 return (
@@ -82,7 +84,7 @@ function InteractiveStepSubHeader({stepNames, startStepIndex = 0, onStepSelected
                             disabled={isLockedStep || !onStepSelected}
                             onPress={moveToStep}
                             accessible
-                            accessibilityLabel={stepName[index]}
+                            accessibilityLabel={stepName?.[index] ?? ''}
                             role={CONST.ROLE.BUTTON}
                         >
                             {isCompletedStep ? (

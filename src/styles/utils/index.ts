@@ -43,33 +43,33 @@ import type {
 } from './types';
 
 const workspaceColorOptions: SVGAvatarColorStyle[] = [
-    {backgroundColor: colors.blue200, fill: colors.blue700},
-    {backgroundColor: colors.blue400, fill: colors.blue800},
-    {backgroundColor: colors.blue700, fill: colors.blue200},
-    {backgroundColor: colors.green200, fill: colors.green700},
-    {backgroundColor: colors.green400, fill: colors.green800},
-    {backgroundColor: colors.green700, fill: colors.green200},
-    {backgroundColor: colors.yellow200, fill: colors.yellow700},
-    {backgroundColor: colors.yellow400, fill: colors.yellow800},
-    {backgroundColor: colors.yellow700, fill: colors.yellow200},
-    {backgroundColor: colors.tangerine200, fill: colors.tangerine700},
-    {backgroundColor: colors.tangerine400, fill: colors.tangerine800},
-    {backgroundColor: colors.tangerine700, fill: colors.tangerine400},
-    {backgroundColor: colors.pink200, fill: colors.pink700},
-    {backgroundColor: colors.pink400, fill: colors.pink800},
-    {backgroundColor: colors.pink700, fill: colors.pink200},
-    {backgroundColor: colors.ice200, fill: colors.ice700},
-    {backgroundColor: colors.ice400, fill: colors.ice800},
-    {backgroundColor: colors.ice700, fill: colors.ice200},
+    {backgroundColor: colors.blue200 ?? '#FFFFFF', fill: colors.blue700 ?? '#FFFFFF'},
+    {backgroundColor: colors.blue400 ?? '#FFFFFF', fill: colors.blue800 ?? '#FFFFFF'},
+    {backgroundColor: colors.blue700 ?? '#FFFFFF', fill: colors.blue200 ?? '#FFFFFF'},
+    {backgroundColor: colors.green200 ?? '#FFFFFF', fill: colors.green700 ?? '#FFFFFF'},
+    {backgroundColor: colors.green400 ?? '#FFFFFF', fill: colors.green800 ?? '#FFFFFF'},
+    {backgroundColor: colors.green700 ?? '#FFFFFF', fill: colors.green200 ?? '#FFFFFF'},
+    {backgroundColor: colors.yellow200 ?? '#FFFFFF', fill: colors.yellow700 ?? '#FFFFFF'},
+    {backgroundColor: colors.yellow400 ?? '#FFFFFF', fill: colors.yellow800 ?? '#FFFFFF'},
+    {backgroundColor: colors.yellow700 ?? '#FFFFFF', fill: colors.yellow200 ?? '#FFFFFF'},
+    {backgroundColor: colors.tangerine200 ?? '#FFFFFF', fill: colors.tangerine700 ?? '#FFFFFF'},
+    {backgroundColor: colors.tangerine400 ?? '#FFFFFF', fill: colors.tangerine800 ?? '#FFFFFF'},
+    {backgroundColor: colors.tangerine700 ?? '#FFFFFF', fill: colors.tangerine400 ?? '#FFFFFF'},
+    {backgroundColor: colors.pink200 ?? '#FFFFFF', fill: colors.pink700 ?? '#FFFFFF'},
+    {backgroundColor: colors.pink400 ?? '#FFFFFF', fill: colors.pink800 ?? '#FFFFFF'},
+    {backgroundColor: colors.pink700 ?? '#FFFFFF', fill: colors.pink200 ?? '#FFFFFF'},
+    {backgroundColor: colors.ice200 ?? '#FFFFFF', fill: colors.ice700 ?? '#FFFFFF'},
+    {backgroundColor: colors.ice400 ?? '#FFFFFF', fill: colors.ice800 ?? '#FFFFFF'},
+    {backgroundColor: colors.ice700 ?? '#FFFFFF', fill: colors.ice200 ?? '#FFFFFF'},
 ];
 
 const eReceiptColorStyles: Partial<Record<EReceiptColorName, EreceiptColorStyle>> = {
-    [CONST.ERECEIPT_COLORS.YELLOW]: {backgroundColor: colors.yellow600, color: colors.yellow100},
-    [CONST.ERECEIPT_COLORS.ICE]: {backgroundColor: colors.blue800, color: colors.ice400},
-    [CONST.ERECEIPT_COLORS.BLUE]: {backgroundColor: colors.blue400, color: colors.blue100},
-    [CONST.ERECEIPT_COLORS.GREEN]: {backgroundColor: colors.green800, color: colors.green400},
-    [CONST.ERECEIPT_COLORS.TANGERINE]: {backgroundColor: colors.tangerine800, color: colors.tangerine400},
-    [CONST.ERECEIPT_COLORS.PINK]: {backgroundColor: colors.pink800, color: colors.pink400},
+    [CONST.ERECEIPT_COLORS.YELLOW]: {backgroundColor: colors.yellow600 ?? '#FFFFFF', color: colors.yellow100 ?? '#FFFFFF'},
+    [CONST.ERECEIPT_COLORS.ICE]: {backgroundColor: colors.blue800 ?? '#FFFFFF', color: colors.ice400 ?? '#FFFFFF'},
+    [CONST.ERECEIPT_COLORS.BLUE]: {backgroundColor: colors.blue400 ?? '#FFFFFF', color: colors.blue100 ?? '#FFFFFF'},
+    [CONST.ERECEIPT_COLORS.GREEN]: {backgroundColor: colors.green800 ?? '#FFFFFF', color: colors.green400 ?? '#FFFFFF'},
+    [CONST.ERECEIPT_COLORS.TANGERINE]: {backgroundColor: colors.tangerine800 ?? '#FFFFFF', color: colors.tangerine400 ?? '#FFFFFF'},
+    [CONST.ERECEIPT_COLORS.PINK]: {backgroundColor: colors.pink800 ?? '#FFFFFF', color: colors.pink400 ?? '#FFFFFF'},
 };
 
 const eReceiptColors: EReceiptColorName[] = [
@@ -161,10 +161,14 @@ function hexadecimalToRGBArray(hexadecimal: string): number[] | undefined {
  * @returns The RGB components of the RGBA color converted to RGB.
  */
 function convertRGBAToRGB(foregroundRGB: number[], backgroundRGB: number[], opacity: number): number[] {
-    const [foregroundRed, foregroundGreen, foregroundBlue] = foregroundRGB;
-    const [backgroundRed, backgroundGreen, backgroundBlue] = backgroundRGB;
+    const [foregroundRed = 0, foregroundGreen = 0, foregroundBlue = 0] = foregroundRGB;
+    const [backgroundRed = 0, backgroundGreen = 0, backgroundBlue = 0] = backgroundRGB;
 
-    return [(1 - opacity) * backgroundRed + opacity * foregroundRed, (1 - opacity) * backgroundGreen + opacity * foregroundGreen, (1 - opacity) * backgroundBlue + opacity * foregroundBlue];
+    return [
+        (1 - opacity) * backgroundRed + opacity * foregroundRed,
+        (1 - opacity) * backgroundGreen + opacity * foregroundGreen,
+        (1 - opacity) * backgroundBlue + opacity * foregroundBlue
+    ];
 }
 
 /**
@@ -203,7 +207,7 @@ function extractValuesFromRGB(color: string): number[] | null {
     const rgbaPattern = /rgba?\((?<r>[.\d]+)[, ]+(?<g>[.\d]+)[, ]+(?<b>[.\d]+)(?:\s?[,/]\s?(?<a>[.\d]+%?))?\)$/i;
     const matchRGBA = color.match(rgbaPattern);
     if (matchRGBA) {
-        const [, red, green, blue, alpha] = matchRGBA;
+        const [, red = '0', green = '0', blue = '0', alpha = '0'] = matchRGBA;
         return [parseInt(red, 10), parseInt(green, 10), parseInt(blue, 10), alpha ? parseFloat(alpha) : 1];
     }
 
@@ -272,8 +276,7 @@ function getAvatarBorderStyle(size: AvatarSizeName, type: string): ViewStyle {
  */
 function getDefaultWorkspaceAvatarColor(text: string): ViewStyle {
     const colorHash = UserUtils.hashText(text.trim(), workspaceColorOptions.length);
-
-    return workspaceColorOptions[colorHash];
+    return workspaceColorOptions[colorHash] ?? {};
 }
 
 /**
@@ -292,7 +295,7 @@ function getEReceiptColorCode(transaction: OnyxEntry<Transaction>): EReceiptColo
 
     const colorHash = UserUtils.hashText(transactionID.trim(), eReceiptColors.length);
 
-    return eReceiptColors[colorHash];
+    return eReceiptColors[colorHash] ?? CONST.ERECEIPT_COLORS.YELLOW;
 }
 
 /**
@@ -1535,11 +1538,11 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     getThemeBackgroundColor: (bgColor: string): string => {
         const backdropOpacity = variables.overlayOpacity;
 
-        const [backgroundRed, backgroundGreen, backgroundBlue] = extractValuesFromRGB(bgColor) ?? hexadecimalToRGBArray(bgColor) ?? [];
-        const [backdropRed, backdropGreen, backdropBlue] = hexadecimalToRGBArray(theme.overlay) ?? [];
+        const [backgroundRed = 0, backgroundGreen = 0, backgroundBlue = 0] = extractValuesFromRGB(bgColor) ?? hexadecimalToRGBArray(bgColor) ?? [];
+        const [backdropRed = 0, backdropGreen = 0, backdropBlue = 0] = hexadecimalToRGBArray(theme.overlay) ?? [];
         const normalizedBackdropRGB = convertRGBToUnitValues(backdropRed, backdropGreen, backdropBlue);
         const normalizedBackgroundRGB = convertRGBToUnitValues(backgroundRed, backgroundGreen, backgroundBlue);
-        const [red, green, blue] = convertRGBAToRGB(normalizedBackdropRGB, normalizedBackgroundRGB, backdropOpacity);
+        const [red = 0, green = 0, blue = 0] = convertRGBAToRGB(normalizedBackdropRGB, normalizedBackgroundRGB, backdropOpacity);
         const themeRGB = convertUnitValuesToRGB(red, green, blue);
 
         return `rgb(${themeRGB.join(', ')})`;
@@ -1688,7 +1691,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
 
 type StyleUtilsType = ReturnType<typeof createStyleUtils>;
 
-const DefaultStyleUtils = createStyleUtils(defaultTheme, defaultStyles);
+const DefaultStyleUtils = createStyleUtils(defaultTheme as ThemeColors, defaultStyles);
 
 export default createStyleUtils;
 export {DefaultStyleUtils};

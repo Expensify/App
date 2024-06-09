@@ -176,13 +176,13 @@ function AddressSearch(
         // If the address is not in the US, use the full length state name since we're displaying the address's
         // state / province in a TextInput instead of in a picker.
         if (country !== CONST.COUNTRY.US) {
-            values.state = longStateName;
+            values.state = longStateName ?? '';
         }
 
         // UK addresses return countries (e.g. England) in the state field (administrative_area_level_1)
         // So we use a secondary field (administrative_area_level_2) as a fallback
         if (country === CONST.COUNTRY.GB) {
-            values.state = stateFallback;
+            values.state = stateFallback ?? '';
         }
 
         // Set the state to be the same as the city in case the state is empty.
@@ -218,7 +218,7 @@ function AddressSearch(
                 if (!inputKey) {
                     return;
                 }
-                onInputChange?.(inputValue, inputKey);
+                onInputChange?.(inputValue ?? '', inputKey);
             });
         } else {
             onInputChange?.(values);

@@ -238,7 +238,7 @@ function MoneyRequestAmountForm(
                 } else if (iouType === CONST.IOU.TYPE.TRACK) {
                     text = translate('iou.trackAmount', {amount: currencyAmount});
                 }
-                return text[0].toUpperCase() + text.slice(1);
+                return (text[0] ?? '').toUpperCase() + text.slice(1);
             }
 
             if (iouType === CONST.IOU.TYPE.SPLIT) {

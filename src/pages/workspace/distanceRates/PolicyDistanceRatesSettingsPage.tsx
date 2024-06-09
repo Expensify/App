@@ -27,7 +27,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {CustomUnit} from '@src/types/onyx/Policy';
+import type {Attributes, CustomUnit} from '@src/types/onyx/Policy';
 import CategorySelector from './CategorySelector';
 import UnitSelector from './UnitSelector';
 
@@ -46,17 +46,21 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
     const {translate} = useLocalize();
     const policyID = route.params.policyID;
     const customUnits = policy?.customUnits ?? {};
-    const customUnit = customUnits[Object.keys(customUnits)[0]];
+    const customUnitKey = Object.keys(customUnits)[0];
+    const customUnit = customUnitKey ? customUnits[customUnitKey] : undefined;
     const customUnitID = customUnit?.customUnitID ?? '';
     const isDistanceTrackTaxEnabled = !!customUnit?.attributes?.taxEnabled;
     const isPolicyTrackTaxEnabled = !!policy?.tax?.trackingEnabled;
 
     const defaultCategory = customUnits[customUnitID]?.defaultCategory;
-    const defaultUnit = customUnits[customUnitID]?.attributes.unit;
+    const defaultUnit = customUnits[customUnitID]?.attributes?.unit ?? "km";
     const errorFields = customUnits[customUnitID]?.errorFields;
 
     const setNewUnit = (unit: UnitItemType) => {
-        const attributes = {...customUnits[customUnitID].attributes, unit: unit.value};
+        const attributes = {...customUnits[customUnitID]?.attributes, unit: unit.value};
+        if (!customUnit) {
+            return;
+        }
         DistanceRate.setPolicyDistanceRatesUnit(policyID, customUnit, {...customUnit, attributes});
     };
 
@@ -65,6 +69,9 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
             return;
         }
 
+        if (!customUnit) {
+            return;
+        }
         Category.setPolicyDistanceRatesDefaultCategory(policyID, customUnit, {
             ...customUnit,
             defaultCategory: defaultCategory === category.searchText ? '' : category.searchText,
@@ -76,8 +83,8 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
     };
 
     const onToggleTrackTax = (isOn: boolean) => {
-        const attributes = {...customUnits[customUnitID].attributes, taxEnabled: isOn};
-        Policy.enableDistanceRequestTax(policyID, customUnit.name, customUnitID, attributes);
+        const attributes = {...customUnits[customUnitID]?.attributes, taxEnabled: isOn} as Attributes;
+        Policy.enableDistanceRequestTax(policyID, customUnit?.name ?? '', customUnitID, attributes);
     };
     return (
         <AccessOrNotFoundWrapper

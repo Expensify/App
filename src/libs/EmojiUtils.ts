@@ -38,7 +38,7 @@ Onyx.connect({
 
 const findEmojiByName = (name: string): Emoji => Emojis.emojiNameTable[name];
 
-const findEmojiByCode = (code: string): Emoji => Emojis.emojiCodeTableWithSkinTones[code];
+const findEmojiByCode = (code: string): Emoji => Emojis.emojiCodeTableWithSkinTones[code] ?? {} as Emoji;
 
 const getEmojiName = (emoji: Emoji, lang: Locale = CONST.LOCALES.DEFAULT): string => {
     if (!emoji) {
@@ -227,7 +227,7 @@ function getFrequentlyUsedEmojis(newEmoji: Emoji | Emoji[]): FrequentlyUsedEmoji
         let currentEmojiCount = 1;
         const emojiIndex = frequentEmojiList.findIndex((e) => e.code === emoji.code);
         if (emojiIndex >= 0) {
-            currentEmojiCount = frequentEmojiList[emojiIndex].count + 1;
+            currentEmojiCount = (frequentEmojiList[emojiIndex]?.count ?? 0) + 1;
             frequentEmojiList.splice(emojiIndex, 1);
         }
 

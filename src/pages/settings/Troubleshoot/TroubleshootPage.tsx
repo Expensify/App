@@ -105,7 +105,7 @@ function TroubleshootPage({shouldStoreLogs}: TroubleshootPageProps) {
                         illustration={LottieAnimations.Desk}
                         illustrationStyle={illustrationStyle}
                         titleStyles={styles.accountSettingsSectionTitle}
-                        illustrationBackgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.TROUBLESHOOT].backgroundColor}
+                        illustrationBackgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.TROUBLESHOOT]?.backgroundColor ?? '#FFFFFF'}
                         renderSubtitle={() => (
                             <Text style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.mt2]}>
                                 <Text style={[styles.textNormal, styles.colorMuted]}>{translate('initialSettingsPage.troubleshoot.description')}</Text>{' '}

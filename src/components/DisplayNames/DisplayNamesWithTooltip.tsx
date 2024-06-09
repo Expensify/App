@@ -36,6 +36,10 @@ function DisplayNamesWithToolTip({shouldUseFullTitle, fullTitle, displayNamesWit
         }
         const {width: containerWidth, left: containerLeft} = containerRef.current.getBoundingClientRect();
 
+        if (index >= childRefs.current.length || !childRefs?.current[index]) {
+            return 0;
+        }
+
         // We have to return the value as Number so we can't use `measureWindow` which takes a callback
         const {width: textNodeWidth, left: textNodeLeft} = childRefs.current[index].getBoundingClientRect();
         const tooltipX = textNodeWidth / 2 + textNodeLeft;

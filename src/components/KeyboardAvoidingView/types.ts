@@ -1,3 +1,3 @@
 import {KeyboardAvoidingViewProps} from 'react-native';
 
-export default KeyboardAvoidingViewProps;
+export type { KeyboardAvoidingViewProps as default };

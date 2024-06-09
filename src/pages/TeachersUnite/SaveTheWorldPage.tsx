@@ -67,7 +67,7 @@ function SaveTheWorldPage() {
                         isCentralPane
                         subtitleMuted
                         illustration={LottieAnimations.SaveTheWorld}
-                        illustrationBackgroundColor={theme.PAGE_THEMES[SCREENS.SAVE_THE_WORLD.ROOT].backgroundColor}
+                        illustrationBackgroundColor={theme.PAGE_THEMES[SCREENS.SAVE_THE_WORLD.ROOT]?.backgroundColor ?? '#FFFFFF'}
                         titleStyles={styles.accountSettingsSectionTitle}
                         childrenStyles={styles.pt5}
                     >

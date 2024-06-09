@@ -11,7 +11,7 @@ function extrapolateStateFromParams(state: InitialState) {
     let current: InitialState | undefined = state;
 
     while (current?.routes != null) {
-        const topRoute: InitialState['routes'][0] = current.routes[current.index ?? 0];
+        const topRoute: InitialState['routes'][0] = current.routes[current.index ?? 0] ?? {};
         const params = topRoute?.params;
         if (topRoute.state != null) {
             current = topRoute.state;

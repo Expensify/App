@@ -71,7 +71,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
         let result: MemberOption[] = [];
         const chatParticipants = isGroupChat ? ReportUtils.getParticipantAccountIDs(report.reportID) : ReportUtils.getVisibleChatMemberAccountIDs(report.reportID);
         chatParticipants.forEach((accountID) => {
-            const role = report.participants?.[accountID].role;
+            const role = report.participants?.[accountID]?.role;
             const details = personalDetails?.[accountID];
             if (!details) {
                 Log.hmmm(`[ReportParticipantsPage] no personal details found for Group chat member with accountID: ${accountID}`);
@@ -166,7 +166,10 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
 
     const changeUserRole = useCallback(
         (role: ValueOf<typeof CONST.REPORT.ROLE>) => {
-            const accountIDsToUpdate = selectedMembers.filter((id) => report.participants?.[id].role !== role);
+            const accountIDsToUpdate = selectedMembers.filter((id) => {
+                const participant = report.participants?.[id];
+                return participant ? participant.role !== role : false;
+            });
             Report.updateGroupChatMemberRoles(report.reportID, accountIDsToUpdate, role);
             setSelectedMembers([]);
         },

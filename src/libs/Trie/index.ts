@@ -100,7 +100,9 @@ class Trie<TMetaData extends MetaData> {
         }
         const children = Object.keys(node.children);
         for (const child of children) {
-            this.getChildMatching(node.children[child], prefix + child, limit, matching);
+            if (node.children?.[child]) {
+                this.getChildMatching(node.children[child], prefix + child, limit, matching);
+            }
         }
         return matching;
     }

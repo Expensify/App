@@ -53,17 +53,17 @@ const promotedActions = [
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
 const Default: StoryType = Template.bind({});
 Default.args = {
-    promotedActions: [promotedActions[0]],
+    promotedActions: [promotedActions[0] ?? {} as PromotedAction],
 };
 
 const TwoPromotedActions: StoryType = Template.bind({});
 TwoPromotedActions.args = {
-    promotedActions: [promotedActions[0], promotedActions[1]],
+    promotedActions: [promotedActions[0] ?? {} as PromotedAction, promotedActions[1] ?? {} as PromotedAction],
 };
 
 const ThreePromotedActions: StoryType = Template.bind({});
 ThreePromotedActions.args = {
-    promotedActions: [promotedActions[0], promotedActions[1], promotedActions[2]],
+    promotedActions: [promotedActions[0] ?? {} as PromotedAction, promotedActions[1] ?? {} as PromotedAction, promotedActions[2] ?? {} as PromotedAction],
 };
 
 export default story;

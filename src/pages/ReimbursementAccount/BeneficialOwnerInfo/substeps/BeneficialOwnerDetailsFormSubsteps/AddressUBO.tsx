@@ -46,11 +46,11 @@ function AddressUBO({reimbursementAccountDraft, onNext, isEditing, beneficialOwn
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
         const errors = ValidationUtils.getFieldRequiredErrors(values, stepFields);
 
-        if (values[inputKeys.street] && !ValidationUtils.isValidAddress(values[inputKeys.street])) {
+        if (values[inputKeys.street] && !ValidationUtils.isValidAddress(values[inputKeys.street] ?? '')) {
             errors[inputKeys.street] = 'bankAccount.error.addressStreet';
         }
 
-        if (values[inputKeys.zipCode] && !ValidationUtils.isValidZipCode(values[inputKeys.zipCode])) {
+        if (values[inputKeys.zipCode] && !ValidationUtils.isValidZipCode(values[inputKeys.zipCode] ?? '')) {
             errors[inputKeys.zipCode] = 'bankAccount.error.zipCode';
         }
 

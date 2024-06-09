@@ -95,6 +95,8 @@ function PersonalInfoPage({walletAdditionalDetails, walletAdditionalDetailsDraft
         prevScreen();
     };
 
+    const SubStepComponent = SubStep ?? function () { return null };
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -110,7 +112,7 @@ function PersonalInfoPage({walletAdditionalDetails, walletAdditionalDetailsDraft
                     stepNames={CONST.WALLET.STEP_NAMES}
                 />
             </View>
-            <SubStep
+            <SubStepComponent
                 isEditing={isEditing}
                 onNext={nextScreen}
                 onMove={moveTo}

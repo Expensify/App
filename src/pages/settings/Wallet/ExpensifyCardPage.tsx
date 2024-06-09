@@ -213,11 +213,11 @@ function ExpensifyCardPage({
                                 )}
                                 {virtualCards.map((card) => (
                                     <>
-                                        {!!cardsDetails[card.cardID] && cardsDetails[card.cardID]?.pan ? (
+                                        {!!cardsDetails[card?.cardID ?? 0] && cardsDetails[card?.cardID ?? 0]?.pan ? (
                                             <CardDetails
-                                                pan={cardsDetails[card.cardID]?.pan}
-                                                expiration={CardUtils.formatCardExpiration(cardsDetails[card.cardID]?.expiration ?? '')}
-                                                cvv={cardsDetails[card.cardID]?.cvv}
+                                                pan={cardsDetails[card?.cardID ?? 0]?.pan}
+                                                expiration={CardUtils.formatCardExpiration(cardsDetails[card?.cardID ?? 0]?.expiration ?? '')}
+                                                cvv={cardsDetails[card?.cardID ?? 0]?.cvv}
                                                 domain={domain}
                                             />
                                         ) : (
@@ -232,14 +232,14 @@ function ExpensifyCardPage({
                                                         <Button
                                                             medium
                                                             text={translate('cardPage.cardDetails.revealDetails')}
-                                                            onPress={() => handleRevealDetails(card.cardID)}
-                                                            isDisabled={isCardDetailsLoading[card.cardID] || isOffline}
-                                                            isLoading={isCardDetailsLoading[card.cardID]}
+                                                            onPress={() => handleRevealDetails(card?.cardID ?? 0)}
+                                                            isDisabled={isCardDetailsLoading[card?.cardID ?? 0] || isOffline}
+                                                            isLoading={isCardDetailsLoading[card?.cardID ?? 0]}
                                                         />
                                                     }
                                                 />
                                                 <DotIndicatorMessage
-                                                    messages={cardsDetailsErrors[card.cardID] ? {error: cardsDetailsErrors[card.cardID]} : {}}
+                                                    messages={cardsDetailsErrors[card?.cardID ?? 0] ? {error: cardsDetailsErrors[card?.cardID ?? 0] || ''} : {}}
                                                     type="error"
                                                     style={[styles.ph5]}
                                                 />
@@ -250,12 +250,11 @@ function ExpensifyCardPage({
                                             titleStyle={styles.walletCardMenuItem}
                                             icon={Expensicons.Flag}
                                             shouldShowRightIcon
-                                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(String(card.cardID)))}
-                                        />
+                                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(String(card?.cardID ?? '')))}                                        />
                                     </>
                                 ))}
                                 {physicalCards.map((card) => {
-                                    if (card.state !== CONST.EXPENSIFY_CARD.STATE.OPEN) {
+                                    if (card?.state !== CONST.EXPENSIFY_CARD.STATE.OPEN) {
                                         return null;
                                     }
                                     return (
@@ -270,7 +269,7 @@ function ExpensifyCardPage({
                                                 title={translate('reportCardLostOrDamaged.report')}
                                                 icon={Expensicons.Flag}
                                                 shouldShowRightIcon
-                                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(String(card.cardID)))}
+                                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(String(card?.cardID)))}
                                             />
                                         </>
                                     );

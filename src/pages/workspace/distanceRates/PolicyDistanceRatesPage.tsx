@@ -55,9 +55,10 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
     const policyID = route.params.policyID;
     const isFocused = useIsFocused();
 
+    const customUnitKey = Object.keys(policy?.customUnits ?? {})[0] ?? '';
     const customUnit: CustomUnit | undefined = useMemo(
-        () => (policy?.customUnits !== undefined ? policy?.customUnits[Object.keys(policy?.customUnits)[0]] : undefined),
-        [policy?.customUnits],
+        () => (policy?.customUnits !== undefined ? policy?.customUnits[customUnitKey] : undefined),
+        [customUnitKey, policy?.customUnits],
     );
     const customUnitRates: Record<string, Rate> = useMemo(() => customUnit?.rates ?? {}, [customUnit]);
     // Filter out rates that will be deleted
@@ -73,7 +74,7 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
 
     const dismissError = useCallback(
         (item: RateForList) => {
-            if (customUnitRates[item.value].errors) {
+            if (customUnitRates[item.value]?.errors) {
                 DistanceRate.clearDeleteDistanceRateError(policyID, customUnit?.customUnitID ?? '', item.value);
                 return;
             }
@@ -171,7 +172,10 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
         if (selectedDistanceRates.find((selectedRate) => selectedRate.customUnitRateID === rate.value) !== undefined) {
             setSelectedDistanceRates((prev) => prev.filter((selectedRate) => selectedRate.customUnitRateID !== rate.value));
         } else {
-            setSelectedDistanceRates((prev) => [...prev, customUnitRates[rate.value]]);
+            const newRate = customUnitRates[rate.value];
+            if (newRate) {
+                setSelectedDistanceRates((prev) => [...prev, newRate]);
+            }
         }
     };
 

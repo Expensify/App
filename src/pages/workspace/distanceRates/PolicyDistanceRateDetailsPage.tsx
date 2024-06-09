@@ -28,6 +28,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Rate} from '@src/types/onyx/Policy';
+import {TranslationPaths} from "@src/languages/types";
 
 type PolicyDistanceRateDetailsPageOnyxProps = {
     /** Policy details */
@@ -44,14 +45,15 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
     const policyID = route.params.policyID;
     const rateID = route.params.rateID;
     const customUnits = policy?.customUnits ?? {};
-    const customUnit = customUnits[Object.keys(customUnits)[0]];
-    const rate = customUnit?.rates[rateID];
+    const customUnitKey = Object.keys(customUnits)[0];
+    const customUnit = customUnitKey ? customUnits[customUnitKey] : undefined;
+    const rate = customUnit?.rates?.[rateID];
     const currency = rate?.currency ?? CONST.CURRENCY.USD;
-    const taxClaimablePercentage = rate.attributes?.taxClaimablePercentage;
-    const taxRateExternalID = rate.attributes?.taxRateExternalID;
+    const taxClaimablePercentage = rate?.attributes?.taxClaimablePercentage;
+    const taxRateExternalID = rate?.attributes?.taxRateExternalID;
 
     const isDistanceTrackTaxEnabled = !!customUnit?.attributes?.taxEnabled;
-    const taxRate = taxRateExternalID ? `${policy?.taxRates?.taxes[taxRateExternalID].name} (${policy?.taxRates?.taxes[taxRateExternalID].value})` : '';
+    const taxRate = taxRateExternalID ? `${policy?.taxRates?.taxes[taxRateExternalID]?.name} (${policy?.taxRates?.taxes[taxRateExternalID]?.value})` : '';
     // Rates can be disabled or deleted as long as in the remaining rates there is always at least one enabled rate and there are no pending delete action
     const canDisableOrDeleteRate = Object.values(customUnit?.rates ?? {}).some(
         (distanceRate: Rate) => distanceRate?.enabled && rateID !== distanceRate?.customUnitRateID && distanceRate?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
@@ -87,11 +89,11 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
     };
 
     const rateValueToDisplay = CurrencyUtils.convertAmountToDisplayString(rate?.rate, currency);
-    const taxClaimableValueToDisplay = taxClaimablePercentage && rate.rate ? CurrencyUtils.convertAmountToDisplayString(taxClaimablePercentage * rate.rate, currency) : '';
+    const taxClaimableValueToDisplay = taxClaimablePercentage && rate?.rate ? CurrencyUtils.convertAmountToDisplayString(taxClaimablePercentage * rate?.rate, currency) : '';
     const unitToDisplay = translate(`common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`);
 
     const clearErrorFields = (fieldName: keyof Rate) => {
-        DistanceRate.clearPolicyDistanceRateErrorFields(policyID, customUnit.customUnitID, rateID, {...errorFields, [fieldName]: null});
+        DistanceRate.clearPolicyDistanceRateErrorFields(policyID, customUnit?.customUnitID, rateID, {...errorFields, [fieldName]: null});
     };
 
     return (
@@ -105,7 +107,7 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
                 includeSafeAreaPaddingBottom={false}
                 style={[styles.defaultModalContainer]}
             >
-                <HeaderWithBackButton title={`${rateValueToDisplay} / ${translate(`common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`)}`} />
+                <HeaderWithBackButton title={`${rateValueToDisplay} / ${translate(`common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}` as TranslationPaths)}`} />
                 <ScrollView contentContainerStyle={styles.flexGrow1}>
                     <OfflineWithFeedback
                         errors={ErrorUtils.getLatestErrorField(rate ?? {}, 'enabled')}

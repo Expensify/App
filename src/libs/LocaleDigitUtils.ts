@@ -49,7 +49,7 @@ function toLocaleDigit(locale: Locale, digit: string): string {
     if (index < 0) {
         throw new Error(`"${digit}" must be in ${JSON.stringify(STANDARD_DIGITS)}`);
     }
-    return getLocaleDigits(locale)[index];
+    return getLocaleDigits(locale)[index] ?? '';
 }
 
 /**
@@ -65,7 +65,7 @@ function fromLocaleDigit(locale: Locale, localeDigit: string): string {
     if (index < 0) {
         throw new Error(`"${localeDigit}" must be in ${JSON.stringify(getLocaleDigits(locale))}`);
     }
-    return STANDARD_DIGITS[index];
+    return STANDARD_DIGITS[index] ?? '';
 }
 
 /**

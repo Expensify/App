@@ -32,7 +32,7 @@ function SignInModal({session}: SignInModalProps) {
 
     return (
         <ScreenWrapper
-            style={[StyleUtils.getBackgroundColorStyle(theme.PAGE_THEMES[SCREENS.RIGHT_MODAL.SIGN_IN].backgroundColor)]}
+            style={[StyleUtils.getBackgroundColorStyle(theme.PAGE_THEMES[SCREENS.RIGHT_MODAL.SIGN_IN]?.backgroundColor ?? '#FFFFFF')]}
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
             shouldShowOfflineIndicator={false}

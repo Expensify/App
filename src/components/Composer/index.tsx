@@ -184,7 +184,9 @@ function Composer(
             // If paste contains files, then trigger file management
             if (event.clipboardData?.files.length && event.clipboardData.files.length > 0) {
                 // Prevent the default so we do not post the file name into the text box
-                onPasteFile(event.clipboardData.files[0]);
+                if (onPasteFile && event.clipboardData.files[0]) {
+                    onPasteFile(event.clipboardData.files[0]);
+                }
                 return true;
             }
 
@@ -194,10 +196,12 @@ function Composer(
                 const pastedHTML = clipboardDataHtml;
                 const embeddedImages = domparser.parseFromString(pastedHTML, TEXT_HTML)?.images;
 
-                if (embeddedImages.length > 0 && embeddedImages[0].src) {
-                    const src = embeddedImages[0].src;
+                if (embeddedImages.length > 0 && embeddedImages[0]?.src) {
+                    const src = embeddedImages[0]?.src;
                     const file = FileUtils.base64ToFile(src, 'image.png');
-                    onPasteFile(file);
+                    if (onPasteFile) {
+                        onPasteFile(file);
+                    }
                     return true;
                 }
             }

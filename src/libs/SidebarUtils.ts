@@ -39,7 +39,9 @@ Onyx.connect({
             (reportAction) => ReportActionsUtils.shouldReportActionBeVisibleAsLastAction(reportAction) && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
         );
 
-        visibleReportActionItems[reportID] = reportActionsForDisplay[reportActionsForDisplay.length - 1];
+        if (reportActionsForDisplay.length > 0) {
+            visibleReportActionItems[reportID] = reportActionsForDisplay?.at(-1);
+        }
     },
 });
 
@@ -266,7 +268,7 @@ function getOptionData({
         .filter((accountID) => accountID !== currentUserAccountID || !isOneOnOneChat);
 
     const participantPersonalDetailList = Object.values(OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails)) as PersonalDetails[];
-    const personalDetail = participantPersonalDetailList[0] ?? {};
+    const personalDetail = participantPersonalDetailList[0] as PersonalDetails | undefined;
     const hasErrors = Object.keys(result.allReportErrors ?? {}).length !== 0;
 
     result.isThread = ReportUtils.isChatThread(report);
@@ -323,7 +325,7 @@ function getOptionData({
     // If the last actor's details are not currently saved in Onyx Collection,
     // then try to get that from the last report action if that action is valid
     // to get data from.
-    let lastActorDetails: Partial<PersonalDetails> | null = report.lastActorAccountID && personalDetails?.[report.lastActorAccountID] ? personalDetails[report.lastActorAccountID] : null;
+    let lastActorDetails: Partial<PersonalDetails> | null = report.lastActorAccountID && personalDetails?.[report.lastActorAccountID] ? (personalDetails[report.lastActorAccountID] ?? {}) : null;
 
     if (!lastActorDetails && visibleReportActionItems[report.reportID]) {
         const lastActorDisplayName = visibleReportActionItems[report.reportID]?.person?.[0]?.text;
@@ -352,8 +354,8 @@ function getOptionData({
         if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
             const newName = lastAction?.originalMessage?.newName ?? '';
             result.alternateText = Localize.translate(preferredLocale, 'newRoomPage.roomRenamedTo', {newName});
-        } else if (ReportActionsUtils.isTaskAction(lastAction)) {
-            result.alternateText = ReportUtils.formatReportLastMessageText(TaskUtils.getTaskReportActionMessage(lastAction).text);
+        } else if (ReportActionsUtils.isTaskAction(lastAction as OnyxEntry<ReportAction>)) {
+            result.alternateText = ReportUtils.formatReportLastMessageText(TaskUtils.getTaskReportActionMessage(lastAction as OnyxEntry<ReportAction>).text);
         } else if (
             lastActionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM ||
             lastActionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.REMOVE_FROM_ROOM ||
@@ -371,9 +373,9 @@ function getOptionData({
             result.alternateText = `${lastActorDisplayName} ${verb} ${targetAccountIDsLength} ${users}`.trim();
 
             const roomName = lastActionOriginalMessage?.roomName ?? '';
-            if (roomName) {
+            if (roomName && lastAction) {
                 const preposition =
-                    lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM
+                    lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM || lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM
                         ? ` ${Localize.translate(preferredLocale, 'workspace.invite.to')}`
                         : ` ${Localize.translate(preferredLocale, 'workspace.invite.from')}`;
                 result.alternateText += `${preposition} ${roomName}`;
@@ -429,9 +431,9 @@ function getOptionData({
     }
 
     if (!hasMultipleParticipants) {
-        result.accountID = personalDetail?.accountID;
-        result.login = personalDetail?.login;
-        result.phoneNumber = personalDetail?.phoneNumber;
+        result.accountID = (personalDetail as PersonalDetails)?.accountID;
+        result.login = (personalDetail as PersonalDetails)?.login;
+        result.phoneNumber = (personalDetail as PersonalDetails)?.phoneNumber;
     }
 
     const reportName = ReportUtils.getReportName(report, policy);
@@ -440,14 +442,16 @@ function getOptionData({
     result.subtitle = subtitle;
     result.participantsList = participantPersonalDetailList;
 
-    result.icons = ReportUtils.getIcons(report, personalDetails, personalDetail?.avatar, personalDetail?.login, personalDetail?.accountID, policy);
+    result.icons = ReportUtils.getIcons(report, personalDetails, (personalDetail as PersonalDetails)?.avatar, (personalDetail as PersonalDetails)?.login, (personalDetail as PersonalDetails)?.accountID, policy);
     result.searchText = OptionsListUtils.getSearchText(report, reportName, participantPersonalDetailList, result.isChatRoom || result.isPolicyExpenseChat, result.isThread);
     result.displayNamesWithTooltips = displayNamesWithTooltips;
 
     if (status) {
         result.status = status;
     }
-    result.type = report.type;
+    if (report) {
+        result.type = report.type;
+    }
 
     return result;
 }

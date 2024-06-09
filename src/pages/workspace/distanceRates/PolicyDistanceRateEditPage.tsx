@@ -39,13 +39,19 @@ function PolicyDistanceRateEditPage({policy, route}: PolicyDistanceRateEditPageP
     const policyID = route.params.policyID;
     const rateID = route.params.rateID;
     const customUnits = policy?.customUnits ?? {};
-    const customUnit = customUnits[Object.keys(customUnits)[0]];
+    const customUnitKey = Object.keys(customUnits)[0];
+    const customUnit = customUnitKey ? customUnits[customUnitKey] : undefined;
     const rate = customUnit?.rates[rateID];
     const currency = rate?.currency ?? CONST.CURRENCY.USD;
     const currentRateValue = (rate?.rate ?? 0).toString();
 
     const submitRate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM>) => {
-        DistanceRate.updatePolicyDistanceRateValue(policyID, customUnit, [{...rate, rate: Number(values.rate) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET}]);
+        if (customUnit) {
+            DistanceRate.updatePolicyDistanceRateValue(policyID, customUnit, [{
+                ...rate,
+                rate: Number(values.rate) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET
+            }]);
+        }
         Keyboard.dismiss();
         Navigation.goBack();
     };

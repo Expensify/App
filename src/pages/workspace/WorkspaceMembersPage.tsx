@@ -102,7 +102,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
         Object.keys(members ?? {}).reduce((acc, key) => {
             const memberAccountIdKey = policyMemberEmailsToAccountIDs[key] ?? '';
             if (details?.[memberAccountIdKey]) {
-                acc[memberAccountIdKey] = details[memberAccountIdKey];
+                acc[memberAccountIdKey] = details[memberAccountIdKey] ?? null;
             }
             return acc;
         }, {} as PersonalDetailsList);

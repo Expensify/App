@@ -82,6 +82,8 @@ function AddBankAccount({personalBankAccount, plaidData, personalBankAccountDraf
 
     useEffect(() => BankAccounts.clearPersonalBankAccount, []);
 
+    const SubStepComponent = SubStep ?? function () { return null };
+
     return (
         <ScreenWrapper
             testID={AddBankAccount.displayName}
@@ -102,7 +104,7 @@ function AddBankAccount({personalBankAccount, plaidData, personalBankAccountDraf
                                 stepNames={CONST.WALLET.STEP_NAMES}
                             />
                         </View>
-                        <SubStep
+                        <SubStepComponent
                             isEditing={isEditing}
                             onNext={nextScreen}
                             onMove={moveTo}

@@ -284,14 +284,21 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
                 result[report.policyID] = {};
             }
 
+            const policyId = report.policyID
+            const chatType = result[policyId]
+
             switch (report.chatType) {
                 case CONST.REPORT.CHAT_TYPE.POLICY_ADMINS:
-                    // eslint-disable-next-line no-param-reassign
-                    result[report.policyID].adminRoom = report.reportID;
+                    if (policyId && chatType) {
+                        // eslint-disable-next-line no-param-reassign
+                        chatType.adminRoom = report.reportID;
+                    }
                     break;
                 case CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE:
-                    // eslint-disable-next-line no-param-reassign
-                    result[report.policyID].announceRoom = report.reportID;
+                    if (policyId && chatType) {
+                        // eslint-disable-next-line no-param-reassign
+                        chatType.announceRoom = report.reportID;
+                    }
                     break;
                 default:
                     break;
@@ -317,12 +324,12 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
                     const policyInfo = Object.values(policy.policyDetailsForNonMembers)[0];
                     const id = Object.keys(policy.policyDetailsForNonMembers)[0];
                     return {
-                        title: policyInfo.name,
-                        icon: policyInfo.avatar ? policyInfo.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
+                        title: policyInfo?.name ?? '',
+                        icon: policyInfo?.avatar ? policyInfo?.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
                         disabled: true,
-                        ownerAccountID: policyInfo.ownerAccountID,
-                        type: policyInfo.type,
-                        iconType: policyInfo.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
+                        ownerAccountID: policyInfo?.ownerAccountID,
+                        type: policyInfo?.type ?? CONST.POLICY.TYPE.FREE,
+                        iconType: policyInfo?.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
                         iconFill: theme.textLight,
                         fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
                         policyID: id,

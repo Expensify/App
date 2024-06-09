@@ -11,7 +11,11 @@ import {ErrorLaunchCamera} from './types';
  */
 const launchCamera: LaunchCamera = (options, callback) => {
     // Checks current camera permissions and prompts the user in case they aren't granted
-    PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.CAMERA)
+    const cameraPermission = PermissionsAndroid.PERMISSIONS.CAMERA;
+    if (!cameraPermission) {
+        return
+    }
+    PermissionsAndroid.request(cameraPermission)
         .then((permission) => {
             if (permission !== PermissionsAndroid.RESULTS.GRANTED) {
                 throw new ErrorLaunchCamera('User did not grant permissions', 'permission');

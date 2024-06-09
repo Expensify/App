@@ -35,7 +35,7 @@ function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, isRequired, f
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM>) => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM> = {};
-            if (isRequired && values[fieldKey].trim() === '') {
+            if (isRequired && values[fieldKey]?.trim() === '') {
                 errors[fieldKey] = 'common.error.fieldRequired';
             }
             return errors;

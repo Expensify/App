@@ -16,6 +16,7 @@ import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {Attributes, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {navigateWhenEnableFeature} from './Policy';
+import {Tags} from "yaml";
 
 type NewCustomUnit = {
     customUnitID: string;
@@ -107,15 +108,21 @@ function buildOptimisticPolicyRecentlyUsedTags(policyID?: string, transactionTag
         }
 
         const tagListKey = policyTagKeys[index];
-        newOptimisticPolicyRecentlyUsedTags[tagListKey] = [...new Set([tag, ...(policyRecentlyUsedTags[tagListKey] ?? [])])];
+        if (tagListKey && policyRecentlyUsedTags[tagListKey]) {
+            newOptimisticPolicyRecentlyUsedTags[tagListKey] = [...new Set([tag, ...(policyRecentlyUsedTags[tagListKey] ?? [])])];
+        }
     });
 
     return newOptimisticPolicyRecentlyUsedTags;
 }
 
 function createPolicyTag(policyID: string, tagName: string) {
-    const policyTag = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.[0] ?? {};
+    const policyTag = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.[0] ?? { name: '' };
     const newTagName = PolicyUtils.escapeTagName(tagName);
+
+    if (!policyTag.name) {
+        return;
+    }
 
     const onyxData: OnyxData = {
         optimisticData: [
@@ -178,7 +185,14 @@ function createPolicyTag(policyID: string, tagName: string) {
 }
 
 function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {name: string; enabled: boolean}>, tagListIndex: number) {
-    const policyTag = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.[tagListIndex] ?? {};
+    const policyTag = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.[tagListIndex] ?? {} as PolicyTagList;
+
+    const name = policyTag.name;
+    const tags = policyTag.tags;
+
+    if (!name || !tags) {
+        return;
+    }
 
     const onyxData: OnyxData = {
         optimisticData: [
@@ -186,11 +200,11 @@ function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
-                    [policyTag.name]: {
+                    [name as string]: {
                         tags: {
                             ...Object.keys(tagsToUpdate).reduce<PolicyTags>((acc, key) => {
                                 acc[key] = {
-                                    ...policyTag.tags[key],
+                                    ...((tags as PolicyTags)[key] ?? {} as PolicyTag),
                                     ...tagsToUpdate[key],
                                     errors: null,
                                     pendingFields: {
@@ -211,11 +225,11 @@ function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
-                    [policyTag.name]: {
+                    [name as string]: {
                         tags: {
                             ...Object.keys(tagsToUpdate).reduce<PolicyTags>((acc, key) => {
                                 acc[key] = {
-                                    ...policyTag.tags[key],
+                                    ...((tags as PolicyTags)[key] ?? {} as PolicyTag),
                                     ...tagsToUpdate[key],
                                     errors: null,
                                     pendingFields: {
@@ -236,11 +250,11 @@ function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
-                    [policyTag.name]: {
+                    [name as string]: {
                         tags: {
                             ...Object.keys(tagsToUpdate).reduce<PolicyTags>((acc, key) => {
                                 acc[key] = {
-                                    ...policyTag.tags[key],
+                                    ...((tags as PolicyTags)[key] ?? {} as PolicyTag),
                                     ...tagsToUpdate[key],
                                     errors: ErrorUtils.getMicroSecondOnyxError('workspace.tags.genericFailureMessage'),
                                     pendingFields: {
@@ -268,8 +282,11 @@ function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {
 }
 
 function deletePolicyTags(policyID: string, tagsToDelete: string[]) {
-    const policyTag = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.[0] ?? {};
+    const policyTag = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.[0] ?? { name: '' };
 
+    if (!policyTag.name) {
+        return;
+    }
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -331,14 +348,17 @@ function deletePolicyTags(policyID: string, tagsToDelete: string[]) {
 
 function clearPolicyTagErrors(policyID: string, tagName: string) {
     const tagListName = Object.keys(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})[0];
-    const tag = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`]?.[tagListName].tags?.[tagName];
+    if (!tagListName) {
+        return;
+    }
+    const tag = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`]?.[tagListName]?.tags?.[tagName];
     if (!tag) {
         return;
     }
 
     if (tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {
-            [tagListName]: {
+            [tagListName ? tagListName : '']: {
                 tags: {
                     [tagName]: null,
                 },
@@ -348,7 +368,7 @@ function clearPolicyTagErrors(policyID: string, tagName: string) {
     }
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {
-        [tagListName]: {
+        [tagListName ? tagListName : '']: {
             tags: {
                 [tagName]: {
                     errors: null,
@@ -361,6 +381,9 @@ function clearPolicyTagErrors(policyID: string, tagName: string) {
 
 function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName: string}) {
     const tagListName = Object.keys(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})[0];
+    if (!tagListName) {
+        return;
+    }
     const oldTagName = policyTag.oldName;
     const newTagName = PolicyUtils.escapeTagName(policyTag.newName);
     const oldTag = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`]?.[tagListName]?.tags?.[oldTagName] ?? {};

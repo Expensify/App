@@ -33,7 +33,7 @@ function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPag
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [policyTagLists, isMultiLevelTags] = useMemo(() => [PolicyUtils.getTagLists(policyTags), PolicyUtils.isMultiLevelTags(policyTags)], [policyTags]);
-    const hasEnabledOptions = OptionsListUtils.hasEnabledOptions(Object.values(policyTags ?? {}).flatMap(({tags}) => Object.values(tags)));
+    const hasEnabledOptions = OptionsListUtils.hasEnabledOptions(Object.values(policyTags ?? {}).flatMap(({tags}) => Object.values(tags ?? {})));
     const updateWorkspaceRequiresTag = useCallback(
         (value: boolean) => {
             Tag.setPolicyRequiresTag(route.params.policyID, value);
@@ -74,14 +74,14 @@ function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPag
                         </OfflineWithFeedback>
                         {!isMultiLevelTags && (
                             <OfflineWithFeedback
-                                errors={policyTags?.[policyTagLists[0].name]?.errors}
-                                pendingAction={policyTags?.[policyTagLists[0].name]?.pendingAction}
+                                errors={policyTags?.[policyTagLists[0]?.name ?? '']?.errors}
+                                pendingAction={policyTags?.[policyTagLists[0]?.name ?? '']?.pendingAction}
                                 errorRowStyles={styles.mh5}
                             >
                                 <MenuItemWithTopDescription
-                                    title={policyTagLists[0].name}
+                                    title={policyTagLists[0]?.name}
                                     description={translate(`workspace.tags.customTagName`)}
-                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EDIT_TAGS.getRoute(route.params.policyID, policyTagLists[0].orderWeight))}
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EDIT_TAGS.getRoute(route.params.policyID, policyTagLists[0]?.orderWeight ?? 0))}
                                     shouldShowRightIcon
                                 />
                             </OfflineWithFeedback>

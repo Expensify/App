@@ -126,7 +126,7 @@ function SuggestionMention(
         (highlightedMentionIndexInner: number) => {
             const commentBeforeAtSign = value.slice(0, suggestionValues.atSignIndex);
             const mentionObject = suggestionValues.suggestedMentions[highlightedMentionIndexInner];
-            const mentionCode = getMentionCode(mentionObject, suggestionValues.prefixType);
+            const mentionCode = getMentionCode(mentionObject ?? {} as Mention, suggestionValues.prefixType);
             const commentAfterMention = value.slice(suggestionValues.atSignIndex + suggestionValues.mentionPrefix.length + 1);
 
             updateComment(`${commentBeforeAtSign}${mentionCode} ${SuggestionsUtils.trimLeadingSpace(commentAfterMention)}`, true);

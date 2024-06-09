@@ -31,6 +31,8 @@ function FeesAndTerms() {
         prevScreen();
     };
 
+    const SubStepComponent = SubStep ?? function () { return null };
+
     return (
         <ScreenWrapper
             testID={FeesAndTerms.displayName}
@@ -48,7 +50,7 @@ function FeesAndTerms() {
                     stepNames={CONST.WALLET.STEP_NAMES}
                 />
             </View>
-            <SubStep
+            <SubStepComponent
                 isEditing={isEditing}
                 onNext={nextScreen}
                 onMove={moveTo}

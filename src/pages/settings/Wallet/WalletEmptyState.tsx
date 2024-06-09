@@ -40,7 +40,7 @@ function WalletEmptyState({onAddPaymentMethod}: WalletEmptyStateProps) {
 
     return (
         <HeaderPageLayout
-            backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.WALLET.ROOT].backgroundColor}
+            backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.WALLET.ROOT]?.backgroundColor ?? '#FFFFFF'}
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
             title={translate('common.wallet')}
             shouldShowBackButton={isSmallScreenWidth}

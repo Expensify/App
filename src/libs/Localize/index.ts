@@ -208,7 +208,7 @@ function getPreferredListFormat(): Intl.ListFormat {
         init();
     }
 
-    return CONJUNCTION_LIST_FORMATS_FOR_LOCALES[BaseLocaleListener.getPreferredLocale()];
+    return CONJUNCTION_LIST_FORMATS_FOR_LOCALES[BaseLocaleListener.getPreferredLocale()] ?? {};
 }
 
 /**
@@ -233,7 +233,9 @@ function formatMessageElementList<E extends MessageElementBase>(elements: readon
              */
             const element = elements[nextElementIndex++];
 
-            resultElements.push(element);
+            if (element) {
+                resultElements.push(element);
+            }
         } else {
             const literalElement: MessageTextElement = {
                 kind: 'text',

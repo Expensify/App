@@ -24,7 +24,7 @@ function ReportAttachmentsProvider({children}: ChildrenProps) {
 
     const contextValue = useMemo(
         () => ({
-            isAttachmentHidden: (reportActionID: string) => hiddenAttachments.current[reportActionID],
+            isAttachmentHidden: (reportActionID: string) => !!hiddenAttachments.current[reportActionID],
             updateHiddenAttachments: (reportActionID: string, value: boolean) => {
                 hiddenAttachments.current = {
                     ...hiddenAttachments.current,
