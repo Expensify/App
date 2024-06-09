@@ -3309,6 +3309,7 @@ const CONST = {
     BOOK_TRAVEL_DEMO_URL: 'https://calendly.com/d/ck2z-xsh-q97/expensify-travel-demo-travel-page',
     TRAVEL_DOT_URL: (isProduction: boolean) => (isProduction ? 'https://travel.expensify.com' : 'https://staging.travel.expensify.com'),
     TRIP_ID_URL: (tripID: string, isProduction: boolean) => `${CONST.TRAVEL_DOT_URL(isProduction)}/trips/${tripID}`,
+    SPOTNANA_TMC_ID: '7a290c6e-5328-4107-aff6-e48765845b81',
     SCREEN_READER_STATES: {
         ALL: 'all',
         ACTIVE: 'active',
