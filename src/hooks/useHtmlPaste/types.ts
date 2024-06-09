@@ -1,7 +1,7 @@
 import type {MutableRefObject} from 'react';
 import type {TextInput} from 'react-native';
 
-export type WithSelectionRestoreAbility = {
+type WithSelectionRestoreAbility = {
     restoreSelectionPosition?: () => void;
 };
 
