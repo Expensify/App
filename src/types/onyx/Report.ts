@@ -277,8 +277,13 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The trip data for a trip room */
         tripData?: {
+            /** The start date of a trip */
             startDate: string;
+
+            /** The end date of a trip */
             endDate: string;
+
+            /** The trip ID in spotnana */
             tripID: string;
         };
     },
