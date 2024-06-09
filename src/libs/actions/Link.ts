@@ -66,10 +66,10 @@ function openOldDotLink(url: string) {
     );
 }
 
-function buildTravelDotURL(spotnanaToken?: string, postLoginURL?: string): Promise<string> {
+function buildTravelDotURL(spotnanaToken?: string, postLoginPath?: string): Promise<string> {
     const authCode = spotnanaToken ? `authCode=${spotnanaToken}` : '';
     const tmcID = `tmcId=${CONST.SPOTNANA_TMC_ID}`;
-    const redirectURL = postLoginURL ? `redirectUrl=${postLoginURL}` : '';
+    const redirectURL = postLoginPath ? `redirectUrl=${postLoginPath}` : '';
 
     const paramsArray = [authCode, tmcID, redirectURL];
     const params = paramsArray.filter(Boolean).join('&');
@@ -81,9 +81,9 @@ function buildTravelDotURL(spotnanaToken?: string, postLoginURL?: string): Promi
 }
 
 /**
- * @param postLoginURL When provided, we will redirect the user to this url post login on travelDot.
+ * @param postLoginPath When provided, we will redirect the user to this path post login on travelDot. eg: 'trips/:tripID'
  */
-function openTravelDotLink(policyID: OnyxEntry<string>, postLoginURL?: string) {
+function openTravelDotLink(policyID: OnyxEntry<string>, postLoginPath?: string) {
     if (policyID === null) {
         return;
     }
@@ -95,7 +95,7 @@ function openTravelDotLink(policyID: OnyxEntry<string>, postLoginURL?: string) {
     asyncOpenURL(
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
         API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GENERATE_SPOTNANA_TOKEN, parameters, {})
-            .then((response) => (response?.spotnanaToken ? buildTravelDotURL(response.spotnanaToken, postLoginURL) : buildTravelDotURL()))
+            .then((response) => (response?.spotnanaToken ? buildTravelDotURL(response.spotnanaToken, postLoginPath) : buildTravelDotURL()))
             .catch(() => buildTravelDotURL()),
         (travelDotURL) => travelDotURL,
     );
