@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {GenerateSpotnanaTokenParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
@@ -79,7 +80,11 @@ function buildTravelDotURL(spotnanaToken?: string, postLoginURL?: string): Promi
     });
 }
 
-function openTravelDotLink(policyID: string, postLoginURL?: string) {
+function openTravelDotLink(policyID: OnyxEntry<string>, postLoginURL?: string) {
+    if (policyID === null) {
+        return;
+    }
+
     const parameters: GenerateSpotnanaTokenParams = {
         policyID,
     };
