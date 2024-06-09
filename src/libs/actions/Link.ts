@@ -65,22 +65,29 @@ function openOldDotLink(url: string) {
     );
 }
 
-function buildTravelDotURL(spotnanaToken?: string): Promise<string> {
+function buildTravelDotURL(spotnanaToken?: string, postLoginURL?: string): Promise<string> {
     const authCode = spotnanaToken ? `authCode=${spotnanaToken}` : '';
+    const tmcID = `tmcId=${CONST.SPOTNANA_TMC_ID}`;
+    const redirectURL = postLoginURL ? `redirectUrl=${postLoginURL}` : '';
+
+    const paramsArray = [authCode, tmcID, redirectURL];
+    const params = paramsArray.filter(Boolean).join('&');
+
     return Environment.getTravelDotEnvironmentURL().then((environmentURL) => {
         const travelDotDomain = Url.addTrailingForwardSlash(environmentURL);
-        return `${travelDotDomain}auth/code?${authCode}&tmcId=${CONST.SPOTNANA_TMC_ID}`;
+        return `${travelDotDomain}auth/code?${params}`;
     });
 }
 
-function openTravelDotLink(policyID: string) {
+function openTravelDotLink(policyID: string, postLoginURL?: string) {
     const parameters: GenerateSpotnanaTokenParams = {
         policyID,
     };
+
     asyncOpenURL(
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
         API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GENERATE_SPOTNANA_TOKEN, parameters, {})
-            .then((response) => (response?.spotnanaToken ? buildTravelDotURL(response.spotnanaToken) : buildTravelDotURL()))
+            .then((response) => (response?.spotnanaToken ? buildTravelDotURL(response.spotnanaToken, postLoginURL) : buildTravelDotURL()))
             .catch(() => buildTravelDotURL()),
         (travelDotURL) => travelDotURL,
     );
