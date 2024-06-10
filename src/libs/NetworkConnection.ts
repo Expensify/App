@@ -118,7 +118,7 @@ function subscribeToBackendAndInternetReachability(): () => void {
             return;
         }
         // Using the API url ensures reachability is tested over internet
-        fetch(`${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/Ping?accountID=${accountID}`, {
+        fetch(`${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/Ping?accountID=${accountID || 'unknown'}`, {
             method: 'GET',
             cache: 'no-cache',
         })
