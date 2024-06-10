@@ -704,6 +704,7 @@ function ReportScreen({
                             <View
                                 style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                 onLayout={onListLayout}
+                                testID={'reportActionsViewWrapper'}
                             >
                                 {shouldShowReportActionList && (
                                     <ReportActionsView
