@@ -1,6 +1,5 @@
 import React, {useEffect} from 'react';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import useLocalize from '@hooks/useLocalize';
@@ -10,7 +9,6 @@ import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {BankAccountList, UserWallet} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AddBankAccount from './AddBankAccount/AddBankAccount';
 import FailedKYC from './FailedKYC';
@@ -18,19 +16,11 @@ import FeesAndTerms from './FeesAndTerms/FeesAndTerms';
 import PersonalInfo from './PersonalInfo/PersonalInfo';
 import VerifyIdentity from './VerifyIdentity/VerifyIdentity';
 
-type EnablePaymentsPageOnyxProps = {
-    /** The user's wallet */
-    userWallet: OnyxEntry<UserWallet>;
-
-    /** The list of bank accounts */
-    bankAccountList: OnyxEntry<BankAccountList>;
-};
-
-type EnablePaymentsPageProps = EnablePaymentsPageOnyxProps;
-
-function EnablePaymentsPage({userWallet, bankAccountList}: EnablePaymentsPageProps) {
+function EnablePaymentsPage() {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     useEffect(() => {
         if (isOffline) {
@@ -77,11 +67,4 @@ function EnablePaymentsPage({userWallet, bankAccountList}: EnablePaymentsPagePro
 
 EnablePaymentsPage.displayName = 'EnablePaymentsPage';
 
-export default withOnyx<EnablePaymentsPageProps, EnablePaymentsPageOnyxProps>({
-    userWallet: {
-        key: ONYXKEYS.USER_WALLET,
-    },
-    bankAccountList: {
-        key: ONYXKEYS.BANK_ACCOUNT_LIST,
-    },
-})(EnablePaymentsPage);
+export default EnablePaymentsPage;
