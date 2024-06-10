@@ -1,4 +1,4 @@
-import {addMonths, format} from 'date-fns';
+import {format} from 'date-fns';
 import React, {useState} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import {View} from 'react-native';
@@ -28,7 +28,7 @@ function SubscriptionSettings() {
     // TODO these default state values will come from API in next phase
     const [autoRenew, setAutoRenew] = useState(true);
 
-    const autoRenewalDate = privateSubscription?.endDate ? format(addMonths(new Date(privateSubscription?.endDate), 1), CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT) : '';
+    const autoRenewalDate = privateSubscription?.endDate ? format(new Date(`${privateSubscription?.endDate}T00:00:00`), CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT) : '';
 
     // TODO all actions will be implemented in next phase
     const handleAutoRenewToggle = () => {
