@@ -181,14 +181,14 @@ function TagCell({isLargeScreenWidth, showTooltip, transactionItem}: Transaction
     return isLargeScreenWidth ? (
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
-            text={transactionItem?.tag}
+            text={TransactionUtils.getTagForDisplay(transactionItem)}
             style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter]}
         />
     ) : (
         <TextWithIconCell
             icon={Expensicons.Tag}
             showTooltip={showTooltip}
-            text={transactionItem?.tag}
+            text={TransactionUtils.getTagForDisplay(transactionItem)}
         />
     );
 }
