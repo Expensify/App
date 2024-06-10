@@ -39,7 +39,7 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
     const {translate} = useLocalize();
     const navigation = useNavigation();
     const {activeWorkspaceID: contextActiveWorkspaceID} = useActiveWorkspace();
-    const activeWorkspaceID = sessionStorage ? sessionStorage.getItem(CONST.SESSION_STORAGE_KEYS.ACTIVE_WORKSPACE_ID) : contextActiveWorkspaceID;
+    const activeWorkspaceID = sessionStorage.getItem(CONST.SESSION_STORAGE_KEYS.ACTIVE_WORKSPACE_ID) ?? contextActiveWorkspaceID;
 
     useEffect(() => {
         const navigationState = navigation.getState() as State<RootStackParamList> | undefined;
