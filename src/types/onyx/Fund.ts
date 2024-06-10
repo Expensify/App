@@ -32,7 +32,7 @@ type AccountData = {
 
     /** Debit card creation date */
     created?: string;
-    
+
     /** Debit card currency */
     currency?: ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>;
 
