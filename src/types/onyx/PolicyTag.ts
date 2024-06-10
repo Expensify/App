@@ -18,6 +18,7 @@ type PolicyTag = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** A list of errors keyed by microtime */
     errors?: OnyxCommon.Errors | null;
 
+    /** The rules applied to the policy tag */
     rules?: {
         /**
          * String representation of regex to match against parent tag. Eg, if San Francisco is a child tag of California
