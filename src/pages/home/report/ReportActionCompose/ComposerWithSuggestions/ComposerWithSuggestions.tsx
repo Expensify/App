@@ -46,7 +46,6 @@ import SilentCommentUpdater from '@pages/home/report/ReportActionCompose/SilentC
 import Suggestions from '@pages/home/report/ReportActionCompose/Suggestions';
 import * as EmojiPickerActions from '@userActions/EmojiPickerAction';
 import * as InputFocus from '@userActions/InputFocus';
-import * as Modal from '@userActions/Modal';
 import * as Report from '@userActions/Report';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
@@ -286,11 +285,7 @@ function ComposerWithSuggestions(
 
     const parentReportAction = parentReportActions?.[parentReportActionID ?? ''] ?? null;
     const shouldAutoFocus =
-        !modal?.isVisible &&
-        Modal.areAllModalsHidden() &&
-        isFocused &&
-        (shouldFocusInputOnScreenFocus || (isEmptyChat && !ReportActionsUtils.isTransactionThread(parentReportAction))) &&
-        shouldShowComposeInput;
+        !modal?.isVisible && isFocused && (shouldFocusInputOnScreenFocus || (isEmptyChat && !ReportActionsUtils.isTransactionThread(parentReportAction))) && shouldShowComposeInput;
 
     const valueRef = useRef(value);
     valueRef.current = value;
