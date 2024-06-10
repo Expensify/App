@@ -109,7 +109,7 @@ function MoneyRequestPreviewContent({
     const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
     const isSettled = ReportUtils.isSettled(iouReport?.reportID);
     const isDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    const isReviewDuplicateTransaction = route.name === SCREENS.TRANSACTION_DUPLICATE.REVIEW;
+    const isReviewDuplicateTransactionPage = route.name === SCREENS.TRANSACTION_DUPLICATE.REVIEW;
 
     const isFullySettled = isSettled && !isSettlementOrApprovalPartial;
     const isFullyApproved = ReportUtils.isReportApproved(iouReport) && !isSettlementOrApprovalPartial;
@@ -394,7 +394,7 @@ function MoneyRequestPreviewContent({
             ]}
         >
             {childContainer}
-            {isReviewDuplicateTransaction && (
+            {isReviewDuplicateTransactionPage && (
                 <Button
                     text={translate('violations.keepThisOne')}
                     success
