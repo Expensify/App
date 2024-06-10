@@ -89,11 +89,13 @@ function MoneyRequestPreviewContent({
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
     const isOnHold = TransactionUtils.isOnHold(transaction);
-    const isSettlementOrApprovalPartial = Boolean(iouReport?.pendingFields?.partial);
+    const isSettlementOrApprovalPartial = !!iouReport?.pendingFields?.partial;
     const isPartialHold = isSettlementOrApprovalPartial && isOnHold;
     const hasViolations = TransactionUtils.hasViolation(transaction?.transactionID ?? '', transactionViolations);
-    const hasNoticeTypeViolations = Boolean(
-        TransactionUtils.hasNoticeTypeViolation(transaction?.transactionID ?? '', transactionViolations) && ReportUtils.isPaidGroupPolicy(iouReport) && canUseViolations,
+    const hasNoticeTypeViolations = !!(
+        TransactionUtils.hasNoticeTypeViolation(transaction?.transactionID ?? '', transactionViolations) &&
+        ReportUtils.isPaidGroupPolicy(iouReport) &&
+        canUseViolations
     );
     const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(transaction);
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
@@ -104,6 +106,7 @@ function MoneyRequestPreviewContent({
     const isFullySettled = isSettled && !isSettlementOrApprovalPartial;
     const isFullyApproved = ReportUtils.isReportApproved(iouReport) && !isSettlementOrApprovalPartial;
     const shouldShowRBR = hasNoticeTypeViolations || hasViolations || hasFieldErrors || (!isFullySettled && !isFullyApproved && isOnHold);
+    const shouldShowHoldMessage = !(isSettled && !isSettlementOrApprovalPartial) && isOnHold;
 
     /*
      Show the merchant for IOUs and expenses only if:
@@ -160,7 +163,11 @@ function MoneyRequestPreviewContent({
                 const isTooLong = violationsCount > 1 || violationMessage.length > 15;
                 const hasViolationsAndFieldErrors = violationsCount > 0 && hasFieldErrors;
 
-                return `${message} ${CONST.DOT_SEPARATOR} ${isTooLong || hasViolationsAndFieldErrors ? translate('violations.reviewRequired') : violationMessage}`;
+                message += ` ${CONST.DOT_SEPARATOR} ${isTooLong || hasViolationsAndFieldErrors ? translate('violations.reviewRequired') : violationMessage}`;
+                if (shouldShowHoldMessage) {
+                    message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.hold')}`;
+                }
+                return message;
             }
 
             const isMerchantMissing = TransactionUtils.isMerchantMissing(transaction);
@@ -171,7 +178,7 @@ function MoneyRequestPreviewContent({
                 message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.missingAmount')}`;
             } else if (isMerchantMissing) {
                 message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.missingMerchant')}`;
-            } else if (!(isSettled && !isSettlementOrApprovalPartial) && isOnHold) {
+            } else if (shouldShowHoldMessage) {
                 message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.hold')}`;
             }
         } else if (hasNoticeTypeViolations && transaction && !ReportUtils.isReportApproved(iouReport) && !ReportUtils.isSettled(iouReport?.reportID)) {
@@ -180,7 +187,7 @@ function MoneyRequestPreviewContent({
             message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.approved')}`;
         } else if (iouReport?.isCancelledIOU) {
             message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
-        } else if (!(isSettled && !isSettlementOrApprovalPartial) && isOnHold) {
+        } else if (shouldShowHoldMessage) {
             message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.hold')}`;
         }
         return message;
