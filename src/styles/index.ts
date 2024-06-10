@@ -455,6 +455,10 @@ const styles = (theme: ThemeColors) =>
             fontWeight: FontUtils.fontWeight.bold,
         },
 
+        textLineHeightXLarge: {
+            lineHeight: variables.lineHeightXLarge,
+        },
+
         fontWeightNormal: {
             fontWeight: FontUtils.fontWeight.normal,
         },
@@ -2846,11 +2850,6 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadius,
             height: variables.iconSizeExtraLarge,
             width: variables.iconSizeExtraLarge,
-        },
-
-        billingBannerSubtitle: {
-            color: theme.textSupporting,
-            lineHeight: variables.lineHeightXLarge,
         },
 
         selectCircle: {
