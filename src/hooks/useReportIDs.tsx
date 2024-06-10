@@ -129,8 +129,9 @@ function ReportIDsContextProvider({
     const policyMemberAccountIDs = getPolicyEmployeeListByIdWithoutCurrentUser(policies, activeWorkspaceID, accountID);
 
     const getOrderedReportIDs = useCallback(
-        (currentReportID?: string) =>
-            SidebarUtils.getOrderedReportIDs(
+        (currentReportID?: string) => {
+            console.time('getOrderedReportIDs');
+            const result = SidebarUtils.getOrderedReportIDs(
                 currentReportID ?? null,
                 chatReports,
                 betas,
@@ -140,7 +141,10 @@ function ReportIDsContextProvider({
                 transactionViolations,
                 activeWorkspaceID,
                 policyMemberAccountIDs,
-            ),
+            );
+            console.timeEnd('getOrderedReportIDs');
+            return result;
+        },
         // we need reports draft in deps array for reloading of list when reportsDrafts will change
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs, reportsDrafts],

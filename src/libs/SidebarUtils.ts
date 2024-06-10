@@ -79,6 +79,7 @@ function getOrderedReportIDs(
     const isInDefaultMode = !isInFocusMode;
     const allReportsDictValues = Object.values(allReports ?? {});
 
+    console.time('getOrderedReportIDs 1: reportsToDisplay');
     // Filter out all the reports that shouldn't be displayed
     let reportsToDisplay = allReportsDictValues.filter((report) => {
         if (!report) {
@@ -115,6 +116,7 @@ function getOrderedReportIDs(
             includeSelfDM: true,
         });
     });
+    console.timeEnd('getOrderedReportIDs 1: reportsToDisplay');
 
     // The LHN is split into four distinct groups, and each group is sorted a little differently. The groups will ALWAYS be in this order:
     // 1. Pinned/GBR - Always sorted by reportDisplayName
@@ -130,11 +132,14 @@ function getOrderedReportIDs(
     const nonArchivedReports: Array<OnyxEntry<Report>> = [];
     const archivedReports: Array<OnyxEntry<Report>> = [];
 
+    console.time('getOrderedReportIDs 2: sort');
     if (currentPolicyID || policyMemberAccountIDs.length > 0) {
         reportsToDisplay = reportsToDisplay.filter(
             (report) => report?.reportID === currentReportId || ReportUtils.doesReportBelongToWorkspace(report, policyMemberAccountIDs, currentPolicyID),
         );
     }
+    console.timeEnd('getOrderedReportIDs 2: sort');
+    console.time('getOrderedReportIDs 3: sort');
     // There are a few properties that need to be calculated for the report which are used when sorting reports.
     reportsToDisplay.forEach((reportToDisplay) => {
         let report = reportToDisplay as OnyxEntry<Report>;
@@ -157,6 +162,9 @@ function getOrderedReportIDs(
             nonArchivedReports.push(report);
         }
     });
+    console.timeEnd('getOrderedReportIDs 3: sort');
+
+    console.time('getOrderedReportIDs 4: sort');
 
     // Sort each group of reports accordingly
     pinnedAndGBRReports.sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
@@ -177,10 +185,13 @@ function getOrderedReportIDs(
         nonArchivedReports.sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
         archivedReports.sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
     }
+    console.timeEnd('getOrderedReportIDs 4: sort');
 
     // Now that we have all the reports grouped and sorted, they must be flattened into an array and only return the reportID.
     // The order the arrays are concatenated in matters and will determine the order that the groups are displayed in the sidebar.
+    console.time('getOrderedReportIDs 5: flatten');
     const LHNReports = [...pinnedAndGBRReports, ...draftReports, ...nonArchivedReports, ...archivedReports].map((report) => report?.reportID ?? '');
+    console.timeEnd('getOrderedReportIDs 5: flatten');
     return LHNReports;
 }
 
