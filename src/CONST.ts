@@ -3387,6 +3387,9 @@ const CONST = {
          */
         IMAGE: 'image',
 
+        /**
+         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
+         */
         TEXTBOX: 'textbox',
     },
     /**
