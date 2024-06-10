@@ -97,7 +97,6 @@ function VerifyIdentity({walletOnfidoData = DEFAULT_WALLET_ONFIDO_DATA}: VerifyI
                             <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.m5, styles.ph5]}>
                                 <Icon
                                     src={Illustrations.ToddBehindCloud}
-                                    fill="black"
                                     width={100}
                                     height={100}
                                 />
