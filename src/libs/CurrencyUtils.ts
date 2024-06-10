@@ -138,11 +138,13 @@ function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURR
  */
 function convertToShortDisplayString(amountInCents = 0, currency: string = CONST.CURRENCY.USD): string {
     const convertedAmount = convertToFrontendAmountAsInteger(amountInCents);
+
     return NumberFormatUtils.format(BaseLocaleListener.getPreferredLocale(), convertedAmount, {
         style: 'currency',
         currency,
 
         // There will be no decimals displayed (e.g. $9)
+        minimumFractionDigits: 0,
         maximumFractionDigits: 0,
     });
 }
