@@ -22,6 +22,7 @@ import * as CardUtils from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import type {MileageRate} from '@libs/DistanceRequestUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {isTaxTrackingEnabled} from '@libs/PolicyUtils';
@@ -274,6 +275,18 @@ function MoneyRequestView({
         [transactionAmount, isSettled, isCancelled, isPolicyExpenseChat, isEmptyMerchant, transactionDate, hasErrors, canUseViolations, hasViolations, translate, getViolationsForField],
     );
 
+    const deleteTransaction = useCallback(() => {
+        if (!parentReportAction) {
+            return;
+        }
+        const iouTransactionID = parentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction.originalMessage?.IOUTransactionID ?? '' : '';
+        if (ReportActionsUtils.isTrackExpenseAction(parentReportAction)) {
+            IOU.deleteTrackExpense(parentReport?.reportID ?? '', iouTransactionID, parentReportAction, true);
+            return;
+        }
+        IOU.deleteMoneyRequest(iouTransactionID, parentReportAction, true);
+    }, [parentReport?.reportID, parentReportAction]);
+
     const distanceRequestFields = canUseP2PDistanceRequests ? (
         <>
             <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints')}>
@@ -351,6 +364,9 @@ function MoneyRequestView({
                         onClose={() => {
                             if (!transaction?.transactionID) {
                                 return;
+                            }
+                            if (Object.values(transaction?.errors ?? {})?.find((error) => ErrorUtils.isReceiptError(error))) {
+                                deleteTransaction();
                             }
                             Transaction.clearError(transaction.transactionID);
                             ReportActions.clearAllRelatedReportActionErrors(report.reportID, parentReportAction);
