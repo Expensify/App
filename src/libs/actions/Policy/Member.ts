@@ -21,7 +21,6 @@ import type {InvitedEmailsToAccountIDs, PersonalDetailsList, Policy, PolicyEmplo
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {OriginalMessageJoinPolicyChangeLog} from '@src/types/onyx/OriginalMessage';
 import type {Attributes, Rate} from '@src/types/onyx/Policy';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {createPolicyExpenseChats} from './Policy';
 
@@ -104,11 +103,11 @@ Onyx.connect({
 /**
  * Returns the policy of the report
  */
-function getPolicy(policyID: string | undefined): Policy | EmptyObject {
+function getPolicy(policyID: string | undefined): OnyxEntry<Policy> {
     if (!allPolicies || !policyID) {
-        return {};
+        return null;
     }
-    return allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? {};
+    return allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
 }
 
 /**
@@ -228,9 +227,11 @@ function removeMembers(accountIDs: number[], policyID: string) {
 
     const workspaceChats = ReportUtils.getWorkspaceChats(policyID, accountIDs);
     const emailList = accountIDs.map((accountID) => allPersonalDetails?.[accountID]?.login).filter((login) => !!login) as string[];
-    const optimisticClosedReportActions = workspaceChats.map(() => ReportUtils.buildOptimisticClosedReportAction(sessionEmail, policy.name, CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY));
+    const optimisticClosedReportActions = workspaceChats.map(() =>
+        ReportUtils.buildOptimisticClosedReportAction(sessionEmail, policy?.name ?? '', CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY),
+    );
 
-    const announceRoomMembers = removeOptimisticAnnounceRoomMembers(policy.id, policy.name, accountIDs);
+    const announceRoomMembers = removeOptimisticAnnounceRoomMembers(policy?.id ?? '', policy?.name ?? '', accountIDs);
 
     const optimisticMembersState: OnyxCollection<PolicyEmployee> = {};
     const successMembersState: OnyxCollection<PolicyEmployee> = {};
@@ -277,7 +278,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
             value: {
                 statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                oldPolicyName: policy.name,
+                oldPolicyName: policy?.name,
                 pendingChatMembers,
             },
         });
@@ -313,7 +314,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
         const remainingLogins = employeeListEmails.filter((email) => !emailList.includes(email));
         const invitedPrimaryToSecondaryLogins: Record<string, string> = {};
 
-        if (policy.primaryLoginsInvited) {
+        if (policy?.primaryLoginsInvited) {
             Object.keys(policy.primaryLoginsInvited).forEach((key) => (invitedPrimaryToSecondaryLogins[policy.primaryLoginsInvited?.[key] ?? ''] = key));
         }
 

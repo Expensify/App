@@ -123,6 +123,7 @@ function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) 
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}
                 danger
+                shouldEnableNewFocusManagement
             />
 
             {(reportField.type === 'text' || isReportFieldTitle) && (

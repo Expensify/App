@@ -61,10 +61,6 @@ function setAdditionalDetailsErrors(errorFields: OnyxCommon.ErrorFields) {
     Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {errorFields});
 }
 
-function setAdditionalDetailsErrorMessage(additionalErrorMessage: string) {
-    Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {additionalErrorMessage});
-}
-
 /**
  * Save the source that triggered the KYC wall and optionally the chat report ID associated with the IOU
  */
@@ -304,7 +300,6 @@ export {
     openInitialSettingsPage,
     openEnablePaymentsPage,
     setAdditionalDetailsErrors,
-    setAdditionalDetailsErrorMessage,
     setAdditionalDetailsQuestions,
     updateCurrentStep,
     answerQuestionsForWallet,
