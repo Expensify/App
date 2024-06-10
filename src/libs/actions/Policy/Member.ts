@@ -617,7 +617,7 @@ function inviteMemberToWorkspace(policyID: string, inviterEmail: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: memberJoinKey,
-            value: {...failureMembersState, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('iou.common.genericEditFailureMessage')},
+            value: {...failureMembersState, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericEditFailureMessage')},
         },
     ];
 
