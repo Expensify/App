@@ -530,12 +530,12 @@ function updateDistanceTaxClaimableValue(policyID: string, customUnit: CustomUni
     for (const rateID of Object.keys(customUnit.rates)) {
         if (rateIDs.includes(rateID)) {
             const foundRate = customUnitRates.find((rate) => rate.customUnitRateID === rateID);
-            optimisticRates[rateID] = {...foundRate, pendingFields: {rate: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}};
-            successRates[rateID] = {...foundRate, pendingFields: {rate: null}};
+            optimisticRates[rateID] = {...foundRate, pendingFields: {taxClaimablePercentage: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}};
+            successRates[rateID] = {...foundRate, pendingFields: {taxClaimablePercentage: null}};
             failureRates[rateID] = {
                 ...currentRates[rateID],
-                pendingFields: {rate: null},
-                errorFields: {rate: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                pendingFields: {taxClaimablePercentage: null},
+                errorFields: {taxClaimablePercentage: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
             };
         }
     }
@@ -601,12 +601,12 @@ function updateDistanceTaxRate(policyID: string, customUnit: CustomUnit, customU
     for (const rateID of Object.keys(customUnit.rates)) {
         if (rateIDs.includes(rateID)) {
             const foundRate = customUnitRates.find((rate) => rate.customUnitRateID === rateID);
-            optimisticRates[rateID] = {...foundRate, pendingFields: {rate: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}};
-            successRates[rateID] = {...foundRate, pendingFields: {rate: null}};
+            optimisticRates[rateID] = {...foundRate, pendingFields: {taxRateExternalID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}};
+            successRates[rateID] = {...foundRate, pendingFields: {taxRateExternalID: null}};
             failureRates[rateID] = {
                 ...currentRates[rateID],
-                pendingFields: {rate: null},
-                errorFields: {rate: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                pendingFields: {taxRateExternalID: null},
+                errorFields: {taxRateExternalID: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
             };
         }
     }
