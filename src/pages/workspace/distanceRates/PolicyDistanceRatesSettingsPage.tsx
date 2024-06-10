@@ -122,7 +122,11 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
                                 />
                             </OfflineWithFeedback>
                         )}
-                        <OfflineWithFeedback errorRowStyles={styles.mh5}>
+                        <OfflineWithFeedback
+                            errors={ErrorUtils.getLatestErrorField(customUnits[customUnitID] ?? {}, 'taxEnabled')}
+                            errorRowStyles={styles.mh5}
+                            pendingAction={policy?.pendingFields?.taxEnabled}
+                        >
                             <View style={[styles.mt2, styles.mh5]}>
                                 <View style={[styles.flexRow, styles.mb2, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
                                     <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.distanceRates.trackTax')}</Text>

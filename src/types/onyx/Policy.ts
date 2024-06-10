@@ -904,7 +904,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Object containing all policy information necessary to connect with Spontana */
         travelSettings?: WorkspaceTravelSettings;
     } & Partial<PendingJoinRequestPolicy>,
-    'generalSettings' | 'addWorkspaceRoom' | keyof ACHAccount
+    'generalSettings' | 'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes
 >;
 
 /** Stages of policy connection sync */
