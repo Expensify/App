@@ -57,31 +57,34 @@ type Attributes = {
 };
 
 /** Policy custom unit */
-type CustomUnit = OnyxCommon.OnyxValueWithOfflineFeedback<{
-    /** Custom unit name */
-    name: string;
+type CustomUnit = OnyxCommon.OnyxValueWithOfflineFeedback<
+    {
+        /** Custom unit name */
+        name: string;
 
-    /** ID that identifies this custom unit */
-    customUnitID: string;
+        /** ID that identifies this custom unit */
+        customUnitID: string;
 
-    /** Contains custom attributes like unit, for this custom unit */
-    attributes: Attributes;
+        /** Contains custom attributes like unit, for this custom unit */
+        attributes: Attributes;
 
-    /** Distance rates using this custom unit */
-    rates: Record<string, Rate>;
+        /** Distance rates using this custom unit */
+        rates: Record<string, Rate>;
 
-    /** The default category in which this custom unit is used */
-    defaultCategory?: string;
+        /** The default category in which this custom unit is used */
+        defaultCategory?: string;
 
-    /** Whether this custom unit is enabled */
-    enabled?: boolean;
+        /** Whether this custom unit is enabled */
+        enabled?: boolean;
 
-    /** Error messages to show in UI */
-    errors?: OnyxCommon.Errors;
+        /** Error messages to show in UI */
+        errors?: OnyxCommon.Errors;
 
-    /** Form fields that triggered errors */
-    errorFields?: OnyxCommon.ErrorFields;
-}>;
+        /** Form fields that triggered errors */
+        errorFields?: OnyxCommon.ErrorFields;
+    },
+    keyof Attributes
+>;
 
 /** Policy company address data */
 type CompanyAddress = {

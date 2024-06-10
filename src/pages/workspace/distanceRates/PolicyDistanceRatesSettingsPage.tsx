@@ -125,7 +125,7 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
                         <OfflineWithFeedback
                             errors={ErrorUtils.getLatestErrorField(customUnits[customUnitID] ?? {}, 'taxEnabled')}
                             errorRowStyles={styles.mh5}
-                            pendingAction={policy?.pendingFields?.taxEnabled}
+                            pendingAction={customUnits[customUnitID]?.pendingFields?.taxEnabled}
                         >
                             <View style={[styles.mt2, styles.mh5]}>
                                 <View style={[styles.flexRow, styles.mb2, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
