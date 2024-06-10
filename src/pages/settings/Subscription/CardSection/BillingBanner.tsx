@@ -6,10 +6,11 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import Text from '@components/Text';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
 
 type BillingBannerProps = {
-    title: string;
-    subtitle: string;
+    title?: string;
+    subtitle?: string;
     isError?: boolean;
     shouldShowRedDotIndicator?: boolean;
 };
@@ -22,12 +23,12 @@ function BillingBanner({title, subtitle, isError, shouldShowRedDotIndicator}: Bi
         <View style={[styles.pt4, styles.pb3, styles.ph5, styles.flexRow, styles.gap3, styles.w100, styles.alignItemsCenter, styles.hoveredComponentBG]}>
             <Icon
                 src={isError ? Illustrations.CreditCardEyes : Illustrations.CheckmarkCircle}
-                width={48}
-                height={48}
+                width={variables.menuIconSize}
+                height={variables.menuIconSize}
             />
             <View style={[styles.flex1, styles.justifyContentCenter]}>
-                <Text style={[styles.headerText, styles.textLarge]}>{title}</Text>
-                <Text style={styles.textSupporting}>{subtitle}</Text>
+                {title && <Text style={[styles.headerText, styles.textLarge]}>{title}</Text>}
+                {subtitle && <Text style={styles.textSupporting}>{subtitle}</Text>}
             </View>
             {isError && shouldShowRedDotIndicator && (
                 <Icon
