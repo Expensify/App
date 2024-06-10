@@ -3697,6 +3697,14 @@ function getParsedComment(text: string, parsingDetails?: ParsingDetails): string
         : lodashEscape(text);
 }
 
+function getAttachmentHtml(file?: FileObject): string {
+    if (!file) {
+        return '';
+    }
+
+    return CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML;
+}
+
 function getReportDescriptionText(report: Report): string {
     if (!report.description) {
         return '';
@@ -3724,8 +3732,9 @@ function buildOptimisticAddCommentReportAction(
     const commentText = getParsedComment(text ?? '', {shouldEscapeText, reportID});
     const accountID = actorAccountID ?? currentUserAccountID ?? -1;
 
-    const htmlForNewComment = `${commentText}\n${file ? CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML : ''}`.trim();
-    const textForNewComment = `${Parser.htmlToText(commentText)}\n${file ? CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML : ''}`.trim();
+    const attachmentHtml = getAttachmentHtml(file);
+    const htmlForNewComment = `${commentText}\n${attachmentHtml}`.trim();
+    const textForNewComment = Parser.htmlToText(htmlForNewComment);
 
     return {
         commentText,
