@@ -1,7 +1,6 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import FixedFooter from '@components/FixedFooter';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -22,27 +21,13 @@ import * as BankAccounts from '@userActions/BankAccounts';
 import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {WalletOnfido} from '@src/types/onyx';
-
-const DEFAULT_WALLET_ONFIDO_DATA = {
-    isLoading: false,
-    hasAcceptedPrivacyPolicy: false,
-    sdkToken: '',
-    applicantID: '',
-};
-
-type VerifyIdentityOnyxProps = {
-    /** The wallet onfido data */
-    walletOnfidoData: OnyxEntry<WalletOnfido>;
-};
-
-type VerifyIdentityProps = VerifyIdentityOnyxProps;
 
 const ONFIDO_ERROR_DISPLAY_DURATION = 10000;
 
-function VerifyIdentity({walletOnfidoData = DEFAULT_WALLET_ONFIDO_DATA}: VerifyIdentityProps) {
+function VerifyIdentity() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [walletOnfidoData] = useOnyx(ONYXKEYS.WALLET_ONFIDO, {initWithStoredValues: false});
 
     const openOnfidoFlow = () => {
         BankAccounts.openOnfidoFlow();
@@ -123,15 +108,4 @@ function VerifyIdentity({walletOnfidoData = DEFAULT_WALLET_ONFIDO_DATA}: VerifyI
 
 VerifyIdentity.displayName = 'VerifyIdentity';
 
-export default withOnyx<VerifyIdentityProps, VerifyIdentityOnyxProps>({
-    // @ts-expect-error: ONYXKEYS.PERSONAL_BANK_ACCOUNT is conflicting with ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM
-    personalBankAccount: {
-        key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
-    },
-    walletOnfidoData: {
-        key: ONYXKEYS.WALLET_ONFIDO,
-
-        // Let's get a new onfido token each time the user hits this flow (as it should only be once)
-        initWithStoredValues: false,
-    },
-})(VerifyIdentity);
+export default VerifyIdentity;
