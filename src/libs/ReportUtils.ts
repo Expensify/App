@@ -1872,7 +1872,7 @@ function getSecondaryAvatar(chatReport: OnyxEntry<Report>, iouReport: OnyxEntry<
     let secondaryAvatar: Icon;
 
     if (displayAllActors) {
-        if (!isIndividualInvoiceRoom(chatReport)) {
+        if (isInvoiceRoom(chatReport) && !isIndividualInvoiceRoom(chatReport)) {
             const secondaryPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : '-1';
             const secondaryPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${secondaryPolicyID}`];
             const secondaryPolicyAvatar = secondaryPolicy?.avatarURL ?? getDefaultWorkspaceAvatar(secondaryPolicy?.name);
