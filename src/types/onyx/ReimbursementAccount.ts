@@ -4,10 +4,13 @@ import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, 
 import type {BankName} from './Bank';
 import type * as OnyxCommon from './OnyxCommon';
 
+/** Steps to setup a reimbursement bank account */
 type BankAccountStep = ValueOf<typeof CONST.BANK_ACCOUNT.STEP>;
 
+/** Substeps to setup a reimbursement bank account */
 type BankAccountSubStep = ValueOf<typeof CONST.BANK_ACCOUNT.SUBSTEP>;
 
+/** Model of ACH data */
 type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorStepProps & ACHContractStepProps & ReimbursementAccountProps> & {
     /** Step of the setup flow that we are on. Determines which view is presented. */
     currentStep?: BankAccountStep;
@@ -46,6 +49,7 @@ type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorS
     plaidAccountID?: string;
 };
 
+/** Model of reimbursement account data */
 type ReimbursementAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether we are loading the data via the API */
     isLoading?: boolean;
