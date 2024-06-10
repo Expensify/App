@@ -56,7 +56,8 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
     const errorFields = customUnits[customUnitID]?.errorFields;
 
     const setNewUnit = (unit: UnitItemType) => {
-        DistanceRate.setPolicyDistanceRatesUnit(policyID, customUnit, {...customUnit, attributes: {unit: unit.value}});
+        const attributes = {...customUnits[customUnitID].attributes, unit: unit.value};
+        DistanceRate.setPolicyDistanceRatesUnit(policyID, customUnit, {...customUnit, attributes});
     };
 
     const setNewCategory = (category: ListItem) => {
@@ -122,7 +123,7 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
                             </OfflineWithFeedback>
                         )}
                         <OfflineWithFeedback errorRowStyles={styles.mh5}>
-                            <View style={[styles.mt2, styles.mh4]}>
+                            <View style={[styles.mt2, styles.mh5]}>
                                 <View style={[styles.flexRow, styles.mb2, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
                                     <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.distanceRates.trackTax')}</Text>
                                     <Switch
@@ -134,14 +135,10 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
                                 </View>
                             </View>
                             {!isPolicyTrackTaxEnabled && (
-                                <View style={[styles.mh4]}>
-                                    <Text
-                                        style={styles.colorMuted}
-                                        fontSize={14}
-                                    >
+                                <View style={[styles.mh5]}>
+                                    <Text style={styles.colorMuted}>
                                         {translate('workspace.distanceRates.taxFeatureNotEnabledMessage')}
                                         <TextLink
-                                            fontSize={14}
                                             onPress={() => {
                                                 Navigation.dismissModal();
                                                 Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));

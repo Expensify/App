@@ -126,6 +126,7 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
                             iouCurrencyCode={splitCurrency}
                             iouComment={splitComment}
                             iouCreated={splitCreated}
+                            shouldDisplayReceipt
                             iouMerchant={splitMerchant}
                             iouCategory={splitCategory}
                             iouIsBillable={splitBillable}

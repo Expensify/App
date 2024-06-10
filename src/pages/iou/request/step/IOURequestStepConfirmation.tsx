@@ -81,10 +81,13 @@ function IOURequestStepConfirmation({
     const {windowWidth} = useWindowDimensions();
     const {isOffline} = useNetwork();
     const [receiptFile, setReceiptFile] = useState<Receipt>();
+    const requestType = TransactionUtils.getRequestType(transaction);
+    const isDistanceRequest = requestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
 
     const receiptFilename = transaction?.filename;
     const receiptPath = transaction?.receipt?.source;
     const receiptType = transaction?.receipt?.type;
+    const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '';
     const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction);
     const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
@@ -107,8 +110,6 @@ function IOURequestStepConfirmation({
             isOptimisticPersonalDetail: true,
         };
     }, [personalDetails, transaction?.participants, transaction?.splitPayerAccountIDs]);
-
-    const requestType = TransactionUtils.getRequestType(transaction);
 
     const headerTitle = useMemo(() => {
         if (isCategorizingTrackExpense) {
@@ -290,7 +291,7 @@ function IOURequestStepConfirmation({
     );
 
     const createDistanceRequest = useCallback(
-        (selectedParticipants: Participant[], trimmedComment: string, customUnitRateID: string) => {
+        (selectedParticipants: Participant[], trimmedComment: string) => {
             if (!transaction) {
                 return;
             }
@@ -314,7 +315,7 @@ function IOURequestStepConfirmation({
                 customUnitRateID,
             );
         },
-        [policy, policyCategories, policyTags, report, transaction, transactionTaxCode, transactionTaxAmount],
+        [policy, policyCategories, policyTags, report, transaction, transactionTaxCode, transactionTaxAmount, customUnitRateID],
     );
 
     const createTransaction = useCallback(
@@ -326,7 +327,9 @@ function IOURequestStepConfirmation({
                 const participantsWithAmount = Object.keys(transaction.splitShares ?? {})
                     .filter((accountID: string): boolean => (transaction?.splitShares?.[Number(accountID)]?.amount ?? 0) > 0)
                     .map((accountID) => Number(accountID));
-                splitParticipants = selectedParticipants.filter((participant) => participantsWithAmount.includes(participant.accountID ?? -1));
+                splitParticipants = selectedParticipants.filter((participant) =>
+                    participantsWithAmount.includes(participant.isPolicyExpenseChat ? participant?.ownerAccountID ?? -1 : participant.accountID ?? -1),
+                );
             }
             const trimmedComment = (transaction?.comment.comment ?? '').trim();
 
@@ -351,6 +354,8 @@ function IOURequestStepConfirmation({
                         category: transaction.category,
                         tag: transaction.tag,
                         currency: transaction.currency,
+                        taxCode: transactionTaxCode,
+                        taxAmount: transactionTaxAmount,
                     });
                 }
                 return;
@@ -376,6 +381,8 @@ function IOURequestStepConfirmation({
                         iouRequestType: transaction.iouRequestType,
                         splitShares: transaction.splitShares,
                         splitPayerAccountIDs: transaction.splitPayerAccountIDs ?? [],
+                        taxCode: transactionTaxCode,
+                        taxAmount: transactionTaxAmount,
                     });
                 }
                 return;
@@ -399,6 +406,8 @@ function IOURequestStepConfirmation({
                         iouRequestType: transaction.iouRequestType,
                         splitShares: transaction.splitShares,
                         splitPayerAccountIDs: transaction.splitPayerAccountIDs,
+                        taxCode: transactionTaxCode,
+                        taxAmount: transactionTaxAmount,
                     });
                 }
                 return;
@@ -469,9 +478,8 @@ function IOURequestStepConfirmation({
                 return;
             }
 
-            if (requestType === CONST.IOU.REQUEST_TYPE.DISTANCE && !isMovingTransactionFromTrackExpense) {
-                const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '';
-                createDistanceRequest(selectedParticipants, trimmedComment, customUnitRateID);
+            if (isDistanceRequest && !isMovingTransactionFromTrackExpense) {
+                createDistanceRequest(selectedParticipants, trimmedComment);
                 return;
             }
 
@@ -482,7 +490,7 @@ function IOURequestStepConfirmation({
             report,
             iouType,
             receiptFile,
-            requestType,
+            isDistanceRequest,
             requestMoney,
             currentUserPersonalDetails.login,
             currentUserPersonalDetails.accountID,
@@ -494,6 +502,8 @@ function IOURequestStepConfirmation({
             policy,
             policyTags,
             policyCategories,
+            transactionTaxAmount,
+            transactionTaxCode,
         ],
     );
 
@@ -571,7 +581,7 @@ function IOURequestStepConfirmation({
                         bankAccountRoute={ReportUtils.getBankAccountRoute(report)}
                         iouMerchant={transaction?.merchant}
                         iouCreated={transaction?.created}
-                        isDistanceRequest={requestType === CONST.IOU.REQUEST_TYPE.DISTANCE}
+                        isDistanceRequest={isDistanceRequest}
                         shouldShowSmartScanFields={isMovingTransactionFromTrackExpense ? transaction?.amount !== 0 : requestType !== CONST.IOU.REQUEST_TYPE.SCAN}
                         action={action}
                         payeePersonalDetails={payeePersonalDetails}
