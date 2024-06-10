@@ -184,11 +184,12 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                     >
                         <View style={sidebarInnerRowStyle}>
                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                {(optionItem.icons?.length ?? 0) > 0 &&
+                                {optionItem.icons &&
+                                    optionItem.icons.length > 0 &&
                                     (optionItem.shouldShowSubscript ? (
                                         <SubscriptAvatar
                                             backgroundColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
-                                            mainAvatar={optionItem.icons?.[0]}
+                                            mainAvatar={optionItem.icons[0]}
                                             secondaryAvatar={optionItem.icons?.[1]}
                                             size={isInFocusMode ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                                         />

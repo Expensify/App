@@ -45,11 +45,11 @@ type AvatarProps = {
     /** Used to locate fallback icon in end-to-end tests. */
     fallbackIconTestID?: string;
 
-    /** Denotes whether it is an avatar or a workspace avatar */
-    type?: AvatarType;
-
     /** Owner of the avatar. If user, displayName. If workspace, policy name */
     name?: string;
+
+    /** Denotes whether it is an avatar or a workspace avatar */
+    type: AvatarType;
 
     /** Optional account id if it's user avatar or policy id if it's workspace avatar */
     avatarID?: number | string;
@@ -79,10 +79,10 @@ function Avatar({
         setImageError(false);
     }, [originalSource]);
 
-    const isWorkspace = type === CONST.ICON_TYPE_WORKSPACE;
+    const isWorkspace = type === 'workspace';
+    const userAccountID = isWorkspace ? undefined : (avatarID as number);
 
-    // If it's user avatar then accountID will be a number
-    const source = isWorkspace ? originalSource : UserUtils.getAvatar(originalSource, avatarID as number);
+    const source = isWorkspace ? originalSource : UserUtils.getAvatar(originalSource, userAccountID);
     const useFallBackAvatar = imageError || !source || source === Expensicons.FallbackAvatar;
     const fallbackAvatar = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatar(name) : fallbackIcon || Expensicons.FallbackAvatar;
     const fallbackAvatarTestID = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatarTestID(name) : fallbackIconTestID || 'SvgFallbackAvatar Icon';
