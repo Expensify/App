@@ -4,9 +4,9 @@ import {View} from 'react-native';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as HeaderUtils from '@libs/HeaderUtils';
-import * as Session from '@userActions/Session';
 import * as Localize from '@libs/Localize';
 import * as ReportActions from '@userActions/Report';
+import * as Session from '@userActions/Session';
 import type OnyxReport from '@src/types/onyx/Report';
 import Button from './Button';
 import type {ThreeDotsMenuItem} from './HeaderWithBackButton/types';
@@ -35,7 +35,7 @@ const PromotedActions = {
         text: Localize.translateLocal('common.join'),
         onSelected: () => {
             Session.checkIfActionIsAllowed(() => ReportActions.joinRoom(report));
-        }
+        },
     }),
     message: ({accountID, login}) => ({
         key: 'message',
