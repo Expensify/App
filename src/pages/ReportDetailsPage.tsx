@@ -314,7 +314,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const linkedWorkspace = useMemo(() => Object.values(policies ?? {}).find((pol) => pol && pol.id === report?.policyID) ?? null, [policies, report?.policyID]);
     const shouldDisableRename = useMemo(() => ReportUtils.shouldDisableRename(report, linkedWorkspace), [report, linkedWorkspace]);
 
-    const chatRoomAdminSubtitleText = `${translate('reportDetailsPage.in')} ${report.policyName}`;
+    const chatRoomAdminSubtitleText = translate('reportDetailsPage.inWorkspace', {policyName: report.policyName});
 
     const reportName = ReportUtils.isDeprecatedGroupDM(report) || isGroupChat ? ReportUtils.getGroupChatName(undefined, false, report.reportID ?? '') : ReportUtils.getReportName(report);
 

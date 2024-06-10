@@ -1304,7 +1304,7 @@ export default {
         },
     },
     reportDetailsPage: {
-        in: 'in',
+        inWorkspace: ({policyName}) => `in ${policyName}`,
     },
     reportDescriptionPage: {
         roomDescription: 'Room description',
