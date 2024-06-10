@@ -1,5 +1,5 @@
 import {format} from 'date-fns';
-import React, {useState} from 'react';
+import React from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -25,16 +25,11 @@ function SubscriptionSettings() {
 
     const isCollect = subscriptionPlan === CONST.POLICY.TYPE.TEAM;
 
-    // TODO these default state values will come from API in next phase
-    const [autoRenew, setAutoRenew] = useState(true);
-
     const autoRenewalDate = privateSubscription?.endDate ? format(new Date(`${privateSubscription?.endDate}T00:00:00`), CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT) : '';
 
-    // TODO all actions will be implemented in next phase
     const handleAutoRenewToggle = () => {
-        if (!autoRenew) {
-            // TODO make API call to enable auto renew here
-            setAutoRenew(true);
+        if (!privateSubscription?.autoRenew) {
+            Subscription.updateSubscriptionAutoRenew(true);
             return;
         }
         Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_DISABLE_AUTO_RENEW_SURVEY);
