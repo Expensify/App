@@ -133,7 +133,9 @@ To add or remove a font used in the Expensify Help web app:
 
 #### Native / Web / Desktop
 
-To use your fonts in the app, just import the desired font from [FontUtils](https://github.com/Expensify/App/blob/main/src/styles/utils/FontUtils/index.ts) and use in your style objects with `FontUtils.fontFamily.platform.<font-family-key>`.
+To use your fonts in the app, just import the desired font from [FontUtils](https://github.com/Expensify/App/blob/main/src/styles/utils/FontUtils/index.ts) and use in your style objects.
+
+You should use `FontUtils.fontFamily.platform.<font-family-key>` for the most use cases in the app because it will use the correspondent set of font families (with fallback fonts or not) according to the platform. `FontUtils.fontFamily.single.` and `FontUtils.fontFamily.multi.` should only be used when we want a specific set of font families independently of the platform.
 
 ```ts
 import FontUtils from '@styles/utils/FontUtils';
