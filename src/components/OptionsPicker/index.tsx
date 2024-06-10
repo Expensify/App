@@ -1,8 +1,8 @@
 import React, {Fragment} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
 import OptionItem from './OptionItem';
@@ -37,9 +37,9 @@ type OptionsPickerProps<TKey extends string> = {
 
 function OptionsPicker<TKey extends string>({options, selectedOption, onOptionSelected, style, isDisabled}: OptionsPickerProps<TKey>) {
     const styles = useThemeStyles();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    if (isSmallScreenWidth) {
+    if (shouldUseNarrowLayout) {
         return (
             <View style={[styles.flexColumn, styles.flex1, style]}>
                 {options.map((option, index) => (

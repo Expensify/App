@@ -44,7 +44,6 @@ function updateSubscriptionType(type: SubscriptionType) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION,
             value: {
-                type,
                 pendingAction: null,
             },
         },
