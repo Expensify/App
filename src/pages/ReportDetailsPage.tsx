@@ -1,4 +1,3 @@
-import {useRoute} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -66,7 +65,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
-    const route = useRoute();
     const [isLastMemberLeavingGroupModalVisible, setIsLastMemberLeavingGroupModalVisible] = useState(false);
     const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? ''}`], [policies, report?.policyID]);
     const isPolicyAdmin = useMemo(() => PolicyUtils.isPolicyAdmin(policy ?? null), [policy]);
@@ -92,11 +90,12 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const isGroupChat = useMemo(() => ReportUtils.isGroupChat(report), [report]);
     const isThread = useMemo(() => ReportUtils.isThread(report), [report]);
     const participants = useMemo(() => {
-        if (isGroupChat || isSystemChat) {
-            // Filter out the current user from the particpants of the systemChat
-            return ReportUtils.getParticipantAccountIDs(report.reportID ?? '').filter((accountID) => accountID !== session?.accountID && isSystemChat);
+        if (isGroupChat) {
+            return ReportUtils.getParticipantAccountIDs(report.reportID ?? '');
         }
-
+        if (isSystemChat) {
+            return ReportUtils.getParticipantAccountIDs(report.reportID ?? '').filter((accountID) => accountID !== session?.accountID);
+        }
         return ReportUtils.getVisibleChatMemberAccountIDs(report.reportID ?? '');
     }, [report, session, isGroupChat, isSystemChat]);
 
@@ -212,7 +211,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 icon: Expensicons.Exit,
                 isAnonymousAction: true,
                 action: () => {
-                    if (Object.keys(report?.participants ?? {}).length === 1 && isGroupChat) {
+                    if (ReportUtils.getParticipantAccountIDs(report.reportID, true).length === 1 && isGroupChat) {
                         setIsLastMemberLeavingGroupModalVisible(true);
                         return;
                     }
@@ -261,7 +260,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         />
     ) : null;
 
-    const renderAvatar = useMemo(() => {
+    const renderedAvatar = useMemo(() => {
         if (isMoneyRequestReport || isInvoiceReport) {
             return (
                 <View style={styles.mb3}>
@@ -311,14 +310,10 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     return (
         <ScreenWrapper testID={ReportDetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={isEmptyObject(report)}>
-                <HeaderWithBackButton
-                    title={translate('common.details')}
-                    onBackButtonPress={Navigation.goBack}
-                    shouldNavigateToTopMostReport={!(route.params && 'backTo' in route.params)}
-                />
+                <HeaderWithBackButton title={translate('common.details')} />
                 <ScrollView style={[styles.flex1]}>
                     <View style={styles.reportDetailsTitleContainer}>
-                        {renderAvatar}
+                        {renderedAvatar}
                         <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
                             <View style={[styles.alignSelfCenter, styles.w100, styles.mt1]}>
                                 <DisplayNames
