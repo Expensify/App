@@ -105,7 +105,7 @@ function VerifyIdentity({walletOnfidoData = DEFAULT_WALLET_ONFIDO_DATA}: VerifyI
                             </View>
                             <FixedFooter>
                                 <FormAlertWithSubmitButton
-                                    isAlertVisible={Boolean(onfidoError)}
+                                    isAlertVisible={!!onfidoError}
                                     onSubmit={openOnfidoFlow}
                                     message={onfidoError}
                                     isLoading={walletOnfidoData?.isLoading}
