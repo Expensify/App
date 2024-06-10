@@ -209,6 +209,7 @@ function PopoverMenu({
             withoutOverlay={withoutOverlay}
             shouldSetModalVisibility={shouldSetModalVisibility}
             shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
+            useNativeDriver={false}
         >
             <View style={isSmallScreenWidth ? {} : styles.createMenuContainer}>
                 {!!headerText && enteredSubMenuIndexes.length === 0 && <Text style={[styles.createMenuHeaderText, styles.ph5, styles.pv3]}>{headerText}</Text>}
