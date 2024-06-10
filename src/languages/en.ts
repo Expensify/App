@@ -243,6 +243,7 @@ export default {
             enterAmount: 'Enter an amount.',
             enterDate: 'Enter a date.',
             invalidTimeRange: 'Please enter a time using the 12-hour clock format (e.g., 2:30 PM).',
+            pleaseCompleteForm: 'Please complete the form above to continue.',
         },
         comma: 'comma',
         semicolon: 'semicolon',
@@ -3288,5 +3289,23 @@ export default {
             security: 'Expensify is PCI-DSS compliant, uses bank-level encryption, and utilizes redundant infrastructure to protect your data.',
             learnMoreAboutSecurity: 'Learn more about our security.',
         },
+        subscriptionSettings: {
+            title: 'Subscription settings',
+            autoRenew: 'Auto-renew',
+            autoIncrease: 'Auto-increase annual seats',
+            saveUpTo: ({amountSaved}) => `Save up to $${amountSaved}/month per active member`,
+            automaticallyIncrease:
+                'Automatically increase your annual seats to accommodate for active members that exceed your subscription size. Note: This will extend your annual subscription end date.',
+            disableAutoRenew: 'Disable auto-renew',
+            helpUsImprove: 'Help us improve Expensify',
+            whatsMainReason: 'What’s the main reason you’re disabling auto-renew on your subscription?',
+            renewsOn: ({date}) => `Renews on ${date}`,
+        },
+    },
+    feedbackSurvey: {
+        tooLimited: 'Functionality needs improvement',
+        tooExpensive: 'Too expensive',
+        inadequateSupport: 'Inadequate customer support',
+        businessClosing: 'Company closing, downsizing, or acquired',
     },
 } satisfies TranslationBase;
