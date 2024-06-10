@@ -1,5 +1,6 @@
 import type {NetworkStatus} from '@libs/NetworkConnection';
 
+/** Model of network state */
 type Network = {
     /** Is the network currently offline or not */
     isOffline: boolean;
