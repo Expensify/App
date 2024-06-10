@@ -23,6 +23,7 @@ type OnyxValueWithOfflineFeedback<TOnyx, TKey extends string = never> = keyof TO
 /** Mapping of form fields with errors */
 type ErrorFields<TKey extends string = string> = Record<TKey, Errors | null | undefined>;
 
+/** Mapping of form fields with error translation keys and variables */
 type Errors = Record<string, string | null>;
 
 /**
