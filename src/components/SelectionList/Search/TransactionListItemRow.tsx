@@ -93,7 +93,7 @@ function ReceiptCell({transactionItem, isHovered = false}: ReceiptCellProps) {
 
 function DateCell({transactionItem, showTooltip, isLargeScreenWidth}: TransactionCellProps) {
     const styles = useThemeStyles();
-    const date = TransactionUtils.getCreated(transactionItem, CONST.DATE.MONTH_DAY_ABBR_FORMAT);
+    const date = TransactionUtils.getCreated(transactionItem, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT);
 
     return (
         <TextWithTooltip
