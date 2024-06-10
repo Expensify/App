@@ -275,7 +275,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
     );
 
     const isPaidGroupPolicy = PolicyUtils.isPaidGroupPolicy(policy);
-    const isLoading = Boolean(policy?.isLoading && policy?.reimbursementChoice === undefined);
+    const isLoading = !!(policy?.isLoading && policy?.reimbursementChoice === undefined);
 
     return (
         <AccessOrNotFoundWrapper
@@ -289,7 +289,6 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_WORKFLOWS}
                 shouldShowOfflineIndicatorInWideScreen
                 shouldShowNotFoundPage={!isPaidGroupPolicy || !isPolicyAdmin}
-                shouldSkipVBBACall
                 isLoading={isLoading}
                 shouldShowLoading={isLoading}
                 shouldUseScrollView

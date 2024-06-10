@@ -288,7 +288,11 @@ function MoneyRequestConfirmationList({
         return allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${senderWorkspaceParticipant?.policyID}`];
     }, [allPolicies, selectedParticipantsProp]);
 
-    const canUpdateSenderWorkspace = useMemo(() => PolicyUtils.canSendInvoice(allPolicies) && !!transaction?.isFromGlobalCreate, [allPolicies, transaction?.isFromGlobalCreate]);
+    const canUpdateSenderWorkspace = useMemo(() => {
+        const isInvoiceRoomParticipant = selectedParticipantsProp.some((participant) => participant.isInvoiceRoom);
+
+        return PolicyUtils.canSendInvoice(allPolicies) && !!transaction?.isFromGlobalCreate && !isInvoiceRoomParticipant;
+    }, [allPolicies, selectedParticipantsProp, transaction?.isFromGlobalCreate]);
 
     const canModifyTaxFields = !isReadOnly && !isDistanceRequest;
 
@@ -344,13 +348,12 @@ function MoneyRequestConfirmationList({
     const isCategoryRequired = !!policy?.requiresCategory;
 
     useEffect(() => {
-        if (shouldDisplayFieldError && didConfirmSplit) {
-            setFormError('iou.error.genericSmartscanFailureMessage');
-            return;
-        }
-
         if (shouldDisplayFieldError && hasSmartScanFailed) {
             setFormError('iou.receiptScanningFailed');
+            return;
+        }
+        if (shouldDisplayFieldError && didConfirmSplit) {
+            setFormError('iou.error.genericSmartscanFailureMessage');
             return;
         }
         // reset the form error whenever the screen gains or loses focus
@@ -714,7 +717,21 @@ function MoneyRequestConfirmationList({
                 setFormError('iou.error.invalidCategoryLength');
                 return;
             }
-            if (iouType !== CONST.IOU.TYPE.PAY) {
+
+            if (formError) {
+                return;
+            }
+
+            if (iouType === CONST.IOU.TYPE.PAY) {
+                if (!paymentMethod) {
+                    return;
+                }
+
+                setDidConfirm(true);
+
+                Log.info(`[IOU] Sending money via: ${paymentMethod}`);
+                onSendMoney?.(paymentMethod);
+            } else {
                 // validate the amount for distance expenses
                 const decimals = CurrencyUtils.getCurrencyDecimals(iouCurrencyCode);
                 if (isDistanceRequest && !isDistanceRequestWithPendingRoute && !MoneyRequestUtils.validateAmount(String(iouAmount), decimals)) {
@@ -731,18 +748,6 @@ function MoneyRequestConfirmationList({
                 playSound(SOUNDS.DONE);
                 setDidConfirm(true);
                 onConfirm?.(selectedParticipants);
-            } else {
-                if (formError) {
-                    return;
-                }
-                if (!paymentMethod) {
-                    return;
-                }
-
-                setDidConfirm(true);
-
-                Log.info(`[IOU] Sending money via: ${paymentMethod}`);
-                onSendMoney?.(paymentMethod);
             }
         },
         [
@@ -925,14 +930,14 @@ function MoneyRequestConfirmationList({
             item: (
                 <MenuItemWithTopDescription
                     key={translate('common.rate')}
-                    shouldShowRightIcon={Boolean(rate) && !isReadOnly && isPolicyExpenseChat}
+                    shouldShowRightIcon={!!rate && !isReadOnly && isPolicyExpenseChat}
                     title={DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, isOffline)}
                     description={translate('common.rate')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
                     disabled={didConfirm}
-                    interactive={Boolean(rate) && !isReadOnly && isPolicyExpenseChat}
+                    interactive={!!rate && !isReadOnly && isPolicyExpenseChat}
                 />
             ),
             shouldShow: isDistanceRequest && canUseP2PDistanceRequests,
@@ -1275,6 +1280,7 @@ function MoneyRequestConfirmationList({
                 footerContent={footerContent}
                 listFooterContent={listFooterContent}
                 containerStyle={[styles.flexBasisAuto]}
+                removeClippedSubviews={false}
             />
         </MouseProvider>
     );
