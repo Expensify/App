@@ -69,7 +69,7 @@ function openOldDotLink(url: string) {
 function buildTravelDotURL(spotnanaToken?: string, postLoginPath?: string): Promise<string> {
     return Promise.all([Environment.getTravelDotEnvironmentURL(), Environment.getSpotnanaEnvironmentTMCID()]).then(([environmentURL, tmcID]) => {
         const authCode = spotnanaToken ? `authCode=${spotnanaToken}` : '';
-        const redirectURL = postLoginPath ? `redirectUrl=${postLoginPath}` : '';
+        const redirectURL = postLoginPath ? `redirectUrl=${Url.addLeadingForwardSlash(postLoginPath)}` : '';
         const tmcIDParam = `tmcId=${tmcID}`;
 
         const paramsArray = [authCode, tmcIDParam, redirectURL];
