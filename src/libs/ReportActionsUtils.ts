@@ -11,6 +11,7 @@ import type {
     ActionName,
     ChangeLog,
     IOUMessage,
+    JoinWorkspaceResolution,
     OriginalMessageActionableMentionWhisper,
     OriginalMessageActionableReportMentionWhisper,
     OriginalMessageActionableTrackedExpenseWhisper,
@@ -1210,7 +1211,9 @@ function isActionableJoinRequest(reportAction: OnyxEntry<ReportAction>): reportA
  */
 function isActionableJoinRequestPending(reportID: string): boolean {
     const sortedReportActions = getSortedReportActions(Object.values(getAllReportActions(reportID)));
-    const findPendingRequest = sortedReportActions.find((reportActionItem) => isActionableJoinRequest(reportActionItem) && reportActionItem.originalMessage.choice === '');
+    const findPendingRequest = sortedReportActions.find(
+        (reportActionItem) => isActionableJoinRequest(reportActionItem) && reportActionItem.originalMessage.choice === ('' as JoinWorkspaceResolution),
+    );
     return !!findPendingRequest;
 }
 
