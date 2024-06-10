@@ -3,4 +3,6 @@ function SaveWithExpensifyButton() {
     return null;
 }
 
+SaveWithExpensifyButton.displayName = 'SaveWithExpensifyButton';
+
 export default SaveWithExpensifyButton;
