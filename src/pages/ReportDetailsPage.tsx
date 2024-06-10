@@ -10,6 +10,7 @@ import DisplayNames from '@components/DisplayNames';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -317,8 +318,16 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
     const reportName = ReportUtils.isDeprecatedGroupDM(report) || isGroupChat ? ReportUtils.getGroupChatName(undefined, false, report.reportID ?? '') : ReportUtils.getReportName(report);
 
+    const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
+    const canJoin = ReportUtils.canJoinChat(report, parentReportAction, policy ?? null);
+
     const promotedActions = useMemo(() => {
         const result: PromotedAction[] = [];
+
+        if (canJoin) {
+            result.push(PromotedActions.join(report));
+        }
+
         if (report) {
             result.push(PromotedActions.pin(report));
         }
@@ -326,7 +335,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         result.push(PromotedActions.share(report));
 
         return result;
-    }, [report]);
+    }, [canJoin, report]);
 
     const nameSectionExpenseIOU = (
         <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>

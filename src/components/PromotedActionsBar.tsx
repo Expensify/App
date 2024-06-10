@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as HeaderUtils from '@libs/HeaderUtils';
+import * as Session from '@userActions/Session';
 import * as Localize from '@libs/Localize';
 import * as ReportActions from '@userActions/Report';
 import type OnyxReport from '@src/types/onyx/Report';
@@ -15,7 +16,7 @@ type PromotedAction = {
     key: string;
 } & ThreeDotsMenuItem;
 
-type PromotedActionsType = Record<'pin' | 'share', (report: OnyxReport) => PromotedAction> & {
+type PromotedActionsType = Record<'pin' | 'share' | 'join', (report: OnyxReport) => PromotedAction> & {
     message: (params: {accountID?: number; login?: string}) => PromotedAction;
 };
 
@@ -27,6 +28,14 @@ const PromotedActions = {
     share: (report) => ({
         key: 'share',
         ...HeaderUtils.getShareMenuItem(report),
+    }),
+    join: (report) => ({
+        key: 'join',
+        icon: Expensicons.ChatBubbles,
+        text: Localize.translateLocal('common.join'),
+        onSelected: () => {
+            Session.checkIfActionIsAllowed(() => ReportActions.joinRoom(report));
+        }
     }),
     message: ({accountID, login}) => ({
         key: 'message',
