@@ -25,11 +25,15 @@ jobs:
       - name: Setup Homebrew
         uses: Homebrew/actions/setup-homebrew@master
 
+      - name: Login to GitHub Container Regstry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: OSBotify
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Install Act
         run: brew install act
-
-      - name: Log into GitHub Container Registry
-        run: docker login ghcr.io -u OSBotify -p ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Set ACT_BINARY
         run: echo "ACT_BINARY=$(which act)" >> "$GITHUB_ENV"
