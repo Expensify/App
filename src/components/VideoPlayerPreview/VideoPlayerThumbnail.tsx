@@ -30,7 +30,7 @@ function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel}: Video
     return (
         <View style={styles.flex1}>
             {thumbnailUrl && (
-                <View style={styles.flex1}>
+                <View style={[styles.flex1, {borderRadius: variables.componentBorderRadiusNormal}, styles.overflowHidden]}>
                     <Image
                         source={{uri: thumbnailUrl}}
                         style={styles.flex1}

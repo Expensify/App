@@ -1282,6 +1282,7 @@ function MoneyRequestConfirmationList({
                 footerContent={footerContent}
                 listFooterContent={listFooterContent}
                 containerStyle={[styles.flexBasisAuto]}
+                removeClippedSubviews={false}
             />
         </MouseProvider>
     );

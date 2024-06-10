@@ -40,13 +40,15 @@ import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {
     ChangeLog,
     IOUMessage,
+    ModifiedExpense,
     OriginalMessageActionName,
+    OriginalMessageApproved,
     OriginalMessageCreated,
     OriginalMessageDismissedViolation,
     OriginalMessageReimbursementDequeued,
     OriginalMessageRenamed,
+    OriginalMessageSubmitted,
     PaymentMethodType,
-    ReimbursementDeQueuedMessage,
 } from '@src/types/onyx/OriginalMessage';
 import type {Status} from '@src/types/onyx/PersonalDetails';
 import type {NotificationPreference, Participants, PendingChatMember, Participant as ReportParticipant} from '@src/types/onyx/Report';
@@ -86,30 +88,6 @@ import * as UserUtils from './UserUtils';
 type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18;
 
 type WelcomeMessage = {showReportName: boolean; phrase1?: string; phrase2?: string};
-
-type ExpenseOriginalMessage = {
-    oldComment?: string;
-    newComment?: string;
-    comment?: string;
-    merchant?: string;
-    oldCreated?: string;
-    created?: string;
-    oldMerchant?: string;
-    oldAmount?: number;
-    amount?: number;
-    oldCurrency?: string;
-    currency?: string;
-    category?: string;
-    oldCategory?: string;
-    tag?: string;
-    oldTag?: string;
-    billable?: string;
-    oldBillable?: string;
-    oldTaxAmount?: number;
-    taxAmount?: number;
-    taxRate?: string;
-    oldTaxRate?: string;
-};
 
 type SpendBreakdown = {
     nonReimbursableSpend: number;
@@ -211,12 +189,12 @@ type ReportOfflinePendingActionAndErrors = {
 };
 
 type OptimisticApprovedReportAction = Pick<
-    ReportAction,
+    ReportAction & OriginalMessageApproved,
     'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'isAttachment' | 'originalMessage' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
 >;
 
 type OptimisticSubmittedReportAction = Pick<
-    ReportAction,
+    ReportAction & OriginalMessageSubmitted,
     | 'actionName'
     | 'actorAccountID'
     | 'adminAccountID'
@@ -2208,7 +2186,7 @@ function getReimbursementDeQueuedActionMessage(
     report: OnyxEntry<Report> | EmptyObject,
     isLHNPreview = false,
 ): string {
-    const originalMessage = reportAction?.originalMessage as ReimbursementDeQueuedMessage | undefined;
+    const originalMessage = reportAction?.originalMessage;
     const amount = originalMessage?.amount;
     const currency = originalMessage?.currency;
     const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency);
@@ -3024,8 +3002,8 @@ function getModifiedExpenseOriginalMessage(
     transactionChanges: TransactionChanges,
     isFromExpenseReport: boolean,
     policy: OnyxEntry<Policy>,
-): ExpenseOriginalMessage {
-    const originalMessage: ExpenseOriginalMessage = {};
+): ModifiedExpense {
+    const originalMessage: ModifiedExpense = {};
     // Remark: Comment field is the only one which has new/old prefixes for the keys (newComment/ oldComment),
     // all others have old/- pattern such as oldCreated/created
     if ('comment' in transactionChanges) {
@@ -6060,7 +6038,7 @@ function shouldDisableRename(report: OnyxEntry<Report>, policy: OnyxEntry<Policy
  * @param policy - the workspace the report is on, null if the user isn't a member of the workspace
  */
 function canEditWriteCapability(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
-    return PolicyUtils.isPolicyAdmin(policy) && !isAdminRoom(report) && !isArchivedRoom(report) && !isThread(report);
+    return PolicyUtils.isPolicyAdmin(policy) && !isAdminRoom(report) && !isArchivedRoom(report) && !isThread(report) && !isInvoiceRoom(report);
 }
 
 /**
@@ -6113,18 +6091,27 @@ function getTaskAssigneeChatOnyxData(
             },
         );
 
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${assigneeChatReportID}`,
-            value: {
-                pendingFields: {
-                    createChat: null,
+        // BE will send different report's participants and assigneeAccountID. We clear the optimistic ones to avoid duplicated entries
+        successData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${assigneeChatReportID}`,
+                value: {
+                    pendingFields: {
+                        createChat: null,
+                    },
+                    isOptimisticReport: false,
+                    participants: {[assigneeAccountID]: null},
                 },
-                isOptimisticReport: false,
-                // BE will send a different participant. We clear the optimistic one to avoid duplicated entries
-                participants: {[assigneeAccountID]: null},
             },
-        });
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                value: {
+                    [assigneeAccountID]: null,
+                },
+            },
+        );
 
         failureData.push(
             {
@@ -7151,7 +7138,6 @@ export {
 export type {
     Ancestor,
     DisplayNameWithTooltips,
-    ExpenseOriginalMessage,
     OptimisticAddCommentReportAction,
     OptimisticChatReport,
     OptimisticClosedReportAction,

@@ -280,7 +280,12 @@ function IOURequestStepAmount({
         // If the value hasn't changed, don't request to save changes on the server and just close the modal
         const transactionCurrency = TransactionUtils.getCurrency(currentTransaction);
         if (newAmount === TransactionUtils.getAmount(currentTransaction) && currency === transactionCurrency) {
-            Navigation.dismissModal();
+            if (isSplitBill) {
+                Navigation.goBack(backTo);
+            } else {
+                Navigation.dismissModal();
+            }
+
             return;
         }
 
