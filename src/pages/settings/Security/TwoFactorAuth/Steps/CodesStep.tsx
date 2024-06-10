@@ -11,9 +11,9 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import Clipboard from '@libs/Clipboard';
 import localFileDownload from '@libs/localFileDownload';
 import type {BackToParams} from '@libs/Navigation/types';
@@ -31,7 +31,7 @@ function CodesStep({account, backTo}: CodesStepProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isExtraSmallScreenWidth, isSmallScreenWidth} = useWindowDimensions();
+    const {isExtraSmallScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const [error, setError] = useState('');
 
     const {setStep} = useTwoFactorAuthContext();
@@ -74,7 +74,7 @@ function CodesStep({account, backTo}: CodesStepProps) {
                         ) : (
                             <>
                                 <View style={styles.twoFactorAuthCodesContainer}>
-                                    {Boolean(account?.recoveryCodes) &&
+                                    {!!account?.recoveryCodes &&
                                         account?.recoveryCodes?.split(', ').map((code) => (
                                             <Text
                                                 style={styles.twoFactorAuthCode}
@@ -122,7 +122,7 @@ function CodesStep({account, backTo}: CodesStepProps) {
                     </View>
                 </Section>
                 <FixedFooter style={[styles.mtAuto, styles.pt5]}>
-                    {Boolean(error) && (
+                    {!!error && (
                         <FormHelpMessage
                             isError
                             message={error}
