@@ -135,6 +135,7 @@ function FeatureTrainingModal({
                         videoPlayerStyle={[styles.onboardingVideoPlayer, {aspectRatio}]}
                         onVideoLoaded={setAspectRatio}
                         controlsStatus={CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW}
+                        canToggleControlOnTap
                         shouldUseControlsBottomMargin={false}
                         shouldPlay
                         isLooping

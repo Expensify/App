@@ -5,6 +5,7 @@ import type {MutableRefObject} from 'react';
 import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
+import {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import AttachmentOfflineIndicator from '@components/AttachmentOfflineIndicator';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Hoverable from '@components/Hoverable';
@@ -48,6 +49,7 @@ function BaseVideoPlayer({
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     isVideoHovered = false,
     isPreview,
+    canToggleControlOnTap = false,
 }: VideoPlayerProps) {
     const styles = useThemeStyles();
     const {
@@ -73,6 +75,11 @@ function BaseVideoPlayer({
     const [sourceURL] = useState(VideoUtils.addSkipTimeTagToURL(url.includes('blob:') || url.includes('file:///') ? url : addEncryptedAuthTokenToURL(url), 0.001));
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState({horizontal: 0, vertical: 0});
+    const [controlStatusState, setControlStatusState] = useState(controlsStatus);
+    const controlsOpacity = useSharedValue(1);
+    const controlsAnimatedStyle = useAnimatedStyle(() => ({
+        opacity: controlsOpacity.value,
+    }));
 
     const videoPlayerRef = useRef<VideoWithOnFullScreenUpdate | null>(null);
     const videoPlayerElementParentRef = useRef<View | HTMLDivElement | null>(null);
@@ -95,6 +102,21 @@ function BaseVideoPlayer({
             playVideo();
         }
     }, [isCurrentlyURLSet, isPlaying, pauseVideo, playVideo, updateCurrentlyPlayingURL, url, videoResumeTryNumber]);
+
+    const toggleControlStatusState = useCallback(() => {
+        if (!canToggleControlOnTap) {
+            return;
+        }
+        if (controlStatusState === CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW) {
+            setControlStatusState(CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE);
+        } else {
+            setControlStatusState(CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW);
+            controlsOpacity.value = 1;
+            setTimeout(() => {
+                controlsOpacity.value = withTiming(0, {duration: 500}, () => setControlStatusState(CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE));
+            }, 2000);
+        }
+    }, [canToggleControlOnTap, controlStatusState]);
 
     const showPopoverMenu = (event?: GestureResponderEvent | KeyboardEvent) => {
         videoPopoverMenuPlayerRef.current = videoPlayerRef.current;
@@ -311,6 +333,7 @@ function BaseVideoPlayer({
                                         return;
                                     }
                                     togglePlayCurrentVideo();
+                                    toggleControlStatusState();
                                 }}
                                 style={[styles.flex1, styles.noSelect]}
                             >
@@ -367,7 +390,7 @@ function BaseVideoPlayer({
                             </PressableWithoutFeedback>
                             {((isLoading && !isOffline) || isBuffering) && <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
                             {isLoading && !isBuffering && <AttachmentOfflineIndicator isPreview={isPreview} />}
-                            {controlsStatus !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE && !isLoading && (isPopoverVisible || isHovered || canUseTouchScreen) && (
+                            {controlStatusState !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE && !isLoading && (isPopoverVisible || isHovered || canUseTouchScreen) && (
                                 <VideoPlayerControls
                                     duration={duration}
                                     position={position}
@@ -375,9 +398,9 @@ function BaseVideoPlayer({
                                     videoPlayerRef={videoPlayerRef}
                                     isPlaying={isPlaying}
                                     small={shouldUseSmallVideoControls}
-                                    style={videoControlsStyle}
+                                    style={[videoControlsStyle, controlsAnimatedStyle]}
                                     togglePlayCurrentVideo={togglePlayCurrentVideo}
-                                    controlsStatus={controlsStatus}
+                                    controlsStatus={controlStatusState}
                                     showPopoverMenu={showPopoverMenu}
                                 />
                             )}
