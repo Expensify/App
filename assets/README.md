@@ -13,11 +13,10 @@ The font files used by the native apps are stored inside `assets/fonts/native/` 
 To add or remove a font used in the native app:
 
 1. Add or remove the desired font files inside `assets/fonts/native/` folder.
-2. Run `npm install -g @react-native-community/cli-link-assets` to install the link assets tool.
-3. Run `npm run @react-native-community/cli-link-assets` to link the assets with the native files.
+2. Run `npx @react-native-community/cli-link-assets` to link the assets with the native files.
    * On Android, native files like `MainApplication.kt` and font files will be synced with the updated fonts.
    * On iOS, native files like `project.pbxproj` and `Info.plist` will be synced with the updated fonts.
-4. If you are adding a new font family into the project:
+3. If you are adding a new font family into the project:
    1. Add all the new font family variants to the [FontFamilyKey type](https://github.com/Expensify/App/blob/main/src/styles/utils/FontUtils/fontFamily/types.ts).
       ```ts
       type FontFamilyKey =
@@ -47,7 +46,7 @@ To add or remove a font used in the native app:
           // Add the other variants too.
       };
       ```
-5. If you are removing a font family from the project:
+4. If you are removing a font family from the project:
    1. Remove all the font family variants from the [FontFamilyKey type](https://github.com/Expensify/App/blob/main/src/styles/utils/FontUtils/fontFamily/types.ts).
    2. Remove all the font family variants from the [singleFontFamily file](https://github.com/Expensify/App/blob/main/src/styles/utils/FontUtils/fontFamily/singleFontFamily/index.ts).
 
@@ -135,7 +134,7 @@ To add or remove a font used in the Expensify Help web app:
 
 To use your fonts in the app, just import the desired font from [FontUtils](https://github.com/Expensify/App/blob/main/src/styles/utils/FontUtils/index.ts) and use in your style objects.
 
-You should use `FontUtils.fontFamily.platform.<font-family-key>` for the most use cases in the app because it will use the correspondent set of font families (with fallback fonts or not) according to the platform. `FontUtils.fontFamily.single.` and `FontUtils.fontFamily.multi.` should only be used when we want a specific set of font families independently of the platform.
+You should use `FontUtils.fontFamily.platform.<font-family-key>` for most use cases in the app because it will use the correspondent set of font families (with fallback fonts or not) according to the platform. `FontUtils.fontFamily.single.` and `FontUtils.fontFamily.multi.` should only be used when we want a specific set of font families independently of the platform.
 
 ```ts
 import FontUtils from '@styles/utils/FontUtils';
