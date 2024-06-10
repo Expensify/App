@@ -150,8 +150,6 @@ function getFakeReportAction(actor = 'email1@test.com', millisecondsInThePast = 
         actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
         shouldShow: true,
         created,
-        timestamp,
-        reportActionTimestamp: timestamp,
         person: [
             {
                 type: 'TEXT',
@@ -168,35 +166,12 @@ function getFakeReportAction(actor = 'email1@test.com', millisecondsInThePast = 
                 isEdited: false,
                 whisperedTo: [],
                 isDeletedParentAction: false,
-                reactions: [
-                    {
-                        emoji: 'heart',
-                        users: [
-                            {
-                                accountID: 1,
-                                skinTone: -1,
-                            },
-                        ],
-                    },
-                ],
             },
         ],
         originalMessage: {
             whisperedTo: [],
-            childReportID: `${reportActionID}`,
             html: 'hey',
             lastModified: '2023-08-28 15:28:12.432',
-            reactions: [
-                {
-                    emoji: 'heart',
-                    users: [
-                        {
-                            accountID: 1,
-                            skinTone: -1,
-                        },
-                    ],
-                },
-            ],
         },
     };
 }

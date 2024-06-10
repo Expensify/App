@@ -608,7 +608,6 @@ describe('Unread Indicators', () => {
                     lastReportAction = reportActions ? CollectionUtils.lastItem(reportActions) : undefined;
                     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
                         lastMessageText: getReportActionText(lastReportAction),
-                        lastVisibleActionCreated: DateUtils.getDBTime(lastReportAction?.timestamp),
                         lastActorAccountID: lastReportAction?.actorAccountID,
                         reportID: REPORT_ID,
                     });

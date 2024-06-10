@@ -20,6 +20,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {InvitedEmailsToAccountIDs, PersonalDetailsList, Policy, PolicyEmployee, PolicyOwnershipChangeChecks, Report, ReportAction} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {Attributes, Rate} from '@src/types/onyx/Policy';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -715,7 +716,7 @@ function acceptJoinRequest(reportID: string, reportAction: OnyxEntry<ReportActio
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [reportAction.reportActionID]: {
-                    originalMessage: {choice: ''},
+                    originalMessage: {choice: '' as JoinWorkspaceResolution},
                     pendingAction: null,
                 },
             },
@@ -773,7 +774,7 @@ function declineJoinRequest(reportID: string, reportAction: OnyxEntry<ReportActi
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [reportAction.reportActionID]: {
-                    originalMessage: {choice: ''},
+                    originalMessage: {choice: '' as JoinWorkspaceResolution},
                     pendingAction: null,
                 },
             },

@@ -124,17 +124,21 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
 
     const getStatusBarProps: () => MoneyRequestHeaderStatusBarProps | undefined = () => {
         if (isOnHold) {
-            return {title: translate('iou.hold'), description: isDuplicate ? translate('iou.expenseDuplicate') : translate('iou.expenseOnHold'), danger: true};
+            return {title: translate('iou.hold'), description: isDuplicate ? translate('iou.expenseDuplicate') : translate('iou.expenseOnHold'), danger: true, shouldShowBorderBottom: true};
         }
 
         if (TransactionUtils.isExpensifyCardTransaction(transaction) && TransactionUtils.isPending(transaction)) {
-            return {title: getStatusIcon(Expensicons.CreditCardHourglass), description: translate('iou.transactionPendingDescription')};
+            return {title: getStatusIcon(Expensicons.CreditCardHourglass), description: translate('iou.transactionPendingDescription'), shouldShowBorderBottom: true};
         }
         if (TransactionUtils.hasPendingRTERViolation(TransactionUtils.getTransactionViolations(transaction?.transactionID ?? '', transactionViolations))) {
-            return {title: getStatusIcon(Expensicons.Hourglass), description: translate('iou.pendingMatchWithCreditCardDescription')};
+            return {
+                title: getStatusIcon(Expensicons.Hourglass),
+                description: translate('iou.pendingMatchWithCreditCardDescription'),
+                shouldShowBorderBottom: true,
+            };
         }
         if (isScanning) {
-            return {title: getStatusIcon(Expensicons.ReceiptScan), description: translate('iou.receiptScanInProgressDescription')};
+            return {title: getStatusIcon(Expensicons.ReceiptScan), description: translate('iou.receiptScanInProgressDescription'), shouldShowBorderBottom: true};
         }
     };
 
@@ -259,13 +263,12 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
                     </View>
                 )}
                 {statusBarProps && (
-                    <View style={[styles.ph5, styles.pb3, styles.borderBottom]}>
-                        <MoneyRequestHeaderStatusBar
-                            title={statusBarProps.title}
-                            description={statusBarProps.description}
-                            danger={statusBarProps.danger}
-                        />
-                    </View>
+                    <MoneyRequestHeaderStatusBar
+                        title={statusBarProps.title}
+                        description={statusBarProps.description}
+                        danger={statusBarProps.danger}
+                        shouldShowBorderBottom={statusBarProps.shouldShowBorderBottom}
+                    />
                 )}
             </View>
             <ConfirmModal
