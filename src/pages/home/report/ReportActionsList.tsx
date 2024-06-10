@@ -210,12 +210,9 @@ function ReportActionsList({
         [sortedReportActions, isOffline],
     );
 
-    // whisper action doesn't affect lastVisibleActionCreated, so we should not take it into account while checking if there is the newest report action
-    const newestVisibleReportAction = useMemo(() => sortedVisibleReportActions.find((item) => !ReportActionsUtils.isWhisperAction(item)) ?? null, [sortedVisibleReportActions]);
-
     const lastActionIndex = sortedVisibleReportActions[0]?.reportActionID;
     const reportActionSize = useRef(sortedVisibleReportActions.length);
-    const hasNewestReportAction = newestVisibleReportAction?.created === report.lastVisibleActionCreated;
+    const hasNewestReportAction = sortedVisibleReportActions[0]?.created === report.lastVisibleActionCreated;
     const hasNewestReportActionRef = useRef(hasNewestReportAction);
     hasNewestReportActionRef.current = hasNewestReportAction;
     const previousLastIndex = useRef(lastActionIndex);

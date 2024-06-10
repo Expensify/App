@@ -162,14 +162,6 @@ Onyx.connect({
     },
 });
 
-let guideCalendarLink: string | undefined;
-Onyx.connect({
-    key: ONYXKEYS.ACCOUNT,
-    callback: (value) => {
-        guideCalendarLink = value?.guideCalendarLink ?? undefined;
-    },
-});
-
 let preferredSkinTone: number = CONST.EMOJI_DEFAULT_SKIN_TONE;
 Onyx.connect({
     key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
@@ -476,7 +468,7 @@ function addActions(reportID: string, text = '', file?: FileObject) {
     const lastCommentText = ReportUtils.formatReportLastMessageText(lastComment?.text ?? '');
 
     const optimisticReport: Partial<Report> = {
-        lastVisibleActionCreated: currentTime,
+        lastVisibleActionCreated: lastAction?.created,
         lastMessageTranslationKey: lastComment?.translationKey ?? '',
         lastMessageText: lastCommentText,
         lastMessageHtml: lastCommentText,
@@ -1026,7 +1018,6 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[]) 
  */
 function navigateToAndOpenChildReport(childReportID = '0', parentReportAction: Partial<ReportAction> = {}, parentReportID = '0') {
     if (childReportID !== '0') {
-        openReport(childReportID);
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
     } else {
         const participantAccountIDs = [...new Set([currentUserAccountID, Number(parentReportAction.actorAccountID)])];
@@ -3162,7 +3153,6 @@ function completeOnboarding(
             typeof task.description === 'function'
                 ? task.description({
                       adminsRoomLink: `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID ?? '')}`,
-                      guideCalendarLink: guideCalendarLink ?? CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL,
                   })
                 : task.description;
         const currentTask = ReportUtils.buildOptimisticTaskReport(
