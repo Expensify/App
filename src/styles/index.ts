@@ -2832,6 +2832,22 @@ const styles = (theme: ThemeColors) =>
             width: 'auto',
         },
 
+        subscriptionCardIcon: {
+            padding: 10,
+            backgroundColor: theme.border,
+            borderRadius: variables.componentBorderRadius,
+            height: variables.iconSizeExtraLarge,
+            width: variables.iconSizeExtraLarge,
+        },
+
+        subscriptionAddedCardIcon: {
+            padding: 10,
+            backgroundColor: theme.icon,
+            borderRadius: variables.componentBorderRadius,
+            height: variables.iconSizeExtraLarge,
+            width: variables.iconSizeExtraLarge,
+        },
+
         selectCircle: {
             width: variables.componentSizeSmall,
             height: variables.componentSizeSmall,
@@ -3662,7 +3678,7 @@ const styles = (theme: ThemeColors) =>
 
         cardSectionContainer: {
             backgroundColor: theme.cardBG,
-            borderRadius: variables.componentBorderRadiusCard,
+            borderRadius: variables.componentBorderRadiusLarge,
             width: 'auto',
             textAlign: 'left',
             overflow: 'hidden',
@@ -3713,7 +3729,7 @@ const styles = (theme: ThemeColors) =>
             height: variables.optionRowHeight,
         },
 
-        archivedReportFooter: {
+        chatFooterBanner: {
             borderRadius: variables.componentBorderRadius,
             ...wordBreak.breakWord,
         },
@@ -4380,6 +4396,15 @@ const styles = (theme: ThemeColors) =>
 
         emojiStatusLHN: {
             fontSize: 9,
+            ...(Browser.getBrowser() && !Browser.isMobile() && {transform: 'scale(.5)', fontSize: 22, overflow: 'visible'}),
+            ...(Browser.getBrowser() &&
+                Browser.isSafari() &&
+                !Browser.isMobile() && {
+                    transform: 'scale(0.7)',
+                    fontSize: 13,
+                    lineHeight: 15,
+                    overflow: 'visible',
+                }),
         },
 
         onboardingVideoPlayer: {
@@ -4407,6 +4432,7 @@ const styles = (theme: ThemeColors) =>
             bottom: -4,
             borderColor: theme.highlightBG,
             borderWidth: 2,
+            overflow: 'hidden',
         },
         moneyRequestViewImage: {
             ...spacing.mh5,
@@ -4417,6 +4443,16 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusLarge,
             height: 200,
             maxWidth: 400,
+        },
+
+        pdfErrorPlaceholder: {
+            overflow: 'hidden',
+            borderWidth: 2,
+            borderColor: theme.cardBG,
+            borderRadius: variables.componentBorderRadiusLarge,
+            maxWidth: 400,
+            height: '100%',
+            backgroundColor: theme.highlightBG,
         },
 
         moneyRequestAttachReceipt: {
@@ -4472,7 +4508,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         mapPendingView: {
-            backgroundColor: theme.highlightBG,
+            backgroundColor: theme.hoverComponentBG,
             ...flex.flex1,
             borderRadius: variables.componentBorderRadiusLarge,
         },
@@ -4956,6 +4992,11 @@ const styles = (theme: ThemeColors) =>
 
         textLineThrough: {
             textDecorationLine: 'line-through',
+        },
+
+        tripIllustrationSize: {
+            width: 190,
+            height: 172,
         },
 
         reportListItemSeparator: {
