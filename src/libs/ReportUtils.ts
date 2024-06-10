@@ -3722,27 +3722,11 @@ function buildOptimisticAddCommentReportAction(
     reportID?: string,
 ): OptimisticReportAction {
     const commentText = getParsedComment(text ?? '', {shouldEscapeText, reportID});
-    const isAttachmentOnly = file && !text;
-    const isTextOnly = text && !file;
+    const accountID = actorAccountID ?? currentUserAccountID ?? -1;
 
-    let htmlForNewComment;
-    let textForNewComment;
-    if (isAttachmentOnly) {
-        htmlForNewComment = CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML;
-        textForNewComment = CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML;
-    } else if (isTextOnly) {
-        htmlForNewComment = commentText;
-        textForNewComment = Parser.htmlToText(htmlForNewComment);
-    } else {
-        htmlForNewComment = `${commentText}<uploading-attachment>${CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML}</uploading-attachment>`;
-        textForNewComment = `${Parser.htmlToText(commentText)}\n${CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML}`;
-    }
+    const htmlForNewComment = `${commentText}\n${file ? CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML : ''}`.trim();
+    const textForNewComment = `${Parser.htmlToText(commentText)}\n${file ? CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML : ''}`.trim();
 
-    const isAttachment = !text && file !== undefined;
-    const attachmentInfo = file ?? {};
-    const accountID = actorAccountID ?? currentUserAccountID;
-
-    // Remove HTML from text when applying optimistic offline comment
     return {
         commentText,
         reportAction: {
@@ -3752,16 +3736,16 @@ function buildOptimisticAddCommentReportAction(
             person: [
                 {
                     style: 'strong',
-                    text: allPersonalDetails?.[accountID ?? -1]?.displayName ?? currentUserEmail,
+                    text: allPersonalDetails?.[accountID]?.displayName ?? currentUserEmail,
                     type: 'TEXT',
                 },
             ],
             automatic: false,
-            avatar: allPersonalDetails?.[accountID ?? -1]?.avatar,
+            avatar: allPersonalDetails?.[accountID]?.avatar,
             created: DateUtils.getDBTimeWithSkew(Date.now() + createdOffset),
             message: [
                 {
-                    translationKey: isAttachmentOnly ? CONST.TRANSLATION_KEYS.ATTACHMENT : '',
+                    translationKey: file ? CONST.TRANSLATION_KEYS.ATTACHMENT : '',
                     type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
                     html: htmlForNewComment,
                     text: textForNewComment,
@@ -3772,8 +3756,8 @@ function buildOptimisticAddCommentReportAction(
                 whisperedTo: [],
             },
             isFirstItem: false,
-            isAttachment,
-            attachmentInfo,
+            isAttachment: !!file && !text,
+            attachmentInfo: file ?? {},
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             shouldShow: true,
             isOptimisticAction: true,
