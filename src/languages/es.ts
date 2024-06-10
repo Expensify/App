@@ -1304,7 +1304,7 @@ export default {
         },
     },
     reportDetailsPage: {
-        in: 'en',
+        inWorkspace: ({policyName}) => `en ${policyName}`,
     },
     reportDescriptionPage: {
         roomDescription: 'Descripción de la sala de chat',
