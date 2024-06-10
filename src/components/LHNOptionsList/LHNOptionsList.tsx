@@ -35,7 +35,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [policy] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {initialValue: CONST.LOCALES.DEFAULT});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
@@ -44,7 +43,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const theme = useTheme();
     const styles = useThemeStyles();
     const {canUseViolations} = usePermissions();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const shouldShowEmptyLHN = shouldUseNarrowLayout && data.length === 0;
 
