@@ -91,11 +91,11 @@ Onyx.connect({
     },
 });
 
-let accountID = 'unknown';
+let accountID = 0;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (session) => {
-        if (!session) {
+        if (!session?.accountID) {
             return;
         }
         accountID = session.accountID;
