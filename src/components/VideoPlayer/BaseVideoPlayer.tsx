@@ -116,7 +116,7 @@ function BaseVideoPlayer({
                 controlsOpacity.value = withTiming(0, {duration: 500}, () => setControlStatusState(CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE));
             }, 2000);
         }
-    }, [canToggleControlOnTap, controlStatusState]);
+    }, [canToggleControlOnTap, controlStatusState, controlsOpacity]);
 
     const showPopoverMenu = (event?: GestureResponderEvent | KeyboardEvent) => {
         videoPopoverMenuPlayerRef.current = videoPlayerRef.current;
