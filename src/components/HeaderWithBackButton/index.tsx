@@ -158,7 +158,7 @@ function HeaderWithBackButton({
                                 }
                             }}
                             style={[styles.touchableButtonImage]}
-                            role={CONST.ROLE.NAVIGATION}
+                            role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('common.back')}
                             id={CONST.BACK_BUTTON_NATIVE_ID}
                         >

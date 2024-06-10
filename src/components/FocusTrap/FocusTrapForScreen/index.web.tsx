@@ -4,6 +4,7 @@ import React, {useCallback, useMemo} from 'react';
 import BOTTOM_TAB_SCREENS from '@components/FocusTrap/BOTTOM_TAB_SCREENS';
 import SCREENS_WITH_AUTOFOCUS from '@components/FocusTrap/SCREENS_WITH_AUTOFOCUS';
 import sharedTrapStack from '@components/FocusTrap/sharedTrapStack';
+import TOP_TAB_SCREENS from '@components/FocusTrap/TOP_TAB_SCREENS';
 import WIDE_LAYOUT_INACTIVE_SCREENS from '@components/FocusTrap/WIDE_LAYOUT_INACTIVE_SCREENS';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import type FocusTrapProps from './FocusTrapProps';
@@ -21,12 +22,17 @@ function FocusTrap({children}: FocusTrapProps) {
             return false;
         }
 
+        // in top tabs only focus trap for currently shown tab should be active
+        if (TOP_TAB_SCREENS.find((screen) => screen === route.name)) {
+            return isFocused;
+        }
+
         // Focus trap can't be active on these screens if the layout is wide because they may be displayed side by side.
         if (WIDE_LAYOUT_INACTIVE_SCREENS.includes(route.name) && !isSmallScreenWidth) {
             return false;
         }
         return true;
-    }, [isSmallScreenWidth, route]);
+    }, [isFocused, isSmallScreenWidth, route.name]);
 
     useFocusEffect(
         useCallback(() => {
