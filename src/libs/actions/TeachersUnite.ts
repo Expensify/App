@@ -10,6 +10,7 @@ import type {OptimisticCreatedReportAction} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList} from '@src/types/onyx';
+import {getPolicy} from "@libs/PolicyUtils";
 
 type CreationData = {
     reportID: string;
@@ -95,7 +96,7 @@ function addSchoolPrincipal(firstName: string, partnerUserID: string, lastName: 
                 name: policyName,
                 role: CONST.POLICY.ROLE.USER,
                 owner: sessionEmail,
-                outputCurrency: allPersonalDetails?.[sessionAccountID]?.localCurrencyCode ?? CONST.CURRENCY.USD,
+                outputCurrency: getPolicy(policyID)?.outputCurrency ?? allPersonalDetails?.[sessionAccountID]?.localCurrencyCode ?? CONST.CURRENCY.USD,
                 employeeList: {
                     [sessionEmail]: {
                         role: CONST.POLICY.ROLE.USER,
