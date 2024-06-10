@@ -8,7 +8,7 @@ export default function () {
     // Because JS Engines do not expose default timezone, the polyfill cannot detect local timezone that a browser is in.
     // We must manually do this by getting the local timezone before adding polyfill.
     let currentTimezone = DateUtils.getCurrentTimezone().selected as string;
-    
+
     if (currentTimezone in timezoneBackwardMap) {
         currentTimezone = timezoneBackwardMap[currentTimezone];
     }
