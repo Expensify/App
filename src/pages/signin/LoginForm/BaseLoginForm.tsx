@@ -11,7 +11,7 @@ import AppleSignIn from '@components/SignInButtons/AppleSignIn';
 import GoogleSignIn from '@components/SignInButtons/GoogleSignIn';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import isAnimatedTextInputFocused from '@components/TextInput/BaseTextInput/isAnimatedTextInputFocused';
+import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withToggleVisibilityView from '@components/withToggleVisibilityView';
 import type {WithToggleVisibilityViewProps} from '@components/withToggleVisibilityView';
@@ -201,7 +201,7 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
             if (!input.current) {
                 return false;
             }
-            return !!isAnimatedTextInputFocused(input);
+            return !!isTextInputFocused(input);
         },
         clearDataAndFocus(clearLogin = true) {
             if (!input.current) {

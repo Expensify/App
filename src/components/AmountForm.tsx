@@ -12,7 +12,7 @@ import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import CONST from '@src/CONST';
 import BigNumberPad from './BigNumberPad';
 import FormHelpMessage from './FormHelpMessage';
-import isAnimatedTextInputFocused from './TextInput/BaseTextInput/isAnimatedTextInputFocused';
+import isTextInputFocused from './TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputProps, BaseTextInputRef} from './TextInput/BaseTextInput/types';
 import TextInputWithCurrencySymbol from './TextInputWithCurrencySymbol';
 import type TextInputWithCurrencySymbolProps from './TextInputWithCurrencySymbol/types';
@@ -95,7 +95,7 @@ function AmountForm(
         if (!textInput.current) {
             return;
         }
-        if (!isAnimatedTextInputFocused(textInput)) {
+        if (!isTextInputFocused(textInput)) {
             textInput.current.focus();
         }
     };
@@ -144,7 +144,7 @@ function AmountForm(
      */
     const updateAmountNumberPad = useCallback(
         (key: string) => {
-            if (shouldUpdateSelection && !isAnimatedTextInputFocused(textInput)) {
+            if (shouldUpdateSelection && !isTextInputFocused(textInput)) {
                 textInput.current?.focus();
             }
             // Backspace button is pressed
@@ -169,7 +169,7 @@ function AmountForm(
      */
     const updateLongPressHandlerState = useCallback((value: boolean) => {
         setShouldUpdateSelection(!value);
-        if (!value && !isAnimatedTextInputFocused(textInput)) {
+        if (!value && !isTextInputFocused(textInput)) {
             textInput.current?.focus();
         }
     }, []);
