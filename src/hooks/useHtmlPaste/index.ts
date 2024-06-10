@@ -52,7 +52,7 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, removeLi
 
             // Pointer will go out of sight when a large paragraph is pasted on the web. Refocusing the input keeps the cursor in view.
             // If shouldRefocusAfterPaste = false, we want to call `focus()` only as it won't change the focus state of the input since it is already focused
-            if (shouldRefocusAfterPaste) {
+            if (shouldRefocusAfterPaste || !textInputRef.current?.restoreSelectionPosition) {
                 textInputRef.current?.blur();
                 textInputRef.current?.focus();
                 return;
