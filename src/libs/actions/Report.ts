@@ -469,7 +469,7 @@ function addActions(reportID: string, text = '', file?: FileObject) {
     const lastCommentText = ReportUtils.formatReportLastMessageText(lastComment?.text ?? '');
 
     const optimisticReport: Partial<Report> = {
-        lastVisibleActionCreated: currentTime,
+        lastVisibleActionCreated: lastAction?.created,
         lastMessageTranslationKey: lastComment?.translationKey ?? '',
         lastMessageText: lastCommentText,
         lastMessageHtml: lastCommentText,
