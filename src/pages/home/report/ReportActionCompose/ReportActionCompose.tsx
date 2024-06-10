@@ -104,6 +104,7 @@ const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
 const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 
+// eslint-disable-next-line import/no-mutable-exports
 let onSubmitAction = noop;
 
 function ReportActionCompose({
