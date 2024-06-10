@@ -173,7 +173,7 @@ function MoneyRequestView({
 
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest);
     const tripID = ReportUtils.getTripIDFromTransactionParentReport(parentReport);
-    const shouldShowViewTripDetails = TransactionUtils.hasReservationList(transaction) && Boolean(tripID);
+    const shouldShowViewTripDetails = TransactionUtils.hasReservationList(transaction) && !!tripID;
 
     const {getViolationsForField} = useViolations(transactionViolations ?? []);
     const hasViolations = useCallback(
