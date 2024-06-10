@@ -514,12 +514,14 @@ function ReportActionsList({
             markerFound = true;
             if (!currentUnreadMarker || currentUnreadMarker !== reportAction.reportActionID) {
                 cacheUnreadMarkers.set(report.reportID, reportAction.reportActionID);
-                if (!markerLastReadTimeRef.current) {
-                    markerLastReadTimeRef.current = lastReadTimeRef.current;
-                }
                 setCurrentUnreadMarker(reportAction.reportActionID);
             }
         });
+
+        // if marker can be found, set the markerLastReadTimeRef to the last read time if necessary
+        if (markerFound && !markerLastReadTimeRef.current) {
+            markerLastReadTimeRef.current = lastReadTimeRef.current;
+        }
 
         if (!markerFound && !linkedReportActionID) {
             setCurrentUnreadMarker(null);
