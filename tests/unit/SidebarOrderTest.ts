@@ -66,7 +66,7 @@ describe('Sidebar', () => {
         it('is rendered with an empty list when personal details exist', () =>
             waitForBatchedUpdates()
                 // Given the sidebar is rendered with default props
-                .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks('0'))
+                .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks())
 
                 // When Onyx is updated with some personal details
                 .then(() =>
