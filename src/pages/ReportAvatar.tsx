@@ -44,7 +44,7 @@ function ReportAvatar({report = {} as Report, policies, isLoadingApp = true, rou
         // In the case of default workspace avatar, originalFileName prop takes policyID as value to get the color of the avatar
         fileName = policy?.originalFileName ?? policy?.id ?? report?.policyID;
         title = policy ? ReportUtils.getPolicyName(report, false, policy) : ReportUtils.getReportName(report);
-        shouldShowNotFoundPage = !isLoadingApp && !policy && !report?.reportID;
+        shouldShowNotFoundPage = !isLoadingApp && !report?.reportID;
     }
 
     return (
