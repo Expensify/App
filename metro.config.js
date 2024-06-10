@@ -1,5 +1,10 @@
 const {getDefaultConfig} = require('expo/metro-config');
 const {mergeConfig} = require('@react-native/metro-config');
+
+const {
+    createSentryMetroSerializer
+} = require("@sentry/react-native/dist/js/tools/sentryMetroSerializer");
+
 const defaultAssetExts = require('metro-config/src/defaults/defaults').assetExts;
 const defaultSourceExts = require('metro-config/src/defaults/defaults').sourceExts;
 require('dotenv').config();
@@ -21,6 +26,10 @@ const config = {
         // When we run the e2e tests we want files that have the extension e2e.js to be resolved as source files
         sourceExts: [...(isE2ETesting ? e2eSourceExts : []), ...defaultSourceExts, 'jsx'],
     },
+
+    serializer: {
+        customSerializer: createSentryMetroSerializer()
+    }
 };
 
 module.exports = mergeConfig(defaultConfig, config);

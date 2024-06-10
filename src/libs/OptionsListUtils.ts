@@ -1,3 +1,5 @@
+import * as Sentry from '@sentry/react-native';
+
 /* eslint-disable no-continue */
 import {Str} from 'expensify-common';
 // eslint-disable-next-line you-dont-need-lodash-underscore/get
@@ -1730,6 +1732,7 @@ function getOptions(
         includeInvoiceRooms = false,
     }: GetOptionsConfig,
 ): Options {
+    const sentrySpan = Sentry.startInactiveSpan({name: 'getOptions'});
     if (includeCategories) {
         const categoryOptions = getCategoryListSections(categories, recentlyUsedCategories, selectedOptions as Category[], searchInputValue, maxRecentReportsToShow);
 
@@ -2028,6 +2031,7 @@ function getOptions(
         recentReportOptions = orderOptions(recentReportOptions, searchValue, {preferChatroomsOverThreads: true});
     }
 
+    sentrySpan?.end();
     return {
         personalDetails: personalDetailsOptions,
         recentReports: recentReportOptions,
