@@ -2248,8 +2248,8 @@ export default {
             },
             connectionsWarningModal: {
                 featureEnabledTitle: 'Not so fast...',
-                featureEnabledText: 'To enable or disable this feature, you'll need to change your accounting import settings.',
-                disconnectText: 'To disable accounting, you'll need to disconnect your accounting connection from your workspace.',
+                featureEnabledText: "To enable or disable this feature, you'll need to change your accounting import settings.",
+                disconnectText: "To disable accounting, you'll need to disconnect your accounting connection from your workspace.",
                 manageSettings: 'Manage settings',
             },
         },
