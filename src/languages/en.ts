@@ -1989,11 +1989,11 @@ export default {
             customersDescription: 'Choose how to handle QuickBooks Online customers/projects in Expensify.',
             locationsDescription: 'Choose how to handle QuickBooks Online locations in Expensify.',
             taxesDescription: 'Choose how to handle QuickBooks Online taxes in Expensify.',
-            locationsAdditionalDescription: "QuickBooks Online doesn’t allow locations on vendor bills or checks. Please change your export option to journal entry.",
+            locationsAdditionalDescription: "QuickBooks Online doesn’t support locations on vendor bills or checks. As you have locations enabled on your workspace, these export options are unavailable.",
             outOfPocketLocationEnabledDescription:
                 "QuickBooks Online doesn't support a field for locations on vendor bill or check exports.",
             taxesJournalEntrySwitchNote:
-                "QuickBooks Online doesn't allow taxes on journal entries. Please change your export option to vendor bill or check.",
+                "QuickBooks Online doesn't support taxes on journal entries. Please change your export option to vendor bill or check.",
             export: 'Export',
             exportAs: 'Export as',
             exportDescription: 'Configure how Expensify data exports to QuickBooks Online.',
