@@ -27,7 +27,7 @@ function BillingBanner({title, subtitle, isError, shouldShowRedDotIndicator}: Bi
             />
             <View style={[styles.flex1, styles.justifyContentCenter]}>
                 <Text style={[styles.headerText, styles.textLarge]}>{title}</Text>
-                <Text style={[styles.textSupporting, styles.textLineHeightXLarge]}>{subtitle}</Text>
+                <Text style={styles.textSupporting}>{subtitle}</Text>
             </View>
             {isError && shouldShowRedDotIndicator && (
                 <Icon

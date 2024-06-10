@@ -455,10 +455,6 @@ const styles = (theme: ThemeColors) =>
             fontWeight: FontUtils.fontWeight.bold,
         },
 
-        textLineHeightXLarge: {
-            lineHeight: variables.lineHeightXLarge,
-        },
-
         fontWeightNormal: {
             fontWeight: FontUtils.fontWeight.normal,
         },
