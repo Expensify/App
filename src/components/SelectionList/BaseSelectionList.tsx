@@ -85,7 +85,6 @@ function BaseSelectionList<TItem extends ListItem>(
         onEndReachedThreshold,
         windowSize = 5,
         updateCellsBatchingPeriod = 50,
-        removeClippedSubviews = true,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -678,7 +677,6 @@ function BaseSelectionList<TItem extends ListItem>(
                         <>
                             {!listHeaderContent && header()}
                             <SectionList
-                                removeClippedSubviews={removeClippedSubviews}
                                 ref={listRef}
                                 sections={slicedSections}
                                 stickySectionHeadersEnabled={false}
