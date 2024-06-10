@@ -16,6 +16,10 @@ import type ReactNativeOnyxMock from '../../__mocks__/react-native-onyx';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
+type ResponseJSON = {
+    jsonCode?: string;
+};
+
 const Onyx = MockedOnyx as typeof ReactNativeOnyxMock;
 
 jest.mock('@src/libs/Log');
@@ -301,7 +305,7 @@ describe('NetworkTests', () => {
                 return waitForBatchedUpdates();
             })
             .then(() => {
-                const response = onResolved.mock.calls[0][0];
+                const response: ResponseJSON = onResolved.mock.calls[0][0];
                 expect(onResolved).toHaveBeenCalled();
                 expect(response.jsonCode).toBe(CONST.JSON_CODE.UNABLE_TO_RETRY);
             });

@@ -5,7 +5,7 @@ import {addSeconds, format, subMinutes, subSeconds} from 'date-fns';
 import {utcToZonedTime} from 'date-fns-tz';
 import React from 'react';
 import {AppState, DeviceEventEmitter, Linking} from 'react-native';
-import type {ViewStyle} from 'react-native';
+import type {TextStyle, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type Animated from 'react-native-reanimated';
@@ -303,7 +303,7 @@ describe('Unread Indicators', () => {
                 // And that the text is bold
                 const displayNameHintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameText = screen.queryByLabelText(displayNameHintText);
-                expect(displayNameText?.props?.style?.fontWeight).toBe(FontUtils.fontWeight.bold);
+                expect((displayNameText?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
 
                 return navigateToSidebarOption(0);
             })
@@ -441,11 +441,11 @@ describe('Unread Indicators', () => {
                 const displayNameTexts = screen.queryAllByLabelText(displayNameHintTexts);
                 expect(displayNameTexts).toHaveLength(2);
                 const firstReportOption = displayNameTexts[0];
-                expect(firstReportOption?.props?.style?.fontWeight).toBe(FontUtils.fontWeight.bold);
+                expect((firstReportOption?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
                 expect(screen.getByText('C User')).toBeOnTheScreen();
 
                 const secondReportOption = displayNameTexts[1];
-                expect(secondReportOption?.props?.style?.fontWeight).toBe(FontUtils.fontWeight.bold);
+                expect((secondReportOption?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
                 expect(screen.getByText('B User')).toBeOnTheScreen();
 
                 // Tap the new report option and navigate back to the sidebar again via the back button
@@ -458,9 +458,9 @@ describe('Unread Indicators', () => {
                 const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameTexts = screen.queryAllByLabelText(hintText);
                 expect(displayNameTexts).toHaveLength(2);
-                expect(displayNameTexts[0]?.props?.style?.fontWeight).toBe(undefined);
+                expect((displayNameTexts[0]?.props?.style as TextStyle)?.fontWeight).toBe(undefined);
                 expect(screen.getAllByText('C User')[0]).toBeOnTheScreen();
-                expect(displayNameTexts[1]?.props?.style?.fontWeight).toBe(FontUtils.fontWeight.bold);
+                expect((displayNameTexts[1]?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
                 expect(screen.getByText('B User')).toBeOnTheScreen();
             }));
 
@@ -492,7 +492,7 @@ describe('Unread Indicators', () => {
                 const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameTexts = screen.queryAllByLabelText(hintText);
                 expect(displayNameTexts).toHaveLength(1);
-                expect(displayNameTexts[0]?.props?.style?.fontWeight).toBe(FontUtils.fontWeight.bold);
+                expect((displayNameTexts[0]?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
                 expect(screen.getByText('B User')).toBeOnTheScreen();
 
                 // Navigate to the report again and back to the sidebar
@@ -504,7 +504,7 @@ describe('Unread Indicators', () => {
                 const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameTexts = screen.queryAllByLabelText(hintText);
                 expect(displayNameTexts).toHaveLength(1);
-                expect(displayNameTexts[0]?.props?.style?.fontWeight).toBe(undefined);
+                expect((displayNameTexts[0]?.props?.style as TextStyle)?.fontWeight).toBe(undefined);
                 expect(screen.getByText('B User')).toBeOnTheScreen();
 
                 // Navigate to the report again and verify the new line indicator is missing

@@ -14,12 +14,17 @@ import ReportActionsList from '@src/pages/home/report/ReportActionsList';
 import {ReportAttachmentsProvider} from '@src/pages/home/report/ReportAttachmentsContext';
 import {ActionListContext, ReactionListContext} from '@src/pages/home/ReportScreenContext';
 import variables from '@src/styles/variables';
+import type {PersonalDetailsList} from '@src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
 import * as LHNTestUtilsModule from '../utils/LHNTestUtils';
 import PusherHelper from '../utils/PusherHelper';
 import * as ReportTestUtils from '../utils/ReportTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
+
+type LHNTestUtilsProps = {
+    fakePersonalDetails: PersonalDetailsList;
+};
 
 const mockedNavigate = jest.fn();
 
@@ -31,7 +36,7 @@ jest.mock('@components/withCurrentUserPersonalDetails', () => {
     return <TProps extends WithCurrentUserPersonalDetailsProps>(Component: ComponentType<TProps>) => {
         function WrappedComponent(props: Omit<TProps, keyof WithCurrentUserPersonalDetailsProps>) {
             const currentUserAccountID = 5;
-            const LHNTestUtils = lazyLoadLHNTestUtils(); // Load LHNTestUtils here
+            const LHNTestUtils: LHNTestUtilsProps = lazyLoadLHNTestUtils(); // Load LHNTestUtils here
 
             return (
                 <Component
