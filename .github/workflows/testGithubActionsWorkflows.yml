@@ -28,6 +28,9 @@ jobs:
       - name: Install Act
         run: brew install act
 
+      - name: Log into GitHub Container Registry
+        run: docker login ghcr.io -u OSBotify -p ${{ secrets.OS_BOTIFY_TOKEN }}
+
       - name: Set ACT_BINARY
         run: echo "ACT_BINARY=$(which act)" >> "$GITHUB_ENV"
 
