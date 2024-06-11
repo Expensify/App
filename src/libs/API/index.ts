@@ -11,6 +11,7 @@ import type OnyxRequest from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 import pkg from '../../../package.json';
 import type {ApiRequest, ApiRequestCommandParameters, ReadCommand, SideEffectRequestCommand, WriteCommand} from './types';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 // Setup API middlewares. Each request made will pass through a series of middleware functions that will get called in sequence (each one passing the result of the previous to the next).
 // Note: The ordering here is intentional as we want to Log, Recheck Connection, Reauthenticate, and Save the Response in Onyx. Errors thrown in one middleware will bubble to the next.
@@ -38,6 +39,14 @@ type OnyxData = {
     failureData?: OnyxUpdate[];
     finallyData?: OnyxUpdate[];
 };
+
+// For all write requests, we'll send the lastUpdateID that is applied to this client. This will
+// allow us to calculate previousUpdateID faster.
+let lastUpdateIDAppliedToClient = 0;
+Onyx.connect({
+    key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
+    callback: (value) => (lastUpdateIDAppliedToClient = value ?? 0),
+});
 
 /**
  * All calls to API.write() will be persisted to disk as JSON with the params, successData, and failureData (or finallyData, if included in place of the former two values).
