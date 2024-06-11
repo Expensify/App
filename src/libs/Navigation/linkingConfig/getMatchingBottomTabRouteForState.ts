@@ -6,7 +6,7 @@ import {CENTRAL_PANE_TO_TAB_MAPPING} from './TAB_TO_CENTRAL_PANE_MAPPING';
 
 // Get the route that matches the topmost central pane route in the navigation stack. e.g REPORT -> HOME
 function getMatchingBottomTabRouteForState(state: State<RootStackParamList>, policyID?: string): NavigationPartialRoute<BottomTabName> {
-    const paramsWithPolicyID = policyID ? {policyID} : undefined;
+    let paramsWithPolicyID = policyID ? {policyID} : undefined;
     const defaultRoute = {name: SCREENS.HOME, params: paramsWithPolicyID};
     const isFullScreenNavigatorOpened = state.routes.some((route) => route.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR);
 
@@ -21,6 +21,10 @@ function getMatchingBottomTabRouteForState(state: State<RootStackParamList>, pol
     }
 
     const tabName = CENTRAL_PANE_TO_TAB_MAPPING[topmostCentralPaneRoute.name];
+
+    if (tabName === SCREENS.SEARCH.BOTTOM_TAB) {
+        paramsWithPolicyID = {...topmostCentralPaneRoute.params, ...paramsWithPolicyID};
+    }
     return {name: tabName, params: paramsWithPolicyID};
 }
 
