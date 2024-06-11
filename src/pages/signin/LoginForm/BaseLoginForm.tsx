@@ -26,7 +26,6 @@ import * as LoginUtils from '@libs/LoginUtils';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
-import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import * as CloseAccount from '@userActions/CloseAccount';
 import * as Session from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
@@ -50,8 +49,6 @@ type BaseLoginFormOnyxProps = {
 };
 
 type BaseLoginFormProps = WithToggleVisibilityViewProps & BaseLoginFormOnyxProps & LoginFormProps;
-
-const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 
 function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false, isVisible}: BaseLoginFormProps, ref: ForwardedRef<InputHandle>) {
     const styles = useThemeStyles();
@@ -215,6 +212,8 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
 
     const serverErrorText = useMemo(() => (account ? ErrorUtils.getLatestErrorMessage(account) : ''), [account]);
     const shouldShowServerError = !!serverErrorText && !formError;
+    const isSigningWithAppleOrGoogle = useRef(false);
+    const setIsSigningWithAppleOrGoogle = useCallback((isPressed: boolean) => (isSigningWithAppleOrGoogle.current = isPressed), []);
 
     return (
         <>
@@ -237,18 +236,15 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
                         // As we have only two signin buttons (Apple/Google) other than the text input,
                         // for natives onBlur is called only when the buttons are pressed and we don't need
                         // to validate in those case as the user has opted for other signin flow.
-                        willBlurTextInputOnTapOutside
-                            ? () =>
-                                  // This delay is to avoid the validate being called before google iframe is rendered to
-                                  // avoid error message appearing after pressing google signin button.
-                                  setTimeout(() => {
-                                      if (firstBlurred.current || !Visibility.isVisible() || !Visibility.hasFocus()) {
-                                          return;
-                                      }
-                                      firstBlurred.current = true;
-                                      validate(login);
-                                  }, 500)
-                            : undefined
+                        () =>
+                            setTimeout(() => {
+                                if (isSigningWithAppleOrGoogle.current || firstBlurred.current || !Visibility.isVisible() || !Visibility.hasFocus()) {
+                                    setIsSigningWithAppleOrGoogle(false);
+                                    return;
+                                }
+                                firstBlurred.current = true;
+                                validate(login);
+                            }, 500)
                     }
                     onChangeText={onTextInput}
                     onSubmitEditing={validateAndSubmitForm}
@@ -300,10 +296,10 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
 
                                     <View style={shouldUseNarrowLayout ? styles.loginButtonRowSmallScreen : styles.loginButtonRow}>
                                         <View>
-                                            <AppleSignIn />
+                                            <AppleSignIn onPress={() => setIsSigningWithAppleOrGoogle(true)} />
                                         </View>
                                         <View>
-                                            <GoogleSignIn />
+                                            <GoogleSignIn onPress={() => setIsSigningWithAppleOrGoogle(true)} />
                                         </View>
                                     </View>
                                 </View>
