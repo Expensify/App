@@ -491,7 +491,7 @@ describe('OptionsListUtils', () => {
         // When we don't include personal detail to the result
         results = OptionsListUtils.getFilteredOptions(
             [],
-            OPTIONS.personalDetails,
+            [],
             [],
             '',
             undefined,

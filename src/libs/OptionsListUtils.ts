@@ -2505,7 +2505,7 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
     }
 
     return {
-        personalDetails: [],
+        personalDetails,
         recentReports: orderOptions(recentReports, searchValue, {preferChatroomsOverThreads}),
         userToInvite,
         currentUserOption: matchResults.currentUserOption,
