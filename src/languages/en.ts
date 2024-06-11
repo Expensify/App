@@ -689,7 +689,6 @@ export default {
         finished: 'Finished',
         sendInvoice: ({amount}: RequestAmountParams) => `Send ${amount} invoice`,
         submitAmount: ({amount}: RequestAmountParams) => `submit ${amount}`,
-        trackAmount: ({amount}: RequestAmountParams) => `track ${amount}`,
         submittedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `submitted ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `tracking ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `split ${amount}`,
@@ -2250,8 +2249,8 @@ export default {
             },
             connectionsWarningModal: {
                 featureEnabledTitle: 'Not so fast...',
-                featureEnabledText: 'To enable or disable this feature change your accounting import settings.',
-                disconnectText: 'Disconnect your accounting connection from the workspace if you want to disable Accounting.',
+                featureEnabledText: "To enable or disable this feature, you'll need to change your accounting import settings.",
+                disconnectText: "To disable accounting, you'll need to disconnect your accounting connection from your workspace.",
                 manageSettings: 'Manage settings',
             },
         },
