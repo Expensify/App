@@ -5,7 +5,7 @@ import type {MutableRefObject} from 'react';
 import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
-import {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import {runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import AttachmentOfflineIndicator from '@components/AttachmentOfflineIndicator';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Hoverable from '@components/Hoverable';
@@ -113,7 +113,7 @@ function BaseVideoPlayer({
             setControlStatusState(CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW);
             controlsOpacity.value = 1;
             setTimeout(() => {
-                controlsOpacity.value = withTiming(0, {duration: 500}, () => setControlStatusState(CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE));
+                controlsOpacity.value = withTiming(0, {duration: 500}, () => runOnJS(setControlStatusState)(CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE));
             }, 2000);
         }
     }, [canToggleControlOnTap, controlStatusState, controlsOpacity]);
