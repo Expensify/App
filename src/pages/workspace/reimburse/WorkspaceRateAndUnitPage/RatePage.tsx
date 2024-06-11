@@ -10,6 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import {validateRateValue} from '@libs/PolicyDistanceRatesUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
@@ -53,17 +54,16 @@ function WorkspaceRatePage(props: WorkspaceRatePageProps) {
     );
 
     const defaultValue = useMemo(() => {
-        const defaultDistanceCustomUnit = Object.values(props.policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+        const defaultDistanceCustomUnit = PolicyUtils.getCustomUnit(props.policy);
         const distanceCustomRate = Object.values(defaultDistanceCustomUnit?.rates ?? {}).find((rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE);
         return distanceCustomRate?.rate ?? 0;
-    }, [props.policy?.customUnits]);
+    }, [props.policy]);
 
     return (
         <WorkspacePageWithSections
             headerText={translate('workspace.reimburse.trackDistanceRate')}
             route={props.route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_REIMBURSE}
-            shouldSkipVBBACall
             backButtonRoute={ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(props.policy?.id ?? '')}
             shouldShowLoading={false}
             shouldShowBackButton

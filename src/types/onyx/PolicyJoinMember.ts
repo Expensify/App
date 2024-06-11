@@ -1,5 +1,6 @@
 import type * as OnyxCommon from './OnyxCommon';
 
+/** Model of policy join member */
 type PolicyJoinMember = {
     /** The ID of the policy */
     policyID?: string;
