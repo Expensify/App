@@ -1665,7 +1665,6 @@ const styles = (theme: ThemeColors) =>
         onlyEmojisText: {
             fontSize: variables.fontSizeOnlyEmojis,
             lineHeight: variables.fontSizeOnlyEmojisHeight,
-            marginTop: variables.emojiOnlyMarginTop,
         },
 
         onlyEmojisTextLineHeight: {
