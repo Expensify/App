@@ -13,22 +13,27 @@ type BillingBannerProps = {
     subtitle?: string;
     isError?: boolean;
     shouldShowRedDotIndicator?: boolean;
+    isTrialActive?: boolean;
 };
 
-function BillingBanner({title, subtitle, isError, shouldShowRedDotIndicator}: BillingBannerProps) {
+function BillingBanner({title, subtitle, isError, shouldShowRedDotIndicator, isTrialActive}: BillingBannerProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
 
+    const backgroundStyle = isTrialActive ? styles.trialBannerBackgroundColor : styles.hoveredComponentBG;
+
+    const subtitleStyle = isTrialActive ? [] : styles.textSupporting;
+
     return (
-        <View style={[styles.pt4, styles.pb3, styles.ph5, styles.flexRow, styles.gap3, styles.w100, styles.alignItemsCenter, styles.hoveredComponentBG]}>
+        <View style={[styles.pv4, styles.ph5, styles.flexRow, styles.gap3, styles.w100, styles.alignItemsCenter, backgroundStyle]}>
             <Icon
                 src={isError ? Illustrations.CreditCardEyes : Illustrations.CheckmarkCircle}
                 width={variables.menuIconSize}
                 height={variables.menuIconSize}
             />
             <View style={[styles.flex1, styles.justifyContentCenter]}>
-                {title && <Text style={[styles.headerText, styles.textLarge]}>{title}</Text>}
-                {subtitle && <Text style={styles.textSupporting}>{subtitle}</Text>}
+                {title && <Text style={[styles.textStrong]}>{title}</Text>}
+                {subtitle && <Text style={subtitleStyle}>{subtitle}</Text>}
             </View>
             {isError && shouldShowRedDotIndicator && (
                 <Icon

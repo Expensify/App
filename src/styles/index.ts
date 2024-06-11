@@ -2848,6 +2848,10 @@ const styles = (theme: ThemeColors) =>
             width: variables.iconSizeExtraLarge,
         },
 
+        trialBannerBackgroundColor: {
+            backgroundColor: theme.trialBannerBackgroundColor,
+        },
+
         selectCircle: {
             width: variables.componentSizeSmall,
             height: variables.componentSizeSmall,
