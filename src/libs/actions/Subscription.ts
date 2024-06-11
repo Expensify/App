@@ -4,6 +4,7 @@ import * as API from '@libs/API';
 import type {UpdateSubscriptionAddNewUsersAutomaticallyParams, UpdateSubscriptionAutoRenewParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
+import type {FeedbackSurveyOptionID} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 /**
@@ -13,7 +14,7 @@ function openSubscriptionPage() {
     API.read(READ_COMMANDS.OPEN_SUBSCRIPTION_PAGE, null);
 }
 
-function updateSubscriptionAutoRenew(autoRenew: boolean, disableAutoRenewReason?: string, disableAutoRenewAdditionalNote?: string) {
+function updateSubscriptionAutoRenew(autoRenew: boolean, disableAutoRenewReason?: FeedbackSurveyOptionID, disableAutoRenewAdditionalNote?: string) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,

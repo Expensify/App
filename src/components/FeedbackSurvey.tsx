@@ -5,6 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import type {FeedbackSurveyOptionID} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import FixedFooter from './FixedFooter';
 import FormAlertWithSubmitButton from './FormAlertWithSubmitButton';
@@ -19,14 +20,14 @@ type FeedbackSurveyProps = {
     description: string;
 
     /** Callback to be called when the survey is submitted */
-    onSubmit: (reason: Option) => void;
+    onSubmit: (reason: FeedbackSurveyOptionID) => void;
 
     /** Styles for the option row element */
     optionRowStyles?: StyleProp<ViewStyle>;
 };
 
 type Option = {
-    key: string;
+    key: FeedbackSurveyOptionID;
     label: TranslationPaths;
 };
 
@@ -57,7 +58,7 @@ function FeedbackSurvey({title, description, onSubmit, optionRowStyles}: Feedbac
             return;
         }
 
-        onSubmit(reason);
+        onSubmit(reason.key);
     };
 
     return (
