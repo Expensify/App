@@ -109,14 +109,13 @@ function IOURequestStartPage({
 
     const resetIOUTypeIfChanged = useCallback(
         (newIOUType: IOURequestType) => {
-            if(transaction?.iouRequestType === newIOUType) {
+            if (transaction?.iouRequestType === newIOUType) {
                 return;
             }
             IOU.initMoneyRequest(reportID, policy, isFromGlobalCreate, newIOUType);
         },
         [policy, reportID, isFromGlobalCreate, transaction?.iouRequestType],
     );
- 
 
     if (!transaction?.transactionID) {
         // The draft transaction is initialized only after the component is mounted,
