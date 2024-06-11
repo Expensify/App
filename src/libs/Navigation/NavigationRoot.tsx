@@ -6,6 +6,7 @@ import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useTheme from '@hooks/useTheme';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import clearRedundantSelectionRanges from '@libs/clearRedundantSelectionRanges';
 import {FSPage} from '@libs/Fullstory';
 import Log from '@libs/Log';
 import {getPathFromURL} from '@libs/Url';
@@ -65,7 +66,6 @@ function parseAndLogRoute(state: NavigationState) {
         new FSPage(focusedRouteName, {path: currentPath}).start();
     }
 }
-
 function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: NavigationRootProps) {
     const firstRenderRef = useRef(true);
     const theme = useTheme();
@@ -136,10 +136,9 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         // We want to clean saved scroll offsets for screens that aren't anymore in the state.
         cleanStaleScrollOffsets(state);
 
-        // clear all window selection on navigation
+        // clear redundant window selection on navigation
         // this is to prevent the selection from persisting when navigating to a new page in web
-        // using "?" to avoid crash in native
-        window?.getSelection?.()?.removeAllRanges?.();
+        clearRedundantSelectionRanges();
     };
 
     return (
