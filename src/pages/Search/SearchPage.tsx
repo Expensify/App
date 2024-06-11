@@ -35,7 +35,6 @@ function SearchPage({route}: SearchPageProps) {
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.ALL));
 
-
     // On small screens this page is not displayed, the configuration is in the file: src/libs/Navigation/AppNavigator/createCustomStackNavigator/index.tsx
     // To avoid calling hooks in the Search component when this page isn't visible, we return null here.
     if (isSmallScreenWidth) {
