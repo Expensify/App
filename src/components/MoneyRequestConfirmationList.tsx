@@ -826,6 +826,7 @@ function MoneyRequestConfirmationList({
         );
     }, [
         isReadOnly,
+        isTypeSplit,
         iouType,
         selectedParticipants.length,
         confirm,
