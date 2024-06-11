@@ -2035,15 +2035,15 @@ export default {
                 values: {
                     [CONST.QUICKBOOKS_EXPORT_DATE.LAST_EXPENSE]: {
                         label: 'Fecha del último gasto',
-                        description: 'Fecha del gasto mas reciente en el informe',
+                        description: 'Fecha del gasto mas reciente en el informe.',
                     },
                     [CONST.QUICKBOOKS_EXPORT_DATE.REPORT_EXPORTED]: {
                         label: 'Fecha de exportación',
-                        description: 'Fecha de exportación del informe a QuickBooks Online',
+                        description: 'Fecha de exportación del informe a QuickBooks Online.',
                     },
                     [CONST.QUICKBOOKS_EXPORT_DATE.REPORT_SUBMITTED]: {
                         label: 'Fecha de envío',
-                        description: 'Fecha en la que el informe se envió para tu aprobación',
+                        description: 'Fecha en la que el informe se envió para tu aprobación.',
                     },
                 },
             },
