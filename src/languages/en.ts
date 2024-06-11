@@ -2123,7 +2123,7 @@ export default {
             xeroBankAccountDescription: 'Choose where expenses will post as bank transactions.',
             preferredExporter: 'Preferred exporter',
             exportExpenses: 'Export out-of-pocket expenses as',
-            exportExpensesDescription: 'Reports will export as a purchase bill with the date and status below.',
+            exportExpensesDescription: 'Reports will export as a purchase bill with the date and status selected below.',
             purchaseBillDate: 'Purchase bill date',
             exportInvoices: 'Export invoices as',
             salesInvoice: 'Sales invoice',
