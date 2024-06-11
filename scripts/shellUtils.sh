@@ -103,3 +103,17 @@ get_abs_path() {
 
     echo "$abs_path"
 }
+
+# Function to read lines from standard input into an array using a temporary file.
+# This is a bash 3 polyfill for readarray.
+# Arguments:
+#   $1: Name of the array variable to store the lines
+# Usage:
+#   read_lines_into_array array_name
+read_lines_into_array() {
+  local array_name="$1"
+  local line
+  while IFS= read -r line || [ -n "$line" ]; do
+    eval "$array_name+=(\"$line\")"
+  done
+}

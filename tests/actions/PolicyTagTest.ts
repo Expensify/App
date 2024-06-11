@@ -177,6 +177,7 @@ describe('actions/Policy', () => {
                             newName: newTagListName,
                         },
                         fakePolicyTags,
+                        Object.values(fakePolicyTags)[0].orderWeight,
                     );
                     return waitForBatchedUpdates();
                 })
@@ -244,6 +245,7 @@ describe('actions/Policy', () => {
                             newName: newTagListName,
                         },
                         fakePolicyTags,
+                        Object.values(fakePolicyTags)[0].orderWeight,
                     );
                     return waitForBatchedUpdates();
                 })
@@ -395,7 +397,7 @@ describe('actions/Policy', () => {
                     Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
                 })
                 .then(() => {
-                    Tag.setWorkspaceTagEnabled(fakePolicy.id, tagsToUpdate);
+                    Tag.setWorkspaceTagEnabled(fakePolicy.id, tagsToUpdate, 0);
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -468,7 +470,7 @@ describe('actions/Policy', () => {
                 .then(() => {
                     mockFetch?.fail?.();
 
-                    Tag.setWorkspaceTagEnabled(fakePolicy.id, tagsToUpdate);
+                    Tag.setWorkspaceTagEnabled(fakePolicy.id, tagsToUpdate, 0);
                     return waitForBatchedUpdates();
                 })
                 .then(mockFetch?.resume)
@@ -514,10 +516,14 @@ describe('actions/Policy', () => {
                     Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
                 })
                 .then(() => {
-                    Tag.renamePolicyTag(fakePolicy.id, {
-                        oldName: oldTagName,
-                        newName: newTagName,
-                    });
+                    Tag.renamePolicyTag(
+                        fakePolicy.id,
+                        {
+                            oldName: oldTagName,
+                            newName: newTagName,
+                        },
+                        0,
+                    );
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -580,10 +586,14 @@ describe('actions/Policy', () => {
                 .then(() => {
                     mockFetch?.fail?.();
 
-                    Tag.renamePolicyTag(fakePolicy.id, {
-                        oldName: oldTagName,
-                        newName: newTagName,
-                    });
+                    Tag.renamePolicyTag(
+                        fakePolicy.id,
+                        {
+                            oldName: oldTagName,
+                            newName: newTagName,
+                        },
+                        0,
+                    );
                     return waitForBatchedUpdates();
                 })
                 .then(mockFetch?.resume)

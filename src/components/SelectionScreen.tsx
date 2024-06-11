@@ -1,9 +1,11 @@
+import {isEmpty} from 'lodash';
 import React from 'react';
 import useLocalize from '@hooks/useLocalize';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import type {AccessVariant} from '@pages/workspace/AccessOrNotFoundWrapper';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {TranslationPaths} from '@src/languages/types';
-import type {PolicyFeatureName} from '@src/types/onyx/Policy';
+import type {ConnectionName, PolicyFeatureName} from '@src/types/onyx/Policy';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import ScreenWrapper from './ScreenWrapper';
 import SelectionList from './SelectionList';
@@ -25,6 +27,9 @@ type SelectionScreenProps = {
 
     /** Custom content to display in the header */
     headerContent?: React.ReactNode;
+
+    /** Content to display if the list is empty */
+    listEmptyContent?: React.JSX.Element | null;
 
     /** Sections for the section list */
     sections: Array<SectionListDataType<SelectorType>>;
@@ -52,12 +57,16 @@ type SelectionScreenProps = {
 
     /** Whether or not to block user from accessing the page */
     shouldBeBlocked?: boolean;
+
+    /** Name of the current connection */
+    connectionName: ConnectionName;
 };
 
 function SelectionScreen({
     displayName,
     title,
     headerContent,
+    listEmptyContent,
     sections,
     listItem,
     initiallyFocusedOptionKey,
@@ -67,14 +76,19 @@ function SelectionScreen({
     accessVariants,
     featureName,
     shouldBeBlocked,
+    connectionName,
 }: SelectionScreenProps) {
     const {translate} = useLocalize();
+
+    const policy = PolicyUtils.getPolicy(policyID ?? '');
+    const isConnectionEmpty = isEmpty(policy.connections?.[connectionName]);
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
             accessVariants={accessVariants}
             featureName={featureName}
-            shouldBeBlocked={shouldBeBlocked}
+            shouldBeBlocked={isConnectionEmpty || shouldBeBlocked}
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
@@ -92,6 +106,7 @@ function SelectionScreen({
                     showScrollIndicator
                     shouldShowTooltips={false}
                     initiallyFocusedOptionKey={initiallyFocusedOptionKey}
+                    listEmptyContent={listEmptyContent}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
