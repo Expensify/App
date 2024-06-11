@@ -44,7 +44,7 @@ function updateSubscriptionAutoRenew(autoRenew: boolean, disableAutoRenewReason?
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION,
             value: {
-                autoRenew,
+                autoRenew: !autoRenew,
                 pendingAction: null,
             },
         },

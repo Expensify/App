@@ -3,6 +3,7 @@ import React from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -64,24 +65,26 @@ function SubscriptionSettings() {
             titleStyles={styles.textStrong}
             isCentralPane
         >
-            <View style={styles.mt5}>
-                <ToggleSettingOptionRow
-                    title={translate('subscription.subscriptionSettings.autoRenew')}
-                    switchAccessibilityLabel={translate('subscription.subscriptionSettings.autoRenew')}
-                    onToggle={handleAutoRenewToggle}
-                    isActive={privateSubscription?.autoRenew ?? false}
-                />
-                {!!autoRenewalDate && <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('subscription.subscriptionSettings.renewsOn', {date: autoRenewalDate})}</Text>}
-            </View>
-            <View style={styles.mt3}>
-                <ToggleSettingOptionRow
-                    customTitle={customTitle}
-                    switchAccessibilityLabel={translate('subscription.subscriptionSettings.autoRenew')}
-                    onToggle={handleAutoIncreaseToggle}
-                    isActive={privateSubscription?.addNewUsersAutomatically ?? false}
-                />
-                <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('subscription.subscriptionSettings.automaticallyIncrease')}</Text>
-            </View>
+            <OfflineWithFeedback pendingAction={privateSubscription?.pendingAction}>
+                <View style={styles.mt5}>
+                    <ToggleSettingOptionRow
+                        title={translate('subscription.subscriptionSettings.autoRenew')}
+                        switchAccessibilityLabel={translate('subscription.subscriptionSettings.autoRenew')}
+                        onToggle={handleAutoRenewToggle}
+                        isActive={privateSubscription?.autoRenew ?? false}
+                    />
+                    {!!autoRenewalDate && <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('subscription.subscriptionSettings.renewsOn', {date: autoRenewalDate})}</Text>}
+                </View>
+                <View style={styles.mt3}>
+                    <ToggleSettingOptionRow
+                        customTitle={customTitle}
+                        switchAccessibilityLabel={translate('subscription.subscriptionSettings.autoRenew')}
+                        onToggle={handleAutoIncreaseToggle}
+                        isActive={privateSubscription?.addNewUsersAutomatically ?? false}
+                    />
+                    <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('subscription.subscriptionSettings.automaticallyIncrease')}</Text>
+                </View>
+            </OfflineWithFeedback>
         </Section>
     );
 }
