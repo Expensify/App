@@ -2,7 +2,6 @@ import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import ConfirmedRoute from '@components/ConfirmedRoute';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -120,8 +119,6 @@ function MoneyRequestView({
     const isEmptyMerchant = transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
     const formattedTransactionAmount = transactionAmount ? CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency) : '';
-    const hasPendingWaypoints = Boolean(transaction?.pendingFields?.waypoints);
-    const showMapAsImage = isDistanceRequest && hasPendingWaypoints;
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && CurrencyUtils.convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
     const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
     const cardProgramName = isCardTransaction && transactionCardID !== undefined ? CardUtils.getCardDescription(transactionCardID) : '';
@@ -174,7 +171,8 @@ function MoneyRequestView({
 
     const {getViolationsForField} = useViolations(transactionViolations ?? []);
     const hasViolations = useCallback(
-        (field: ViolationField, data?: OnyxTypes.TransactionViolation['data']): boolean => !!canUseViolations && getViolationsForField(field, data).length > 0,
+        (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string): boolean =>
+            !!canUseViolations && getViolationsForField(field, data, policyHasDependentTags, tagValue).length > 0,
         [canUseViolations, getViolationsForField],
     );
 
@@ -241,7 +239,7 @@ function MoneyRequestView({
     const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => transaction?.pendingFields?.[fieldPath] ?? pendingAction;
 
     const getErrorForField = useCallback(
-        (field: ViolationField, data?: OnyxTypes.TransactionViolation['data']) => {
+        (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string) => {
             // Checks applied when creating a new expense
             // NOTE: receipt field can return multiple violations, so we need to handle it separately
             const fieldChecks: Partial<Record<ViolationField, {isError: boolean; translationPath: TranslationPaths}>> = {
@@ -267,14 +265,14 @@ function MoneyRequestView({
             }
 
             // Return violations if there are any
-            if (canUseViolations && hasViolations(field, data)) {
-                const violations = getViolationsForField(field, data);
+            if (hasViolations(field, data, policyHasDependentTags, tagValue)) {
+                const violations = getViolationsForField(field, data, policyHasDependentTags, tagValue);
                 return ViolationsUtils.getViolationTranslation(violations[0], translate);
             }
 
             return '';
         },
-        [transactionAmount, isSettled, isCancelled, isPolicyExpenseChat, isEmptyMerchant, transactionDate, hasErrors, canUseViolations, hasViolations, translate, getViolationsForField],
+        [transactionAmount, isSettled, isCancelled, isPolicyExpenseChat, isEmptyMerchant, transactionDate, hasErrors, hasViolations, translate, getViolationsForField],
     );
 
     const distanceRequestFields = canUseP2PDistanceRequests ? (
@@ -316,7 +314,6 @@ function MoneyRequestView({
         </OfflineWithFeedback>
     );
 
-    const shouldShowMapOrReceipt = showMapAsImage || hasReceipt;
     const isReceiptAllowed = !isPaidReport && !isInvoice;
     const shouldShowReceiptEmptyState =
         isReceiptAllowed && !hasReceipt && !isApproved && !isSettled && (canEditReceipt || isAdmin || isApprover) && (canEditReceipt || ReportUtils.isPaidGroupPolicy(report));
@@ -330,12 +327,43 @@ function MoneyRequestView({
     const receiptViolations =
         transactionViolations?.filter((violation) => receiptViolationNames.includes(violation.name)).map((violation) => ViolationsUtils.getViolationTranslation(violation, translate)) ?? [];
     const shouldShowNotesViolations = !isReceiptBeingScanned && canUseViolations && ReportUtils.isPaidGroupPolicy(report);
-    const shouldShowReceiptHeader = isReceiptAllowed && (shouldShowReceiptEmptyState || shouldShowMapOrReceipt) && canUseViolations && ReportUtils.isPaidGroupPolicy(report);
+    const shouldShowReceiptHeader = isReceiptAllowed && (shouldShowReceiptEmptyState || hasReceipt) && canUseViolations && ReportUtils.isPaidGroupPolicy(report);
 
     const errors = {
         ...(transaction?.errorFields?.route ?? transaction?.errors),
         ...parentReportAction?.errors,
     };
+
+    const tagList = policyTagLists.map(({name, orderWeight}, index) => {
+        const tagError = getErrorForField(
+            'tag',
+            {
+                tagListIndex: index,
+                tagListName: name,
+            },
+            PolicyUtils.hasDependentTags(policy, policyTagList),
+            TransactionUtils.getTagForDisplay(transaction, index),
+        );
+        return (
+            <OfflineWithFeedback
+                key={name}
+                pendingAction={getPendingFieldAction('tag')}
+            >
+                <MenuItemWithTopDescription
+                    description={name ?? translate('common.tag')}
+                    title={TransactionUtils.getTagForDisplay(transaction, index)}
+                    interactive={canEdit}
+                    shouldShowRightIcon={canEdit}
+                    titleStyle={styles.flex1}
+                    onPress={() =>
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(CONST.IOU.ACTION.EDIT, iouType, orderWeight, transaction?.transactionID ?? '', report.reportID))
+                    }
+                    brickRoadIndicator={tagError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    errorText={tagError}
+                />
+            </OfflineWithFeedback>
+        );
+    });
 
     return (
         <View style={styles.pRelative}>
@@ -344,10 +372,10 @@ function MoneyRequestView({
                 {shouldShowReceiptHeader && (
                     <ReceiptAuditHeader
                         notes={receiptViolations}
-                        shouldShowAuditMessage={Boolean(shouldShowNotesViolations && didRceiptScanSucceed)}
+                        shouldShowAuditMessage={!!(shouldShowNotesViolations && didRceiptScanSucceed)}
                     />
                 )}
-                {(shouldShowMapOrReceipt || errors) && (
+                {(hasReceipt || errors) && (
                     <OfflineWithFeedback
                         pendingAction={pendingAction}
                         errors={errors}
@@ -360,25 +388,18 @@ function MoneyRequestView({
                             ReportActions.clearAllRelatedReportActionErrors(report.reportID, parentReportAction);
                         }}
                     >
-                        {shouldShowMapOrReceipt && (
+                        {hasReceipt && (
                             <View style={styles.moneyRequestViewImage}>
-                                {showMapAsImage ? (
-                                    <ConfirmedRoute
-                                        transaction={transaction}
-                                        interactive={false}
-                                    />
-                                ) : (
-                                    <ReportActionItemImage
-                                        thumbnail={receiptURIs?.thumbnail}
-                                        fileExtension={receiptURIs?.fileExtension}
-                                        isThumbnail={receiptURIs?.isThumbnail}
-                                        image={receiptURIs?.image}
-                                        isLocalFile={receiptURIs?.isLocalFile}
-                                        filename={receiptURIs?.filename}
-                                        transaction={transaction}
-                                        enablePreviewModal
-                                    />
-                                )}
+                                <ReportActionItemImage
+                                    thumbnail={receiptURIs?.thumbnail}
+                                    fileExtension={receiptURIs?.fileExtension}
+                                    isThumbnail={receiptURIs?.isThumbnail}
+                                    image={receiptURIs?.image}
+                                    isLocalFile={receiptURIs?.isLocalFile}
+                                    filename={receiptURIs?.filename}
+                                    transaction={transaction}
+                                    enablePreviewModal
+                                />
                             </View>
                         )}
                     </OfflineWithFeedback>
@@ -400,7 +421,7 @@ function MoneyRequestView({
                         }
                     />
                 )}
-                {!shouldShowReceiptEmptyState && !shouldShowMapOrReceipt && <View style={{marginVertical: 6}} />}
+                {!shouldShowReceiptEmptyState && !hasReceipt && <View style={{marginVertical: 6}} />}
                 {shouldShowNotesViolations && <ReceiptAuditMessages notes={receiptViolations} />}
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('amount')}>
                     <MenuItemWithTopDescription
@@ -479,35 +500,7 @@ function MoneyRequestView({
                         />
                     </OfflineWithFeedback>
                 )}
-                {shouldShowTag &&
-                    policyTagLists.map(({name, orderWeight}, index) => (
-                        <OfflineWithFeedback
-                            key={name}
-                            pendingAction={getPendingFieldAction('tag')}
-                        >
-                            <MenuItemWithTopDescription
-                                description={name ?? translate('common.tag')}
-                                title={TransactionUtils.getTagForDisplay(transaction, index)}
-                                interactive={canEdit}
-                                shouldShowRightIcon={canEdit}
-                                titleStyle={styles.flex1}
-                                onPress={() =>
-                                    Navigation.navigate(
-                                        ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(CONST.IOU.ACTION.EDIT, iouType, orderWeight, transaction?.transactionID ?? '', report.reportID),
-                                    )
-                                }
-                                brickRoadIndicator={
-                                    getErrorForField('tag', {
-                                        tagListIndex: index,
-                                        tagListName: name,
-                                    })
-                                        ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                                        : undefined
-                                }
-                                errorText={getErrorForField('tag', {tagListIndex: index, tagListName: name})}
-                            />
-                        </OfflineWithFeedback>
-                    ))}
+                {shouldShowTag && tagList}
                 {isCardTransaction && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('cardID')}>
                         <MenuItemWithTopDescription
@@ -596,7 +589,7 @@ export default withOnyx<MoneyRequestViewPropsWithoutTransaction, MoneyRequestVie
     },
     distanceRates: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`,
-        selector: DistanceRequestUtils.getMileageRates,
+        selector: (policy: OnyxEntry<OnyxTypes.Policy>) => DistanceRequestUtils.getMileageRates(policy, true),
     },
 })(
     withOnyx<MoneyRequestViewProps, MoneyRequestViewTransactionOnyxProps>({

@@ -33,13 +33,13 @@ type TransactionCellProps = {
     transactionItem: TransactionListItemType;
 } & CellProps;
 
-type ReceiptCellProps = {
-    isHovered?: boolean;
-} & TransactionCellProps;
-
 type ActionCellProps = {
     onButtonPress: () => void;
 } & CellProps;
+
+type TotalCellProps = {
+    isChildListItem: boolean;
+} & TransactionCellProps;
 
 type TransactionListItemRowProps = {
     item: TransactionListItemType;
@@ -47,7 +47,7 @@ type TransactionListItemRowProps = {
     onButtonPress: () => void;
     showItemHeaderOnNarrowLayout?: boolean;
     containerStyle?: StyleProp<ViewStyle>;
-    isHovered?: boolean;
+    isChildListItem?: boolean;
 };
 
 const getTypeIcon = (type?: SearchTransactionType) => {
@@ -63,7 +63,7 @@ const getTypeIcon = (type?: SearchTransactionType) => {
     }
 };
 
-function ReceiptCell({transactionItem, isHovered = false}: ReceiptCellProps) {
+function ReceiptCell({transactionItem}: TransactionCellProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -80,7 +80,6 @@ function ReceiptCell({transactionItem, isHovered = false}: ReceiptCellProps) {
                 fallbackIconSize={20}
                 fallbackIconColor={theme.icon}
                 iconSize="x-small"
-                isHovered={isHovered}
             />
         </View>
     );
@@ -112,7 +111,7 @@ function MerchantCell({transactionItem, showTooltip}: TransactionCellProps) {
     );
 }
 
-function TotalCell({showTooltip, isLargeScreenWidth, transactionItem}: TransactionCellProps) {
+function TotalCell({showTooltip, isLargeScreenWidth, transactionItem, isChildListItem}: TotalCellProps) {
     const styles = useThemeStyles();
     const currency = TransactionUtils.getCurrency(transactionItem);
 
@@ -120,7 +119,7 @@ function TotalCell({showTooltip, isLargeScreenWidth, transactionItem}: Transacti
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
             text={CurrencyUtils.convertToDisplayString(transactionItem.formattedTotal, currency)}
-            style={[styles.optionDisplayName, styles.textNewKansasNormal, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? undefined : styles.textAlignRight]}
+            style={[styles.optionDisplayName, styles.justifyContentCenter, isLargeScreenWidth ? undefined : styles.textAlignRight, isChildListItem ? styles.label : undefined]}
         />
     );
 }
@@ -149,7 +148,7 @@ function ActionCell({onButtonPress}: ActionCellProps) {
             onPress={onButtonPress}
             small
             pressOnEnter
-            style={[styles.p0]}
+            style={[styles.w100]}
         />
     );
 }
@@ -176,14 +175,14 @@ function TagCell({isLargeScreenWidth, showTooltip, transactionItem}: Transaction
     return isLargeScreenWidth ? (
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
-            text={transactionItem?.tag}
+            text={TransactionUtils.getTagForDisplay(transactionItem)}
             style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter]}
         />
     ) : (
         <TextWithIconCell
             icon={Expensicons.Tag}
             showTooltip={showTooltip}
-            text={transactionItem?.tag}
+            text={TransactionUtils.getTagForDisplay(transactionItem)}
         />
     );
 }
@@ -204,7 +203,7 @@ function TaxCell({transactionItem, showTooltip}: TransactionCellProps) {
     );
 }
 
-function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeaderOnNarrowLayout = true, containerStyle, isHovered = false}: TransactionListItemRowProps) {
+function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeaderOnNarrowLayout = true, containerStyle, isChildListItem = false}: TransactionListItemRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isLargeScreenWidth} = useWindowDimensions();
@@ -229,7 +228,6 @@ function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeade
                         transactionItem={item}
                         isLargeScreenWidth={false}
                         showTooltip={false}
-                        isHovered={isHovered}
                     />
                     <View style={[styles.flex2, styles.gap1]}>
                         <MerchantCell
@@ -255,6 +253,7 @@ function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeade
                             showTooltip={showTooltip}
                             transactionItem={item}
                             isLargeScreenWidth={isLargeScreenWidth}
+                            isChildListItem={isChildListItem}
                         />
                         <View style={[styles.flexRow, styles.gap1, styles.justifyContentCenter]}>
                             <TypeCell
@@ -282,7 +281,6 @@ function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeade
                         transactionItem={item}
                         isLargeScreenWidth={false}
                         showTooltip={false}
-                        isHovered={isHovered}
                     />
                 </View>
                 <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DATE)]}>
@@ -339,11 +337,12 @@ function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeade
                     </View>
                 )}
 
-                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TOTAL)]}>
+                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TOTAL_AMOUNT)]}>
                     <TotalCell
                         showTooltip={showTooltip}
                         transactionItem={item}
                         isLargeScreenWidth={isLargeScreenWidth}
+                        isChildListItem={isChildListItem}
                     />
                 </View>
                 <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TYPE)]}>

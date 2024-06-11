@@ -14,6 +14,8 @@ type StartSplitBillParams = {
     createdReportActionID?: string;
     billable: boolean;
     chatType?: string;
+    taxCode?: string;
+    taxAmount?: number;
 };
 
 export default StartSplitBillParams;

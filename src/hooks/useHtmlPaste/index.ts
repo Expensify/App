@@ -1,5 +1,5 @@
 import {useNavigation} from '@react-navigation/native';
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import {ExpensiMark} from 'expensify-common';
 import {useCallback, useEffect} from 'react';
 import type UseHtmlPaste from './types';
 
