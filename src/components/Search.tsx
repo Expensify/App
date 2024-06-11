@@ -122,7 +122,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
 
     const isSortingAllowed = sortableSearchTabs.includes(query);
 
-    const doesAtleastOneExpenseBelongToAPastYear = SearchUtils.doesAtleastOneExpenseBelongToAPastYear(searchResults?.data as TransactionListItemType[] | ReportListItemType[]);
+    const doesAtleastOneExpenseBelongToAPastYear = SearchUtils.doesAtleastOneExpenseBelongToAPastYear(searchResults?.data);
 
     return (
         <SelectionList<ReportListItemType | TransactionListItemType>
