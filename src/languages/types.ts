@@ -1,4 +1,3 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import type {ReportAction} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import type en from './en';
@@ -19,7 +18,7 @@ type LoggedInAsParams = {
     email: string;
 };
 
-type NewFaceEnterMagicCodeParams = {
+type SignUpNewFaceCodeParams = {
     login: string;
 };
 
@@ -41,15 +40,15 @@ type LocalTimeParams = {
 };
 
 type EditActionParams = {
-    action: OnyxEntry<ReportAction>;
+    action: ReportAction | null;
 };
 
 type DeleteActionParams = {
-    action: OnyxEntry<ReportAction>;
+    action: ReportAction | null;
 };
 
 type DeleteConfirmationParams = {
-    action: OnyxEntry<ReportAction>;
+    action: ReportAction | null;
 };
 
 type BeginningOfChatHistoryDomainRoomPartOneParams = {
@@ -300,10 +299,11 @@ type DistanceRateOperationsParams = {count: number};
 type ReimbursementRateParams = {unit: Unit};
 
 export type {
-    AddressLineParams,
     AdminCanceledRequestParams,
-    AlreadySignedInParams,
     ApprovedAmountParams,
+    AddressLineParams,
+    AlreadySignedInParams,
+    UserSplitParams,
     BeginningOfChatHistoryAdminRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartTwo,
@@ -324,14 +324,12 @@ export type {
     FormattedMaxLengthParams,
     GoBackMessageParams,
     GoToRoomParams,
-    HeldRequestParams,
     InstantSummaryParams,
     LocalTimeParams,
-    LogSizeParams,
     LoggedInAsParams,
     ManagerApprovedAmountParams,
     ManagerApprovedParams,
-    NewFaceEnterMagicCodeParams,
+    SignUpNewFaceCodeParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
     NotYouParams,
@@ -341,13 +339,11 @@ export type {
     PaidElsewhereWithAmountParams,
     PaidWithExpensifyWithAmountParams,
     ParentNavigationSummaryParams,
-    PaySomeoneParams,
     PayerOwesAmountParams,
     PayerOwesParams,
     PayerPaidAmountParams,
     PayerPaidParams,
     PayerSettledParams,
-    ReimbursementRateParams,
     RemovedTheRequestParams,
     RenamedRoomActionParams,
     ReportArchiveReasonsClosedParams,
@@ -379,9 +375,7 @@ export type {
     UntilTimeParams,
     UpdatedTheDistanceParams,
     UpdatedTheRequestParams,
-    UsePlusButtonParams,
     UserIsAlreadyMemberParams,
-    UserSplitParams,
     ViolationsAutoReportedRejectedExpenseParams,
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,
@@ -398,9 +392,14 @@ export type {
     ViolationsTaxOutOfPolicyParams,
     WaitingOnBankAccountParams,
     WalletProgramParams,
+    UsePlusButtonParams,
     WeSentYouMagicSignInLinkParams,
     WelcomeEnterMagicCodeParams,
     WelcomeNoteParams,
     WelcomeToRoomParams,
     ZipCodeExampleFormatParams,
+    LogSizeParams,
+    HeldRequestParams,
+    PaySomeoneParams,
+    ReimbursementRateParams,
 };

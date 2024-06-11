@@ -1,11 +1,10 @@
 import {useFocusEffect} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import Str from 'expensify-common/lib/str';
+import {ExpensiMark, Str} from 'expensify-common';
 import lodashDebounce from 'lodash/debounce';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -31,12 +30,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PrivateNotesForm';
-import type {PersonalDetailsList, Report} from '@src/types/onyx';
+import type {PersonalDetails, Report} from '@src/types/onyx';
 import type {Note} from '@src/types/onyx/Report';
 
 type PrivateNotesEditPageOnyxProps = {
     /** All of the personal details for everyone */
-    personalDetailsList: OnyxEntry<PersonalDetailsList>;
+    personalDetailsList: OnyxCollection<PersonalDetails>;
 };
 
 type PrivateNotesEditPageProps = WithReportAndPrivateNotesOrNotFoundProps &

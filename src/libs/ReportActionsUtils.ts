@@ -1,4 +1,4 @@
-import fastMerge from 'expensify-common/lib/fastMerge';
+import {fastMerge} from 'expensify-common';
 import _ from 'lodash';
 import lodashFindLast from 'lodash/findLast';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
@@ -11,6 +11,7 @@ import type {
     ActionName,
     ChangeLog,
     IOUMessage,
+    JoinWorkspaceResolution,
     OriginalMessageActionableMentionWhisper,
     OriginalMessageActionableReportMentionWhisper,
     OriginalMessageActionableTrackedExpenseWhisper,
@@ -506,6 +507,17 @@ function isReportActionDeprecated(reportAction: OnyxEntry<ReportAction>, key: st
         return true;
     }
 
+    const deprecatedOldDotReportActions: ActionName[] = [
+        CONST.REPORT.ACTIONS.TYPE.DELETED_ACCOUNT,
+        CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REQUESTED,
+        CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP_REQUESTED,
+        CONST.REPORT.ACTIONS.TYPE.DONATION,
+    ];
+    if (deprecatedOldDotReportActions.includes(reportAction.actionName as ActionName)) {
+        Log.info('Front end filtered out reportAction for being an older, deprecated report action', false, reportAction);
+        return true;
+    }
+
     return false;
 }
 
@@ -667,7 +679,7 @@ function getLastVisibleMessage(reportID: string, actionsToMerge: OnyxCollection<
 /**
  * A helper method to filter out report actions keyed by sequenceNumbers.
  */
-function filterOutDeprecatedReportActions(reportActions: OnyxEntry<ReportActions>): ReportAction[] {
+function filterOutDeprecatedReportActions(reportActions: ReportActions | null): ReportAction[] {
     return Object.entries(reportActions ?? {})
         .filter(([key, reportAction]) => !isReportActionDeprecated(reportAction, key))
         .map((entry) => entry[1]);
@@ -679,7 +691,7 @@ function filterOutDeprecatedReportActions(reportActions: OnyxEntry<ReportActions
  * to ensure they will always be displayed in the same order (in case multiple actions have the same timestamp).
  * This is all handled with getSortedReportActions() which is used by several other methods to keep the code DRY.
  */
-function getSortedReportActionsForDisplay(reportActions: OnyxEntry<ReportActions> | ReportAction[], shouldIncludeInvisibleActions = false): ReportAction[] {
+function getSortedReportActionsForDisplay(reportActions: ReportActions | null | ReportAction[], shouldIncludeInvisibleActions = false): ReportAction[] {
     let filteredReportActions: ReportAction[] = [];
     if (!reportActions) {
         return [];
@@ -703,7 +715,7 @@ function getSortedReportActionsForDisplay(reportActions: OnyxEntry<ReportActions
  * Additionally, archived #admins and #announce do not have the closed report action so we will return null if none is found.
  *
  */
-function getLastClosedReportAction(reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> {
+function getLastClosedReportAction(reportActions: ReportActions | null): OnyxEntry<ReportAction> {
     // If closed report action is not present, return early
     if (!Object.values(reportActions ?? {}).some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED)) {
         return null;
@@ -756,7 +768,7 @@ function getLinkedTransactionID(reportActionOrID: string | OnyxEntry<ReportActio
     return reportAction.originalMessage?.IOUTransactionID ?? null;
 }
 
-function getReportAction(reportID: string, reportActionID: string): ReportAction | null {
+function getReportAction(reportID: string, reportActionID: string): OnyxEntry<ReportAction> {
     return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]?.[reportActionID] ?? null;
 }
 
@@ -843,6 +855,10 @@ function isTrackExpenseAction(reportAction: OnyxEntry<ReportAction | OptimisticI
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && (reportAction.originalMessage as IOUMessage).type === CONST.IOU.REPORT_ACTION_TYPE.TRACK;
 }
 
+function isPayAction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>): boolean {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && (reportAction.originalMessage as IOUMessage).type === CONST.IOU.REPORT_ACTION_TYPE.PAY;
+}
+
 function isTaskAction(reportAction: OnyxEntry<ReportAction>): boolean {
     const reportActionName = reportAction?.actionName;
     return (
@@ -893,7 +909,7 @@ function getOneTransactionThreadReportID(
             // - they have an assocaited IOU transaction ID or
             // - they have visibile childActions (like comments) that we'd want to display
             // - the action is pending deletion and the user is offline
-            (Boolean(action.originalMessage.IOUTransactionID) ||
+            (!!action.originalMessage.IOUTransactionID ||
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 (isMessageDeleted(action) && action.childVisibleActionCount) ||
                 (action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && (isOffline ?? isNetworkOffline))),
@@ -1158,7 +1174,7 @@ function isReportActionUnread(reportAction: OnyxEntry<ReportAction>, lastReadTim
         return !isCreatedAction(reportAction);
     }
 
-    return Boolean(reportAction && lastReadTime && reportAction.created && lastReadTime < reportAction.created);
+    return !!(reportAction && lastReadTime && reportAction.created && lastReadTime < reportAction.created);
 }
 
 /**
@@ -1190,7 +1206,9 @@ function isActionableJoinRequest(reportAction: OnyxEntry<ReportAction>): reportA
  */
 function isActionableJoinRequestPending(reportID: string): boolean {
     const sortedReportActions = getSortedReportActions(Object.values(getAllReportActions(reportID)));
-    const findPendingRequest = sortedReportActions.find((reportActionItem) => isActionableJoinRequest(reportActionItem) && reportActionItem.originalMessage.choice === '');
+    const findPendingRequest = sortedReportActions.find(
+        (reportActionItem) => isActionableJoinRequest(reportActionItem) && reportActionItem.originalMessage.choice === ('' as JoinWorkspaceResolution),
+    );
     return !!findPendingRequest;
 }
 
@@ -1216,6 +1234,13 @@ function getDismissedViolationMessageText(originalMessage: OriginalMessageDismis
  */
 function isLinkedTransactionHeld(reportActionID: string, reportID: string): boolean {
     return TransactionUtils.isOnHoldByTransactionID(getLinkedTransactionID(reportActionID, reportID) ?? '');
+}
+
+/**
+ * Check if the current user is the requestor of the action
+ */
+function wasActionTakenByCurrentUser(reportAction: OnyxEntry<ReportAction>): boolean {
+    return currentUserAccountID === reportAction?.actorAccountID;
 }
 
 export {
@@ -1257,6 +1282,7 @@ export {
     isSentMoneyReportAction,
     isSplitBillAction,
     isTrackExpenseAction,
+    isPayAction,
     isTaskAction,
     doesReportHaveVisibleActions,
     isThreadParentMessage,
@@ -1283,7 +1309,9 @@ export {
     isActionableJoinRequest,
     isActionableJoinRequestPending,
     isActionableTrackExpense,
+    getAllReportActions,
     isLinkedTransactionHeld,
+    wasActionTakenByCurrentUser,
     isResolvedActionTrackExpense,
 };
 

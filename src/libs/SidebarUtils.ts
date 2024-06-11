@@ -1,4 +1,4 @@
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ChatReportSelector, PolicySelector, ReportActionsSelector} from '@hooks/useReportIDs';
@@ -98,7 +98,8 @@ function getOrderedReportIDs(
         const isFocused = report.reportID === currentReportId;
         const allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions) ?? {};
         const hasErrorsOtherThanFailedReceipt = doesReportHaveViolations || Object.values(allReportErrors).some((error) => error?.[0] !== 'report.genericSmartscanFailureMessage');
-        const shouldOverrideHidden = hasErrorsOtherThanFailedReceipt || isFocused || report.isPinned;
+        const isSystemChat = ReportUtils.isSystemChat(report);
+        const shouldOverrideHidden = hasErrorsOtherThanFailedReceipt || isFocused || isSystemChat || report.isPinned;
         if (isHidden && !shouldOverrideHidden) {
             return false;
         }

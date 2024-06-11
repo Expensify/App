@@ -5,48 +5,114 @@ import type * as OnyxTypes from '.';
 import type * as OnyxCommon from './OnyxCommon';
 import type {WorkspaceTravelSettings} from './TravelSettings';
 
+/** Distance units */
 type Unit = 'mi' | 'km';
 
-type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<{
-    name?: string;
-    rate?: number;
-    currency?: string;
-    customUnitRateID?: string;
-    enabled?: boolean;
-    errors?: OnyxCommon.Errors;
-    errorFields?: OnyxCommon.ErrorFields;
-}>;
+/** Tax rate attributes of the policy distance rate */
+type TaxRateAttributes = {
+    /** Percentage of the tax that can be reclaimable */
+    taxClaimablePercentage?: number;
 
-type Attributes = {
-    unit: Unit;
+    /** External ID associated to this tax rate */
+    taxRateExternalID?: string;
 };
 
+/** Model of policy distance rate */
+type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<
+    {
+        /** Name of the distance rate */
+        name?: string;
+
+        /** Amount to be reimbursed per distance unit travelled */
+        rate?: number;
+
+        /** Currency used to pay the distance rate */
+        currency?: string;
+
+        /** Generated ID to identify the distance rate */
+        customUnitRateID?: string;
+
+        /** Whether this distance rate is currently enabled */
+        enabled?: boolean;
+
+        /** Error messages to show in UI */
+        errors?: OnyxCommon.Errors;
+
+        /** Form fields that triggered the errors */
+        errorFields?: OnyxCommon.ErrorFields;
+
+        /** Tax rate attributes of the policy */
+        attributes?: TaxRateAttributes;
+    },
+    keyof TaxRateAttributes
+>;
+
+/** Custom unit attributes */
+type Attributes = {
+    /** Distance unit name */
+    unit: Unit;
+
+    /** Whether the tax tracking is enabled or not */
+    taxEnabled?: boolean;
+};
+
+/** Policy custom unit */
 type CustomUnit = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** Custom unit name */
     name: string;
+
+    /** ID that identifies this custom unit */
     customUnitID: string;
+
+    /** Contains custom attributes like unit, for this custom unit */
     attributes: Attributes;
+
+    /** Distance rates using this custom unit */
     rates: Record<string, Rate>;
+
+    /** The default category in which this custom unit is used */
     defaultCategory?: string;
+
+    /** Whether this custom unit is enabled */
     enabled?: boolean;
+
+    /** Error messages to show in UI */
     errors?: OnyxCommon.Errors;
+
+    /** Form fields that triggered errors */
     errorFields?: OnyxCommon.ErrorFields;
 }>;
 
+/** Policy company address data */
 type CompanyAddress = {
+    /** Street address */
     addressStreet: string;
+
+    /** City */
     city: string;
+
+    /** State */
     state: string;
+
+    /** Zip post code */
     zipCode: string;
+
+    /** Country code */
     country: Country | '';
 };
 
+/** Policy disabled fields */
 type DisabledFields = {
+    /** Whether the default billable field is disabled */
     defaultBillable?: boolean;
+
+    /** Whether the reimbursable field is disabled */
     reimbursable?: boolean;
 };
 
+/** Policy tax rate */
 type TaxRate = OnyxCommon.OnyxValueWithOfflineFeedback<{
-    /** Name of the a tax rate. */
+    /** Name of the tax rate. */
     name: string;
 
     /** The value of the tax rate. */
@@ -71,8 +137,10 @@ type TaxRate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     errorFields?: OnyxCommon.ErrorFields;
 }>;
 
+/** Record of policy tax rates, indexed by id_{taxRateName} where taxRateName is the name of the tax rate in UPPER_SNAKE_CASE */
 type TaxRates = Record<string, TaxRate>;
 
+/** Policy tax rates with default tax rate */
 type TaxRatesWithDefault = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Name of the tax */
     name: string;
@@ -96,136 +164,337 @@ type TaxRatesWithDefault = OnyxCommon.OnyxValueWithOfflineFeedback<{
     errorFields?: OnyxCommon.ErrorFields;
 }>;
 
+/** Connection last synchronization state */
 type ConnectionLastSync = {
+    /** Date when the connection's last successful sync occurred */
     successfulDate?: string;
+
+    /** Date when the connection's last failed sync occurred */
     errorDate?: string;
+
+    /** Whether the connection's last sync was successful */
     isSuccessful: boolean;
+
+    /** Where did the connection's last sync came from */
     source: 'DIRECT' | 'EXPENSIFYWEB' | 'EXPENSIFYAPI' | 'AUTOSYNC' | 'AUTOAPPROVE';
 };
 
+/** Financial account (bank account, debit card, etc) */
 type Account = {
+    /** GL code assigned to the financial account */
     glCode?: string;
+
+    /** Name of the financial account */
     name: string;
+
+    /** Currency of the financial account */
     currency: string;
+
+    /** ID assigned to the financial account */
     id: string;
 };
 
+/**
+ * Model of QuickBooks Online employee data
+ *
+ * TODO: QBO remaining comments will be handled here (https://github.com/Expensify/App/issues/43033)
+ */
 type Employee = {
+    /** ID assigned to the employee */
     id: string;
+
+    /** Employee's first name */
     firstName?: string;
+
+    /** Employee's last name */
     lastName?: string;
+
+    /** Employee's display name */
     name: string;
+
+    /** Employee's e-mail */
     email: string;
 };
 
+/**
+ * Model of QuickBooks Online vendor data
+ *
+ * TODO: QBO remaining comments will be handled here (https://github.com/Expensify/App/issues/43033)
+ */
 type Vendor = {
+    /** ID assigned to the vendor */
     id: string;
+
+    /** Vendor's name */
     name: string;
+
+    /** Vendor's currency */
     currency: string;
+
+    /** Vendor's e-mail */
     email: string;
 };
 
+/**
+ * Model of QuickBooks Online tax code data
+ *
+ * TODO: QBO remaining comments will be handled here (https://github.com/Expensify/App/issues/43033)
+ */
 type TaxCode = {
+    /** TODO: Will be handled in another issue */
     totalTaxRateVal: string;
+
+    /** TODO: Will be handled in another issue */
     simpleName: string;
+
+    /** TODO: Will be handled in another issue */
     taxCodeRef: string;
+
+    /** TODO: Will be handled in another issue */
     taxRateRefs: Record<string, string>;
+
+    /** TODO: Will be handled in another issue */
+    /** Name of the tax code */
     name: string;
 };
 
 /**
  * Data imported from QuickBooks Online.
+ *
+ * TODO: QBO remaining comments will be handled here (https://github.com/Expensify/App/issues/43033)
  */
 type QBOConnectionData = {
-    country: string;
+    /** Country code */
+    country: ValueOf<typeof CONST.COUNTRY>;
+
+    /** TODO: Will be handled in another issue */
     edition: string;
+
+    /** TODO: Will be handled in another issue */
     homeCurrency: string;
+
+    /** TODO: Will be handled in another issue */
     isMultiCurrencyEnabled: boolean;
 
+    /** Collection of journal entry accounts  */
     journalEntryAccounts: Account[];
+
+    /** Collection of bank accounts */
     bankAccounts: Account[];
+
+    /** Collection of credit cards */
     creditCards: Account[];
+
+    /** Collection of export destination accounts */
     accountsReceivable: Account[];
+
+    /** TODO: Will be handled in another issue */
     accountPayable: Account[];
+
+    /** TODO: Will be handled in another issue */
     otherCurrentAssetAccounts: Account[];
 
+    /** TODO: Will be handled in another issue */
     taxCodes: TaxCode[];
+
+    /** TODO: Will be handled in another issue */
     employees: Employee[];
+
+    /** Collections of vendors */
     vendors: Vendor[];
 };
 
+/** Sync entity names */
 type IntegrationEntityMap = (typeof CONST.INTEGRATION_ENTITY_MAP_TYPES)[keyof typeof CONST.INTEGRATION_ENTITY_MAP_TYPES];
 
+/**
+ * Non reimbursable account types exported from QuickBooks Online
+ *
+ * TODO: QBO remaining comments will be handled here (https://github.com/Expensify/App/issues/43033)
+ */
 type QBONonReimbursableExportAccountType = (typeof CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE)[keyof typeof CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE];
+
+/**
+ * Reimbursable account types exported from QuickBooks Online
+ *
+ * TODO: QBO remaining comments will be handled here (https://github.com/Expensify/App/issues/43033)
+ */
 type QBOReimbursableExportAccountType = (typeof CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE)[keyof typeof CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE];
 
 /**
  * User configuration for the QuickBooks Online accounting integration.
+ *
+ * TODO: QBO remaining comments will be handled here (https://github.com/Expensify/App/issues/43033)
  */
 type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** TODO: Will be handled in another issue */
     realmId: string;
+
+    /** TODO: Will be handled in another issue */
     companyName: string;
+
+    /** Configuration of automatic synchronization from QuickBooks Online to the app */
     autoSync: {
+        /** TODO: Will be handled in another issue */
         jobID: string;
+
+        /** Whether changes made in QuickBooks Online should be reflected into the app automatically */
         enabled: boolean;
     };
+
+    /** Whether employees can be invited */
     syncPeople: boolean;
+
+    /** TODO: Will be handled in another issue */
     syncItems: boolean;
+
+    /** TODO: Will be handled in another issue */
     markChecksToBePrinted: boolean;
+
+    /** Defines how reimbursable expenses are exported */
     reimbursableExpensesExportDestination: QBOReimbursableExportAccountType;
+
+    /** Defines how non reimbursable expenses are exported */
     nonReimbursableExpensesExportDestination: QBONonReimbursableExportAccountType;
+
+    /** Default vendor of non reimbursable bill */
     nonReimbursableBillDefaultVendor: string;
+
+    /** ID of the invoice collection account */
     collectionAccountID?: string;
+
+    /** ID of the bill payment account */
     reimbursementAccountID?: string;
+
+    /** Account that receives the reimbursable expenses */
     reimbursableExpensesAccount?: Account;
+
+    /** Account that receives the non reimbursable expenses */
     nonReimbursableExpensesAccount?: Account;
+
+    /** Account that receives the exported invoices */
     receivableAccount?: Account;
+
+    /**
+     * Whether a default vendor will be created and applied to all credit card
+     * transactions upon import
+     */
     autoCreateVendor: boolean;
+
+    /** TODO: Will be handled in another issue */
     hasChosenAutoSyncOption: boolean;
+
+    /** Whether Quickbooks Online classes should be imported */
     syncClasses: IntegrationEntityMap;
+
+    /** Whether Quickbooks Online customers should be imported */
     syncCustomers: IntegrationEntityMap;
+
+    /** Whether Quickbooks Online locations should be imported */
     syncLocations: IntegrationEntityMap;
+
+    /** TODO: Will be handled in another issue */
     lastConfigurationTime: number;
+
+    /** Whether the taxes should be synchronized */
     syncTax: boolean;
+
+    /** Whether new categories are enabled in chart of accounts */
     enableNewCategories: boolean;
+
+    /** TODO: Will be handled in another issue */
     errors?: OnyxCommon.Errors;
+
+    /** TODO: Will be handled in another issue */
     exportDate: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_DATE>;
+
+    /** Configuration of the export */
     export: {
+        /** E-mail of the exporter */
         exporter: string;
     };
+
+    /** Collections of form field errors */
     errorFields?: OnyxCommon.ErrorFields;
 }>;
 
+/** Xero bill status values
+ *
+ * TODO: Xero remaining comments will be handled here (https://github.com/Expensify/App/issues/43033)
+ */
 type BillStatusValues = 'DRAFT' | 'AWT_APPROVAL' | 'AWT_PAYMENT';
 
+/** Xero expense status values
+ *
+ *  TODO: Xero remaining comments will be handled here (https://github.com/Expensify/App/issues/43033)
+ */
 type ExpenseTypesValues = 'BILL' | 'BANK_TRANSACTION' | 'SALES_INVOICE' | 'NOTHING';
 
+/** Xero bill date values
+ *
+ *  TODO: Xero remaining comments will be handled here (https://github.com/Expensify/App/issues/43033)
+ */
 type BillDateValues = 'REPORT_SUBMITTED' | 'REPORT_EXPORTED' | 'LAST_EXPENSE';
 
+/**
+ * Model of an organization in Xero
+ *
+ * TODO: Xero remaining comments will be handled here (https://github.com/Expensify/App/issues/43033)
+ */
 type Tenant = {
+    /** ID of the organization */
     id: string;
+
+    /** Name of the organization */
     name: string;
+
+    /** TODO: Will be handled in another issue */
     value: string;
 };
 
+/** TODO: Xero remaining comments will be handled here (https://github.com/Expensify/App/issues/43033) */
 type XeroTrackingCategory = {
+    /** TODO: Will be handled in another issue */
     id: string;
+
+    /** TODO: Will be handled in another issue */
     name: string;
 };
 
+/**
+ * Data imported from Xero
+ *
+ * TODO: Xero remaining comments will be handled here (https://github.com/Expensify/App/issues/43033)
+ */
 type XeroConnectionData = {
+    /** Collection of bank accounts */
     bankAccounts: Account[];
+
+    /** TODO: Will be handled in another issue */
     countryCode: string;
+
+    /** TODO: Will be handled in another issue */
     organisationID: string;
+
+    /** TODO: Will be handled in another issue */
     revenueAccounts: Array<{
+        /** TODO: Will be handled in another issue */
         id: string;
+
+        /** TODO: Will be handled in another issue */
         name: string;
     }>;
+
+    /** Collection of organizations */
     tenants: Tenant[];
+
+    /** TODO: Will be handled in another issue */
     trackingCategories: XeroTrackingCategory[];
 };
 
+/** TODO: Xero remaining comments will be handled here (https://github.com/Expensify/App/issues/43033) */
 type XeroMappingType = {
+    /** TODO: Will be handled in another issue */
     customer: string;
 } & {
     [key in `trackingCategory_${string}`]: string;
@@ -233,68 +502,147 @@ type XeroMappingType = {
 
 /**
  * User configuration for the Xero accounting integration.
+ *
+ * TODO: Xero remaining comments will be handled here (https://github.com/Expensify/App/issues/43033)
  */
 type XeroConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** Xero auto synchronization configs */
     autoSync: {
+        /** Whether data should be automatically synched between the app and Xero */
         enabled: boolean;
+
+        /** TODO: Will be handled in another issue */
         jobID: string;
     };
+
+    /** TODO: Will be handled in another issue */
     enableNewCategories: boolean;
+
+    /** Xero export configs */
     export: {
+        /** Current bill status */
         billDate: BillDateValues;
+
+        /** TODO: Will be handled in another issue */
         billStatus: {
+            /** Current status of the purchase bill */
             purchase: BillStatusValues;
+
+            /** Current status of the sales bill */
             sales: BillStatusValues;
         };
+
+        /** TODO: Will be handled in another issue */
         billable: ExpenseTypesValues;
+
+        /** The e-mail of the exporter */
         exporter: string;
+
+        /** TODO: Will be handled in another issue */
         nonReimbursable: ExpenseTypesValues;
+
+        /** TODO: Will be handled in another issue */
         nonReimbursableAccount: string;
+
+        /** TODO: Will be handled in another issue */
         reimbursable: ExpenseTypesValues;
     };
+
+    /** Whether customers should be imported from Xero */
     importCustomers: boolean;
+
+    /** Whether tax rates should be imported from Xero */
     importTaxRates: boolean;
+
+    /** Whether tracking categories should be imported from Xero */
     importTrackingCategories: boolean;
+
+    /** TODO: Will be handled in another issue */
     isConfigured: boolean;
+
+    /** TODO: Will be handled in another issue */
     mappings: XeroMappingType;
+
+    /** TODO: Will be handled in another issue */
     sync: {
+        /** TODO: Will be handled in another issue */
         hasChosenAutoSyncOption: boolean;
+
+        /** TODO: Will be handled in another issue */
         hasChosenSyncReimbursedReportsOption: boolean;
+
+        /** ID of the bank account for Xero invoice collections */
         invoiceCollectionsAccountID: string;
+
+        /** ID of the bank account for Xero bill payment account */
         reimbursementAccountID: string;
+
+        /** Whether the reimbursed reports should be synched */
         syncReimbursedReports: boolean;
     };
+
+    /** ID of Xero organization */
     tenantID: string;
+
+    /** TODO: Will be handled in another issue */
     errors?: OnyxCommon.Errors;
+
+    /** Collection of form field errors  */
     errorFields?: OnyxCommon.ErrorFields;
 }>;
 
+/** State of integration connection */
 type Connection<ConnectionData, ConnectionConfig> = {
+    /** State of the last synchronization */
     lastSync?: ConnectionLastSync;
+
+    /** Data imported from integration */
     data?: ConnectionData;
+
+    /** Configuration of the connection */
     config: ConnectionConfig;
 };
 
+/** Available integration connections */
 type Connections = {
+    /** QuickBooks integration connection */
     quickbooksOnline: Connection<QBOConnectionData, QBOConnectionConfig>;
+
+    /** Xero integration connection */
     xero: Connection<XeroConnectionData, XeroConnectionConfig>;
 };
 
+/** Names of integration connections */
 type ConnectionName = keyof Connections;
 
+/** Model of verified reimbursement bank account linked to policy */
 type ACHAccount = {
+    /** ID of the bank account */
     bankAccountID: number;
+
+    /** Bank account number */
     accountNumber: string;
+
+    /** Routing number of bank account */
     routingNumber: string;
+
+    /** Address name of the bank account */
     addressName: string;
+
+    /** Name of the bank */
     bankName: string;
+
+    /** E-mail of the reimburser */
     reimburser: string;
 };
 
+/** Day of the month to schedule submission  */
 type AutoReportingOffset = number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>;
 
+/** Types of policy report fields */
 type PolicyReportFieldType = 'text' | 'date' | 'dropdown' | 'formula';
 
+/** Model of policy report field */
 type PolicyReportField = {
     /** Name of the field */
     name: string;
@@ -320,14 +668,13 @@ type PolicyReportField = {
     /** Options to select from if field is of type dropdown */
     values: string[];
 
-    target: string;
-
     /** Tax UDFs have keys holding the names of taxes (eg, VAT), values holding percentages (eg, 15%) and a value indicating the currently selected tax value (eg, 15%). */
     keys: string[];
 
     /** list of externalIDs, this are either imported from the integrations or auto generated by us, each externalID */
     externalIDs: string[];
 
+    /** Collection of flags that state whether droplist field options are disabled */
     disabledOptions: boolean[];
 
     /** Is this a tax user defined report field */
@@ -343,22 +690,37 @@ type PolicyReportField = {
     defaultExternalID?: string | null;
 };
 
+/** Names of policy features */
 type PolicyFeatureName = ValueOf<typeof CONST.POLICY.MORE_FEATURES>;
 
+/** Current user policy join request state */
 type PendingJoinRequestPolicy = {
+    /** Whether the current user requested to join the policy */
     isJoinRequestPending: boolean;
+
+    /** Record of public policy details, indexed by policy ID */
     policyDetailsForNonMembers: Record<
         string,
         OnyxCommon.OnyxValueWithOfflineFeedback<{
+            /** Name of the policy */
             name: string;
+
+            /** Policy owner account ID */
             ownerAccountID: number;
+
+            /** Policy owner e-mail */
             ownerEmail: string;
+
+            /** Policy type */
             type: ValueOf<typeof CONST.POLICY.TYPE>;
+
+            /** Policy avatar */
             avatar?: string;
         }>
     >;
 };
 
+/** Model of policy data */
 type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
         /** The ID of the policy */
@@ -412,8 +774,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The scheduled submit frequency set up on this policy */
         autoReportingFrequency?: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>;
 
-        /** Whether the scheduled submit is enabled */
+        /** Scheduled submit data */
         harvesting?: {
+            /** Whether the scheduled submit is enabled */
             enabled: boolean;
         };
 
@@ -481,8 +844,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
          */
         isTaxTrackingEnabled?: boolean;
 
-        /** Whether or not the policy has tax tracking enabled */
+        /** Tax data */
         tax?: {
+            /** Whether or not the policy has tax tracking enabled */
             trackingEnabled: boolean;
         };
 
@@ -528,6 +892,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Indicates if the Policy is in loading state */
         isLoading?: boolean;
 
+        /** Indicates the Policy's SetWorkspaceReimbursement call loading state */
+        isLoadingWorkspaceReimbursement?: boolean;
+
         /** Indicates if the Policy ownership change is successful */
         isChangeOwnerSuccessful?: boolean;
 
@@ -540,11 +907,22 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
     'generalSettings' | 'addWorkspaceRoom' | keyof ACHAccount
 >;
 
+/** Stages of policy connection sync */
 type PolicyConnectionSyncStage = ValueOf<typeof CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME>;
+
+/** Names of policy connection services */
 type PolicyConnectionName = ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
+
+/** Policy connection sync progress state */
 type PolicyConnectionSyncProgress = {
+    /** Current sync stage */
     stageInProgress: PolicyConnectionSyncStage;
+
+    /** Name of the connected service */
     connectionName: PolicyConnectionName;
+
+    /** Timestamp of the connection */
+    timestamp: string;
 };
 
 export default Policy;
@@ -556,6 +934,7 @@ export type {
     CustomUnit,
     Attributes,
     Rate,
+    TaxRateAttributes,
     TaxRate,
     TaxRates,
     TaxRatesWithDefault,
