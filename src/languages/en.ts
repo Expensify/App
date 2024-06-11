@@ -2048,8 +2048,8 @@ export default {
                 "QuickBooks Online doesn't support locations on vendor bill exports. As you have locations enabled on your workspace, this export option is unavailable.",
             outOfPocketTaxEnabledDescription:
                 "QuickBooks Online doesn't support taxes on journal entry exports. As you have taxes enabled on your workspace, this export option is unavailable.",
-            outOfPocketTaxEnabledError: 'Journal entry is unavailable when tax is enabled. Please choose a different export option.',
-            outOfPocketLocationEnabledError: 'Vendor bills are not available when locations are enabled. Please choose a different export option.',
+            outOfPocketTaxEnabledError: 'Journal entries are unavailable when taxes are enabled. Please choose a different export option.',
+            outOfPocketLocationEnabledError: 'Vendor bills are unavailable when locations are enabled. Please choose a different export option.',
             advancedConfig: {
                 advanced: 'Advanced',
                 autoSync: 'Auto-sync',
