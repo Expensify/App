@@ -9,7 +9,7 @@ type PreferredCurrency = ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>;
 /**
  * Get user's preferred currency in the following order:
  *
- * 1. Default card currency
+ * 1. Payment card currency
  * 2. User's local currency (if it's a valid payment card currency)
  * 3. USD (default currency)
  *
