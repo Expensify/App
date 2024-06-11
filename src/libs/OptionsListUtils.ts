@@ -218,7 +218,7 @@ type PreviewConfig = {showChatPreviewLine?: boolean; forcePolicyNamePreview?: bo
 type FilterOptionsConfig = Pick<
     GetOptionsConfig,
     'sortByReportTypeInSearch' | 'canInviteUser' | 'betas' | 'selectedOptions' | 'excludeUnknownUsers' | 'excludeLogins' | 'maxRecentReportsToShow'
-> & {preferChatroomsOverThreads: boolean};;
+> & {preferChatroomsOverThreads: boolean};
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -2158,9 +2158,7 @@ function getFilteredOptions(
     includePolicyReportFieldOptions = false,
     policyReportFieldOptions: string[] = [],
     recentlyUsedPolicyReportFieldOptions: string[] = [],
-    maxRecentReportsToShow = 5,
     includeInvoiceRooms = false,
-    includePersonalDetails = true,
 ) {
     return getOptions(
         {reports, personalDetails},
