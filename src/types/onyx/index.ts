@@ -45,6 +45,7 @@ import type {PolicyTag, PolicyTagList, PolicyTags} from './PolicyTag';
 import type PreferredTheme from './PreferredTheme';
 import type PriorityMode from './PriorityMode';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
+import type PrivateSubscription from './PrivateSubscription';
 import type QuickAction from './QuickAction';
 import type RecentlyUsedCategories from './RecentlyUsedCategories';
 import type RecentlyUsedReportFields from './RecentlyUsedReportFields';
@@ -74,6 +75,7 @@ import type {TransactionViolation, ViolationName} from './TransactionViolation';
 import type TransactionViolations from './TransactionViolation';
 import type User from './User';
 import type UserLocation from './UserLocation';
+import type UserMetadata from './UserMetadata';
 import type UserWallet from './UserWallet';
 import type WalletAdditionalDetails from './WalletAdditionalDetails';
 import type {WalletAdditionalQuestionDetails} from './WalletAdditionalDetails';
@@ -158,6 +160,7 @@ export type {
     TransactionViolations,
     User,
     UserLocation,
+    UserMetadata,
     UserWallet,
     ViolationName,
     WalletAdditionalDetails,
@@ -181,4 +184,5 @@ export type {
     PolicyJoinMember,
     CapturedLogs,
     SearchResults,
+    PrivateSubscription,
 };

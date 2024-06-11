@@ -28,6 +28,7 @@ type ServerInstance = {
     addTestResultListener: AddListener<TestResultListener>;
     addTestDoneListener: AddListener<TestDoneListener>;
     forceTestCompletion: () => void;
+    setReadyToAcceptTestResults: (isReady: boolean) => void;
     start: () => Promise<void>;
     stop: () => Promise<Error | undefined>;
 };
@@ -96,6 +97,11 @@ const createServerInstance = (): ServerInstance => {
     const [testStartedListeners, addTestStartedListener] = createListenerState<TestStartedListener>();
     const [testResultListeners, addTestResultListener] = createListenerState<TestResultListener>();
     const [testDoneListeners, addTestDoneListener] = createListenerState<TestDoneListener>();
+    let isReadyToAcceptTestResults = true;
+
+    const setReadyToAcceptTestResults = (isReady: boolean) => {
+        isReadyToAcceptTestResults = isReady;
+    };
 
     const forceTestCompletion = () => {
         testDoneListeners.forEach((listener) => {
@@ -122,6 +128,10 @@ const createServerInstance = (): ServerInstance => {
             }
 
             case Routes.testResults: {
+                if (!isReadyToAcceptTestResults) {
+                    return res.end('ok');
+                }
+
                 getPostJSONRequestData<TestResult>(req, res)?.then((data) => {
                     if (!data) {
                         // The getPostJSONRequestData function already handled the response
@@ -153,7 +163,7 @@ const createServerInstance = (): ServerInstance => {
                         res.statusCode = 500;
                         res.end('Error executing command');
                     })
-                    .catch((error) => {
+                    .catch((error: string) => {
                         Logger.error('Error executing command', error);
                         res.statusCode = 500;
                         res.end('Error executing command');
@@ -201,6 +211,7 @@ const createServerInstance = (): ServerInstance => {
     });
 
     return {
+        setReadyToAcceptTestResults,
         setTestConfig,
         addTestStartedListener,
         addTestResultListener,

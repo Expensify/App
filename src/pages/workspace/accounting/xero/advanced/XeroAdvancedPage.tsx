@@ -11,7 +11,7 @@ import {getCurrentXeroOrganizationName} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import * as Policy from '@userActions/Policy';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -28,7 +28,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const getSelectedAccountName = useMemo(
         () => (accountID: string) => {
             const selectedAccount = (bankAccounts ?? []).find((bank) => bank.id === accountID);
-            return selectedAccount?.name ?? '';
+            return selectedAccount?.name ?? bankAccounts?.[0]?.name ?? '';
         },
         [bankAccounts],
     );
@@ -47,6 +47,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={[styles.pb2, styles.ph5]}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
         >
             <ToggleSettingOptionRow
                 key={translate('workspace.xero.advancedConfig.autoSync')}
@@ -55,7 +56,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 switchAccessibilityLabel={translate('workspace.xero.advancedConfig.autoSyncDescription')}
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={styles.mv3}
-                isActive={Boolean(autoSync?.enabled)}
+                isActive={!!autoSync?.enabled}
                 onToggle={() =>
                     Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.AUTO_SYNC, {
                         enabled: !autoSync?.enabled,
@@ -72,7 +73,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 switchAccessibilityLabel={translate('workspace.xero.advancedConfig.reimbursedReportsDescription')}
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={styles.mv3}
-                isActive={Boolean(sync?.syncReimbursedReports)}
+                isActive={!!sync?.syncReimbursedReports}
                 onToggle={() =>
                     Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.SYNC, {
                         syncReimbursedReports: !sync?.syncReimbursedReports,

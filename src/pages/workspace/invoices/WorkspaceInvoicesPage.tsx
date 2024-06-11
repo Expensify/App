@@ -23,6 +23,7 @@ function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
             headerText={translate('workspace.common.invoices')}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_INVOICES}
             shouldShowOfflineIndicatorInWideScreen
+            shouldSkipVBBACall={false}
             route={route}
         >
             {(hasVBA?: boolean, policyID?: string) => (
