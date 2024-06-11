@@ -2248,8 +2248,8 @@ export default {
             },
             connectionsWarningModal: {
                 featureEnabledTitle: 'Not so fast...',
-                featureEnabledText: 'To enable or disable this feature change your accounting import settings.',
-                disconnectText: 'Disconnect your accounting connection from the workspace if you want to disable Accounting.',
+                featureEnabledText: "To enable or disable this feature, you'll need to change your accounting import settings.",
+                disconnectText: "To disable accounting, you'll need to disconnect your accounting connection from your workspace.",
                 manageSettings: 'Manage settings',
             },
         },
@@ -3225,8 +3225,8 @@ export default {
             title: 'Your plan',
             collect: {
                 title: 'Collect',
-                priceAnnual: 'From $5/active member with the Expensify Card, $10/active member without the Expensify Card.',
-                pricePayPerUse: 'From $10/active member with the Expensify Card, $20/active member without the Expensify Card.',
+                priceAnnual: ({lower, upper}) => `From ${lower}/active member with the Expensify Card, ${upper}/active member without the Expensify Card.`,
+                pricePayPerUse: ({lower, upper}) => `From ${lower}/active member with the Expensify Card, ${upper}/active member without the Expensify Card.`,
                 benefit1: 'Unlimited SmartScans and distance tracking',
                 benefit2: 'Expensify Cards with Smart Limits',
                 benefit3: 'Bill pay and invoicing',
@@ -3237,8 +3237,8 @@ export default {
             },
             control: {
                 title: 'Control',
-                priceAnnual: 'From $9/active member with the Expensify Card, $18/active member without the Expensify Card.',
-                pricePayPerUse: 'From $18/active member with the Expensify Card, $36/active member without the Expensify Card.',
+                priceAnnual: ({lower, upper}) => `From ${lower}/active member with the Expensify Card, ${upper}/active member without the Expensify Card.`,
+                pricePayPerUse: ({lower, upper}) => `From ${lower}/active member with the Expensify Card, ${upper}/active member without the Expensify Card.`,
                 benefit1: 'Everything in Collect, plus:',
                 benefit2: 'NetSuite and Sage Intacct integrations',
                 benefit3: 'Certinia and Workday sync',
@@ -3266,7 +3266,7 @@ export default {
             eachMonth:
                 'Each month, your subscription covers up to the number of active members set above. Any time you increase your subscription size, you’ll start a new 12-month subscription at that new size.',
             note: 'Note: An active member is anyone who has created, edited, submitted, approved, reimbursed, or exported expense data tied to your company workspace.',
-            confirmDetails: 'Confirm your new annual subscription details',
+            confirmDetails: 'Confirm your new annual subscription details:',
             subscriptionSize: 'Subscription size',
             activeMembers: ({size}) => `${size} active members/month`,
             subscriptionRenews: 'Subscription renews',
