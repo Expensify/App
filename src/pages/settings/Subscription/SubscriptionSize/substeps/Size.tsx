@@ -5,6 +5,7 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -19,9 +20,10 @@ function Size({onNext}: SizeProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
+    const {inputCallbackRef} = useAutoFocusInput();
 
     const defaultValues = {
-        [INPUT_IDS.SUBSCRIPTION_SIZE]: `${privateSubscription?.userCount ?? 0}`,
+        [INPUT_IDS.SUBSCRIPTION_SIZE]: `${privateSubscription?.userCount ?? ''}`,
     };
 
     return (
@@ -36,6 +38,7 @@ function Size({onNext}: SizeProps) {
                 <Text style={[styles.textNormalThemeText, styles.mb5]}>{translate('subscription.subscriptionSize.yourSize')}</Text>
                 <InputWrapper
                     InputComponent={TextInput}
+                    ref={inputCallbackRef}
                     inputID={INPUT_IDS.SUBSCRIPTION_SIZE}
                     label={translate('subscription.subscriptionSize.subscriptionSize')}
                     aria-label={translate('subscription.subscriptionSize.subscriptionSize')}

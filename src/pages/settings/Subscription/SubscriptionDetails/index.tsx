@@ -53,38 +53,35 @@ function SubscriptionDetails() {
         setSelectedOption(option);
     };
 
-    // This section is only shown when the subscription is annual
-    // An onPress action is going to be assigned to these buttons in phase 2
-    let subscriptionSizeSection: React.JSX.Element | null = null;
+    const onSubscriptionSizePress = () => {
+        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SIZE);
+    };
 
-    if (privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL) {
-        subscriptionSizeSection = privateSubscription?.userCount ? (
-            <OfflineWithFeedback
-                pendingAction={privateSubscription?.pendingFields?.userCount}
-                errors={privateSubscription?.errorFields?.userCount}
-            >
-                <MenuItemWithTopDescription
-                    description={translate('subscription.details.subscriptionSize')}
-                    title={`${privateSubscription?.userCount}`}
-                    wrapperStyle={styles.sectionMenuItemTopDescription}
-                    style={styles.mt5}
-                />
-            </OfflineWithFeedback>
-        ) : (
+    // This section is only shown when the subscription is annual
+    const subscriptionSizeSection: React.JSX.Element | null =
+        selectedOption === CONST.SUBSCRIPTION.TYPE.ANNUAL ? (
             <>
-                <MenuItemWithTopDescription
-                    description={translate('subscription.details.subscriptionSize')}
-                    shouldShowRightIcon
-                    wrapperStyle={styles.sectionMenuItemTopDescription}
-                    style={styles.mt5}
-                />
-                <Text style={styles.mt2}>
-                    <Text style={styles.h4}>{translate('subscription.details.headsUpTitle')}</Text>
-                    <Text style={styles.textLabelSupporting}>{translate('subscription.details.headsUpBody')}</Text>
-                </Text>
+                <OfflineWithFeedback
+                    pendingAction={privateSubscription?.pendingFields?.userCount}
+                    errors={privateSubscription?.errorFields?.userCount}
+                >
+                    <MenuItemWithTopDescription
+                        description={translate('subscription.details.subscriptionSize')}
+                        shouldShowRightIcon
+                        onPress={onSubscriptionSizePress}
+                        wrapperStyle={styles.sectionMenuItemTopDescription}
+                        style={styles.mt5}
+                        title={`${privateSubscription?.userCount ?? ''}`}
+                    />
+                </OfflineWithFeedback>
+                {!privateSubscription?.userCount && (
+                    <Text style={styles.mt2}>
+                        <Text style={styles.h4}>{translate('subscription.details.headsUpTitle')}</Text>
+                        <Text style={styles.textLabelSupporting}>{translate('subscription.details.headsUpBody')}</Text>
+                    </Text>
+                )}
             </>
-        );
-    }
+        ) : null;
 
     return (
         <Section
