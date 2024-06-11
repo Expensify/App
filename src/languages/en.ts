@@ -360,7 +360,7 @@ export default {
         errorWhileSelectingCorruptedAttachment: 'An error occurred while selecting a corrupted attachment, please try another file.',
         takePhoto: 'Take photo',
         chooseFromGallery: 'Choose from gallery',
-        chooseDocument: 'Choose document',
+        chooseDocument: 'Choose file',
         attachmentTooLarge: 'Attachment too large',
         sizeExceeded: 'Attachment size is larger than 24 MB limit.',
         attachmentTooSmall: 'Attachment too small',
