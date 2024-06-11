@@ -116,9 +116,11 @@ function getReportSections(data: OnyxTypes.SearchResults['data']): ReportListIte
         if (key.startsWith(ONYXKEYS.COLLECTION.REPORT)) {
             const value = {...data[key]};
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${value.reportID}`;
+            const transactions = reportIDToTransactions[reportKey]?.transactions ?? [];
+
             reportIDToTransactions[reportKey] = {
                 ...value,
-                transactions: reportIDToTransactions[reportKey]?.transactions ?? [],
+                transactions,
             };
         } else if (key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
             const transactionItem = {...data[key]};
@@ -155,7 +157,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data']): ReportListIte
         }
     }
 
-    return Object.values(reportIDToTransactions);
+    return Object.values(reportIDToTransactions).filter((item) => item.transactions?.length !== 0);
 }
 
 const searchTypeToItemMap: SearchTypeToItemMap = {

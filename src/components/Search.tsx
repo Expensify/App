@@ -1,5 +1,6 @@
 import {useNavigation} from '@react-navigation/native';
 import type {StackNavigationProp} from '@react-navigation/stack';
+import lodashMemoize from 'lodash/memoize';
 import React, {useEffect, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -14,6 +15,7 @@ import type {SearchColumnType, SortOrder} from '@libs/SearchUtils';
 import Navigation from '@navigation/Navigation';
 import type {CentralPaneNavigatorParamList} from '@navigation/types';
 import EmptySearchView from '@pages/Search/EmptySearchView';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -34,11 +36,29 @@ type SearchProps = {
 };
 
 const sortableSearchTabs: SearchQuery[] = [CONST.TAB_SEARCH.ALL];
+const listItemPadding = 12; // this is equivalent to 'mb3' on every transaction/report list item
 
 function isTransactionListItemType(item: TransactionListItemType | ReportListItemType): item is TransactionListItemType {
     const transactionListItem = item as TransactionListItemType;
     return transactionListItem.transactionID !== undefined;
 }
+
+const getItemHeight = lodashMemoize((item: TransactionListItemType | ReportListItemType) => {
+    if (isTransactionListItemType(item)) {
+        return variables.optionRowHeight + listItemPadding;
+    }
+
+    if (item.transactions.length === 0) {
+        return 0;
+    }
+
+    if (item.transactions.length === 1) {
+        return variables.optionRowHeight + listItemPadding;
+    }
+
+    const baseReportItemHeight = 72;
+    return baseReportItemHeight + item.transactions.length * 52 + listItemPadding;
+});
 
 function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
     const {isOffline} = useNetwork();
@@ -133,6 +153,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
                     sortBy={sortBy}
                 />
             }
+            customListHeaderHeight={54}
             // To enhance the smoothness of scrolling and minimize the risk of encountering blank spaces during scrolling,
             // we have configured a larger windowSize and a longer delay between batch renders.
             // The windowSize determines the number of items rendered before and after the currently visible items.
@@ -147,6 +168,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
             ListItem={ListItem}
             sections={[{data: sortedData, isDisabled: false}]}
             onSelectRow={(item) => openReport(item)}
+            getItemHeight={getItemHeight}
             shouldDebounceRowSelect
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
             listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}

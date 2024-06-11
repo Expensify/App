@@ -278,6 +278,12 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Callback to fire when "Select All" checkbox is pressed. Only use along with `canSelectMultiple` */
     onSelectAll?: () => void;
 
+    /**
+     * Callback that should return height of the specific item
+     * Only use this if we're handling some non-standard items, most of the time the default value is correct
+     */
+    getItemHeight?: (item: TItem) => number;
+
     /** Callback to fire when an error is dismissed */
     onDismissError?: (item: TItem) => void;
 
@@ -385,6 +391,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Custom header to show right above list */
     customListHeader?: ReactNode;
+
+    /** When customListHeader is provided, this should be its height needed for correct list scrolling */
+    customListHeaderHeight?: number;
 
     /** Styles for the list header wrapper */
     listHeaderWrapperStyle?: StyleProp<ViewStyle>;
