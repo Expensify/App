@@ -1,5 +1,6 @@
 // TODO: Is this a legit use case for exposing `OnyxCache`, or should we use `Onyx.connect`?
 import fastMerge from 'expensify-common/dist/fastMerge';
+import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ApiCommand} from '@libs/API/types';
 import Log from '@libs/Log';
@@ -25,8 +26,8 @@ type PaginationConfigMapValue = Omit<PaginationConfig<OnyxCollectionKey, OnyxPag
 };
 
 const paginationConfigs = new Map<string, PaginationConfigMapValue>();
-const ressources = new Map<OnyxCollectionKey, OnyxValues[OnyxCollectionKey] | null>();
-const pages = new Map<OnyxPagesKey, OnyxValues[OnyxPagesKey] | null>();
+const ressources = new Map<OnyxCollectionKey, OnyxCollection<OnyxValues[OnyxCollectionKey]>>();
+const pages = new Map<OnyxPagesKey, OnyxCollection<OnyxValues[OnyxPagesKey]>>();
 
 function registerPaginationConfig<TResourceKey extends OnyxCollectionKey, TPageKey extends OnyxPagesKey>({
     initialCommand,
@@ -39,13 +40,17 @@ function registerPaginationConfig<TResourceKey extends OnyxCollectionKey, TPageK
     paginationConfigs.set(previousCommand, {...config, type: 'previous'} as unknown as PaginationConfigMapValue);
     paginationConfigs.set(nextCommand, {...config, type: 'next'} as unknown as PaginationConfigMapValue);
     Onyx.connect({
-        key: config.resourceCollectionKey,
+        // TODO: Also not sure why this cast is needed.
+        key: config.resourceCollectionKey as OnyxCollectionKey,
+        waitForCollectionCallback: true,
         callback: (data) => {
             ressources.set(config.resourceCollectionKey, data);
         },
     });
     Onyx.connect({
-        key: config.pageCollectionKey,
+        // TODO: Also not sure why this cast is needed.
+        key: config.pageCollectionKey as OnyxPagesKey,
+        waitForCollectionCallback: true,
         callback: (data) => {
             pages.set(config.pageCollectionKey, data);
         },
@@ -100,11 +105,13 @@ const Pagination: Middleware = (requestResponse, request) => {
             newPage.unshift(CONST.PAGINATION_START_ID);
         }
 
-        const existingItems = ressources.get(resourceCollectionKey) ?? {};
+        const resourceCollections = ressources.get(resourceCollectionKey) ?? {};
+        const existingItems = resourceCollections[resourceKey] ?? {};
         const allItems = fastMerge(existingItems, pageItems, true);
         const sortedAllItems = sortItems(allItems);
 
-        const existingPages = pages.get(pageCollectionKey) ?? [];
+        const pagesCollections = pages.get(pageCollectionKey) ?? {};
+        const existingPages = pagesCollections[pageKey] ?? [];
         const mergedPages = PaginationUtils.mergeContinuousPages(sortedAllItems, [...existingPages, newPage], getItemID);
 
         response.onyxData.push({
