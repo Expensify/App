@@ -27,7 +27,7 @@ function BasePopoverReactionList(props: BasePopoverReactionListPropsWithLocalWit
 
     return (
         <PopoverWithMeasuredContent
-            isVisible={isPopoverVisible}
+            isVisible={isPopoverVisible && !!reportActionID && !!emojiName}
             onClose={hideReactionList}
             anchorPosition={popoverAnchorPosition}
             animationIn="fadeIn"
